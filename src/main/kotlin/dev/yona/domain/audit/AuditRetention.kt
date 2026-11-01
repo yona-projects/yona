@@ -22,6 +22,8 @@ data class AuditPurgeResult(val purged: Long, val archives: List<String>)
  * 디스크에 기록한 뒤에야 지운다. 보관 파일을 쓰지 못하면 아무것도 지우지 않는다. 지울 때 사슬의 끝 행([AuditChainHead])에 지운 마지막 번호와 해시를 남겨 남은 기록의
  * 사슬이 그 해시에서 이어지게 한다([AuditVerifier]). 번호 순서의 앞부분만 지우는 이유는 가운데를 비우면 사슬이 끊기기 때문이다. 지운 일은 시스템 행위자의
  * `audit.purged` 이벤트로 남는다. 한 묶음은 한 트랜잭션이고 그동안 사슬의 끝을 잠근다.
+ *
+ * 외부 스트리밍(웹훅, syslog)이 아직 보내지 않은 기록은 기간이 지나도 지우거나 비우지 않는다([AuditStreamer.minUnsentId], D-63). 보내는 쪽이 오래 막히면 그만큼 밀린다.
  */
 @Service
 class AuditRetention(
@@ -30,7 +32,8 @@ class AuditRetention(
     private val recorder: AuditRecorder,
     private val sink: AuditFileSink,
     private val properties: YonaProperties,
-    private val transactionManager: PlatformTransactionManager
+    private val transactionManager: PlatformTransactionManager,
+    private val streamer: AuditStreamer
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -92,7 +95,9 @@ class AuditRetention(
 
     private fun redactBatch(cutoff: Long, now: Long, batchSize: Int): Int {
         heads.lockHead() ?: return 0
+        val unsent = streamer.minUnsentId()
         val rows = logs.findByActionStartingWithAndCreatedMillisLessThanAndRedactedAtIsNullAndContentHashIsNotNullOrderByIdAsc("git.", cutoff, PageRequest.of(0, batchSize))
+            .filter { unsent == null || it.id < unsent }
         if (rows.isEmpty()) return 0
         val directory = File(sink.directory(), "archive")
         if (!directory.isDirectory && !directory.mkdirs()) throw IOException("보관 디렉터리를 만들지 못했습니다: $directory")
@@ -114,7 +119,8 @@ class AuditRetention(
     /** 한 묶음이다. 사슬의 끝을 잠그고 앞에서부터 기간을 넘긴 기록을 모은다. 보관 파일을 디스크에 쓴 뒤에 지우고 사슬의 끝에 지운 해시를 남긴다. */
     private fun purgeBatch(cutoff: Long, batchSize: Int): Batch? {
         val head = heads.lockHead() ?: return null
-        val old = logs.findByIdGreaterThanOrderByIdAsc(head.prunedThroughId, PageRequest.of(0, batchSize)).takeWhile { it.createdMillis < cutoff }
+        val unsent = streamer.minUnsentId()
+        val old = logs.findByIdGreaterThanOrderByIdAsc(head.prunedThroughId, PageRequest.of(0, batchSize)).takeWhile { it.createdMillis < cutoff && (unsent == null || it.id < unsent) }
         if (old.isEmpty()) return Batch(0, 0, 0, "")
         val first = old.first(); val last = old.last()
         val directory = File(sink.directory(), "archive")

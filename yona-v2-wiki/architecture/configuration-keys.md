@@ -68,3 +68,7 @@ v1.6은 기간 설정을 `getMilliseconds`로 읽어 `60s`, `5m`, `6h`, `1d` 같
 | `yona.audit-retention-days` | `365` | 감사 로그 보존 일수. 0이면 영구. 지난 앞부분은 `<데이터>/audit/archive/`로 옮긴 뒤 지운다 |
 | `yona.audit-file-enabled` | `true` | 감사 기록을 `<데이터>/audit/audit-<날짜>.jsonl`에도 남길지 |
 | `server.forward-headers-strategy` (Spring Boot) | `none` | **리버스 프록시 뒤에서는 `native`나 `framework`로 정한다.** 아니면 감사 기록과 로그인 실패 제한의 IP가 모두 프록시 주소가 된다. 믿을 프록시는 `server.tomcat.remoteip.internal-proxies`로 정한다. 자세한 설명은 [audit-log.md](audit-log.md) |
+| `yona.audit-git-retention-days` | `90` | `git.*` 감사 이벤트의 보존 일수. 지나면 보관 파일로 옮기고 개인정보 필드를 비운다(행은 남는다). 0이면 따로 비우지 않는다 |
+| `yona.audit-stream-webhook-url`, `yona.audit-stream-webhook-secret`, `yona.audit-stream-batch-size` | 없음, 없음, `100` | 감사 기록을 웹훅으로 보낸다. 자세한 내용은 [audit-log.md](audit-log.md) |
+| `yona.audit-stream-syslog-host`, `-port`, `-protocol`, `-hostname` | 없음, `514`, `udp`, 서버 호스트 이름 | 감사 기록을 syslog(RFC 5424)로 보낸다. 프로토콜은 `udp`, `tcp`, `tls` |
+

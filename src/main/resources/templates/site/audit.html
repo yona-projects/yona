@@ -12,6 +12,24 @@
         <h2 class="float-start" th:text="#{audit.title}"></h2>
     </div>
     <p class="text-body-secondary" th:text="#{audit.description}"></p>
+    <div th:if="${streams != null and not #lists.isEmpty(streams)}" class="audit-streams mb-4">
+        <h3 class="h6" th:text="#{audit.stream.title}">External streaming</h3>
+        <table class="table table-sm">
+            <thead><tr>
+                <th th:text="#{audit.stream.name}">Target</th><th th:text="#{audit.stream.backlog}">Pending</th><th th:text="#{audit.stream.lastSent}">Last sent</th>
+                <th th:text="#{audit.stream.failures}">Failures</th><th th:text="#{audit.stream.error}">Last error</th>
+            </tr></thead>
+            <tbody>
+            <tr class="audit-stream" th:each="s : ${streams}" th:classappend="${s.failures > 0} ? 'table-warning'">
+                <td class="stream-name" th:text="${s.name}">webhook</td>
+                <td class="stream-backlog" th:text="${s.backlog}">0</td>
+                <td class="stream-last-sent text-nowrap" th:text="${s.lastSent}">-</td>
+                <td class="stream-failures" th:text="${s.failures}">0</td>
+                <td class="stream-error" th:text="${s.error}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
     <th:block th:replace="~{audit/list :: auditList(true, true, true)}"></th:block>
 </th:block>
 </html>

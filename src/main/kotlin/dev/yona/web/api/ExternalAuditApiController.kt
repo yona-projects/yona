@@ -44,6 +44,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 class ExternalAuditApiController(
     private val query: AuditQueryService,
     private val verifier: AuditVerifier,
+    private val streamer: dev.yona.domain.audit.AuditStreamer,
     private val exporter: AuditExporter,
     private val recorder: AuditRecorder,
     private val support: AuditViewSupport,
@@ -85,6 +86,19 @@ class ExternalAuditApiController(
         val result = verifier.verify()
         return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_JSON)
             .body(linkedMapOf("ok" to result.ok, "checked" to result.checked, "brokenId" to result.brokenId, "reason" to result.reason))
+    }
+
+    @ApiOperation(operationId = "getAuditStreams", tags = [ApiTags.AUDIT], summary = "감사 로그 외부 스트리밍 상태(사이트 관리자)", description = "설정된 대상(웹훅, syslog)별로 마지막으로 보낸 기록 번호, 밀린 건수, 마지막 오류를 알려 준다. 대상이 설정되지 않았으면 빈 목록이다.")
+    @ApiResponse(responseCode = "200", description = "스트리밍 상태", content = [Content(schema = Schema(implementation = AuditStreamList::class))])
+    @GetMapping("/-_-api/v1/admin/audit/streams")
+    fun streams(request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        if (!accessControl.isSiteManager(user)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        fun time(millis: Long?) = millis?.let { java.time.Instant.ofEpochMilli(it).toString() }
+        val streams = streamer.status().map {
+            linkedMapOf("name" to it.name, "lastId" to it.lastId, "backlog" to it.backlog, "lastSentAt" to time(it.lastSentAt), "lastError" to it.lastError, "lastErrorAt" to time(it.lastErrorAt), "failures" to it.failures)
+        }
+        return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_JSON).body(linkedMapOf("streams" to streams))
     }
 
     @ApiOperation(operationId = "listOrganizationAuditEvents", tags = [ApiTags.AUDIT], summary = "조직의 감사 로그 조회와 내려받기(조직 관리자)", description = "조직 이벤트와 그 조직이 소유한 프로젝트의 이벤트만 담는다. 조직 관리자이면서 `admin:org` 범위가 있는 토큰만 쓸 수 있다.")

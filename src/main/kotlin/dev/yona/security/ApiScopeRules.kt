@@ -118,6 +118,7 @@ object ApiScopeRules {
         // 감사 로그(X-9 A6, D-62): 사이트 전체는 사이트 관리자 범위, 조직은 조직 관리 범위, 본인 기록은 사용자 읽기 범위
         add("GET", "/-_-api/v1/admin/audit", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
         add("GET", "/-_-api/v1/admin/audit/verify", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
+        add("GET", "/-_-api/v1/admin/audit/streams", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
         add("GET", "/-_-api/v1/orgs/{org}/audit", ApiRequirement.Scope("admin:org"))
         add("GET", "/-_-api/v1/user/audit", ApiRequirement.Scope("read:user"))
         // 프로젝트 위키(X-17, D-60): `repo`나 공개 프로젝트의 `public_repo`

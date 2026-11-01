@@ -97,6 +97,14 @@ class AuditApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `스트리밍 상태는 설정된 대상이 없으면 빈 목록이고 관리자 범위가 필요하다`() {
+        val admin = user(listOf("site_admin"), siteAdmin = true)
+        call("/admin/audit/streams", admin).andExpect(status().isOk).andExpect(jsonPath("$.streams").isArray).andExpect(jsonPath("$.streams.length()").value(0))
+        call("/admin/audit/streams", user(listOf("repo"), siteAdmin = true)).andExpect(status().isForbidden)
+        call("/admin/audit/streams", null).andExpect(status().isUnauthorized)
+    }
+
+    @Test
     fun `사이트 감사 로그는 범위와 관리자 자격이 모두 있어야 한다`() {
         val noScope = user(listOf("repo"), siteAdmin = true)
         val notAdmin = user(listOf("site_admin"))

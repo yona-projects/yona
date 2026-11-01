@@ -149,3 +149,25 @@ server:
 | `git.force_push` | 빨리 감기가 아닌 갱신(강제 푸시)마다 | `ref`, `type`, `old`, `new` |
 | `git.ref_deleted` | 브랜치나 태그를 지웠을 때 ref마다 | `ref`, `old`, `kind`(`branch`, `tag`) |
 | `git.push_rejected` | 규칙 묶음이나 예약 ref(`refs/yobi`)가 푸시를 거부했을 때(결과 DENIED) | `ref`, `reason` |
+
+## B4~B6 외부 스트리밍과 보존 보호 (구현)
+
+설정은 속성 파일에서만 한다. 대상이 하나도 설정되지 않으면 아무것도 보내지 않는다.
+
+| 키 | 기본값 | 설명 |
+|---|---|---|
+| `yona.audit-stream-webhook-url` | 없음 | 웹훅 주소(http, https). 비어 있으면 보내지 않는다 |
+| `yona.audit-stream-webhook-secret` | 없음 | 있으면 본문에 HMAC-SHA256 서명을 싣는다 |
+| `yona.audit-stream-batch-size` | `100` | 한 번에 보내는 기록 수 |
+| `yona.audit-stream-syslog-host` | 없음 | syslog 서버. 비어 있으면 보내지 않는다 |
+| `yona.audit-stream-syslog-port` | `514` | syslog 포트 |
+| `yona.audit-stream-syslog-protocol` | `udp` | `udp`, `tcp`, `tls` |
+| `yona.audit-stream-syslog-hostname` | 서버 호스트 이름 | 메시지 머리의 HOSTNAME |
+
+- **전달 방식**: `AuditStreamer`가 10초마다(서버를 띄운 30초 뒤부터) 대상별 커서(`audit_stream_cursor`)보다 큰 기록을 번호 순서로 묶음마다 보낸다. 번호가 커밋 순서이므로 순서가 지켜진다. 성공해야 커서를 올리므로 **적어도 한 번** 전달되고 수신 쪽은 `id`로 중복을 걸러야 한다. 실패하면 오류와 연속 실패 횟수를 커서에 남기고 다음 주기에 같은 묶음을 다시 보낸다. 대상이 처음 설정되면 그 시점까지의 기록은 보내지 않고 이후 기록부터 보낸다(과거는 줄 파일과 내보내기로 얻는다). 서버 한 대를 전제로 한다.
+- **웹훅**: `POST`, 본문은 `{"events":[내보내기 JSON...]}`, 헤더는 `Content-Type: application/json; charset=utf-8`, `X-Yona-Event: audit`, `X-Yona-Delivery: <처음 번호>-<끝 번호>`, 비밀값이 있으면 `X-Yona-Signature: sha256=<본문의 HMAC-SHA256 16진수>`이다. 응답이 2xx가 아니면 실패이다.
+- **syslog**: RFC 5424 `<우선순위>1 시각 호스트 yona - 기록번호 [audit@32473 action outcome actor ip] {내보내기 JSON}`. 우선순위는 시설 13(log audit)과 심각도(성공 6, 그 밖 4)이다. UDP는 기록마다 데이터그램 하나, TCP와 TLS는 옥텟 세기 틀(`길이 메시지`)이다. TLS는 JVM 기본 신뢰 저장소를 쓴다.
+- **상태**: 사이트 감사 화면(`/sites/audit`) 위에 설정된 대상의 표(밀린 기록, 마지막 전송, 실패 횟수, 마지막 오류)가 보이고 REST `GET /-_-api/v1/admin/audit/streams`(범위 `site:admin`)가 같은 값을 준다. 대상이 없으면 표가 없고 빈 목록이다.
+- **보존 보호**: 보존 처리(앞부분 삭제와 git 이벤트 비움)는 설정된 대상 중 가장 덜 보낸 커서 뒤의 기록(아직 보내지 않은 것)을 지우거나 비우지 않는다. 대상이 막혀 있으면 그만큼 DB에 쌓이므로 상태 표의 밀린 기록을 지켜봐야 한다.
+- **감사 범위 밖**: 위키 변경은 기록하지 않는다(git 이력이 있다, D-62). git clone과 fetch는 기록하지 않는다(D-63).
+

@@ -44,3 +44,17 @@ class AuditVerifyResult(
     @get:Schema(description = "처음 어긋난 기록 번호", nullable = true) val brokenId: Long?,
     @get:Schema(description = "어긋난 이유", allowableValues = ["content", "hash", "prev_hash", "head"], nullable = true) val reason: String?
 )
+
+@Schema(description = "외부 스트리밍 대상 하나의 상태")
+class AuditStreamState(
+    @get:Schema(description = "대상 이름", allowableValues = ["webhook", "syslog"]) val name: String,
+    @get:Schema(description = "마지막으로 보낸 기록 번호") val lastId: Long,
+    @get:Schema(description = "아직 보내지 않은 기록 수") val backlog: Long,
+    @get:Schema(description = "마지막으로 보낸 시각(ISO 8601)", nullable = true) val lastSentAt: String?,
+    @get:Schema(description = "마지막 실패의 메시지. 최근에 성공했으면 `null`", nullable = true) val lastError: String?,
+    @get:Schema(description = "마지막 실패 시각(ISO 8601)", nullable = true) val lastErrorAt: String?,
+    @get:Schema(description = "연속 실패 횟수") val failures: Int
+)
+
+@Schema(description = "외부 스트리밍 상태 목록(설정된 대상만)")
+class AuditStreamList(@get:Schema(description = "대상별 상태") val streams: List<AuditStreamState>)

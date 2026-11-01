@@ -51,13 +51,22 @@ class SiteAuditController(
     private val support: AuditViewSupport,
     private val exporter: AuditExporter,
     private val verifier: AuditVerifier,
-    private val recorder: AuditRecorder
+    private val recorder: AuditRecorder,
+    private val streamer: dev.yona.domain.audit.AuditStreamer,
+    private val helper: dev.yona.web.TemplateHelper
 ) {
 
     @GetMapping("/sites/audit")
     @Transactional(readOnly = true)
     fun list(request: HttpServletRequest): ModelAndView =
-        ModelAndView("site/audit").addObject("title", "site.sidebar.audit").addAllObjects(support.model(request, "/sites/audit", AuditScope.Site))
+        ModelAndView("site/audit").addObject("title", "site.sidebar.audit").addObject("streams", streamRows())
+            .addAllObjects(support.model(request, "/sites/audit", AuditScope.Site))
+
+    /** 외부 스트리밍 대상별 상태 표의 줄이다. 시각은 화면과 같은 형식이고 값이 없으면 `-`이다. */
+    private fun streamRows() = streamer.status().map {
+        fun time(millis: Long?) = millis?.let { m -> helper.dateString(java.util.Date(m), "yyyy-MM-dd HH:mm:ss") } ?: "-"
+        AuditStreamRow(it.name, it.lastId, it.backlog, time(it.lastSentAt), it.lastError ?: "-", it.failures)
+    }
 
     @GetMapping("/sites/audit/export")
     fun export(request: HttpServletRequest, response: HttpServletResponse): Any? =
@@ -113,3 +122,6 @@ class UserAuditController(private val currentUserProvider: CurrentUserProvider, 
             .addAllObjects(support.model(request, "/user/editform/audit", AuditScope.User(requireNotNull(user.id), user.loginId)))
     }
 }
+
+/** 사이트 감사 화면의 외부 스트리밍 상태 표 한 줄이다. */
+data class AuditStreamRow(val name: String, val lastId: Long, val backlog: Long, val lastSent: String, val error: String, val failures: Int)

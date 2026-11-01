@@ -911,3 +911,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-9 2차 B3
 `GitHooks`가 git.push, git.force_push, git.ref_deleted, git.push_rejected를 감사 기록으로 남긴다. 복제와 가져오기는 제외한다. `GitHttpTest`에 5건을 추가했다.
+
+## [2026-11-01] X-9 2차 B4~B6
+웹훅과 syslog 스트리밍(커서, 적어도 한 번, HMAC 서명), 사이트 감사 화면의 상태 표와 `GET /-_-api/v1/admin/audit/streams`, 미전송 기록 보존 보호를 구현했다. 구현 판단은 A-319.
