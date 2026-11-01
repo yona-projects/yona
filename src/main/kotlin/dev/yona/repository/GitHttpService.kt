@@ -19,7 +19,12 @@ import java.io.OutputStream
  * 권한 확인은 호출하는 쪽이 한다.
  */
 @Service
-class GitHttpService(private val repositories: RepositoryService, private val hooks: GitHooks, private val wikis: WikiRepositories) {
+class GitHttpService(
+    private val repositories: RepositoryService,
+    private val hooks: GitHooks,
+    private val wikis: WikiRepositories,
+    private val metrics: dev.yona.observability.VcsMetrics
+) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
 
@@ -84,14 +89,17 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
     private fun exchange(open: () -> Repository, service: String, input: InputStream, out: OutputStream, configure: (ReceivePack) -> Unit): Boolean {
         var succeeded = true
         try {
-            open().use { repository ->
+            metrics.span("vcs.open_repository", "vcs" to "git") { open() }.use { repository ->
                 try {
-                    when (service) {
-                        UPLOAD_PACK -> UploadPack(repository).apply { isBiDirectionalPipe = false }.upload(input, out, null)
-                        RECEIVE_PACK -> ReceivePack(repository).apply {
-                            isBiDirectionalPipe = false
-                            configure(this)
-                        }.receive(input, out, null)
+                    // 협상과 팩 전송(clone, fetch, push의 대부분의 시간)이다. 푸시 뒤 훅은 이 구간 안의 `vcs.hook` 구간이다
+                    metrics.span("vcs.transfer", "vcs" to "git", "service" to if (service == UPLOAD_PACK) "upload_pack" else "receive_pack") {
+                        when (service) {
+                            UPLOAD_PACK -> UploadPack(repository).apply { isBiDirectionalPipe = false }.upload(input, out, null)
+                            RECEIVE_PACK -> ReceivePack(repository).apply {
+                                isBiDirectionalPipe = false
+                                configure(this)
+                            }.receive(input, out, null)
+                        }
                     }
                 } catch (e: IOException) {
                     succeeded = false

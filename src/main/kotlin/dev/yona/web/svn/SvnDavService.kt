@@ -30,7 +30,8 @@ class SvnDavService(
     private val basicAuth: dev.yona.web.access.BasicAuthResolver,
     private val properties: dev.yona.config.YonaProperties,
     private val recentVisits: RecentVisitService,
-    private val svn: SvnRepositories
+    private val svn: SvnRepositories,
+    private val metrics: dev.yona.observability.VcsMetrics
 ) {
 
     /** 요청 처리를 마치고 응답을 썼다. */
@@ -38,7 +39,7 @@ class SvnDavService(
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return text(response, 400, null)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
-        val identity = basicAuth.identify(request, response, credentials)
+        val identity = metrics.span("vcs.authenticate", "vcs" to "svn") { basicAuth.identify(request, response, credentials) }
         // 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36)
         if (identity.blocked) return text(response, 429, "Too many failed authentication attempts")
         val user = identity.user
@@ -59,7 +60,7 @@ class SvnDavService(
         if (!basicAuth.allowsRepository(identity, project)) return text(response, 403, "The token scope does not allow repository access")
 
         val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
-        if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)) {
+        if (!metrics.span("vcs.authorize", "vcs" to "svn") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
                 return text(response, 401, "Invalid username or password")
@@ -75,7 +76,10 @@ class SvnDavService(
             "REPORT" -> LocationSegmentResponse(response)
             else -> response
         }
-        servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(target))
+        // SVNKit의 WebDAV 처리 전체(커밋, 체크아웃, 보고서)이다. 요청 하나의 대부분의 시간이다
+        metrics.span("vcs.dav", "vcs" to "svn", "service" to dev.yona.observability.VcsMetrics.svnServiceOf(request.method)) {
+            servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(target))
+        }
         (target as? HrefEncodingResponse)?.finish()
         (target as? LocationSegmentResponse)?.finish()
         response.flushBuffer()

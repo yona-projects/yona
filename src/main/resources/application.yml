@@ -13,6 +13,10 @@ springdoc:
     path: /-_-api/docs
 
 spring:
+  autoconfigure:
+    exclude:
+      # 스프링 시큐리티가 임시 사용자와 비밀번호를 만들어 WARN 로그로 남긴다. 이 앱은 쓰지 않는 값이지만 로그에 비밀번호가 찍히고 OTLP 로그로 수집기에 나간다(X-10)
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   web:
     error:
       # 스프링 부트의 오류 화면 주소를 바꾼다. 기본값 `/error`는 v1.6에서 `/:user` 라우트(사용자 `error`)라서 같은 응답이 나와야 한다.
@@ -71,6 +75,24 @@ server:
 # 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기를 켜고 끄는 일은 `ObservabilityActivation`이 한다: 수집기 주소
 # (`OTEL_EXPORTER_OTLP_ENDPOINT`)가 없으면 모두 끄고 있으면 켠다. 직접 정한 `management.*.enabled`가 우선한다.
 management:
+  metrics:
+    distribution:
+      # p95를 histogram_quantile로 계산하려면 히스토그램 버킷을 내보내야 한다. 대시보드와 알림이 쓰는 타이머만 켠다(시리즈 수를 아끼려고 모두 켜지 않는다)
+      percentiles-histogram:
+        http.server.requests: true
+        yona.vcs.request: true
+        yona.vcs.operation.duration: true
+        yona.job.duration: true
+        yona.background.duration: true
+        yona.ldap.authenticate: true
+        yona.search.duration: true
+      # git과 svn 요청, 스케줄 작업, 백그라운드 일은 수 분까지 걸릴 수 있다
+      maximum-expected-value:
+        yona.vcs.request: 10m
+        yona.job.duration: 10m
+        yona.background.duration: 10m
+      minimum-expected-value:
+        yona.vcs.request: 5ms
   endpoints:
     web:
       base-path: /-_-actuator

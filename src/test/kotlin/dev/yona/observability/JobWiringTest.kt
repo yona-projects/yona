@@ -25,8 +25,8 @@ class JobWiringTest : AbstractIntegrationTest() {
     @Autowired private lateinit var auditStream: AuditStreamScheduler
     @Autowired private lateinit var background: BackgroundJobRunner
 
-    private fun successCount(job: String) = registry.find("yona.job.duration").tags("job", job, "result", "success").timer()?.count() ?: 0L
-    private fun lastSuccess(job: String) = registry.find("yona.job.last.success").tag("job", job).gauge()!!.value()
+    private fun successCount(job: String) = registry.find("yona.job.duration").tags("task", job, "result", "success").timer()?.count() ?: 0L
+    private fun lastSuccess(job: String) = registry.find("yona.job.last.success").tag("task", job).gauge()!!.value()
 
     private fun assertRecorded(job: String, run: () -> Unit) {
         val before = successCount(job)

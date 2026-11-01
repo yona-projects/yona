@@ -48,4 +48,20 @@ class ObservabilitySystemTest : AbstractIntegrationTest() {
         assertNotNull(liveness)
         assertTrue(liveness.isMember("livenessState") && !liveness.isMember("db") && !liveness.isMember("dataDirectory"))
     }
+
+    @Test
+    fun `지표 태그 이름에 Prometheus 예약 레이블이 없다`() {
+        // OTLP를 Prometheus로 받으면 서비스 이름이 job, 인스턴스가 instance 레이블이 된다. 같은 이름의 태그는 사라지거나 덮어써진다(실제로 job 태그가 사라졌다)
+        val reserved = setOf("job", "instance", "le", "quantile")
+        val offending = registry.meters.filter { it.id.name.startsWith("yona.") }.flatMap { m -> m.id.tags.map { it.key } }.filter { it in reserved }.toSet()
+        assertEquals(emptySet(), offending)
+    }
+
+    @Autowired private lateinit var context: org.springframework.context.ApplicationContext
+
+    @Test
+    fun `스프링 시큐리티의 임시 사용자와 비밀번호를 만들지 않는다`() {
+        // 만들면 "Using generated security password"가 WARN 로그로 남아 OTLP 로그로 수집기에 나간다
+        assertEquals(0, context.getBeanNamesForType(org.springframework.security.core.userdetails.UserDetailsService::class.java).size)
+    }
 }

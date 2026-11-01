@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * | `yona.vcs.operation.duration` | `vcs`, `op`, `result` | 코드 보기, 이력, diff 같은 저장소 작업의 시간 |
  */
 @Component
-class VcsMetrics(private val registry: MeterRegistry) {
+class VcsMetrics(private val registry: MeterRegistry, openTelemetry: io.opentelemetry.api.OpenTelemetry? = null) {
+
+    private val tracer: io.opentelemetry.api.trace.Tracer? = openTelemetry?.getTracer("dev.yona.vcs")
 
     private val active = ConcurrentHashMap<List<String>, AtomicInteger>()
 
@@ -80,12 +82,33 @@ class VcsMetrics(private val registry: MeterRegistry) {
         Counter.builder("yona.vcs.pushes").tags("vcs", vcs, "kind", kind, "result", result, "reason", reason).description("푸시한 ref 수").register(registry).increment()
     }
 
-    /** 푸시 뒤 훅 [hook]을 실행하며 시간과 성공 여부를 남긴다. 예외는 기록하고 다시 던진다. */
+    /**
+     * 요청 안의 한 단계를 추적 구간(span)으로 남긴다(D-64 4번: git과 svn 요청의 세부 구간). 현재 span(HTTP 서버 span)의 자식이 되고 [name]은 `vcs.authenticate`,
+     * `vcs.authorize`, `vcs.open_repository`, `vcs.transfer`, `vcs.hook`, `vcs.dav` 같은 고정된 값이다. 속성은 고정된 낮은 카디널리티 값만 준다(`vcs`, `service`, `target`, `hook`).
+     * 프로젝트와 사용자 이름은 넣지 않는다. 예외는 span에 기록하고 다시 던진다. 추적이 없으면 [block]만 실행한다.
+     */
+    fun <T> span(name: String, vararg attributes: Pair<String, String>, block: () -> T): T {
+        val t = tracer ?: return block()
+        val builder = t.spanBuilder(name)
+        attributes.forEach { (k, v) -> builder.setAttribute(k, v) }
+        val span = builder.startSpan()
+        try {
+            span.makeCurrent().use { return block() }
+        } catch (e: Throwable) {
+            span.recordException(e)
+            span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR)
+            throw e
+        } finally {
+            span.end()
+        }
+    }
+
+    /** 푸시 뒤 훅 [hook]을 실행하며 시간과 성공 여부를 남긴다(추적 구간 `vcs.hook` 포함). 예외는 기록하고 다시 던진다. */
     fun hook(hook: String, block: () -> Unit) {
         val sample = Timer.start(registry)
         var result = "success"
         try {
-            block()
+            span("vcs.hook", "hook" to hook) { block() }
         } catch (e: Throwable) {
             result = "failure"
             throw e

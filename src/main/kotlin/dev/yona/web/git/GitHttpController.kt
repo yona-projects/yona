@@ -57,7 +57,7 @@ class GitHttpController(
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
-        val identity = basicAuth.identify(request, response, credentials)
+        val identity = metrics.span("vcs.authenticate", "vcs" to "git") { basicAuth.identify(request, response, credentials) }
         if (identity.blocked) return tooManyAttempts()
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
@@ -81,7 +81,7 @@ class GitHttpController(
     ): Any? {
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return malformed(response)
-        val identity = basicAuth.identify(request, response, credentials)
+        val identity = metrics.span("vcs.authenticate", "vcs" to "git") { basicAuth.identify(request, response, credentials) }
         if (identity.blocked) return tooManyAttempts()
         return measured(service.removePrefix("git-").replace('-', '_'), response) { handle(ownerName, projectName, service, advertise = false, identity, request, response, it) }
     }
@@ -114,7 +114,7 @@ class GitHttpController(
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
 
-        if (!isAllowed(project, user, service)) {
+        if (!metrics.span("vcs.authorize", "vcs" to "git") { isAllowed(project, user, service) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
                 return text(HttpStatus.UNAUTHORIZED, "Invalid username or password")
@@ -158,7 +158,7 @@ class GitHttpController(
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
         val user = identity.user
         val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
-        if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation)) {
+        if (!metrics.span("vcs.authorize", "vcs" to "git", "target" to "wiki") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
                 return text(HttpStatus.UNAUTHORIZED, "Invalid username or password")

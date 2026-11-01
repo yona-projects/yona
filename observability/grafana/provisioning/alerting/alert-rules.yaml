@@ -1,0 +1,841 @@
+# Grafana 알림 규칙(X-10 C6). observability/tools/generate_grafana.py가 만든다. 임계값은 예시이며 환경에 맞게 바꾼다.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: "yona"
+    folder: "Yona"
+    interval: "1m"
+    rules:
+      - uid: "yona-app-down"
+        title: "Yona 앱 상태 확인 실패"
+        condition: "C"
+        for: "2m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "Alloy의 상태 확인이 2분 넘게 실패했다. 앱이 죽었거나 readiness(DB, 데이터 디렉터리)가 내려갔다."
+        labels:
+          severity: "critical"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "probe_success{job=~\"integrations/blackbox/yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "lt"
+                    params:
+                      - 1
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-no-data"
+        title: "Yona 지표가 들어오지 않음"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "5분 동안 지표가 없다. 앱이 죽었거나 수집기 연결이 끊겼다(OTLP는 푸시라 앱이 죽으면 데이터가 끊길 뿐이다)."
+        labels:
+          severity: "critical"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "absent_over_time(process_uptime_milliseconds{job=\"yona\"}[5m])"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 0
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-disk-low"
+        title: "데이터 디스크 여유 15% 미만"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "데이터 디렉터리 파티션 여유가 15% 미만이다. 5% 미만이면 readiness가 내려가 로드 밸런서가 서버를 뺀다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "yona_storage_disk_free_bytes{job=\"yona\"} / yona_storage_disk_total_bytes{job=\"yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "lt"
+                    params:
+                      - 0.15
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-heap-high"
+        title: "JVM 힙 사용 90% 지속"
+        condition: "C"
+        for: "10m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "JVM 힙이 최대의 90%를 넘은 채 10분 지속됐다. 큰 저장소의 pack이나 diff, 메모리 설정을 확인한다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "sum(jvm_memory_used_bytes{job=\"yona\",area=\"heap\"}) / jvm_gc_max_data_size_bytes{job=\"yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 0.9
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-gc-pressure"
+        title: "GC 일시 정지 과다"
+        condition: "C"
+        for: "10m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "초당 GC 정지가 100ms를 넘는 상태가 10분 지속됐다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "sum(rate(jvm_gc_pause_milliseconds_sum{job=\"yona\"}[5m]))"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 100
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-threads-saturated"
+        title: "톰캣 스레드 풀 80% 지속"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "톰캣 스레드 풀 사용이 80%를 넘었다. 긴 git 요청이 스레드를 점유하는지 저장소 대시보드의 진행 중인 요청을 본다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "tomcat_threads_busy{job=\"yona\"} / tomcat_threads_config_max{job=\"yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 0.8
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-db-pool-pending"
+        title: "DB 커넥션 대기"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "DB 커넥션을 기다리는 요청이 5분 넘게 있다. 감사 로그 사슬 잠금이나 느린 쿼리를 확인한다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "hikaricp_connections_pending{job=\"yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 0
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-5xx"
+        title: "HTTP 5xx 비율 5% 초과"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "5xx 응답이 5%를 넘는 상태가 5분 지속됐다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "sum(rate(http_server_requests_milliseconds_count{job=\"yona\",outcome=\"SERVER_ERROR\"}[5m])) / sum(rate(http_server_requests_milliseconds_count{job=\"yona\"}[5m]))"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 0.05
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-git-slow"
+        title: "git 요청 p95 60초 초과"
+        condition: "C"
+        for: "10m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "git clone, fetch, push의 p95가 60초를 넘는다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "histogram_quantile(0.95, sum by (le) (rate(yona_vcs_request_milliseconds_bucket{job=\"yona\",vcs=\"git\",service=~\"upload_pack|receive_pack\"}[10m])))"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 60000
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-mail-queue"
+        title: "알림 메일 대기열 100건 초과"
+        condition: "C"
+        for: "15m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "알림 메일 대기열이 15분 넘게 100건을 넘었다. 메일 서버나 스케줄러를 확인한다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "yona_notification_mail_queue{job=\"yona\"}"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 100
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-audit-stream-backlog"
+        title: "감사 로그 스트리밍 밀림"
+        condition: "C"
+        for: "10m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "감사 기록 1000건 넘게 외부로 보내지 못했다. 웹훅이나 syslog 대상을 확인한다(막힌 동안 DB가 커진다)."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "max(yona_audit_stream_backlog{job=\"yona\"})"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 1000
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-audit-stream-failing"
+        title: "감사 로그 스트리밍 연속 실패"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "감사 로그 스트리밍이 5번 넘게 연속 실패했다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "max(yona_audit_stream_failures{job=\"yona\"})"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 5
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-job-stalled-notification-mail"
+        title: "알림 메일 스케줄러 작업이 멈춤"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "알림 메일 스케줄러(notification_mail)의 마지막 성공이 3600초를 넘었다. 작업이 조용히 멈췄다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "time() - yona_job_last_success_seconds{job=\"yona\",task=\"notification_mail\"} and yona_job_last_success_seconds{job=\"yona\",task=\"notification_mail\"} > 0"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 3600
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-job-stalled-audit-stream"
+        title: "감사 스트리밍 작업이 멈춤"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "감사 스트리밍(audit_stream)의 마지막 성공이 300초를 넘었다. 작업이 조용히 멈췄다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "time() - yona_job_last_success_seconds{job=\"yona\",task=\"audit_stream\"} and yona_job_last_success_seconds{job=\"yona\",task=\"audit_stream\"} > 0"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 300
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-job-stalled-audit-retention"
+        title: "감사 보존 작업이 멈춤"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "감사 보존(audit_retention)의 마지막 성공이 43200초를 넘었다. 작업이 조용히 멈췄다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "time() - yona_job_last_success_seconds{job=\"yona\",task=\"audit_retention\"} and yona_job_last_success_seconds{job=\"yona\",task=\"audit_retention\"} > 0"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 43200
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-job-stalled-notification-cleanup"
+        title: "알림 정리 작업이 멈춤"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "알림 정리(notification_cleanup)의 마지막 성공이 172800초를 넘었다. 작업이 조용히 멈췄다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "time() - yona_job_last_success_seconds{job=\"yona\",task=\"notification_cleanup\"} and yona_job_last_success_seconds{job=\"yona\",task=\"notification_cleanup\"} > 0"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 172800
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+      - uid: "yona-job-stalled-temporary-files-cleanup"
+        title: "임시 첨부 정리 작업이 멈춤"
+        condition: "C"
+        for: "5m"
+        noDataState: "OK"
+        execErrState: "Error"
+        annotations:
+          summary: "임시 첨부 정리(temporary_files_cleanup)의 마지막 성공이 172800초를 넘었다. 작업이 조용히 멈췄다."
+        labels:
+          severity: "warning"
+          app: "yona"
+        data:
+          - refId: "A"
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "prometheus"
+            model:
+              expr: "time() - yona_job_last_success_seconds{job=\"yona\",task=\"temporary_files_cleanup\"} and yona_job_last_success_seconds{job=\"yona\",task=\"temporary_files_cleanup\"} > 0"
+              instant: true
+              refId: "A"
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: "B"
+            datasourceUid: "__expr__"
+            model:
+              type: "reduce"
+              expression: "A"
+              reducer: "last"
+              refId: "B"
+              settings:
+                mode: "dropNN"
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"
+          - refId: "C"
+            datasourceUid: "__expr__"
+            model:
+              type: "threshold"
+              expression: "B"
+              refId: "C"
+              conditions:
+                - evaluator:
+                    type: "gt"
+                    params:
+                      - 172800
+              datasource:
+                type: "__expr__"
+                uid: "__expr__"

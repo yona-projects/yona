@@ -23,8 +23,8 @@ class JobMetricsTest {
     }
     private val jobs = JobMetrics(registry, clock)
 
-    private fun count(job: String, result: String) = registry.find("yona.job.duration").tags("job", job, "result", result).timer()?.count() ?: 0L
-    private fun lastSuccess(job: String) = registry.find("yona.job.last.success").tag("job", job).gauge()?.value()
+    private fun count(job: String, result: String) = registry.find("yona.job.duration").tags("task", job, "result", result).timer()?.count() ?: 0L
+    private fun lastSuccess(job: String) = registry.find("yona.job.last.success").tag("task", job).gauge()?.value()
 
     @Test
     fun `성공하면 결과를 돌려주고 성공 횟수와 마지막 성공 시각을 남긴다`() {
@@ -53,11 +53,11 @@ class JobMetricsTest {
     @Test
     fun `실행 중인 수를 알린다`() {
         var during = -1.0
-        jobs.run("sample") { during = registry.find("yona.job.active").tag("job", "sample").gauge()!!.value() }
+        jobs.run("sample") { during = registry.find("yona.job.active").tag("task", "sample").gauge()!!.value() }
         assertEquals(1.0, during)
-        assertEquals(0.0, registry.find("yona.job.active").tag("job", "sample").gauge()!!.value())
+        assertEquals(0.0, registry.find("yona.job.active").tag("task", "sample").gauge()!!.value())
         runCatching { jobs.run("sample") { throw IllegalStateException() } }
-        assertEquals(0.0, registry.find("yona.job.active").tag("job", "sample").gauge()!!.value())
+        assertEquals(0.0, registry.find("yona.job.active").tag("task", "sample").gauge()!!.value())
     }
 
     @Test

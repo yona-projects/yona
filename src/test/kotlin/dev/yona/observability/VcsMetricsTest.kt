@@ -118,4 +118,67 @@ class VcsMetricsTest {
         assertFailsWith<IllegalStateException> { metrics.operation("Subversion", "history") { throw IllegalStateException() } }
         assertEquals(1, timer("yona.vcs.operation.duration", "vcs", "svn", "op", "history", "result", "failure")!!.count())
     }
+
+    // --- 추적 구간(D-64 4번: git과 svn 요청의 세부 구간) ---
+
+    private class Collector : io.opentelemetry.sdk.trace.SpanProcessor {
+        val ended = java.util.concurrent.CopyOnWriteArrayList<io.opentelemetry.sdk.trace.data.SpanData>()
+        override fun onStart(parentContext: io.opentelemetry.context.Context, span: io.opentelemetry.sdk.trace.ReadWriteSpan) {}
+        override fun isStartRequired() = false
+        override fun onEnd(span: io.opentelemetry.sdk.trace.ReadableSpan) { ended += span.toSpanData() }
+        override fun isEndRequired() = true
+    }
+
+    private fun traced(): Pair<VcsMetrics, Collector> {
+        val collector = Collector()
+        val sdk = io.opentelemetry.sdk.OpenTelemetrySdk.builder().setTracerProvider(io.opentelemetry.sdk.trace.SdkTracerProvider.builder().addSpanProcessor(collector).build()).build()
+        return VcsMetrics(registry, sdk) to collector
+    }
+
+    private fun attr(span: io.opentelemetry.sdk.trace.data.SpanData, key: String) = span.attributes.get(io.opentelemetry.api.common.AttributeKey.stringKey(key))
+
+    @Test
+    fun `구간은 이름과 속성을 가진 span이 되고 결과를 돌려준다`() {
+        val (m, collector) = traced()
+        assertEquals(7, m.span("vcs.open_repository", "vcs" to "git", "service" to "upload_pack") { 7 })
+        val span = collector.ended.single()
+        assertEquals("vcs.open_repository", span.name); assertEquals("git", attr(span, "vcs")); assertEquals("upload_pack", attr(span, "service"))
+    }
+
+    @Test
+    fun `구간은 현재 span의 자식이다`() {
+        val (m, collector) = traced()
+        m.span("vcs.outer") { m.span("vcs.inner") { } }
+        val inner = collector.ended.first { it.name == "vcs.inner" }; val outer = collector.ended.first { it.name == "vcs.outer" }
+        assertEquals(outer.spanId, inner.parentSpanId); assertEquals(outer.traceId, inner.traceId)
+    }
+
+    @Test
+    fun `예외가 나면 span에 오류를 기록하고 다시 던진다`() {
+        val (m, collector) = traced()
+        assertFailsWith<IllegalStateException> { m.span("vcs.transfer") { throw IllegalStateException("boom") } }
+        val span = collector.ended.single()
+        assertEquals(io.opentelemetry.api.trace.StatusCode.ERROR, span.status.statusCode)
+        assertEquals(true, span.events.any { it.name == "exception" })
+    }
+
+    @Test
+    fun `추적이 없어도 구간 블록은 그대로 실행된다`() {
+        assertEquals(3, metrics.span("vcs.x") { 3 })
+    }
+
+    @Test
+    fun `훅은 hook 속성이 있는 span도 만든다`() {
+        val (m, collector) = traced()
+        m.hook("last_pushed") { }
+        val span = collector.ended.single { it.name == "vcs.hook" }
+        assertEquals("last_pushed", attr(span, "hook"))
+    }
+
+    @Test
+    fun `span 속성에 이름과 경로를 넣지 않도록 호출자가 고정된 값만 준다`() {
+        val (m, collector) = traced()
+        m.span("vcs.authorize", "vcs" to "git") { }
+        assertEquals(setOf("vcs"), collector.ended.single().attributes.asMap().keys.map { it.key }.toSet())
+    }
 }

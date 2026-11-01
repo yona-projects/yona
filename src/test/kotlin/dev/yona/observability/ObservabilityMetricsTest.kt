@@ -8,6 +8,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -51,5 +52,18 @@ class ObservabilityMetricsTest : AbstractIntegrationTest() {
         assertTrue(before > 0, "http.server.requests 지표가 기록되지 않았다")
         repeat(50) { mockMvc.perform(get("/v$it/q$it/issues")); mockMvc.perform(get("/v$it/q$it/pulls/$it")) }
         assertTrue(uriTags().size == before, "요청이 늘자 uri 태그 종류가 늘었다: $before -> ${uriTags().size}")
+    }
+
+    @Autowired private lateinit var env: org.springframework.core.env.Environment
+
+    /**
+     * p95를 `histogram_quantile`로 계산하려면 히스토그램 버킷을 내보내야 한다. 대시보드와 알림이 쓰는 타이머만 켠다(시리즈 수를 아끼려고 모두 켜지는 않는다).
+     * 시험용 `SimpleMeterRegistry`는 합산 가능한 퍼센타일을 지원하지 않아 버킷을 보지 못하므로 설정이 바인딩됐는지만 확인한다. 실제 효과는 OTLP로 Prometheus에
+     * 내보내 `le` 레이블로 확인했다.
+     */
+    @Test
+    fun `대시보드가 쓰는 타이머는 히스토그램 버킷을 켠다`() {
+        listOf("http.server.requests", "yona.vcs.request", "yona.vcs.operation.duration", "yona.job.duration", "yona.background.duration", "yona.ldap.authenticate", "yona.search.duration")
+            .forEach { assertEquals("true", env.getProperty("management.metrics.distribution.percentiles-histogram.$it"), it) }
     }
 }

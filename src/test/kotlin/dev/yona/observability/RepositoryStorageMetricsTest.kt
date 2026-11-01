@@ -59,7 +59,7 @@ class RepositoryStorageMetricsTest {
     @Test
     fun `스케줄 실행은 작업 지표에 기록된다`() {
         val m = metrics(true); m.bindTo(registry); m.scheduled()
-        assertEquals(1, registry.find("yona.job.duration").tags("job", "storage_scan", "result", "success").timer()!!.count())
+        assertEquals(1, registry.find("yona.job.duration").tags("task", "storage_scan", "result", "success").timer()!!.count())
     }
 
     @Test

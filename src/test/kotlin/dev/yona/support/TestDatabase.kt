@@ -14,7 +14,10 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 enum class TestDatabase {
     H2 {
         override fun register(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { "jdbc:h2:mem:yona-it;DB_CLOSE_DELAY=-1" }
+            // 컨텍스트마다 고유한 인메모리 DB를 쓴다. 같은 이름을 공유하면 닫히는 컨텍스트(캐시에서 밀려나거나 @DirtiesContext)의 `create-drop`이 살아 있는
+            // 다른 컨텍스트의 테이블까지 지워 "테이블 없음"으로 시험이 깨진다. 이름은 컨텍스트를 만들 때 한 번 정해 같은 컨텍스트 안에서는 바뀌지 않게 한다.
+            val url = "jdbc:h2:mem:yona-it-${java.util.UUID.randomUUID()};DB_CLOSE_DELAY=-1"
+            registry.add("spring.datasource.url") { url }
             registry.add("spring.datasource.username") { "sa" }
             registry.add("spring.datasource.password") { "" }
         }
