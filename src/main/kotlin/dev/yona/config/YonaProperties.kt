@@ -59,6 +59,8 @@ import java.time.temporal.ChronoUnit
  * @property applicationContext 서버를 하위 경로에 둘 때의 경로. 앞뒤 슬래시 없이 쓴다 (`application.context`)
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
  * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
+ * @property auditRetentionDays 감사 로그를 보존하는 날수(`yona.audit-retention-days`, 기본 365). 0이면 영구 보존한다. 만료 기록은 삭제 전에 보관 파일로 옮긴다(X-9, D-62)
+ * @property auditFileEnabled 감사 로그를 커밋한 뒤 JSON 줄 파일(`<데이터>/audit/audit-<날짜>.jsonl`)에도 남길지이다(`yona.audit-file-enabled`, 기본 켜짐)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
  * @property analytics 사용 현황 집계(GA4)의 측정 ID이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
  * @property gitDefaultBranch 새 Git 저장소의 기본 브랜치 이름이다. v1.6은 JGit 기본값(`master`)이었으나 `main`으로 고정한다 (X-22, `decisions.md` A-187)
@@ -134,7 +136,9 @@ data class YonaProperties(
     val signup: Signup = Signup(),
     val gravatar: Gravatar = Gravatar(),
     val analytics: Analytics = Analytics(),
-    val gitDefaultBranch: String = "main"
+    val gitDefaultBranch: String = "main",
+    val auditRetentionDays: Int = 365,
+    val auditFileEnabled: Boolean = true
 ) {
     companion object {
         /** 설치 직후 설정 예시에 들어 있는 사이트 비밀 키이다. 이 값이면 아직 정하지 않은 것이다 (v1.6 `Global.DEFAULT_SECRET`). */

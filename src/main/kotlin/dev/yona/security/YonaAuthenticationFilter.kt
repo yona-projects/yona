@@ -72,7 +72,7 @@ class YonaAuthenticationFilter(
         }
         failures.recordSuccess(address)
         val context = SecurityContextHolder.createEmptyContext()
-        context.authentication = YonaAuthentication.of(owner, viaToken = true, scopes = ApiScopes.parse(token.scopes))
+        context.authentication = YonaAuthentication.of(owner, viaToken = true, scopes = ApiScopes.parse(token.scopes), tokenId = token.id)
         SecurityContextHolder.setContext(context)
         return true
     }
