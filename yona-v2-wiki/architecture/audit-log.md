@@ -83,3 +83,21 @@ A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 
 - 사이트 데이터 내보내기와 가져오기(`DataService`)에는 감사 테이블이 들어 있지 않다. 가져오기가 사용자와 프로젝트를 교체해도 기록은 그대로 남는다.
 - 시험: `AuditProjectTest` 10건, `AuditOrganizationSiteTest` 9건, `AuditSiteDataTest` 3건.
 - 시험 환경은 파일 쓰기를 끄고(`yona.audit-file-enabled=false`) 파일 시험만 켠다. 켜 두면 기본 데이터 디렉터리(`.`)에 `audit/`이 생긴다.
+
+## A6 조회, 화면, 내보내기 (구현)
+
+- **조회 서비스**: `AuditQueryService.search`(최신순, 쪽 크기 1~200)와 `stream`(시간순, 쪽으로 나눠 읽음). 필터는 `AuditFilter`(행위자 부분 일치, 조치 접두사나 정확히, 결과, 대상 종류, 대상 이름 부분 일치, IP, 프로젝트 번호, 기간). 범위는 `AuditScope`: 사이트 전체, 조직(그 조직 번호를 담은 이벤트), 사용자 본인(행위자 번호나 로그인 ID가 본인이거나 대상이 본인이고 `auth.`, `token.`, `account.` 범주만).
+- **화면**: 사이트 관리자 `/sites/audit`(필터, 표, 쪽 나누기, 내려받기, 무결성 검증 단추, 사이드바 링크), 조직 관리자 `/organizations/{이름}/audit`(조직 설정 탭), 사용자 `/user/editform/audit`("보안 기록" 설정 탭). 표는 `audit/list.html` 조각을 함께 쓴다.
+- **내려받기**: `format=csv|jsonl|json`(기본 csv), `limit`(기본 1만, 최대 10만), 필터를 그대로 쓴다. CSV는 큰따옴표로 감싸고 `=`, `+`, `-`, `@`로 시작하는 값 앞에 `'`를 붙여 스프레드시트 수식 주입을 막는다. **내려받은 일도 `audit.exported`로 남는다.**
+- **무결성 검증**: `/sites/audit/verify`(화면 단추), REST `GET /-_-api/v1/admin/audit/verify`. 처음부터 해시를 다시 계산해 어긋난 첫 기록 번호와 이유(`hash`, `prev_hash`, `head`)를 알린다.
+- **REST**(OpenAPI 태그 "감사 로그"):
+
+| 경로 | 범위와 자격 |
+|---|---|
+| `GET /-_-api/v1/admin/audit` | `site_admin` 범위이면서 사이트 관리자 |
+| `GET /-_-api/v1/admin/audit/verify` | 같음 |
+| `GET /-_-api/v1/orgs/{org}/audit` | `admin:org` 범위이면서 그 조직의 관리자 |
+| `GET /-_-api/v1/user/audit` | `read:user` 범위, 본인 기록만 |
+
+  응답은 `{"total", "page", "size", "events"}`이고 `page`는 1부터이다. 기록의 필드 이름은 줄 파일과 같은 snake_case이고 `details`는 JSON 글 그대로이다(외부에서 해시를 다시 계산할 수 있게).
+- 시험: `AuditQueryTest` 12건, `AuditViewTest` 14건, `AuditApiTest` 9건. 탭이나 사이드바 개수를 단언하던 기존 시험 4건과 OpenAPI 계약 검증(`application/x-ndjson`은 건너뜀)을 갱신했다.

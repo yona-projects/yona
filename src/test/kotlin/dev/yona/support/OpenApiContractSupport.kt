@@ -35,7 +35,8 @@ class OpenApiContractSupport(private val resource: OpenApiWebMvcResource) : Mock
             val pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String ?: return@ResultHandler
             if (!pattern.startsWith("/-_-api/v1") || pattern.contains("/__t/")) return@ResultHandler
             val response = result.response
-            if (response.contentType?.contains("json", ignoreCase = true) != true) return@ResultHandler
+            // JSON 줄(`application/x-ndjson`)은 한 문서가 아니라 줄마다 한 건이라 건너뛴다(감사 로그 내보내기)
+            if (response.contentType?.contains("json", ignoreCase = true) != true || response.contentType?.contains("ndjson", ignoreCase = true) == true) return@ResultHandler
             val body = response.contentAsString.takeIf { it.isNotBlank() } ?: return@ResultHandler
             val method = request.method?.lowercase() ?: return@ResultHandler
             val operation = spec.get("paths")?.get(dev.yona.security.ApiScopeRules.plain(pattern))?.get(method) ?: return@ResultHandler

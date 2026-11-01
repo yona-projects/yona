@@ -12,6 +12,9 @@
         <a th:href="${base + '/members'}" th:text="#{organization.member}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"></a>
     </li>
     <li class="nav-item">
+        <a th:href="${base + '/audit'}" th:text="#{organization.audit}" class="nav-link" th:classappend="${requestPath == base + '/audit'} ? 'active'"></a>
+    </li>
+    <li class="nav-item">
         <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteForm'} ? 'active'"></a>
     </li>
 </ul>

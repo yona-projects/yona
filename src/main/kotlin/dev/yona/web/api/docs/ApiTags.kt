@@ -24,6 +24,7 @@ object ApiTags {
     const val SEARCH = "검색"
     const val FORK = "포크"
     const val WIKI = "위키"
+    const val AUDIT = "감사 로그"
     const val ATTACHMENT = "첨부 파일"
 
     /** 문서 화면의 태그 순서와 설명이다. */
@@ -44,6 +45,7 @@ object ApiTags {
         Tag().name(WEBHOOK).description("프로젝트 웹훅 목록, 만들기, 지우기. 범위 `read:repo_hook`, `write:repo_hook`, `admin:repo_hook`."),
         Tag().name(SEARCH).description("사이트 전체, 조직, 프로젝트 안의 검색."),
         Tag().name(FORK).description("프로젝트를 사용자나 조직으로 포크한다."),
+        Tag().name(AUDIT).description("보안과 관리 이벤트의 감사 로그 조회와 내보내기와 무결성 검증. 사이트 관리자(`site_admin`), 조직 관리자(`admin:org`), 사용자 본인(`read:user`)의 범위가 다르다. 기록은 추가만 되고 해시 사슬로 이어져 있다."),
         Tag().name(WIKI).description("프로젝트 위키 페이지 목록, 검색, 조회, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff와 비교. 위키는 프로젝트마다 있는 별도 git 저장소이다."),
         Tag().name(ATTACHMENT).description("첨부 파일 올리기. 올린 파일의 번호를 글과 댓글의 `temporaryUploadFiles`에 담아 보낸다.")
     )

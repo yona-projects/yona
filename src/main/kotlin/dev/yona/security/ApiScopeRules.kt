@@ -115,6 +115,11 @@ object ApiScopeRules {
         // Git 태그(X-37c, D-52)
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/tags", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/tags/{*name}", ApiRequirement.Repo)
+        // 감사 로그(X-9 A6, D-62): 사이트 전체는 사이트 관리자 범위, 조직은 조직 관리 범위, 본인 기록은 사용자 읽기 범위
+        add("GET", "/-_-api/v1/admin/audit", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
+        add("GET", "/-_-api/v1/admin/audit/verify", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
+        add("GET", "/-_-api/v1/orgs/{org}/audit", ApiRequirement.Scope("admin:org"))
+        add("GET", "/-_-api/v1/user/audit", ApiRequirement.Scope("read:user"))
         // 프로젝트 위키(X-17, D-60): `repo`나 공개 프로젝트의 `public_repo`
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/wiki/pages", ApiRequirement.Repo)
         for (m in listOf("GET", "PATCH", "DELETE")) add(m, "$PROJECT/wiki/pages/{name}", ApiRequirement.Repo)

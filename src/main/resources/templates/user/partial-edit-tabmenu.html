@@ -19,5 +19,8 @@
   <li class="nav-item">
     <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}" class="nav-link" th:classappend="${tabId == 'token'} ? 'active'"></a>
   </li>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/audit}" th:text="#{userinfo.audit}" class="nav-link" th:classappend="${tabId == 'audit'} ? 'active'"></a>
+  </li>
 </ul>
 </th:block>

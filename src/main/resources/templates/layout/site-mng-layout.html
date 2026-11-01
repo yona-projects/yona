@@ -34,6 +34,7 @@
                         </a>
                     </li>
                     <li th:class="${requestPath == '/sites/diagnostic'} ? 'active'"><a th:href="@{/sites/diagnostic}" th:text="#{site.sidebar.diagnostics}"></a></li>
+                    <li th:class="${requestPath == '/sites/audit'} ? 'active'"><a th:href="@{/sites/audit}" th:text="#{site.sidebar.audit}"></a></li>
                 </ul>
             </div>
             <div class="col-lg-10">

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-9 A6, decisions.md D-62). 조직 관리자의 조직 범위 감사 로그이다.
+  모델: title, orgView + audit/list의 모델
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::auditPage})}">
+<th:block th:fragment="auditPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+        <p class="text-body-secondary" th:text="#{audit.description.organization}"></p>
+        <th:block th:replace="~{audit/list :: auditList(true, false, true)}"></th:block>
+    </div>
+</div>
+</th:block>
+</html>

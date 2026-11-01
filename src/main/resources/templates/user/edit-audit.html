@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-9 A6, decisions.md D-62). 사용자 본인의 보안 기록(로그인, 토큰, 계정)이다.
+  모델: title, tabId + audit/list의 모델
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::auditPage})}">
+<th:block th:fragment="auditPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{userinfo.audit}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('audit')}"></th:block>
+        <p class="text-body-secondary" th:text="#{audit.description.user}"></p>
+        <th:block th:replace="~{audit/list :: auditList(false, false, false)}"></th:block>
+    </div>
+</div>
+</th:block>
+</html>

@@ -1,0 +1,85 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-9 A6, decisions.md D-62). 감사 로그의 필터, 표, 쪽 나누기이다. 사이트, 조직, 사용자 화면이 함께 쓴다.
+  모델: base, rows(AuditRow), page, pages, total, size, prevUrl, nextUrl, filter(맵), outcomes, exportCsv, exportJsonl, exportJson
+  매개변수: exportable(내려받기 링크를 보일지), verifiable(해시 사슬 검증 단추를 보일지), showFilter(필터 입력란을 보일지)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="auditList(exportable, verifiable, showFilter)">
+<form th:if="${showFilter}" th:action="${base}" method="get" class="audit-filter row g-2 mb-3">
+    <div class="col-lg-3"><input type="text" name="actor" class="form-control form-control-sm" th:value="${filter.actor}" th:placeholder="#{audit.filter.actor}"></div>
+    <div class="col-lg-3"><input type="text" name="action" class="form-control form-control-sm" th:value="${filter.action}" th:placeholder="#{audit.filter.action}"></div>
+    <div class="col-lg-2">
+        <select name="outcome" class="form-select form-select-sm">
+            <option value="" th:text="#{audit.outcome.all}">All</option>
+            <option th:each="o : ${outcomes}" th:value="${o}" th:text="#{'audit.outcome.' + ${o}}" th:selected="${filter.outcome == o}"></option>
+        </select>
+    </div>
+    <div class="col-lg-4"><input type="text" name="target" class="form-control form-control-sm" th:value="${filter.target}" th:placeholder="#{audit.filter.target}"></div>
+    <div class="col-lg-3"><input type="text" name="ip" class="form-control form-control-sm" th:value="${filter.ip}" th:placeholder="#{audit.filter.ip}"></div>
+    <div class="col-lg-3"><input type="date" name="from" class="form-control form-control-sm" th:value="${filter.from}" th:title="#{audit.filter.from}"></div>
+    <div class="col-lg-3"><input type="date" name="to" class="form-control form-control-sm" th:value="${filter.to}" th:title="#{audit.filter.to}"></div>
+    <div class="col-lg-3 d-flex gap-2">
+        <button type="submit" class="ybtn ybtn-small" th:text="#{audit.filter.apply}">Apply</button>
+        <a th:href="${base}" class="ybtn ybtn-small" th:text="#{audit.filter.reset}">Reset</a>
+    </div>
+</form>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <span class="audit-total text-body-secondary small" th:text="#{audit.pager.info(${total}, ${page}, ${pages})}"></span>
+    <span class="ms-auto d-flex gap-2" th:if="${exportable}">
+        <a th:href="${exportCsv}" class="audit-export-csv ybtn ybtn-small" th:text="#{audit.export.csv}">CSV</a>
+        <a th:href="${exportJsonl}" class="audit-export-jsonl ybtn ybtn-small" th:text="#{audit.export.jsonl}">JSON Lines</a>
+        <a th:href="${exportJson}" class="audit-export-json ybtn ybtn-small" th:text="#{audit.export.json}">JSON</a>
+    </span>
+    <button type="button" th:if="${verifiable}" class="audit-verify ybtn ybtn-small" th:text="#{audit.verify}">Verify integrity</button>
+</div>
+<div th:if="${verifiable}" class="audit-verify-result small mb-2"
+     th:attr="data-ok=#{audit.verify.ok('{0}')},data-broken=#{audit.verify.broken('{0}', '{1}')}"></div>
+
+<table class="table table-sm align-middle audit-table">
+    <thead>
+    <tr>
+        <th th:text="#{audit.col.time}">Time</th>
+        <th th:text="#{audit.col.actor}">Actor</th>
+        <th th:text="#{audit.col.action}">Action</th>
+        <th th:text="#{audit.col.outcome}">Result</th>
+        <th th:text="#{audit.col.target}">Target</th>
+        <th th:text="#{audit.col.ip}">IP</th>
+        <th th:text="#{audit.col.details}">Details</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="r : ${rows}" class="audit-row">
+        <td class="text-nowrap" th:text="${r.time}">time</td>
+        <td><span class="audit-actor" th:text="${r.actor}">actor</span> <small class="text-body-secondary" th:text="${r.actorType}"></small></td>
+        <td><code class="audit-action" th:text="${r.action}">action</code></td>
+        <td><span class="audit-outcome badge" th:classappend="${r.outcome == 'SUCCESS'} ? 'text-bg-success' : (${r.outcome == 'DENIED'} ? 'text-bg-danger' : 'text-bg-warning')" th:text="#{'audit.outcome.' + ${r.outcome}}">ok</span></td>
+        <td class="audit-target" th:text="${r.target}">target</td>
+        <td class="text-nowrap" th:text="${r.ip}">ip</td>
+        <td><code class="audit-details small" th:title="${r.detailsFull}" th:text="${r.details}">details</code></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(rows)}" class="audit-empty"><td colspan="7" class="text-body-secondary" th:text="#{audit.empty}">No records.</td></tr>
+    </tbody>
+</table>
+<nav class="d-flex gap-3" th:if="${prevUrl != null or nextUrl != null}">
+    <a th:if="${prevUrl != null}" th:href="${prevUrl}" class="audit-prev" th:text="#{audit.pager.prev}">Newer</a>
+    <a th:if="${nextUrl != null}" th:href="${nextUrl}" class="audit-next" th:text="#{audit.pager.next}">Older</a>
+</nav>
+<script th:if="${verifiable}" type="text/javascript">
+    (function () {
+        var button = document.querySelector(".audit-verify");
+        var out = document.querySelector(".audit-verify-result");
+        if (!button) return;
+        button.addEventListener("click", function () {
+            fetch(button.getAttribute("data-url") || (window.location.pathname.replace(/\/$/, "") + "/verify"), { credentials: "same-origin", headers: { "Accept": "application/json" } })
+                .then(function (r) { return r.json(); })
+                .then(function (v) {
+                    var text = v.ok ? out.getAttribute("data-ok").replace("{0}", v.checked) : out.getAttribute("data-broken").replace("{0}", v.brokenId).replace("{1}", v.reason);
+                    out.textContent = text;
+                    out.className = "audit-verify-result small mb-2 " + (v.ok ? "text-success" : "text-danger");
+                });
+        });
+    })();
+</script>
+</th:block>

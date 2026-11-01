@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-9 A6, decisions.md D-62). 사이트 관리자의 감사 로그이다.
+  모델: title + audit/list의 모델
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::auditPage})}">
+<th:block th:fragment="auditPage">
+    <div class="title_area">
+        <h2 class="float-start" th:text="#{audit.title}"></h2>
+    </div>
+    <p class="text-body-secondary" th:text="#{audit.description}"></p>
+    <th:block th:replace="~{audit/list :: auditList(true, true, true)}"></th:block>
+</th:block>
+</html>
