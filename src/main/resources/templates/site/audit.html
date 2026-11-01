@@ -13,7 +13,7 @@
     </div>
     <p class="text-body-secondary" th:text="#{audit.description}"></p>
     <div th:if="${streams != null and not #lists.isEmpty(streams)}" class="audit-streams mb-4">
-        <h3 class="h6" th:text="#{audit.stream.title}">External streaming</h3>
+        <h3 class="h6 mt-3" th:text="#{audit.stream.title}">External streaming</h3>
         <table class="table table-sm">
             <thead><tr>
                 <th th:text="#{audit.stream.name}">Target</th><th th:text="#{audit.stream.backlog}">Pending</th><th th:text="#{audit.stream.lastSent}">Last sent</th>
