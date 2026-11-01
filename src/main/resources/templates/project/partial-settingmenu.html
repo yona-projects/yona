@@ -11,6 +11,8 @@
         <a th:href="${base + '/members'}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"><th:block th:text="#{project.member}"></th:block><span th:if="${view.enrolledUserCount > 0}" class="num-badge" th:text="${view.enrolledUserCount}"></span></a></li>
     <li th:if="${view.git}" id="subMenuRuleset" class="nav-item">
         <a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/rulesets')} ? 'active'"></a></li>
+    <li th:if="${view.git}" id="subMenuDeployKey" class="nav-item">
+        <a th:href="${base + '/setting/deploykeys'}" th:text="#{project.deployKey}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/deploykeys')} ? 'active'"></a></li>
     <li id="subMenuIssueLabel" class="nav-item">
         <a th:href="${base + '/issue/labelsform'}" th:text="#{issue.label}" class="nav-link" th:classappend="${requestPath == base + '/issue/labelsform'} ? 'active'"></a></li>
     <li id="subMenuWebhook" class="nav-item">

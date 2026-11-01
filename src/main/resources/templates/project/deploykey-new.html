@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-3(decisions.md D-66): 배포 키 추가 화면(이름, 공개키, 쓰기 허용). 목록(deploykeys.html)과 따로 둔다
+  모델: title, projectView, deployKeyError(입력 오류의 메시지 키), deployKeyName, deployKeyPublicKey, deployKeyWritable(오류일 때 입력을 되돌려 준다)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::deployKeyNewPage})}">
+<th:block th:fragment="deployKeyNewPage" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap" id="deployKeyNewPage">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/deploykeys'})}"></th:block>
+        <div th:if="${deployKeyError != null}" class="alert alert-danger mt10" th:text="#{${deployKeyError}}"></div>
+        <form id="deploy-key-create" method="post" class="mt10" th:action="${base + '/setting/deploykeys'}">
+            <h4 th:text="#{deployKey.add}"></h4>
+            <div class="mb-3">
+                <label for="deploy-key-name" class="form-label" th:text="#{deployKey.name}"></label>
+                <input id="deploy-key-name" type="text" name="name" maxlength="100" class="form-control" th:value="${deployKeyName}">
+                <div class="form-text" th:text="#{deployKey.name.help}"></div>
+            </div>
+            <div class="mb-3">
+                <label for="deploy-key-public-key" class="form-label" th:text="#{deployKey.publicKey}"></label>
+                <textarea id="deploy-key-public-key" name="publicKey" rows="8" class="form-control font-monospace" spellcheck="false"
+                          placeholder="ssh-ed25519 AAAA... deploy@example.com" th:text="${deployKeyPublicKey}"></textarea>
+                <div class="form-text" th:text="#{deployKey.publicKey.help}"></div>
+            </div>
+            <div class="form-check mb-3">
+                <input id="deploy-key-writable" type="checkbox" name="writable" value="true" class="form-check-input" th:checked="${deployKeyWritable}">
+                <label for="deploy-key-writable" class="form-check-label" th:text="#{deployKey.writable}"></label>
+                <div class="form-text" th:text="#{deployKey.writable.help}"></div>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success" th:text="#{deployKey.add.submit}"></button>
+                <a th:href="${base + '/setting/deploykeys'}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            </div>
+        </form>
+    </div>
+</div>
+</th:block>
+</html>

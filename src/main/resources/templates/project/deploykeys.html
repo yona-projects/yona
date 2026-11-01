@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-3(decisions.md D-66): 배포 키 목록 화면. 행 동작은 삭제 버튼 하나뿐이다(편집과 상세 없음). 추가는 별도 화면(deploykey-new.html)에서 한다
+  모델: title, projectView, keys(DeployKeyRow 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::deployKeysPage})}">
+<th:block th:fragment="deployKeysPage" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap" id="deployKeysPage">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/deploykeys'})}"></th:block>
+        <p class="form-text mt10" th:text="#{deployKey.description}"></p>
+
+        <table id="deploy-key-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
+            <thead>
+            <tr>
+                <th th:text="#{deployKey.name}"></th><th th:text="#{deployKey.fingerprint}"></th><th th:text="#{deployKey.access}"></th><th th:text="#{deployKey.createdDate}"></th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="k : ${keys}" class="deploy-key-row" th:classappend="${k.readOnly} ? 'deploy-key-read-only'" th:attr="data-id=${k.id}">
+                <td class="deploy-key-name" th:text="${k.name}"></td>
+                <td><code class="deploy-key-fingerprint" th:text="${k.fingerprint}"></code></td>
+                <td><span class="badge" th:classappend="${k.readOnly} ? 'bg-secondary' : 'text-bg-warning'" th:text="${k.readOnly} ? #{deployKey.access.readOnly} : #{deployKey.access.readWrite}"></span></td>
+                <td th:text="${k.createdText}"></td>
+                <td>
+                    <form method="post" th:action="${base + '/setting/deploykeys/' + k.id + '/delete'}" th:attr="onsubmit='return confirm(\'' + #{deployKey.delete.confirm} + '\');'">
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{deployKey.delete}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{deployKey.list.empty}"></p>
+
+        <a th:href="${base + '/setting/deploykeys/new'}" id="deploy-key-new" class="btn btn-success" th:text="#{deployKey.add}"></a>
+    </div>
+</div>
+</th:block>
+</html>

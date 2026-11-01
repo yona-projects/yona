@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-3(decisions.md D-66): SSH 공개키 추가 화면(이름, 공개키). 목록(edit-ssh.html)과 따로 둔다
+  모델: title, sshError(입력 오류의 메시지 키), sshName, sshPublicKey(오류일 때 입력을 되돌려 준다)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::sshPage})}">
+<th:block th:fragment="sshPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{sshKey.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
+        <div th:if="${sshError != null}" class="alert alert-danger" th:text="#{${sshError}}"></div>
+        <form id="ssh-create" method="post" th:action="@{/user/ssh}">
+            <h4 th:text="#{sshKey.add}"></h4>
+            <div class="mb-3">
+                <label for="ssh-name" class="form-label" th:text="#{sshKey.name}"></label>
+                <input id="ssh-name" type="text" name="name" maxlength="100" class="form-control" th:value="${sshName}">
+                <div class="form-text" th:text="#{sshKey.name.help}"></div>
+            </div>
+            <div class="mb-3">
+                <label for="ssh-public-key" class="form-label" th:text="#{sshKey.publicKey}"></label>
+                <textarea id="ssh-public-key" name="publicKey" rows="8" class="form-control font-monospace" spellcheck="false"
+                          placeholder="ssh-ed25519 AAAA... you@example.com" th:text="${sshPublicKey}"></textarea>
+                <div class="form-text" th:text="#{sshKey.publicKey.help}"></div>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success" th:text="#{sshKey.add.submit}"></button>
+                <a th:href="@{/user/editform/ssh}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            </div>
+        </form>
+    </div>
+</div>
+</th:block>
+</html>

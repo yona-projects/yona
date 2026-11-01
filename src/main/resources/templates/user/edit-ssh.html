@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-3(decisions.md D-66): SSH 키 목록 화면. 행 동작은 삭제 버튼 하나뿐이다(편집과 상세 없음). 추가는 별도 화면(edit-ssh-new.html)에서 한다
+  모델: title, keys(SshKeyRow 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::sshPage})}">
+<th:block th:fragment="sshPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{sshKey.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
+        <p class="text-body-secondary" th:text="#{sshKey.description}"></p>
+
+        <table id="ssh-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
+            <thead>
+            <tr>
+                <th th:text="#{sshKey.name}"></th><th th:text="#{sshKey.type}"></th><th th:text="#{sshKey.fingerprint}"></th><th th:text="#{sshKey.createdDate}"></th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="k : ${keys}" class="ssh-row" th:attr="data-id=${k.id}">
+                <td class="ssh-name" th:text="${k.name}"></td>
+                <td><code class="ssh-key-type" th:text="${k.keyType}"></code></td>
+                <td><code class="ssh-fingerprint" th:text="${k.fingerprint}"></code></td>
+                <td th:text="${k.createdText}"></td>
+                <td>
+                    <form method="post" th:action="@{/user/ssh/{id}/delete(id=${k.id})}" th:attr="onsubmit='return confirm(\'' + #{sshKey.delete.confirm} + '\');'">
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{sshKey.delete}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{sshKey.list.empty}"></p>
+
+        <a th:href="@{/user/editform/ssh/new}" id="ssh-new" class="btn btn-success" th:text="#{sshKey.add}"></a>
+    </div>
+</div>
+</th:block>
+</html>
