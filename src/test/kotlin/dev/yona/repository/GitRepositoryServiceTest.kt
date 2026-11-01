@@ -23,7 +23,7 @@ class GitRepositoryServiceTest {
     @TempDir
     lateinit var dataDir: File
 
-    private fun service() = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it)) }
+    private fun service() = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it), WikiRepositories(it)) }
 
     private fun project(owner: String = "alice", name: String = "demo", vcs: String = "GIT") =
         Project(owner = owner, name = name, vcs = vcs)
@@ -57,7 +57,7 @@ class GitRepositoryServiceTest {
     fun `설정한 이름이 새 저장소의 기본 브랜치가 된다 (X-22)`() {
         val properties = YonaProperties(dataDir = dataDir.path, gitDefaultBranch = "trunk")
         val directory = DataDirectory(properties)
-        RepositoryService(GitRepositories(directory, properties), dev.yona.repository.svn.SvnRepositories(directory)).createRepository(project())
+        RepositoryService(GitRepositories(directory, properties), dev.yona.repository.svn.SvnRepositories(directory), WikiRepositories(directory)).createRepository(project())
         RepositoryBuilder().setGitDir(File(dataDir, "repo/git/alice/demo.git")).setMustExist(true).build().use {
             assertEquals("refs/heads/trunk", it.exactRef("HEAD").target.name)
         }

@@ -830,3 +830,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 프로젝트 위키 재개와 범위 결정(D-60)
 선생님이 계획을 요청하셨다. GitHub 문서, Gitea 소스, Yona 위키 화면을 조사해 범위(Forgejo 수준 기능, GitHub 모양 화면, 하위 경로 제외, 두 리비전 비교 포함, 백업 별도)를 확정했다. 단계: W0 결정 기록, W1 저장소 계층, W2 서비스, W3 REST, W4 화면, W5 CLI, W6 검증과 문서, W7 git clone과 push.
+
+## [2026-11-01] X-17 W1 위키 저장소 계층
+선생님이 저장소 위치를 코드 저장소 옆 `<이름>.wiki.git`, 주소를 Forgejo 방식으로 정하셨다(D-60 8, 9번). `WikiRepositories`, `RepositoryService`(이동, 삭제 연동), `ProjectNameRules`의 `.wiki` 끝맺음 금지를 시험 먼저 만들었다. 시험: `WikiRepositoriesTest` 14건, `ProjectNameRulesTest` 3건, 저장소 패키지 전체 118건 통과(전체 시험은 W2 뒤에 돌린다). 결정 A-311.

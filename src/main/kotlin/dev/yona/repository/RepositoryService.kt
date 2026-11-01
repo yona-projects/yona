@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  * 저장소 열기는 Git만 지원한다.
  */
 @Service
-class RepositoryService(private val git: GitRepositories, private val svn: SvnRepositories) {
+class RepositoryService(private val git: GitRepositories, private val svn: SvnRepositories, private val wiki: WikiRepositories) {
 
     /**
      * 프로젝트의 저장소를 새로 만든다. 같은 위치에 이미 있으면 먼저 지운다 (v1.6 `createRepository`).
@@ -41,11 +41,24 @@ class RepositoryService(private val git: GitRepositories, private val svn: SvnRe
      * 프로젝트 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다. 옮기지 못하면 `false`이다
      * (v1.6 `PlayRepository.move`).
      */
-    fun moveRepository(project: Project, newOwner: String, newName: String): Boolean = when (project.vcs) {
-        VCS_GIT -> git.move(owner(project), name(project), newOwner, newName)
-        VCS_SUBVERSION -> svn.move(owner(project), name(project), newOwner, newName)
-        else -> throw unsupported(project)
+    fun moveRepository(project: Project, newOwner: String, newName: String): Boolean {
+        val moved = when (project.vcs) {
+            VCS_GIT -> git.move(owner(project), name(project), newOwner, newName)
+            VCS_SUBVERSION -> svn.move(owner(project), name(project), newOwner, newName)
+            else -> throw unsupported(project)
+        }
+        // 위키 저장소는 프로젝트의 VCS와 무관하게 항상 따라간다 (X-17, D-60).
+        return moved && wiki.move(owner(project), name(project), newOwner, newName)
     }
+
+    /** 프로젝트의 위키 저장소를 만든다. 이미 있으면 아무 일도 하지 않는다. 프로젝트의 VCS와 무관하게 git이다 (X-17, D-60). */
+    fun createWiki(project: Project) = wiki.create(owner(project), name(project))
+
+    /**
+     * 프로젝트의 위키 저장소를 지운다. 없으면 아무 일도 하지 않는다. 프로젝트를 지울 때만 부른다. [deleteRepository]는 VCS를
+     * 바꾸거나 가져오기에 실패했을 때도 쓰이므로 위키까지 지우지 않는다.
+     */
+    fun deleteWiki(project: Project) = wiki.delete(owner(project), name(project))
 
     /** Git 프로젝트의 저장소를 연다. 호출한 쪽이 닫아야 한다. */
     fun openRepository(project: Project): Repository {

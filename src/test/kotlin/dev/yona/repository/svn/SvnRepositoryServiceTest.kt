@@ -24,7 +24,7 @@ class SvnRepositoryServiceTest {
 
     private fun service(): RepositoryService {
         val directory = DataDirectory(YonaProperties(dataDir = dataDir.path))
-        return RepositoryService(GitRepositories(directory), SvnRepositories(directory))
+        return RepositoryService(GitRepositories(directory), SvnRepositories(directory), dev.yona.repository.WikiRepositories(directory))
     }
 
     private fun project(name: String = "demo") = Project(owner = "alice", name = name, vcs = "Subversion")

@@ -189,6 +189,7 @@ class ExternalProjectManageApiController(
         favorites.flush()
         deletion.delete(project)
         repositories.deleteRepository(project)
+        repositories.deleteWiki(project)
         return ResponseEntity.noContent().build<Void>()
     }
 

@@ -32,7 +32,7 @@ class OnlineCommitTest {
 
     @BeforeEach
     fun setUp() {
-        repositories = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it)) }
+        repositories = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it), WikiRepositories(it)) }
         online = OnlineCommit(repositories)
         repositories.createRepository(project)
     }

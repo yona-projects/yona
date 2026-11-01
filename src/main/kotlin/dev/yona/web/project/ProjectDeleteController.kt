@@ -67,6 +67,7 @@ class ProjectDeleteController(
         }
         deletion.delete(project)
         repositories.deleteRepository(project)
+        repositories.deleteWiki(project)
 
         // v1.6은 Ajax 요청이면 303 대신 Location 헤더와 204를 돌려준다.
         if (AjaxRequests.isXhr(request)) {
