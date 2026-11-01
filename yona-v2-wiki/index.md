@@ -118,3 +118,4 @@
 - [조직, 웹훅, 검색, 포크 REST 추적표](architecture/api-org-search-webhook.md): X-30 단계와 엔드포인트별 상태, 범위 대응(D-49)
 - [Bootstrap 전환의 전 화면 확인 도구](architecture/bs-migration-harness.md): `e2e/`, 구조 검사, 순회 캡처, 전후 비교(X-38a, D-53)
 - [OpenAPI 문서(Swagger UI)](architecture/openapi-docs.md): `/-_-api/docs`, 구성, 모델 규칙, 구조 시험과 계약 시험(D-50)
+- [프로젝트 위키](architecture/project-wiki.md): 저장소 위치, 페이지 규칙, 서비스, 단계(X-17, D-60)

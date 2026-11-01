@@ -833,3 +833,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W1 위키 저장소 계층
 선생님이 저장소 위치를 코드 저장소 옆 `<이름>.wiki.git`, 주소를 Forgejo 방식으로 정하셨다(D-60 8, 9번). `WikiRepositories`, `RepositoryService`(이동, 삭제 연동), `ProjectNameRules`의 `.wiki` 끝맺음 금지를 시험 먼저 만들었다. 시험: `WikiRepositoriesTest` 14건, `ProjectNameRulesTest` 3건, 저장소 패키지 전체 118건 통과(전체 시험은 W2 뒤에 돌린다). 결정 A-311.
+
+## [2026-11-01] X-17 W2 위키 서비스
+`WikiService`(목록, 검색, 조회, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff, 비교, 사이드바와 푸터)를 구현했다. 시험 `WikiServiceTest` 26건 통과. 문서는 [architecture/project-wiki.md](architecture/project-wiki.md), 판단은 A-312. 다음은 W3(REST).
