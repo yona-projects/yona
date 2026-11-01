@@ -7,19 +7,19 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="auditList(exportable, verifiable, showFilter)">
 <form th:if="${showFilter}" th:action="${base}" method="get" class="audit-filter row g-2 mb-3">
-    <div class="col-lg-3"><input type="text" name="actor" class="form-control form-control-sm" th:value="${filter.actor}" th:placeholder="#{audit.filter.actor}"></div>
-    <div class="col-lg-3"><input type="text" name="action" class="form-control form-control-sm" th:value="${filter.action}" th:placeholder="#{audit.filter.action}"></div>
+    <div class="col-lg-3"><input type="text" name="actor" class="form-control form-control-sm mb-0" th:value="${filter.actor}" th:placeholder="#{audit.filter.actor}"></div>
+    <div class="col-lg-3"><input type="text" name="action" class="form-control form-control-sm mb-0" th:value="${filter.action}" th:placeholder="#{audit.filter.action}"></div>
     <div class="col-lg-2">
-        <select name="outcome" class="form-select form-select-sm">
+        <select name="outcome" class="form-select form-select-sm mb-0">
             <option value="" th:text="#{audit.outcome.all}">All</option>
             <option th:each="o : ${outcomes}" th:value="${o}" th:text="#{'audit.outcome.' + ${o}}" th:selected="${filter.outcome == o}"></option>
         </select>
     </div>
-    <div class="col-lg-4"><input type="text" name="target" class="form-control form-control-sm" th:value="${filter.target}" th:placeholder="#{audit.filter.target}"></div>
-    <div class="col-lg-3"><input type="text" name="ip" class="form-control form-control-sm" th:value="${filter.ip}" th:placeholder="#{audit.filter.ip}"></div>
-    <div class="col-lg-3"><input type="date" name="from" class="form-control form-control-sm" th:value="${filter.from}" th:title="#{audit.filter.from}"></div>
-    <div class="col-lg-3"><input type="date" name="to" class="form-control form-control-sm" th:value="${filter.to}" th:title="#{audit.filter.to}"></div>
-    <div class="col-lg-3 d-flex gap-2">
+    <div class="col-lg-4"><input type="text" name="target" class="form-control form-control-sm mb-0" th:value="${filter.target}" th:placeholder="#{audit.filter.target}"></div>
+    <div class="col-lg-3"><input type="text" name="ip" class="form-control form-control-sm mb-0" th:value="${filter.ip}" th:placeholder="#{audit.filter.ip}"></div>
+    <div class="col-lg-3"><input type="date" name="from" class="form-control form-control-sm mb-0" th:value="${filter.from}" th:title="#{audit.filter.from}"></div>
+    <div class="col-lg-3"><input type="date" name="to" class="form-control form-control-sm mb-0" th:value="${filter.to}" th:title="#{audit.filter.to}"></div>
+    <div class="col-lg-3 d-flex gap-2 align-items-start">
         <button type="submit" class="btn btn-sm btn-primary" th:text="#{audit.filter.apply}">Apply</button>
         <a th:href="${base}" class="btn btn-sm btn-outline-secondary" th:text="#{audit.filter.reset}">Reset</a>
     </div>
