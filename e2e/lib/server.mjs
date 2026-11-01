@@ -25,10 +25,10 @@ async function waitReady(base, timeoutMs = 180000) {
   throw new Error('서버가 제때 뜨지 않았다: ' + base);
 }
 
-function spawnServer(port, dataDir, jar) {
+function spawnServer(port, dataDir, jar, extraArgs = []) {
   mkdirSync(dataDir, { recursive: true });
   const log = openSync(join(dataDir, 'server.log'), 'a');
-  const child = spawn(JAVA, ['-Xmx1g', '-jar', jarPath(jar), `--server.port=${port}`, `--yona.data-dir=${dataDir}`, '--yona.git-default-branch=master', '--yona.update.interval=0',
+  const child = spawn(JAVA, ['-Xmx1g', '-jar', jarPath(jar), `--server.port=${port}`, `--yona.data-dir=${dataDir}`, '--yona.git-default-branch=master', '--yona.update.interval=0', ...extraArgs,
     `--spring.datasource.url=jdbc:h2:file:${join(dataDir, 'db')};DB_CLOSE_DELAY=-1`], { stdio: ['ignore', log, log], detached: false });
   return child;
 }
@@ -37,16 +37,21 @@ function spawnServer(port, dataDir, jar) {
  * 서버를 시작한다. 데이터 폴더가 처음이면 사이트 비밀 키를 정하고 한 번 다시 시작한다.
  * 돌려주는 `stop()`은 서버를 내린다. `base`는 서버 주소이다.
  */
-export async function startServer({ port = 19191, dataDir = join(ROOT, '.state', 'server'), jar = null } = {}) {
+export async function startServer({ port = 19191, dataDir = join(ROOT, '.state', 'server'), jar = null, extraArgs = [] } = {}) {
   const base = `http://localhost:${port}`;
   const first = !existsSync(join(dataDir, 'config', 'secret.properties'));
-  let child = spawnServer(port, dataDir, jar);
+  let child = spawnServer(port, dataDir, jar, extraArgs);
   await waitReady(base);
   if (first) {
     const body = new URLSearchParams({ loginId: ADMIN.loginId, name: ADMIN.name, email: ADMIN.email, password: ADMIN.password, retypedPassword: ADMIN.password });
-    await fetch(base + '/', { method: 'POST', body, redirect: 'manual' });
+    // 기본 관리자 계정은 서버가 뜬 직후 초기 데이터를 넣으면서 만들어지므로, 아직이면(500) 잠시 뒤 다시 시도한다
+    for (let i = 0; i < 30; i++) {
+      const res = await fetch(base + '/', { method: 'POST', body, redirect: 'manual' });
+      if (res.status < 500) break;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
     child.kill(); await new Promise((r) => child.once('exit', r));
-    child = spawnServer(port, dataDir, jar);
+    child = spawnServer(port, dataDir, jar, extraArgs);
     await waitReady(base);
   }
   return { base, dataDir, first, stop: async () => { child.kill(); await new Promise((r) => child.once('exit', r)); } };
