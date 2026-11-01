@@ -109,6 +109,8 @@ dependencies {
 	// 관측성(X-10, D-64): 상태 확인(Actuator)과 OTLP로 보내는 지표, 추적, 로그(OpenTelemetry). 수집기 주소가 없으면 내보내지 않는다
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+	// 로그를 OTLP로 내보내는 Logback 연결(appender). 수집기 주소가 있을 때만 `otlp-logs` 프로파일로 로그 설정에 붙는다(X-10 C4)
+	implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.28.1-alpha")
 	// 받은 메일 수신(IMAP IDLE, UID 조회)에 쓰는 IMAP 전용 클래스. 스타터는 실행 시점에만 포함한다
 	implementation("org.eclipse.angus:angus-mail")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

@@ -62,8 +62,8 @@ spring:
       hibernate.max_fetch_depth: 2
 
 # 관측성(X-10, D-64). 상태 확인만 열고 상세를 숨긴다. 기본 경로 `/actuator`는 v1.6의 `/:user` 라우트(사용자 이름 actuator)와 겹치므로
-# 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기는 꺼 두고, 수집기 주소(`OTEL_EXPORTER_OTLP_ENDPOINT`)를
-# 설정하면 `ObservabilityActivation`이 켠다.
+# 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기를 켜고 끄는 일은 `ObservabilityActivation`이 한다: 수집기 주소
+# (`OTEL_EXPORTER_OTLP_ENDPOINT`)가 없으면 모두 끄고 있으면 켠다. 직접 정한 `management.*.enabled`가 우선한다.
 management:
   endpoints:
     web:
@@ -76,19 +76,6 @@ management:
       show-components: never
       probes:
         enabled: true
-  otlp:
-    metrics:
-      export:
-        enabled: false
-  opentelemetry:
-    tracing:
-      export:
-        otlp:
-          enabled: false
-  logging:
-    export:
-      otlp:
-        enabled: false
 
 ---
 # PostgreSQL 프로파일: docker-compose.yml로 띄운 컨테이너에 연결한다.

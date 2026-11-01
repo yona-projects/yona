@@ -60,6 +60,19 @@
         <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
         <root level="INFO"><appender-ref ref="CONSOLE"/><appender-ref ref="ROOT_LOG_FILE"/></root>
     </springProfile>
+    <!--
+      프로파일 otlp-logs (수집기 주소가 있을 때 ObservabilityActivation이 켠다): WARN 이상의 로그를 OTLP로 보낸다(D-64 2번). 접근 로그(INFO)는 보내지 않는다.
+      MDC(request_id, user_id)를 속성으로 담는다. OpenTelemetry와는 OtlpLogAppenderInstaller가 잇는다.
+    -->
+    <springProfile name="otlp-logs">
+        <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter"><level>WARN</level></filter>
+            <captureMdcAttributes>*</captureMdcAttributes>
+            <captureExperimentalAttributes>false</captureExperimentalAttributes>
+        </appender>
+        <root level="INFO"><appender-ref ref="OTEL"/></root>
+    </springProfile>
+
     <logger name="dev.yona" level="WARN"><appender-ref ref="APPLICATION_LOG_FILE"/></logger>
     <logger name="mail" level="INFO"><appender-ref ref="MAIL_LOG_FILE"/></logger>
     <!-- additivity 를 끄지 않으므로 콘솔에도 나온다 (v1.6과 같다) -->

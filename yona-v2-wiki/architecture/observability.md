@@ -9,7 +9,7 @@
 | C1 | 의존성(`starter-actuator`, `starter-opentelemetry`), 기본 꺼짐, 주소 설정 시 켜기 | 완료 |
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
-| C4 | OTLP 지표와 추적과 로그, 표본 비율, 감사 `request_id` 연결 | 대기 |
+| C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙 | 진행 중(내보내기 완료) |
 | C5 | VCS, 협업, 백그라운드 도메인 지표와 readiness 조건 | 대기 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
@@ -21,7 +21,13 @@
 OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 ```
 
-개별로 끄려면 `management.otlp.metrics.export.enabled`, `management.opentelemetry.tracing.export.otlp.enabled`, `management.logging.export.otlp.enabled`를 `false`로 명시한다(명시한 값이 우선한다).
+주소에서 신호별 주소를 만든다(`/v1/metrics`, `/v1/traces`, `/v1/logs`). `OTEL_EXPORTER_OTLP_HEADERS`(`이름=값,이름=값`)는 세 신호의 헤더로 옮긴다(Grafana Cloud처럼 인증이 필요한 수집기). 주소가 **없으면 세 신호를 모두 끈다**(Spring Boot 기본값은 켜짐이라 localhost:4318로 보내려 한다).
+
+개별로 끄려면 `management.otlp.metrics.export.enabled`, `management.tracing.export.otlp.enabled`, `management.logging.export.otlp.enabled`를 `false`로 명시한다(명시한 값이 우선한다). 신호별 주소와 헤더도 `management.*`로 직접 정하면 그 값이 우선한다.
+
+- 추적 표본: `management.tracing.sampling.probability`(기본 0.1, D-64 3번). 오류와 느린 요청을 항상 남기는 것은 Alloy의 tail sampling으로 한다.
+- 로그: 수집기 주소가 있으면 프로파일 `otlp-logs`가 켜져 WARN 이상의 로그만 OTLP로 나간다(접근 로그는 제외, D-64 2번). MDC(`request_id`, `user_id`)가 속성으로 담긴다. Spring Boot가 설치하지 않는 Logback 연결(`OpenTelemetryAppender`)을 `OtlpLogAppenderInstaller`가 OpenTelemetry에 잇는다.
+- 확인: 모의 수집기 시험(`OtlpExportTest`)과 실제 jar로 모두 확인했다. 주소가 없을 때는 4318 포트로 아무것도 보내지 않고, 주소를 주면 지표, 추적, 로그가 각 경로로 나간다.
 
 ## 상태 확인 (`/-_-actuator/health`)
 
