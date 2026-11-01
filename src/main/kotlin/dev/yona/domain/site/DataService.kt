@@ -139,6 +139,7 @@ class DataService(
                     cleanOrphanLinks(connection)
                     cleanReviews(connection, imported)
                     cleanTokens(connection, imported)
+                    cleanGpgKeys(connection, imported)
                     cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
@@ -189,6 +190,28 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean API tokens after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * GPG 키 테이블(추가 개발 항목 X-4, `decisions.md` D-65)을 가져온 뒤 바로잡는다. [cleanTokens]와 같은 이유로, 파일에 사용자가 있는데 이 테이블이 없으면 비우고
+     * 없는 사용자를 가리키는 행은 지운다. 하위 키 행이 가리키는 주 키 행이 없는 경우도 지운다.
+     */
+    private fun cleanGpgKeys(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("N4USER" in imported && "GPG_KEY" !in imported) {
+                    statement.executeUpdate("delete from gpg_key where parent_id is not null")
+                    statement.executeUpdate("delete from gpg_key")
+                }
+                statement.executeUpdate("delete from gpg_key where parent_id is not null and user_id not in (select id from n4user)")
+                statement.executeUpdate("delete from gpg_key where user_id not in (select id from n4user)")
+                statement.executeUpdate("delete from gpg_key where parent_id is not null and parent_id not in (select id from (select id from gpg_key) as parents)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean GPG keys after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }

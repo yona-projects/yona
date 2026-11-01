@@ -13,8 +13,8 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 53개이고(v1_6의 47개와 추가한 테이블 6개) 이름 순서로 정렬되어 있다`() {
-        assertEquals(53, DataTables.all.size)
+    fun `테이블은 54개이고(v1_6의 47개와 추가한 테이블 7개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(54, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("API_TOKEN", DataTables.all.first().name)
         assertEquals("WATCH", DataTables.all.last().name)
@@ -40,7 +40,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals(11, DataTables.find("N4USER")!!.columns.size)
         // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
         assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
-        assertEquals(28, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
+        assertEquals(29, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
     @Test

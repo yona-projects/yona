@@ -101,4 +101,15 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
         val unique = SchemaMetadata.actualIndexes(dataSource)["device_authorization"].orEmpty().values.filter { it.unique }.map { it.columns.toList() }
         assertEquals(true, listOf("device_code_hash") in unique && listOf("user_code") in unique, unique.toString())
     }
+
+    @Test
+    fun `GPG 키 테이블의 컬럼과 외래 키와 유일 지문 (X-4, D-65)`() {
+        val columns = SchemaMetadata.actualColumns(dataSource)["gpg_key"] ?: error("gpg_key 테이블이 없다")
+        assertEquals(setOf("id", "user_id", "parent_id", "name", "fingerprint", "key_id", "public_key", "emails", "can_sign", "created_date", "expires_date", "last_used_date"), columns.keys)
+        assertEquals(setOf("n4user", "gpg_key"), SchemaMetadata.actualForeignKeys(dataSource)["gpg_key"].orEmpty().values.map { it.referencedTable }.toSet())
+        assertEquals(setOf("id"), primaryKey("gpg_key"))
+        assertEquals(setOf("id"), SchemaMetadata.actualAutoIncrement(dataSource)["gpg_key"])
+        val unique = SchemaMetadata.actualIndexes(dataSource)["gpg_key"].orEmpty().values.filter { it.unique }.map { it.columns.toList() }
+        assertEquals(true, listOf("fingerprint") in unique, unique.toString())
+    }
 }

@@ -264,6 +264,51 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `GPG 키 테이블도 내보내고 가져오며 시퀀스를 함께 쓴다 (X-4)`() {
+        val names = exported().propertyNames().toList()
+        assertEquals(true, "GPG_KEY" in names && "GPG_KEY_SEQ" in names, names.toString())
+    }
+
+    @Test
+    fun `가져온 뒤 없는 사용자를 가리키는 GPG 키 행은 정리한다 (X-4)`() {
+        import("""{"GPG_KEY": [{"id": 1, "user_id": 999001, "parent_id": null, "name": "x", "fingerprint": "AB", "key_id": "CD", "public_key": "k", "emails": "", "can_sign": true, "created_date": 1700000000000, "expires_date": 0, "last_used_date": 0}]}""")
+        assertEquals(0, count("gpg_key"))
+    }
+
+    @Test
+    fun `사용자는 있고 GPG 키 테이블이 없는 옛 파일을 가져오면 남아 있던 키는 비운다 (X-4)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881301L, "gkold", "옛")
+        jdbc.update("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881301L, "남은", "FP1", "KID1", "k", true)
+        val row = DataTables.find("N4USER")!!.columns.joinToString(", ") { c ->
+            val value = when (c.name) {
+                "id" -> "881301"
+                "login_id" -> "\"gkold\""
+                else -> when (c.type) {
+                    DataType.STRING, DataType.CLOB -> "\"v${c.name}\""
+                    DataType.BOOLEAN -> "false"
+                    DataType.STRING_LONG -> "\"1\""
+                    else -> "1"
+                }
+            }
+            "\"${c.key}\": $value"
+        }
+        import("""{"N4USER": [{$row}]}""")
+        assertEquals(0, count("gpg_key"))
+    }
+
+    @Test
+    fun `하위 키가 있는 GPG 키 행을 내보내고 다시 가져온다 (X-4)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881302L, "gkrt", "왕복")
+        jdbc.update("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, emails, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 11L, 881302L, "주", "FPA", "KIDA", "armored", "a@example.com", true)
+        jdbc.update("insert into gpg_key(id, user_id, parent_id, fingerprint, key_id, can_sign, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 12L, 881302L, 11L, "FPB", "KIDB", true)
+        val bytes = exportBytes()
+        jdbc.update("delete from gpg_key where parent_id is not null"); jdbc.update("delete from gpg_key")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals(listOf("FPA", "FPB"), jdbc.queryForList("select fingerprint from gpg_key where user_id = 881302 order by id", String::class.java))
+        assertEquals(11L, jdbc.queryForObject("select parent_id from gpg_key where id = 12", Long::class.java))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

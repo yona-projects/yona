@@ -77,7 +77,7 @@ class DataTable(val name: String, val hasSequence: Boolean, vararg columns: Data
 }
 
 /**
- * 내보내고 가져오는 53개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)와 X-12(D-35)의 리뷰 테이블 `PULL_REQUEST_REVIEW`, X-5(D-36)의 토큰 테이블 `API_TOKEN`을 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
+ * 내보내고 가져오는 54개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)와 X-12(D-35)의 리뷰 테이블 `PULL_REQUEST_REVIEW`, X-5(D-36)의 토큰 테이블 `API_TOKEN`, X-4(D-65)의 GPG 공개키 테이블 `GPG_KEY` 등을 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
  *
  * 엔티티에 있는 컬럼이어도 v1.6 Exchanger가 다루지 않는 것(예: `N4USER.is_guest`, `ISSUE.weight`)은 내보내지 않고 가져올 때 기본값이 된다.
  * 이 목록에 없는 테이블(즐겨찾기, 웹훅, 소셜 로그인 등 14개)은 내보내기와 가져오기에서 빠진다.
@@ -181,6 +181,22 @@ object DataTables {
             DataColumn("email", STRING),
             DataColumn("token", STRING),
             DataColumn("valid", BOOLEAN)
+        ),
+        // 추가 개발 항목 X-4(D-65)의 GPG 공개키이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다. 하위 키 행은 `parent_id`로 주 키 행을 가리킨다.
+        DataTable(
+            "GPG_KEY", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("parent_id", LONG, nullableLong = true),
+            DataColumn("name", STRING),
+            DataColumn("fingerprint", STRING),
+            DataColumn("key_id", STRING),
+            DataColumn("public_key", CLOB),
+            DataColumn("emails", STRING),
+            DataColumn("can_sign", BOOLEAN),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("expires_date", TIMESTAMP),
+            DataColumn("last_used_date", TIMESTAMP)
         ),
         DataTable(
             "ISSUE", true,
