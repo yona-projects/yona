@@ -41,6 +41,12 @@
                             </th:block>
                             <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
                         </div>
+                        <!--/* 추가 개발 항목 X-4(D-65): 서명이 있는 커밋에만 서명 상자를 보인다 */-->
+                        <div class="gpg-signature-box" th:if="${signature != null}">
+                            <th:block th:replace="~{code/partial-signature :: badge(${signature})}"></th:block>
+                            <span th:if="${signature.signer != null}" class="gpg-signed-by"><th:block th:text="#{gpgKey.signedBy}"></th:block> <strong class="gpg-signer" th:text="${signature.signer}"></strong></span>
+                            <span th:if="${signature.keyId != null}" class="gpg-key-label"><th:block th:text="#{gpgKey.keyId}"></th:block> <code class="gpg-key-id" th:text="${signature.keyId}"></code></span>
+                        </div>
                         <div class="commitMsg-wrap">
                             <span class="commitMsg short" th:utext="${#strings.isEmpty(shortMessageHtml)} ? #{code.commitMsg.empty} : ${shortMessageHtml}"></span>
                             <pre class="commitMsg desc" th:if="${!#strings.isEmpty(moreMessageHtml)}" th:utext="${moreMessageHtml}"></pre>

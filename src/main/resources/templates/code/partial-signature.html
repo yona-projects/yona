@@ -1,0 +1,7 @@
+<!--/*
+  추가 개발 항목 X-4(decisions.md D-65): 커밋과 태그의 서명 표시. 서명이 없으면(b가 null) 아무것도 그리지 않는다
+  매개변수: b(SignatureBadge)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="badge(b)" th:if="${b != null}"><span class="gpg-badge badge"
+    th:classappend="${b.verified} ? 'gpg-verified bg-success' : 'gpg-unverified bg-secondary'" th:attr="data-reason=${b.reason}"
+    th:title="#{'gpgKey.reason.' + ${b.reason}}" th:text="${b.verified} ? #{gpgKey.verified} : #{gpgKey.unverified}"></span></th:block>

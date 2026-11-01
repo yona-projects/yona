@@ -271,7 +271,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `가져온 뒤 없는 사용자를 가리키는 GPG 키 행은 정리한다 (X-4)`() {
-        import("""{"GPG_KEY": [{"id": 1, "user_id": 999001, "parent_id": null, "name": "x", "fingerprint": "AB", "key_id": "CD", "public_key": "k", "emails": "", "can_sign": true, "created_date": 1700000000000, "expires_date": 0, "last_used_date": 0}]}""")
+        import("""{"GPG_KEY": [{"id": 1, "user_id": 999001, "parent_id": null, "name": "x", "fingerprint": "AB", "key_id": "CD", "public_key": "k", "emails": "", "can_sign": true, "created_date": 1700000000000, "expires_date": 0}]}""")
         assertEquals(0, count("gpg_key"))
     }
 

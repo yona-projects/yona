@@ -34,7 +34,8 @@ import org.springframework.web.servlet.view.RedirectView
  */
 data class TagRow(
     val shortName: String, val annotated: Boolean, val message: String?, val shortMessage: String?, val tagger: String?, val codeUrl: String,
-    val commitUrl: String?, val commitShortId: String?, val commitId: String?, val date: String?, val dateTitle: String?, val deleteUrl: String?
+    val commitUrl: String?, val commitShortId: String?, val commitId: String?, val date: String?, val dateTitle: String?, val deleteUrl: String?,
+    val signature: SignatureBadge? = null
 )
 
 /**
@@ -53,7 +54,8 @@ class TagController(
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val signatureBadges: SignatureBadges
 ) {
 
     @GetMapping("/{user}/{project}/tags")
@@ -79,7 +81,7 @@ class TagController(
             tagger = t.taggerName?.let { n -> t.taggerDate?.let { "$n, ${helper.agoOrDateString(it)}" } ?: n },
             codeUrl = "$base/code/${UrlPaths.routeSegment(t.name)}", commitUrl = t.commitId?.let { "$base/commit/$it" }, commitShortId = t.commitShortId, commitId = t.commitId,
             date = t.commitDate?.let { helper.agoOrDateString(it) }, dateTitle = t.commitDate?.let { helper.dateString(it) },
-            deleteUrl = if (canDelete) "$base/tags/${UrlPaths.routeSegment(t.shortName)}" else null
+            deleteUrl = if (canDelete) "$base/tags/${UrlPaths.routeSegment(t.shortName)}" else null, signature = signatureBadges.of(t)
         )
     }
 

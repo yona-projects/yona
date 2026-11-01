@@ -195,8 +195,7 @@ object DataTables {
             DataColumn("emails", STRING),
             DataColumn("can_sign", BOOLEAN),
             DataColumn("created_date", TIMESTAMP),
-            DataColumn("expires_date", TIMESTAMP),
-            DataColumn("last_used_date", TIMESTAMP)
+            DataColumn("expires_date", TIMESTAMP)
         ),
         DataTable(
             "ISSUE", true,

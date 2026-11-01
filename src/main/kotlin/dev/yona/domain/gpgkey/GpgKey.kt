@@ -19,7 +19,6 @@ import java.util.Date
  * @property canSign 서명 용도로 쓸 수 있으면 `true`이다
  * @property createdDate 등록한 시각
  * @property expiresDate 키의 만료 시각. 없으면 만료 없음이다
- * @property lastUsedDate 마지막으로 이 키의 서명이 검증에 쓰인 시각(1시간에 한 번만 갱신한다)
  */
 @Entity
 @Table(
@@ -49,9 +48,7 @@ class GpgKey(
     @Column(name = "created_date")
     var createdDate: Date? = null,
     @Column(name = "expires_date")
-    var expiresDate: Date? = null,
-    @Column(name = "last_used_date")
-    var lastUsedDate: Date? = null
+    var expiresDate: Date? = null
 )
 
 /** [GpgKey] 저장소이다. */

@@ -20,10 +20,12 @@ import java.util.Date
  * @property taggerDate 주석 태그를 단 시각. 없으면 `null`
  * @property commitId 태그가 (주석 태그를 모두 벗긴 끝에) 가리키는 커밋 번호. 커밋이 아니면 `null`
  * @property commitDate 그 커밋의 커밋 시각. 커밋이 아니면 `null`
+ * @property taggerEmail 주석 태그를 단 사람의 이메일. 없으면 `null`
+ * @property signature 주석 태그의 GPG 서명과 서명 대상 바이트(X-4). 서명이 없으면 `null`
  */
 data class TagInfo(
     val name: String, val shortName: String, val annotated: Boolean, val message: String?, val taggerName: String?, val taggerDate: Date?,
-    val commitId: String?, val commitDate: Date?
+    val commitId: String?, val commitDate: Date?, val taggerEmail: String? = null, val signature: dev.yona.domain.gpgkey.SignedPayload? = null
 ) {
     /** 7자리 커밋 번호이다. */
     val commitShortId: String? get() = commitId?.take(7)
@@ -104,7 +106,8 @@ class TagService(private val repositories: RepositoryService, private val metric
         val commit = target as? RevCommit
         return TagInfo(
             name = name, shortName = name.removePrefix(Constants.R_TAGS), annotated = first != null, message = first?.fullMessage,
-            taggerName = first?.taggerIdent?.name, taggerDate = first?.taggerIdent?.`when`, commitId = commit?.name, commitDate = commit?.committerIdent?.`when`
+            taggerName = first?.taggerIdent?.name, taggerDate = first?.taggerIdent?.`when`, commitId = commit?.name, commitDate = commit?.committerIdent?.`when`,
+            taggerEmail = first?.taggerIdent?.emailAddress, signature = first?.takeIf { it.rawGpgSignature != null }?.let { dev.yona.domain.gpgkey.GitSignatures.ofTag(it.rawBuffer) }
         )
     }
 }

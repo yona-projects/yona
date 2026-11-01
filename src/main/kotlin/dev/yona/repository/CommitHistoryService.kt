@@ -17,10 +17,11 @@ import java.util.Date
  * @property shortMessage 메시지의 첫 문단(줄바꿈은 공백)
  * @property message 메시지 전체
  * @property parentCount 부모 커밋 수. 0이면 첫 커밋이다
+ * @property signature GPG 서명과 서명 대상 바이트(X-4). 서명이 없는 커밋과 Subversion은 `null`이다
  */
 data class CommitInfo(
     val id: String, val shortId: String, val shortMessage: String, val message: String, val authorName: String, val authorEmail: String, val authorDate: Date,
-    val committerName: String, val committerEmail: String, val commitTime: Date, val parentCount: Int
+    val committerName: String, val committerEmail: String, val commitTime: Date, val parentCount: Int, val signature: dev.yona.domain.gpgkey.SignedPayload? = null
 )
 
 /**
@@ -101,7 +102,8 @@ class CommitHistoryService(
     private fun info(commit: RevCommit): CommitInfo = CommitInfo(
         id = commit.name, shortId = commit.abbreviate(7).name(), shortMessage = commit.shortMessage, message = commit.fullMessage,
         authorName = commit.authorIdent.name, authorEmail = commit.authorIdent.emailAddress, authorDate = commit.authorIdent.`when`,
-        committerName = commit.committerIdent.name, committerEmail = commit.committerIdent.emailAddress, commitTime = Date(commit.commitTime * 1000L), parentCount = commit.parentCount
+        committerName = commit.committerIdent.name, committerEmail = commit.committerIdent.emailAddress, commitTime = Date(commit.commitTime * 1000L), parentCount = commit.parentCount,
+        signature = if (commit.rawGpgSignature != null) dev.yona.domain.gpgkey.GitSignatures.ofCommit(commit.rawBuffer) else null
     )
 
     /** 저장소에 커밋이 하나도 없다(`HEAD`를 풀 수 없다). */

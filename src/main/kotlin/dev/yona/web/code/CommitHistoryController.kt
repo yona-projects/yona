@@ -29,7 +29,8 @@ import java.net.URLEncoder
 /** 커밋 이력 한 줄의 화면 값이다. [messageHtml]은 첫 줄을 뺀 나머지 메시지이다(없으면 빈 값). */
 data class HistoryRow(
     val id: String, val shortId: String, val showUrl: String, val shortMessageHtml: String, val moreHtml: String, val hasMore: Boolean, val browseUrl: String?,
-    val commentCount: Int, val date: String, val authorHref: String?, val authorLoginId: String?, val authorName: String?, val avatarUrl: String?, val authorEmail: String?
+    val commentCount: Int, val date: String, val authorHref: String?, val authorLoginId: String?, val authorName: String?, val avatarUrl: String?, val authorEmail: String?,
+    val signature: SignatureBadge? = null
 )
 
 /**
@@ -53,7 +54,8 @@ class CommitHistoryController(
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
     private val reviewThreads: dev.yona.domain.comment.ReviewThreadService,
-    private val commitComments: dev.yona.domain.comment.CommitCommentRepository
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
+    private val signatureBadges: SignatureBadges
 ) {
 
     /** 기본 브랜치(`HEAD`)까지의 이력이다. */
@@ -145,7 +147,7 @@ class CommitHistoryController(
             commentCount = if (subversion) commentCount(project, commit.id, path) else reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
             authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName.takeIf { it.isNotEmpty() },
             avatarUrl = if (user != null) avatars.avatarUrl(user) else if (subversion) null else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE),
-            authorEmail = if (subversion) null else commit.authorEmail
+            authorEmail = if (subversion) null else commit.authorEmail, signature = signatureBadges.of(commit)
         )
     }
 

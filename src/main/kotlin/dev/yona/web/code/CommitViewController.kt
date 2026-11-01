@@ -82,6 +82,8 @@ class CommitViewController(
     private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
     private val attachmentListing: dev.yona.web.AttachmentListing,
     private val originalEmails: dev.yona.domain.notification.OriginalEmailRepository
+,
+    private val signatureBadges: SignatureBadges
 ) {
 
     private val json = tools.jackson.databind.json.JsonMapper.builder().build()
@@ -115,6 +117,7 @@ class CommitViewController(
             .addObject("title", "${messages.getMessage("code.commits", null, "code.commits", LocaleContextHolder.getLocale())} @${commit.id}")
             .addObject("projectView", views.of(project))
             .addObject("commit", commitView(commit, author))
+            .addObject("signature", signatureBadges.of(commit))
             .addObject("shortMessageHtml", messageHtml(commit.shortMessage, project))
             .addObject("moreMessageHtml", moreMessageHtml(commit.message, project))
             .addObject("diffHtml", diffHtml.render(fileDiffs, codeThreads, project, project, threadHtml))
