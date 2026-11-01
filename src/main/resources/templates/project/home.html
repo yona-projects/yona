@@ -36,8 +36,25 @@
                 </div>
             </div>
             <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-lg-3 hide-in-mobile">
+                <!--/* 내장 SSH 서버를 켠 사이트에서만 보인다(X-3, D-66). 켜지 않으면 v1.6과 같은 복제 상자이다 */-->
+                <div th:if="${projectView.sshCloneUrl != null}" class="btn-group btn-group-sm mb-1 clone-protocol" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" th:attr="data-clone-url=${projectView.cloneUrl}">HTTP</button>
+                    <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${projectView.sshCloneUrl}">SSH</button>
+                </div>
                 <input type="text" class="project-clone-url form-control" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
+                <script th:if="${projectView.sshCloneUrl != null}">
+                    (function(){
+                        var box = document.querySelector(".clone-protocol"), input = document.getElementById("cloneURL");
+                        if (!box || !input) { return; }
+                        box.addEventListener("click", function(event){
+                            var button = event.target.closest("button");
+                            if (!button) { return; }
+                            Array.prototype.forEach.call(box.querySelectorAll("button"), function(b){ b.classList.toggle("active", b === button); });
+                            input.value = button.getAttribute("data-clone-url");
+                        });
+                    })();
+                </script>
             </div>
         </div>
         <div class="row">

@@ -213,13 +213,15 @@ data class YonaProperties(
      * @property bindAddress SSH 서버가 묶이는 주소. 비우면 모든 주소이다
      * @property hostKeyPath 호스트 키 파일 경로. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며, 없으면 처음 시작할 때 만든다
      * @property user 접속에 쓰는 사용자 이름(기본 `git`). 키로 사용자를 알아내므로 이름은 모두 같다(GitHub 방식)
+     * @property publicPort 복제 주소에 보여 줄 포트(`yona.ssh.public-port`). 0이면 서버가 실제로 받는 포트이다. 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다
      */
     data class Ssh(
         val enabled: Boolean = false,
         val port: Int = 2222,
         val bindAddress: String = "",
         val hostKeyPath: String = "",
-        val user: String = "git"
+        val user: String = "git",
+        val publicPort: Int = 0
     )
 
     /**

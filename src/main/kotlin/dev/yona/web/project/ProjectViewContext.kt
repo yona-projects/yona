@@ -169,6 +169,9 @@ class ProjectViewContext(
      */
     val cloneUrl: String? get() = deps.repositoryUrls.urlFor(project, request, if (project.vcs == "Subversion") null else viewer?.loginId)
 
+    /** 프로젝트 홈의 SSH 복제 주소이다. 내장 SSH 서버를 켜지 않았거나 Git 프로젝트가 아니면 `null`이라 복제 상자가 v1.6과 같다(X-3, D-66). */
+    val sshCloneUrl: String? get() = deps.repositoryUrls.sshUrlFor(project, request)
+
     // --- 메뉴의 개수 ---
 
     val openIssueCount: Long by lazy { deps.projectService.countIssues(project, State.OPEN) }
