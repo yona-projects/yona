@@ -10,7 +10,7 @@
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
 | C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙, 감사 `request_id` 연결 | 완료 |
-| C5 | VCS, 협업, 백그라운드 도메인 지표와 readiness 조건 | 대기 |
+| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a 완료 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
 ## 켜는 방법
@@ -49,4 +49,11 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 - **비밀값**: 요청 쿼리(`?token=...`), `Authorization`, `Cookie` 헤더의 값은 추적, 지표, 로그 어느 신호로도 나가지 않는다. 모의 수집기가 받은 본문 전체를 검사하는 시험(`OtlpExportTest`)으로 고정했다(경로는 남고 위 값만 없음을 함께 확인). JDBC 계측은 켜지 않아 SQL 바인딩 값도 없다.
 - **추적 속성**: 서버 span에 `request_id`(필터가 정한 값), 로그인했으면 `user_id`(번호만)가 로그 MDC와 같은 키로 들어간다. Grafana에서 Loki 로그와 Tempo 추적을 같은 키로 찾는다. 감사 기록의 `request_id`도 같은 값이다.
 - **리소스 속성**: `service.name=yona`(애플리케이션 이름), `service.version`(빌드 정보), 그 밖에는 `OTEL_RESOURCE_ATTRIBUTES`(예: `deployment.environment=prod`)나 `management.opentelemetry.resource-attributes.*`로 정한다.
+
+## 시스템 지표와 상태 확인 묶음 (C5a)
+
+- **자동 지표**(Micrometer 기본, 모두 켬): CPU(`process.cpu.usage`, `system.cpu.usage`, `system.load.average.1m`), JVM 메모리와 GC와 스레드, 파일 핸들(`process.files.open`), DB 풀(`hikaricp.*`), HTTP 서버(`http.server.requests`), 톰캣 스레드 풀(`tomcat.threads.*`, `server.tomcat.mbeanregistry.enabled=true`로 켬). 실제 jar로 수집기까지 나감을 확인했다.
+- **디스크**: `yona.storage.disk.total`, `yona.storage.disk.free`(바이트)가 데이터 디렉터리가 있는 파티션의 전체와 여유 용량이다. 파티션 전체 값이라 비용이 작고 프로젝트 라벨은 없다.
+- **readiness**: `readinessState`, `db`, `dataDirectory`만 본다. `dataDirectory`는 디렉터리가 있고 쓸 수 있으며 여유 용량이 `yona.observability-min-free-percent`(기본 5, 0이면 여유 용량은 보지 않음) 이상이어야 UP이다. 메일, LDAP, 디스크 공간 지표(`diskspace`)는 상태 확인에서 뺐다(외부 의존이 죽었다고 서버를 트래픽에서 빼지 않는다). **디스크 경고는 알림 규칙(85% 등)이 먼저 알리고 readiness는 마지막 방어선이다.**
+- **liveness**: 프로세스 상태(`livenessState`)만 본다.
 

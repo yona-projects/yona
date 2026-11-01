@@ -61,6 +61,12 @@ spring:
       # 조인 표가 늘어 MariaDB의 61개 한도를 넘는 문제를 막는다. 깊이를 넘는 연관은 별도 조회로 읽으므로 결과는 같다.
       hibernate.max_fetch_depth: 2
 
+# 톰캣 스레드 풀 지표(tomcat.threads.*)를 켠다. 긴 git 요청이 스레드를 점유해 풀이 고갈되는 것을 보려는 것이다(X-10 C5a).
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
 # 관측성(X-10, D-64). 상태 확인만 열고 상세를 숨긴다. 기본 경로 `/actuator`는 v1.6의 `/:user` 라우트(사용자 이름 actuator)와 겹치므로
 # 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기를 켜고 끄는 일은 `ObservabilityActivation`이 한다: 수집기 주소
 # (`OTEL_EXPORTER_OTLP_ENDPOINT`)가 없으면 모두 끄고 있으면 켠다. 직접 정한 `management.*.enabled`가 우선한다.
@@ -76,6 +82,18 @@ management:
       show-components: never
       probes:
         enabled: true
+      group:
+        # readiness: DB와 데이터 디렉터리(쓰기, 여유 용량)만 본다. 메일, LDAP, 감사 스트리밍 대상이 죽었다고 서버를 트래픽에서 빼지 않는다(D-64 5번)
+        readiness:
+          include: readinessState,db,dataDirectory
+  health:
+    # 외부 의존은 상태 확인에서 빼고 지표로만 본다(D-64 5번)
+    mail:
+      enabled: false
+    ldap:
+      enabled: false
+    diskspace:
+      enabled: false
 
 ---
 # PostgreSQL 프로파일: docker-compose.yml로 띄운 컨테이너에 연결한다.
