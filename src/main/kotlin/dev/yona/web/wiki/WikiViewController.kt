@@ -71,7 +71,7 @@ class WikiViewController(
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun home(@PathVariable("user") owner: String, @PathVariable("project") name: String): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         val page = wikiService.page(project, HOME)
         return if (page != null) pageView(project, page) else shell(project, "wiki/empty", "Wiki", null).addObject("available", wikiService.available(project))
     }
@@ -80,7 +80,7 @@ class WikiViewController(
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun view(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         val found = wikiService.page(project, page) ?: return ErrorViews.notFound("wiki.page.notFound", views.of(project), null)
         return pageView(project, found)
     }
@@ -92,7 +92,7 @@ class WikiViewController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String,
         @RequestParam(defaultValue = "0") number: Int
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         val pageName = wikiService.pageNameOrNull(page) ?: return ErrorViews.notFound("wiki.page.notFound", views.of(project), null)
         val current = number.coerceAtLeast(0)
         val commits = wikiService.history(project, pageName, current, HISTORY_SIZE + 1)
@@ -113,7 +113,7 @@ class WikiViewController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String,
         @RequestParam(required = false) commit: String?, @RequestParam(required = false) from: String?, @RequestParam(required = false) to: String?
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         val pageName = wikiService.pageNameOrNull(page) ?: return ErrorViews.notFound("wiki.page.notFound", views.of(project), null)
         val text = try {
             when {
@@ -138,7 +138,7 @@ class WikiViewController(
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun newForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @RequestParam(required = false) title: String?): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         deny(project)?.let { return it }
         return form(project, null, title.orEmpty(), "", "", null, HttpStatus.OK)
     }
@@ -151,7 +151,7 @@ class WikiViewController(
         @RequestParam(defaultValue = "") title: String, @RequestParam(defaultValue = "") content: String, @RequestParam(defaultValue = "") message: String,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         deny(project)?.let { return it }
         return try {
             val created = wikiService.create(project, requireNotNull(currentUserProvider.get().user), title, content, message)
@@ -165,7 +165,7 @@ class WikiViewController(
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun editForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         deny(project)?.let { return it }
         val found = wikiService.page(project, page) ?: return ErrorViews.notFound("wiki.page.notFound", views.of(project), null)
         return form(project, found.name, found.title, found.content, "", null, HttpStatus.OK)
@@ -179,7 +179,7 @@ class WikiViewController(
         @RequestParam(defaultValue = "") title: String, @RequestParam(defaultValue = "") content: String, @RequestParam(defaultValue = "") message: String,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         deny(project)?.let { return it }
         return try {
             val updated = wikiService.update(project, requireNotNull(currentUserProvider.get().user), page, title, content, message)
@@ -198,7 +198,7 @@ class WikiViewController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String,
         @RequestParam(defaultValue = "") message: String, request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         deny(project)?.let { return it }
         return try {
             wikiService.delete(project, requireNotNull(currentUserProvider.get().user), page, message)
@@ -211,6 +211,10 @@ class WikiViewController(
     }
 
     // --- 조립 ---
+
+    /** 프로젝트를 찾고 위키가 켜져 있을 때만 돌려준다. 없거나 꺼져 있으면 `null`이다(404). */
+    private fun wikiProject(owner: String, name: String): Project? =
+        projectService.findByOwnerAndProjectName(owner, name)?.takeIf { wikiService.enabled(it) }
 
     private fun wikiBase(project: Project) = siteUrls.path(UrlPaths.projectPath(project.owner, project.name) + "/wiki")
 

@@ -26,7 +26,7 @@ class ProjectJson(private val menuSettings: ProjectMenuSettingRepository, privat
             "createdAt" to pullRequestJson.iso(project.createdDate), "url" to siteUrls.path(UrlPaths.projectPath(project.owner, project.name)),
             "originalProject" to project.originalProject?.let { linkedMapOf("owner" to it.owner, "name" to it.name) },
             "organization" to project.organization?.name,
-            "menus" to linkedMapOf("code" to (menu?.code == true), "issue" to (menu?.issue == true), "pullRequest" to (menu?.pullRequest == true), "review" to (menu?.review == true), "milestone" to (menu?.milestone == true), "board" to (menu?.board == true))
+            "menus" to linkedMapOf("code" to (menu?.code == true), "issue" to (menu?.issue == true), "pullRequest" to (menu?.pullRequest == true), "review" to (menu?.review == true), "milestone" to (menu?.milestone == true), "board" to (menu?.board == true), "wiki" to (menu?.wiki == true))
         )
     }
 

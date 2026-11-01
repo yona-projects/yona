@@ -62,7 +62,7 @@ class WikiViewTest : AbstractIntegrationTest() {
     private fun project(scope: ProjectScope = ProjectScope.PUBLIC): Project {
         val n = ++sequence
         val p = projects.save(Project(owner = "wvo$n-$stamp", name = "wvp$n", vcs = "GIT", projectScope = scope, lastIssueNumber = 0, lastPostingNumber = 0))
-        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         return p
     }
 

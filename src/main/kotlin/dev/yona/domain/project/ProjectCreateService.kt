@@ -141,7 +141,7 @@ class ProjectCreateService(
             ProjectMenuSetting(
                 project = project,
                 code = "code" in menus, issue = "issue" in menus, pullRequest = "pullRequest" in menus,
-                review = "review" in menus, milestone = "milestone" in menus, board = "board" in menus
+                review = "review" in menus, milestone = "milestone" in menus, board = "board" in menus, wiki = "wiki" in menus
             )
         )
     }

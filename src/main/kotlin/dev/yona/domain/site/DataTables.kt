@@ -397,7 +397,8 @@ object DataTables {
             DataColumn("pull_request", BOOLEAN),
             DataColumn("review", BOOLEAN),
             DataColumn("milestone", BOOLEAN),
-            DataColumn("board", BOOLEAN)
+            DataColumn("board", BOOLEAN),
+            DataColumn("wiki", BOOLEAN, absentBoolean = false)
         ),
         DataTable(
             "PROJECT_PUSHED_BRANCH", true,

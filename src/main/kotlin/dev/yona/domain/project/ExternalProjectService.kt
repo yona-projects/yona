@@ -58,7 +58,7 @@ class ExternalProjectService(
             projectUsers.save(ProjectUser(user = users.getReferenceById(SITE_MANAGER_ID), project = project, role = roles.getReferenceById(RoleType.SITEMANAGER.id)))
         }
         repositories.createRepository(project)
-        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         if (spec.members.isNotEmpty()) {
             spec.members.forEach { (user, role) ->
                 when (role.lowercase()) {

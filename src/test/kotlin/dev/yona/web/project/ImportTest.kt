@@ -92,7 +92,7 @@ class ImportTest : AbstractIntegrationTest() {
         assertEquals(listOf(me.loginId, org.name), doc.select("select#project-owner option").map { it.attr("value") })
         assertEquals(org.name, doc.selectFirst("select#project-owner option[selected]")!!.attr("value"))
         assertEquals("GIT", doc.selectFirst("input[name=vcs]")!!.attr("value"))
-        assertEquals(6, doc.select("input[type=checkbox][name][value=true]").size)
+        assertEquals(7, doc.select("input[type=checkbox][name][value=true]").size)
     }
 
     @Test
@@ -105,7 +105,7 @@ class ImportTest : AbstractIntegrationTest() {
         assertTrue(projectUsers.existsByUserIdAndProjectIdAndRoleId(me.id!!, project.id!!, RoleType.MANAGER.id))
         assertTrue(projectUsers.existsByUserIdAndProjectIdAndRoleId(1L, project.id!!, RoleType.SITEMANAGER.id))
         val menu = menuSettings.findFirstByProjectId(project.id!!)!!
-        assertEquals(listOf(true, true, false, false, false, false), listOf(menu.code, menu.issue, menu.pullRequest, menu.review, menu.milestone, menu.board))
+        assertEquals(listOf(true, true, false, false, false, false, false), listOf(menu.code, menu.issue, menu.pullRequest, menu.review, menu.milestone, menu.board, menu.wiki))
     }
 
     @Test

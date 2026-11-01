@@ -36,7 +36,7 @@ class WikiServiceTest {
     @BeforeEach
     fun setUp() {
         wikis = WikiRepositories(DataDirectory(YonaProperties(dataDir = dataDir.path)))
-        service = WikiService(wikis) { _, _ -> clash }
+        service = WikiService(wikis, { _, _ -> clash })
     }
 
     /** 위키 저장소의 HEAD 커밋 수이다. */
@@ -293,7 +293,7 @@ class WikiServiceTest {
     @Test
     fun `저장소를 연 사이에 다른 커밋이 들어오면 충돌로 거부한다`() {
         service.create(project, bob, "Home", "1", null)
-        val racing = WikiService(wikis) { _, _ -> clash }
+        val racing = WikiService(wikis, { _, _ -> clash })
         racing.beforeCommit = { service.update(project, carol, "Home", null, "carol", null) }
         assertFailsWith<WikiConflictException> { racing.update(project, bob, "Home", null, "bob", null) }
         assertEquals("carol", service.page(project, "Home")?.content)

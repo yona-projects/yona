@@ -1,6 +1,7 @@
 package dev.yona.domain.wiki
 
 import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.user.User
 import dev.yona.repository.CommitInfo
@@ -44,11 +45,19 @@ data class WikiPage(val name: String, val title: String, val content: String, va
  * @param clash 같은 소유자에 `<프로젝트 이름>.wiki`라는 프로젝트가 있어 위키 저장소 위치가 그 코드 저장소와 겹치는지 알려 주는 판정이다.
  */
 @Service
-class WikiService(private val wikis: WikiRepositories, private val clash: (owner: String, name: String) -> Boolean) {
+class WikiService(
+    private val wikis: WikiRepositories,
+    private val clash: (owner: String, name: String) -> Boolean,
+    private val enabledIn: (Project) -> Boolean = { true }
+) {
 
     @Autowired
-    constructor(wikis: WikiRepositories, projects: ProjectRepository) :
-        this(wikis, { owner, name -> projects.findByOwnerIgnoreCaseAndNameIgnoreCase(owner, "$name.wiki") != null })
+    constructor(wikis: WikiRepositories, projects: ProjectRepository, menuSettings: ProjectMenuSettingRepository) :
+        this(
+            wikis,
+            { owner, name -> projects.findByOwnerIgnoreCaseAndNameIgnoreCase(owner, "$name.wiki") != null },
+            { project -> project.id?.let { menuSettings.findFirstByProjectId(it)?.wiki == true } == true }
+        )
 
     /** 시험에서 커밋 직전에 다른 쓰기를 끼워 넣어 동시 수정 충돌을 재현하는 자리이다. */
     internal var beforeCommit: (() -> Unit)? = null
@@ -56,7 +65,13 @@ class WikiService(private val wikis: WikiRepositories, private val clash: (owner
     /** 제목을 페이지 이름으로 바꾼다. 올바르지 않은 제목이면 `null`이다. 화면과 REST가 주소의 이름을 확인할 때 쓴다. */
     fun pageNameOrNull(title: String): String? = nameOrNull(title)
 
-    /** 이 프로젝트의 위키를 쓸 수 있는지 알려 준다. */
+    /**
+     * 프로젝트 설정에서 위키를 켜 두었는지이다(D-61). 끄면 메뉴, 화면, REST, git 복제와 푸시를 호출하는 쪽이 모두 막는다. 이 서비스의 읽기와 쓰기는 막지 않으며
+     * 위키 저장소의 내용은 끄는 동안에도 보존된다.
+     */
+    fun enabled(project: Project): Boolean = enabledIn(project)
+
+    /** 이 프로젝트의 위키를 쓸 수 있는지 알려 준다(저장소 위치가 다른 프로젝트의 코드 저장소와 겹치지 않는지). */
     fun available(project: Project): Boolean = !clash(owner(project), name(project))
 
     /** 페이지 목록이다. 제목순(대소문자 무시)이고 특수 페이지는 뺀다. 위키가 없거나 쓸 수 없으면 빈 목록이다. */

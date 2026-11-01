@@ -193,6 +193,7 @@ class ProjectSettingService(
         setting.review = "review" in menus
         setting.milestone = "milestone" in menus
         setting.board = "board" in menus
+        setting.wiki = "wiki" in menus
         menuSettings.save(setting)
     }
 

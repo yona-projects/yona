@@ -11,7 +11,7 @@ import dev.yona.domain.enumeration.ProjectScope
  * @property overview 설명
  * @property projectScope 공개 범위 이름(`PUBLIC`, `PROTECTED`, `PRIVATE`)
  * @property vcs 저장소 종류(`GIT`, `Subversion`)
- * @property menus 켜기로 한 메뉴 이름 모음(`code`, `issue`, `pullRequest`, `review`, `milestone`, `board`)
+ * @property menus 켜기로 한 메뉴 이름 모음(`code`, `issue`, `pullRequest`, `review`, `milestone`, `board`, `wiki`)
  */
 data class ProjectForm(
     val owner: String? = null,
@@ -26,7 +26,7 @@ data class ProjectForm(
 
     companion object {
         /** 메뉴 체크박스 이름이다 (`ProjectMenuSetting`의 필드 이름과 같다). */
-        val MENU_NAMES = listOf("code", "issue", "pullRequest", "review", "milestone", "board")
+        val MENU_NAMES = listOf("code", "issue", "pullRequest", "review", "milestone", "board", "wiki")
     }
 }
 

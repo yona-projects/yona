@@ -169,7 +169,7 @@ class ProjectCreateTest : AbstractIntegrationTest() {
         assertTrue(vcs.first { it.attr("value") == "GIT" }.hasAttr("selected"))
         assertEquals("display: none;", page.selectFirst("#svn")?.attr("style"))
         val menus = page.select(".advanced-options input[type=checkbox]")
-        assertEquals(listOf("code", "issue", "pullRequest", "review", "milestone", "board"), menus.map { it.attr("name") })
+        assertEquals(listOf("code", "issue", "pullRequest", "review", "milestone", "board", "wiki"), menus.map { it.attr("name") })
         assertTrue(menus.all { it.hasAttr("checked") && it.attr("value") == "true" })
     }
 

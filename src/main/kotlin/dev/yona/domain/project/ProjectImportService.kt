@@ -101,7 +101,7 @@ class ProjectImportService(
             menuSettings.save(
                 ProjectMenuSetting(
                     project = project, code = "code" in form.menus, issue = "issue" in form.menus, pullRequest = "pullRequest" in form.menus,
-                    review = "review" in form.menus, milestone = "milestone" in form.menus, board = "board" in form.menus
+                    review = "review" in form.menus, milestone = "milestone" in form.menus, board = "board" in form.menus, wiki = "wiki" in form.menus
                 )
             )
             if (ownerIsUser) projectUsers.save(ProjectUser(user = creator, project = project, role = roles.getReferenceById(RoleType.MANAGER.id)))

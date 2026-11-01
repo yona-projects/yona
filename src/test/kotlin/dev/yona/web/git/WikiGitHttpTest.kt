@@ -90,7 +90,7 @@ class WikiGitHttpTest {
     private fun project(scope: ProjectScope, vcs: String = "GIT"): Project {
         val n = counter.incrementAndGet()
         val p = projects.save(Project(owner = member.loginId, name = "wgit$n", vcs = vcs, projectScope = scope))
-        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         projectUsers.save(ProjectUser(user = member, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
         if (vcs == "GIT") repositories.createRepository(p)
         return p
@@ -236,6 +236,18 @@ class WikiGitHttpTest {
         assertFailsWith<org.eclipse.jgit.api.errors.InvalidRemoteException> {
             Git.cloneRepository().setURI("http://localhost:$port/${member.loginId}/nothing.wiki.git").setDirectory(File(work, "none")).call().close()
         }
+    }
+
+    @Test
+    fun `위키를 끈 프로젝트는 복제와 푸시가 404이고 켜면 내용이 돌아온다 (D-61)`() {
+        wiki.create(project, member, "Home", "보존", null)
+        fun setWiki(on: Boolean) { menuSettings.save(menuSettings.findFirstByProjectId(project.id!!)!!.also { it.wiki = on }) }
+        setWiki(false)
+        assertFailsWith<org.eclipse.jgit.api.errors.InvalidRemoteException> { clone(project) }
+        assertFailsWith<org.eclipse.jgit.api.errors.InvalidRemoteException> { clone(project, member) }
+        assertFailsWith<Exception> { push(project, member, file = "x.md") }
+        setWiki(true)
+        assertEquals("보존", File(clone(project), "Home.md").readText())
     }
 
     @Test

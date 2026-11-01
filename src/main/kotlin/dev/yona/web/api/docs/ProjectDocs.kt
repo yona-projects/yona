@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "프로젝트에서 켜 둔 메뉴")
 class ProjectMenus(
-    val code: Boolean, val issue: Boolean, val pullRequest: Boolean, val review: Boolean, val milestone: Boolean, val board: Boolean
+    val code: Boolean, val issue: Boolean, val pullRequest: Boolean, val review: Boolean, val milestone: Boolean, val board: Boolean, val wiki: Boolean
 )
 
 @Schema(description = "포크의 원본 프로젝트")
@@ -224,9 +224,9 @@ class HelloResponse(
     @get:Schema(example = "true") val ok: Boolean
 )
 
-@Schema(description = "메뉴 켜기와 끄기. 보낸 메뉴만 바꾼다. 키는 `code`, `issue`, `pullRequest`, `review`, `milestone`, `board`이다")
+@Schema(description = "메뉴 켜기와 끄기. 보낸 메뉴만 바꾼다. 키는 `code`, `issue`, `pullRequest`, `review`, `milestone`, `board`, `wiki`이다")
 class ProjectMenuChanges(
-    val code: Boolean? = null, val issue: Boolean? = null, val pullRequest: Boolean? = null, val review: Boolean? = null, val milestone: Boolean? = null, val board: Boolean? = null
+    val code: Boolean? = null, val issue: Boolean? = null, val pullRequest: Boolean? = null, val review: Boolean? = null, val milestone: Boolean? = null, val board: Boolean? = null, val wiki: Boolean? = null
 )
 
 @Schema(description = "프로젝트 만들기 요청(내 계정이나 조직). `name`만 필수이다")

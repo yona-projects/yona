@@ -49,7 +49,7 @@
                     <span th:if="${view.postingCount > 0}" class="project-menu-count" th:text="${view.postingCount}"></span>
                 </a>
             </li>
-            <li th:class="${menuType == 'WIKI'} ? 'active'">
+            <li th:if="${view.menuSetting.wiki == true}" th:class="${menuType == 'WIKI'} ? 'active'">
                 <a th:href="@{/{owner}/{name}/wiki(owner=${view.project.owner},name=${view.project.name})}">
                     <span class="menu-name" th:text="#{menu.wiki}"></span><span class="short-menu">W</span>
                 </a>

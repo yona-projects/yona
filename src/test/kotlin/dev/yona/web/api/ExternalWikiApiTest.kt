@@ -65,7 +65,7 @@ class ExternalWikiApiTest : AbstractIntegrationTest() {
     private fun newProject(scope: ProjectScope = ProjectScope.PUBLIC): Project {
         val n = ++sequence
         val project = projects.save(Project(owner = "wko$n-$stamp", name = "wkp$n", vcs = "GIT", projectScope = scope, lastIssueNumber = 0, lastPostingNumber = 0))
-        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         return project
     }
 

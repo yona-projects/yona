@@ -215,6 +215,20 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트 메뉴 설정은 v1_6 파일처럼 wiki 키가 없어도 꺼짐으로 가져온다 (D-61)`() {
+        val project = """{"id": 880010, "name": "wk", "owner": "a", "overview": "", "vcs": "GIT", "is_public": true, "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0}"""
+        val menu = """{"id": 880011, "project_id": 880010, "code": true, "issue": true, "pull_request": true, "review": true, "milestone": true, "board": true}"""
+        val result = import("""{"PROJECT": [$project], "PROJECT_MENU_SETTING": [$menu]}""")
+        assertTrue(result.failed.none { it == "PROJECT_MENU_SETTING" }, result.failed.toString())
+        assertEquals(false, jdbc.queryForObject("select wiki from project_menu_setting where id = 880011", Boolean::class.java))
+    }
+
+    @Test
+    fun `프로젝트 메뉴 설정을 내보낼 때 wiki 컬럼이 들어 있다 (D-61)`() {
+        assertEquals(listOf("id", "project_id", "code", "issue", "pull_request", "review", "milestone", "board", "wiki"), DataTables.find("PROJECT_MENU_SETTING")!!.columns.map { it.name })
+    }
+
+    @Test
     fun `토큰 테이블도 내보내고 가져오며 시퀀스를 함께 쓴다 (X-5)`() {
         val names = exported().propertyNames().toList()
         assertEquals(true, "API_TOKEN" in names && "API_TOKEN_SEQ" in names, names.toString())

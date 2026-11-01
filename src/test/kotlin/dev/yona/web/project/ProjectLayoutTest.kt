@@ -103,7 +103,7 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
             )
         )
         menuSettings.save(
-            ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true)
+            ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true)
                 .apply(menu)
         )
         return project

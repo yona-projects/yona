@@ -237,7 +237,10 @@ class ProjectMenuSetting(
     @ColumnDefault("false")
     var milestone: Boolean? = false,
     @ColumnDefault("false")
-    var board: Boolean? = false
+    var board: Boolean? = false,
+    /** 프로젝트 위키를 켜는지이다(X-17, `decisions.md` D-61). v1.6에 없는 컬럼이라 기존 프로젝트는 꺼짐이고, 새 프로젝트는 켜짐으로 만든다. */
+    @ColumnDefault("false")
+    var wiki: Boolean? = false
 )
 
 /** 프로젝트 이전 요청이다. */

@@ -106,7 +106,9 @@ class ForkService(
         menuSettings.save(
             ProjectMenuSetting(
                 project = fork, code = source?.code ?: true, issue = source?.issue ?: true, pullRequest = source?.pullRequest ?: true,
-                review = source?.review ?: true, milestone = source?.milestone ?: true, board = source?.board ?: true
+                review = source?.review ?: true, milestone = source?.milestone ?: true, board = source?.board ?: true,
+                // 포크는 새 프로젝트이므로 위키를 켠다(원본의 설정을 따르지 않는다, D-61)
+                wiki = true
             )
         )
     }

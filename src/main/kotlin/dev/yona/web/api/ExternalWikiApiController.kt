@@ -60,6 +60,7 @@ class ExternalWikiApiController(
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
         val pages = if (q.isNullOrBlank()) wikiService.pages(project) else wikiService.search(project, q)
         return support.ok(linkedMapOf("pages" to pages.map { linkedMapOf("name" to it.name, "title" to it.title) }))
     }
@@ -73,7 +74,9 @@ class ExternalWikiApiController(
     fun get(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable name: String, @RequestParam(required = false) revision: String?, request: HttpServletRequest): Any {
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
-        val page = wikiService.page(requireNotNull(target.project), name, revision?.takeIf { it.isNotBlank() }) ?: return requests.message(HttpStatus.NOT_FOUND, "no wiki page by request")
+        val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
+        val page = wikiService.page(project, name, revision?.takeIf { it.isNotBlank() }) ?: return requests.message(HttpStatus.NOT_FOUND, "no wiki page by request")
         val node = linkedMapOf<String, Any?>("name" to page.name, "title" to page.title, "content" to page.content)
         page.lastCommit?.let { node["lastCommit"] = commit(it) }
         return support.ok(linkedMapOf("page" to node))
@@ -160,7 +163,9 @@ class ExternalWikiApiController(
     ): Any {
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
-        val commits = wikiService.history(requireNotNull(target.project), name, page.coerceAtLeast(0), size.coerceIn(1, 100))
+        val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
+        val commits = wikiService.history(project, name, page.coerceAtLeast(0), size.coerceIn(1, 100))
         return support.ok(linkedMapOf("history" to commits.map { commit(it) }))
     }
 
@@ -180,6 +185,7 @@ class ExternalWikiApiController(
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
         return try {
             val text = when {
                 !commit.isNullOrBlank() -> wikiService.diff(project, name, commit)
@@ -200,12 +206,15 @@ class ExternalWikiApiController(
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
         val user = requireNotNull(target.user)
         if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), Operation.UPDATE)) {
             return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         }
         return Allowed(project, user)
     }
+
+    private fun disabled() = requests.message(HttpStatus.NOT_FOUND, "wiki is disabled")
 
     /** 선택 문자열 필드이다. 필드가 없거나 `null`이면 값이 없고, 문자열이 아니면 `null`(오류)이다. 값 없음과 오류를 구분하려고 [Opt]로 감싼다. */
     private class Opt(val value: String?)

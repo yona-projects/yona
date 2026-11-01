@@ -134,6 +134,8 @@ class GitHttpController(
         val baseName = WIKI_SUFFIXES.firstOrNull { repositoryName.endsWith(it) }?.let { repositoryName.removeSuffix(it) }?.takeIf { it.isNotEmpty() }
             ?: return ResponseEntity.notFound().build<Void>()
         val project = projectService.findByOwnerAndProjectName(ownerName, baseName) ?: return ResponseEntity.notFound().build<Void>()
+        // 위키를 끈 프로젝트는 저장소가 있어도 없는 것처럼 404이다(D-61)
+        if (!wikiService.enabled(project)) return ResponseEntity.notFound().build<Void>()
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
         val user = identity.user
         val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE

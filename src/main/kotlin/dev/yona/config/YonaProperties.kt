@@ -77,7 +77,7 @@ data class YonaProperties(
     val loginPageLoginIdPlaceholder: String = "",
     val loginPagePasswordPlaceholder: String = "",
     val projectDefaultScope: String = "public",
-    val projectDefaultMenus: String = "code, issue, pullRequest, review, milestone, board",
+    val projectDefaultMenus: String = "code, issue, pullRequest, review, milestone, board, wiki",
     val displayPrivateRepositories: Boolean = false,
     val dataDir: String = "",
     val hostname: String = "",
