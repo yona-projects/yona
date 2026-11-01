@@ -766,6 +766,15 @@ updated: 2026-10-29
 - **단계**: 1 검증 핵심, 2 키 저장, 3 설정 화면, 4 커밋과 태그 표시, 5 REST와 OpenAPI와 범위 활성화(`read:gpg_key`, `write:gpg_key`, `admin:gpg_key`), 6 감사와 관측과 위키, 7 서명 커밋 필수 규칙.
 - **상태**: 확정(선생님, 2026-11-02). 구현 판단은 A-321부터 기록한다.
 
+### D-66. SSH 공개키(X-3): 설정으로 켜는 내장 SSH 서버(Apache MINA SSHD)와 시스템 sshd 연동 (2026-11-02, 선생님 결정, Deploy Key는 결정 대기)
+
+- **배경**: X-4 다음 후보로 X-3을 고르는 중에 SSH 서버를 앱에 내장할지 별도 프로세스로 둘지 여쭈었다.
+- **결정(선생님, 2026-11-02)**
+  1. **내장 SSH 서버는 설정(플래그)으로 켜고 끈다.** 켜면 Apache MINA SSHD(`org.apache.sshd:sshd-core`)가 앱 안에서 별도 포트로 뜬다. 끄면 리스너를 열지 않는다.
+  2. **별도 프로세스 방식은 `next` 브랜치의 구현을 참조한다.** `next`는 시스템 OpenSSH의 `AuthorizedKeysCommand`가 앱의 내부 인증 API로 사용자를 확인하고, forced command가 `socat`으로 앱의 유닉스 도메인 소켓(`SshRelayServer`)에 이어 붙이는 구조이다(`docs/guide/ssh-system-sshd-setup.md`, `docs/yona-wiki/plans/p3-03-ssh-gpg.md`).
+- **결정 대기**: 저장소 단위 Deploy Key를 이번 범위에 넣을지, 두 방식을 한 번에 구현할지 나눌지.
+- **상태**: 부분 확정. 나머지가 정해지면 구현 계획을 세운다.
+
 ## 정책 결정
 
 ### P-01. v1.6을 그대로 따른다 (AGENTS.md)
