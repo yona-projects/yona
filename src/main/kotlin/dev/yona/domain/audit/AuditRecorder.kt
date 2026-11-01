@@ -37,6 +37,9 @@ class AuditRecorder(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    /** 기록 시각의 시계이다(에폭 밀리초). 보존 시험이 옛 시각의 기록을 만들려고 바꾼다. 운영에서는 시스템 시계이다. */
+    internal var clock: () -> Long = System::currentTimeMillis
+
     /** 호출한 트랜잭션에서 [event]를 기록한다. 트랜잭션이 없으면 새로 만든다. */
     @Transactional
     fun record(event: AuditEvent): AuditLog {
@@ -44,7 +47,7 @@ class AuditRecorder(
         val request = requestInfo()
         val actor = event.actor ?: currentActor(request != null)
         val entry = AuditLog(
-            id = head.lastId + 1, createdMillis = System.currentTimeMillis(), actorType = actor.type, actorId = actor.id, actorLogin = actor.login?.take(255),
+            id = head.lastId + 1, createdMillis = clock(), actorType = actor.type, actorId = actor.id, actorLogin = actor.login?.take(255),
             action = event.action, outcome = event.outcome, targetType = event.targetType, targetId = event.targetId?.take(255), targetLabel = event.targetLabel?.take(255),
             organizationId = event.organizationId, projectId = event.projectId, ip = request?.ip, userAgent = request?.userAgent, requestId = request?.requestId,
             tokenId = actor.tokenId, tokenScopes = actor.tokenScopes, details = AuditDetails.toJson(event.details), prevHash = head.lastHash
