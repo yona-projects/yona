@@ -71,6 +71,12 @@ server:
     mbeanregistry:
       enabled: true
 
+# SpringDoc이 기동마다 "운영에서는 이 엔드포인트를 끄라"는 안내를 WARN으로 남긴다. 로그 대시보드(Loki)의 WARN 이상 패널이 이 안내로만 채워져 진짜 경고가 묻히므로
+# 안내 로그의 수준만 올린다(엔드포인트는 그대로 켜 둔다. v1.6 동작이 아니라 추가 항목의 OpenAPI 문서 X-31이다).
+logging:
+  level:
+    org.springdoc.core.events.SpringDocAppInitializer: ERROR
+
 # 관측성(X-10, D-64). 상태 확인만 열고 상세를 숨긴다. 기본 경로 `/actuator`는 v1.6의 `/:user` 라우트(사용자 이름 actuator)와 겹치므로
 # 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기를 켜고 끄는 일은 `ObservabilityActivation`이 한다: 수집기 주소
 # (`OTEL_EXPORTER_OTLP_ENDPOINT`)가 없으면 모두 끄고 있으면 켠다. 직접 정한 `management.*.enabled`가 우선한다.
