@@ -86,6 +86,7 @@
                             <strong th:if="${commitInfo.authorName != null}" th:text="${commitInfo.authorName}"></strong>
                         </th:block>
                         <span class="ago" th:title="${commitInfo.agoTitle}" th:text="${commitInfo.ago}"></span>
+                        <th:block th:replace="~{code/partial-signature :: badge(${commitInfo.signature})}"></th:block>
                     </p>
                     <pre class="commitMsg mt5" th:text="${commitInfo.message}"></pre>
                     </th:block>

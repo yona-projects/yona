@@ -76,7 +76,8 @@ class PullRequestPageAssembler(
     private val siteUrls: SiteUrls,
     private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
     private val reviewRepository: dev.yona.domain.pullrequest.PullRequestReviewRepository,
-    private val pendingReader: dev.yona.domain.comment.PendingReviewReader
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader,
+    private val signatureBadges: dev.yona.web.code.SignatureBadges
 ) {
 
     fun baseUrl(pullRequest: PullRequest): String {
@@ -93,7 +94,8 @@ class PullRequestPageAssembler(
         return linkedMapOf(
             "known" to (author != null), "authorHref" to author?.let { siteUrls.path("/${it.loginId}") }, "authorName" to (author?.name ?: commit.authorName),
             "avatarUrl" to (author?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE)),
-            "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate), "message" to commit.message
+            "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate), "message" to commit.message,
+            "signature" to signatureBadges.of(commit)
         )
     }
 

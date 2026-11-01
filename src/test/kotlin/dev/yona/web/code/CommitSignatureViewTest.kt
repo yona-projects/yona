@@ -46,6 +46,7 @@ class CommitSignatureViewTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var keyService: GpgKeyService
     @Autowired private lateinit var history: CommitHistoryService
+    @Autowired private lateinit var assembler: dev.yona.web.pullrequest.PullRequestPageAssembler
 
     private var sequence = 0
 
@@ -140,5 +141,16 @@ class CommitSignatureViewTest : AbstractIntegrationTest() {
         assertEquals("valid", rowOf("v-signed").selectFirst(".gpg-badge")!!.attr("data-reason"))
         assertNull(rowOf("v-plain").selectFirst(".gpg-badge"))
         assertEquals("bad_email", rowOf("v-bad").selectFirst(".gpg-badge")!!.attr("data-reason"))
+    }
+
+    @Test
+    fun `풀 리퀘스트 변경 화면의 커밋 정보에 서명 표시가 들어간다`() {
+        val p = project()
+        val key = registered(user("alice@example.com", "alice"), "Alice <alice@example.com>")
+        val signed = SignedGitObjects.commit(repositories, p, key, "alice@example.com")
+        val plain = SignedGitObjects.commit(repositories, p, null, "alice@example.com", "서명 없음", parent = signed)
+        val badge = assembler.commitInfo(history.commit(p, signed)!!)["signature"] as SignatureBadge
+        assertEquals("valid", badge.reason)
+        assertNull(assembler.commitInfo(history.commit(p, plain)!!)["signature"])
     }
 }
