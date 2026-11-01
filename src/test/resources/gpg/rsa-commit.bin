@@ -1,0 +1,20 @@
+tree 3683f870be446c7cc05ffaef9fa06415276e1828
+parent b36aac78396a30081c4260222cc1217cbbc2aa5d
+author Real Rsa <real-rsa@example.com> 1767193200 +0900
+committer Real Rsa <real-rsa@example.com> 1767193200 +0900
+gpgsig -----BEGIN PGP SIGNATURE-----
+ 
+ iQGzBAABCgAdFiEEJWC3L9Q/D+AS54j7DiQDIrYPOGQFAmrndvwACgkQDiQDIrYP
+ OGT6AAv/ae4xaIat+i4v7i5bRSzYi5YPLxcdWUJyjeeqsIX9WzOhnBzbuMOot5n0
+ on9QTnJvxp1H+/PtEYiD3jOWZM5faPmwq12gwQ+HtJFqGOeYsex2RL2MzJI1DoMg
+ 9oWdNFDc7Dlq7FfvPsUbrSVShgnRfGOSfadJ9qvaIF0kkV+MSu/7l20xs/fNTOOp
+ O1ByHtSWmIILxHM2/+ahd2xTuNeF4hQR17BXQw1SkD/scyLMzrYXF+pwfSofhqtP
+ 7l7Wtl3gWOF9I+A9Ks12w3IjCSb9skuA5ZpzYfSvIbydV9s6pzH9Sb1gNJKR42Mv
+ vwUmV7p1eWZo0ThNHsSYQSYi6AV1P00TpxzNetoh7iqh7/tbosewUowczgVPXs5G
+ 4zvxhFcb/n0C206IOVa6UXWCL7V+LFPnLXaNYXU/rzfrgNgm13BzvkMVjJ0Z9rzg
+ EHcOGzairXi6GV/WhLCtKmh2iA2cSftiWZ2dCKRZVW+v8xtBQ8GOZ1QuvpGwLIgb
+ Hok7Gtw+
+ =5Ql2
+ -----END PGP SIGNATURE-----
+
+rsa signed

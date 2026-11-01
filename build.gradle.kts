@@ -120,6 +120,10 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
+	// GPG 서명 검증(X-4, D-65). 사용자가 등록한 공개키로 검증하므로 서버 로컬 키링을 읽는 JGit의 gpg.bc 모듈은 쓰지 않고 BouncyCastle을 직접 쓴다
+	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+
 	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
 	implementation("org.openjdk.nashorn:nashorn-core:15.4")

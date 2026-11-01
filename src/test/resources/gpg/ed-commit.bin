@@ -1,0 +1,12 @@
+tree aaff74984cccd156a469afa7d9ab10e4777beb24
+author Real Ed <real-ed@example.com> 1767193200 +0900
+committer Real Ed <real-ed@example.com> 1767193200 +0900
+gpgsig -----BEGIN PGP SIGNATURE-----
+ 
+ iHUEABYKAB0WIQSwiGkCjNJ7G8h1fY8U7lAA+iZwBwUCaud2/AAKCRAU7lAA+iZw
+ B+bkAQCqfaAHOKezoqkECzFpgT/hogP0SU53gouUay4J0Z4pHgD/QDtde3YMblou
+ mRjv0V4yEwPQzqH2be/em4h7kTP+EQQ=
+ =/FIt
+ -----END PGP SIGNATURE-----
+
+ed25519 signed

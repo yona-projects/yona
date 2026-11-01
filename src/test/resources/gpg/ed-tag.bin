@@ -1,0 +1,13 @@
+object b36aac78396a30081c4260222cc1217cbbc2aa5d
+type commit
+tag v1
+tagger Real Ed <real-ed@example.com> 1793554172 +0900
+
+signed tag
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQSwiGkCjNJ7G8h1fY8U7lAA+iZwBwUCaud2/AAKCRAU7lAA+iZw
+B3C5AP9Y/ggHYV+36BRQbNokR1rlRn6XDn4Ac+fEV3cRihl0LwD/X4d/K1wvbOPZ
+SmmWU7ADJXI+b6eQUGk2vOiFsyY9PAM=
+=EpjQ
+-----END PGP SIGNATURE-----
