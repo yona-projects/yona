@@ -7895,3 +7895,21 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+
+/* 커밋과 태그의 서명 표시(추가 개발 항목 X-4, decisions.md D-65). 목록 칸의 `.messages span`(블록, 너비 제한) 규칙에 덮이지 않게 한다 */
+.gpg-badge.badge {
+    display: inline-block !important;
+    max-width: none !important;
+    width: auto;
+    margin-left: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+.gpg-signature-box {
+    margin: 0.5rem 0;
+    font-size: 0.8125rem;
+
+    .gpg-signed-by, .gpg-key-label { margin-left: 0.75rem; }
+}

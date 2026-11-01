@@ -231,6 +231,26 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `서명 커밋을 요구하는 규칙은 서명 없는 커밋이 있는 풀 리퀘스트의 병합을 막고 사유를 알린다 (X-4, D-65)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, signedCommits = true))
+        val member = page(url(s, pr), login(s.member))
+        assertNull(member.selectFirst("#btnAccept"), "서명 없는 커밋이 있으면 병합 단추가 막힌다")
+        val reason = member.selectFirst("button.ybtn-disabled")!!.attr("title")
+        assertTrue(reason.contains("1") && reason.isNotBlank() && !reason.startsWith("pullRequest."), reason)
+        assertNotNull(page(url(s, pr), login(s.manager)).selectFirst("#accept-bypass-note"), "프로젝트 관리자는 우회할 수 있다")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `서명 커밋을 요구하지 않으면 서명 없는 커밋이어도 병합한다 (X-4, D-65)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, signedCommits = false))
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
     fun `대화 해결을 요구하는 규칙은 열린 스레드가 남아 있으면 병합을 막고 닫으면 푼다 (X-33, D-45)`() {
         val s = setup(); val pr = open(s)
         branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, conversationResolution = true))
