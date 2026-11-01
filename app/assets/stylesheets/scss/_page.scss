@@ -7916,3 +7916,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
     .gpg-signed-by, .gpg-key-label { margin-left: 0.75rem; }
 }
+
+/* 커밋 목록에서는 서명 표시를 GitHub처럼 커밋 메시지 칸의 오른쪽 끝에 붙인다 */
+.code-table.commits .messages .gpg-badge.badge {
+    float: right;
+    margin-left: 0.75rem;
+    margin-top: 0.125rem;
+}
