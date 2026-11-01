@@ -192,6 +192,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/code/master")
         assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
         assertEquals(listOf("refs/heads/master"), doc.select("select#branches option").map { it.text() })
+        assertTrue(!doc.selectFirst("select#branches")!!.hasClass("form-select"), "form-select는 폭을 100%로 만들어 select2 상자가 줄 전체를 차지한다")
         // v1.6 역방향 라우트는 경로가 비면 끝에 `/` 없는 `/code/:branch`를 만든다
         assertEquals("/${p.owner}/${p.name}/code/master", doc.selectFirst("select#branches option")!!.attr("value"))
         assertEquals(listOf("src", "README.md", "data.bin", "logo.png"), doc.select(".listitem .filename a").map { it.text() })

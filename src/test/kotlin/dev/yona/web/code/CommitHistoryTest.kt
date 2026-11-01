@@ -88,6 +88,7 @@ class CommitHistoryTest : AbstractIntegrationTest() {
         assertEquals(40, first.selectFirst(".btn-copy-commitId")!!.attr("data-commitId").length)
         assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li").map { it.text() })
         assertEquals("/${p.owner}/${p.name}/commits/refs%252Fheads%252Fmaster/", doc.selectFirst("select#branches option")!!.attr("value"))
+        assertTrue(!doc.selectFirst("select#branches")!!.hasClass("form-select"), "form-select는 폭을 100%로 만들어 select2 상자가 줄 전체를 차지하고 탭이 옆으로 밀린다")
         assertNull(doc.selectFirst("#breadcrumbs"))
         assertNull(doc.selectFirst(".actrow a"))
     }

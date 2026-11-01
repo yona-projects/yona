@@ -23,7 +23,7 @@
             </ul>
 
             <div class="code-browse-header">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-start form-select">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-start">
                     <th:block th:each="g : ${page.branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
