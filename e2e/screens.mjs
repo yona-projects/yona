@@ -84,6 +84,11 @@ export function screens(fx) {
   add('branches', `${P}/branches`);
   add('tags', `${P}/tags`, { note: 'X-18 태그' });
 
+  // --- 감사 로그(X-9, D-62) ---
+  add('audit-site', '/sites/audit?size=15', { note: '사이트 관리자의 감사 로그(필터, 표, 내려받기, 무결성 검증)' });
+  add('audit-org', '/organizations/acme/audit', { note: '조직 관리자의 조직 범위 감사 로그' });
+  add('audit-user', '/user/editform/audit', { roles: ['admin', 'alice'], note: '사용자 본인의 보안 기록 탭' });
+
   // --- 위키(X-17, D-60) ---
   add('wiki-home', `${P}/wiki`, { roles: ['anon', 'admin', 'bob'], note: 'Home 페이지, 사이드바와 푸터(구성원은 쓰기 단추)' });
   add('wiki-page', `${P}/wiki/Install-Guide`, { note: '코드 블록과 표가 있는 페이지' });

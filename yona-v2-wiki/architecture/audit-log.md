@@ -54,7 +54,7 @@ A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 
 | `account.password_reset_requested` | 비밀번호 분실 요청(맞으면 성공, 틀린 조합은 실패 `invalid_request`) | 시도한 로그인 ID만, 이메일은 남기지 않음 |
 | `account.profile_changed` | 이름이나 이메일이 바뀜 | 바뀐 항목의 전후(`name`, `email`) |
 | `account.email_added`, `email_confirmed`, `email_deleted`, `email_main_changed` | 보조 이메일 관리 | 이메일(대상 이름), 대표 변경은 전후 |
-| `token.created`, `token.updated`, `token.regenerated`, `token.deleted` | API 토큰 | 이름, 범위, 만료. 기기 인증이 만든 토큰도 `token.created`로 남음 |
+| `token.created`, `token.updated`, `token.regenerated`, `token.deleted` | API 토큰 | 이름, 범위, 만료, 토큰 주인(`owner`). 기기 인증이 만든 토큰은 인증 없이 CLI가 받아 가므로 행위자를 토큰 주인(승인한 사용자)으로 남기고 `via: device`를 둔다 |
 | `token.device_approved`, `token.device_denied` | 기기 인증 승인과 거절 | 기기 이름(대상), 범위 |
 
 시험: `AuditAccountTest` 14건.

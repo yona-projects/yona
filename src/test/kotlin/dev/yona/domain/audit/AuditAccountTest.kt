@@ -156,6 +156,7 @@ class AuditAccountTest : AbstractIntegrationTest() {
         val created = tokens.create(u, "ci-token", setOf("repo", "read:org"), null) as TokenCreation.Created
         val e = eventsOf("token.created").single()
         assertEquals("token", e.targetType); assertEquals(created.token.id.toString(), e.targetId); assertEquals("ci-token", e.targetLabel)
+        assertTrue(e.details!!.contains("\"owner\":\"${u.loginId}\""), "토큰 주인을 상세에 남긴다: ${e.details}")
         assertTrue(e.details!!.contains("read:org") && e.details!!.contains("repo"), e.details)
         assertFalse(allText().contains(created.value) || allText().contains(created.value.take(20)))
     }
@@ -211,7 +212,10 @@ class AuditAccountTest : AbstractIntegrationTest() {
         val issued = (devices.start("Exchange CLI", listOf("repo")) as DeviceStart.Issued).code
         devices.approve(devices.findByUserCode(issued.userCode)!!, u)
         val granted = devices.exchange(issued.deviceCode) as DevicePoll.Granted
-        assertNotNull(eventsOf("token.created").singleOrNull { it.targetLabel!!.contains("Exchange CLI") })
+        val created = eventsOf("token.created").single { it.targetLabel!!.contains("Exchange CLI") }
+        // 기기가 인증 없이 토큰을 받아 가므로 행위자는 토큰 주인(승인한 사용자)으로 남기고 기기를 통했음을 상세에 둔다
+        assertEquals(AuditActorType.USER, created.actorType); assertEquals(u.loginId, created.actorLogin)
+        assertTrue(created.details!!.contains("\"via\":\"device\""), created.details)
         assertFalse(allText().contains(granted.token))
     }
 }

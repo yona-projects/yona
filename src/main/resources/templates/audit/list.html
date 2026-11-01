@@ -53,7 +53,7 @@
     <tr th:each="r : ${rows}" class="audit-row">
         <td class="text-nowrap" th:text="${r.time}">time</td>
         <td><span class="audit-actor" th:text="${r.actor}">actor</span> <small class="text-body-secondary" th:text="${r.actorType}"></small></td>
-        <td><code class="audit-action" th:text="${r.action}">action</code></td>
+        <td class="text-nowrap"><code class="audit-action" th:text="${r.action}">action</code></td>
         <td><span class="audit-outcome badge" th:classappend="${r.outcome == 'SUCCESS'} ? 'text-bg-success' : (${r.outcome == 'DENIED'} ? 'text-bg-danger' : 'text-bg-warning')" th:text="#{'audit.outcome.' + ${r.outcome}}">ok</span></td>
         <td class="audit-target" th:text="${r.target}">target</td>
         <td class="text-nowrap" th:text="${r.ip}">ip</td>

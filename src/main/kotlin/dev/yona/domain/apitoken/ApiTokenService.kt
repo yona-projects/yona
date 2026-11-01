@@ -134,8 +134,17 @@ class ApiTokenService(
     }
 
     /** 토큰 이벤트이다. 토큰 값과 해시는 넣지 않고 이름, 번호, 범위만 남긴다. */
-    private fun tokenEvent(action: String, token: ApiToken, details: Map<String, Any?>) =
-        dev.yona.domain.audit.AuditEvent(action, targetType = "token", targetId = token.id?.toString(), targetLabel = token.name, details = details)
+    private fun tokenEvent(action: String, token: ApiToken, details: Map<String, Any?>): dev.yona.domain.audit.AuditEvent {
+        val owner = token.user
+        // 인증 없이 토큰을 받아 가는 기기 인증(CLI의 교환 요청)은 문맥에 행위자가 없으므로 토큰 주인(승인한 사용자)을 행위자로 하고 기기를 통했음을 남긴다
+        val unauthenticated = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication !is dev.yona.security.YonaAuthentication
+        val extra = linkedMapOf<String, Any?>("owner" to owner?.loginId)
+        if (unauthenticated) extra["via"] = "device"
+        return dev.yona.domain.audit.AuditEvent(
+            action, targetType = "token", targetId = token.id?.toString(), targetLabel = token.name, details = extra + details,
+            actor = if (unauthenticated && owner != null) dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, owner.id, owner.loginId) else null
+        )
+    }
 
     private fun invalidName(trimmed: String): String? = if (trimmed.isEmpty() || trimmed.length > NAME_MAX) "apiToken.error.name" else null
 
