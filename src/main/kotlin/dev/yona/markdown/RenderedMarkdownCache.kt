@@ -20,7 +20,12 @@ import java.util.zip.InflaterInputStream
  */
 class RenderedMarkdownCache(maximumSize: Long = DEFAULT_MAXIMUM_SIZE) {
 
-    private val cache: Cache<String, ByteArray> = Caffeine.newBuilder().maximumSize(maximumSize).build()
+    private val cache: Cache<String, ByteArray> = Caffeine.newBuilder().maximumSize(maximumSize).recordStats().build()
+
+    /** 적중 지표(`cache.gets{cache=[name]}` 등)를 [registry]에 등록한다(X-10 C5d). */
+    fun bindMetrics(registry: io.micrometer.core.instrument.MeterRegistry, name: String) {
+        io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics.monitor(registry, cache, name)
+    }
 
     /** [source]의 결과가 있으면 돌려주고, 없으면 [render]로 만들어 보관한 뒤 돌려준다. */
     fun getOrRender(source: String, render: () -> String): String {

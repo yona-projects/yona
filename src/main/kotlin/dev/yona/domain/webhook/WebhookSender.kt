@@ -31,7 +31,8 @@ class WebhookSender(
     private val properties: YonaProperties,
     private val threads: WebhookThreadRepository,
     private val webhooks: WebhookRepository,
-    transactionManager: PlatformTransactionManager
+    transactionManager: PlatformTransactionManager,
+    private val metrics: dev.yona.observability.CollaborationMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -51,18 +52,20 @@ class WebhookSender(
             val request = builder.build()
             if (properties.backgroundAsync) {
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete { response, error ->
-                    if (error != null) log.info("[Webhook] Request failed at given payload URL: {}", url) else handle(webhookId, payload, response, target)
+                    if (error != null) { metrics.webhookUnreachable(); log.info("[Webhook] Request failed at given payload URL: {}", url) } else handle(webhookId, payload, response, target)
                 }
             } else {
                 handle(webhookId, payload, client.send(request, HttpResponse.BodyHandlers.ofString()), target)
             }
         } catch (e: Exception) {
+            metrics.webhookUnreachable()
             log.info("[Webhook] Request failed at given payload URL: {}", url)
         }
     }
 
     private fun handle(webhookId: Long, payload: String, response: HttpResponse<String>, target: ThreadTarget?) {
         val status = response.statusCode()
+        metrics.webhook(status)
         if (status < 200 || status >= 300) {
             // v1.6는 두 번째 값으로 응답 본문이 아니라 상태 문구(getStatusText)를 기록한다
             log.info("[Webhook] Request responded code  {}: {}", status, statusText(status))

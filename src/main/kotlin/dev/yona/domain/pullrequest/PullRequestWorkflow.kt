@@ -44,7 +44,8 @@ class PullRequestWorkflow(
     private val publisher: ApplicationEventPublisher,
     private val pushedBranches: dev.yona.domain.project.PushedBranchRepository,
     private val issueCloser: PullRequestIssueCloser,
-    private val threads: dev.yona.domain.comment.CommentThreadRepository
+    private val threads: dev.yona.domain.comment.CommentThreadRepository,
+    private val metrics: dev.yona.observability.CollaborationMetrics
 ) {
 
     /**
@@ -58,6 +59,10 @@ class PullRequestWorkflow(
      */
     fun accept(
         pullRequest: PullRequest, accepter: User, canBypass: (List<dev.yona.domain.project.Ruleset>) -> Boolean = { false }, method: MergeMethod? = null, commitTitle: String? = null, commitMessage: String? = null
+    ): AcceptResult = acceptInternal(pullRequest, accepter, canBypass, method, commitTitle, commitMessage).also { metrics.merge(it.name) }
+
+    private fun acceptInternal(
+        pullRequest: PullRequest, accepter: User, canBypass: (List<dev.yona.domain.project.Ruleset>) -> Boolean, method: MergeMethod?, commitTitle: String?, commitMessage: String?
     ): AcceptResult {
         val toProject = requireNotNull(pullRequest.toProject)
         // 추가 항목(X-28, D-41): 방식을 정하지 않으면 프로젝트의 기본 방식이다. 허용하지 않은 방식은 아무것도 바꾸기 전에 거절한다

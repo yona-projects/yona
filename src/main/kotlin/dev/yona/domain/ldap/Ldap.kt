@@ -109,5 +109,6 @@ class JndiLdapDirectory(private val config: YonaProperties.Ldap, private val pro
 class LdapConfiguration {
 
     @Bean
-    fun ldapDirectory(properties: YonaProperties): LdapDirectory = JndiLdapDirectory(properties.ldap, properties.protocol)
+    fun ldapDirectory(properties: YonaProperties, registry: io.micrometer.core.instrument.MeterRegistry): LdapDirectory =
+        dev.yona.observability.MeteredLdapDirectory(JndiLdapDirectory(properties.ldap, properties.protocol), registry)
 }

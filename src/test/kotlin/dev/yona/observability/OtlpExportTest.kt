@@ -21,7 +21,8 @@ import kotlin.test.assertTrue
  * 신호별 경로(`/v1/metrics`, `/v1/traces`, `/v1/logs`)와 인증 헤더가 맞아야 한다.
  */
 @AutoConfigureMockMvc
-@TestPropertySource(properties = ["yona.test.otlp-export=true"])
+// 컨텍스트가 닫힐 때 `create-drop`이 테이블을 지우므로 같은 인메모리 DB(`yona`)를 쓰는 다른 시험의 컨텍스트를 깨뜨리지 않게 전용 DB를 쓴다
+@TestPropertySource(properties = ["yona.test.otlp-export=true", "spring.datasource.url=jdbc:h2:mem:otlp-export;DB_CLOSE_DELAY=-1"])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class OtlpExportTest : AbstractIntegrationTest() {
 

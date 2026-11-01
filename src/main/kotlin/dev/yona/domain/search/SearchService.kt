@@ -66,14 +66,20 @@ data class SearchPage<T>(val items: List<T>, val pageIndex: Int, val totalPageCo
  * 권한을 잃은 프로젝트에 있어도 찾는다. 프로젝트 범위는 라우트에서 읽기 권한을 확인하므로 프로젝트와 키워드만 본다.
  */
 @Service
-class SearchService(private val entityManager: EntityManager, private val properties: YonaProperties) {
+class SearchService(
+    private val entityManager: EntityManager,
+    private val properties: YonaProperties,
+    private val metrics: dev.yona.observability.CollaborationMetrics
+) {
 
     /** 한 쪽의 결과 수이다 (v1.6 `SearchApp.DEFAULT_PAGE`). */
     val pageSize: Int get() = PAGE_SIZE
 
     /** 종류별 결과 수를 센다. 프로젝트 범위에서는 프로젝트를 세지 않는다. */
     @Transactional(readOnly = true)
-    fun counts(scope: SearchScope, keyword: String, viewer: User?): SearchCounts = SearchCounts(
+    fun counts(scope: SearchScope, keyword: String, viewer: User?): SearchCounts = metrics.search("counts") { countsImpl(scope, keyword, viewer) }
+
+    private fun countsImpl(scope: SearchScope, keyword: String, viewer: User?): SearchCounts = SearchCounts(
         users = count(SearchType.USER, scope, keyword, viewer),
         projects = if (scope.project == null) count(SearchType.PROJECT, scope, keyword, viewer) else 0,
         issues = count(SearchType.ISSUE, scope, keyword, viewer),
@@ -95,7 +101,10 @@ class SearchService(private val entityManager: EntityManager, private val proper
 
     /** [type]의 결과 한 쪽을 찾는다. [type]은 [SearchType.AUTO], [SearchType.NA]가 아니어야 한다. */
     @Transactional(readOnly = true)
-    fun page(type: SearchType, scope: SearchScope, keyword: String, viewer: User?, pageIndex: Int): SearchPage<Any> {
+    fun page(type: SearchType, scope: SearchScope, keyword: String, viewer: User?, pageIndex: Int): SearchPage<Any> =
+        metrics.search("page") { pageImpl(type, scope, keyword, viewer, pageIndex) }
+
+    private fun pageImpl(type: SearchType, scope: SearchScope, keyword: String, viewer: User?, pageIndex: Int): SearchPage<Any> {
         val query = Query(type, scope, keyword, viewer)
         val total = query.count()
         val items = query.typed("select ${query.spec.alias} from ${query.spec.entity} ${query.spec.alias} ${query.where()} order by ${query.spec.order}", Any::class.java)

@@ -24,7 +24,12 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class SessionUserCache(maximumSize: Long = MAXIMUM_ENTRIES) {
 
-    private val entries: Cache<Long, SessionUserMemo> = Caffeine.newBuilder().maximumSize(maximumSize).build()
+    private val entries: Cache<Long, SessionUserMemo> = Caffeine.newBuilder().maximumSize(maximumSize).recordStats().build()
+
+    /** 적중 지표(`cache.gets{cache=[name]}` 등)를 [registry]에 등록한다(X-10 C5d). */
+    fun bindMetrics(registry: io.micrometer.core.instrument.MeterRegistry, name: String) {
+        io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics.monitor(registry, entries, name)
+    }
 
     /** 사용자를 새로 기억한다. 이미 있으면 항목을 교체해 기억한 판정을 비운다 (v1.6 `CacheStore.yonaUsers.put`). */
     fun remember(userId: Long) {

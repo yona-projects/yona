@@ -53,6 +53,7 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
     @Autowired private lateinit var entityManager: EntityManager
     @Autowired private lateinit var hostname: SiteHostname
     @MockitoBean private lateinit var mailSender: JavaMailSender
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
     @MockitoSpyBean private lateinit var mailboxAddress: MailboxAddress
 
     private var sequence = 0
@@ -101,6 +102,25 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
         assertEquals("writer", (mail.from.single() as jakarta.mail.internet.InternetAddress).personal)
         assertEquals("<issue_post/${i.id}@${hostname.name()}>", mail.messageID)
         assertNull(mail.getHeader("References"))
+    }
+
+    private fun mailCount(result: String) = meters.find("yona.mail.sent").tag("result", result).counter()?.count() ?: 0.0
+
+    @Test
+    fun `메일을 보내면 성공으로 센다 (X-10 C5d)`() {
+        val before = mailCount("success")
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        assertEquals(before + 1, mailCount("success"))
+    }
+
+    @Test
+    fun `메일 서버가 거부하면 실패로 센다 (X-10 C5d)`() {
+        val before = mailCount("failure")
+        Mockito.doThrow(org.springframework.mail.MailSendException("down")).`when`(mailSender).send(Mockito.any(MimeMessage::class.java))
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        assertEquals(before + 1, mailCount("failure"))
     }
 
     @Test

@@ -39,11 +39,19 @@ class WebConfig(
      * 정해(`.../a.txt`는 `text/plain`, `.json`은 `application/json`) 코드 보기 같은 HTML 화면의 원문이 그대로 보인다.
      * v1.6의 `Html` 결과는 주소와 무관하게 `text/html`이다. HTML이 아닌 응답은 모두 `ResponseEntity`로 만들어 영향이 없다.
      */
-    @Bean
-    fun forceHtmlViews(): org.springframework.beans.factory.config.BeanPostProcessor = object : org.springframework.beans.factory.config.BeanPostProcessor {
-        override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any {
-            if (bean is org.thymeleaf.spring6.view.ThymeleafViewResolver) bean.forceContentType = true
-            return bean
+    companion object {
+        /**
+         * Thymeleaf 화면의 내용 형식을 늘 `text/html`로 고정하는 후처리기이다(아래 설명). 후처리기를 만드는 `@Bean` 메서드는 **정적**이어야 한다. 정적이 아니면 이 설정
+         * 클래스와 생성자 의존(인터셉터에서 감사 경계, 지표 레지스트리까지)이 후처리기보다 먼저 만들어져, 지표 바인더를 적용하는 후처리기가 레지스트리에 닿기 전에
+         * 레지스트리가 만들어진다(X-10 C5d). 그러면 `MeterBinder` 빈이 레지스트리에 붙지 않는다.
+         */
+        @JvmStatic
+        @Bean
+        fun forceHtmlViews(): org.springframework.beans.factory.config.BeanPostProcessor = object : org.springframework.beans.factory.config.BeanPostProcessor {
+            override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any {
+                if (bean is org.thymeleaf.spring6.view.ThymeleafViewResolver) bean.forceContentType = true
+                return bean
+            }
         }
     }
 

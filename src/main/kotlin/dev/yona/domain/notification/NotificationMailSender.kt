@@ -56,7 +56,8 @@ class NotificationMailSender(
     private val hostname: SiteHostname,
     private val messageSource: MessageSource,
     private val users: UserRepository,
-    private val reviewComments: ReviewCommentRepository
+    private val reviewComments: ReviewCommentRepository,
+    private val metrics: dev.yona.observability.CollaborationMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -97,6 +98,7 @@ class NotificationMailSender(
         if (to.isEmpty()) return
         val sender = mailSenderProvider.ifAvailable
         if (sender == null) {
+            metrics.mail("skipped")
             log.warn("메일 서버(spring.mail.host)가 설정되지 않아 알림 메일을 보내지 않았다: {}", notification.main.title)
             return
         }
@@ -104,10 +106,12 @@ class NotificationMailSender(
         try {
             val message = buildMessage(notification, to, bcc, lang) ?: return
             sender.send(message)
+            metrics.mail("success")
             val title = (main.title ?: "").replace("\"", "\\\"")
             // v1.6는 받는 사람, 참조, 숨은 참조의 InternetAddress 집합을 그대로 기록한다("이름 <주소>")
             mailOut.info("\"{}\" {}", title, message.allRecipients.orEmpty().toCollection(LinkedHashSet()))
         } catch (e: Exception) {
+            metrics.mail("failure")
             log.warn("알림 메일을 보내지 못했다: {}", main.title, e)
         }
     }
