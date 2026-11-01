@@ -35,7 +35,7 @@
                     </form>
                 </div>
             </div>
-            <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-lg-3 hide-in-mobile">
+            <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-lg-3 hide-in-mobile" th:classappend="${projectView.sshCloneUrl != null} ? 'clone-with-protocol'">
                 <input type="text" class="project-clone-url form-control" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
                 <!--/* 내장 SSH 서버를 켠 사이트에서만 보인다(X-3, D-66). 켜지 않으면 v1.6과 같은 복제 상자이다. 상자의 float와 absolute 배치를 건드리지 않게 상자 아래 줄에 둔다 */-->

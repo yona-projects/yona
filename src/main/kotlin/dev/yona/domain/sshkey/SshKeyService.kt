@@ -159,7 +159,7 @@ class DeployKeyService(private val keys: DeployKeyRepository, private val sshKey
 
     /** 키 이벤트이다. 지문, 종류, 쓰기 허용 여부, 저장소만 남기고 공개키 본문은 넣지 않는다. */
     private fun event(action: String, key: DeployKey) = AuditEvent(
-        action, targetType = "deploy_key", targetId = key.id?.toString(), targetLabel = key.name,
+        action, targetType = "deploy_key", targetId = key.id?.toString(), targetLabel = key.name, organizationId = key.project?.organization?.id, projectId = key.project?.id,
         details = linkedMapOf<String, Any?>("fingerprint" to key.fingerprint, "keyType" to key.keyType, "readOnly" to key.readOnly, "project" to "${key.project?.owner}/${key.project?.name}")
     )
 }

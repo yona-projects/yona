@@ -73,6 +73,8 @@ server:
 | `account.email_added`, `email_confirmed`, `email_deleted`, `email_main_changed` | 보조 이메일 관리 | 이메일(대상 이름), 대표 변경은 전후 |
 | `token.created`, `token.updated`, `token.regenerated`, `token.deleted` | API 토큰 | 이름, 범위, 만료, 토큰 주인(`owner`). 기기 인증이 만든 토큰은 인증 없이 CLI가 받아 가므로 행위자를 토큰 주인(승인한 사용자)으로 남기고 `via: device`를 둔다 |
 | `gpg_key.added`, `gpg_key.deleted` | GPG 키 등록과 삭제(X-4, D-65). 같은 트랜잭션에서 기록하며 거절된 등록과 남의 키 삭제는 남기지 않는다 | 이름(대상), 지문, 키 ID, 하위 키 수(등록은 이메일 수도). **공개키 본문은 남기지 않는다** |
+| `ssh_key.added`, `ssh_key.deleted` | SSH 키 등록과 삭제(X-3, D-66). 같은 트랜잭션에서 기록하며 거절된 등록과 남의 키 삭제는 남기지 않는다 | 이름(대상), 지문, 종류. **공개키 본문은 남기지 않는다** |
+| `deploy_key.added`, `deploy_key.deleted` | 배포 키 등록과 삭제(X-3, D-66). 프로젝트를 가리켜 프로젝트의 감사 화면에 보인다 | 이름(대상), 지문, 종류, 읽기 전용 여부, `소유자/이름`. 공개키 본문은 남기지 않는다 |
 | `token.device_approved`, `token.device_denied` | 기기 인증 승인과 거절 | 기기 이름(대상), 범위 |
 
 시험: `AuditAccountTest` 14건.
@@ -172,3 +174,7 @@ server:
 - **보존 보호**: 보존 처리(앞부분 삭제와 git 이벤트 비움)는 설정된 대상 중 가장 덜 보낸 커서 뒤의 기록(아직 보내지 않은 것)을 지우거나 비우지 않는다. 대상이 막혀 있으면 그만큼 DB에 쌓이므로 상태 표의 밀린 기록을 지켜봐야 한다.
 - **감사 범위 밖**: 위키 변경은 기록하지 않는다(git 이력이 있다, D-62). git clone과 fetch는 기록하지 않는다(D-63).
 
+
+## SSH 접속의 행위자 (X-3, D-66)
+
+SSH 서버는 웹 요청 밖의 스레드라 `AuditRecorder.withRemote(행위자, 주소, "ssh")`로 문맥을 정한다. 푸시 훅이 남기는 `git.push`, `git.force_push`, `git.ref_deleted`, `git.push_rejected`에 행위자(사용자 키는 `USER`, 배포 키는 행위자 유형 `DEPLOY_KEY`와 키 번호, 키 이름), 접속 주소(`ip`), 접속 종류(`user_agent` 열의 `ssh`)가 들어간다. 인증하지 못한 접속은 `auth.basic_failure`(채널 `ssh`)로, 막힌 주소는 `auth.token_blocked`로 남는다.

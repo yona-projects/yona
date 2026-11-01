@@ -105,7 +105,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 | `yona.search.duration` | `op`(counts, page), `result` | 통합 검색의 시간 |
 | `cache.gets`, `cache.size`, `cache.evictions` 등 | `cache`(markdown_render, session_user), `result`(hit, miss) | 렌더링 캐시와 세션 사용자 캐시. 적중률이 떨어지면 마크다운 렌더링과 권한 계산 비용이 는다 |
 
-- 모든 태그는 고정된 낮은 카디널리티 값이며 로그인 ID, 주소, 경로, 프로젝트 이름은 들어가지 않는다(시험으로 고정). 알 수 없는 채널과 결과는 `other`이다.
+- 모든 태그는 고정된 낮은 카디널리티 값이며 로그인 ID, 주소, 경로, 프로젝트 이름은 들어가지 않는다(시험으로 고정). 알 수 없는 채널과 결과는 `other`이다. 보안 지표의 채널은 `api`, `git_http`, `svn`, `web`, `ssh`(X-3)이다. SSH 접속은 `yona.vcs.request`의 `service`가 `upload_pack`, `receive_pack`이고 결과에 `denied`, `not_found`가 더해진다(HTTP와 같은 지표).
 - **제외한 것**: 댓글의 종류별 생성 수는 `yona.entities.created`의 댓글 엔티티로 충분해 따로 두지 않았다. 이슈 목록 쿼리 지연은 `http.server.requests`의 이슈 목록 라우트와 `hikaricp` 지표로 본다. 첨부 업로드 크기와 실패는 후속이다.
 - **발견한 구조 문제**: `WebConfig.forceHtmlViews`(후처리기)가 정적이 아니라 설정 클래스와 그 의존(인터셉터에서 감사 경계, 지표 레지스트리까지)이 후처리기보다 먼저 만들어졌고, 그러면 `MeterBinder` 빈이 레지스트리에 붙지 않았다. 정적 메서드로 고쳤다(스프링 권고).
 

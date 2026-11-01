@@ -103,7 +103,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 |---|---|---|---|---|
 | X-1 | OAuth2 Authorization Server(동적 클라이언트 등록 포함) | `domain/oauth2server`, `config/oauth2server` | 대기 | X-6 MCP 서버의 인증 기반 |
 | X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기) | `domain/twofactor` | 대기 | 로그인 흐름이 바뀌므로 v1.6 로그인 계약과 충돌하지 않게 선택 사용으로 둔다. `next`는 로그인 브루트포스 방지, 알려진 기기 인식(`user_known_device`), 사이트 관리자의 2단계 인증 해제도 함께 둔다 |
-| X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `config/ssh` | 대기 | |
+| X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `ssh` | **구현 완료(2026-11-02, 내장 SSH 서버), 결정은 D-66** | 설명은 [architecture/ssh.md](architecture/ssh.md). 설정 `yona.ssh.enabled`(기본 꺼짐)로 켜는 Apache MINA SSHD, 사용자 SSH 키와 프로젝트 배포 키(읽기 전용 기본), 목록과 추가 두 화면(삭제 버튼만), REST, 감사와 지표, 프로젝트 홈의 SSH 복제 주소. 실제 `ssh`와 `git`으로 복제, 푸시, 읽기 전용 배포 키의 푸시 거부, 보호 규칙 적용을 확인했다. 명령은 저장소 종류별 처리기라 X-7(Mercurial)이 같은 자리에 더한다. **남은 것: X-3b 시스템 sshd 연동(`AuthorizedKeysCommand`와 소켓 중계, `next`의 `docs/guide/ssh-system-sshd-setup.md` 참조)** |
 | X-4 | GPG 커밋 서명 검증(키 등록, 커밋과 태그의 Verified 표시, REST, 서명 커밋 필수 규칙) | `domain/gpgkey` | **구현 완료(2026-11-02), 결정은 D-65** | 일곱 단계가 모두 끝났다. 설명은 [architecture/gpg-signing.md](architecture/gpg-signing.md). BouncyCastle 직접 검증, 실제 gpg 2.4.8과 git의 키와 서명으로 호환 확인. 만료와 폐기 키는 지금 기준으로 Unverified. 설정 화면은 목록과 추가 두 화면(삭제 버튼만) |
 | X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | **구현 완료(2026-10-29)** | D-36: Classic 토큰을 먼저 도입하고 v1.6 사용자 토큰은 레거시 Classic 토큰으로 이관한다(공존이 아니라 이관). 모든 토큰이 사용자 권한을 확인한다(D-20 대체). Fine-grained는 X-5b로 나눈다. 상세는 [architecture/api-token.md](architecture/api-token.md) |
 | X-6 | MCP 서버(OAuth2로 인증한 AI 에이전트의 이슈, 풀 리퀘스트, 위키 접근) | `mcp` | 대기 | X-1, X-5 이후 |

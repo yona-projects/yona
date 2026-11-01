@@ -46,7 +46,9 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | `user`(`read:user`, `user:email`을 포함) | 프로필 읽기와 쓰기 | 프로필, 내 이슈 목록, 통계, 이메일 |
 | `notifications` | 알림 읽기와 읽음 처리 | 알림 API(예약. 알림 REST가 생길 때) |
 | `delete_repo` | 저장소 삭제 | 프로젝트 삭제 API(예약) |
-| `admin:public_key`, `admin:gpg_key` 계열 | 공개키 관리 | SSH 키(X-3)와 GPG 키(X-4)가 생길 때(예약) |
+| `admin:gpg_key`, `write:gpg_key`, `read:gpg_key` | GPG 키 관리, 등록, 읽기 | 내 GPG 키(X-4, D-65). 삭제는 `admin:`, 등록은 `write:`, 읽기는 `read:` |
+| `admin:ssh_key`, `write:ssh_key`, `read:ssh_key` | SSH 키 관리, 등록, 읽기 | 내 SSH 키(X-3, D-66). GitHub의 `admin:public_key` 계열에 해당하며 GPG 키와 같은 구성이다 |
+| `admin:deploy_key`, `write:deploy_key`, `read:deploy_key` | 프로젝트 배포 키 관리, 등록, 읽기 | 프로젝트 배포 키(X-3, D-66). 프로젝트 관리자여야 한다 |
 | `workflow` | Actions 워크플로 파일 | CI/Actions(X-25)가 생길 때(예약) |
 | `site_admin` | 엔터프라이즈 사이트 관리 | 사이트 관리자 API(`/-_-api/v1/admin/**`). 사이트 관리자만 고를 수 있다 |
 
@@ -80,7 +82,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | `user:email` | `USER` | 본인 이메일 `READ` | 본인 |
 | `user` | `USER`, `USER_AVATAR` | `read:user`와 `user:email`에 더해 `UPDATE`(프로필) | 본인 |
 | `site_admin` | `SITE_SETTING`, `USER`(관리) | 사이트 관리자 API | 사이트 관리자만 고를 수 있다 |
-| `notifications`, `delete_repo`, `admin:public_key`, `admin:gpg_key`, `workflow` 계열 | (예약) | 해당 기능(알림 REST, 프로젝트 삭제 API, X-3, X-4, X-25)이 생길 때 | |
+| `notifications`, `delete_repo`, `workflow` 계열 | (예약) | 해당 기능(알림 REST, 프로젝트 삭제 API, X-25)이 생길 때 | |
 
 **GitHub 범위 중 Yona에 대응이 없어 만들지 않는 것**: `repo:status`, `repo_deployment`, `repo:invite`, `security_events`, `admin:org_hook`, `user:follow`, 패키지, 토론, 게시물(gist) 계열(해당 기능이 Yona에 없다).
 

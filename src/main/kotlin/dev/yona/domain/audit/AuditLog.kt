@@ -89,7 +89,7 @@ class AuditLog(
     var requestId: String? = null,
     @Column(name = "token_id")
     var tokenId: Long? = null,
-    @Column(name = "token_scopes", length = 255)
+    @Column(name = "token_scopes", length = 1000)
     var tokenScopes: String? = null,
     @Column(length = LONG_TEXT)
     var details: String? = null,

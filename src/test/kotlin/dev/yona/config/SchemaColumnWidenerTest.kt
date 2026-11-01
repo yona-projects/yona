@@ -35,5 +35,6 @@ class SchemaColumnWidenerTest : AbstractIntegrationTest() {
         widener.widen()
         assertEquals(SchemaColumnWidener.SCOPES_LENGTH, size("api_token", "scopes"), "다시 돌려도 같다")
         assertTrue(size("device_authorization", "scopes") >= SchemaColumnWidener.SCOPES_LENGTH)
+        assertTrue(size("audit_log", "token_scopes") >= SchemaColumnWidener.SCOPES_LENGTH, "감사 기록에도 토큰의 범위 문자열이 들어간다")
     }
 }
