@@ -10,7 +10,7 @@
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
 | C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙, 감사 `request_id` 연결 | 완료 |
-| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a, C5b 완료 |
+| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a, C5b, C5c 완료 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
 ## 켜는 방법
@@ -71,4 +71,22 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 
 - **백그라운드 일**(푸시 뒤 작업과 풀 리퀘스트 병합, `BackgroundJobRunner`): `yona.background.duration{result}`와 `yona.background.active`. 스레드 풀에 상한이 없어 `active`가 쌓이면 서버가 밀린다는 신호이다. 일의 설명에는 이름이 들어갈 수 있어 태그로 쓰지 않는다(시험으로 고정).
 - **감사 스트리밍**: `yona.audit.stream.backlog{target}`(아직 보내지 않은 기록 수), `yona.audit.stream.failures{target}`(연속 실패), `yona.audit.stream.last.success{target}`(마지막으로 보낸 시각). 설정된 대상만 만든다.
+
+## VCS 지표 (C5c)
+
+이름은 VCS 중립(`yona.vcs.*`)이고 `vcs` 태그(`git`, `svn`, 앞으로 `hg`)만 다르다. **X-7(Mercurial)은 같은 계측 지점에 `hg`만 더하면 된다.** 태그는 모두 고정된 낮은 카디널리티 값이며 프로젝트, 사용자, 경로 이름이 들어가지 않는다(시험으로 고정).
+
+| 지표 | 태그 | 설명 |
+|---|---|---|
+| `yona.vcs.request` | `vcs`, `service`, `target`(code, wiki), `result` | 저장소 서비스 요청의 시간과 횟수 |
+| `yona.vcs.request.active` | `vcs`, `service`, `target` | 진행 중인 요청 수. **긴 git 요청이 스레드를 점유해 풀이 고갈되는 것의 선행 지표** |
+| `yona.vcs.transfer` | `vcs`, `target`, `direction`(in, out) | 전송한 바이트 |
+| `yona.vcs.pushes` | `vcs`, `kind`(branch, tag, other), `result`(ok, rejected), `reason` | 푸시한 ref 수. 거부 이유는 `ruleset_deletion`, `ruleset_update`, `ruleset_force`, `ruleset_pull_request`, `reserved` |
+| `yona.vcs.hook.duration` | `hook`(last_pushed, recent_branch, post_receive_jobs, audit), `result` | 푸시 뒤 훅의 시간과 실패 |
+| `yona.vcs.operation.duration` | `vcs`, `op`(history, commit, browse, raw_file, archive, diff, branches, tags), `result` | 코드 보기, 이력, diff 같은 저장소 작업의 시간 |
+
+- **서비스 이름**: git은 `info_refs`, `upload_pack`, `receive_pack`이다(`info/refs`의 `service` 요청 매개변수는 태그로 쓰지 않고 `info_refs`로 고정). svn은 알려진 WebDAV 메서드(`OPTIONS`, `PROPFIND`, `REPORT`, `MERGE` 등)이고 나머지는 `other`이다(공격자가 태그 값을 늘리지 못하게).
+- **결과**: `ok`(2xx와 3xx), `denied`(401, 403, 429), `not_found`(404), `client_error`(그 밖의 4xx), `error`(5xx, 그리고 처리 중 `IOException`). git 처리 중 `IOException`은 v1.6처럼 로그만 남기고 삼키지만 응답이 200이어도 `error`로 센다.
+- **전송량**: git은 요청과 응답 본문(요청은 gzip을 푼 뒤)을 센다. svn은 요청 본문의 `Content-Length`만 센다(응답 크기는 세지 않음).
+- **HTTP 서버 지표**(`http.server.requests`)와 따로 둔 이유: svn은 필터가 처리해 일반 지표에서는 한 값으로 묶이고, git과 svn은 일반 화면 요청과 지연의 성격(수 초에서 수 분)이 달라 같은 히스토그램에 섞으면 평균이 의미를 잃는다.
 

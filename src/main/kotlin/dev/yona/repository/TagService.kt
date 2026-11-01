@@ -48,13 +48,15 @@ data class TagCreation(val tag: TagInfo?, val error: TagCreateError?)
  * 태그 목록과 만들기, 삭제를 맡는다(`decisions.md` D-30, D-52). 참조를 읽는 부분은 [BranchService]와 같은 방식이며 종류만 다르다.
  */
 @Service
-class TagService(private val repositories: RepositoryService) {
+class TagService(private val repositories: RepositoryService, private val metrics: dev.yona.observability.VcsMetrics) {
 
     /**
      * 저장소의 태그를 태그 시각이 최근인 순서로 모은다. 같으면 이름순이고, 시각을 알 수 없는 태그(커밋이 아닌 대상을 가리키는 경량 태그)는 맨 뒤이다.
      * 주석 태그가 다른 태그를 가리키면(태그의 태그) 끝까지 벗겨 최종 대상을 본다. 커밋이 아닌 대상을 가리켜도 실패하지 않는다.
      */
-    fun tags(project: Project): List<TagInfo> = repositories.openRepository(project).use { repository ->
+    fun tags(project: Project): List<TagInfo> = metrics.operation(project.vcs, "tags") { tagsImpl(project) }
+
+    private fun tagsImpl(project: Project): List<TagInfo> = repositories.openRepository(project).use { repository ->
         RevWalk(repository).use { walk ->
             repository.refDatabase.refs.filter { it.name.startsWith(Constants.R_TAGS) && it.objectId != null }
                 .mapNotNull { ref -> runCatching { info(walk, ref.name, ref.objectId) }.getOrNull() }

@@ -28,7 +28,11 @@ data class BranchInfo(
  * 브랜치 목록과 삭제를 맡는다. v1.6 `GitRepository.getBranches`, `getHeadBranch`, `deleteBranch`에 해당한다(목록은 브랜치만, D-30).
  */
 @Service
-class BranchService(private val repositories: RepositoryService, private val pullRequests: PullRequestRepository) {
+class BranchService(
+    private val repositories: RepositoryService,
+    private val pullRequests: PullRequestRepository,
+    private val metrics: dev.yona.observability.VcsMetrics
+) {
 
     /**
      * `refs/heads/` 아래의 브랜치만 머리 커밋이 최근인 순서로 모은다.
@@ -37,7 +41,7 @@ class BranchService(private val repositories: RepositoryService, private val pul
      * 출발, 도착 목록에서 의미가 없어(`decisions.md` D-30) 이 함수의 결과에서 뺀다. 커밋을 읽기 전에 거르므로 커밋이 아닌 대상을
      * 가리키는 태그가 있어도 실패하지 않는다. 태그와 원격 참조를 포함한 이름은 [RepositoryService.refNames]를 쓴다.
      */
-    fun branches(project: Project): List<BranchInfo> = refs(project, listOf(Constants.R_HEADS))
+    fun branches(project: Project): List<BranchInfo> = metrics.operation(project.vcs, "branches") { refs(project, listOf(Constants.R_HEADS)) }
 
     /** [prefixes]로 시작하는 참조를 머리 커밋이 최근인 순서로 모은다. 커밋을 가리키지 않는 참조는 건너뛴다. */
     private fun refs(project: Project, prefixes: List<String>): List<BranchInfo> = repositories.openRepository(project).use { repository ->

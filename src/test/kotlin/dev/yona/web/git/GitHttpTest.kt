@@ -79,6 +79,12 @@ class GitHttpTest {
     @Autowired private lateinit var recentVisits: dev.yona.domain.project.RecentVisitService
     @Autowired private lateinit var recentProjects: dev.yona.domain.project.RecentProjectRepository
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
+    @Autowired private lateinit var history: dev.yona.repository.CommitHistoryService
+    @Autowired private lateinit var browser: dev.yona.repository.CodeBrowserService
+    @Autowired private lateinit var branchService: dev.yona.repository.BranchService
+    @Autowired private lateinit var tagService: dev.yona.repository.TagService
+    @Autowired private lateinit var diffService: dev.yona.repository.diff.DiffService
 
     @TempDir lateinit var work: File
 
@@ -252,6 +258,71 @@ class GitHttpTest {
         val before = auditLogs.findAll().filter { it.action.startsWith("git.") }.size
         clone(project, member)
         assertEquals(before, auditLogs.findAll().filter { it.action.startsWith("git.") }.size)
+    }
+
+    private fun timerCount(name: String, vararg tags: String) = meters.find(name).tags(*tags).timer()?.count() ?: 0L
+    private fun counterValue(name: String, vararg tags: String) = meters.find(name).tags(*tags).counters().sumOf { it.count() }
+
+    @Test
+    fun `푸시와 복제의 요청 시간과 전송량과 푸시 수를 지표로 남긴다 (X-10 C5c)`() {
+        val receive = timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "ok")
+        val upload = timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "ok")
+        val refs = timerCount("yona.vcs.request", "vcs", "git", "service", "info_refs", "target", "code", "result", "ok")
+        val bytesIn = counterValue("yona.vcs.transfer", "vcs", "git", "direction", "in")
+        val bytesOut = counterValue("yona.vcs.transfer", "vcs", "git", "direction", "out")
+        val pushes = counterValue("yona.vcs.pushes", "vcs", "git", "kind", "branch", "result", "ok")
+        push(project, member)
+        clone(project, member)
+        assertEquals(receive + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "ok"))
+        assertEquals(upload + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "ok"))
+        assertTrue(timerCount("yona.vcs.request", "vcs", "git", "service", "info_refs", "target", "code", "result", "ok") >= refs + 2)
+        assertTrue(counterValue("yona.vcs.transfer", "vcs", "git", "direction", "in") > bytesIn, "받은 바이트가 늘지 않았다")
+        assertTrue(counterValue("yona.vcs.transfer", "vcs", "git", "direction", "out") > bytesOut, "보낸 바이트가 늘지 않았다")
+        assertEquals(pushes + 1, counterValue("yona.vcs.pushes", "vcs", "git", "kind", "branch", "result", "ok"))
+    }
+
+    @Test
+    fun `이력과 코드 보기와 diff와 브랜치와 태그 작업의 시간을 지표로 남긴다 (X-10 C5c)`() {
+        push(project, member)
+        val ops = listOf("history", "commit", "browse", "raw_file", "diff", "branches", "tags")
+        val before = ops.associateWith { timerCount("yona.vcs.operation.duration", "vcs", "git", "op", it, "result", "success") }
+        val head = history.history(project, 0, 5, null, null)!!.first()
+        history.commit(project, head.id!!)
+        browser.metaData(project, null, "")
+        browser.rawFile(project, "HEAD", "a.txt")
+        diffService.commitDiff(project, head.id!!)
+        branchService.branches(project)
+        tagService.tags(project)
+        ops.forEach { assertTrue(timerCount("yona.vcs.operation.duration", "vcs", "git", "op", it, "result", "success") > before.getValue(it), it) }
+    }
+
+    @Test
+    fun `푸시 뒤 훅의 시간을 지표로 남긴다 (X-10 C5c)`() {
+        val before = listOf("last_pushed", "recent_branch", "post_receive_jobs").associateWith { timerCount("yona.vcs.hook.duration", "hook", it, "result", "success") }
+        push(project, member)
+        before.forEach { (hook, count) -> assertEquals(count + 1, timerCount("yona.vcs.hook.duration", "hook", hook, "result", "success"), hook) }
+    }
+
+    @Test
+    fun `거부된 푸시는 이유와 함께 센다 (X-10 C5c)`() {
+        val before = counterValue("yona.vcs.pushes", "vcs", "git", "result", "rejected", "reason", "reserved")
+        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yobi/test") }
+        assertEquals(before + 1, counterValue("yona.vcs.pushes", "vcs", "git", "result", "rejected", "reason", "reserved"))
+    }
+
+    @Test
+    fun `인증 없이 비공개 저장소를 요청하면 denied로 센다 (X-10 C5c)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val before = timerCount("yona.vcs.request", "vcs", "git", "service", "info_refs", "target", "code", "result", "denied")
+        get("${url(secret)}/info/refs?service=git-upload-pack")
+        assertTrue(timerCount("yona.vcs.request", "vcs", "git", "service", "info_refs", "target", "code", "result", "denied") > before)
+    }
+
+    @Test
+    fun `지표 태그에 프로젝트와 사용자 이름이 들어가지 않는다 (X-10 C5c)`() {
+        push(project, member); clone(project, member)
+        val leaked = meters.meters.filter { m -> m.id.name.startsWith("yona.vcs") }.flatMap { m -> m.id.tags.map { it.value } }.filter { it.contains(project.name!!) || it.contains(member.loginId!!) }
+        assertEquals(emptyList(), leaked)
     }
 
     @Test

@@ -44,7 +44,8 @@ class GitHttpController(
     private val recentVisits: RecentVisitService,
     private val messages: MessageSource,
     private val properties: dev.yona.config.YonaProperties,
-    private val wikiService: dev.yona.domain.wiki.WikiService
+    private val wikiService: dev.yona.domain.wiki.WikiService,
+    private val metrics: dev.yona.observability.VcsMetrics
 ) {
 
     /** 서비스(`service=git-upload-pack` 또는 `git-receive-pack`)가 광고하는 ref 목록이다. */
@@ -60,7 +61,8 @@ class GitHttpController(
         if (identity.blocked) return tooManyAttempts()
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
-        return handle(ownerName, projectName, service, advertise = true, identity, request, response)
+        // 서비스 이름은 요청 매개변수라 지표 태그로 쓰지 않고 `info_refs`로 고정한다(카디널리티)
+        return measured("info_refs", response) { handle(ownerName, projectName, service, advertise = true, identity, request, response, it) }
     }
 
     /**
@@ -81,19 +83,33 @@ class GitHttpController(
         if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         val identity = basicAuth.identify(request, response, credentials)
         if (identity.blocked) return tooManyAttempts()
-        return handle(ownerName, projectName, service, advertise = false, identity, request, response)
+        return measured(service.removePrefix("git-").replace('-', '_'), response) { handle(ownerName, projectName, service, advertise = false, identity, request, response, it) }
+    }
+
+    /**
+     * 저장소 서비스 요청의 시간과 결과를 지표로 남긴다(X-10 C5c). 결과는 응답 상태(`ResponseEntity`이면 그 상태)에서 정하고, 본문을 직접 쓴 경우에도 처리 중
+     * `IOException`이 있었으면 `error`이다. 위키 저장소이면 대상(`target`)을 `wiki`로 바꾼다.
+     */
+    private fun measured(service: String, response: HttpServletResponse, block: (dev.yona.observability.VcsMetrics.Request) -> Any?): Any? {
+        var out: Any? = null
+        metrics.request("git", service) { req ->
+            out = block(req)
+            if (req.result == dev.yona.observability.VcsMetrics.OK) req.result = dev.yona.observability.VcsMetrics.resultOf((out as? ResponseEntity<*>)?.statusCode?.value() ?: response.status)
+        }
+        return out
     }
 
     /** 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36). */
     private fun tooManyAttempts(): ResponseEntity<String> = text(HttpStatus.TOO_MANY_REQUESTS, "Too many failed authentication attempts")
 
     private fun handle(
-        ownerName: String, projectName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse
+        ownerName: String, projectName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse,
+        req: dev.yona.observability.VcsMetrics.Request
     ): Any? {
         val user = identity.user
         if (!GitHttpService.isSupported(service)) return text(HttpStatus.FORBIDDEN, "Unsupported service: '$service'")
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName)
-            ?: return handleWiki(ownerName, projectName, service, advertise, identity, request, response)
+            ?: return handleWiki(ownerName, projectName, service, advertise, identity, request, response, req)
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
@@ -109,15 +125,16 @@ class GitHttpController(
 
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
-            gitHttp.advertise(project, service, response.outputStream)
+            gitHttp.advertise(project, service, metrics.countedOutput("git", "code", response.outputStream))
         } else {
             // v1.6 `GitApp.service`는 `isMaxSizeExceeded()`가 참이면 413이지만, Play가 이 요청(`application/x-git-*-request`)을 원시 본문으로 받아
             // 한도가 사실상 없다. 공식 v1.16.0에 130MB를 푸시해 성공을 확인했다. 폼 본문의 한도(`parsers.text.maxLength`)와 다르다.
             val raw = request.inputStream
             recentVisits.visits(user, project)
             response.contentType = "application/x-$service-result"
-            val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw
-            gitHttp.rpc(project, service, input, response.outputStream, user)
+            // 클라이언트가 보낸 바이트(압축을 푼 뒤)와 서버가 쓴 바이트를 센다
+            val input = metrics.countedInput("git", "code", if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw)
+            if (!gitHttp.rpc(project, service, input, metrics.countedOutput("git", "code", response.outputStream), user)) req.result = "error"
         }
         // 응답 본문을 직접 썼으므로 더 쓸 것이 없다.
         return null
@@ -129,13 +146,15 @@ class GitHttpController(
      * 설정은 위키에 적용하지 않는다. 프로젝트의 VCS와 무관하게 항상 git이다.
      */
     private fun handleWiki(
-        ownerName: String, repositoryName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse
+        ownerName: String, repositoryName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse,
+        req: dev.yona.observability.VcsMetrics.Request
     ): Any? {
         val baseName = WIKI_SUFFIXES.firstOrNull { repositoryName.endsWith(it) }?.let { repositoryName.removeSuffix(it) }?.takeIf { it.isNotEmpty() }
             ?: return ResponseEntity.notFound().build<Void>()
         val project = projectService.findByOwnerAndProjectName(ownerName, baseName) ?: return ResponseEntity.notFound().build<Void>()
         // 위키를 끈 프로젝트는 저장소가 있어도 없는 것처럼 404이다(D-61)
         if (!wikiService.enabled(project)) return ResponseEntity.notFound().build<Void>()
+        req.target = "wiki"
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
         val user = identity.user
         val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
@@ -149,12 +168,12 @@ class GitHttpController(
         if (!wikiService.available(project)) return text(HttpStatus.CONFLICT, "The wiki of this project is not available")
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
-            gitHttp.advertiseWiki(project, service, response.outputStream)
+            gitHttp.advertiseWiki(project, service, metrics.countedOutput("git", "wiki", response.outputStream))
         } else {
             val raw = request.inputStream
             response.contentType = "application/x-$service-result"
-            val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw
-            gitHttp.rpcWiki(project, service, input, response.outputStream)
+            val input = metrics.countedInput("git", "wiki", if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw)
+            if (!gitHttp.rpcWiki(project, service, input, metrics.countedOutput("git", "wiki", response.outputStream))) req.result = "error"
         }
         return null
     }

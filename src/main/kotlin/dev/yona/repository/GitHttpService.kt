@@ -63,25 +63,26 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
      * 응답 상태 200을 먼저 보내고 `Logger.error("uploadPack failed", e)`, `Logger.error("receivePack failed", e)`로만 남긴다.
      * 끝에는 입력과 출력을 닫는다. 디렉터리가 없어도 같은 방식으로 처리한다(`info/refs`와 같다).
      */
-    fun rpc(project: Project, service: String, input: InputStream, out: OutputStream, sender: dev.yona.domain.user.User? = null) {
+    fun rpc(project: Project, service: String, input: InputStream, out: OutputStream, sender: dev.yona.domain.user.User? = null): Boolean =
         exchange({ repositories.openRepositoryForHttp(project) }, service, input, out) { receive ->
             receive.preReceiveHook = hooks.preReceive(project, sender)
             receive.postReceiveHook = hooks.postReceive(project, sender)
         }
-    }
 
     /**
      * 위키 저장소의 복제와 푸시 요청을 처리한다(X-17 W7, D-60). 푸시를 받을 때 위키 저장소가 없으면 먼저 만든다. 코드 저장소와 달리 푸시 전후 훅(브랜치 규칙,
      * 풀 리퀘스트, 웹훅)이 없고, 기본 브랜치를 지우는 푸시는 거부한다(위키가 비어 버린다). 권한 확인은 호출하는 쪽이 한다.
      */
-    fun rpcWiki(project: Project, service: String, input: InputStream, out: OutputStream) {
+    fun rpcWiki(project: Project, service: String, input: InputStream, out: OutputStream): Boolean {
         val owner = requireNotNull(project.owner)
         val name = requireNotNull(project.name)
         if (service == RECEIVE_PACK) wikis.create(owner, name)
-        exchange({ wikis.openForHttp(owner, name) }, service, input, out) { receive -> receive.isAllowDeletes = false }
+        return exchange({ wikis.openForHttp(owner, name) }, service, input, out) { receive -> receive.isAllowDeletes = false }
     }
 
-    private fun exchange(open: () -> Repository, service: String, input: InputStream, out: OutputStream, configure: (ReceivePack) -> Unit) {
+    /** 처리가 `IOException` 없이 끝났으면 `true`이다. 오류는 v1.6처럼 로그만 남기고 삼키므로 지표가 결과를 알 수 있게 알려 준다. */
+    private fun exchange(open: () -> Repository, service: String, input: InputStream, out: OutputStream, configure: (ReceivePack) -> Unit): Boolean {
+        var succeeded = true
         try {
             open().use { repository ->
                 try {
@@ -93,6 +94,7 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
                         }.receive(input, out, null)
                     }
                 } catch (e: IOException) {
+                    succeeded = false
                     log.error(if (service == UPLOAD_PACK) "uploadPack failed" else "receivePack failed", e)
                 }
             }
@@ -100,6 +102,7 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
             closeQuietly(service, "input stream") { input.close() }
             closeQuietly(service, "output stream") { out.flush(); out.close() }
         }
+        return succeeded
     }
 
     private fun closeQuietly(service: String, what: String, close: () -> Unit) {

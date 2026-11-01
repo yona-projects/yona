@@ -27,7 +27,11 @@ data class CommitInfo(
  * 커밋 이력과 커밋 하나를 읽는다. v1.6 `GitRepository.getHistory`, `getCommit`(`app/playRepository/GitRepository.java:790-830`)에 해당한다.
  */
 @Service
-class CommitHistoryService(private val repositories: RepositoryService, private val svn: dev.yona.repository.svn.SvnRepositories) {
+class CommitHistoryService(
+    private val repositories: RepositoryService,
+    private val svn: dev.yona.repository.svn.SvnRepositories,
+    private val metrics: dev.yona.observability.VcsMetrics
+) {
 
     private fun isSvn(project: Project) = project.vcs == RepositoryService.VCS_SUBVERSION
 
@@ -44,7 +48,10 @@ class CommitHistoryService(private val repositories: RepositoryService, private 
      *
      * v1.6처럼 `page * size + size`개를 읽어 마지막 [size]개를 남긴다.
      */
-    fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? {
+    fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? =
+        metrics.operation(project.vcs, "history") { historyImpl(project, page, size, revision, path) }
+
+    private fun historyImpl(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? {
         // Subversion은 브랜치가 없어 리비전은 보지 않고, 경로를 정하면 그 경로를 바꾼 리비전만 모은다 (v1.6 `SVNRepository.getHistory`).
         if (isSvn(project)) return svn.history(project.owner.orEmpty(), project.name.orEmpty(), page, size, path?.takeIf { it.isNotEmpty() }).map { info(it) }
         return gitHistory(project, page, size, revision, path)
@@ -64,7 +71,9 @@ class CommitHistoryService(private val repositories: RepositoryService, private 
     }
 
     /** [revision]의 커밋이다. 없으면 `null`이다(풀 수 없거나 커밋이 아닌 객체 포함). */
-    fun commit(project: Project, revision: String): CommitInfo? {
+    fun commit(project: Project, revision: String): CommitInfo? = metrics.operation(project.vcs, "commit") { commitImpl(project, revision) }
+
+    private fun commitImpl(project: Project, revision: String): CommitInfo? {
         if (isSvn(project)) return revision.toLongOrNull()?.let { svn.commit(project.owner.orEmpty(), project.name.orEmpty(), it) }?.let { info(it) }
         return gitCommit(project, revision)
     }

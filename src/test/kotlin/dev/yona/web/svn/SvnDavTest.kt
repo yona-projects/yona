@@ -78,6 +78,7 @@ class SvnDavTest {
     @Autowired private lateinit var svn: SvnRepositories
     @Autowired private lateinit var deletion: ProjectDeletionService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
     @Autowired private lateinit var apiTokens: dev.yona.domain.apitoken.ApiTokenService
 
@@ -184,6 +185,24 @@ class SvnDavTest {
         val repository = client(publicProject)
         assertEquals(0L, repository.latestRevision)
         assertEquals(SVNNodeKind.DIR, repository.checkPath("", -1))
+    }
+
+    private fun svnTimers(service: String, result: String) = meters.find("yona.vcs.request").tags("vcs", "svn", "service", service, "target", "code", "result", result).timer()?.count() ?: 0L
+
+    @Test
+    fun `svn 요청의 시간과 결과를 서비스 이름과 함께 지표로 남긴다 (X-10 C5c)`() {
+        val ok = svnTimers("OPTIONS", "ok"); val notFound = svnTimers("PROPFIND", "not_found")
+        raw("OPTIONS", "/svn/${publicProject.owner}/${publicProject.name}")
+        raw("PROPFIND", "/svn/${publicProject.owner}/zz-no-such-project")
+        assertEquals(ok + 1, svnTimers("OPTIONS", "ok"))
+        assertEquals(notFound + 1, svnTimers("PROPFIND", "not_found"))
+    }
+
+    @Test
+    fun `svn 지표 태그에 프로젝트 이름이 들어가지 않는다 (X-10 C5c)`() {
+        raw("OPTIONS", "/svn/${publicProject.owner}/${publicProject.name}")
+        val leaked = meters.meters.filter { it.id.name.startsWith("yona.vcs") }.flatMap { m -> m.id.tags.map { it.value } }.filter { it.contains(publicProject.name!!) || it.contains("zz-no-such") }
+        assertEquals(emptyList(), leaked)
     }
 
     @Test
