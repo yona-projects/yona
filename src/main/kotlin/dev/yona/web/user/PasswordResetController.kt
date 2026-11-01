@@ -38,7 +38,8 @@ class PasswordResetController(
     private val permissions: SessionPermissions,
     private val flashTranslator: FlashMessageTranslator,
     private val events: ApplicationEventPublisher,
-    private val sessionUsers: dev.yona.security.SessionUserCache
+    private val sessionUsers: dev.yona.security.SessionUserCache,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     @GetMapping("/lostPassword")
@@ -51,11 +52,20 @@ class PasswordResetController(
         val email = request.getParameter("emailAddress")
         val target = loginId?.let { users.findByLoginId(it) }
         // 이메일은 대소문자까지 같아야 한다 (v1.6 `targetUser.email.equals`).
-        if (target == null || target.email != email) return lostPasswordView(sent = false, errorKey = "site.resetPasswordEmail.invalidRequest")
+        if (target == null || target.email != email) {
+            // 틀린 조합도 남긴다(존재 여부를 드러내지 않으려고 이유는 하나뿐이다). 시도한 로그인 ID만 남기고 이메일은 남기지 않는다
+            audit.record(
+                dev.yona.domain.audit.AuditEvent(
+                    "account.password_reset_requested", dev.yona.domain.audit.AuditOutcome.FAILURE, targetType = "user", targetLabel = loginId?.take(255), details = mapOf("reason" to "invalid_request")
+                )
+            )
+            return lostPasswordView(sent = false, errorKey = "site.resetPasswordEmail.invalidRequest")
+        }
 
         val token = tokens.issue(requireNotNull(target.loginId))
         val event = PasswordResetRequestedEvent(target, token)
         events.publishEvent(event)
+        audit.record(dev.yona.domain.audit.auditUser("account.password_reset_requested", target))
         // v1.6는 메일을 보내지 못하면 isSent=false이고 오류 문구는 없이 폼을 다시 보여 준다.
         return lostPasswordView(sent = event.sent, errorKey = null)
     }
@@ -75,6 +85,7 @@ class PasswordResetController(
         val user = requireNotNull(users.findByLoginId(loginId))
         user.password = LegacyPasswordHasher.hash(requireNotNull(newPassword), requireNotNull(user.passwordSalt))
         users.save(user)
+        audit.record(dev.yona.domain.audit.auditUser("account.password_changed", user, mapOf("via" to "reset_token")))
         // v1.6 User.resetPassword: 새로 읽은 사용자 인스턴스를 서버 캐시에 넣는다
         sessionUsers.remember(requireNotNull(user.id))
         tokens.remove(hashString)
@@ -98,6 +109,7 @@ class PasswordResetController(
         val newPassword = tokens.generate(loginId).substring(0, TEMPORARY_PASSWORD_LENGTH)
         target.password = LegacyPasswordHasher.hash(newPassword, requireNotNull(target.passwordSalt))
         users.save(target)
+        audit.record(dev.yona.domain.audit.auditUser("account.password_changed", target, mapOf("via" to "admin_reset")))
         sessionUsers.remember(requireNotNull(target.id))
         return json(HttpStatus.OK, mapOf("loginId" to loginId, "name" to target.name.orEmpty(), "newPassword" to newPassword, "isSuccess" to true))
     }

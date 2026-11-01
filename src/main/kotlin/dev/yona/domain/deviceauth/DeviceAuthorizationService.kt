@@ -59,7 +59,8 @@ class DeviceAuthorizationService(
     private val apiTokens: ApiTokenService,
     private val tokenRepository: ApiTokenRepository,
     private val accessControl: AccessControl,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val random = SecureRandom()
@@ -131,6 +132,7 @@ class DeviceAuthorizationService(
         auth.scopes = ApiScopes.format(grantableScopes(auth, user))
         auth.status = DeviceAuthorizationStatus.APPROVED.name
         devices.save(auth)
+        audit.record(deviceEvent("token.device_approved", auth, mapOf("scopes" to ApiScopes.parse(auth.scopes).sorted())))
     }
 
     /** 사용자가 거절한다. 다음 교환 요청이 `access_denied`를 받고 요청은 지워진다. */
@@ -138,7 +140,12 @@ class DeviceAuthorizationService(
     fun deny(auth: DeviceAuthorization) {
         auth.status = DeviceAuthorizationStatus.DENIED.name
         devices.save(auth)
+        audit.record(deviceEvent("token.device_denied", auth, mapOf("scopes" to ApiScopes.parse(auth.scopes).sorted())))
     }
+
+    /** 기기 인증 이벤트이다. 기기 코드와 사용자 코드는 넣지 않고 기기 이름과 범위만 남긴다. */
+    private fun deviceEvent(action: String, auth: DeviceAuthorization, details: Map<String, Any?>) =
+        dev.yona.domain.audit.AuditEvent(action, targetType = "device", targetId = auth.id?.toString(), targetLabel = auth.clientName, details = details)
 
     /**
      * 기기 코드로 토큰을 교환한다(RFC 8628 3.4, 3.5). 승인과 거절은 간격과 상관없이 바로 알리고, 승인 전의 교환 요청만 간격을 검사한다: 간격보다 빨리 부르면 간격을 5초 늘리고

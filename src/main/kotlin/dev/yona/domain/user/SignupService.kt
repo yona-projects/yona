@@ -31,7 +31,8 @@ class SignupService(
     private val verifications: UserVerificationRepository,
     private val organizations: OrganizationRepository,
     private val properties: YonaProperties,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /** 가입 입력이 올바르지 않으면 `true`이다. v1.6처럼 어느 항목이 틀렸는지는 화면에 알리지 않는다. */
@@ -105,6 +106,7 @@ class SignupService(
             )
         )
         form.email?.let { address -> emails.findByEmailIgnoreCaseAndValid(address, false).forEach { emails.delete(it) } }
+        audit.record(dev.yona.domain.audit.auditUser("account.signup", user, mapOf("state" to user.state?.name)))
         if (usesEmailVerification()) {
             val verification = newVerification(user)
             events.publishEvent(UserVerificationRequestedEvent(user, verification))

@@ -39,7 +39,8 @@ sealed interface TokenEdit {
 class ApiTokenService(
     private val tokens: ApiTokenRepository,
     private val users: UserRepository,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -86,6 +87,7 @@ class ApiTokenService(
                 scopes = ApiScopes.format(scopes), isLegacy = false, createdDate = now, expiresDate = expiresDate
             )
         )
+        audit.record(tokenEvent("token.created", saved, mapOf("scopes" to ApiScopes.parse(saved.scopes).sorted(), "expires" to saved.expiresDate?.toInstant()?.toString())))
         return TokenCreation.Created(value, saved)
     }
 
@@ -104,9 +106,12 @@ class ApiTokenService(
         invalidName(trimmed)?.let { return TokenEdit.Rejected(it) }
         val allowed = ApiScopes.selectable(siteManager) + ApiScopes.parse(token.scopes)
         if (scopes.any { it !in allowed }) return TokenEdit.Rejected("apiToken.error.scope")
+        val before = mapOf("name" to token.name, "scopes" to ApiScopes.parse(token.scopes).sorted())
         token.name = trimmed
         token.scopes = ApiScopes.format(scopes)
-        return TokenEdit.Done(tokens.save(token))
+        val saved = tokens.save(token)
+        audit.record(tokenEvent("token.updated", saved, mapOf("name" to mapOf("from" to before["name"], "to" to saved.name), "scopes" to mapOf("from" to before["scopes"], "to" to ApiScopes.parse(saved.scopes).sorted()))))
+        return TokenEdit.Done(saved)
     }
 
     /**
@@ -123,8 +128,14 @@ class ApiTokenService(
         token.isLegacy = false
         token.expiresDate = expiresDate
         token.lastUsedDate = null
-        return TokenCreation.Created(value, tokens.save(token))
+        val saved = tokens.save(token)
+        audit.record(tokenEvent("token.regenerated", saved, mapOf("expires" to saved.expiresDate?.toInstant()?.toString())))
+        return TokenCreation.Created(value, saved)
     }
+
+    /** 토큰 이벤트이다. 토큰 값과 해시는 넣지 않고 이름, 번호, 범위만 남긴다. */
+    private fun tokenEvent(action: String, token: ApiToken, details: Map<String, Any?>) =
+        dev.yona.domain.audit.AuditEvent(action, targetType = "token", targetId = token.id?.toString(), targetLabel = token.name, details = details)
 
     private fun invalidName(trimmed: String): String? = if (trimmed.isEmpty() || trimmed.length > NAME_MAX) "apiToken.error.name" else null
 
@@ -162,6 +173,7 @@ class ApiTokenService(
         val token = tokens.findById(id).orElse(null) ?: return false
         if (token.user?.id != user.id) return false
         tokens.delete(token)
+        audit.record(tokenEvent("token.deleted", token, mapOf("scopes" to ApiScopes.parse(token.scopes).sorted())))
         return true
     }
 

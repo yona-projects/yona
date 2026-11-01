@@ -42,3 +42,19 @@ A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 
 
 - **교착 방지**: 같은 요청의 상태 변경 기록(`record`)이 사슬의 끝을 이미 잠갔으면 경계 이벤트가 별도 트랜잭션으로 바로 쓰다 서로 기다린다. 그때는 바깥 트랜잭션이 끝난 뒤(`afterCompletion`)에 새 트랜잭션으로 남긴다. 바깥이 롤백해도 남는다.
 - 시험: `AuditBoundaryTest` 14건, `AuditRecorderTest` 22건.
+
+## A4 계정과 토큰 (구현)
+
+변경과 같은 트랜잭션에서 `record`로 남긴다(fail-closed). 거부된 요청과 바뀐 것이 없는 저장은 남기지 않는다. 비밀 값(새 비밀번호, 해시, 토큰 값, 재설정 링크 값, 기기 코드)은 어떤 필드에도 없다.
+
+| 조치 | 언제 | 상세 |
+|---|---|---|
+| `account.signup` | 가입 | 상태(`state`) |
+| `account.password_changed` | 설정에서 변경, 메일 링크로 재설정, 관리자 재설정 | `via`: `settings`, `reset_token`, `admin_reset` |
+| `account.password_reset_requested` | 비밀번호 분실 요청(맞으면 성공, 틀린 조합은 실패 `invalid_request`) | 시도한 로그인 ID만, 이메일은 남기지 않음 |
+| `account.profile_changed` | 이름이나 이메일이 바뀜 | 바뀐 항목의 전후(`name`, `email`) |
+| `account.email_added`, `email_confirmed`, `email_deleted`, `email_main_changed` | 보조 이메일 관리 | 이메일(대상 이름), 대표 변경은 전후 |
+| `token.created`, `token.updated`, `token.regenerated`, `token.deleted` | API 토큰 | 이름, 범위, 만료. 기기 인증이 만든 토큰도 `token.created`로 남음 |
+| `token.device_approved`, `token.device_denied` | 기기 인증 승인과 거절 | 기기 이름(대상), 범위 |
+
+시험: `AuditAccountTest` 14건.

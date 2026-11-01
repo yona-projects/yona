@@ -1,5 +1,6 @@
 package dev.yona.domain.user
 
+import dev.yona.domain.audit.AuditEvent
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.misc.AttachmentService
@@ -26,7 +27,8 @@ class AccountService(
     private val attachments: AttachmentService,
     private val recentProjects: RecentProjectRepository,
     private val signup: SignupService,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val random = SecureRandom()
@@ -44,6 +46,7 @@ class AccountService(
         if (email.isNullOrEmpty() || !SignupService.isValidEmailFormat(email)) return "user.wrongEmail.alert"
         if (user.email != email && signup.isEmailExist(email)) return "user.email.duplicate"
 
+        val before = mapOf("name" to user.name, "email" to user.email)
         user.email = email
         user.name = HtmlSanitizer.defaultSanitize(HtmlSanitizer.defaultSanitize(name))
 
@@ -57,6 +60,11 @@ class AccountService(
 
         emails.findByEmailIgnoreCaseAndValid(email, false).forEach { emails.delete(it) }
         users.save(user)
+        // 바뀐 것만 남긴다(이름과 이메일의 전후). 바뀐 것이 없으면 남기지 않는다
+        val changes = linkedMapOf<String, Any?>()
+        if (before["name"] != user.name) changes["name"] = mapOf("from" to before["name"], "to" to user.name)
+        if (before["email"] != user.email) changes["email"] = mapOf("from" to before["email"], "to" to user.email)
+        if (changes.isNotEmpty()) audit.record(dev.yona.domain.audit.auditUser("account.profile_changed", user, changes))
         return null
     }
 
@@ -67,10 +75,11 @@ class AccountService(
     fun isValidPassword(user: User, password: String): Boolean =
         user.password == LegacyPasswordHasher.hash(password, requireNotNull(user.passwordSalt))
 
-    /** 비밀번호를 바꾼다. 소금은 그대로 쓴다. */
+    /** 비밀번호를 바꾼다. 소금은 그대로 쓴다. 감사 로그에는 바꾼 일만 남기고 값과 해시는 남기지 않는다. */
     fun resetPassword(user: User, newPassword: String) {
         user.password = LegacyPasswordHasher.hash(newPassword, requireNotNull(user.passwordSalt))
         users.save(user)
+        audit.record(dev.yona.domain.audit.auditUser("account.password_changed", user, mapOf("via" to "settings")))
     }
 
     // --- 방문 기록 ---
@@ -96,12 +105,14 @@ class AccountService(
         val mine = emails.findByUserIdOrderById(requireNotNull(user.id)).any { it.email == address }
         if (signup.isEmailExist(address) || mine) return "user.email.duplicate"
         emails.save(Email(user = user, email = address, valid = false))
+        audit.record(dev.yona.domain.audit.auditUser("account.email_added", user).copy(targetLabel = address))
         return null
     }
 
     /** 보조 이메일을 지운다. */
     fun deleteEmail(email: Email) {
         emails.delete(email)
+        audit.record(AuditEvent("account.email_deleted", targetType = "user", targetId = email.user?.id?.toString(), targetLabel = email.email))
     }
 
     /** 확인용 숫자 50자 토큰을 만들어 저장하고 확인 메일 요청을 알린다. */
@@ -118,6 +129,7 @@ class AccountService(
         emails.save(email)
         emails.flush()
         emails.findByEmailIgnoreCaseAndValid(requireNotNull(email.email), false).forEach { emails.delete(it) }
+        audit.record(AuditEvent("account.email_confirmed", targetType = "user", targetId = email.user?.id?.toString(), targetLabel = email.email))
         return true
     }
 
@@ -129,6 +141,7 @@ class AccountService(
         emails.flush()
         users.save(user)
         emails.save(Email(user = user, email = oldMain, valid = true))
+        audit.record(dev.yona.domain.audit.auditUser("account.email_main_changed", user, mapOf("from" to oldMain, "to" to user.email)))
     }
 
     private companion object {

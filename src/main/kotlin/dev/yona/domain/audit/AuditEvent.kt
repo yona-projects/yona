@@ -22,3 +22,7 @@ data class AuditEvent(
 
 /** 감사 기록의 행위자이다. [tokenId]와 [tokenScopes]는 개인용 API 토큰으로 한 일일 때만 있다. */
 data class AuditActor(val type: AuditActorType, val id: Long?, val login: String?, val tokenId: Long? = null, val tokenScopes: String? = null)
+
+/** 사용자를 대상으로 하는 이벤트를 만든다. 대상 식별자는 번호, 이름은 로그인 ID이다. */
+fun auditUser(action: String, user: dev.yona.domain.user.User, details: Map<String, Any?> = emptyMap(), outcome: AuditOutcome = AuditOutcome.SUCCESS) =
+    AuditEvent(action, outcome, targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId, details = details)
