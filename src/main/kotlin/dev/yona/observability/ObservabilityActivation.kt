@@ -13,6 +13,7 @@ import org.springframework.core.env.MapPropertySource
  * - 세 신호의 내보내기 켜기. 주소는 주면서 로그만 보내지 않으려면 `management.logging.export.otlp.enabled=false`를 정한다.
  * - 신호별 주소: 주소 뒤에 `/v1/metrics`, `/v1/traces`, `/v1/logs`를 붙인다(Spring Boot의 지표 내보내기는 주소를 따로 받아야 한다).
  * - `OTEL_EXPORTER_OTLP_HEADERS`(`이름=값,이름=값`)가 있으면 세 신호의 헤더로 옮긴다(Grafana Cloud처럼 인증이 필요한 수집기).
+ * - 빌드 정보의 버전을 리소스 속성 `service.version`으로 넣는다(주소가 없어도 같다).
  * - 로그를 내보내면 프로파일 `otlp-logs`를 켠다. 그래야 `logback-spring.xml`이 로그 연결(appender)을 붙인다.
  */
 class ObservabilityActivation : EnvironmentPostProcessor {
@@ -20,12 +21,14 @@ class ObservabilityActivation : EnvironmentPostProcessor {
     override fun postProcessEnvironment(environment: ConfigurableEnvironment, application: SpringApplication) {
         if (environment.propertySources.contains(SOURCE_NAME)) return
         val endpoint = ENDPOINT_KEYS.firstNotNullOfOrNull { environment.getProperty(it)?.trim()?.takeIf { value -> value.isNotEmpty() } }?.trimEnd('/')
+        val defaults = linkedMapOf<String, Any>()
+        buildVersion()?.let { defaults[VERSION_KEY] = it }
         if (endpoint == null) {
             // 수집기가 없으면 Spring Boot의 기본값(켜짐, localhost:4318로 보냄)을 쓰지 않도록 세 신호를 모두 끈다
-            environment.propertySources.addLast(MapPropertySource(SOURCE_NAME, ENABLE_KEYS.associateWith { "false" }))
+            ENABLE_KEYS.forEach { defaults[it] = "false" }
+            environment.propertySources.addLast(MapPropertySource(SOURCE_NAME, defaults))
             return
         }
-        val defaults = linkedMapOf<String, Any>()
         ENABLE_KEYS.forEach { defaults[it] = "true" }
         defaults[METRICS_URL] = "$endpoint/v1/metrics"
         defaults[TRACES_ENDPOINT] = "$endpoint/v1/traces"
@@ -35,6 +38,15 @@ class ObservabilityActivation : EnvironmentPostProcessor {
         environment.propertySources.addLast(MapPropertySource(SOURCE_NAME, defaults))
         // 사용자가 로그 내보내기를 직접 껐으면 로그 연결도 붙이지 않는다(기본값으로 더한 값은 낮은 우선순위라 위에서 읽은 값이 직접 정한 값이다)
         if (environment.getProperty(LOGS_ENABLED) == "true") environment.addActiveProfile(LOG_PROFILE)
+    }
+
+    /** 빌드 정보(`META-INF/build-info.properties`, `bootBuildInfo`)의 버전이다. 추적과 지표의 리소스 속성 `service.version`이 된다. */
+    private fun buildVersion(): String? = try {
+        org.springframework.core.io.ClassPathResource("META-INF/build-info.properties").takeIf { it.exists() }?.inputStream?.use {
+            java.util.Properties().apply { load(it) }.getProperty("build.version")?.takeIf { v -> v.isNotBlank() }
+        }
+    } catch (e: java.io.IOException) {
+        null
     }
 
     private fun parseHeaders(text: String): Map<String, String> = text.split(',').mapNotNull { part ->
@@ -48,6 +60,7 @@ class ObservabilityActivation : EnvironmentPostProcessor {
 
         /** 로그 연결(appender)을 `logback-spring.xml`에 붙이는 프로파일이다. */
         const val LOG_PROFILE = "otlp-logs"
+        private const val VERSION_KEY = "management.opentelemetry.resource-attributes.service.version"
         private const val METRICS_ENABLED = "management.otlp.metrics.export.enabled"
         private const val TRACES_ENABLED = "management.tracing.export.otlp.enabled"
         private const val LOGS_ENABLED = "management.logging.export.otlp.enabled"

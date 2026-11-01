@@ -96,4 +96,25 @@ class ObservabilityActivationTest {
         apply(none)
         assertEquals(false, none.activeProfiles.contains("otlp-logs"))
     }
+
+    // --- 리소스 속성 ---
+
+    @Test
+    fun `빌드 정보의 버전을 service version 리소스 속성으로 넣는다`() {
+        val withEndpoint = MockEnvironment().withProperty("OTEL_EXPORTER_OTLP_ENDPOINT", "http://alloy:4318")
+        apply(withEndpoint)
+        val version = withEndpoint.getProperty("management.opentelemetry.resource-attributes.service.version")
+        assertEquals(true, !version.isNullOrBlank(), "빌드 정보의 버전이 없다")
+        // 주소가 없어도 같은 값이다(리소스 속성은 내보낼 때만 쓰인다)
+        val without = MockEnvironment()
+        apply(without)
+        assertEquals(version, without.getProperty("management.opentelemetry.resource-attributes.service.version"))
+    }
+
+    @Test
+    fun `직접 정한 service version이 우선한다`() {
+        val env = MockEnvironment().withProperty("OTEL_EXPORTER_OTLP_ENDPOINT", "http://alloy:4318").withProperty("management.opentelemetry.resource-attributes.service.version", "9.9.9")
+        apply(env)
+        assertEquals("9.9.9", env.getProperty("management.opentelemetry.resource-attributes.service.version"))
+    }
 }

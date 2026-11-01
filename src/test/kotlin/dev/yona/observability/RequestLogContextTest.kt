@@ -107,4 +107,51 @@ class RequestLogContextTest {
         run(UserLogContextFilter(enabled = false)) { seen = MDC.get("user_id") }
         assertNull(seen)
     }
+
+    // --- 추적 속성 ---
+
+    /** 끝난 span의 속성을 모으는 간이 수집기로 추적 SDK를 만든다(외부 시험 의존성 없이). */
+    private class Collector : io.opentelemetry.sdk.trace.SpanProcessor {
+        val ended = java.util.concurrent.CopyOnWriteArrayList<io.opentelemetry.sdk.trace.data.SpanData>()
+        override fun onStart(parentContext: io.opentelemetry.context.Context, span: io.opentelemetry.sdk.trace.ReadWriteSpan) {}
+        override fun isStartRequired() = false
+        override fun onEnd(span: io.opentelemetry.sdk.trace.ReadableSpan) { ended += span.toSpanData() }
+        override fun isEndRequired() = true
+    }
+
+    private fun <T> withSpan(block: (Collector) -> T): Collector {
+        val collector = Collector()
+        val provider = io.opentelemetry.sdk.trace.SdkTracerProvider.builder().addSpanProcessor(collector).build()
+        val span = provider.get("test").spanBuilder("server").startSpan()
+        span.makeCurrent().use { block(collector) }
+        span.end()
+        return collector
+    }
+
+    @Test
+    fun `요청 번호를 현재 추적 span의 속성으로도 넣는다`() {
+        val request = MockHttpServletRequest("GET", "/x").apply { addHeader("X-Request-Id", "trace-req-1") }
+        val collector = withSpan { run(RequestIdFilter(), request) }
+        assertEquals("trace-req-1", collector.ended.single().attributes.get(io.opentelemetry.api.common.AttributeKey.stringKey("request_id")))
+    }
+
+    @Test
+    fun `사용자 번호를 현재 추적 span의 속성으로도 넣는다`() {
+        login(42)
+        val collector = withSpan { run(UserLogContextFilter(enabled = true)) }
+        assertEquals("42", collector.ended.single().attributes.get(io.opentelemetry.api.common.AttributeKey.stringKey("user_id")))
+    }
+
+    @Test
+    fun `설정을 끄면 사용자 번호를 span에도 넣지 않는다`() {
+        login(42)
+        val collector = withSpan { run(UserLogContextFilter(enabled = false)) }
+        assertNull(collector.ended.single().attributes.get(io.opentelemetry.api.common.AttributeKey.stringKey("user_id")))
+    }
+
+    @Test
+    fun `추적이 없어도 문제없이 동작한다`() {
+        login(42)
+        run(RequestIdFilter()); run(UserLogContextFilter(enabled = true))
+    }
 }

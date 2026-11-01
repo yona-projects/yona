@@ -9,7 +9,7 @@
 | C1 | 의존성(`starter-actuator`, `starter-opentelemetry`), 기본 꺼짐, 주소 설정 시 켜기 | 완료 |
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
-| C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙 | 진행 중(내보내기 완료) |
+| C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙, 감사 `request_id` 연결 | 완료 |
 | C5 | VCS, 협업, 백그라운드 도메인 지표와 readiness 조건 | 대기 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
@@ -42,4 +42,11 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 - **추적 번호**: 추적이 켜져 있으면 Micrometer가 `traceId`, `spanId`를 MDC에 넣는다(확인함).
 - **JSON 콘솔 로그**: 프로파일 `json-log`(`SPRING_PROFILES_ACTIVE=json-log`)를 켜면 콘솔이 ECS 형식 JSON 한 줄이 된다. 컨테이너에서 Alloy가 stdout을 읽어 Loki로 보내는 용도이다. 파일 로그(`access.log` 등)는 v1.6 형식 그대로이고 프로파일이 꺼져 있으면 콘솔도 기존 텍스트이다. `logging.structured.format.console`은 이 프로젝트의 사용자 정의 `logback-spring.xml`에서는 적용되지 않아 프로파일로 구현했다(A-320 14).
 - **확인**: 실제 서버를 `json-log`로 띄우고 `X-Request-Id: probe-123`으로 요청해 접근 로그 줄에 `request_id`와 `traceId`, `spanId`, `service.version`이 JSON으로 담김을 확인했다.
+
+## 카디널리티, 비밀값, 연결 (C4)
+
+- **지표 이름의 `uri` 태그**는 요청 경로가 아니라 라우트 템플릿이다(`/{user}/{project}/issues`, `/{ownerName}/{project}/info/refs`, `/-_-api/v1/owners/{owner}/projects/{projectName}`). 모르는 경로(스캐너, 404)는 `/**` 하나로 모인다. 사용자와 프로젝트 이름이 태그 값이 되지 않고, 요청 수가 늘어도 태그 종류가 늘지 않음을 시험(`ObservabilityMetricsTest`)으로 고정했다.
+- **비밀값**: 요청 쿼리(`?token=...`), `Authorization`, `Cookie` 헤더의 값은 추적, 지표, 로그 어느 신호로도 나가지 않는다. 모의 수집기가 받은 본문 전체를 검사하는 시험(`OtlpExportTest`)으로 고정했다(경로는 남고 위 값만 없음을 함께 확인). JDBC 계측은 켜지 않아 SQL 바인딩 값도 없다.
+- **추적 속성**: 서버 span에 `request_id`(필터가 정한 값), 로그인했으면 `user_id`(번호만)가 로그 MDC와 같은 키로 들어간다. Grafana에서 Loki 로그와 Tempo 추적을 같은 키로 찾는다. 감사 기록의 `request_id`도 같은 값이다.
+- **리소스 속성**: `service.name=yona`(애플리케이션 이름), `service.version`(빌드 정보), 그 밖에는 `OTEL_RESOURCE_ATTRIBUTES`(예: `deployment.environment=prod`)나 `management.opentelemetry.resource-attributes.*`로 정한다.
 

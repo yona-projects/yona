@@ -4,12 +4,27 @@ import dev.yona.security.YonaAuthentication
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import io.opentelemetry.api.trace.Span
 import org.slf4j.MDC
 import org.springframework.core.Ordered
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.UUID
+
+/**
+ * 로그 문맥(MDC)과 현재 추적 span의 속성에 같은 이름과 값을 넣는다. 추적이 꺼져 있으면 span이 없어(유효하지 않은 span) 속성은 무시된다.
+ * Grafana에서 로그(`request_id`)와 추적을 같은 키로 찾기 위한 것이다.
+ */
+internal object LogContext {
+
+    fun put(key: String, value: String) {
+        MDC.put(key, value)
+        Span.current().setAttribute(key, value)
+    }
+
+    fun remove(key: String) = MDC.remove(key)
+}
 
 /** 요청 번호의 이름과 규칙이다. 로그의 MDC 키, 요청 속성, 감사 기록(`audit_log.request_id`)이 같은 값을 쓴다. */
 object RequestIds {
@@ -43,11 +58,11 @@ class RequestIdFilter : OncePerRequestFilter(), Ordered {
     override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE + 10
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        MDC.put(RequestIds.MDC_KEY, RequestIds.of(request))
+        LogContext.put(RequestIds.MDC_KEY, RequestIds.of(request))
         try {
             chain.doFilter(request, response)
         } finally {
-            MDC.remove(RequestIds.MDC_KEY)
+            LogContext.remove(RequestIds.MDC_KEY)
         }
     }
 }
@@ -64,11 +79,11 @@ class UserLogContextFilter(private val enabled: Boolean) : OncePerRequestFilter(
             chain.doFilter(request, response)
             return
         }
-        MDC.put(USER_KEY, userId.toString())
+        LogContext.put(USER_KEY, userId.toString())
         try {
             chain.doFilter(request, response)
         } finally {
-            MDC.remove(USER_KEY)
+            LogContext.remove(USER_KEY)
         }
     }
 
