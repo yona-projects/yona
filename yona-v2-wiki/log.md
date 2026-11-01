@@ -860,3 +860,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] 위키 이름 바꾸기를 따라가는 이력(D-61 2단계)
 `WikiService.history`, `diff`, `compare`가 이름 바꾸기를 따라간다(`FollowFilter`와 `RenameCallback`). 시험 6건을 먼저 더했고 결정 A-314에 반복자의 미리 읽기를 기록했다.
+
+## [2026-11-01] 위키 `[[Page]]` 링크(D-61 3단계)
+`WikiLinks`(`expand`, `rewriteHtml`)를 시험 먼저 만들고 본문, 사이드바, 푸터 렌더링에 연결했다. 시험 `WikiLinksTest` 14건, `WikiViewTest` 3건. 상대 링크가 위키 첫 화면에서 깨지던 문제도 함께 고쳤다.

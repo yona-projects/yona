@@ -8,6 +8,7 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.wiki.WikiConflictException
 import dev.yona.domain.wiki.WikiException
+import dev.yona.domain.wiki.WikiLinks
 import dev.yona.domain.wiki.WikiPageExistsException
 import dev.yona.domain.wiki.WikiPageNotFoundException
 import dev.yona.domain.wiki.WikiService
@@ -228,9 +229,10 @@ class WikiViewController(
     /** 쓸 수 없으면 돌려줄 403 화면이다. 쓸 수 있으면 `null`이다. */
     private fun deny(project: Project): ModelAndView? = if (canWrite(project)) null else ErrorViews.forbidden("error.forbidden", views.of(project))
 
-    /** 모든 위키 화면의 공통 모델이다: 프로젝트 화면 정보, 사이드바 목록, 사이드바와 푸터 페이지. */
-    private fun shell(project: Project, template: String, title: String, activeName: String?): ModelAndView {
+    /** 모든 위키 화면의 공통 모델이다: 프로젝트 화면 정보, 사이드바 목록, 사이드바와 푸터 페이지. [pageList]는 이미 읽어 둔 페이지 목록이다. */
+    private fun shell(project: Project, template: String, title: String, activeName: String?, pageList: List<dev.yona.domain.wiki.WikiPageSummary> = wikiService.pages(project)): ModelAndView {
         val base = wikiBase(project)
+        val names = pageList.map { it.name }.toSet()
         return ModelAndView(template)
             .addObject("title", title)
             .addObject("projectView", views.of(project))
@@ -238,18 +240,25 @@ class WikiViewController(
             .addObject("canWrite", canWrite(project))
             .addObject("activeName", activeName)
             .addObject("cloneUrl", repositoryUrls.wikiUrlFor(project, currentRequest(), currentUserProvider.get().user?.loginId))
-            .addObject("pages", wikiService.pages(project).map { WikiPageLink(it.name, it.title, pageUrl(base, it.name), it.name == activeName) })
-            .addObject("sidebarHtml", wikiService.sidebar(project)?.let { markdown.render(it, project) })
-            .addObject("footerHtml", wikiService.footer(project)?.let { markdown.render(it, project) })
+            .addObject("pages", pageList.map { WikiPageLink(it.name, it.title, pageUrl(base, it.name), it.name == activeName) })
+            .addObject("sidebarHtml", wikiService.sidebar(project)?.let { render(project, it, names) })
+            .addObject("footerHtml", wikiService.footer(project)?.let { render(project, it, names) })
+    }
+
+    /** 위키 마크다운을 HTML로 만든다: 위키 링크(`[[Page]]`)를 풀고 렌더링한 뒤 상대 링크를 위키 주소로 바꾼다(D-61). */
+    private fun render(project: Project, text: String, names: Set<String>): String {
+        val base = wikiBase(project)
+        return WikiLinks.rewriteHtml(markdown.render(WikiLinks.expand(text, base) { it in names }, project), base)
     }
 
     private fun pageView(project: Project, page: dev.yona.domain.wiki.WikiPage): ModelAndView {
         val base = wikiBase(project)
         val last = page.lastCommit
-        return shell(project, "wiki/view", page.title, page.name)
+        val list = wikiService.pages(project)
+        return shell(project, "wiki/view", page.title, page.name, list)
             .addObject("pageTitle", page.title)
             .addObject("pageUrl", pageUrl(base, page.name))
-            .addObject("bodyHtml", markdown.render(page.content, project))
+            .addObject("bodyHtml", render(project, page.content, list.map { it.name }.toSet()))
             .addObject("lastAuthor", last?.authorName)
             .addObject("lastDate", last?.let { helper.agoOrDateString(it.authorDate) })
     }

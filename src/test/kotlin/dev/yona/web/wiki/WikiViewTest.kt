@@ -251,6 +251,39 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertEquals(listOf("B"), doc(getPage(writer, "${base(p)}/B")).select(".wiki-pages-list a").map { it.text() })
     }
 
+    // --- 위키 링크 (D-61) ---
+
+    @Test
+    fun `대괄호 두 겹 링크는 페이지 링크가 되고 없는 페이지는 만들기로 간다`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Install Guide", "설치")
+        create(writer, p, "Home", "보기 [[Install Guide]] 와 [[글자|Install Guide]] 와 [[Missing Page]] 와 `[[코드]]`")
+        val body = doc(getPage(writer, "${base(p)}/Home")).selectFirst(".wiki-body")!!
+        assertEquals(listOf("${base(p)}/Install-Guide", "${base(p)}/Install-Guide", "${base(p)}/_new?title=Missing%20Page"), body.select("a").map { it.attr("href") })
+        assertEquals(listOf("Install Guide", "글자", "Missing Page"), body.select("a").map { it.text() })
+        assertTrue(body.selectFirst("code")!!.text().contains("[[코드]]"))
+    }
+
+    @Test
+    fun `위키 첫 화면의 상대 링크도 위키 페이지로 간다`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Install Guide", "설치")
+        create(writer, p, "Home", "[설치 방법](Install-Guide) [FAQ](FAQ#top) [밖](https://example.com/x)")
+        val hrefs = doc(getPage(writer, base(p)).andExpect(status().isOk)).select(".wiki-body a").map { it.attr("href") }
+        assertEquals(listOf("${base(p)}/Install-Guide", "${base(p)}/FAQ#top", "https://example.com/x"), hrefs)
+    }
+
+    @Test
+    fun `사이드바와 푸터의 위키 링크도 바뀐다`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Home", "x")
+        create(writer, p, "_Sidebar", "[[Home]] [안내](Guide)")
+        create(writer, p, "_Footer", "[[Home]]")
+        val page = doc(getPage(writer, "${base(p)}/Home"))
+        assertEquals(listOf("${base(p)}/Home", "${base(p)}/Guide"), page.select(".wiki-custom-sidebar a").map { it.attr("href") })
+        assertEquals("${base(p)}/Home", page.selectFirst(".wiki-custom-footer a")?.attr("href"))
+    }
+
     // --- 복제 주소 ---
 
     @Test
