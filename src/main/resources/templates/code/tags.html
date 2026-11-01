@@ -38,8 +38,8 @@
                                 <span th:if="${t.commitUrl == null}" class="tag-name" th:text="${t.shortName}"></span>
                                 <strong th:if="${t.annotated}" class="branch-label tag tag-type annotated ml10" th:text="#{code.tags.annotated}"></strong>
                                 <strong th:unless="${t.annotated}" class="branch-label tag tag-type lightweight ml10" th:text="#{code.tags.lightweight}"></strong>
-                                <div th:if="${t.shortMessage != null}" class="tag-message disabled" th:title="${t.message}" th:text="${t.shortMessage}"></div>
                                 <th:block th:replace="~{code/partial-signature :: badge(${t.signature})}"></th:block>
+                                <div th:if="${t.shortMessage != null}" class="tag-message disabled" th:title="${t.message}" th:text="${t.shortMessage}"></div>
                                 <div th:if="${t.tagger != null}" class="tagger disabled" th:text="${t.tagger}"></div>
                             </td>
                             <td class="commit">
