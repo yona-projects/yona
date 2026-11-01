@@ -23,8 +23,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
@@ -282,6 +286,76 @@ class WikiViewTest : AbstractIntegrationTest() {
         val page = doc(getPage(writer, "${base(p)}/Home"))
         assertEquals(listOf("${base(p)}/Home", "${base(p)}/Guide"), page.select(".wiki-custom-sidebar a").map { it.attr("href") })
         assertEquals("${base(p)}/Home", page.selectFirst(".wiki-custom-footer a")?.attr("href"))
+    }
+
+    // --- 첨부 파일 (D-61) ---
+
+    private val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0xFF.toByte())
+
+    private fun upload(session: MockHttpSession, p: Project, name: String, bytes: ByteArray = png, type: String = "image/png") =
+        mockMvc.perform(multipart("${base(p)}/_upload").file(MockMultipartFile("file", name, type, bytes)).session(session))
+
+    @Test
+    fun `구성원이 이미지를 올리면 마크다운 조각과 주소를 돌려받는다`() {
+        val p = project(); val writer = member(p)
+        upload(writer, p, "photo.png").andExpect(status().isCreated)
+            .andExpect(jsonPath("$.name").value("photo.png")).andExpect(jsonPath("$.path").value("uploads/photo.png"))
+            .andExpect(jsonPath("$.markdown").value("![photo.png](uploads/photo.png)")).andExpect(jsonPath("$.url").value("${base(p)}/_uploads/photo.png"))
+    }
+
+    @Test
+    fun `이미지가 아닌 파일은 링크 조각이고 공백과 괄호는 인코딩한다`() {
+        val p = project(); val writer = member(p)
+        upload(writer, p, "설명서 (최종).pdf", "x".toByteArray(), "application/pdf").andExpect(status().isCreated)
+            .andExpect(jsonPath("$.markdown").value("[설명서 (최종).pdf](uploads/설명서%20%28최종%29.pdf)"))
+    }
+
+    @Test
+    fun `구성원이 아니면 올릴 수 없고 파일이 없으면 400이다`() {
+        val p = project(); val writer = member(p)
+        upload(outsider(), p, "photo.png").andExpect(status().isForbidden)
+        mockMvc.perform(multipart("${base(p)}/_upload").session(writer)).andExpect(status().isBadRequest)
+        upload(writer, p, "..").andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `올린 이미지는 누구나 내려받고 이미지는 화면에 보인다`() {
+        val p = project(); val writer = member(p)
+        upload(writer, p, "photo.png")
+        val result = getPage(outsider(), "${base(p)}/_uploads/photo.png").andExpect(status().isOk).andExpect(header().string("Content-Type", "image/png")).andReturn()
+        assertTrue(png.contentEquals(result.response.contentAsByteArray))
+        assertTrue(result.response.getHeader("Content-Disposition")!!.startsWith("inline"))
+        assertEquals("nosniff", result.response.getHeader("X-Content-Type-Options"))
+        create(writer, p, "Home", "![사진](uploads/photo.png) [[photo.png]]")
+        val images = doc(getPage(writer, "${base(p)}/Home")).select(".wiki-body img").map { it.attr("src") }
+        assertEquals(listOf("${base(p)}/_uploads/photo.png", "${base(p)}/_uploads/photo.png"), images)
+    }
+
+    @Test
+    fun `이미지가 아니거나 svg이면 내려받기로만 준다`() {
+        val p = project(); val writer = member(p)
+        upload(writer, p, "doc.pdf", "x".toByteArray(), "application/pdf"); upload(writer, p, "pic.svg", "<svg/>".toByteArray(), "image/svg+xml")
+        for (name in listOf("doc.pdf", "pic.svg")) {
+            assertTrue(getPage(writer, "${base(p)}/_uploads/$name").andExpect(status().isOk).andReturn().response.getHeader("Content-Disposition")!!.startsWith("attachment"), name)
+        }
+    }
+
+    @Test
+    fun `없는 첨부 파일은 404이고 비공개 프로젝트는 구성원만 내려받는다`() {
+        val p = project(ProjectScope.PRIVATE); val writer = member(p)
+        getPage(writer, "${base(p)}/_uploads/none.png").andExpect(status().isNotFound)
+        upload(writer, p, "photo.png")
+        getPage(writer, "${base(p)}/_uploads/photo.png").andExpect(status().isOk)
+        assertFalse(getPage(outsider(), "${base(p)}/_uploads/photo.png").andReturn().response.status == 200)
+    }
+
+    @Test
+    fun `편집 화면에 파일 첨부 입력이 있다`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Home", "x")
+        for (path in listOf("${base(p)}/_new", "${base(p)}/Home/_edit")) {
+            assertEquals("${base(p)}/_upload", doc(getPage(writer, path)).selectFirst("input.wiki-attach-input")?.attr("data-upload-url"), path)
+        }
     }
 
     // --- 복제 주소 ---

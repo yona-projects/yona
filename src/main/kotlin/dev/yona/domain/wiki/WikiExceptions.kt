@@ -17,3 +17,9 @@ class WikiUnavailableException(message: String) : WikiException(message)
 
 /** 저장하는 사이에 다른 커밋이 먼저 들어와 반영하지 못했다. 409에 해당한다. */
 class WikiConflictException(message: String) : WikiException(message)
+
+/** 첨부 파일 이름을 쓸 수 없다(비어 있거나 `.`으로 시작하거나 너무 김). 400에 해당한다. */
+class WikiFileInvalidException(message: String) : WikiException(message)
+
+/** 첨부 파일이 크기 한도를 넘었다. 413에 해당한다. */
+class WikiFileTooLargeException(val limit: Long) : WikiException("첨부 파일은 ${limit}바이트를 넘을 수 없습니다.")

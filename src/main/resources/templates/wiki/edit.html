@@ -22,6 +22,12 @@
                     <div class="mb-3">
                         <th:block th:replace="~{common/editor :: editor('content', ${contentValue}, 'tabindex=2', 'content-body', false)}"></th:block>
                     </div>
+                    <div class="wiki-attach mb-3">
+                        <label class="form-label small mb-1" th:text="#{wiki.attach}">Attach a file</label>
+                        <input type="file" class="wiki-attach-input form-control form-control-sm" th:attr="data-upload-url=${uploadAction}">
+                        <div class="form-text" th:text="#{wiki.attach.help}">The file is saved in the uploads folder of the wiki and a link is inserted.</div>
+                        <div class="wiki-attach-error text-danger small d-none" th:attr="data-message=#{wiki.attach.failed}"></div>
+                    </div>
                     <div class="mb-3">
                         <input type="text" name="message" class="form-control" maxlength="250" tabindex="3" th:value="${messageValue}" th:placeholder="#{wiki.page.message}">
                     </div>
@@ -41,6 +47,30 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    (function () {
+        var input = document.querySelector(".wiki-attach-input");
+        if (!input) return;
+        var error = document.querySelector(".wiki-attach-error");
+        input.addEventListener("change", function () {
+            if (!input.files.length) return;
+            var data = new FormData();
+            data.append("file", input.files[0]);
+            error.classList.add("d-none");
+            fetch(input.getAttribute("data-upload-url"), { method: "POST", body: data, credentials: "same-origin", headers: { "Accept": "application/json" } })
+                .then(function (response) { if (!response.ok) throw new Error(response.status); return response.json(); })
+                .then(function (file) {
+                    var box = document.querySelector("textarea[name=content]");
+                    var at = box.selectionStart == null ? box.value.length : box.selectionStart;
+                    box.value = box.value.slice(0, at) + file.markdown + box.value.slice(box.selectionEnd == null ? at : box.selectionEnd);
+                    box.selectionStart = box.selectionEnd = at + file.markdown.length;
+                    box.dispatchEvent(new Event("input", { bubbles: true }));
+                })
+                .catch(function () { error.textContent = error.getAttribute("data-message"); error.classList.remove("d-none"); })
+                .then(function () { input.value = ""; });
+        });
+    })();
+</script>
 <script type="text/javascript">
     document.querySelectorAll("form.wiki-delete-form[data-confirm]").forEach(function (f) {
         f.addEventListener("submit", function (e) { if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault(); });

@@ -21,12 +21,15 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import kotlin.test.assertTrue
 
 /**
  * 프로젝트 위키 REST(로드맵 X-17 W3, `decisions.md` D-60)를 검증한다: 목록과 검색, 한 건, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff와 비교.
@@ -211,6 +214,45 @@ class ExternalWikiApiTest : AbstractIntegrationTest() {
         json(post(api(project)), token, """{"title":"_Sidebar","content":"menu"}""").andExpect(status().isCreated)
         json(get(api(project)), token, null).andExpect(jsonPath("$.pages.length()").value(0))
         json(get(api(project, "pages/_Sidebar")), token, null).andExpect(jsonPath("$.page.content").value("menu"))
+    }
+
+    // --- 첨부 파일 (D-61) ---
+
+    private val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0xFF.toByte())
+
+    private fun uploadFile(project: Project, token: String?, name: String = "photo.png", bytes: ByteArray = png, message: String? = null) =
+        mockMvc.perform(multipart(api(project, "files")).file(MockMultipartFile("file", name, "image/png", bytes)).apply { message?.let { param("message", it) } }
+            .apply { token?.let { header("Authorization", "token $it") } })
+
+    @Test
+    fun `첨부 파일을 올리고 그대로 내려받는다`() {
+        val project = newProject(); val token = memberOf(project)
+        uploadFile(project, token).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.file.name").value("photo.png")).andExpect(jsonPath("$.file.path").value("uploads/photo.png"))
+            .andExpect(jsonPath("$.file.size").value(png.size)).andExpect(jsonPath("$.file.markdown").value("![photo.png](uploads/photo.png)"))
+        val bytes = mockMvc.perform(get(api(project, "files/photo.png")).header("Authorization", "token $token")).andExpect(status().isOk).andReturn().response.contentAsByteArray
+        assertTrue(png.contentEquals(bytes))
+        uploadFile(project, token).andExpect(status().isCreated).andExpect(jsonPath("$.file.name").value("photo-1.png"))
+    }
+
+    @Test
+    fun `첨부 파일의 오류와 권한`() {
+        val project = newProject(); val token = memberOf(project); val outsider = tokenOf(newUser())
+        uploadFile(project, outsider).andExpect(status().isForbidden)
+        uploadFile(project, null).andExpect(status().isUnauthorized)
+        uploadFile(project, token, name = "..").andExpect(status().isBadRequest)
+        mockMvc.perform(multipart(api(project, "files")).header("Authorization", "token $token")).andExpect(status().isBadRequest)
+        mockMvc.perform(get(api(project, "files/none.png")).header("Authorization", "token $token")).andExpect(status().isNotFound)
+        uploadFile(project, token)
+        mockMvc.perform(get(api(project, "files/photo.png")).header("Authorization", "token $outsider")).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `올린 첨부는 이력에서 업로드 커밋으로 남는다`() {
+        val project = newProject(); val token = memberOf(project)
+        json(post(api(project)), token, """{"title":"Home","content":"x"}""").andExpect(status().isCreated)
+        uploadFile(project, token, message = "그림 추가").andExpect(status().isCreated)
+        json(get(api(project, "pages/Home")), token, null).andExpect(status().isOk).andExpect(jsonPath("$.page.lastCommit.message").value("Create Home"))
     }
 
     // --- 권한과 범위 ---

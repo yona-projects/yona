@@ -333,6 +333,82 @@ class WikiServiceTest {
         assertEquals(listOf("Create A", "Delete A", "Create A"), service.history(project, "A", 0, 10).map { it.shortMessage })
     }
 
+    // --- 첨부 파일 (D-61) ---
+
+    private val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0xFF.toByte(), 0xFE.toByte())
+
+    @Test
+    fun `첨부 파일은 uploads 폴더에 커밋하고 그대로 읽는다`() {
+        val file = service.upload(project, bob, "photo.png", png, null)
+        assertEquals("photo.png", file.name)
+        assertEquals("uploads/photo.png", file.path)
+        assertTrue(png.contentEquals(service.file(project, "photo.png")!!.bytes))
+        assertEquals("Upload photo.png", wikis.open("alice", "demo").use { r -> Git(r).log().call().first().shortMessage })
+        assertEquals("Bob", wikis.open("alice", "demo").use { r -> Git(r).log().call().first().authorIdent.name })
+    }
+
+    @Test
+    fun `첨부 메시지를 줄 수 있다`() {
+        service.upload(project, bob, "a.txt", "x".toByteArray(), "그림 추가")
+        assertEquals("그림 추가", wikis.open("alice", "demo").use { r -> Git(r).log().call().first().shortMessage })
+    }
+
+    @Test
+    fun `같은 이름이 있으면 번호를 붙여 덮어쓰지 않는다`() {
+        service.upload(project, bob, "photo.png", png, null)
+        val second = service.upload(project, bob, "photo.png", byteArrayOf(1, 2, 3), null)
+        val third = service.upload(project, bob, "photo.png", byteArrayOf(4), null)
+        assertEquals("photo-1.png", second.name)
+        assertEquals("photo-2.png", third.name)
+        assertTrue(png.contentEquals(service.file(project, "photo.png")!!.bytes))
+        assertTrue(byteArrayOf(1, 2, 3).contentEquals(service.file(project, "photo-1.png")!!.bytes))
+    }
+
+    @Test
+    fun `파일 이름은 경로와 금지 문자를 정리한다`() {
+        assertEquals("evil.png", service.upload(project, bob, "../../evil.png", png, null).name)
+        assertEquals("b_c.txt", service.upload(project, bob, "a\\b:c.txt", png, null).name)
+        assertEquals("한글 사진.png", service.upload(project, bob, "한글 사진.png", png, null).name)
+    }
+
+    @Test
+    fun `쓸 수 없는 파일 이름은 거부한다`() {
+        for (name in listOf("", "   ", ".", "..", "/", ".hidden", "x".repeat(201))) {
+            assertFailsWith<WikiFileInvalidException>(name) { service.upload(project, bob, name, png, null) }
+        }
+        assertFalse(wikis.exists("alice", "demo"))
+    }
+
+    @Test
+    fun `크기 한도를 넘으면 거부한다`() {
+        val small = WikiService(wikis, { _, _ -> false }, { true }, 4)
+        small.upload(project, bob, "ok.bin", byteArrayOf(1, 2, 3, 4), null)
+        assertFailsWith<WikiFileTooLargeException> { small.upload(project, bob, "big.bin", byteArrayOf(1, 2, 3, 4, 5), null) }
+    }
+
+    @Test
+    fun `첨부는 페이지 목록에 나오지 않고 다른 페이지를 건드리지 않는다`() {
+        service.create(project, bob, "Home", "x", null)
+        service.upload(project, bob, "photo.png", png, null)
+        service.update(project, bob, "Home", null, "y", null)
+        assertEquals(listOf("Home"), service.pages(project).map { it.name })
+        assertTrue(png.contentEquals(service.file(project, "photo.png")!!.bytes))
+    }
+
+    @Test
+    fun `없는 파일이나 경로 이탈 이름은 null이다`() {
+        service.upload(project, bob, "photo.png", png, null)
+        assertNull(service.file(project, "none.png"))
+        for (name in listOf("../Home.md", "a/b.png", "uploads/photo.png", "", "..")) assertNull(service.file(project, name), name)
+    }
+
+    @Test
+    fun `위키를 쓸 수 없으면 올릴 수 없다`() {
+        clash = true
+        assertFailsWith<WikiUnavailableException> { service.upload(project, bob, "photo.png", png, null) }
+        assertNull(service.file(project, "photo.png"))
+    }
+
     // --- 사용할 수 없는 위키 ---
 
     @Test

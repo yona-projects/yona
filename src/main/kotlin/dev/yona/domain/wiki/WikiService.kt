@@ -1,5 +1,6 @@
 package dev.yona.domain.wiki
 
+import dev.yona.config.YonaProperties
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
@@ -53,15 +54,17 @@ data class WikiPage(val name: String, val title: String, val content: String, va
 class WikiService(
     private val wikis: WikiRepositories,
     private val clash: (owner: String, name: String) -> Boolean,
-    private val enabledIn: (Project) -> Boolean = { true }
+    private val enabledIn: (Project) -> Boolean = { true },
+    private val maxUploadBytes: Long = DEFAULT_MAX_UPLOAD
 ) {
 
     @Autowired
-    constructor(wikis: WikiRepositories, projects: ProjectRepository, menuSettings: ProjectMenuSettingRepository) :
+    constructor(wikis: WikiRepositories, projects: ProjectRepository, menuSettings: ProjectMenuSettingRepository, properties: YonaProperties) :
         this(
             wikis,
             { owner, name -> projects.findByOwnerIgnoreCaseAndNameIgnoreCase(owner, "$name.wiki") != null },
-            { project -> project.id?.let { menuSettings.findFirstByProjectId(it)?.wiki == true } == true }
+            { project -> project.id?.let { menuSettings.findFirstByProjectId(it)?.wiki == true } == true },
+            minOf(properties.maxFileSize, DEFAULT_MAX_UPLOAD)
         )
 
     /** 시험에서 커밋 직전에 다른 쓰기를 끼워 넣어 동시 수정 충돌을 재현하는 자리이다. */
@@ -134,7 +137,7 @@ class WikiService(
         val name = nameOf(title)
         write(project, actor, createIfMissing = true) { files ->
             if (files.has(name)) throw WikiPageExistsException(name)
-            Change(emptySet(), mapOf(name + EXTENSION to content), messageOrDefault(message, "Create $name"))
+            Change(emptySet(), mapOf(name + EXTENSION to content.toByteArray(Charsets.UTF_8)), messageOrDefault(message, "Create $name"))
         }
         return WikiPageSummary(name, titleOf(name))
     }
@@ -153,9 +156,9 @@ class WikiService(
             if (!files.has(oldName)) throw WikiPageNotFoundException("위키 페이지를 찾을 수 없습니다: $oldName")
             if (newName != oldName && files.has(newName)) throw WikiPageExistsException(newName)
             if (newName == oldName) {
-                Change(emptySet(), mapOf(newName + EXTENSION to content), messageOrDefault(message, "Update $newName"))
+                Change(emptySet(), mapOf(newName + EXTENSION to content.toByteArray(Charsets.UTF_8)), messageOrDefault(message, "Update $newName"))
             } else {
-                Change(setOf(oldName + EXTENSION), mapOf(newName + EXTENSION to content), messageOrDefault(message, "Rename $oldName to $newName"))
+                Change(setOf(oldName + EXTENSION), mapOf(newName + EXTENSION to content.toByteArray(Charsets.UTF_8)), messageOrDefault(message, "Rename $oldName to $newName"))
             }
         }
         return WikiPageSummary(newName, titleOf(newName))
@@ -206,6 +209,44 @@ class WikiService(
             val paths = followed(repo, name + EXTENSION).map { it.path }.distinct().ifEmpty { listOf(name + EXTENSION) }
             formatDiff(repo, a, b, paths)
         } ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $revA")
+    }
+
+    /** 첨부 파일 한 건이다. [path]는 위키 저장소 안의 경로(`uploads/<이름>`)이고 마크다운에는 이 경로를 적는다. */
+    class WikiAttachment(val name: String, val path: String, val size: Long)
+
+    /** 저장소에서 읽은 첨부 파일이다. */
+    class WikiFile(val name: String, val bytes: ByteArray)
+
+    /**
+     * 첨부 파일을 위키 저장소의 `uploads/<이름>`에 커밋 한 개로 올린다(D-61). 위키 저장소가 없으면 만든다. 이름은 경로와 금지 문자(`\ / : * ? " < > |`, 제어 문자)를 정리하고,
+     * 같은 이름이 있으면 `-1`, `-2`를 붙여 덮어쓰지 않는다. 기본 커밋 메시지는 `Upload <이름>`이다.
+     *
+     * @throws WikiFileInvalidException 정리한 이름이 비어 있거나 `.`으로 시작하거나 200자를 넘을 때
+     * @throws WikiFileTooLargeException 크기가 한도(설정과 25MB 중 작은 값)를 넘을 때
+     * @throws WikiUnavailableException 위키를 쓸 수 없을 때
+     */
+    fun upload(project: Project, actor: User, fileName: String, bytes: ByteArray, message: String?): WikiAttachment {
+        if (bytes.size > maxUploadBytes) throw WikiFileTooLargeException(maxUploadBytes)
+        val name = fileNameOf(fileName)
+        var chosen = name
+        write(project, actor, createIfMissing = true) { files ->
+            var n = 0
+            while (files.hasPath("$UPLOADS/$chosen")) chosen = numbered(name, ++n)
+            Change(emptySet(), mapOf("$UPLOADS/$chosen" to bytes), messageOrDefault(message, "Upload $chosen"))
+        }
+        return WikiAttachment(chosen, "$UPLOADS/$chosen", bytes.size.toLong())
+    }
+
+    /** `uploads/<이름>`의 첨부 파일이다. 없거나 이름이 폴더를 벗어나려 하면 `null`이다. 위키를 쓸 수 없어도 `null`이다. */
+    fun file(project: Project, name: String): WikiFile? {
+        if (name.isEmpty() || name == ".." || name == "." || name.contains('/') || name.contains('\\')) return null
+        return readRepository(project, null) { repo ->
+            val head = repo.resolve(HEAD_COMMIT) ?: return@readRepository null
+            val bytes = RevWalk(repo).use { walk ->
+                TreeWalk.forPath(repo, "$UPLOADS/$name", walk.parseCommit(head).tree)?.use { if (it.isSubtree) null else repo.open(it.getObjectId(0)).bytes }
+            } ?: return@readRepository null
+            WikiFile(name, bytes)
+        }
     }
 
     // --- 내부 ---
@@ -284,10 +325,13 @@ class WikiService(
     /** 쓰기 계획이 읽는 현재 위키 파일 목록이다. */
     private class Files(private val names: Set<String>) {
         fun has(pageName: String) = (pageName + EXTENSION) in names
+
+        /** 저장소에 그 경로의 파일이 있는지이다(첨부 파일처럼 페이지가 아닌 파일에 쓴다). */
+        fun hasPath(path: String) = path in names
     }
 
     /** 한 커밋에 담을 변경이다. [remove]는 지울 경로, [put]은 쓸 경로와 내용이다. */
-    private class Change(val remove: Set<String>, val put: Map<String, String>, val message: String)
+    private class Change(val remove: Set<String>, val put: Map<String, ByteArray>, val message: String)
 
     /**
      * 위키 저장소에 커밋 한 개를 만든다. 저장소를 연 시점의 `HEAD`를 기준으로 [plan]을 세우고, 갱신할 때 그 `HEAD`가 그대로인지 확인한다.
@@ -318,9 +362,8 @@ class WikiService(
                     if (path in change.remove || path in change.put) return@forEach
                     builder.add(DirCacheEntry(path).apply { fileMode = entry.mode; setObjectId(entry.id) })
                 }
-                change.put.forEach { (path, text) ->
+                change.put.forEach { (path, bytes) ->
                     builder.add(DirCacheEntry(path).apply {
-                        val bytes = text.toByteArray(Charsets.UTF_8)
                         setLength(bytes.size.toLong())
                         setLastModified(java.time.Instant.now())
                         fileMode = FileMode.REGULAR_FILE
@@ -371,6 +414,10 @@ class WikiService(
 
     companion object {
         private const val EXTENSION = ".md"
+        private const val UPLOADS = "uploads"
+
+        /** 첨부 파일의 기본 크기 한도이다(25MB). 설정의 첨부 한도보다 크면 설정을 따른다. 위키는 git 저장소라 파일이 커지면 clone이 느려진다(A-315). */
+        const val DEFAULT_MAX_UPLOAD = 25L * 1024 * 1024
         private const val HEAD_COMMIT = "HEAD^{commit}"
         private const val SIDEBAR = "_Sidebar"
         private const val FOOTER = "_Footer"
@@ -379,6 +426,21 @@ class WikiService(
         /** 제목에 쓸 수 없는 문자이다(GitHub 문서의 목록). */
         private val FORBIDDEN = Regex("[\\\\/:*?\"<>|]")
         private const val MAX_TITLE = 200
+
+        private val FILE_FORBIDDEN = Regex("[\\\\/:*?\"<>|\\p{Cntrl}]")
+
+        /** 첨부 파일 이름을 정리한다: 경로를 떼고 금지 문자를 `_`로 바꾼다. 비었거나 `.`으로 시작하거나 200자를 넘으면 예외이다. */
+        fun fileNameOf(raw: String): String {
+            val name = FILE_FORBIDDEN.replace(raw.substringAfterLast('/').substringAfterLast('\\').trim(), "_").trim()
+            if (name.isEmpty() || name.startsWith(".")) throw WikiFileInvalidException("올릴 수 없는 파일 이름입니다.")
+            if (name.length > MAX_TITLE) throw WikiFileInvalidException("파일 이름은 ${MAX_TITLE}자를 넘을 수 없습니다.")
+            return name
+        }
+
+        private fun numbered(name: String, n: Int): String {
+            val dot = name.lastIndexOf('.')
+            return if (dot > 0) name.substring(0, dot) + "-$n" + name.substring(dot) else "$name-$n"
+        }
 
         /** 표시용 제목이다. 파일 이름의 `-`를 공백으로 되돌린다. */
         fun titleOf(name: String) = name.replace('-', ' ')

@@ -7,6 +7,8 @@ import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.project.Project
 import dev.yona.domain.wiki.WikiConflictException
 import dev.yona.domain.wiki.WikiException
+import dev.yona.domain.wiki.WikiFileInvalidException
+import dev.yona.domain.wiki.WikiFileTooLargeException
 import dev.yona.domain.wiki.WikiPageExistsException
 import dev.yona.domain.wiki.WikiPageNotFoundException
 import dev.yona.domain.wiki.WikiService
@@ -32,6 +34,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.multipart.MultipartFile
+import dev.yona.io.MediaTypes
+import dev.yona.web.ContentDispositions
+import org.springframework.http.HttpHeaders
 import io.swagger.v3.oas.annotations.Operation as ApiOperation
 
 /**
@@ -198,6 +204,48 @@ class ExternalWikiApiController(
         }
     }
 
+    @ApiOperation(operationId = "uploadWikiFile", tags = [ApiTags.WIKI], summary = "위키 첨부 파일 올리기", description = "파일을 위키 저장소의 `uploads/` 아래에 커밋 한 개로 올린다. 이름의 경로와 금지 문자는 정리하고 같은 이름이 있으면 `-1`, `-2`를 붙여 덮어쓰지 않는다. 응답의 `markdown`을 페이지 본문에 끼워 넣는다. 멀티파트 폼의 `file` 항목에 파일을 담는다. 프로젝트 구성원만 한다. 크기 한도는 25MB와 설정의 첨부 한도 중 작은 값이다.")
+    @BodyDoc(description = "올릴 파일", required = true, content = [Content(mediaType = "multipart/form-data", schema = Schema(implementation = WikiFileUploadRequest::class))])
+    @ApiResponse(responseCode = "201", description = "올린 파일", content = [Content(schema = Schema(implementation = WikiFileResult::class))])
+    @ApiResponse(responseCode = "400", description = "파일이 없거나 이름을 쓸 수 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "413", description = "크기 한도를 넘었다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @io.swagger.v3.oas.annotations.Parameter(name = "message", description = "커밋 메시지(멀티파트 항목이나 질의로 준다). 생략하면 `Upload <이름>`", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @PostMapping("$PROJECT/wiki/files")
+    @Transactional
+    fun uploadFile(
+        @PathVariable owner: String, @PathVariable projectName: String,
+        @RequestParam(name = "file", required = false) file: MultipartFile?, @RequestParam(required = false) message: String?, request: HttpServletRequest
+    ): Any {
+        val allowed = writer(owner, projectName, request)
+        if (allowed !is Allowed) return allowed
+        if (file == null || file.isEmpty) return requests.message(HttpStatus.BAD_REQUEST, "file is required")
+        return try {
+            val saved = wikiService.upload(allowed.project, allowed.user, file.originalFilename.orEmpty(), file.bytes, message)
+            val destination = saved.path.replace("%", "%25").replace(" ", "%20").replace("(", "%28").replace(")", "%29")
+            val image = MediaTypes.detectName(saved.name).startsWith("image/")
+            ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(
+                linkedMapOf("file" to linkedMapOf("name" to saved.name, "path" to saved.path, "size" to saved.size, "markdown" to (if (image) "![${saved.name}]($destination)" else "[${saved.name}]($destination)")))
+            )
+        } catch (e: WikiException) {
+            failure(e)
+        }
+    }
+
+    @ApiOperation(operationId = "getWikiFile", tags = [ApiTags.WIKI], summary = "위키 첨부 파일 내려받기", description = "`uploads/<이름>`의 파일 내용을 그대로 돌려준다. 파일 종류는 이름으로 정한다. 없으면 404이다.")
+    @ApiResponse(responseCode = "200", description = "파일 내용", content = [Content(mediaType = "application/octet-stream", schema = Schema(type = "string", format = "binary"))])
+    @ApiResponse(responseCode = "404", description = "파일이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @GetMapping("$PROJECT/wiki/files/{name}")
+    @Transactional(readOnly = true)
+    fun getFile(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable name: String, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
+        target.error?.let { return it }
+        val project = requireNotNull(target.project)
+        if (!wikiService.enabled(project)) return disabled()
+        val found = wikiService.file(project, name) ?: return requests.message(HttpStatus.NOT_FOUND, "no wiki file by request")
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaTypes.detectName(found.name))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; " + ContentDispositions.encodeFilename(found.name)).header("X-Content-Type-Options", "nosniff").body(found.bytes)
+    }
+
     /** 쓰기가 허용된 요청의 프로젝트와 사용자이다. */
     private class Allowed(val project: Project, val user: dev.yona.domain.user.User)
 
@@ -228,6 +276,8 @@ class ExternalWikiApiController(
     private fun failure(e: WikiException): ResponseEntity<Map<String, String>> = when (e) {
         is WikiTitleInvalidException -> requests.message(HttpStatus.BAD_REQUEST, e.message.orEmpty())
         is WikiPageNotFoundException -> requests.message(HttpStatus.NOT_FOUND, "no wiki page by request")
+        is WikiFileInvalidException -> requests.message(HttpStatus.BAD_REQUEST, "invalid file name")
+        is WikiFileTooLargeException -> requests.message(HttpStatus.PAYLOAD_TOO_LARGE, "file is too large")
         is WikiPageExistsException -> requests.message(HttpStatus.CONFLICT, "a wiki page with the same name exists")
         is WikiUnavailableException, is WikiConflictException -> requests.message(HttpStatus.CONFLICT, e.message.orEmpty())
     }

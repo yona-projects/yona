@@ -8,6 +8,8 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.wiki.WikiConflictException
 import dev.yona.domain.wiki.WikiException
+import dev.yona.domain.wiki.WikiFileInvalidException
+import dev.yona.domain.wiki.WikiFileTooLargeException
 import dev.yona.domain.wiki.WikiLinks
 import dev.yona.domain.wiki.WikiPageExistsException
 import dev.yona.domain.wiki.WikiPageNotFoundException
@@ -19,6 +21,8 @@ import dev.yona.repository.CommitInfo
 import dev.yona.security.CurrentUserProvider
 import dev.yona.util.SiteUrls
 import dev.yona.util.UrlPaths
+import dev.yona.io.MediaTypes
+import dev.yona.web.ContentDispositions
 import dev.yona.web.RedirectSupport
 import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
@@ -27,13 +31,18 @@ import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.ModelAndView
 
 /** 사이드바 `Pages` 목록의 한 줄이다. */
@@ -211,6 +220,68 @@ class WikiViewController(
         }
     }
 
+    // --- 첨부 파일 (D-61) ---
+
+    /**
+     * 위키 저장소의 `uploads/`에 첨부 파일을 올린다(편집 화면의 파일 선택이 부른다). 응답은 JSON `{"name", "path", "markdown", "url"}`이고 `markdown`을 본문에 끼워 넣는다.
+     * 이미지는 `![이름](uploads/이름)`, 그 밖의 파일은 `[이름](uploads/이름)`이다. 구성원만 올릴 수 있다.
+     */
+    @PostMapping("/{user}/{project}/wiki/_upload")
+    @IsAllowed(Operation.READ)
+    @ResponseBody
+    @Transactional
+    fun upload(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String,
+        @RequestParam(name = "file", required = false) file: MultipartFile?, @RequestParam(defaultValue = "") message: String
+    ): Any {
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
+        deny(project)?.let { return it }
+        if (file == null || file.isEmpty) return json(HttpStatus.BAD_REQUEST, mapOf("message" to "file is required"))
+        return try {
+            val saved = wikiService.upload(project, requireNotNull(currentUserProvider.get().user), file.originalFilename.orEmpty(), file.bytes, message)
+            val destination = markdownDestination(saved.path)
+            val image = MediaTypes.detectName(saved.name).startsWith("image/")
+            json(HttpStatus.CREATED, linkedMapOf(
+                "name" to saved.name, "path" to saved.path,
+                "markdown" to (if (image) "![${saved.name}]($destination)" else "[${saved.name}]($destination)"),
+                "url" to "${wikiBase(project)}/_uploads/${UrlPaths.encode(saved.name)}"
+            ))
+        } catch (e: WikiFileInvalidException) {
+            json(HttpStatus.BAD_REQUEST, mapOf("message" to "invalid file name"))
+        } catch (e: WikiFileTooLargeException) {
+            json(HttpStatus.PAYLOAD_TOO_LARGE, mapOf("message" to "file is too large"))
+        } catch (e: WikiException) {
+            json(HttpStatus.CONFLICT, mapOf("message" to e.message.orEmpty()))
+        }
+    }
+
+    /**
+     * 첨부 파일을 내려 준다. 읽을 수 있는 사람이면 누구나 받는다. 이미지(SVG 제외)만 화면에 바로 보이게(`inline`) 주고 나머지는 내려받기(`attachment`)로 준다.
+     * 올린 사람이 만든 파일이 같은 출처에서 스크립트로 실행되지 않게 종류를 추측하지 못하게(`nosniff`) 한다.
+     */
+    @GetMapping("/{user}/{project}/wiki/_uploads/{file}")
+    @IsAllowed(Operation.READ)
+    @Transactional(readOnly = true)
+    fun download(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable file: String): Any {
+        val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
+        val found = wikiService.file(project, file) ?: return ErrorViews.notFound("wiki.page.notFound", views.of(project), null)
+        val type = MediaTypes.detectName(found.name)
+        val inline = type.startsWith("image/") && !type.startsWith("image/svg")
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, type)
+            .header(HttpHeaders.CONTENT_DISPOSITION, (if (inline) "inline" else "attachment") + "; " + ContentDispositions.encodeFilename(found.name))
+            .header("X-Content-Type-Options", "nosniff")
+            .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+            .body(found.bytes)
+    }
+
+    private fun json(status: HttpStatus, body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> =
+        ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body)
+
+    /** 마크다운 링크의 대상으로 쓰는 경로이다. 링크가 깨지는 공백, 괄호, 퍼센트만 인코딩하고 한글은 그대로 둔다. */
+    private fun markdownDestination(path: String): String =
+        path.replace("%", "%25").replace(" ", "%20").replace("(", "%28").replace(")", "%29")
+
     // --- 조립 ---
 
     /** 프로젝트를 찾고 위키가 켜져 있을 때만 돌려준다. 없거나 꺼져 있으면 `null`이다(404). */
@@ -271,6 +342,7 @@ class WikiViewController(
             .addObject("editing", pageName != null)
             .addObject("formAction", action)
             .addObject("deleteAction", pageName?.let { "${pageUrl(base, it)}/_delete" })
+            .addObject("uploadAction", "$base/_upload")
             .addObject("cancelUrl", pageName?.let { pageUrl(base, it) } ?: base)
             .addObject("titleValue", title)
             .addObject("contentValue", content)
@@ -286,6 +358,8 @@ class WikiViewController(
             is WikiUnavailableException -> "wiki.error.unavailable" to HttpStatus.CONFLICT
             is WikiConflictException -> "wiki.error.conflict" to HttpStatus.CONFLICT
             is WikiPageNotFoundException -> "wiki.page.notFound" to HttpStatus.NOT_FOUND
+            is WikiFileInvalidException -> "wiki.attach.invalid" to HttpStatus.BAD_REQUEST
+            is WikiFileTooLargeException -> "wiki.attach.tooLarge" to HttpStatus.PAYLOAD_TOO_LARGE
         }
         return form(project, pageName, title, content, message, key, status)
     }

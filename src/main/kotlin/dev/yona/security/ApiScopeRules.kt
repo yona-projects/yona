@@ -120,6 +120,8 @@ object ApiScopeRules {
         for (m in listOf("GET", "PATCH", "DELETE")) add(m, "$PROJECT/wiki/pages/{name}", ApiRequirement.Repo)
         add("GET", "$PROJECT/wiki/pages/{name}/history", ApiRequirement.Repo)
         add("GET", "$PROJECT/wiki/pages/{name}/diff", ApiRequirement.Repo)
+        add("POST", "$PROJECT/wiki/files", ApiRequirement.Repo)
+        add("GET", "$PROJECT/wiki/files/{name}", ApiRequirement.Repo)
         // 토큰 주인 조회(X-37i, D-52): 범위가 필요 없고 컨트롤러가 토큰 유무를 확인한다
         add("GET", "/-_-api/v1/user", ApiRequirement.None)
         // 사용자 현황(X-37e, D-52): 비공개 프로젝트까지 걸리므로 `repo`

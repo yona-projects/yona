@@ -863,3 +863,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] 위키 `[[Page]]` 링크(D-61 3단계)
 `WikiLinks`(`expand`, `rewriteHtml`)를 시험 먼저 만들고 본문, 사이드바, 푸터 렌더링에 연결했다. 시험 `WikiLinksTest` 14건, `WikiViewTest` 3건. 상대 링크가 위키 첫 화면에서 깨지던 문제도 함께 고쳤다.
+
+## [2026-11-01] 위키 첨부 파일(D-61 4단계)
+서비스(`upload`, `file`), 웹(`_upload`, `_uploads`, 편집 화면의 파일 선택), REST(`wiki/files`), OpenAPI와 범위 표, 메시지 5개(5개 언어), CLI(`wiki attach`, `wiki file`)를 시험 먼저 만들었다. 결정 A-315. 다음은 전체 시험과 화면 확인이다.

@@ -55,3 +55,20 @@ class WikiUpdateRequest(
     @get:Schema(description = "새 본문. 없으면 본문은 그대로") val content: String? = null,
     @get:Schema(description = "커밋 메시지. 없으면 `Update <이름>` 또는 `Rename <옛 이름> to <새 이름>`") val message: String? = null
 )
+
+@Schema(description = "위키 첨부 파일 올리기 요청(멀티파트)")
+class WikiFileUploadRequest(
+    @get:Schema(description = "올릴 파일. 위키 저장소의 `uploads/` 아래에 이 이름으로 저장되고 같은 이름이 있으면 `-1`, `-2`를 붙인다", type = "string", format = "binary", requiredMode = Schema.RequiredMode.REQUIRED) val file: String,
+    @get:Schema(description = "커밋 메시지. 없으면 `Upload <이름>`") val message: String? = null
+)
+
+@Schema(description = "위키 첨부 파일 한 건")
+class WikiFileNode(
+    @get:Schema(description = "저장된 파일 이름(정리하고 번호를 붙인 값)", example = "photo.png") val name: String,
+    @get:Schema(description = "위키 저장소 안의 경로. 마크다운에는 이 상대 경로를 적는다", example = "uploads/photo.png") val path: String,
+    @get:Schema(description = "바이트 수") val size: Long,
+    @get:Schema(description = "본문에 끼워 넣을 마크다운 조각. 이미지는 `![이름](경로)`, 그 밖은 `[이름](경로)`", example = "![photo.png](uploads/photo.png)") val markdown: String
+)
+
+@Schema(description = "올린 위키 첨부 파일 응답")
+class WikiFileResult(val file: WikiFileNode)

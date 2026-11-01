@@ -97,6 +97,14 @@ GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되�
 - 렌더링 뒤 상대 링크(`[글](Install-Guide)`)를 위키 주소로 바꾼다. 위키 첫 화면이 `/wiki`라서 그대로 두면 `/Install-Guide`로 풀리기 때문이다. `uploads/...`는 첨부 파일 주소(`_uploads`)로 바꾼다. 마크다운 원문은 clone한 위키에서도 읽히도록 상대 경로를 유지한다.
 - 본문, `_Sidebar`, `_Footer`에 모두 적용한다. 시험은 `WikiLinksTest` 14건, `WikiViewTest` 3건.
 
+## 첨부 파일 (D-61)
+
+- 첨부 파일은 위키 저장소의 `uploads/<이름>`에 커밋 한 개로 저장한다(clone과 백업에 함께 간다). 이름은 경로와 금지 문자를 정리하고 같은 이름이 있으면 `-1`, `-2`를 붙여 덮어쓰지 않는다. 크기 한도는 25MB와 설정의 첨부 한도 중 작은 값이다(A-315).
+- 서비스: `WikiService.upload`, `file`. 웹: `POST /wiki/_upload`(JSON 응답에 본문에 끼울 `markdown`), `GET /wiki/_uploads/{이름}`(이미지는 `inline`, SVG와 그 밖은 `attachment`, `nosniff`). 편집 화면에 파일 선택이 있고 올리면 커서 자리에 마크다운 조각이 들어간다.
+- REST: `POST wiki/files`(멀티파트 `file`, 질의 `message`, 201과 `{"file": {name, path, size, markdown}}`), `GET wiki/files/{이름}`(내용 그대로). 쓰기는 구성원, 읽기는 프로젝트를 읽을 수 있으면 된다. CLI: `yona wiki attach`, `yona wiki file`.
+- 본문에는 `![그림](uploads/그림.png)`처럼 상대 경로를 적고 화면이 `_uploads` 주소로 바꾼다. `[[그림.png]]`도 같다. 그래서 clone한 위키를 로컬에서 열어도 그림이 보인다.
+- 삭제와 목록 화면은 만들지 않았다. 파일은 git으로 지운다. 시험은 서비스 9건, 웹 7건, REST 3건, CLI 4건.
+
 ## 켜기와 끄기 (D-61)
 
 - 프로젝트 설정의 메뉴 체크 상자에 `Wiki`가 있다(`project_menu_setting.wiki`, v1.6에 없는 컬럼이라 Hibernate가 `false` 기본값으로 추가한다). **새 프로젝트는 켜짐(생성 화면의 기본 메뉴 설정 `yona.project-default-menus`에 `wiki`), 기존 프로젝트는 꺼짐**이다. 포크는 새 프로젝트로 보고 켠다. REST의 `menus`에도 `wiki`가 있다.
