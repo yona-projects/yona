@@ -40,7 +40,8 @@ class SocialLoginController(
     private val socialSession: SocialSession,
     private val loginSession: LoginSessionService,
     private val credentials: UserCredentialRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val audit: dev.yona.domain.audit.AuditBoundary
 ) {
 
     /** 인증을 시작하거나(코드 없음) 제공자가 돌아온 뒤의 처리를 한다(코드 있음). */
@@ -170,6 +171,7 @@ class SocialLoginController(
                 path = "/"
             })
             loginSession.start(request, response, user)
+            audit.loginSuccess(user, "social")
         }
         if (result.forceLogout) socialSession.forceLogout(request)
         return RedirectSupport.see(request, response, socialSession.popOriginalUrl(request) ?: "/", result.flash)

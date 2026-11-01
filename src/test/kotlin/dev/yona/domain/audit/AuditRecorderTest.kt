@@ -214,6 +214,29 @@ class AuditRecorderTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사슬을 쥔 트랜잭션 안에서 경계 이벤트를 남겨도 멈추지 않고 바깥이 끝난 뒤에 남는다`() {
+        transaction.execute { status ->
+            recorder.record(AuditEvent("project.changed"))
+            // 같은 트랜잭션이 사슬의 끝을 잠그고 있으므로 별도 트랜잭션으로 바로 쓰면 서로 기다린다. 바깥이 끝난 뒤로 미룬다
+            recorder.recordIndependent(AuditEvent("access.denied", AuditOutcome.DENIED))
+            assertEquals(0L, jdbc.queryForObject("select count(*) from audit_log", Long::class.java), "바깥이 끝나기 전에는 둘 다 보이지 않는다")
+            status.setRollbackOnly()
+        }
+        assertEquals(listOf("access.denied"), logs.findAll().map { it.action })
+        assertTrue(verifier.verify().ok)
+    }
+
+    @Test
+    fun `사슬을 쥔 트랜잭션이 커밋되면 미룬 경계 이벤트도 뒤이어 남는다`() {
+        transaction.executeWithoutResult {
+            recorder.record(AuditEvent("project.changed"))
+            recorder.recordIndependent(AuditEvent("access.denied", AuditOutcome.DENIED))
+        }
+        assertEquals(listOf("project.changed", "access.denied"), logs.findAll().sortedBy { it.id }.map { it.action })
+        assertTrue(verifier.verify().ok)
+    }
+
+    @Test
     fun `경계 이벤트를 기록하지 못해도 예외를 밖으로 던지지 않는다`() {
         class Bomb { override fun toString(): String = throw IllegalStateException("boom") }
         recorder.recordIndependent(AuditEvent("auth.login_failure", details = mapOf("x" to Bomb())))

@@ -24,3 +24,21 @@ A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 
 - 번호는 DB 자동 증가가 아니라 사슬의 끝(`audit_chain_head`)을 비관적 잠금으로 잡고 `last_id + 1`로 매긴다. 잠금이 커밋까지 이어져 사슬 순서가 커밋 순서이다. 시각은 DB 정밀도 차이가 해시를 깨지 않게 에폭 밀리초(`created_at`)이다.
 - 비밀 값 가리기: 키 이름이 비밀번호, secret, credential, authorization, signature, API 키, `token`(그 자체나 `...Token`)인 값을 `[redacted]`로 바꾼다. `tokenId`나 접두사는 그대로 둔다.
 - 시험: `AuditRecorderTest` 20건.
+
+## A3 경계 이벤트 (구현)
+
+모두 별도 트랜잭션(`recordIndependent`)이다. 이벤트를 만드는 곳은 `AuditBoundary` 한 곳이고, 비밀 값(비밀번호, 토큰 값)은 어떤 필드에도 넣지 않는다.
+
+| 조치 | 결과 | 언제 | 연결 지점 |
+|---|---|---|---|
+| `auth.login_success` | 성공 | 비밀번호나 소셜 로그인 성공(`details.method`) | `LoginController`, `SocialLoginController` |
+| `auth.login_failure` | 실패 또는 거부 | 틀린 비밀번호와 없는 사용자(같은 이유 `invalid_credentials`), 잠김(`locked_after_authentication`), 삭제됨(`deleted`) | `LoginController`(폼과 AJAX) |
+| `auth.logout` | 성공 | 로그인한 사용자의 로그아웃 | `LoginController` |
+| `auth.token_failure` | 실패 | 외부 API의 틀린 토큰 | `YonaAuthenticationFilter` |
+| `auth.basic_failure` | 실패 | git HTTP의 틀린 비밀번호나 토큰(`details.channel`, `reason`) | `BasicAuthResolver` |
+| `auth.token_blocked` | 거부 | 인증 실패가 쌓여 주소가 막힘(같은 주소는 1분에 한 번만) | 인증 필터, `BasicAuthResolver` |
+| `access.denied` | 거부 | 응답이 403인 모든 요청(대상은 `메서드 경로`, 질의 문자열 제외) | `AccessDeniedAuditFilter`(인증 필터 뒤) |
+| `access.api_scope_denied` | 거부 | 토큰 범위가 모자란 외부 API 요청. `access.denied`로 또 남기지 않는다 | `ApiScopeInterceptor` |
+
+- **교착 방지**: 같은 요청의 상태 변경 기록(`record`)이 사슬의 끝을 이미 잠갔으면 경계 이벤트가 별도 트랜잭션으로 바로 쓰다 서로 기다린다. 그때는 바깥 트랜잭션이 끝난 뒤(`afterCompletion`)에 새 트랜잭션으로 남긴다. 바깥이 롤백해도 남는다.
+- 시험: `AuditBoundaryTest` 14건, `AuditRecorderTest` 22건.

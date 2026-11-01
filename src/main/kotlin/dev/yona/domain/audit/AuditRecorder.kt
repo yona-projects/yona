@@ -57,8 +57,24 @@ class AuditRecorder(
         return entry
     }
 
-    /** 별도 트랜잭션에서 [event]를 기록한다. 기록하지 못해도 예외를 던지지 않는다(경계 이벤트는 요청을 막지 않는다). */
+    /**
+     * 별도 트랜잭션에서 [event]를 기록한다. 기록하지 못해도 예외를 던지지 않는다(경계 이벤트는 요청을 막지 않는다).
+     *
+     * 바깥 트랜잭션이 이미 같은 요청에서 [record]로 사슬의 끝을 잠갔다면 별도 트랜잭션이 그 잠금을 기다려 서로 멈춘다. 그때는 바깥 트랜잭션이 끝난 뒤(커밋이든 롤백이든)에
+     * 새 트랜잭션으로 기록한다. 어느 쪽이든 바깥이 롤백해도 이 이벤트는 남는다.
+     */
     fun recordIndependent(event: AuditEvent) {
+        if (TransactionSynchronizationManager.isSynchronizationActive() && TransactionSynchronizationManager.hasResource(HELD_KEY)) {
+            // 요청 문맥(행위자, IP)은 바깥이 끝나는 시점에도 같은 스레드에 있으므로 그대로 읽힌다
+            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+                override fun afterCompletion(status: Int) = writeIndependent(event)
+            })
+            return
+        }
+        writeIndependent(event)
+    }
+
+    private fun writeIndependent(event: AuditEvent) {
         try {
             TransactionTemplate(transactionManager).apply { propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW }.executeWithoutResult { record(event) }
         } catch (e: Exception) {
@@ -68,6 +84,7 @@ class AuditRecorder(
 
     /** 사슬의 끝 행을 잠가 읽는다. 없으면 별도 트랜잭션에서 만든 뒤 다시 잠근다(동시에 만들려는 쪽이 있어도 하나만 남는다). */
     private fun lockedHead(): AuditChainHead {
+        markHeld()
         heads.lockHead()?.let { return it }
         try {
             TransactionTemplate(transactionManager).apply { propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW }.executeWithoutResult {
@@ -77,6 +94,18 @@ class AuditRecorder(
             log.debug("감사 사슬의 끝은 다른 쪽이 먼저 만들었다", e)
         }
         return heads.lockHead() ?: error("감사 사슬의 끝을 만들지 못했습니다")
+    }
+
+    /** 이 트랜잭션이 사슬의 끝을 잠갔음을 표시한다. 트랜잭션이 끝나면 표시도 지운다. */
+    private fun markHeld() {
+        if (!TransactionSynchronizationManager.isSynchronizationActive() || TransactionSynchronizationManager.hasResource(HELD_KEY)) return
+        TransactionSynchronizationManager.bindResource(HELD_KEY, true)
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            // 자원 해제는 `afterCompletion`보다 먼저 일어나므로 `beforeCompletion`에서 풀어 두 번째 이벤트의 지연 기록이 새 트랜잭션을 쓰게 한다
+            override fun beforeCompletion() {
+                if (TransactionSynchronizationManager.hasResource(HELD_KEY)) TransactionSynchronizationManager.unbindResource(HELD_KEY)
+            }
+        })
     }
 
     private fun afterCommit(action: () -> Unit) {
@@ -116,5 +145,8 @@ class AuditRecorder(
 
     private companion object {
         const val REQUEST_ID_ATTRIBUTE = "dev.yona.domain.audit.RequestId"
+
+        /** 이 트랜잭션이 사슬의 끝을 잠갔다는 표시의 자원 키이다. */
+        val HELD_KEY = Any()
     }
 }

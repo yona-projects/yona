@@ -47,7 +47,8 @@ class BasicAuthResolver(
     private val currentUserProvider: CurrentUserProvider,
     private val apiTokens: ApiTokenService,
     private val failures: TokenFailureLimiter,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val audit: dev.yona.domain.audit.AuditBoundary
 ) {
 
     /** 사용자만 필요한 호출을 위한 단축이다. 막힌 요청과 범위는 [identify]를 쓴다. */
@@ -56,7 +57,10 @@ class BasicAuthResolver(
     fun identify(request: HttpServletRequest, response: HttpServletResponse, credentials: BasicCredentials?): BasicIdentity {
         if (credentials == null) return BasicIdentity(currentUserProvider.get().user)
         val address = request.remoteAddr.orEmpty()
-        if (failures.isBlocked(address)) return BasicIdentity(null, blocked = true)
+        if (failures.isBlocked(address)) {
+            audit.blocked(address, "git_http")
+            return BasicIdentity(null, blocked = true)
+        }
 
         val password = credentials.password
         val newToken = NEW_TOKEN.matches(password)
@@ -69,6 +73,7 @@ class BasicAuthResolver(
             }
             if (newToken) {
                 failures.recordFailure(address)
+                audit.basicFailure(credentials.loginId, "git_http", "invalid_token")
                 return BasicIdentity(currentUserProvider.get().user)
             }
         }
@@ -82,6 +87,7 @@ class BasicAuthResolver(
             return BasicIdentity(user)
         }
         failures.recordFailure(address)
+        audit.basicFailure(credentials.loginId, "git_http", "invalid_credentials")
         return BasicIdentity(currentUserProvider.get().user)
     }
 

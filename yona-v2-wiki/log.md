@@ -875,3 +875,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-9 A2 감사 로그 핵심
 `AuditLog`, `AuditChainHead`, `AuditHash`, `AuditDetails`, `AuditRecorder`, `AuditVerifier`, `AuditFileSink`를 시험 먼저 만들었다(20건). 결정 A-316. 테이블 2개를 스키마 시험의 의도한 추가 목록에 올렸다.
+
+## [2026-11-01] X-9 A3 경계 이벤트
+`AuditBoundary`(로그인 성공과 실패, 로그아웃, 토큰과 git 인증 실패, 차단), `AccessDeniedAuditFilter`(403), `ApiScopeInterceptor`의 범위 거부를 시험 먼저 연결했다(14건). 같은 요청의 상태 변경 기록이 사슬을 쥔 채 경계 이벤트를 남기면 교착하는 문제를 시험으로 재현하고 바깥이 끝난 뒤로 미루는 방식으로 고쳤다.

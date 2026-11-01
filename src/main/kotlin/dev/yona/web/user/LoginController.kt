@@ -39,7 +39,8 @@ class LoginController(
     private val flashTranslator: FlashMessageTranslator,
     private val loginSession: dev.yona.security.LoginSessionService,
     private val properties: dev.yona.config.YonaProperties,
-    private val home: dev.yona.web.home.HomeController
+    private val home: dev.yona.web.home.HomeController,
+    private val audit: dev.yona.domain.audit.AuditBoundary
 ) {
 
 
@@ -90,7 +91,7 @@ class LoginController(
                 .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "user.login.required")) }
         }
 
-        return when (val result = authenticator.authenticate(loginKey, password)) {
+        return when (val result = authenticate(loginKey, password)) {
             is LoginResult.Success -> {
                 completeLogin(request, response, result)
                 val redirectUrl = request.getParameter("redirectUrl")
@@ -127,7 +128,7 @@ class LoginController(
         val password = request.getParameter("password")
         if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) return message(HttpStatus.BAD_REQUEST, "user.login.required")
 
-        return when (val result = authenticator.authenticate(loginKey, password)) {
+        return when (val result = authenticate(loginKey, password)) {
             is LoginResult.Success -> {
                 completeLogin(request, response, result)
                 // v1.6의 `ok("{}")`는 문자열이라 Content-Type이 text/plain이다.
@@ -143,6 +144,22 @@ class LoginController(
         ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(mapOf("message" to key))
 
     // --- 공통 ---
+
+    /**
+     * 비밀번호로 인증하고 결과를 감사 로그에 남긴다(X-9, D-62). 성공은 사용자 행위자로, 실패는 시도한 ID와 함께 남기며 이유는 `invalid_credentials`(없는 사용자와 틀린 비밀번호를 같게 둔다),
+     * `locked`, `deleted`, `locked_after_authentication`이다. 비밀번호는 어디에도 남기지 않는다.
+     */
+    private fun authenticate(loginKey: String, password: String): LoginResult {
+        val result = authenticator.authenticate(loginKey, password)
+        when (result) {
+            is LoginResult.Success -> audit.loginSuccess(result.user, "password")
+            LoginResult.Locked -> audit.loginFailure(loginKey, "locked", denied = true)
+            LoginResult.Deleted -> audit.loginFailure(loginKey, "deleted", denied = true)
+            LoginResult.LockedAfterAuthentication -> audit.loginFailure(loginKey, "locked_after_authentication", denied = true)
+            LoginResult.InvalidCredentials, is LoginResult.InvalidWithNotice -> audit.loginFailure(loginKey, "invalid_credentials", denied = false)
+        }
+        return result
+    }
 
     /** 로그인 성공 처리: 세션에 기록하고, 로그인 유지를 켰으면 쿠키를 만들고, 사용자의 언어를 갱신한다. */
     private fun completeLogin(request: HttpServletRequest, response: HttpServletResponse, result: LoginResult.Success) {
@@ -161,7 +178,12 @@ class LoginController(
     }
 
     /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `processLogout`). */
-    private fun processLogout(request: HttpServletRequest, response: HttpServletResponse) = loginSession.end(request, response)
+    private fun processLogout(request: HttpServletRequest, response: HttpServletResponse) {
+        // 로그인한 사용자의 로그아웃만 남긴다(잠긴 계정을 되돌리는 경로는 아직 로그인 전이다)
+        val authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication as? YonaAuthentication
+        authentication?.let { users.findById(it.principal.userId).orElse(null) }?.let { audit.logout(it) }
+        loginSession.end(request, response)
+    }
 
     /** 로그인 폼 주소이다. 원래 가려던 `redirectUrl`을 그대로 이어 붙인다 (v1.6 `getLoginFormURLWithRedirectURL`). */
     private fun loginFormUrl(request: HttpServletRequest): String =

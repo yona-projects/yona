@@ -28,7 +28,8 @@ class YonaAuthenticationFilter(
     private val users: UserRepository,
     private val sessionUsers: SessionUserCache,
     private val apiTokens: ApiTokenService,
-    private val failures: TokenFailureLimiter
+    private val failures: TokenFailureLimiter,
+    private val audit: dev.yona.domain.audit.AuditBoundary
 ) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -59,6 +60,7 @@ class YonaAuthenticationFilter(
         val value = ApiTokenHeaders.extract(request) ?: return true
         val address = request.remoteAddr.orEmpty()
         if (failures.isBlocked(address)) {
+            audit.blocked(address, "api")
             response.status = 429
             response.contentType = "application/json;charset=UTF-8"
             response.writer.write("{\"message\":\"too many failed token attempts\"}")
@@ -68,6 +70,7 @@ class YonaAuthenticationFilter(
         val owner = token?.user
         if (token == null || owner == null) {
             failures.recordFailure(address)
+            audit.tokenFailure("api")
             return true
         }
         failures.recordSuccess(address)
