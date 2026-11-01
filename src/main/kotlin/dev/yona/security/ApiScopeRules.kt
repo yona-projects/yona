@@ -127,6 +127,16 @@ object ApiScopeRules {
         add("POST", "/-_-api/v1/user/gpg_keys", ApiRequirement.Scope("write:gpg_key"))
         add("DELETE", "/-_-api/v1/user/gpg_keys/{id}", ApiRequirement.Scope("admin:gpg_key"))
         add("GET", "/-_-api/v1/users/{user}/gpg_keys", ApiRequirement.Scope("read:user"))
+        // SSH 키와 배포 키(X-3, D-66): GPG 키와 같다. 배포 키는 프로젝트 관리자여야 하고 범위는 그 위에서 줄이기만 한다
+        add("GET", "/-_-api/v1/user/ssh_keys", ApiRequirement.Scope("read:ssh_key"))
+        add("GET", "/-_-api/v1/user/ssh_keys/{id}", ApiRequirement.Scope("read:ssh_key"))
+        add("POST", "/-_-api/v1/user/ssh_keys", ApiRequirement.Scope("write:ssh_key"))
+        add("DELETE", "/-_-api/v1/user/ssh_keys/{id}", ApiRequirement.Scope("admin:ssh_key"))
+        add("GET", "/-_-api/v1/users/{user}/ssh_keys", ApiRequirement.Scope("read:user"))
+        add("GET", "$PROJECT/deploy_keys", ApiRequirement.Scope("read:deploy_key"))
+        add("GET", "$PROJECT/deploy_keys/{id}", ApiRequirement.Scope("read:deploy_key"))
+        add("POST", "$PROJECT/deploy_keys", ApiRequirement.Scope("write:deploy_key"))
+        add("DELETE", "$PROJECT/deploy_keys/{id}", ApiRequirement.Scope("admin:deploy_key"))
         // 프로젝트 위키(X-17, D-60): `repo`나 공개 프로젝트의 `public_repo`
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/wiki/pages", ApiRequirement.Repo)
         for (m in listOf("GET", "PATCH", "DELETE")) add(m, "$PROJECT/wiki/pages/{name}", ApiRequirement.Repo)

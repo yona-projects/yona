@@ -38,7 +38,7 @@ class ApiToken(
     var tokenHash: String? = null,
     @Column(name = "token_prefix", length = 16)
     var tokenPrefix: String? = null,
-    @Column(length = 255)
+    @Column(length = 1000)
     var scopes: String? = null,
     @Column(name = "is_legacy")
     var isLegacy: Boolean? = false,

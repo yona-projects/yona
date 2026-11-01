@@ -58,7 +58,7 @@ class DeviceAuthorization(
     var userCode: String? = null,
     @Column(name = "client_name", length = 100)
     var clientName: String? = null,
-    @Column(length = 255)
+    @Column(length = 1000)
     var scopes: String? = null,
     @Column(length = 20)
     var status: String = DeviceAuthorizationStatus.PENDING.name,
