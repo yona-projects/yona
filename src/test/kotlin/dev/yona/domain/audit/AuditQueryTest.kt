@@ -127,7 +127,7 @@ class AuditQueryTest : AbstractIntegrationTest() {
         rec("csv", login = "=cmd|' /C calc'!A0", targetLabel = "a,b \"q\"\nline")
         val rows = mutableListOf<String>()
         query.stream(AuditFilter(action = "$p.csv"), AuditScope.Site, 10) { rows += AuditCsv.row(it) }
-        assertEquals("id,time,actor_type,actor_id,actor_login,action,outcome,target_type,target_id,target_label,organization_id,project_id,ip,user_agent,request_id,token_id,token_scopes,details,prev_hash,hash", AuditCsv.HEADER)
+        assertEquals("id,time,actor_type,actor_id,actor_login,action,outcome,target_type,target_id,target_label,organization_id,project_id,ip,user_agent,request_id,token_id,token_scopes,details,prev_hash,hash,content_hash,redacted_at", AuditCsv.HEADER)
         val line = rows.single()
         assertTrue(line.contains("\"'=cmd|' /C calc'!A0\"") || line.contains("'=cmd|' /C calc'!A0"), line)
         assertTrue(line.contains("\"a,b \"\"q\"\"\nline\""), line)

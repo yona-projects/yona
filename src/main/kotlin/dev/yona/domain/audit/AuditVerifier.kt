@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
  * @property ok 사슬이 온전하면 `true`
  * @property checked 검증한 기록 수
  * @property brokenId 처음 어긋난 기록의 번호(온전하면 `null`)
- * @property reason 어긋난 이유(`hash`, `prev_hash`, `head`)
+ * @property reason 어긋난 이유(`content`: 기록의 내용이 저장된 내용 해시와 다르다, `hash`, `prev_hash`, `head`)
  */
 data class AuditVerification(val ok: Boolean, val checked: Long, val brokenId: Long? = null, val reason: String? = null)
 
@@ -32,6 +32,8 @@ class AuditVerifier(private val logs: AuditLogRepository, private val heads: Aud
             if (page.isEmpty()) break
             for (entry in page) {
                 if (entry.prevHash != previousHash) return AuditVerification(false, checked, entry.id, "prev_hash")
+                // 내용 해시가 있는 기록(v2)은 개인정보를 비운 행이 아니면 내용을 다시 계산해 저장된 내용 해시와 맞춘다. 비운 행은 저장된 내용 해시로 사슬만 맞춘다
+                if (entry.contentHash != null && entry.redactedAt == null && entry.contentHash != AuditHash.contentOf(entry)) return AuditVerification(false, checked, entry.id, "content")
                 if (entry.hash != AuditHash.of(entry)) return AuditVerification(false, checked, entry.id, "hash")
                 previousHash = entry.hash
                 lastId = entry.id

@@ -35,8 +35,15 @@ class AuditRetention(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /** [now] 기준으로 [retentionDays]일이 지난 기록을 [batchSize]건씩 옮기고 지운다. [retentionDays]가 0 이하이면 아무것도 하지 않는다. */
-    fun purge(now: Long = System.currentTimeMillis(), retentionDays: Int = properties.auditRetentionDays, batchSize: Int = DEFAULT_BATCH): AuditPurgeResult {
+    /**
+     * 보존 처리 전체이다. 먼저 `git.*` 이벤트의 개인정보를 비우고([redactExpired], 번호 순서와 무관하게 범주별 보존 기간이 지난 것) 그 뒤 기간이 지난 앞부분을 지운다.
+     * [now] 기준으로 [retentionDays]일이 지난 기록을 [batchSize]건씩 옮기고 지운다. [retentionDays]가 0 이하이면 지우지 않는다(비우기는 따로 판단한다).
+     */
+    fun purge(
+        now: Long = System.currentTimeMillis(), retentionDays: Int = properties.auditRetentionDays, batchSize: Int = DEFAULT_BATCH,
+        gitRetentionDays: Int = properties.auditGitRetentionDays
+    ): AuditPurgeResult {
+        redactExpired(now, gitRetentionDays, batchSize)
         if (retentionDays <= 0) return AuditPurgeResult(0, emptyList())
         val cutoff = now - retentionDays * DAY_MILLIS
         val template = TransactionTemplate(transactionManager)
@@ -62,6 +69,44 @@ class AuditRetention(
             log.info("감사 로그 {}건을 보관 파일 {}개로 옮기고 지웠습니다(번호 {}~{})", total, archives.size, firstId, lastId)
         }
         return AuditPurgeResult(total, archives)
+    }
+
+    /**
+     * 보존 기간(`yona.audit-git-retention-days`, [gitRetentionDays])이 지난 `git.*` 이벤트의 개인정보 필드를 비운다. 행은 남고 내용 해시(`content_hash`)로 사슬이 이어진다(D-63).
+     * 비우기 전의 전체 내용은 `<데이터>/audit/archive/audit-redact-<처음 번호>-<끝 번호>.jsonl`에 `fsync`한 뒤에 비운다(쓰지 못하면 비우지 않는다). 이미 비운 행은 건너뛴다.
+     * [gitRetentionDays]가 0 이하이면 따로 비우지 않는다. 비운 행 수를 돌려준다.
+     */
+    fun redactExpired(now: Long = System.currentTimeMillis(), gitRetentionDays: Int = properties.auditGitRetentionDays, batchSize: Int = DEFAULT_BATCH): Int {
+        if (gitRetentionDays <= 0) return 0
+        val cutoff = now - gitRetentionDays * DAY_MILLIS
+        val template = TransactionTemplate(transactionManager)
+        var total = 0
+        while (true) {
+            val count = template.execute { redactBatch(cutoff, now, batchSize.coerceAtLeast(1)) } ?: 0
+            if (count == 0) break
+            total += count
+        }
+        if (total > 0) log.info("보존 기간이 지난 git 감사 기록 {}건의 개인정보를 비웠습니다", total)
+        return total
+    }
+
+    private fun redactBatch(cutoff: Long, now: Long, batchSize: Int): Int {
+        heads.lockHead() ?: return 0
+        val rows = logs.findByActionStartingWithAndCreatedMillisLessThanAndRedactedAtIsNullAndContentHashIsNotNullOrderByIdAsc("git.", cutoff, PageRequest.of(0, batchSize))
+        if (rows.isEmpty()) return 0
+        val directory = File(sink.directory(), "archive")
+        if (!directory.isDirectory && !directory.mkdirs()) throw IOException("보관 디렉터리를 만들지 못했습니다: $directory")
+        val file = File(directory, "audit-redact-${rows.first().id}-${rows.last().id}.jsonl")
+        FileOutputStream(file).use { out ->
+            out.write(rows.joinToString("") { sink.line(it) + "\n" }.toByteArray(Charsets.UTF_8))
+            out.fd.sync()
+        }
+        rows.forEach {
+            it.actorId = null; it.actorLogin = null; it.targetId = null; it.targetLabel = null; it.organizationId = null; it.projectId = null
+            it.ip = null; it.userAgent = null; it.requestId = null; it.tokenId = null; it.tokenScopes = null; it.details = null
+            it.redactedAt = now
+        }
+        return rows.size
     }
 
     private class Batch(val count: Int, val firstId: Long, val lastId: Long, val archive: String)

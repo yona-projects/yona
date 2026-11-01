@@ -24,7 +24,9 @@ class AuditEventNode(
     @get:JsonProperty("token_scopes") @get:Schema(description = "그 토큰의 범위", nullable = true) val tokenScopes: String?,
     @get:Schema(description = "상세(JSON 글). 비밀 값은 가려져 있다", nullable = true) val details: String?,
     @get:JsonProperty("prev_hash") @get:Schema(description = "이전 기록의 해시") val prevHash: String,
-    @get:Schema(description = "이 기록의 해시(SHA-256 16진수 64자)") val hash: String
+    @get:Schema(description = "이 기록의 해시(SHA-256 16진수 64자)") val hash: String,
+    @get:JsonProperty("content_hash") @get:Schema(description = "내용의 해시. 해시는 이전 해시와 이 값으로 만든다. 옛 기록은 `null`", nullable = true) val contentHash: String?,
+    @get:JsonProperty("redacted_at") @get:Schema(description = "보존 기간이 지나 개인정보 필드를 비운 시각. 비우지 않았으면 `null`", nullable = true) val redactedAt: String?
 )
 
 @Schema(description = "감사 로그 조회 응답")
@@ -40,5 +42,5 @@ class AuditVerifyResult(
     @get:Schema(description = "사슬이 온전한지") val ok: Boolean,
     @get:Schema(description = "검증한 기록 수") val checked: Long,
     @get:Schema(description = "처음 어긋난 기록 번호", nullable = true) val brokenId: Long?,
-    @get:Schema(description = "어긋난 이유", allowableValues = ["hash", "prev_hash", "head"], nullable = true) val reason: String?
+    @get:Schema(description = "어긋난 이유", allowableValues = ["content", "hash", "prev_hash", "head"], nullable = true) val reason: String?
 )

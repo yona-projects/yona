@@ -41,7 +41,9 @@ enum class AuditOutcome { SUCCESS, FAILURE, DENIED }
  * @property tokenScopes 그 토큰의 범위(쉼표로 이은 값)
  * @property details 상세(JSON 글). 비밀 값은 가린다([AuditDetails])
  * @property prevHash 이전 기록의 해시(첫 기록은 0 64개)
- * @property hash 이 기록의 해시
+ * @property hash 이 기록의 해시. 내용 해시가 있는 기록(v2)은 `SHA-256(이전 해시 + 내용 해시)`이다([AuditHash])
+ * @property contentHash 개인정보 필드를 비운 뒤에도 사슬이 이어지게 따로 둔 내용의 해시(`decisions.md` D-63). 처음 쓸 때 정한다. 옛(v1) 기록은 `null`이다
+ * @property redactedAt 보존 기간(`yona.audit-git-retention-days`)이 지나 개인정보 필드를 비운 시각(에폭 밀리초). 비우지 않았으면 `null`이다
  */
 @Entity
 @Table(
@@ -94,7 +96,11 @@ class AuditLog(
     @Column(name = "prev_hash", nullable = false, length = 64)
     var prevHash: String = AuditHash.GENESIS,
     @Column(nullable = false, length = 64)
-    var hash: String = ""
+    var hash: String = "",
+    @Column(name = "content_hash", length = 64)
+    var contentHash: String? = null,
+    @Column(name = "redacted_at")
+    var redactedAt: Long? = null
 )
 
 /**
@@ -128,6 +134,9 @@ interface AuditLogRepository : JpaRepository<AuditLog, Long>, JpaSpecificationEx
 
     /** [millis]보다 오래된 기록을 번호순으로 읽는다. */
     fun findByCreatedMillisLessThanOrderByIdAsc(millis: Long, pageable: Pageable): List<AuditLog>
+
+    /** 보존 기간이 지났지만 아직 비우지 않은 [prefix] 범주의 기록을 번호순으로 읽는다(비움 대상). */
+    fun findByActionStartingWithAndCreatedMillisLessThanAndRedactedAtIsNullAndContentHashIsNotNullOrderByIdAsc(prefix: String, millis: Long, pageable: Pageable): List<AuditLog>
 }
 
 /** [AuditChainHead] 저장소이다. */

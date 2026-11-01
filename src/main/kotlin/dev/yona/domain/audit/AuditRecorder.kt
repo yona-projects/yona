@@ -52,6 +52,7 @@ class AuditRecorder(
             organizationId = event.organizationId, projectId = event.projectId, ip = request?.ip, userAgent = request?.userAgent, requestId = request?.requestId,
             tokenId = actor.tokenId, tokenScopes = actor.tokenScopes, details = AuditDetails.toJson(event.details), prevHash = head.lastHash
         )
+        entry.contentHash = AuditHash.contentOf(entry)
         entry.hash = AuditHash.of(entry)
         entityManager.persist(entry)
         head.lastId = entry.id

@@ -49,13 +49,14 @@ object AuditExport {
     /** CSV 머리글이기도 한 필드 이름 순서이다. */
     val COLUMNS = listOf(
         "id", "time", "actor_type", "actor_id", "actor_login", "action", "outcome", "target_type", "target_id", "target_label", "organization_id", "project_id",
-        "ip", "user_agent", "request_id", "token_id", "token_scopes", "details", "prev_hash", "hash"
+        "ip", "user_agent", "request_id", "token_id", "token_scopes", "details", "prev_hash", "hash", "content_hash", "redacted_at"
     )
 
     fun fields(e: AuditLog): Map<String, Any?> = linkedMapOf(
         "id" to e.id, "time" to Instant.ofEpochMilli(e.createdMillis).toString(), "actor_type" to e.actorType.name, "actor_id" to e.actorId, "actor_login" to e.actorLogin,
         "action" to e.action, "outcome" to e.outcome.name, "target_type" to e.targetType, "target_id" to e.targetId, "target_label" to e.targetLabel,
         "organization_id" to e.organizationId, "project_id" to e.projectId, "ip" to e.ip, "user_agent" to e.userAgent, "request_id" to e.requestId,
-        "token_id" to e.tokenId, "token_scopes" to e.tokenScopes, "details" to e.details, "prev_hash" to e.prevHash, "hash" to e.hash
+        "token_id" to e.tokenId, "token_scopes" to e.tokenScopes, "details" to e.details, "prev_hash" to e.prevHash, "hash" to e.hash,
+        "content_hash" to e.contentHash, "redacted_at" to e.redactedAt?.let { Instant.ofEpochMilli(it).toString() }
     )
 }
