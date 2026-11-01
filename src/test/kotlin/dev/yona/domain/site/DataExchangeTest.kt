@@ -309,6 +309,26 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 없는 사용자와 없는 프로젝트를 가리키는 SSH 키와 배포 키 행은 정리한다 (X-3)`() {
+        import("""{"SSH_KEY": [{"id": 1, "user_id": 999002, "name": "x", "fingerprint": "SHA256:a", "key_type": "ssh-ed25519", "public_key": "k", "created_date": 1700000000000}],
+            "DEPLOY_KEY": [{"id": 1, "project_id": 999003, "name": "x", "fingerprint": "SHA256:b", "key_type": "ssh-ed25519", "public_key": "k", "read_only": true, "created_date": 1700000000000}]}""")
+        assertEquals(0, count("ssh_key")); assertEquals(0, count("deploy_key"))
+    }
+
+    @Test
+    fun `SSH 키와 배포 키를 내보내고 다시 가져온다 (X-3)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881303L, "skrt", "왕복")
+        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881304L, "skrt-project", "skrt")
+        jdbc.update("insert into ssh_key(id, user_id, name, fingerprint, key_type, public_key, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 21L, 881303L, "노트북", "SHA256:RT1", "ssh-ed25519", "ssh-ed25519 AAAA")
+        jdbc.update("insert into deploy_key(id, project_id, name, fingerprint, key_type, public_key, read_only, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 22L, 881304L, "배포", "SHA256:RT2", "ssh-ed25519", "ssh-ed25519 BBBB", false)
+        val bytes = exportBytes()
+        jdbc.update("delete from ssh_key"); jdbc.update("delete from deploy_key")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals(listOf("SHA256:RT1"), jdbc.queryForList("select fingerprint from ssh_key where user_id = 881303", String::class.java))
+        assertEquals(false, jdbc.queryForObject("select read_only from deploy_key where id = 22", Boolean::class.java))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

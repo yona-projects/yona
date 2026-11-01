@@ -140,6 +140,7 @@ class DataService(
                     cleanReviews(connection, imported)
                     cleanTokens(connection, imported)
                     cleanGpgKeys(connection, imported)
+                    cleanSshKeys(connection, imported)
                     cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
@@ -212,6 +213,25 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean GPG keys after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * SSH 키와 배포 키 테이블(추가 개발 항목 X-3, `decisions.md` D-66)을 가져온 뒤 바로잡는다. [cleanGpgKeys]와 같은 이유로, 파일에 사용자(프로젝트)가 있는데 이 테이블이 없으면
+     * 비우고 없는 사용자(프로젝트)를 가리키는 행은 지운다.
+     */
+    private fun cleanSshKeys(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("N4USER" in imported && "SSH_KEY" !in imported) statement.executeUpdate("delete from ssh_key")
+                if ("PROJECT" in imported && "DEPLOY_KEY" !in imported) statement.executeUpdate("delete from deploy_key")
+                statement.executeUpdate("delete from ssh_key where user_id not in (select id from n4user)")
+                statement.executeUpdate("delete from deploy_key where project_id not in (select id from project)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean SSH keys after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }
