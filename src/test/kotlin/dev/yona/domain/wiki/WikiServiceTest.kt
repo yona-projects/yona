@@ -276,6 +276,63 @@ class WikiServiceTest {
         assertFailsWith<WikiPageNotFoundException> { service.compare(project, "Home", "zzz", "yyy") }
     }
 
+    // --- 이름 바꾸기를 따라가는 이력 (D-61) ---
+
+    @Test
+    fun `이름을 바꾼 페이지의 이력은 바꾸기 전 커밋까지 따라간다`() {
+        service.create(project, bob, "A", "a1\n", null)
+        service.update(project, bob, "A", null, "a2\n", "고침A")
+        service.update(project, bob, "A", "B", "a2\n", null)
+        service.update(project, bob, "B", null, "b3\n", "고침B")
+        assertEquals(listOf("고침B", "Rename A to B", "고침A", "Create A"), service.history(project, "B", 0, 10).map { it.shortMessage })
+        assertEquals(listOf("고침A", "Create A"), service.history(project, "B", 1, 2).map { it.shortMessage })
+    }
+
+    @Test
+    fun `이름을 바꾸기 전의 이름으로 보면 바꾸기까지의 이력이 나온다`() {
+        service.create(project, bob, "A", "a1\n", null)
+        service.update(project, bob, "A", "B", "a1\n", null)
+        assertEquals(listOf("Rename A to B", "Create A"), service.history(project, "A", 0, 10).map { it.shortMessage })
+    }
+
+    @Test
+    fun `바꾸기 전 커밋의 diff도 새 이름으로 본다`() {
+        service.create(project, bob, "A", "line1\n", null)
+        service.update(project, bob, "A", null, "line1\nline2\n", null)
+        service.update(project, bob, "A", "B", "line1\nline2\n", null)
+        val ids = service.history(project, "B", 0, 10).map { it.id }
+        assertContains(service.diff(project, "B", ids[1]), "+line2")
+        assertContains(service.diff(project, "B", ids[2]), "+line1")
+    }
+
+    @Test
+    fun `이름을 바꾼 커밋의 diff는 이름 바꾸기로 보인다`() {
+        service.create(project, bob, "A", "line1\nline2\nline3\nline4\n", null)
+        service.update(project, bob, "A", "B", "line1\nline2\nline3\nline4\n", null)
+        val diff = service.diff(project, "B", service.history(project, "B", 0, 10).first().id)
+        assertContains(diff, "rename from A.md")
+        assertContains(diff, "rename to B.md")
+    }
+
+    @Test
+    fun `이름을 바꾸기 전과 후의 리비전을 비교하면 바뀐 줄만 보인다`() {
+        service.create(project, bob, "A", "line1\nline2\nline3\nline4\n", null)
+        service.update(project, bob, "A", "B", "line1\nline2\nline3\nline4\n", null)
+        service.update(project, bob, "B", null, "line1\nline2\nline3\nline4\nline5\n", null)
+        val ids = service.history(project, "B", 0, 10).map { it.id }
+        val diff = service.compare(project, "B", ids.last(), ids.first())
+        assertContains(diff, "+line5")
+        assertFalse(diff.contains("+line1"), diff)
+    }
+
+    @Test
+    fun `지웠다가 같은 이름으로 다시 만들어도 이력이 이어진다`() {
+        service.create(project, bob, "A", "1", null)
+        service.delete(project, bob, "A", null)
+        service.create(project, bob, "A", "2", null)
+        assertEquals(listOf("Create A", "Delete A", "Create A"), service.history(project, "A", 0, 10).map { it.shortMessage })
+    }
+
     // --- 사용할 수 없는 위키 ---
 
     @Test

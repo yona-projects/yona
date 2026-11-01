@@ -7,7 +7,10 @@ import dev.yona.domain.user.User
 import dev.yona.repository.CommitInfo
 import dev.yona.repository.WikiRepositories
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.diff.DiffConfig
+import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
+import org.eclipse.jgit.revwalk.RenameCallback
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.eclipse.jgit.lib.Constants
@@ -21,7 +24,9 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.treewalk.EmptyTreeIterator
 import org.eclipse.jgit.treewalk.TreeWalk
+import org.eclipse.jgit.revwalk.FollowFilter
 import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.treewalk.filter.PathFilterGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
@@ -166,34 +171,40 @@ class WikiService(
     }
 
     /**
-     * 페이지 파일을 바꾼 커밋을 최신순으로 돌려준다. 지워진 페이지의 이력도 나온다. 이름 바꾸기 전 이력은 따라가지 않는다.
-     * [page]는 0부터 센다.
+     * 페이지 파일을 바꾼 커밋을 최신순으로 돌려준다. 지워진 페이지의 이력도 나오고, 이름을 바꾼 페이지는 바꾸기 전 이름의 커밋까지 따라간다
+     * (`git log --follow`, D-61). 예전 이름으로 부르면 그 이름이 가리키던 때까지의 이력이다. [page]는 0부터 센다.
      */
     fun history(project: Project, title: String, page: Int, size: Int): List<CommitInfo> {
         val name = nameOrNull(title) ?: return emptyList()
         return readRepository(project, emptyList()) { repo ->
-            if (repo.resolve(HEAD_COMMIT) == null) return@readRepository emptyList()
-            Git(repo).log().addPath(name + EXTENSION).setSkip(page * size).setMaxCount(size).call().map { info(it) }
+            followed(repo, name + EXTENSION).drop(page * size).take(size).map { it.info }
         }
     }
 
-    /** [commitId] 커밋이 이 페이지에 가한 변경을 통합 diff 글로 돌려준다. 첫 커밋이면 전부 추가이다. 변경이 없으면 빈 글이다. */
+    /**
+     * [commitId] 커밋이 이 페이지에 가한 변경을 통합 diff 글로 돌려준다. 첫 커밋이면 전부 추가이고, 이름을 바꾼 커밋은 이름 바꾸기로 보인다. 바꾸기 전 이름의 커밋도
+     * 새 이름으로 볼 수 있다. 변경이 없으면 빈 글이다.
+     */
     fun diff(project: Project, title: String, commitId: String): String {
         val name = nameOrNull(title) ?: throw WikiPageNotFoundException("위키 페이지를 찾을 수 없습니다: $title")
         return readRepository(project, null) { repo ->
             val commit = resolveCommit(repo, commitId) ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $commitId")
             val parent = RevWalk(repo).use { walk -> walk.parseCommit(commit).parents.firstOrNull()?.let { walk.parseCommit(it).id } }
-            formatDiff(repo, parent, commit, name + EXTENSION)
+            val chain = followed(repo, name + EXTENSION)
+            val index = chain.indexOfFirst { it.info.id == commit.name }
+            val paths = if (index < 0) listOf(name + EXTENSION) else listOfNotNull(chain[index].path, chain.getOrNull(index + 1)?.path).distinct()
+            formatDiff(repo, parent, commit, paths)
         } ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $commitId")
     }
 
-    /** [revA]에서 [revB]로 가며 이 페이지가 바뀐 내용을 통합 diff 글로 돌려준다. */
+    /** [revA]에서 [revB]로 가며 이 페이지가 바뀐 내용을 통합 diff 글로 돌려준다. 그 사이에 이름이 바뀌었으면 이름 바꾸기로 보인다. */
     fun compare(project: Project, title: String, revA: String, revB: String): String {
         val name = nameOrNull(title) ?: throw WikiPageNotFoundException("위키 페이지를 찾을 수 없습니다: $title")
         return readRepository(project, null) { repo ->
             val a = resolveCommit(repo, revA) ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $revA")
             val b = resolveCommit(repo, revB) ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $revB")
-            formatDiff(repo, a, b, name + EXTENSION)
+            val paths = followed(repo, name + EXTENSION).map { it.path }.distinct().ifEmpty { listOf(name + EXTENSION) }
+            formatDiff(repo, a, b, paths)
         } ?: throw WikiPageNotFoundException("리비전을 찾을 수 없습니다: $revA")
     }
 
@@ -215,18 +226,50 @@ class WikiService(
         null
     }
 
-    private fun formatDiff(repo: Repository, from: ObjectId?, to: ObjectId, path: String): String {
+    private fun formatDiff(repo: Repository, from: ObjectId?, to: ObjectId, paths: List<String>): String {
         val out = ByteArrayOutputStream()
         RevWalk(repo).use { walk ->
             DiffFormatter(out).use { formatter ->
                 formatter.setRepository(repo)
-                formatter.pathFilter = PathFilter.create(path)
+                formatter.pathFilter = if (paths.size == 1) PathFilter.create(paths.single()) else PathFilterGroup.createFromStrings(paths)
+                formatter.isDetectRenames = true
                 val oldTree = if (from == null) EmptyTreeIterator() else CanonicalTreeParser().apply { reset(repo.newObjectReader(), walk.parseCommit(from).tree) }
                 val newTree = CanonicalTreeParser().apply { reset(repo.newObjectReader(), walk.parseCommit(to).tree) }
                 formatter.format(formatter.scan(oldTree, newTree))
             }
         }
         return out.toString(Charsets.UTF_8)
+    }
+
+    /** 이름 바꾸기를 따라간 이력의 한 줄이다. [path]는 그 커밋 시점의 파일 경로이다. */
+    private class Followed(val info: CommitInfo, val path: String)
+
+    /**
+     * [file]을 바꾼 커밋을 최신순으로 모으되 이름 바꾸기를 따라간다(`git log --follow`). 이력은 한 줄기라고 본다. 따라가다 이름이 바뀌는 커밋을 만나면 그 이전 커밋의 경로는
+     * 옛 이름이다.
+     */
+    private fun followed(repo: Repository, file: String): List<Followed> {
+        val head = repo.resolve(HEAD_COMMIT) ?: return emptyList()
+        val filter = FollowFilter.create(file, repo.config.get(DiffConfig.KEY))
+        // 이름 바꾸기를 만나면 JGit이 따라갈 경로를 옛 이름으로 바꾸고 알려 준다(필터 객체의 경로는 처음 값 그대로이다)
+        var path = file
+        filter.renameCallback = object : RenameCallback() {
+            override fun renamed(entry: DiffEntry) {
+                path = entry.oldPath
+            }
+        }
+        val result = mutableListOf<Followed>()
+        RevWalk(repo).use { walk ->
+            walk.treeFilter = filter
+            walk.markStart(walk.parseCommit(head))
+            // 반복자는 다음 커밋을 미리 읽어 이름 바꾸기 알림이 한 칸 먼저 오므로 `next()`를 직접 부른다
+            while (true) {
+                val before = path
+                val commit = walk.next() ?: break
+                result += Followed(info(commit), before)
+            }
+        }
+        return result
     }
 
     private fun lastCommitOf(repo: Repository, at: ObjectId, path: String): CommitInfo? =

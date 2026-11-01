@@ -28,8 +28,8 @@ title: 프로젝트 위키 (X-17)
 | `pages`, `search` | 제목순 목록, 제목 부분 일치(대소문자 무시) |
 | `page(title, revision?)` | 한 건과 마지막 커밋. 없으면 `null` |
 | `create`, `update`, `delete` | 커밋 한 개. 이름 바꾸기는 `update`의 `newTitle`로 같은 커밋에 담는다 |
-| `history(title, page, size)` | 페이지 파일의 커밋, 최신순. 이름 바꾸기 이전은 따라가지 않는다 |
-| `diff(title, commitId)`, `compare(title, revA, revB)` | 통합 diff 글 |
+| `history(title, page, size)` | 페이지 파일의 커밋, 최신순. 이름을 바꾼 페이지는 바꾸기 전 이름의 커밋까지 따라간다(`git log --follow`, D-61) |
+| `diff(title, commitId)`, `compare(title, revA, revB)` | 통합 diff 글. 바꾸기 전 커밋도 새 이름으로 보고, 이름을 바꾼 커밋과 그 사이를 비교하면 이름 바꾸기로 보인다 |
 | `sidebar`, `footer` | 특수 페이지 내용 |
 
 기본 커밋 메시지는 `Create <이름>`, `Update <이름>`, `Rename <옛 이름> to <새 이름>`, `Delete <이름>`이다. 저장하는 사이에 다른 커밋이 들어오면 `WikiConflictException`이다. 권한은 서비스가 아니라 웹과 REST 계층이 확인한다.
@@ -45,7 +45,7 @@ title: 프로젝트 위키 (X-17)
 | `POST wiki/pages` `{title, content?, message?}` | 만들기 | 201, 400, 409 |
 | `PATCH wiki/pages/{name}` `{title?, content?, message?}` | 본문 고치기와 이름 바꾸기(한 커밋). 하나는 있어야 한다 | 200, 400, 404, 409 |
 | `DELETE wiki/pages/{name}?message=` | 지우기 | 204, 404 |
-| `GET wiki/pages/{name}/history?page=&size=` | 이력(최신순, 기본 30, 최대 100) | 200 |
+| `GET wiki/pages/{name}/history?page=&size=` | 이력(최신순, 기본 30, 최대 100, 이름 바꾸기를 따라간다) | 200 |
 | `GET wiki/pages/{name}/diff?commit=` 또는 `?from=&to=` | 통합 diff 글, 두 리비전 비교 | 200, 400, 404 |
 
 CLI의 옛 경로(`/api/v1/.../wiki`, `PUT`과 `newTitle`)와 다른 점은 W5에서 CLI를 이 계약에 맞춘다. 시험은 `ExternalWikiApiTest`, 문서 구조는 `OpenApiDocumentTest`가 본다.
@@ -68,7 +68,7 @@ GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되�
 - 입력 오류(제목 규칙, 같은 이름, 동시 수정, 위키 사용 불가)는 폼을 다시 보여 주고 입력을 보존한다(400 또는 409). 권한이 없으면 403이다.
 - 화면 글은 `wiki.*`, `menu.wiki` 키이고 5개 언어 번들에 모두 있다(`MessageParityTest`의 추가 키 목록). 스타일은 `scss/_wiki.scss`이다.
 - 시험은 `WikiViewTest`. 확인 도구(`e2e`)에는 `wiki-*` 화면 8개와 위키 고정 데이터(`seedWiki`)를 올렸다.
-- 제외한 것: 위키 링크 문법(`[[Page]]`), 첨부 파일 올리기, 전체 페이지 목록 화면(Forgejo의 `_pages`), 이름 바꾸기를 따라가는 이력.
+- 제외한 것: 전체 페이지 목록 화면(Forgejo의 `_pages`). 위키 링크와 첨부는 D-61에서 더한다.
 
 ## CLI (`../yona-cli`, W5)
 
@@ -89,7 +89,7 @@ GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되�
 - 전체 시험 3,149건 통과(실패 0, 2026-11-01).
 - 전 화면 순회 `wiki-menu`: 132/132 통과, 이전 기준(`theme-bs5`)과 비교해 새 문제 0, 고친 문제 0, 상태 변화 0, 사라진 화면 0, 새 화면 11(위키). 메뉴에 `Wiki` 탭이 모든 프로젝트 화면에 더해졌지만 깨진 곳은 없다.
 - Playwright로 홈, 편집, 이력, 비교, 복제 주소 상자를 확인했다. 실제 서버에서 `seedWiki`(REST로 페이지 5개와 수정 이력)가 동작했다.
-- 남은 한계: 하위 경로, 위키 링크 문법(`[[Page]]`), 첨부 파일, 위키 변경 알림과 웹훅, 이름 바꾸기를 따라가는 이력, 사이트 데이터 내보내기에 위키가 없다(저장소 디렉터리를 따로 백업한다).
+- 남은 한계: 하위 경로, 위키 변경 알림과 웹훅, 사이트 데이터 내보내기에 위키가 없다(저장소 디렉터리를 따로 백업한다).
 
 ## 켜기와 끄기 (D-61)
 
