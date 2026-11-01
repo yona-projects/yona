@@ -908,3 +908,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-9 2차 B2
 해시 v2(`content_hash`)와 git 이벤트 비움(`redacted_at`, 보관 파일 `audit-redact-*.jsonl`)을 구현했다. 시험 `AuditRedactionTest` 12건을 포함한 감사 시험이 통과한다.
+
+## [2026-11-01] X-9 2차 B3
+`GitHooks`가 git.push, git.force_push, git.ref_deleted, git.push_rejected를 감사 기록으로 남긴다. 복제와 가져오기는 제외한다. `GitHttpTest`에 5건을 추가했다.

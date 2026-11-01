@@ -78,6 +78,7 @@ class GitHttpTest {
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
     @Autowired private lateinit var recentVisits: dev.yona.domain.project.RecentVisitService
     @Autowired private lateinit var recentProjects: dev.yona.domain.project.RecentProjectRepository
+    @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
 
     @TempDir lateinit var work: File
 
@@ -111,6 +112,7 @@ class GitHttpTest {
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
         apiTokenRepository.deleteAll()
+        auditLogs.deleteAllInBatch()
         tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
@@ -193,6 +195,63 @@ class GitHttpTest {
     fun `프로젝트 구성원이 아닌 사용자는 푸시할 수 없다`() {
         val error = assertFailsWith<TransportException> { push(project, outsider) }
         assertTrue(error.message!!.contains("not permitted") || error.message!!.contains("403"), error.message)
+    }
+
+    private fun gitEvents(action: String) = auditLogs.findAll().filter { it.action == action && it.projectId == project.id }
+
+    @Test
+    fun `푸시하면 git push 감사 기록에 행위자와 ref가 남는다 (X-9 B3)`() {
+        push(project, member, branch = "feature")
+        val event = gitEvents("git.push").single()
+        assertEquals(member.loginId, event.actorLogin)
+        assertEquals("${project.owner}/${project.name}", event.targetLabel)
+        assertTrue(event.details!!.contains("refs/heads/feature") && event.details!!.contains("\"type\":\"CREATE\""), event.details)
+    }
+
+    @Test
+    fun `브랜치와 태그를 지우면 ref deleted 기록이 남고 종류를 구분한다 (X-9 B3)`() {
+        push(project, member, branch = "feature"); push(project, member, branch = "t1", ref = "refs/tags/t1")
+        val dir = File(work, "del-${counter.incrementAndGet()}")
+        Git.init().setDirectory(dir).call().use { git ->
+            for (ref in listOf("refs/heads/feature", "refs/tags/t1")) {
+                git.push().setRemote(url()).setRefSpecs(RefSpec(":$ref")).setCredentialsProvider(credentials(member)).call()
+            }
+        }
+        val kinds = gitEvents("git.ref_deleted").map { it.details!! }
+        assertEquals(2, kinds.size)
+        assertTrue(kinds.any { it.contains("\"kind\":\"branch\"") && it.contains("refs/heads/feature") })
+        assertTrue(kinds.any { it.contains("\"kind\":\"tag\"") && it.contains("refs/tags/t1") })
+    }
+
+    @Test
+    fun `강제 푸시는 force push 기록이 따로 남는다 (X-9 B3)`() {
+        push(project, member, branch = "feature")
+        val dir = File(work, "force-${counter.incrementAndGet()}")
+        Git.init().setDirectory(dir).setInitialBranch("feature").call().use { git ->
+            File(dir, "b.txt").writeText("other")
+            git.add().addFilepattern("b.txt").call()
+            git.commit().setMessage("diverged").setAuthor("t", "t@example.com").setCommitter("t", "t@example.com").call()
+            git.push().setRemote(url()).setForce(true).setRefSpecs(RefSpec("refs/heads/feature:refs/heads/feature")).setCredentialsProvider(credentials(member)).call()
+        }
+        assertEquals(1, gitEvents("git.force_push").size)
+        assertEquals(2, gitEvents("git.push").size)
+    }
+
+    @Test
+    fun `예약된 ref로 거부된 푸시는 거부 기록으로 남는다 (X-9 B3)`() {
+        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yobi/test") }
+        val event = gitEvents("git.push_rejected").single()
+        assertEquals(dev.yona.domain.audit.AuditOutcome.DENIED, event.outcome)
+        assertTrue(event.details!!.contains("refs/yobi/test") && event.details!!.contains("reserved"), event.details)
+        assertTrue(gitEvents("git.push").isEmpty())
+    }
+
+    @Test
+    fun `복제는 감사 기록을 남기지 않는다 (X-9 B3)`() {
+        push(project, member)
+        val before = auditLogs.findAll().filter { it.action.startsWith("git.") }.size
+        clone(project, member)
+        assertEquals(before, auditLogs.findAll().filter { it.action.startsWith("git.") }.size)
     }
 
     @Test

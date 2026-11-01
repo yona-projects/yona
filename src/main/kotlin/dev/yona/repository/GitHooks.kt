@@ -41,6 +41,9 @@ object ReceiveCommands {
  * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부하고, 규칙 묶음이 막는 푸시를 거부한다.
  * 푸시 뒤(순서대로): 프로젝트의 마지막 푸시 시각을 갱신하고, 최근 푸시한 브랜치를 기록하고, 이슈 언급 이벤트, 풀 리퀘스트 확인, 새 커밋 알림을
  * 요청과 별개로 시작한다([PostReceiveJobs]).
+ *
+ * 감사 로그(X-9, D-63)에는 푸시(`git.push`), 강제 푸시(`git.force_push`), 브랜치와 태그 삭제(`git.ref_deleted`), 거부된 푸시(`git.push_rejected`)를 남긴다.
+ * 복제와 가져오기는 양이 많아 남기지 않는다. 푸시는 이미 반영됐으므로 기록이 실패해도 푸시를 막지 않는다.
  */
 @Component
 class GitHooks(
@@ -49,7 +52,8 @@ class GitHooks(
     private val pullRequests: PullRequestRepository,
     private val transactions: TransactionTemplate,
     private val postReceiveJobs: PostReceiveJobs,
-    private val accessControl: dev.yona.access.AccessControl
+    private val accessControl: dev.yona.access.AccessControl,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /**
@@ -62,6 +66,7 @@ class GitHooks(
             val ref = command.refName
             if (ref == "refs/yobi" || ref.startsWith("refs/yobi/")) {
                 command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, "refs/yobi/* is reserved for internal use")
+                recordRejected(project, ref, "refs/yobi/* is reserved for internal use")
                 continue
             }
             if (!ref.startsWith(Constants.R_HEADS)) continue
@@ -80,6 +85,7 @@ class GitHooks(
                 else -> "protected branch: direct pushes to '$branch' are not allowed, open a pull request instead (ruleset '${rule.name}')"
             }
             command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, message)
+            recordRejected(project, ref, message)
         }
     }
 
@@ -88,11 +94,35 @@ class GitHooks(
         listOf<(Collection<ReceiveCommand>) -> Unit>(
             { updateLastPushedDate(project) },
             { updateRecentlyPushedBranch(project, it) },
-            { postReceiveJobs.afterPush(project, sender, it) }
+            { postReceiveJobs.afterPush(project, sender, it) },
+            { recordPushed(project, it) }
         ).forEach { hook ->
             try { hook(commands) } catch (e: Exception) { org.slf4j.LoggerFactory.getLogger(javaClass).warn("푸시 뒤 훅이 실패했다: {}", project.name, e) }
         }
     }
+
+    /** 거부한 푸시를 감사 기록으로 남긴다. 실패해도 푸시 처리에는 영향이 없다. */
+    private fun recordRejected(project: Project, ref: String, reason: String) {
+        audit.recordIndependent(dev.yona.domain.audit.auditProject("git.push_rejected", project, mapOf("ref" to ref, "reason" to reason), dev.yona.domain.audit.AuditOutcome.DENIED))
+    }
+
+    /** 반영된 푸시를 감사 기록으로 남긴다: 만들거나 갱신한 ref는 한 건, 강제 푸시와 삭제는 ref마다 따로 남긴다. */
+    private fun recordPushed(project: Project, commands: Collection<ReceiveCommand>) {
+        val pushed = commands.filter { it.type != ReceiveCommand.Type.DELETE }
+        if (pushed.isNotEmpty()) {
+            audit.recordIndependent(dev.yona.domain.audit.auditProject("git.push", project, mapOf("refs" to pushed.map { refDetail(it) })))
+        }
+        commands.filter { it.type == ReceiveCommand.Type.UPDATE_NONFASTFORWARD }.forEach {
+            audit.recordIndependent(dev.yona.domain.audit.auditProject("git.force_push", project, refDetail(it)))
+        }
+        commands.filter { it.type == ReceiveCommand.Type.DELETE }.forEach {
+            val kind = if (it.refName.startsWith(Constants.R_TAGS)) "tag" else "branch"
+            audit.recordIndependent(dev.yona.domain.audit.auditProject("git.ref_deleted", project, refDetail(it) + ("kind" to kind)))
+        }
+    }
+
+    private fun refDetail(command: ReceiveCommand): Map<String, Any?> =
+        mapOf("ref" to command.refName, "type" to command.type.name, "old" to command.oldId.name, "new" to command.newId.name)
 
     private fun updateLastPushedDate(project: Project) {
         transactions.executeWithoutResult {

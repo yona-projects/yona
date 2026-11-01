@@ -138,3 +138,14 @@ server:
 - `git.*` 이벤트는 `yona.audit-git-retention-days`(기본 90, 0이면 따로 비우지 않음)가 지나면 비운다. 비우기 전 전체 내용을 `<데이터>/audit/archive/audit-redact-<처음 번호>-<끝 번호>.jsonl`에 `fsync`한 뒤 행위자, 대상, 조직과 프로젝트 번호, IP, 사용자 에이전트, 요청 번호, 토큰, 상세를 비우고 `redacted_at`을 적는다. 행과 해시는 남아 사슬 검증을 통과한다.
 - 검증은 비우지 않은 v2 행의 내용을 다시 계산해 저장된 내용 해시와 맞추고(어긋나면 `reason=content`), 사슬은 저장된 내용 해시로 잇는다(어긋나면 `hash`). 비운 행의 내용 해시는 보관 파일의 원본으로 다시 계산해 확인할 수 있다.
 - 이는 "추가 전용"의 두 번째 예외이다(첫째는 오래된 앞부분 삭제). 비운 행은 보안 이벤트의 보존 기간이 지나 앞부분 삭제로 지워질 때 물리적으로 사라진다. 보존 처리(`AuditRetention.purge`)는 먼저 비우고 그 뒤 앞부분을 지운다.
+
+## B3 git 전송 이벤트 (구현)
+
+`GitHooks`(푸시 전후 훅)가 남기며 복제와 가져오기는 양이 많아 기록하지 않는다. 인증 실패는 1차의 `auth.basic_failure`가 이미 남긴다. 기록이 실패해도 푸시는 막지 않는다(독립 기록). 보존은 `yona.audit-git-retention-days`(기본 90)이고 지나면 비운다(B2).
+
+| 조치 | 시점 | 상세 |
+|---|---|---|
+| `git.push` | 만들기나 갱신이 반영됐을 때 한 번 | `refs`: ref마다 `ref`, `type`(CREATE, UPDATE, UPDATE_NONFASTFORWARD), `old`, `new` |
+| `git.force_push` | 빨리 감기가 아닌 갱신(강제 푸시)마다 | `ref`, `type`, `old`, `new` |
+| `git.ref_deleted` | 브랜치나 태그를 지웠을 때 ref마다 | `ref`, `old`, `kind`(`branch`, `tag`) |
+| `git.push_rejected` | 규칙 묶음이나 예약 ref(`refs/yobi`)가 푸시를 거부했을 때(결과 DENIED) | `ref`, `reason` |
