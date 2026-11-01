@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-4(decisions.md D-65): GPG 키 목록 화면. 행 동작은 삭제 버튼 하나뿐이다(편집과 상세 없음). 추가는 별도 화면(edit-gpg-new.html)에서 한다
+  모델: title, keys(GpgKeyRow 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::gpgPage})}">
+<th:block th:fragment="gpgPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{gpgKey.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <p class="text-body-secondary" th:text="#{gpgKey.description}"></p>
+
+        <table id="gpg-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
+            <thead>
+            <tr>
+                <th th:text="#{gpgKey.name}"></th><th th:text="#{gpgKey.keyId}"></th><th th:text="#{gpgKey.fingerprint}"></th>
+                <th th:text="#{gpgKey.emails}"></th><th th:text="#{gpgKey.createdDate}"></th><th th:text="#{gpgKey.expires}"></th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="k : ${keys}" class="gpg-row" th:attr="data-id=${k.id}">
+                <td class="gpg-name" th:text="${k.name}"></td>
+                <td><code class="gpg-key-id" th:text="${k.keyId}"></code></td>
+                <td><code class="gpg-fingerprint" th:text="${k.fingerprint}"></code></td>
+                <td class="gpg-emails" th:text="${k.emails}"></td>
+                <td th:text="${k.createdText}"></td>
+                <td>
+                    <span th:if="${k.expiresText == null}" th:text="#{gpgKey.noExpiration}"></span>
+                    <span th:if="${k.expiresText != null}"><th:block th:text="${k.expiresText}"></th:block> <em th:if="${k.expired}" th:text="'(' + #{gpgKey.expired} + ')'"></em></span>
+                </td>
+                <td>
+                    <form method="post" th:action="@{/user/gpg/{id}/delete(id=${k.id})}" th:attr="onsubmit='return confirm(\'' + #{gpgKey.delete.confirm} + '\');'">
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{gpgKey.delete}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{gpgKey.list.empty}"></p>
+
+        <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+    </div>
+</div>
+</th:block>
+</html>

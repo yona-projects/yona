@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-4(decisions.md D-65): GPG 공개키 추가 화면(이름, 공개키). 목록(edit-gpg.html)과 따로 둔다
+  모델: title, gpgError(입력 오류의 메시지 키), gpgName, gpgPublicKey(오류일 때 입력을 되돌려 준다)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::gpgPage})}">
+<th:block th:fragment="gpgPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{gpgKey.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <div th:if="${gpgError != null}" class="alert alert-danger" th:text="#{${gpgError}}"></div>
+        <form id="gpg-create" method="post" th:action="@{/user/gpg}">
+            <h4 th:text="#{gpgKey.add}"></h4>
+            <div class="mb-3">
+                <label for="gpg-name" class="form-label" th:text="#{gpgKey.name}"></label>
+                <input id="gpg-name" type="text" name="name" maxlength="100" class="form-control" th:value="${gpgName}">
+                <div class="form-text" th:text="#{gpgKey.name.help}"></div>
+            </div>
+            <div class="mb-3">
+                <label for="gpg-public-key" class="form-label" th:text="#{gpgKey.publicKey}"></label>
+                <textarea id="gpg-public-key" name="publicKey" rows="12" class="form-control font-monospace" spellcheck="false"
+                          placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----" th:text="${gpgPublicKey}"></textarea>
+                <div class="form-text" th:text="#{gpgKey.publicKey.help}"></div>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success" th:text="#{gpgKey.add.submit}"></button>
+                <a th:href="@{/user/editform/gpg}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            </div>
+        </form>
+    </div>
+</div>
+</th:block>
+</html>
