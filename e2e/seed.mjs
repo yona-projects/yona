@@ -117,12 +117,16 @@ if (process.argv[1] && process.argv[1].endsWith('seed.mjs')) {
 /** 위키(X-17) 고정 데이터를 심는다: 홈, 안내 페이지 두 개, 사이드바, 푸터, 홈의 수정 이력(비교 화면용). 이미 있으면(409) 건너뛴다. */
 export async function seedWiki(admin, P, fx) {
   const ok409 = { ok: [200, 201, 204, 409] };
+  // 위키는 새 프로젝트만 켜져 있다. 예전에 만든 고정 데이터도 쓰도록 켠다(D-61).
+  await admin.api('PATCH', P, { menus: { wiki: true } });
   const wiki = async (title, content, message) => admin.api('POST', `${P}/wiki/pages`, { title, content, message }, ok409);
-  await wiki('Home', '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다.\n\n- [설치 방법](Install-Guide)\n- [자주 묻는 질문](FAQ)\n', '홈 만들기');
+  await wiki('Home', '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다.\n\n- [설치 방법](Install-Guide)\n- [[자주 묻는 질문|FAQ]]\n- [[아직 없는 페이지]]\n\n![로고](uploads/logo.png)\n', '홈 만들기');
   await wiki('Install Guide', '# 설치 방법\n\n```sh\ngit clone https://example.com/web.git\n```\n\n| 단계 | 설명 |\n|---|---|\n| 1 | 내려받기 |\n| 2 | 실행 |\n', '설치 안내');
   await wiki('FAQ', '## 자주 묻는 질문\n\n**Q.** 위키는 어디에 저장되나요?\n\n**A.** 프로젝트마다 별도의 git 저장소에 저장됩니다.\n', 'FAQ 추가');
   await wiki('_Sidebar', '**바로 가기**\n\n- [홈](Home)\n- [FAQ](FAQ)\n', '사이드바');
   await wiki('_Footer', '문의는 이슈로 남겨 주세요.', '푸터');
-  await admin.api('PATCH', `${P}/wiki/pages/Home`, { content: '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다. 최근에 고쳤습니다.\n\n- [설치 방법](Install-Guide)\n- [자주 묻는 질문](FAQ)\n- [변경 이력](Home/_history)\n', message: '홈 고치기' });
+  const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==', 'base64');
+  await admin.apiUpload(`${P}/wiki/files`, 'logo.png', PNG);
+  await admin.api('PATCH', `${P}/wiki/pages/Home`, { content: '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다. 최근에 고쳤습니다.\n\n- [설치 방법](Install-Guide)\n- [[자주 묻는 질문|FAQ]]\n- [[아직 없는 페이지]]\n- [변경 이력](Home/_history)\n\n![로고](uploads/logo.png)\n', message: '홈 고치기' });
   fx.wikiRevisions = ((await admin.api('GET', `${P}/wiki/pages/Home/history`)).history || []).map((c) => c.id);
 }

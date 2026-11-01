@@ -51,6 +51,16 @@ export class Session {
     try { return text ? JSON.parse(text) : null; } catch { return text; }
   }
 
+  /** 토큰으로 REST에 파일 하나를 멀티파트(`file` 항목)로 올린다. 허용 상태는 `ok`이다. */
+  async apiUpload(path, fileName, bytes, { ok = [200, 201] } = {}) {
+    const form = new FormData();
+    form.append('file', new Blob([bytes]), fileName);
+    const res = await this.#fetch('/-_-api/v1' + path, { method: 'POST', body: form });
+    const text = await res.text();
+    if (!ok.includes(res.status)) throw new Error(`POST ${path} -> ${res.status} ${text.slice(0, 300)}`);
+    try { return text ? JSON.parse(text) : null; } catch { return text; }
+  }
+
   /** 세션 쿠키를 Playwright 컨텍스트에 심을 형태로 돌려준다. */
   playwrightCookies() { return [...this.cookies].map(([name, value]) => ({ name, value, url: this.base })); }
 }
