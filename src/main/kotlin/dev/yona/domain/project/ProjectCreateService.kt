@@ -38,7 +38,8 @@ class ProjectCreateService(
     private val watchService: WatchService,
     private val recentVisits: RecentVisitService,
     private val repositories: RepositoryService,
-    private val projectService: ProjectService
+    private val projectService: ProjectService,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /**
@@ -120,6 +121,7 @@ class ProjectCreateService(
         saveMenuSetting(project, form.menus)
         watchService.watch(creator, ResourceType.PROJECT, requireNotNull(project.id).toString())
         recentVisits.visits(creator, project)
+        audit.record(dev.yona.domain.audit.auditProject("project.created", project, mapOf("scope" to project.projectScope?.name, "vcs" to project.vcs, "menus" to form.menus.sorted())))
         return project
     }
 

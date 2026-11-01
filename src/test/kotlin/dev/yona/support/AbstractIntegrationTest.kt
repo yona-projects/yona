@@ -13,7 +13,7 @@ import org.springframework.test.context.DynamicPropertySource
  * 새 저장소의 기본 브랜치는 `master`로 둔다(`yona.git-default-branch`). 기존 시험이 v1.6의 `master`를 가정하고 쓰였기 때문이며, 기본값 `main`은 `GitRepositoryServiceTest`와 `DefaultBranchMainTest`가 검증한다.
  * 스키마는 엔티티에서 생성하고(`create-drop`) 컨텍스트가 닫힐 때 지운다.
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.secret=test-secret", "yona.git-default-branch=master"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.secret=test-secret", "yona.git-default-branch=master", "yona.audit-file-enabled=false"])
 abstract class AbstractIntegrationTest {
 
     companion object {

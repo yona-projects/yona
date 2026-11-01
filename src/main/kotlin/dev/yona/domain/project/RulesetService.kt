@@ -28,7 +28,7 @@ data class RulesetInput(
  * 규칙 묶음을 만들고 고치고 지운다(추가 개발 항목 X-34, `decisions.md` D-46). 프로젝트가 들고 있는 규칙 묶음 목록도 함께 갱신해 같은 트랜잭션 안의 판정이 바로 따른다.
  */
 @Service
-class RulesetService(private val rulesets: RulesetRepository) {
+class RulesetService(private val rulesets: RulesetRepository, private val audit: dev.yona.domain.audit.AuditRecorder) {
 
     /**
      * 입력이 올바르지 않은 항목의 이름 목록이다. 올바르면 비어 있다. 이름은 공백이 아닌 1~255자이고 프로젝트 안에서 유일해야 하며(고치는 중이면 [editingId] 자신은 제외),
@@ -61,6 +61,7 @@ class RulesetService(private val rulesets: RulesetRepository) {
     fun create(project: Project, input: RulesetInput): Ruleset {
         val created = rulesets.save(apply(Ruleset(project = project, createdDate = Date()), input))
         project.rulesets.add(created)
+        audit.record(rulesetEvent("project.ruleset_created", project, created, snapshot(created)))
         return created
     }
 
@@ -68,7 +69,11 @@ class RulesetService(private val rulesets: RulesetRepository) {
     @Transactional
     fun update(project: Project, id: Long, input: RulesetInput): Ruleset? {
         val ruleset = find(project, id) ?: return null
-        return rulesets.save(apply(ruleset, input))
+        val before = snapshot(ruleset)
+        val saved = rulesets.save(apply(ruleset, input))
+        val changes = dev.yona.domain.audit.AuditDetails.diff(before, snapshot(saved))
+        if (changes.isNotEmpty()) audit.record(rulesetEvent("project.ruleset_updated", project, saved, changes))
+        return saved
     }
 
     /** [project]의 규칙 묶음 [id]를 지운다. 없거나 다른 프로젝트의 규칙 묶음이면 `false`이다. */
@@ -77,11 +82,22 @@ class RulesetService(private val rulesets: RulesetRepository) {
         val ruleset = find(project, id) ?: return false
         project.rulesets.removeIf { it.id == ruleset.id }
         rulesets.delete(ruleset)
+        audit.record(rulesetEvent("project.ruleset_deleted", project, ruleset, mapOf("pattern" to ruleset.pattern)))
         return true
     }
 
     /** [project]의 규칙 묶음 [id]이다. 없거나 다른 프로젝트의 것이면 `null`이다. */
     fun find(project: Project, id: Long): Ruleset? = rulesets.findById(id).orElse(null)?.takeIf { it.project?.id == project.id }
+
+    /** 감사 로그에 비교할 규칙 묶음의 값이다. */
+    private fun snapshot(r: Ruleset): Map<String, Any?> = linkedMapOf(
+        "name" to r.name, "enforcement" to r.enforcement, "pattern" to r.pattern, "approvals" to r.requiredApprovals, "bypassAdmins" to r.bypassAdmins,
+        "restrictUpdates" to r.restrictUpdates, "restrictDeletions" to r.restrictDeletions, "blockForcePushes" to r.blockForcePushes, "requirePullRequest" to r.requirePullRequest,
+        "requireLinearHistory" to r.requireLinearHistory, "requireNoChangesRequested" to r.requireNoChangesRequested, "requireConversationResolution" to r.requireConversationResolution
+    )
+
+    private fun rulesetEvent(action: String, project: Project, ruleset: Ruleset, details: Map<String, Any?>) =
+        dev.yona.domain.audit.auditProject(action, project, details).copy(targetType = "ruleset", targetId = ruleset.id?.toString(), targetLabel = ruleset.name)
 
     private fun apply(ruleset: Ruleset, input: RulesetInput): Ruleset = ruleset.also {
         it.name = requireNotNull(input.name).trim()

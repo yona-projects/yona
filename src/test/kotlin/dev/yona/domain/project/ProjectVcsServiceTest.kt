@@ -28,7 +28,7 @@ class ProjectVcsServiceTest {
     private val postingService = mock(dev.yona.domain.board.PostingService::class.java)
     private val readme = mock(ProjectReadmeService::class.java)
     private val repositories = mock(RepositoryService::class.java)
-    private val service = ProjectVcsService(projects, postings, postingService, readme, repositories)
+    private val service = ProjectVcsService(projects, postings, postingService, readme, repositories, mock(dev.yona.domain.audit.AuditRecorder::class.java))
 
     @Test
     fun `서비스에는 트랜잭션이 걸려 있지 않다`() {

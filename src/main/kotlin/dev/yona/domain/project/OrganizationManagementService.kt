@@ -40,7 +40,8 @@ class OrganizationManagementService(
     private val favoriteOrganizations: FavoriteOrganizationRepository,
     private val repositories: RepositoryService,
     private val events: ApplicationEventPublisher,
-    private val sessionUsers: dev.yona.security.SessionUserCache
+    private val sessionUsers: dev.yona.security.SessionUserCache,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     @PersistenceContext
@@ -77,6 +78,7 @@ class OrganizationManagementService(
         assignRole(orgId, target, roles.getReferenceById(RoleType.ORG_MEMBER.id))
         cleanEnrolledUsers(organization, actor)
         events.publishEvent(OrganizationMemberRequestEvent(organization, target, RequestState.ACCEPT, actor))
+        audit.record(orgMemberEvent("org.member_added", organization, target, mapOf("role" to RoleType.ORG_MEMBER.name)))
         return null
     }
 
@@ -113,7 +115,14 @@ class OrganizationManagementService(
         }
         if (roleId == null) throw NullPointerException("role id")
         // v1.6 `OrganizationUser.assignRole`은 없는 역할 번호이면 아무것도 바꾸지 않고 넘어간다(그래도 204). 존재하는 역할이면 종류를 가리지 않고 받는다
-        roles.findById(roleId).orElse(null)?.let { assignRole(orgId, users.getReferenceById(userId), it) }
+        val before = organizationUsers.findFirstByOrganizationIdAndUserId(orgId, userId)?.role?.id
+        roles.findById(roleId).orElse(null)?.let {
+            assignRole(orgId, users.getReferenceById(userId), it)
+            if (before != it.id) {
+                val target = users.getReferenceById(userId)
+                audit.record(orgMemberEvent("org.member_role_changed", organization, target, mapOf("from" to orgRoleName(before), "to" to orgRoleName(it.id))))
+            }
+        }
         return null
     }
 
@@ -130,7 +139,10 @@ class OrganizationManagementService(
         }
         if (isLastAdmin(orgId, userId)) return "organization.member.atLeastOneAdmin"
 
-        organizationUsers.findFirstByOrganizationIdAndUserId(orgId, userId)?.let { organizationUsers.delete(it) }
+        organizationUsers.findFirstByOrganizationIdAndUserId(orgId, userId)?.let {
+            organizationUsers.delete(it)
+            audit.record(orgMemberEvent("org.member_removed", organization, users.getReferenceById(userId), mapOf("role" to orgRoleName(it.role?.id), "self" to (actor?.id == userId))))
+        }
         return null
     }
 
@@ -147,7 +159,10 @@ class OrganizationManagementService(
         ) {
             return "organization.member.atLeastOneAdmin"
         }
-        organizationUsers.findFirstByOrganizationIdAndUserId(orgId, requireNotNull(actor.id))?.let { organizationUsers.delete(it) }
+        organizationUsers.findFirstByOrganizationIdAndUserId(orgId, requireNotNull(actor.id))?.let {
+            organizationUsers.delete(it)
+            audit.record(orgMemberEvent("org.member_removed", organization, actor, mapOf("role" to orgRoleName(it.role?.id), "self" to true)))
+        }
         return null
     }
 
@@ -182,9 +197,15 @@ class OrganizationManagementService(
                 projects.save(project)
             }
         }
+        val before = mapOf("name" to organization.name, "descr" to organization.descr)
         organization.name = name
         organization.descr = descr
         organizations.save(organization)
+        val changes = linkedMapOf<String, Any?>().apply {
+            putAll(dev.yona.domain.audit.AuditDetails.diff(before, mapOf("name" to name, "descr" to descr)))
+            if (logoName != null && logo != null) put("logoChanged", true)
+        }
+        if (changes.isNotEmpty()) audit.record(dev.yona.domain.audit.auditOrganization("org.settings_changed", organization, changes))
 
         favoriteOrganizations.findByOrganizationId(orgId).forEach {
             it.organizationName = name
@@ -211,6 +232,7 @@ class OrganizationManagementService(
     /** 조직과 구성원 행, 가입 신청을 지운다. 즐겨찾기는 외래 키 규칙(`CASCADE`)으로 지워진다. */
     fun delete(organization: Organization) {
         val orgId = requireNotNull(organization.id)
+        audit.record(dev.yona.domain.audit.auditOrganization("org.deleted", organization))
         em.createNativeQuery("delete from user_enrolled_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from favorite_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from organization_user where organization_id = :id").setParameter("id", orgId).executeUpdate()
@@ -218,6 +240,11 @@ class OrganizationManagementService(
         em.flush()
         em.clear()
     }
+
+    private fun orgMemberEvent(action: String, organization: Organization, user: User, details: Map<String, Any?>) =
+        dev.yona.domain.audit.auditOrganization(action, organization, details).copy(targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId)
+
+    private fun orgRoleName(id: Long?): String? = id?.let { value -> RoleType.entries.firstOrNull { it.id == value }?.name ?: value.toString() }
 
     private fun isLastAdmin(orgId: Long, userId: Long): Boolean =
         organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(orgId, userId, RoleType.ORG_ADMIN.id) &&

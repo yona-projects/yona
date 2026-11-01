@@ -58,3 +58,28 @@ A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 
 | `token.device_approved`, `token.device_denied` | 기기 인증 승인과 거절 | 기기 이름(대상), 범위 |
 
 시험: `AuditAccountTest` 14건.
+
+## A5 도메인 변경과 사이트 관리 (구현)
+
+서비스에서 변경과 같은 트랜잭션으로 `record`한다(fail-closed). 바뀐 것이 없거나 거부된 요청은 남기지 않고, 설정 변경은 바뀐 항목만 `{from, to}`로 남긴다. 프로젝트 이벤트는 프로젝트 번호와 소속 조직 번호를, 조직 이벤트는 조직 번호를 담아 조직 소유자의 조회 범위를 정한다.
+
+| 조치 | 연결 지점 | 상세 |
+|---|---|---|
+| `project.created` | `ProjectCreateService`, `ExternalProjectService`(`via: api`), `ProjectImportService`(`via: import`, 가져온 주소는 질의와 계정 정보를 뗀 값) | 범위, VCS, 메뉴 |
+| `project.forked` | `ForkService` | 원본 |
+| `project.deleted` | `ProjectDeletionService`(지우기 전에 이름을 담아 남김) | 범위, VCS |
+| `project.settings_changed` | `ProjectSettingService.update` | 이름, 공개 범위, 코드 접근 제한, 병합 방식, 메뉴(위키 포함)의 전후. 설명과 로고는 바뀌었다는 표시만 |
+| `project.transferred` | `ProjectTransferService.accept` | 이전 소유자와 새 소유자, 이름 |
+| `project.vcs_changed` | `ProjectVcsService.change` | 전후 VCS |
+| `project.member_added`, `member_role_changed`, `member_removed` | `ProjectMemberService` | 대상 사용자, 역할 전후 |
+| `project.ruleset_created`, `ruleset_updated`, `ruleset_deleted` | `RulesetService` | 값 전체(만들기), 바뀐 항목의 전후(고치기) |
+| `project.webhook_created`, `webhook_deleted` | `WebhookService` | 형식, git push 포함 여부. 주소는 질의와 계정 정보를 뗀 값, **비밀값은 남기지 않음** |
+| `org.created`, `org.deleted`, `org.settings_changed` | `OrganizationService`, `OrganizationManagementService` | 이름과 설명의 전후 |
+| `org.member_added`, `member_role_changed`, `member_removed` | `OrganizationManagementService`(탈퇴는 `self: true`) | 역할 전후 |
+| `site.admin_granted`, `site.admin_revoked` | `SiteUserService.toggleSiteAdmin` | 대상 사용자 |
+| `site.user_state_changed`, `site.user_deleted`, `site.guest_mode_changed` | `SiteUserService` | 상태 전후, 삭제는 로그인 ID와 이전 상태만(이름과 이메일은 남기지 않음) |
+| `site.data_exported`, `site.data_imported` | `SiteDataController`, `ExternalSiteBackupApiController` | 방식(`web`, `api`), 가져온 테이블과 실패한 테이블. 내보내기는 스트림이 다른 스레드에서 쓰여 요청 문맥을 잃으므로 요청 스레드에서 먼저 남김 |
+
+- 사이트 데이터 내보내기와 가져오기(`DataService`)에는 감사 테이블이 들어 있지 않다. 가져오기가 사용자와 프로젝트를 교체해도 기록은 그대로 남는다.
+- 시험: `AuditProjectTest` 10건, `AuditOrganizationSiteTest` 9건, `AuditSiteDataTest` 3건.
+- 시험 환경은 파일 쓰기를 끄고(`yona.audit-file-enabled=false`) 파일 시험만 켠다. 켜 두면 기본 데이터 디렉터리(`.`)에 `audit/`이 생긴다.

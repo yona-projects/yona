@@ -26,3 +26,15 @@ data class AuditActor(val type: AuditActorType, val id: Long?, val login: String
 /** 사용자를 대상으로 하는 이벤트를 만든다. 대상 식별자는 번호, 이름은 로그인 ID이다. */
 fun auditUser(action: String, user: dev.yona.domain.user.User, details: Map<String, Any?> = emptyMap(), outcome: AuditOutcome = AuditOutcome.SUCCESS) =
     AuditEvent(action, outcome, targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId, details = details)
+
+/** 프로젝트를 대상으로 하는 이벤트를 만든다. 대상 이름은 `소유자/이름`이고 프로젝트 번호와 소속 조직 번호를 담는다(조회 범위를 정한다). */
+fun auditProject(action: String, project: dev.yona.domain.project.Project, details: Map<String, Any?> = emptyMap(), outcome: AuditOutcome = AuditOutcome.SUCCESS) =
+    AuditEvent(action, outcome, targetType = "project", targetId = project.id?.toString(), targetLabel = "${project.owner}/${project.name}", organizationId = project.organization?.id, projectId = project.id, details = details)
+
+/** 프로젝트 안의 사용자(구성원)를 대상으로 하는 이벤트이다. */
+fun auditProjectMember(action: String, project: dev.yona.domain.project.Project, user: dev.yona.domain.user.User, details: Map<String, Any?> = emptyMap()) =
+    auditProject(action, project, details).copy(targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId)
+
+/** 조직을 대상으로 하는 이벤트를 만든다. */
+fun auditOrganization(action: String, organization: dev.yona.domain.project.Organization, details: Map<String, Any?> = emptyMap()) =
+    AuditEvent(action, targetType = "organization", targetId = organization.id?.toString(), targetLabel = organization.name, organizationId = organization.id, details = details)

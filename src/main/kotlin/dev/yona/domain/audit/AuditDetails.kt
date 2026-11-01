@@ -16,6 +16,17 @@ object AuditDetails {
     private val mapper = JsonMapper.builder().build()
     private val SENSITIVE_PARTS = listOf("password", "passwd", "secret", "credential", "authorization", "signature", "apikey", "privatekey", "accesstoken", "refreshtoken", "bearer")
 
+    /** [before]와 [after]에서 값이 달라진 키만 `{키: {from, to}}`로 돌려준다. 같으면 빈 맵이다. */
+    fun diff(before: Map<String, Any?>, after: Map<String, Any?>): Map<String, Any?> =
+        after.keys.filter { before[it] != after[it] }.associateWithTo(linkedMapOf()) { linkedMapOf("from" to before[it], "to" to after[it]) }
+
+    /** 웹훅 주소처럼 질의 문자열과 계정 정보(`user:pass@`), 조각에 비밀 값이 들어 있을 수 있는 주소에서 그 부분을 떼어 낸다. */
+    fun safeUrl(url: String?): String? {
+        url ?: return null
+        val noQuery = url.substringBefore('?').substringBefore('#')
+        return noQuery.replace(Regex("^([a-zA-Z][a-zA-Z0-9+.-]*://)[^/@]*@"), "$1")
+    }
+
     /** 비밀 값을 가린 상세를 JSON 글로 만든다. 비어 있으면 `null`이다. */
     fun toJson(details: Map<String, Any?>): String? {
         if (details.isEmpty()) return null

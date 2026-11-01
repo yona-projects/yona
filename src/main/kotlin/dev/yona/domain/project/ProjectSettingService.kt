@@ -73,7 +73,8 @@ class ProjectSettingService(
     private val menuSettings: ProjectMenuSettingRepository,
     private val favorites: FavoriteProjectRepository,
     private val attachments: AttachmentService,
-    private val repositories: RepositoryService
+    private val repositories: RepositoryService,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /**
@@ -153,6 +154,7 @@ class ProjectSettingService(
     @Transactional
     fun update(project: Project, form: ProjectSettingForm, logo: LogoUpload?, ownerLoginId: String?) {
         val projectId = requireNotNull(project.id)
+        val before = snapshot(project)
 
         if (logo != null && !logo.isEmpty) {
             attachments.deleteAll(ResourceType.PROJECT, projectId)
@@ -182,6 +184,26 @@ class ProjectSettingService(
 
         saveMenuSetting(project, form.menus)
         updateFavorites(project)
+
+        // 바뀐 항목만 전후와 함께 남긴다. 아무것도 바뀌지 않았으면 남기지 않는다. 설명 본문과 로고는 값 대신 바뀌었다는 표시만 한다
+        val changes = linkedMapOf<String, Any?>().apply {
+            putAll(dev.yona.domain.audit.AuditDetails.diff(before, snapshot(project)))
+            if (before["overview"] != project.overview) put("overviewChanged", true)
+            if (logo != null && !logo.isEmpty) put("logoChanged", true)
+        }
+        if (changes.isNotEmpty()) audit.record(dev.yona.domain.audit.auditProject("project.settings_changed", project, changes))
+    }
+
+    /** 감사 로그에 비교할 설정 값이다. 설명 본문은 길고 바뀐 일만 알면 되므로 비교용 해시 값만 둔다. */
+    private fun snapshot(project: Project): Map<String, Any?> {
+        val menu = menuSettings.findFirstByProjectId(requireNotNull(project.id))
+        return linkedMapOf(
+            "name" to project.name, "projectScope" to project.projectScope?.name, "isCodeAccessibleMemberOnly" to project.isCodeAccessibleMemberOnly,
+            "isDismissingStaleApprovals" to project.isDismissingStaleApprovals, "allowMergeCommit" to project.allowMergeCommit, "allowSquashMerge" to project.allowSquashMerge,
+            "allowRebaseMerge" to project.allowRebaseMerge, "defaultMergeMethod" to project.defaultMergeMethod?.toString(),
+            "code" to menu?.code, "issue" to menu?.issue, "pullRequest" to menu?.pullRequest, "review" to menu?.review, "milestone" to menu?.milestone, "board" to menu?.board, "wiki" to menu?.wiki,
+            "overview" to project.overview
+        )
     }
 
     private fun saveMenuSetting(project: Project, menus: Set<String>) {

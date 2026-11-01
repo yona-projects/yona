@@ -26,7 +26,8 @@ class ProjectTransferService(
     private val organizations: OrganizationRepository,
     private val roles: RoleRepository,
     private val repositories: RepositoryService,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /** 이전 요청을 처리한 결과이다. */
@@ -112,6 +113,7 @@ class ProjectTransferService(
         }
         if (newOwnerUser != null) assignRole(requireNotNull(newOwnerUser.id), project, RoleType.MANAGER)
         check(oldOwner.isNotEmpty() && oldName.isNotEmpty())
+        audit.record(dev.yona.domain.audit.auditProject("project.transferred", project, mapOf("from" to oldOwner, "to" to destination, "oldName" to oldName, "newName" to newName)))
         return AcceptResult.Done(project)
     }
 

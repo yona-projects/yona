@@ -37,7 +37,8 @@ class ExternalProjectService(
     private val users: UserRepository,
     private val repositories: RepositoryService,
     private val memberService: ProjectMemberService,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -59,6 +60,7 @@ class ExternalProjectService(
         }
         repositories.createRepository(project)
         menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
+        audit.record(dev.yona.domain.audit.auditProject("project.created", project, mapOf("via" to "api", "scope" to project.projectScope?.name, "vcs" to project.vcs)))
         if (spec.members.isNotEmpty()) {
             spec.members.forEach { (user, role) ->
                 when (role.lowercase()) {

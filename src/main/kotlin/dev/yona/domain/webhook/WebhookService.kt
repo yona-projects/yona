@@ -31,7 +31,8 @@ class WebhookService(
     private val threads: WebhookThreadRepository,
     private val projects: ProjectRepository,
     private val payloads: WebhookPayloads,
-    private val sender: WebhookSender
+    private val sender: WebhookSender,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     @Transactional(readOnly = true)
@@ -42,14 +43,22 @@ class WebhookService(
      * (`JSON` 형식은 화면이 "Git 푸시 포함"을 켜 둔다).
      */
     @Transactional
-    fun create(project: Project, payloadUrl: String, secret: String?, gitPush: Boolean?, type: WebhookType?): Webhook =
-        webhooks.save(Webhook(project = project, payloadUrl = payloadUrl, secret = secret ?: "", gitPush = gitPush ?: false, webhookType = type ?: WebhookType.SIMPLE, createdAt = Date()))
+    fun create(project: Project, payloadUrl: String, secret: String?, gitPush: Boolean?, type: WebhookType?): Webhook {
+        val saved = webhooks.save(Webhook(project = project, payloadUrl = payloadUrl, secret = secret ?: "", gitPush = gitPush ?: false, webhookType = type ?: WebhookType.SIMPLE, createdAt = Date()))
+        audit.record(webhookEvent("project.webhook_created", project, saved))
+        return saved
+    }
+
+    /** 감사 이벤트이다. 주소는 질의 문자열과 계정 정보를 뗀 값만 남기고 비밀값은 어디에도 넣지 않는다. */
+    private fun webhookEvent(action: String, project: Project, hook: Webhook) =
+        dev.yona.domain.audit.auditProject(action, project, mapOf("type" to hook.webhookType?.name, "gitPush" to hook.gitPush)).copy(targetType = "webhook", targetId = hook.id?.toString(), targetLabel = dev.yona.domain.audit.AuditDetails.safeUrl(hook.payloadUrl))
 
     /** 프로젝트에 속한 웹훅을 지운다. 없으면 `false`이다. */
     @Transactional
     fun delete(project: Project, id: Long): Boolean {
         val webhook = webhooks.findByIdAndProjectId(id, requireNotNull(project.id)) ?: return false
         webhooks.delete(webhook)
+        audit.record(webhookEvent("project.webhook_deleted", project, webhook))
         return true
     }
 

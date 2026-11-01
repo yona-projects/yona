@@ -37,7 +37,8 @@ class ForkService(
     private val users: UserRepository,
     private val roles: RoleRepository,
     private val repositories: RepositoryService,
-    private val permissions: SessionPermissions
+    private val permissions: SessionPermissions,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /**
@@ -94,6 +95,7 @@ class ForkService(
             copyMenuSetting(original, fork)
             assignRole(SITE_MANAGER_ID, fork, RoleType.SITEMANAGER)
             assignRole(requireNotNull(creator.id), fork, RoleType.MANAGER)
+            audit.record(dev.yona.domain.audit.auditProject("project.forked", fork, mapOf("original" to "${original.owner}/${original.name}", "originalId" to original.id)))
             return fork
         } catch (e: Exception) {
             repositories.deleteRepository(fork)

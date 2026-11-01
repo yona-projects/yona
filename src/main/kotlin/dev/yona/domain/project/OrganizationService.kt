@@ -27,7 +27,8 @@ class OrganizationService(
     private val users: UserRepository,
     private val roles: RoleRepository,
     private val permissions: SessionPermissions,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /** 조직 이름 검증에서 걸린 이유이다. [messageKey]는 사용자에게 보여 줄 메시지 키이다. */
@@ -61,6 +62,7 @@ class OrganizationService(
         organizationUsers.save(
             OrganizationUser(user = creator, organization = organization, role = roles.getReferenceById(RoleType.ORG_ADMIN.id))
         )
+        audit.record(dev.yona.domain.audit.auditOrganization("org.created", organization))
         return organization
     }
 

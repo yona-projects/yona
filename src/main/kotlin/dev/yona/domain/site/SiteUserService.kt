@@ -25,7 +25,8 @@ class SiteUserService(
     private val entityManager: EntityManager,
     private val users: UserRepository,
     private val siteAdmins: SiteAdminRepository,
-    private val sessionUsers: dev.yona.security.SessionUserCache
+    private val sessionUsers: dev.yona.security.SessionUserCache,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /**
@@ -77,14 +78,22 @@ class SiteUserService(
      * 사용자 행은 남기고 이름 앞에 `[DELETED]`를 붙이며 이메일과 비밀번호를 지운다.
      */
     fun deleteUser(user: User) {
+        // 지우면 이름과 이메일이 지워지므로 로그인 ID와 이전 상태만 남긴다(개인정보는 기록에 남기지 않는다)
+        audit.record(dev.yona.domain.audit.auditUser("site.user_deleted", user, mapOf("previousState" to user.state?.name)))
         entityManager.createQuery("delete from ProjectUser pu where pu.user.id = :user").setParameter("user", user.id).executeUpdate()
-        changeState(user, UserState.DELETED)
+        applyState(user, UserState.DELETED)
     }
 
     /**
      * 사용자의 상태를 바꾼다 (v1.6 `User.changeState`). 삭제로 바꾸면 이름, 이메일, 비밀번호, 가입 신청, 알림 수신 기록, 담당 이슈를 정리한다.
      */
     fun changeState(user: User, state: UserState) {
+        val previous = user.state
+        applyState(user, state)
+        if (previous != state) audit.record(dev.yona.domain.audit.auditUser("site.user_state_changed", user, mapOf("from" to previous?.name, "to" to state.name)))
+    }
+
+    private fun applyState(user: User, state: UserState) {
         user.state = state
         user.lastStateModifiedDate = Date()
         if (state == UserState.DELETED) {
@@ -115,6 +124,7 @@ class SiteUserService(
     fun toggleGuest(user: User) {
         user.isGuest = user.isGuest != true
         users.save(user)
+        audit.record(dev.yona.domain.audit.auditUser("site.guest_mode_changed", user, mapOf("guest" to (user.isGuest == true))))
         // v1.6 SiteApp.toggleGuestMode: 새로 읽은 인스턴스를 서버 캐시에 넣는다
         sessionUsers.remember(requireNotNull(user.id))
     }
@@ -124,6 +134,7 @@ class SiteUserService(
         val id = requireNotNull(user.id)
         siteAdmins.findAll().filter { it.admin?.id == id }.let { rows ->
             if (rows.isNotEmpty()) siteAdmins.deleteAll(rows) else siteAdmins.save(SiteAdmin(admin = user))
+            audit.record(dev.yona.domain.audit.auditUser(if (rows.isNotEmpty()) "site.admin_revoked" else "site.admin_granted", user))
         }
         // v1.6 SiteApp.toggleSiteAdminRole: 서버 캐시에서 지우므로 대상 사용자의 세션은 다음 요청에서 무효가 되어 다시 로그인해야 한다
         sessionUsers.invalidate(id)

@@ -25,7 +25,8 @@ class ProjectMemberService(
     private val roles: RoleRepository,
     private val watchService: WatchService,
     private val events: ApplicationEventPublisher,
-    private val sessionUsers: dev.yona.security.SessionUserCache
+    private val sessionUsers: dev.yona.security.SessionUserCache,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /** 구성원 추가가 실패한 이유이다. [messageKey]는 사용자에게 보여 줄 메시지 키이다. */
@@ -81,6 +82,7 @@ class ProjectMemberService(
         assignRole(requireNotNull(user.id), project, requireNotNull(roles.findById(RoleType.MEMBER.id).orElse(null)))
         cleanEnrolledUsers(project, actor)
         events.publishEvent(ProjectMemberRequestEvent(project, user, RequestState.ACCEPT, actor))
+        audit.record(dev.yona.domain.audit.auditProjectMember("project.member_added", project, user, mapOf("role" to RoleType.MEMBER.name)))
         return AddResult(user, null)
     }
 
@@ -92,13 +94,30 @@ class ProjectMemberService(
     /** 사용자의 역할을 [roleId]로 정한다. 구성원이 아니면 새로 만든다 (v1.6 `ProjectUser.assignRole`). */
     fun changeRole(project: Project, userId: Long, roleId: Long) {
         // v1.6 `ProjectUser`는 `Role.findById(roleId)`로 역할을 채우므로 없는 번호이면 역할이 `null`이 된다
+        val before = projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(userId, requireNotNull(project.id), RoleType.SITEMANAGER.id)?.role?.id
         assignRole(userId, project, roles.findById(roleId).orElse(null))
+        if (before != roleId) {
+            val target = users.findById(userId).orElse(null)
+            audit.record(
+                (if (target != null) dev.yona.domain.audit.auditProjectMember("project.member_role_changed", project, target, mapOf("from" to roleName(before), "to" to roleName(roleId)))
+                else dev.yona.domain.audit.auditProject("project.member_role_changed", project, mapOf("userId" to userId, "from" to roleName(before), "to" to roleName(roleId))))
+            )
+        }
     }
+
+    private fun roleName(id: Long?): String? = id?.let { value -> RoleType.entries.firstOrNull { it.id == value }?.name ?: value.toString() }
 
     /** 구성원에서 뺀다. 구성원이 아니면 아무것도 하지 않는다 (v1.6 `ProjectUser.delete`). */
     fun removeMember(project: Project, userId: Long) {
         projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(userId, requireNotNull(project.id), RoleType.SITEMANAGER.id)
-            ?.let { projectUsers.delete(it) }
+            ?.let {
+                projectUsers.delete(it)
+                val removed = users.findById(userId).orElse(null)
+                audit.record(
+                    if (removed != null) dev.yona.domain.audit.auditProjectMember("project.member_removed", project, removed, mapOf("role" to roleName(it.role?.id)))
+                    else dev.yona.domain.audit.auditProject("project.member_removed", project, mapOf("userId" to userId))
+                )
+            }
     }
 
     /** v1.6 `user.isMemberOf(project)`는 `ProjectUser.isMember`이고 역할을 가리지 않고 행이 있으면 참이다. 사이트 관리자 행도 센다. */

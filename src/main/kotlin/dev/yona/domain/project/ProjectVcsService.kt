@@ -19,7 +19,8 @@ class ProjectVcsService(
     private val postings: PostingRepository,
     private val postingService: dev.yona.domain.board.PostingService,
     private val readme: ProjectReadmeService,
-    private val repositories: RepositoryService
+    private val repositories: RepositoryService,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     /** [project]의 저장소 종류를 다음 종류로 바꾼다. */
@@ -44,5 +45,6 @@ class ProjectVcsService(
             throw e
         }
         projects.save(project)
+        audit.record(dev.yona.domain.audit.auditProject("project.vcs_changed", project, mapOf("from" to previous, "to" to project.vcs)))
     }
 }

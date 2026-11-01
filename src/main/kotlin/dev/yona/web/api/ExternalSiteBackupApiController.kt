@@ -34,7 +34,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 @ResponseBody
 class ExternalSiteBackupApiController(
     private val data: DataService,
-    private val requests: ApiRequests
+    private val requests: ApiRequests,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -48,6 +49,7 @@ class ExternalSiteBackupApiController(
     @GetMapping("/-_-api/v1/admin/export")
     fun export(response: HttpServletResponse) {
         val filename = "yobi-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
+        audit.record(dev.yona.domain.audit.AuditEvent("site.data_exported", targetType = "site", details = mapOf("via" to "api")))
         response.status = HttpStatus.OK.value()
         response.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-download")
         response.setHeader("Content-disposition", "attachment; filename=$filename")
@@ -71,6 +73,7 @@ class ExternalSiteBackupApiController(
         if (file == null) return requests.message(HttpStatus.BAD_REQUEST, "data file is required")
         return try {
             val result = file.inputStream.use { data.import(it) }
+            audit.record(dev.yona.domain.audit.AuditEvent("site.data_imported", targetType = "site", details = mapOf("via" to "api", "imported" to result.imported, "failed" to result.failed)))
             ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_JSON).body(linkedMapOf("imported" to result.imported, "failed" to result.failed))
         } catch (e: Exception) {
             log.error("Failed to import data", e)

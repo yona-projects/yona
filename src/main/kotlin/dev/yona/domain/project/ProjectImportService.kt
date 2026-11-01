@@ -61,7 +61,8 @@ class ProjectImportService(
     private val menuSettings: ProjectMenuSettingRepository,
     private val roles: RoleRepository,
     private val repositories: RepositoryService,
-    private val messages: org.springframework.context.MessageSource
+    private val messages: org.springframework.context.MessageSource,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     @Transactional
@@ -105,6 +106,7 @@ class ProjectImportService(
                 )
             )
             if (ownerIsUser) projectUsers.save(ProjectUser(user = creator, project = project, role = roles.getReferenceById(RoleType.MANAGER.id)))
+            audit.record(dev.yona.domain.audit.auditProject("project.created", project, mapOf("via" to "import", "source" to dev.yona.domain.audit.AuditDetails.safeUrl(form.url), "scope" to project.projectScope?.name)))
             return ImportResult.Created(project)
         } catch (e: InvalidRemoteException) {
             errors.reject("url", "project.import.error.wrong.url")

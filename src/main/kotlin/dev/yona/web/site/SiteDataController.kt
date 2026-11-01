@@ -47,7 +47,8 @@ class SiteDataController(
     private val users: UserRepository,
     private val userLookup: UserLookup,
     private val attachments: AttachmentRepository,
-    private val attachmentService: AttachmentService
+    private val attachmentService: AttachmentService,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -59,6 +60,8 @@ class SiteDataController(
     /** DB 전체를 `yobi-data-<yyyyMMddHHmm>.json` 파일로 보낸다. 쓰는 동안의 오류는 로그만 남아 파일이 잘릴 수 있다. */
     @GetMapping("/sites/export")
     fun export(): ResponseEntity<StreamingResponseBody> {
+        // 스트림은 다른 스레드에서 쓰여 요청 문맥(행위자)을 잃으므로 요청 스레드에서 먼저 남긴다
+        audit.record(dev.yona.domain.audit.AuditEvent("site.data_exported", targetType = "site", details = mapOf("via" to "web")))
         val filename = "yobi-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
         val body = StreamingResponseBody { out ->
             try {
@@ -81,7 +84,8 @@ class SiteDataController(
     fun import(@RequestParam(name = "data", required = false) file: MultipartFile?, request: HttpServletRequest, response: HttpServletResponse): Any {
         if (file == null) return RedirectSupport.see(request, response, "/sites/data")
         return try {
-            file.inputStream.use { data.import(it) }
+            val result = file.inputStream.use { data.import(it) }
+            audit.record(dev.yona.domain.audit.AuditEvent("site.data_imported", targetType = "site", details = mapOf("via" to "web", "imported" to result.imported, "failed" to result.failed)))
             RedirectSupport.see(request, response, "/")
         } catch (e: Exception) {
             log.error("Failed to import data", e)

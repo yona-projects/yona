@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
  * 감사 기록기(로드맵 X-9 A2, `decisions.md` D-62)를 검증한다: 행위자와 요청 문맥의 자동 채움, 비밀 값 가리기, 해시 사슬과 검증, 트랜잭션 정책(변경과 같은 트랜잭션, 경계 이벤트는 별도),
  * JSON 줄 파일. 시험이 커밋하는 기록은 `@AfterEach`가 지운다.
  */
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-audit"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-audit", "yona.audit-file-enabled=true"])
 class AuditRecorderTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var recorder: AuditRecorder
