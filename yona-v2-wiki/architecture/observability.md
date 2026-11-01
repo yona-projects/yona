@@ -10,7 +10,7 @@
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
 | C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙, 감사 `request_id` 연결 | 완료 |
-| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a, C5b, C5c 완료 |
+| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a, C5b, C5c, C5d 완료 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
 ## 켜는 방법
@@ -89,4 +89,22 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 - **결과**: `ok`(2xx와 3xx), `denied`(401, 403, 429), `not_found`(404), `client_error`(그 밖의 4xx), `error`(5xx, 그리고 처리 중 `IOException`). git 처리 중 `IOException`은 v1.6처럼 로그만 남기고 삼키지만 응답이 200이어도 `error`로 센다.
 - **전송량**: git은 요청과 응답 본문(요청은 gzip을 푼 뒤)을 센다. svn은 요청 본문의 `Content-Length`만 센다(응답 크기는 세지 않음).
 - **HTTP 서버 지표**(`http.server.requests`)와 따로 둔 이유: svn은 필터가 처리해 일반 지표에서는 한 값으로 묶이고, git과 svn은 일반 화면 요청과 지연의 성격(수 초에서 수 분)이 달라 같은 히스토그램에 섞으면 평균이 의미를 잃는다.
+
+## 인증, 협업, 외부 연동 지표 (C5d)
+
+| 지표 | 태그 | 설명 |
+|---|---|---|
+| `yona.security.events` | `event`, `channel`, `via`, `denied` | 인증과 접근 거부. `event`는 `login_success`, `login_failure`, `logout`, `token_failure`, `basic_failure`, `blocked`, `access_denied`, `api_scope_denied`. 감사 경계 이벤트와 같은 지점에서 센다. **감사 기록은 같은 주소의 차단을 1분에 한 번만 남기지만 지표는 매번 센다.** 급증은 공격 신호이다 |
+| `yona.entities.created` | `entity`(project, user, issue, issue_comment, post, post_comment, pull_request, review_comment, attachment) | **커밋된 삽입**을 하이버네이트 이벤트로 한 곳에서 센다(화면, API, 가져오기 모두 포함, 롤백은 제외). DB를 세는 gauge가 아니라 카운터라 DB 부하가 없다 |
+| `yona.pull_requests.merge` | `result`(merged, conflict, method_not_allowed, not_reviewed, updates_restricted) | 병합 시도 결과 |
+| `yona.mail.sent` | `result`(success, failure, skipped) | 알림 메일 발송(skipped는 메일 서버 미설정) |
+| `yona.notification.mail.queue` | 없음 | 발송을 기다리는 알림 메일 수. 내보내는 주기(60초)마다 `count` 한 번 |
+| `yona.webhook.sent` | `result`(success, redirect, client_error, server_error, unreachable) | 프로젝트 웹훅 발송 결과. 주소는 태그에 넣지 않는다 |
+| `yona.ldap.authenticate` | `result`(success, not_found, auth_failure, unreachable, error) | LDAP 인증의 시간과 결과. **LDAP이 느리면 로그인이 멈춘다** |
+| `yona.search.duration` | `op`(counts, page), `result` | 통합 검색의 시간 |
+| `cache.gets`, `cache.size`, `cache.evictions` 등 | `cache`(markdown_render, session_user), `result`(hit, miss) | 렌더링 캐시와 세션 사용자 캐시. 적중률이 떨어지면 마크다운 렌더링과 권한 계산 비용이 는다 |
+
+- 모든 태그는 고정된 낮은 카디널리티 값이며 로그인 ID, 주소, 경로, 프로젝트 이름은 들어가지 않는다(시험으로 고정). 알 수 없는 채널과 결과는 `other`이다.
+- **제외한 것**: 댓글의 종류별 생성 수는 `yona.entities.created`의 댓글 엔티티로 충분해 따로 두지 않았다. 이슈 목록 쿼리 지연은 `http.server.requests`의 이슈 목록 라우트와 `hikaricp` 지표로 본다. 첨부 업로드 크기와 실패는 후속이다.
+- **발견한 구조 문제**: `WebConfig.forceHtmlViews`(후처리기)가 정적이 아니라 설정 클래스와 그 의존(인터셉터에서 감사 경계, 지표 레지스트리까지)이 후처리기보다 먼저 만들어졌고, 그러면 `MeterBinder` 빈이 레지스트리에 붙지 않았다. 정적 메서드로 고쳤다(스프링 권고).
 

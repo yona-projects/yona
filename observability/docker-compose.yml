@@ -1,0 +1,70 @@
+# Yona 관측 스택(개발용): Grafana Alloy(수집기), Prometheus(지표), Tempo(추적), Loki(로그), Grafana(조회와 알림).
+# Yona는 OTLP로 Alloy에만 보낸다: OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:24318
+# 사용: docker compose -f observability/docker-compose.yml up -d   (Grafana: http://localhost:23000, 계정 admin / admin)
+# Yona가 호스트에서 돌 때 앱 상태 확인 주소(YONA_HEALTH_URL)는 아래 기본값처럼 host.docker.internal을 쓴다. 자세한 설명은 yona-v2-wiki/architecture/observability.md.
+services:
+  alloy:
+    image: grafana/alloy:v1.21.3
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "--storage.path=/var/lib/alloy/data", "/etc/alloy/config.alloy"]
+    environment:
+      YONA_HEALTH_URL: ${YONA_HEALTH_URL:-http://host.docker.internal:9000/-_-actuator/health}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+    ports:
+      - "24318:4318"   # OTLP/HTTP
+      - "24317:4317"   # OTLP/gRPC
+    depends_on: [prometheus, loki, tempo]
+
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-otlp-receiver
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - yona-obs-prometheus:/prometheus
+    ports:
+      - "29090:9090"
+
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - yona-obs-tempo:/var/tempo
+    ports:
+      - "23200:3200"
+
+  loki:
+    image: grafana/loki:3.7.9
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    volumes:
+      - ./loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - yona-obs-loki:/loki
+    ports:
+      - "23100:3100"
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - yona-obs-grafana:/var/lib/grafana
+    ports:
+      - "23000:3000"
+    depends_on: [prometheus, loki, tempo]
+
+volumes:
+  yona-obs-prometheus:
+  yona-obs-tempo:
+  yona-obs-loki:
+  yona-obs-grafana:

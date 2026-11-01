@@ -1,0 +1,61 @@
+// Grafana Alloy 설정(Yona 개발용): Yona가 OTLP로 보내는 지표, 추적, 로그를 받아 Prometheus, Tempo, Loki로 나눠 보낸다.
+// Yona는 OTEL_EXPORTER_OTLP_ENDPOINT=http://<alloy>:4318 만 설정하면 된다(architecture/observability.md).
+
+otelcol.receiver.otlp "yona" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.prometheus.input]
+    logs    = [otelcol.exporter.otlphttp.loki.input]
+    traces  = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+// 지표 -> Prometheus(OTLP 수신). Mimir를 쓴다면 endpoint를 http://mimir:9009/otlp 로 바꾼다.
+otelcol.exporter.otlphttp "prometheus" {
+  client { endpoint = "http://prometheus:9090/api/v1/otlp" }
+}
+
+// 로그 -> Loki(OTLP 수신). request_id, user_id, trace_id는 구조화된 메타데이터로 들어간다.
+otelcol.exporter.otlphttp "loki" {
+  client { endpoint = "http://loki:3100/otlp" }
+}
+
+// 추적 -> Tempo
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "tempo:4317"
+    tls { insecure = true }
+  }
+}
+
+// 앱 사망 감지: Yona의 상태 확인(/-_-actuator/health)을 15초마다 찔러 probe_success 지표로 남긴다.
+// OTLP는 앱이 죽으면 데이터가 끊길 뿐이라(Prometheus의 up처럼 즉시 0이 되지 않는다) 이 지표가 알림의 근거가 된다.
+prometheus.exporter.blackbox "yona" {
+  config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
+
+  target {
+    name    = "yona"
+    address = sys.env("YONA_HEALTH_URL")
+    module  = "http_2xx"
+  }
+}
+
+prometheus.scrape "yona_health" {
+  targets         = prometheus.exporter.blackbox.yona.targets
+  forward_to      = [prometheus.remote_write.prometheus.receiver]
+  scrape_interval = "15s"
+}
+
+prometheus.remote_write "prometheus" {
+  endpoint { url = "http://prometheus:9090/api/v1/write" }
+}

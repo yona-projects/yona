@@ -1,0 +1,5 @@
+# Prometheus 설정(개발용). 앱을 가져가지(scrape) 않는다. 지표는 Alloy가 OTLP로 써 넣는다.
+# 실행 옵션: --web.enable-otlp-receiver --web.enable-remote-write-receiver --enable-feature=exemplar-storage
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s

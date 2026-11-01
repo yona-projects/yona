@@ -70,6 +70,7 @@ import java.time.temporal.ChronoUnit
  * @property auditStreamSyslogHostname 메시지 머리의 HOSTNAME(`yona.audit-stream-syslog-hostname`). 비어 있으면 이 서버의 호스트 이름을 쓴다
  * @property observabilityIdentityInLogs 로그 문맥(MDC)에 인증된 사용자 번호(`user_id`)를 넣을지이다(`yona.observability-identity-in-logs`, 기본 켜짐). 이름과 이메일은 어느 경우에도 넣지 않는다(X-10, D-64)
  * @property observabilityMinFreePercent 데이터 디렉터리 파티션의 여유 용량이 이 비율(%)보다 적으면 readiness를 DOWN으로 한다(`yona.observability-min-free-percent`, 기본 5). 0이면 여유 용량은 보지 않는다(D-64 5번)
+ * @property observabilityStorageScan 저장소 총 용량 지표(`yona.storage.repositories`)를 계산할지이다(`yona.observability-storage-scan`, 기본 꺼짐). 디렉터리를 순회해 비용이 크므로 켜면 10분마다 계산한다(X-10 C5e, D-64 4번)
  * @property auditFileEnabled 감사 로그를 커밋한 뒤 JSON 줄 파일(`<데이터>/audit/audit-<날짜>.jsonl`)에도 남길지이다(`yona.audit-file-enabled`, 기본 켜짐)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
  * @property analytics 사용 현황 집계(GA4)의 측정 ID이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
@@ -158,7 +159,8 @@ data class YonaProperties(
     val auditStreamSyslogProtocol: String = "udp",
     val auditStreamSyslogHostname: String? = null,
     val observabilityIdentityInLogs: Boolean = true,
-    val observabilityMinFreePercent: Int = 5
+    val observabilityMinFreePercent: Int = 5,
+    val observabilityStorageScan: Boolean = false
 ) {
     companion object {
         /** 설치 직후 설정 예시에 들어 있는 사이트 비밀 키이다. 이 값이면 아직 정하지 않은 것이다 (v1.6 `Global.DEFAULT_SECRET`). */

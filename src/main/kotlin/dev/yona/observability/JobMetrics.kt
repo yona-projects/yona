@@ -56,6 +56,6 @@ class JobMetrics(private val registry: MeterRegistry, private val clock: Clock) 
 
     companion object {
         /** 알려진 작업 이름이다. 값이 늘지 않도록 고정한다. */
-        val KNOWN = listOf("notification_mail", "notification_cleanup", "temporary_files_cleanup", "audit_retention", "audit_stream", "update_check")
+        val KNOWN = listOf("notification_mail", "notification_cleanup", "temporary_files_cleanup", "audit_retention", "audit_stream", "update_check", "storage_scan")
     }
 }
