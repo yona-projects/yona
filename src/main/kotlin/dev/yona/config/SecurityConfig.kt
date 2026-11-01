@@ -48,7 +48,7 @@ class SecurityConfig {
     fun securityFilterChain(
         http: HttpSecurity, users: UserRepository, sessionUsers: dev.yona.security.SessionUserCache,
         apiTokens: dev.yona.domain.apitoken.ApiTokenService, tokenFailures: dev.yona.security.TokenFailureLimiter,
-        audit: dev.yona.domain.audit.AuditBoundary
+        audit: dev.yona.domain.audit.AuditBoundary, properties: YonaProperties
     ): SecurityFilterChain =
         http
             .csrf { it.disable() }
@@ -62,5 +62,6 @@ class SecurityConfig {
             }
             .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit), SecurityContextHolderFilter::class.java)
             .addFilterAfter(dev.yona.security.AccessDeniedAuditFilter(audit), YonaAuthenticationFilter::class.java)
+            .addFilterAfter(dev.yona.observability.UserLogContextFilter(properties.observabilityIdentityInLogs), YonaAuthenticationFilter::class.java)
             .build()
 }

@@ -5,10 +5,12 @@
   - application.log: 애플리케이션 로그 (v1.6의 play, application 로거. v2는 패키지 dev.yona). v1.6은 레벨을 WARNING으로 적었지만 logback에 그 레벨이 없어 DEBUG로 해석되었다. 따르지 않고 WARN으로 쓴다 (R-95)
   - mail.log: 메일 발송 기록 (로거 mail)
   - root.log: 루트 로거의 ERROR (v1.6은 루트 레벨이 ERROR이다)
+
+  프로파일 json-log (X-10 C3, D-64): 콘솔 출력을 JSON(ECS 형식) 한 줄로 바꾼다. 컨테이너에서 수집기(Grafana Alloy 등)가 stdout을 읽어 Loki로 보내는 용도이다.
+  MDC의 request_id, user_id와 추적이 켜져 있으면 trace_id가 함께 담긴다. 파일 로그는 v1.6 형식 그대로이다.
 -->
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
     <springProperty scope="context" name="YONA_DATA" source="yona.data-dir"/>
 
     <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -48,7 +50,16 @@
         <encoder><pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern></encoder>
     </appender>
 
-    <root level="INFO"><appender-ref ref="CONSOLE"/><appender-ref ref="ROOT_LOG_FILE"/></root>
+    <springProfile name="json-log">
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder"><format>ecs</format></encoder>
+        </appender>
+        <root level="INFO"><appender-ref ref="CONSOLE_JSON"/><appender-ref ref="ROOT_LOG_FILE"/></root>
+    </springProfile>
+    <springProfile name="!json-log">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO"><appender-ref ref="CONSOLE"/><appender-ref ref="ROOT_LOG_FILE"/></root>
+    </springProfile>
     <logger name="dev.yona" level="WARN"><appender-ref ref="APPLICATION_LOG_FILE"/></logger>
     <logger name="mail" level="INFO"><appender-ref ref="MAIL_LOG_FILE"/></logger>
     <!-- additivity 를 끄지 않으므로 콘솔에도 나온다 (v1.6과 같다) -->

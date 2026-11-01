@@ -68,6 +68,7 @@ import java.time.temporal.ChronoUnit
  * @property auditStreamSyslogPort syslog 서버 포트(`yona.audit-stream-syslog-port`, 기본 514)
  * @property auditStreamSyslogProtocol 전송 방식(`yona.audit-stream-syslog-protocol`): `udp`(기본, 기록마다 데이터그램), `tcp`와 `tls`(옥텟 세기 틀, RFC 6587과 RFC 5425)
  * @property auditStreamSyslogHostname 메시지 머리의 HOSTNAME(`yona.audit-stream-syslog-hostname`). 비어 있으면 이 서버의 호스트 이름을 쓴다
+ * @property observabilityIdentityInLogs 로그 문맥(MDC)에 인증된 사용자 번호(`user_id`)를 넣을지이다(`yona.observability-identity-in-logs`, 기본 켜짐). 이름과 이메일은 어느 경우에도 넣지 않는다(X-10, D-64)
  * @property auditFileEnabled 감사 로그를 커밋한 뒤 JSON 줄 파일(`<데이터>/audit/audit-<날짜>.jsonl`)에도 남길지이다(`yona.audit-file-enabled`, 기본 켜짐)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
  * @property analytics 사용 현황 집계(GA4)의 측정 ID이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
@@ -154,7 +155,8 @@ data class YonaProperties(
     val auditStreamSyslogHost: String? = null,
     val auditStreamSyslogPort: Int = 514,
     val auditStreamSyslogProtocol: String = "udp",
-    val auditStreamSyslogHostname: String? = null
+    val auditStreamSyslogHostname: String? = null,
+    val observabilityIdentityInLogs: Boolean = true
 ) {
     companion object {
         /** 설치 직후 설정 예시에 들어 있는 사이트 비밀 키이다. 이 값이면 아직 정하지 않은 것이다 (v1.6 `Global.DEFAULT_SECRET`). */

@@ -917,3 +917,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-10 관측성 결정(D-64)
 VCS와 이슈 시스템에 맞춘 지표를 식별하고, 세 신호 모두 OTLP로 Grafana 스택(Alloy, Mimir, Tempo, Loki)에 보내기로 선생님이 확정하셨다. 로드맵 X-7(Mercurial)을 놓쳤던 것을 바로잡아 `vcs` 라벨을 git, svn, hg로 설계한다.
+
+## [2026-11-01] X-10 C1~C3
+의존성(`starter-actuator`, `starter-opentelemetry`)과 기본 꺼짐, 주소 설정 시 켜기, `/-_-actuator/health`만 노출, 요청 번호와 사용자 번호 MDC, `json-log` 프로파일을 구현했다. 구현 판단은 A-320 11~14.

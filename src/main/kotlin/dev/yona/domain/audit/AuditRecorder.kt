@@ -11,10 +11,8 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
-import org.springframework.web.context.request.RequestAttributes
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
-import java.util.UUID
 
 /**
  * 감사 기록을 남기는 곳이다(추가 개발 항목 X-9, `decisions.md` D-62). 호출하는 쪽은 조치와 대상만 주고, 행위자(사용자, 토큰, 시스템, 익명)와 요청 정보(IP, 사용자 에이전트, 요청 번호)는
@@ -128,10 +126,8 @@ class AuditRecorder(
     private fun requestInfo(): RequestInfo? {
         val attributes = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes ?: return null
         val request = attributes.request
-        val requestId = (attributes.getAttribute(REQUEST_ID_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST) as? String) ?: run {
-            val supplied = request.getHeader("X-Request-Id")?.trim()?.takeIf { it.length <= 64 && it.all { c -> c.isLetterOrDigit() || c in "._-" } }
-            (supplied ?: UUID.randomUUID().toString()).also { attributes.setAttribute(REQUEST_ID_ATTRIBUTE, it, RequestAttributes.SCOPE_REQUEST) }
-        }
+        // 요청 번호는 로그(MDC)와 같은 값이다(`RequestIdFilter`). 필터를 거치지 않은 요청이면 여기서 정한다
+        val requestId = dev.yona.observability.RequestIds.of(request)
         return RequestInfo(request.remoteAddr?.take(64), request.getHeader("User-Agent")?.take(500), requestId)
     }
 
@@ -148,8 +144,6 @@ class AuditRecorder(
     }
 
     private companion object {
-        const val REQUEST_ID_ATTRIBUTE = "dev.yona.domain.audit.RequestId"
-
         /** 이 트랜잭션이 사슬의 끝을 잠갔다는 표시의 자원 키이다. */
         val HELD_KEY = Any()
     }
