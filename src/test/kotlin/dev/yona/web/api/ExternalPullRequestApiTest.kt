@@ -177,6 +177,8 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         val t = token(s.manager)
         call(get("${s.api}/${s.pr.number}/commits"), t).andExpect(status().isOk).andExpect(jsonPath("$.commits.length()").value(1))
             .andExpect(jsonPath("$.commits[0].commitId").exists()).andExpect(jsonPath("$.commits[0].message").value("새 파일"))
+            // 서명 판정(X-4): 서명이 없는 커밋은 unsigned이다
+            .andExpect(jsonPath("$.commits[0].verification.verified").value(false)).andExpect(jsonPath("$.commits[0].verification.reason").value("unsigned"))
         call(get("${s.api}/${s.pr.number}/files"), t).andExpect(status().isOk).andExpect(jsonPath("$.files.length()").value(1))
             .andExpect(jsonPath("$.files[0].path").value("b.txt")).andExpect(jsonPath("$.files[0].status").value("added"))
             .andExpect(jsonPath("$.files[0].additions").value(1)).andExpect(jsonPath("$.files[0].deletions").value(0))

@@ -62,7 +62,8 @@ class PullRequestListResponse(
 @Schema(description = "풀 리퀘스트의 커밋")
 class PullRequestCommitNode(
     val commitId: String, val shortId: String?, val message: String?, val authorEmail: String?, val authoredAt: String?,
-    @get:Schema(description = "`current`(지금 커밋), `outdated` 등") val state: String?
+    @get:Schema(description = "`current`(지금 커밋), `outdated` 등") val state: String?,
+    @get:Schema(description = "서명 판정(X-4). 커밋을 저장소에서 읽을 수 없으면 없다") val verification: VerificationNode? = null
 )
 
 @Schema(description = "커밋 목록 응답")

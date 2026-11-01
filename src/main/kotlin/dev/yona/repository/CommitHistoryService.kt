@@ -84,6 +84,22 @@ class CommitHistoryService(
         try { RevWalk(repository).use { info(it.parseCommit(id)) } } catch (e: MissingObjectException) { null }
     }
 
+    /**
+     * 커밋 번호 [ids]에 해당하는 커밋을 한 번에 읽는다(저장소를 한 번만 연다). 풀 수 없거나 커밋이 아닌 번호는 결과에서 빠진다. Subversion은 빈 맵이다.
+     * 풀 리퀘스트 커밋 목록처럼 여러 커밋의 서명 판정이 필요할 때 쓴다(X-4).
+     */
+    fun commits(project: Project, ids: Collection<String>): Map<String, CommitInfo> {
+        if (isSvn(project) || ids.isEmpty()) return emptyMap()
+        return repositories.openRepository(project).use { repository ->
+            RevWalk(repository).use { walk ->
+                ids.distinct().mapNotNull { id ->
+                    val resolved = repository.resolve(id) ?: return@mapNotNull null
+                    try { id to info(walk.parseCommit(resolved)) } catch (e: Exception) { null }
+                }.toMap()
+            }
+        }
+    }
+
     /** 커밋의 첫 부모이다. 첫 커밋이면 `null`이다. Subversion은 바로 앞 리비전이다 (v1.6 `getParentCommitOf`). */
     fun parentOf(project: Project, revision: String): CommitInfo? {
         // Subversion의 부모는 바로 앞 리비전이다 (v1.6 `SVNRepository.getParentCommitOf`).

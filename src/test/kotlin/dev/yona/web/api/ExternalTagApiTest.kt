@@ -49,6 +49,7 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var tagService: TagService
+    @Autowired private lateinit var gpgKeys: dev.yona.domain.gpgkey.GpgKeyService
 
     private var sequence = 0
     private val tokens = mutableMapOf<Long, String>()
@@ -171,5 +172,26 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
         json(post(api(publicProject)), tokenOf(limited), """{"name":"ok"}""").andExpect(status().isCreated)
         json(get(api(secret)), tokenOf(limited), null).andExpect(status().isForbidden)
         json(get(api(publicProject)), tokenOf(other), null).andExpect(status().isForbidden)
+    }
+
+    // --- 서명 판정(X-4, D-65) ---
+
+    @Test
+    fun `주석 태그의 응답에 서명 판정이 있고 경량 태그에는 없다`() {
+        val author = newUser(); val project = newProject(withCommits = false)
+        val key = dev.yona.domain.gpgkey.TestGpgKey.generate(userId = "T <tagger@example.com>")
+        author.email = "tagger@example.com"; users.save(author)
+        gpgKeys.add(author, "k", key.publicArmored)
+        val commit = dev.yona.domain.gpgkey.SignedGitObjects.commit(repositories, project, null, "tagger@example.com")
+        dev.yona.domain.gpgkey.SignedGitObjects.annotatedTag(repositories, project, key, "v-signed", "tagger@example.com", commit)
+        dev.yona.domain.gpgkey.SignedGitObjects.annotatedTag(repositories, project, null, "v-plain", "tagger@example.com", commit, time = 1_800_000_200_000L)
+        GitTestSupport.createRef(repositories, project, "refs/tags/v-light")
+        val response = json(get(api(project)), tokenOf(author), null).andExpect(status().isOk).andReturn().response.contentAsString
+        val tags = tools.jackson.databind.json.JsonMapper.builder().build().readTree(response).get("tags").associateBy { it.get("name").asString() }
+        assertEquals(true, tags.getValue("v-signed").get("verification").get("verified").asBoolean())
+        assertEquals("valid", tags.getValue("v-signed").get("verification").get("reason").asString())
+        assertEquals(author.loginId, tags.getValue("v-signed").get("verification").get("signer").asString())
+        assertEquals("unsigned", tags.getValue("v-plain").get("verification").get("reason").asString())
+        assertEquals(false, tags.getValue("v-light").has("verification"))
     }
 }

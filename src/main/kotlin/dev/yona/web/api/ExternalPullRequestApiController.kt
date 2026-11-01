@@ -50,7 +50,9 @@ class ExternalPullRequestApiController(
     private val support: PullRequestApiSupport,
     private val reviewRequests: dev.yona.domain.pullrequest.PullRequestReviewRequestService,
     private val assignees: dev.yona.domain.pullrequest.PullRequestAssigneeService,
-    private val users: dev.yona.domain.user.UserRepository
+    private val users: dev.yona.domain.user.UserRepository,
+    private val history: dev.yona.repository.CommitHistoryService,
+    private val gpgVerification: dev.yona.domain.gpgkey.GpgVerificationService
 ) {
 
     /**
@@ -120,7 +122,9 @@ class ExternalPullRequestApiController(
         target.error?.let { return it }
         val pullRequest = requireNotNull(target.pullRequest)
         val current = commits.findByPullRequestIdAndStateOrderByCreatedDesc(requireNotNull(pullRequest.id), PullRequestCommitState.CURRENT).reversed()
-        return support.ok(linkedMapOf("commits" to current.map { json.commit(it) }))
+        // 서명 판정(X-4, D-65): 저장소를 한 번만 열어 커밋을 읽고 판정한다. 읽을 수 없는 커밋은 판정을 붙이지 않는다
+        val infos = history.commits(requireNotNull(pullRequest.toProject), current.mapNotNull { it.commitId })
+        return support.ok(linkedMapOf("commits" to current.map { c -> json.commit(c, infos[c.commitId]?.let { gpgVerification.verifyCommit(it.signature, it.committerEmail) }) }))
     }
 
     /** 병합 기준 커밋 사이의 변경 파일이다. 병합할 수 없어 변경을 알 수 없으면 빈 목록이다. 응답은 `{"files": [...]}`이다. */

@@ -13,12 +13,13 @@ object ApiScopes {
 
     /** 사이트 관리자가 아니어도 고를 수 있는 범위이다. 화면에 보이는 순서이다. */
     private val GENERAL: List<String> = listOf(
-        "repo", "public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook", "admin:org", "write:org", "read:org", "user", "read:user", "user:email"
+        "repo", "public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook", "admin:org", "write:org", "read:org", "user", "read:user", "user:email",
+        "admin:gpg_key", "write:gpg_key", "read:gpg_key"
     )
 
     /**
      * 각 범위가 포함하는 범위이다(자기 자신은 항상 포함한다). `repo`는 프로젝트 웹훅 범위와 `public_repo`를, `admin:`은 `write:`와 `read:`를,
-     * `user`는 `read:user`와 `user:email`을 포함한다. 그 밖의 범위는 서로 포함하지 않는다.
+     * `user`는 `read:user`와 `user:email`을, `admin:gpg_key`는 `write:gpg_key`와 `read:gpg_key`를 포함한다(X-4, D-65). 그 밖의 범위는 서로 포함하지 않는다.
      */
     private val INCLUDES: Map<String, Set<String>> = mapOf(
         "repo" to setOf("public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook"),
@@ -26,7 +27,9 @@ object ApiScopes {
         "write:repo_hook" to setOf("read:repo_hook"),
         "admin:org" to setOf("write:org", "read:org"),
         "write:org" to setOf("read:org"),
-        "user" to setOf("read:user", "user:email")
+        "user" to setOf("read:user", "user:email"),
+        "admin:gpg_key" to setOf("write:gpg_key", "read:gpg_key"),
+        "write:gpg_key" to setOf("read:gpg_key")
     )
 
     /** 사용자가 고를 수 있는 범위이다. `site_admin`은 사이트 관리자만 고를 수 있다. */

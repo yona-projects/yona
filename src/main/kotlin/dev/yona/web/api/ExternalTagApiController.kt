@@ -43,7 +43,8 @@ class ExternalTagApiController(
     private val support: PullRequestApiSupport,
     private val requests: ApiRequests,
     private val json: PullRequestJson,
-    private val accessControl: AccessControl
+    private val accessControl: AccessControl,
+    private val verification: dev.yona.domain.gpgkey.GpgVerificationService
 ) {
 
     /** 태그 목록이다. 태그 시각이 최근인 순서이다. 결과: `{"tags": [...]}`. */
@@ -118,6 +119,8 @@ class ExternalTagApiController(
         tag.message?.let { node["message"] = it }
         if (tag.taggerName != null || tag.taggerDate != null) node["tagger"] = linkedMapOf("name" to tag.taggerName, "date" to json.iso(tag.taggerDate))
         tag.commitId?.let { node["commit"] = linkedMapOf("id" to it, "date" to json.iso(tag.commitDate)) }
+        // 서명 판정(X-4, D-65): 주석 태그에만 있다. 서명이 없으면 `unsigned`이다
+        if (tag.annotated) node["verification"] = json.verification(verification.verifyTag(tag.signature, tag.taggerEmail))
         return node
     }
 

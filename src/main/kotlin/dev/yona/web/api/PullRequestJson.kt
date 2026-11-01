@@ -89,10 +89,17 @@ class PullRequestJson(
         }
     }
 
-    fun commit(commit: PullRequestCommit): Map<String, Any?> = linkedMapOf(
+    fun commit(commit: PullRequestCommit, verification: dev.yona.domain.gpgkey.SignatureVerification? = null): Map<String, Any?> = linkedMapOf<String, Any?>(
         "commitId" to commit.commitId, "shortId" to commit.commitShortId, "message" to commit.commitMessage, "authorEmail" to commit.authorEmail,
         "authoredAt" to iso(commit.authorDate), "state" to commit.state?.name?.lowercase()
-    )
+    ).also { node -> verification?.let { node["verification"] = verification(it) } }
+
+    /** 서명 판정의 JSON이다(X-4, D-65). 서명한 사람과 키 ID는 알 때만 담는다. */
+    fun verification(result: dev.yona.domain.gpgkey.SignatureVerification): Map<String, Any?> =
+        linkedMapOf<String, Any?>("verified" to result.verified, "reason" to result.reason.code).also { node ->
+            result.signerLogin?.let { node["signer"] = it }
+            result.keyId?.let { node["keyId"] = it }
+        }
 
     /** 변경 파일 한 개이다. `patch`는 헝크를 이은 통합 diff이고 너무 크거나 이진 파일이면 `null`(`truncated`)이다. */
     fun file(diff: FileDiff): Map<String, Any?> {

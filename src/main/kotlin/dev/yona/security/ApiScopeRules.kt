@@ -121,6 +121,12 @@ object ApiScopeRules {
         add("GET", "/-_-api/v1/admin/audit/streams", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
         add("GET", "/-_-api/v1/orgs/{org}/audit", ApiRequirement.Scope("admin:org"))
         add("GET", "/-_-api/v1/user/audit", ApiRequirement.Scope("read:user"))
+        // GPG 키(X-4, D-65): 읽기 `read:gpg_key`, 등록 `write:gpg_key`, 삭제 `admin:gpg_key`. 다른 사용자의 공개키 목록은 `read:user`
+        add("GET", "/-_-api/v1/user/gpg_keys", ApiRequirement.Scope("read:gpg_key"))
+        add("GET", "/-_-api/v1/user/gpg_keys/{id}", ApiRequirement.Scope("read:gpg_key"))
+        add("POST", "/-_-api/v1/user/gpg_keys", ApiRequirement.Scope("write:gpg_key"))
+        add("DELETE", "/-_-api/v1/user/gpg_keys/{id}", ApiRequirement.Scope("admin:gpg_key"))
+        add("GET", "/-_-api/v1/users/{user}/gpg_keys", ApiRequirement.Scope("read:user"))
         // 프로젝트 위키(X-17, D-60): `repo`나 공개 프로젝트의 `public_repo`
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/wiki/pages", ApiRequirement.Repo)
         for (m in listOf("GET", "PATCH", "DELETE")) add(m, "$PROJECT/wiki/pages/{name}", ApiRequirement.Repo)

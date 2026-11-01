@@ -277,7 +277,8 @@ class TagNode(
     @get:Schema(description = "주석 태그인지") val annotated: Boolean,
     @get:Schema(description = "주석 태그의 메시지") val message: String? = null,
     @get:Schema(description = "태그를 단 사람과 시각") val tagger: TagTagger? = null,
-    @get:Schema(description = "가리키는 커밋") val commit: TagCommit? = null
+    @get:Schema(description = "가리키는 커밋") val commit: TagCommit? = null,
+    @get:Schema(description = "서명 판정. 주석 태그에만 있다") val verification: VerificationNode? = null
 )
 
 @Schema(description = "태그 목록 응답")
