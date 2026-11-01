@@ -175,7 +175,7 @@ class OpenApiConfig {
             "threadId" to "코드 리뷰 스레드 번호이다.",
             "reviewId" to "리뷰 번호이다.",
             "reviewer" to "리뷰어의 로그인 ID이다.",
-            "name" to "태그 이름이다. 슬래시가 있어도 된다(`release/1.0`)."
+            "name" to "이름이다. 태그는 슬래시가 있어도 되고(`release/1.0`), 위키 페이지는 제목의 공백을 `-`로 바꾼 값이다(`My-First-Page`)."
         )
     }
 }

@@ -836,3 +836,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W2 위키 서비스
 `WikiService`(목록, 검색, 조회, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff, 비교, 사이드바와 푸터)를 구현했다. 시험 `WikiServiceTest` 26건 통과. 문서는 [architecture/project-wiki.md](architecture/project-wiki.md), 판단은 A-312. 다음은 W3(REST).
+
+## [2026-11-01] X-17 W3 위키 REST
+`ExternalWikiApiController`(목록과 검색, 한 건, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff와 비교), 범위 표, OpenAPI 태그 "위키"와 스키마를 시험 먼저 만들었다. 시험: `ExternalWikiApiTest` 17건, OpenAPI 5건, API와 보안과 감사 패키지 342건 통과. 쓰기는 `WIKI_PAGE`의 `UPDATE`(구성원)이다. 계약은 [architecture/project-wiki.md](architecture/project-wiki.md). 다음은 W4(화면).

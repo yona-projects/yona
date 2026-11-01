@@ -34,6 +34,22 @@ title: 프로젝트 위키 (X-17)
 
 기본 커밋 메시지는 `Create <이름>`, `Update <이름>`, `Rename <옛 이름> to <새 이름>`, `Delete <이름>`이다. 저장하는 사이에 다른 커밋이 들어오면 `WikiConflictException`이다. 권한은 서비스가 아니라 웹과 REST 계층이 확인한다.
 
+## REST (`ExternalWikiApiController`, W3)
+
+경로는 `/-_-api/v1/owners/{owner}/projects/{project}/wiki/...`(D-51)이다. 범위는 `repo`나 공개 프로젝트의 `public_repo`(`ApiScopeRules`)이다. 읽기는 프로젝트를 읽을 수 있으면 되고(코드 접근을 구성원으로 제한한 프로젝트의 제한은 받지 않는다), 쓰기는 `ResourceType.WIKI_PAGE`의 `UPDATE`, 곧 프로젝트 구성원이다.
+
+| 메서드와 경로 | 동작 | 상태 |
+|---|---|---|
+| `GET wiki/pages?q=` | 목록과 제목 검색 | 200 |
+| `GET wiki/pages/{name}?revision=` | 한 건과 마지막 커밋 | 200, 404 |
+| `POST wiki/pages` `{title, content?, message?}` | 만들기 | 201, 400, 409 |
+| `PATCH wiki/pages/{name}` `{title?, content?, message?}` | 본문 고치기와 이름 바꾸기(한 커밋). 하나는 있어야 한다 | 200, 400, 404, 409 |
+| `DELETE wiki/pages/{name}?message=` | 지우기 | 204, 404 |
+| `GET wiki/pages/{name}/history?page=&size=` | 이력(최신순, 기본 30, 최대 100) | 200 |
+| `GET wiki/pages/{name}/diff?commit=` 또는 `?from=&to=` | 통합 diff 글, 두 리비전 비교 | 200, 400, 404 |
+
+CLI의 옛 경로(`/api/v1/.../wiki`, `PUT`과 `newTitle`)와 다른 점은 W5에서 CLI를 이 계약에 맞춘다. 시험은 `ExternalWikiApiTest`, 문서 구조는 `OpenApiDocumentTest`가 본다.
+
 ## 단계
 
-W1 저장소 계층(완료), W2 서비스(완료), W3 REST, W4 화면, W5 CLI, W6 검증과 문서, W7 git clone과 push.
+W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면, W5 CLI, W6 검증과 문서, W7 git clone과 push.

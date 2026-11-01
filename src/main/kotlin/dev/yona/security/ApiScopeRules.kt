@@ -115,6 +115,11 @@ object ApiScopeRules {
         // Git 태그(X-37c, D-52)
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/tags", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/tags/{*name}", ApiRequirement.Repo)
+        // 프로젝트 위키(X-17, D-60): `repo`나 공개 프로젝트의 `public_repo`
+        for (m in listOf("GET", "POST")) add(m, "$PROJECT/wiki/pages", ApiRequirement.Repo)
+        for (m in listOf("GET", "PATCH", "DELETE")) add(m, "$PROJECT/wiki/pages/{name}", ApiRequirement.Repo)
+        add("GET", "$PROJECT/wiki/pages/{name}/history", ApiRequirement.Repo)
+        add("GET", "$PROJECT/wiki/pages/{name}/diff", ApiRequirement.Repo)
         // 토큰 주인 조회(X-37i, D-52): 범위가 필요 없고 컨트롤러가 토큰 유무를 확인한다
         add("GET", "/-_-api/v1/user", ApiRequirement.None)
         // 사용자 현황(X-37e, D-52): 비공개 프로젝트까지 걸리므로 `repo`
