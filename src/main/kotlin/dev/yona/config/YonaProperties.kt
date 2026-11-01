@@ -61,6 +61,9 @@ import java.time.temporal.ChronoUnit
  * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
  * @property auditRetentionDays 감사 로그를 보존하는 날수(`yona.audit-retention-days`, 기본 365). 0이면 영구 보존한다. 만료 기록은 삭제 전에 보관 파일로 옮긴다(X-9, D-62)
  * @property auditGitRetentionDays `git.*` 이벤트의 보존 일수(`yona.audit-git-retention-days`, 기본 90). 지나면 보관 파일로 옮기고 개인정보 필드를 비운다(행은 남는다). 0이면 따로 비우지 않고 `auditRetentionDays`를 따른다(D-63)
+ * @property auditStreamWebhookUrl 감사 기록을 JSON으로 POST해 보낼 웹훅 주소(`yona.audit-stream-webhook-url`). 비어 있거나 http와 https가 아니면 보내지 않는다(D-63)
+ * @property auditStreamWebhookSecret 웹훅 본문에 HMAC-SHA256 서명(`X-Yona-Signature: sha256=<16진수>`)을 만들 비밀값(`yona.audit-stream-webhook-secret`). 비어 있으면 서명하지 않는다
+ * @property auditStreamBatchSize 한 번에 보내는 기록 수(`yona.audit-stream-batch-size`, 기본 100)
  * @property auditFileEnabled 감사 로그를 커밋한 뒤 JSON 줄 파일(`<데이터>/audit/audit-<날짜>.jsonl`)에도 남길지이다(`yona.audit-file-enabled`, 기본 켜짐)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
  * @property analytics 사용 현황 집계(GA4)의 측정 ID이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
@@ -140,7 +143,10 @@ data class YonaProperties(
     val gitDefaultBranch: String = "main",
     val auditRetentionDays: Int = 365,
     val auditFileEnabled: Boolean = true,
-    val auditGitRetentionDays: Int = 90
+    val auditGitRetentionDays: Int = 90,
+    val auditStreamWebhookUrl: String? = null,
+    val auditStreamWebhookSecret: String? = null,
+    val auditStreamBatchSize: Int = 100
 ) {
     companion object {
         /** 설치 직후 설정 예시에 들어 있는 사이트 비밀 키이다. 이 값이면 아직 정하지 않은 것이다 (v1.6 `Global.DEFAULT_SECRET`). */
