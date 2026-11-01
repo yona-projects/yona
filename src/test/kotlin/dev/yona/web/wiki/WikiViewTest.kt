@@ -251,6 +251,19 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertEquals(listOf("B"), doc(getPage(writer, "${base(p)}/B")).select(".wiki-pages-list a").map { it.text() })
     }
 
+    // --- 복제 주소 ---
+
+    @Test
+    fun `사이드바에 위키 복제 주소가 Forgejo 방식으로 보인다`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Home", "x")
+        val panel = doc(getPage(outsider(), "${base(p)}/Home")).selectFirst(".wiki-clone input.wiki-clone-url")
+        assertNotNull(panel)
+        assertTrue(panel.attr("value").endsWith("/${p.owner}/${p.name}.wiki.git"), panel.attr("value"))
+        assertTrue(panel.attr("value").startsWith("http"))
+        assertNotNull(doc(getPage(writer, base(p))).selectFirst(".wiki-clone input.wiki-clone-url"))
+    }
+
     // --- 이력과 비교 ---
 
     @Test

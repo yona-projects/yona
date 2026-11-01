@@ -16,6 +16,13 @@
     </ul>
     <button type="button" class="wiki-pages-more btn btn-link btn-sm p-0" th:if="${#lists.size(pages) > 15}" th:text="#{wiki.pages.more(${#lists.size(pages) - 15})}">Show more pages…</button>
     <div th:if="${sidebarHtml != null}" class="wiki-custom-sidebar markdown-wrap mt-3" th:utext="${sidebarHtml}"></div>
+    <div th:if="${cloneUrl != null}" class="wiki-clone mt-4">
+        <h4 class="wiki-clone-title" th:text="#{wiki.clone.title}">Clone this wiki locally</h4>
+        <div class="input-group input-group-sm">
+            <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
+            <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
+        </div>
+    </div>
 </div>
 <script type="text/javascript">
     (function () {
@@ -33,6 +40,12 @@
             });
             if (more) more.classList.toggle("d-none", expanded || !!needle);
         }
+        var copy = document.querySelector(".wiki-clone-copy");
+        if (copy) copy.addEventListener("click", function () {
+            var url = document.querySelector(".wiki-clone-url");
+            url.select();
+            if (navigator.clipboard) navigator.clipboard.writeText(url.value); else document.execCommand("copy");
+        });
         box.addEventListener("input", apply);
         if (more) more.addEventListener("click", function () { expanded = true; apply(); });
     })();

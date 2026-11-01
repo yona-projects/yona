@@ -61,7 +61,8 @@ class WikiViewController(
     private val currentUserProvider: CurrentUserProvider,
     private val markdown: ProjectMarkdownRenderer,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val repositoryUrls: dev.yona.web.project.RepositoryUrls
 ) {
 
     // --- 읽기 ---
@@ -232,6 +233,7 @@ class WikiViewController(
             .addObject("base", base)
             .addObject("canWrite", canWrite(project))
             .addObject("activeName", activeName)
+            .addObject("cloneUrl", repositoryUrls.wikiUrlFor(project, currentRequest(), currentUserProvider.get().user?.loginId))
             .addObject("pages", wikiService.pages(project).map { WikiPageLink(it.name, it.title, pageUrl(base, it.name), it.name == activeName) })
             .addObject("sidebarHtml", wikiService.sidebar(project)?.let { markdown.render(it, project) })
             .addObject("footerHtml", wikiService.footer(project)?.let { markdown.render(it, project) })
@@ -292,6 +294,9 @@ class WikiViewController(
                 else -> WikiDiffLine("ctx", line)
             }
         }.toList().dropLastWhile { it.text.isEmpty() }
+
+    private fun currentRequest(): HttpServletRequest =
+        (org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes() as org.springframework.web.context.request.ServletRequestAttributes).request
 
     private companion object {
         const val HOME = "Home"

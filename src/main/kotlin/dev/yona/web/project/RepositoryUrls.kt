@@ -34,6 +34,16 @@ class RepositoryUrls(private val properties: YonaProperties) {
         return if (loginId.isNullOrEmpty()) url else url.replace("://", "://$loginId@")
     }
 
+    /**
+     * 프로젝트 위키 저장소의 복제 주소 `<스킴>://<호스트[:포트]><컨텍스트>/<소유자>/<이름>.wiki.git`이다(X-17, D-60. Forgejo 방식). 프로젝트의 VCS와 무관하게 git
+     * 주소이다. [loginId]가 있으면 주소에 `사용자@`를 넣는다.
+     */
+    fun wikiUrlFor(project: Project, request: HttpServletRequest, loginId: String? = null): String {
+        val base = "${scheme(request)}://${hostPort(request)}${request.contextPath.orEmpty().trimEnd('/')}"
+        val url = "$base/${encode(project.owner)}/${encode(project.name)}.wiki.git"
+        return if (loginId.isNullOrEmpty()) url else url.replace("://", "://$loginId@")
+    }
+
     /** `<스킴>://<호스트[:포트]>`이다 (v1.6 `Config.getScheme() + "://" + Config.getHostport()`). */
     fun origin(request: HttpServletRequest): String = "${scheme(request)}://${hostPort(request)}"
 

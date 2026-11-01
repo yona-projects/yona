@@ -845,3 +845,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W5 위키 CLI
 `../yona-cli`의 위키 명령 8개를 서버 위키 REST에 맞췄다(경로, 응답 모양, `PATCH`, `--revision`, 하위 경로 제거). 시험은 CLI 저장소에서 먼저 새 계약으로 고쳐 쓰고 구현했다(`go test ./...` 통과, `gofmt`와 `vet` 깨끗). README 갱신. 다음은 W6(검증과 문서)와 W7(git clone과 push).
+
+## [2026-11-01] X-17 W7 위키 git clone과 push
+`GitHttpController.handleWiki`, `GitHttpService.advertiseWiki`와 `rpcWiki`, `WikiRepositories.openForHttp`, `RepositoryUrls.wikiUrlFor`, 사이드바의 `Clone this wiki locally` 상자를 시험 먼저 만들었다. 시험: `WikiGitHttpTest` 12건(JGit 복제와 푸시), `WikiViewTest`의 복제 주소, 메시지 2개(5개 언어). 결정 A-313. W6(전 화면 순회 비교와 전체 시험)이 남았다.

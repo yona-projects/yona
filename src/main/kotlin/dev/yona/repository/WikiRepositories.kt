@@ -49,6 +49,13 @@ class WikiRepositories @Autowired constructor(private val dataDirectory: DataDir
         RepositoryBuilder().setGitDir(directoryOf(owner, name)).setMustExist(true).build()
 
     /**
+     * Git 스마트 HTTP용으로 위키 저장소를 연다. 디렉터리가 없어도 예외 없이 저장소를 돌려주고 디렉터리를 만들지도 않는다. 위키를 한 번도 쓰지 않은
+     * 프로젝트의 `info/refs`가 빈 저장소와 같은 광고를 내도록 하려는 것이며 코드 저장소의 `openForHttp`와 같다.
+     */
+    fun openForHttp(owner: String, name: String): Repository =
+        RepositoryBuilder().setGitDir(directoryOf(owner, name)).build()
+
+    /**
      * 위키 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. 이미 열었던 저장소가 pack 파일을 붙들고 있을 수 있으므로
      * 코드 저장소처럼 JGit의 창 캐시를 다시 설치한 뒤 지운다.
      */

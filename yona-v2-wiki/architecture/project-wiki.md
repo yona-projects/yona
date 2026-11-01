@@ -74,6 +74,16 @@ GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되�
 
 `yona wiki list`, `view`, `create`, `edit`, `delete`, `history`, `diff`, `compare`를 위 REST 계약(`/-_-api/v1/.../wiki/pages...`)에 맞췄다. 옛 계약(`/api/v1/.../wiki`, `PUT`과 `newTitle`, 슬래시 하위 경로)을 없앴다. `edit`은 `--new-title`만 주면 이름만 바뀌고(`PATCH`), `view`는 `--revision`을 받는다. 시험은 CLI 저장소의 `cmd/wiki_test.go` 20건이다(서버 응답 모양을 흉내 낸다).
 
+## git clone과 push (W7)
+
+- 주소는 `/{소유자}/{이름}.wiki.git`(Forgejo 방식)이고 코드 저장소 주소처럼 `.git` 없는 `/{소유자}/{이름}.wiki`도 받는다. 같은 이름의 프로젝트가 있으면 코드 저장소가 우선이다(`GitHttpController.handle`이 먼저 프로젝트를 찾고 없을 때만 `handleWiki`).
+- 복제는 프로젝트 읽기 권한(`WIKI_PAGE`의 `READ`), 푸시는 구성원(`UPDATE`)이다. 코드를 구성원에게만 여는 설정은 위키에 적용하지 않는다. 익명은 푸시에서 401, 구성원이 아니면 403이다. 토큰 범위는 코드 저장소와 같다(`repo`, 공개 프로젝트는 `public_repo`).
+- 프로젝트의 VCS가 Subversion이어도 위키는 git이다. 위키를 한 번도 쓰지 않았으면 복제는 빈 저장소(`info/refs`가 빈 광고)이고, 첫 푸시가 저장소를 만든다(`GitHttpService.rpcWiki`).
+- 코드 저장소와 달리 푸시 전후 훅(브랜치 규칙, 풀 리퀘스트, 웹훅, 최근 방문 기록)이 없다. 기본 브랜치를 지우는 푸시는 거부한다.
+- push로 올라온 하위 폴더와 `.md`가 아닌 파일은 위키 화면과 REST에서 숨긴다(저장소에는 남는다).
+- 화면의 오른쪽 사이드바에 `Clone this wiki locally` 상자(주소 입력과 복사 단추)가 있다(`RepositoryUrls.wikiUrlFor`).
+- 시험은 `WikiGitHttpTest` 12건(JGit으로 실제 복제와 푸시).
+
 ## 단계
 
-W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면(완료), W5 CLI(완료), W6 검증과 문서, W7 git clone과 push.
+W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면(완료), W5 CLI(완료), W7 git clone과 push(완료), W6 검증과 문서(진행 중).

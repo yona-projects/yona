@@ -43,7 +43,8 @@ class GitHttpController(
     private val gitHttp: GitHttpService,
     private val recentVisits: RecentVisitService,
     private val messages: MessageSource,
-    private val properties: dev.yona.config.YonaProperties
+    private val properties: dev.yona.config.YonaProperties,
+    private val wikiService: dev.yona.domain.wiki.WikiService
 ) {
 
     /** 서비스(`service=git-upload-pack` 또는 `git-receive-pack`)가 광고하는 ref 목록이다. */
@@ -91,7 +92,8 @@ class GitHttpController(
     ): Any? {
         val user = identity.user
         if (!GitHttpService.isSupported(service)) return text(HttpStatus.FORBIDDEN, "Unsupported service: '$service'")
-        val project = projectService.findByOwnerAndProjectName(ownerName, projectName) ?: return ResponseEntity.notFound().build<Void>()
+        val project = projectService.findByOwnerAndProjectName(ownerName, projectName)
+            ?: return handleWiki(ownerName, projectName, service, advertise, identity, request, response)
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
         if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
@@ -118,6 +120,40 @@ class GitHttpController(
             gitHttp.rpc(project, service, input, response.outputStream, user)
         }
         // 응답 본문을 직접 썼으므로 더 쓸 것이 없다.
+        return null
+    }
+
+    /**
+     * 프로젝트 위키 저장소의 복제와 푸시이다(X-17 W7, D-60). 주소는 Forgejo 방식으로 `<이름>.wiki.git`이고 코드 저장소 주소처럼 `.git` 없는 `<이름>.wiki`도 받는다.
+     * 같은 이름의 프로젝트가 있으면 코드 저장소가 우선이라 이 함수에 오지 않는다. 복제는 프로젝트 읽기 권한, 푸시는 구성원(`WIKI_PAGE`의 `UPDATE`)이며, 코드를 구성원에게만 여는
+     * 설정은 위키에 적용하지 않는다. 프로젝트의 VCS와 무관하게 항상 git이다.
+     */
+    private fun handleWiki(
+        ownerName: String, repositoryName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse
+    ): Any? {
+        val baseName = WIKI_SUFFIXES.firstOrNull { repositoryName.endsWith(it) }?.let { repositoryName.removeSuffix(it) }?.takeIf { it.isNotEmpty() }
+            ?: return ResponseEntity.notFound().build<Void>()
+        val project = projectService.findByOwnerAndProjectName(ownerName, baseName) ?: return ResponseEntity.notFound().build<Void>()
+        if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
+        val user = identity.user
+        val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
+        if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation)) {
+            if (user == null) {
+                response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
+                return text(HttpStatus.UNAUTHORIZED, "Invalid username or password")
+            }
+            return forbidden(user, ownerName, repositoryName, request.getHeader("User-Agent"))
+        }
+        if (!wikiService.available(project)) return text(HttpStatus.CONFLICT, "The wiki of this project is not available")
+        if (advertise) {
+            response.contentType = "application/x-$service-advertisement"
+            gitHttp.advertiseWiki(project, service, response.outputStream)
+        } else {
+            val raw = request.inputStream
+            response.contentType = "application/x-$service-result"
+            val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw
+            gitHttp.rpcWiki(project, service, input, response.outputStream)
+        }
         return null
     }
 
@@ -161,5 +197,7 @@ class GitHttpController(
         ResponseEntity.status(status).header("Content-Type", "text/plain;charset=UTF-8").body(body)
 
     private companion object {
+        /** 위키 저장소 주소의 끝이다. 긴 쪽을 먼저 본다. */
+        val WIKI_SUFFIXES = listOf(".wiki.git", ".wiki")
     }
 }
