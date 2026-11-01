@@ -83,6 +83,16 @@ export function screens(fx) {
   add('compare', `${P}/compare/master..feature-a`, { knownErrors: ["reading 'top'"], note: 'v1.6 코드(yobi.code.Diff.js)의 알려진 JS 오류: 리뷰 목록이 없는 화면에서 높이를 계산한다' });
   add('branches', `${P}/branches`);
   add('tags', `${P}/tags`, { note: 'X-18 태그' });
+
+  // --- 위키(X-17, D-60) ---
+  add('wiki-home', `${P}/wiki`, { roles: ['anon', 'admin', 'bob'], note: 'Home 페이지, 사이드바와 푸터(구성원은 쓰기 단추)' });
+  add('wiki-page', `${P}/wiki/Install-Guide`, { note: '코드 블록과 표가 있는 페이지' });
+  add('wiki-new', `${P}/wiki/_new`, { note: '새 페이지 폼' });
+  add('wiki-edit', `${P}/wiki/Install-Guide/_edit`, { note: '고치기 폼과 삭제 단추' });
+  add('wiki-history', `${P}/wiki/Home/_history`, { roles: ['anon', 'admin'], note: '두 리비전 선택' });
+  if (fx.wikiRevisions && fx.wikiRevisions.length > 1) add('wiki-compare', `${P}/wiki/Home/_compare?from=${fx.wikiRevisions[1]}&to=${fx.wikiRevisions[0]}`, { note: '두 리비전 비교' });
+  add('wiki-empty', `/${fx.project.svn.owner}/${fx.project.svn.name}/wiki`, { note: '페이지가 없는 위키(Subversion 프로젝트도 위키는 git)' });
+  add('wiki-404', `${P}/wiki/Nope`, { expect: 404, note: '없는 페이지' });
   add('svn-home', `/${fx.project.svn.owner}/${fx.project.svn.name}`, { note: 'Subversion 프로젝트' });
   add('svn-code', `/${fx.project.svn.owner}/${fx.project.svn.name}/code`);
 

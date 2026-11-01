@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 위키에 Home 페이지가 없을 때의 안내이다.
+  모델: title, projectView, base, pages, canWrite, sidebarHtml, available
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
+<th:block th:fragment="wikiPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap wiki-wrap">
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="wiki-empty text-center py-5">
+                    <h3 th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</h3>
+                    <p th:unless="${available}" class="text-body-secondary" th:text="#{wiki.error.unavailable}"></p>
+                    <a th:if="${canWrite and available}" th:href="${base + '/_new?title=Home'}" class="wiki-create-first ybtn ybtn-success" th:text="#{wiki.empty.create}">Create the first page</a>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

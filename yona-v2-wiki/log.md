@@ -839,3 +839,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W3 위키 REST
 `ExternalWikiApiController`(목록과 검색, 한 건, 만들기, 고치기와 이름 바꾸기, 지우기, 이력, diff와 비교), 범위 표, OpenAPI 태그 "위키"와 스키마를 시험 먼저 만들었다. 시험: `ExternalWikiApiTest` 17건, OpenAPI 5건, API와 보안과 감사 패키지 342건 통과. 쓰기는 `WIKI_PAGE`의 `UPDATE`(구성원)이다. 계약은 [architecture/project-wiki.md](architecture/project-wiki.md). 다음은 W4(화면).
+
+## [2026-11-01] X-17 W4 위키 화면
+`WikiViewController`와 템플릿 6장(`wiki/shell`, `view`, `empty`, `edit`, `history`, `compare`), 프로젝트 메뉴의 `Wiki` 탭, 메시지 31개(5개 언어), `_wiki.scss`, 확인 도구의 위키 화면과 고정 데이터를 시험 먼저 만들었다. 시험: `WikiViewTest` 20건, 메뉴 시험 3건 갱신, 전체 3,136건 통과. Playwright로 홈, 편집, 이력, 비교 화면을 확인했다(선생님께 캡처 전달). 문서는 [architecture/project-wiki.md](architecture/project-wiki.md). 다음은 W5(CLI).

@@ -1,0 +1,44 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 프로젝트 위키 화면의 공통 조각이다. GitHub 위키 모양이다.
+  모델: base(위키 주소), pages(WikiPageLink 목록), canWrite, sidebarHtml, footerHtml
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+<div class="wiki-sidebar">
+    <h3 class="wiki-sidebar-title" th:text="#{wiki.pages}">Pages</h3>
+    <input type="search" class="wiki-pages-filter form-control form-control-sm" th:placeholder="#{wiki.pages.filter}" autocomplete="off">
+    <ul class="wiki-pages-list list-unstyled">
+        <li th:each="p, stat : ${pages}" th:classappend="${stat.index >= 15} ? 'wiki-page-extra d-none'">
+            <a th:href="${p.url}" th:text="${p.title}" th:classappend="${p.active} ? 'active'">Page</a>
+        </li>
+        <li th:if="${#lists.isEmpty(pages)}" class="wiki-pages-empty text-body-secondary" th:text="#{wiki.pages.empty}">No pages yet.</li>
+    </ul>
+    <button type="button" class="wiki-pages-more btn btn-link btn-sm p-0" th:if="${#lists.size(pages) > 15}" th:text="#{wiki.pages.more(${#lists.size(pages) - 15})}">Show more pages…</button>
+    <div th:if="${sidebarHtml != null}" class="wiki-custom-sidebar markdown-wrap mt-3" th:utext="${sidebarHtml}"></div>
+</div>
+<script type="text/javascript">
+    (function () {
+        var box = document.querySelector(".wiki-pages-filter");
+        if (!box) return;
+        var items = document.querySelectorAll(".wiki-pages-list li:not(.wiki-pages-empty)");
+        var more = document.querySelector(".wiki-pages-more");
+        var expanded = false;
+        function apply() {
+            var needle = box.value.trim().toLowerCase();
+            items.forEach(function (li) {
+                var extra = li.classList.contains("wiki-page-extra");
+                var match = !needle || li.textContent.toLowerCase().indexOf(needle) >= 0;
+                li.classList.toggle("d-none", !match || (extra && !expanded && !needle));
+            });
+            if (more) more.classList.toggle("d-none", expanded || !!needle);
+        }
+        box.addEventListener("input", apply);
+        if (more) more.addEventListener("click", function () { expanded = true; apply(); });
+    })();
+</script>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
+<div th:if="${footerHtml != null}" class="wiki-custom-footer markdown-wrap mt-4 pt-3 border-top" th:utext="${footerHtml}"></div>
+</th:block>

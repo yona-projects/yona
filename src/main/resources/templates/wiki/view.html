@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 위키 페이지 보기이다. GitHub 위키 모양이다.
+  모델: title, projectView, base, pages, canWrite, sidebarHtml, footerHtml, pageTitle, pageUrl, bodyHtml, lastAuthor, lastDate
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
+<th:block th:fragment="wikiPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap wiki-wrap">
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="wiki-page-header d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <h2 class="wiki-page-title me-auto mb-0" th:text="${pageTitle}">Page</h2>
+                    <a th:if="${canWrite}" th:href="${pageUrl + '/_edit'}" class="wiki-edit ybtn ybtn-small" th:text="#{wiki.page.edit}">Edit</a>
+                    <a th:if="${canWrite}" th:href="${base + '/_new'}" class="wiki-new ybtn ybtn-success ybtn-small" th:text="#{wiki.page.new}">New Page</a>
+                    <a th:href="${pageUrl + '/_history'}" class="wiki-history ybtn ybtn-small" th:text="#{wiki.page.history}">Revisions</a>
+                </div>
+                <div th:if="${lastAuthor != null}" class="wiki-last-edited text-body-secondary small mb-3" th:text="#{wiki.page.lastEdited(${lastAuthor}, ${lastDate})}"></div>
+                <div class="wiki-body markdown-wrap" th:utext="${bodyHtml}"></div>
+                <th:block th:replace="~{wiki/shell :: footer}"></th:block>
+            </div>
+            <div class="col-lg-3">
+                <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
+</th:block>
+</html>

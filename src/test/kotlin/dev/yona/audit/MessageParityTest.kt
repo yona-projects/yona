@@ -28,8 +28,10 @@ class MessageParityTest {
      * - 브랜치 삭제 확인창(D-31): `code.branches.deleteConfirm`
      * - X-14 풀 리퀘스트 담당자와 라벨(D-34): 알림 문구와 타임라인 문구
      * - X-37i 기기 인증(D-52): `deviceAuth.*` 화면 글
+     * - X-17 프로젝트 위키(D-60): `menu.wiki`, `wiki.*` 화면 글
      */
     private val addedKeys = setOf(
+        "menu.wiki", "wiki.pages", "wiki.pages.filter", "wiki.pages.more", "wiki.pages.empty", "wiki.empty.title", "wiki.empty.create", "wiki.page.new", "wiki.page.edit", "wiki.page.delete", "wiki.page.delete.confirm", "wiki.page.history", "wiki.page.lastEdited", "wiki.page.notFound", "wiki.revision.notFound", "wiki.page.title", "wiki.page.title.help", "wiki.page.message", "wiki.page.save", "wiki.error.title", "wiki.error.exists", "wiki.error.conflict", "wiki.error.unavailable", "wiki.history.title", "wiki.history.compare", "wiki.history.empty", "wiki.history.older", "wiki.history.newer", "wiki.compare.title", "wiki.compare.nochange", "wiki.compare.required",
         "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm",
         "code.branches.deleteConfirm",
         "notification.pullrequest.assigned", "notification.pullrequest.unassigned", "notification.type.pullrequest.assignee.changed",

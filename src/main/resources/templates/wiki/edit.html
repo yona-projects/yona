@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 위키 페이지 만들기와 고치기 폼이다. GitHub 위키 모양이다.
+  모델: title, projectView, base, pages, canWrite, sidebarHtml, editing, formAction, deleteAction, cancelUrl, titleValue, contentValue, messageValue, errorKey
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
+<th:block th:fragment="wikiPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap wiki-wrap">
+        <div class="row">
+            <div class="col-lg-9">
+                <div th:if="${errorKey != null}" class="wiki-error alert alert-danger" th:text="#{${errorKey}}">Error</div>
+                <form th:action="${formAction}" method="post" class="wiki-form">
+                    <div class="mb-3">
+                        <input type="text" name="title" class="form-control" maxlength="200" tabindex="1" required th:value="${titleValue}" th:placeholder="#{wiki.page.title}">
+                        <div class="form-text" th:text="#{wiki.page.title.help}">Spaces become hyphens in the page name.</div>
+                    </div>
+                    <div class="mb-3">
+                        <th:block th:replace="~{common/editor :: editor('content', ${contentValue}, 'tabindex=2', 'content-body', false)}"></th:block>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="message" class="form-control" maxlength="250" tabindex="3" th:value="${messageValue}" th:placeholder="#{wiki.page.message}">
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="wiki-save ybtn ybtn-success" tabindex="4" th:text="#{wiki.page.save}">Save Page</button>
+                        <a th:href="${cancelUrl}" class="ybtn" tabindex="5" th:text="#{button.cancel}">Cancel</a>
+                    </div>
+                </form>
+                <form th:if="${editing}" th:action="${deleteAction}" method="post" class="wiki-delete-form mt-4"
+                      th:attr="data-confirm=#{wiki.page.delete.confirm(${titleValue})}">
+                    <button type="submit" class="wiki-delete ybtn ybtn-danger ybtn-small" th:text="#{wiki.page.delete}">Delete Page</button>
+                </form>
+            </div>
+            <div class="col-lg-3">
+                <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    document.querySelectorAll("form.wiki-delete-form[data-confirm]").forEach(function (f) {
+        f.addEventListener("submit", function (e) { if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault(); });
+    });
+</script>
+<th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
+</th:block>
+</html>

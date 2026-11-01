@@ -1,0 +1,57 @@
+// 프로젝트 위키 화면(X-17, D-60). GitHub 위키 모양이다. 색은 BS5 테마 별칭을 쓴다(D-58).
+.wiki-wrap {
+  .wiki-page-title {
+    font-size: 1.75rem;
+  }
+
+  .wiki-sidebar {
+    .wiki-sidebar-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .wiki-pages-filter {
+      margin-bottom: .5rem;
+    }
+
+    .wiki-pages-list {
+      margin-bottom: .5rem;
+
+      li a {
+        display: block;
+        padding: .125rem 0;
+
+        &.active {
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .wiki-diff {
+    font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: .8125rem;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: .375rem;
+    overflow-x: auto;
+
+    .diff-line {
+      white-space: pre-wrap;
+      padding: 0 .75rem;
+      min-height: 1.25rem;
+    }
+
+    .diff-add {
+      background: rgba($theme-success, .15);
+    }
+
+    .diff-del {
+      background: rgba($theme-danger, .15);
+    }
+
+    .diff-hunk {
+      color: #6c757d;
+      background: rgba($theme-info, .1);
+    }
+  }
+}

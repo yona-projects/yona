@@ -313,7 +313,7 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         val project = newProject()
         val items = page(project).select(".project-menu-nav.project-menu-gruop > li")
         assertEquals(
-            listOf("Project home", "Code", "Issue", "Pull request", "Review", "Milestone", "Board"),
+            listOf("Project home", "Code", "Issue", "Pull request", "Review", "Milestone", "Board", "Wiki"),
             items.map { it.selectFirst(".menu-name")!!.text() }
         )
         assertEquals(
@@ -321,18 +321,18 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
                 "/${project.owner}/${project.name}", "/${project.owner}/${project.name}/code",
                 "/${project.owner}/${project.name}/issues", "/${project.owner}/${project.name}/pullRequests",
                 "/${project.owner}/${project.name}/reviews", "/${project.owner}/${project.name}/milestones",
-                "/${project.owner}/${project.name}/posts"
+                "/${project.owner}/${project.name}/posts", "/${project.owner}/${project.name}/wiki"
             ),
             items.map { it.selectFirst("a")!!.attr("href") }
         )
-        assertEquals(listOf("H", "C", "I", "P", "R", "M", "B"), items.map { it.selectFirst(".short-menu")!!.text().trim() })
+        assertEquals(listOf("H", "C", "I", "P", "R", "M", "B", "W"), items.map { it.selectFirst(".short-menu")!!.text().trim() })
     }
 
     @Test
     fun `꺼진 메뉴는 숨긴다`() {
         val project = newProject { code = false; board = false; review = false; pullRequest = false }
         val names = page(project).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
-        assertEquals(listOf("Project home", "Issue", "Milestone"), names)
+        assertEquals(listOf("Project home", "Issue", "Milestone", "Wiki"), names)
     }
 
     @Test
@@ -354,7 +354,7 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     fun `코드 열람이 멤버 전용이면 비멤버에게 코드와 풀 리퀘스트와 리뷰 메뉴를 숨긴다`() {
         val project = newProject(codeMemberOnly = true)
         val names = page(project).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
-        assertEquals(listOf("Project home", "Issue", "Milestone", "Board"), names)
+        assertEquals(listOf("Project home", "Issue", "Milestone", "Board", "Wiki"), names)
         val member = newUser().also { join(it, project, RoleType.MEMBER) }
         val memberNames = page(project, login(member)).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
         assertTrue(memberNames.containsAll(listOf("Code", "Pull request", "Review")))

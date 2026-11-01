@@ -66,6 +66,8 @@ async function seedData(base) {
   await admin.api('POST', `${P}/tags`, { name: 'v1.0.0', target: 'master', message: '첫 배포' }, ok409);
   await admin.api('POST', `${P}/tags`, { name: 'v0.9', target: 'master' }, ok409);
 
+  await seedWiki(admin, P, fx);
+
   // 라벨, 마일스톤
   await admin.api('POST', `${P}/labels`, { labels: [{ labelName: 'bug', labelColor: '#d73a4a', category: 'type' }, { labelName: 'feature', labelColor: '#0e8a16', category: 'type' }, { labelName: 'high', labelColor: '#b60205', category: 'priority' }] }, ok409);
   const labels = await admin.api('GET', `${P}/labels`); fx.labels = Object.fromEntries((labels.labels || []).map((l) => [l.labelName, l.id]));
@@ -110,4 +112,17 @@ async function seedData(base) {
 
 if (process.argv[1] && process.argv[1].endsWith('seed.mjs')) {
   seed().then((f) => console.log('고정 데이터 준비됨:', JSON.stringify({ issues: f.issues, posts: f.posts, prOpen: f.prOpen, prMerged: f.prMerged })), (e) => { console.error(e); process.exit(1); });
+}
+
+/** 위키(X-17) 고정 데이터를 심는다: 홈, 안내 페이지 두 개, 사이드바, 푸터, 홈의 수정 이력(비교 화면용). 이미 있으면(409) 건너뛴다. */
+export async function seedWiki(admin, P, fx) {
+  const ok409 = { ok: [200, 201, 204, 409] };
+  const wiki = async (title, content, message) => admin.api('POST', `${P}/wiki/pages`, { title, content, message }, ok409);
+  await wiki('Home', '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다.\n\n- [설치 방법](Install-Guide)\n- [자주 묻는 질문](FAQ)\n', '홈 만들기');
+  await wiki('Install Guide', '# 설치 방법\n\n```sh\ngit clone https://example.com/web.git\n```\n\n| 단계 | 설명 |\n|---|---|\n| 1 | 내려받기 |\n| 2 | 실행 |\n', '설치 안내');
+  await wiki('FAQ', '## 자주 묻는 질문\n\n**Q.** 위키는 어디에 저장되나요?\n\n**A.** 프로젝트마다 별도의 git 저장소에 저장됩니다.\n', 'FAQ 추가');
+  await wiki('_Sidebar', '**바로 가기**\n\n- [홈](Home)\n- [FAQ](FAQ)\n', '사이드바');
+  await wiki('_Footer', '문의는 이슈로 남겨 주세요.', '푸터');
+  await admin.api('PATCH', `${P}/wiki/pages/Home`, { content: '# 프로젝트 위키\n\n이 프로젝트의 **안내 문서**입니다. 최근에 고쳤습니다.\n\n- [설치 방법](Install-Guide)\n- [자주 묻는 질문](FAQ)\n- [변경 이력](Home/_history)\n', message: '홈 고치기' });
+  fx.wikiRevisions = ((await admin.api('GET', `${P}/wiki/pages/Home/history`)).history || []).map((c) => c.id);
 }

@@ -50,6 +50,26 @@ title: 프로젝트 위키 (X-17)
 
 CLI의 옛 경로(`/api/v1/.../wiki`, `PUT`과 `newTitle`)와 다른 점은 W5에서 CLI를 이 계약에 맞춘다. 시험은 `ExternalWikiApiTest`, 문서 구조는 `OpenApiDocumentTest`가 본다.
 
+## 화면 (`WikiViewController`, W4)
+
+GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되고 쓰기는 구성원이다. 프로젝트 메뉴에 `Wiki` 탭이 항상 있다(켜기와 끄기 설정은 두지 않는다, D-60).
+
+| 주소 | 화면 |
+|---|---|
+| `GET /{o}/{p}/wiki` | `Home` 페이지, 없으면 안내(구성원에게 "첫 페이지 만들기") |
+| `GET /{o}/{p}/wiki/{이름}` | 페이지 보기(`Edit`, `New Page`, `Revisions`, 마지막 편집자와 시각) |
+| `GET /wiki/_new`, `POST /wiki` | 새 페이지 폼과 만들기 |
+| `GET /wiki/{이름}/_edit`, `POST /wiki/{이름}/_edit` | 고치기 폼과 저장(제목을 바꾸면 이름 바꾸기). 폼 아래에 `Delete Page` |
+| `POST /wiki/{이름}/_delete` | 지우기 |
+| `GET /wiki/{이름}/_history` | `Revisions`: 최신순, 두 리비전을 골라 `Compare Revisions` |
+| `GET /wiki/{이름}/_compare?commit=` 또는 `?from=&to=` | 통합 diff 화면 |
+
+- 오른쪽에 `Pages` 사이드바(거르기 상자는 브라우저에서 걸러 내고 15개를 넘으면 "더 보기"), 그 아래에 `_Sidebar` 내용, 본문 아래에 `_Footer` 내용이 있다. `Clone this wiki locally` 상자는 W7에서 clone을 열 때 더한다.
+- 입력 오류(제목 규칙, 같은 이름, 동시 수정, 위키 사용 불가)는 폼을 다시 보여 주고 입력을 보존한다(400 또는 409). 권한이 없으면 403이다.
+- 화면 글은 `wiki.*`, `menu.wiki` 키이고 5개 언어 번들에 모두 있다(`MessageParityTest`의 추가 키 목록). 스타일은 `scss/_wiki.scss`이다.
+- 시험은 `WikiViewTest`. 확인 도구(`e2e`)에는 `wiki-*` 화면 8개와 위키 고정 데이터(`seedWiki`)를 올렸다.
+- 제외한 것: 위키 링크 문법(`[[Page]]`), 첨부 파일 올리기, 전체 페이지 목록 화면(Forgejo의 `_pages`), 이름 바꾸기를 따라가는 이력.
+
 ## 단계
 
-W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면, W5 CLI, W6 검증과 문서, W7 git clone과 push.
+W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면(완료), W5 CLI, W6 검증과 문서, W7 git clone과 push.

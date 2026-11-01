@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 위키 페이지의 Revisions 화면이다. 두 리비전을 골라 비교한다(GitHub 방식).
+  모델: title, projectView, base, pages, canWrite, sidebarHtml, pageTitle, pageUrl, compareAction, revisions(WikiRevisionRow), olderUrl, newerUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
+<th:block th:fragment="wikiPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap wiki-wrap">
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="wiki-page-header d-flex align-items-center gap-2 mb-3">
+                    <h2 class="me-auto mb-0"><a th:href="${pageUrl}" class="wiki-page-title" th:text="${pageTitle}">Page</a> <small class="text-body-secondary" th:text="#{wiki.history.title}">Revisions</small></h2>
+                </div>
+                <form th:action="${compareAction}" method="get" class="wiki-compare-form">
+                    <button type="submit" class="ybtn ybtn-small mb-2" th:text="#{wiki.history.compare}">Compare Revisions</button>
+                    <table class="table table-sm align-middle">
+                        <tbody>
+                        <tr th:each="r, stat : ${revisions}" class="wiki-revision">
+                            <td><input type="radio" name="from" class="form-check-input" th:value="${r.id}" th:checked="${stat.index == 1}"></td>
+                            <td><input type="radio" name="to" class="form-check-input" th:value="${r.id}" th:checked="${stat.index == 0}"></td>
+                            <td><a th:href="${r.compareUrl}" class="wiki-revision-message" th:text="${r.message}">message</a></td>
+                            <td class="text-body-secondary" th:text="${r.author}">author</td>
+                            <td class="text-body-secondary" th:title="${r.dateTitle}" th:text="${r.date}">date</td>
+                            <td><code th:text="${r.shortId}">abcdef1</code></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(revisions)}"><td colspan="6" class="text-body-secondary" th:text="#{wiki.history.empty}">No revisions.</td></tr>
+                        </tbody>
+                    </table>
+                </form>
+                <nav class="d-flex gap-3">
+                    <a th:if="${newerUrl != null}" th:href="${newerUrl}" th:text="#{wiki.history.newer}">Newer</a>
+                    <a th:if="${olderUrl != null}" th:href="${olderUrl}" th:text="#{wiki.history.older}">Older</a>
+                </nav>
+            </div>
+            <div class="col-lg-3">
+                <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

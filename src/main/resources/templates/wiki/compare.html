@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(로드맵 X-17, decisions.md D-60). 위키 페이지의 리비전 비교(통합 diff) 화면이다.
+  모델: title, projectView, base, pages, canWrite, sidebarHtml, pageTitle, pageUrl, historyUrl, lines(WikiDiffLine)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
+<th:block th:fragment="wikiPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap wiki-wrap">
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="wiki-page-header d-flex align-items-center gap-2 mb-3">
+                    <h2 class="me-auto mb-0"><a th:href="${pageUrl}" class="wiki-page-title" th:text="${pageTitle}">Page</a> <small class="text-body-secondary" th:text="#{wiki.compare.title}">Comparing revisions</small></h2>
+                    <a th:href="${historyUrl}" class="ybtn ybtn-small" th:text="#{wiki.history.title}">Revisions</a>
+                </div>
+                <div class="wiki-diff">
+                    <div th:each="l : ${lines}" class="diff-line" th:classappend="${'diff-' + l.kind}" th:text="${l.text}">line</div>
+                    <div th:if="${#lists.isEmpty(lines)}" class="text-body-secondary" th:text="#{wiki.compare.nochange}">No changes.</div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

@@ -53,6 +53,9 @@ class WikiService(private val wikis: WikiRepositories, private val clash: (owner
     /** 시험에서 커밋 직전에 다른 쓰기를 끼워 넣어 동시 수정 충돌을 재현하는 자리이다. */
     internal var beforeCommit: (() -> Unit)? = null
 
+    /** 제목을 페이지 이름으로 바꾼다. 올바르지 않은 제목이면 `null`이다. 화면과 REST가 주소의 이름을 확인할 때 쓴다. */
+    fun pageNameOrNull(title: String): String? = nameOrNull(title)
+
     /** 이 프로젝트의 위키를 쓸 수 있는지 알려 준다. */
     fun available(project: Project): Boolean = !clash(owner(project), name(project))
 
