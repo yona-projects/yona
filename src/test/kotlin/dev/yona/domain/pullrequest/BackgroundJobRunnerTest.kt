@@ -25,7 +25,7 @@ class BackgroundJobRunnerTest : AbstractIntegrationTest() {
 
     @Test
     fun `비동기 일은 호출한 트랜잭션이 커밋된 뒤에 시작한다`() {
-        val runner = BackgroundJobRunner(properties.copy(backgroundAsync = true), transactionManager)
+        val runner = BackgroundJobRunner(properties.copy(backgroundAsync = true), transactionManager, io.micrometer.core.instrument.simple.SimpleMeterRegistry())
         val started = CountDownLatch(1)
         val committed = AtomicBoolean(false)
         val startedBeforeCommit = AtomicBoolean(false)
@@ -42,7 +42,7 @@ class BackgroundJobRunnerTest : AbstractIntegrationTest() {
 
     @Test
     fun `트랜잭션 밖에서 부르면 바로 시작한다`() {
-        val runner = BackgroundJobRunner(properties.copy(backgroundAsync = true), transactionManager)
+        val runner = BackgroundJobRunner(properties.copy(backgroundAsync = true), transactionManager, io.micrometer.core.instrument.simple.SimpleMeterRegistry())
         val started = CountDownLatch(1)
         runner.run("test job", { started.countDown() })
         assertTrue(started.await(5, TimeUnit.SECONDS))

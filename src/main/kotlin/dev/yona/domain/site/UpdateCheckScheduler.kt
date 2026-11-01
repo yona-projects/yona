@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
 class UpdateCheckScheduler(
     private val properties: YonaProperties,
     private val updates: UpdateCheckService,
-    private val secret: dev.yona.security.SiteSecret
+    private val secret: dev.yona.security.SiteSecret,
+    private val jobs: dev.yona.observability.JobMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -32,7 +33,7 @@ class UpdateCheckScheduler(
         executor = Executors.newSingleThreadScheduledExecutor { runnable -> Thread(runnable, "update-check").apply { isDaemon = true } }.also {
             it.scheduleWithFixedDelay({
                 try {
-                    updates.refresh()
+                    jobs.run("update_check") { updates.refresh() }
                 } catch (e: Exception) {
                     log.warn("Failed to fetch the latest Yona version to update", e)
                 }

@@ -153,10 +153,10 @@ class AuditStreamer(
 
 /** 외부 스트리밍을 10초마다 돈다. 밀린 기록이 없으면 아무것도 보내지 않는다. */
 @Component
-class AuditStreamScheduler(private val streamer: AuditStreamer) {
+class AuditStreamScheduler(private val streamer: AuditStreamer, private val jobs: dev.yona.observability.JobMetrics) {
 
     @Scheduled(initialDelayString = "PT30S", fixedDelayString = "PT10S")
-    fun run() = streamer.run()
+    fun run() = jobs.run("audit_stream") { streamer.run() }
 }
 
 /**
@@ -253,5 +253,24 @@ class SyslogAuditTarget(private val properties: YonaProperties) : AuditStreamTar
 
         /** 구조화 데이터 값에서 `"`, `\`, `]`를 이스케이프한다(RFC 5424 6.3.3). */
         private fun escape(value: String): String = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("]", "\\]")
+    }
+}
+
+/**
+ * 감사 스트리밍 대상별 지표이다(로드맵 X-10 C5b): `yona.audit.stream.backlog{target}`(아직 보내지 않은 기록 수), `yona.audit.stream.failures{target}`(연속 실패 횟수),
+ * `yona.audit.stream.last.success{target}`(마지막으로 보낸 시각, 에폭 초, 보낸 적이 없으면 0). 설정된 대상만 만든다. 값은 읽을 때 커서와 사슬의 끝을 한 번씩 읽는다.
+ * 밀린 기록이 늘거나 마지막 성공이 오래되면 스트리밍이 막혔다는 신호이며, 막힌 동안 보존 처리가 기록을 지우지 않으므로(D-63) DB가 커지는 비용도 함께 보인다.
+ */
+@Component
+class AuditStreamMetrics(private val streamer: AuditStreamer, private val targets: List<AuditStreamTarget>) : io.micrometer.core.instrument.binder.MeterBinder {
+
+    override fun bindTo(registry: io.micrometer.core.instrument.MeterRegistry) {
+        targets.filter { it.configured() }.forEach { target ->
+            fun state() = streamer.status().firstOrNull { it.name == target.name }
+            io.micrometer.core.instrument.Gauge.builder("yona.audit.stream.backlog") { state()?.backlog?.toDouble() ?: 0.0 }.tag("target", target.name).description("아직 보내지 않은 감사 기록 수").register(registry)
+            io.micrometer.core.instrument.Gauge.builder("yona.audit.stream.failures") { state()?.failures?.toDouble() ?: 0.0 }.tag("target", target.name).description("연속 전송 실패 횟수").register(registry)
+            io.micrometer.core.instrument.Gauge.builder("yona.audit.stream.last.success") { ((state()?.lastSentAt ?: 0L) / 1000).toDouble() }.tag("target", target.name).baseUnit("seconds")
+                .description("마지막으로 보낸 시각(에폭 초), 보낸 적이 없으면 0").register(registry)
+        }
     }
 }

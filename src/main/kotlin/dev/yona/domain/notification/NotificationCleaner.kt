@@ -16,7 +16,8 @@ import java.util.Date
 @Component
 class NotificationCleaner(
     private val events: NotificationEventRepository,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val jobs: dev.yona.observability.JobMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -25,7 +26,7 @@ class NotificationCleaner(
     @Scheduled(initialDelay = 60_000, fixedRate = 86_400_000)
     fun scheduled() {
         try {
-            val deleted = deleteOld()
+            val deleted = jobs.run("notification_cleanup") { deleteOld() }
             if (deleted > 0) log.info("보관 기간이 지난 알림 이벤트를 {}건 지웠다", deleted)
         } catch (e: Exception) {
             log.warn("오래된 알림 이벤트를 지우지 못했다", e)

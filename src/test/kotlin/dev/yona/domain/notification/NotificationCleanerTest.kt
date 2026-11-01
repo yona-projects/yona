@@ -27,7 +27,7 @@ class NotificationCleanerTest : AbstractIntegrationTest() {
     @Test
     fun `보관 일수보다 오래된 알림만 지운다`() {
         val old = event(11); val recent = event(9)
-        val deleted = NotificationCleaner(events, YonaProperties(notificationKeepTime = 10)).deleteOld()
+        val deleted = NotificationCleaner(events, YonaProperties(notificationKeepTime = 10), dev.yona.observability.JobMetrics(io.micrometer.core.instrument.simple.SimpleMeterRegistry(), java.time.Clock.systemUTC())).deleteOld()
         assertEquals(1, deleted)
         assertEquals(listOf(recent.id), events.findAll().map { it.id })
         assertEquals(false, events.existsById(old.id!!))
@@ -36,8 +36,8 @@ class NotificationCleanerTest : AbstractIntegrationTest() {
     @Test
     fun `보관 일수가 0 이하이면 아무것도 지우지 않는다`() {
         event(1000)
-        assertEquals(0, NotificationCleaner(events, YonaProperties(notificationKeepTime = -1)).deleteOld())
-        assertEquals(0, NotificationCleaner(events, YonaProperties(notificationKeepTime = 0)).deleteOld())
+        assertEquals(0, NotificationCleaner(events, YonaProperties(notificationKeepTime = -1), dev.yona.observability.JobMetrics(io.micrometer.core.instrument.simple.SimpleMeterRegistry(), java.time.Clock.systemUTC())).deleteOld())
+        assertEquals(0, NotificationCleaner(events, YonaProperties(notificationKeepTime = 0), dev.yona.observability.JobMetrics(io.micrometer.core.instrument.simple.SimpleMeterRegistry(), java.time.Clock.systemUTC())).deleteOld())
         assertEquals(1, events.count())
     }
 }

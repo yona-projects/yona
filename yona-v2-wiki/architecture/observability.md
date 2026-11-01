@@ -10,7 +10,7 @@
 | C2 | 상태 확인(liveness, readiness) 노출과 나머지 엔드포인트 차단 | 완료(readiness 조건은 C5에서 보강) |
 | C3 | 요청 번호 MDC와 JSON 콘솔 로그 | 완료 |
 | C4 | OTLP 지표와 추적과 로그, 표본 비율, 비밀값과 URL 규칙, 감사 `request_id` 연결 | 완료 |
-| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a 완료 |
+| C5 | 도메인 지표: C5a 시스템과 readiness, C5b 백그라운드 작업, C5c VCS, C5d 인증과 협업과 외부 연동, C5e 저장소 총 용량 | C5a, C5b 완료 |
 | C6 | Alloy와 Grafana 설정 문서, 대시보드, 알림 규칙을 컨테이너로 확인 | 대기 |
 
 ## 켜는 방법
@@ -56,4 +56,19 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 - **디스크**: `yona.storage.disk.total`, `yona.storage.disk.free`(바이트)가 데이터 디렉터리가 있는 파티션의 전체와 여유 용량이다. 파티션 전체 값이라 비용이 작고 프로젝트 라벨은 없다.
 - **readiness**: `readinessState`, `db`, `dataDirectory`만 본다. `dataDirectory`는 디렉터리가 있고 쓸 수 있으며 여유 용량이 `yona.observability-min-free-percent`(기본 5, 0이면 여유 용량은 보지 않음) 이상이어야 UP이다. 메일, LDAP, 디스크 공간 지표(`diskspace`)는 상태 확인에서 뺐다(외부 의존이 죽었다고 서버를 트래픽에서 빼지 않는다). **디스크 경고는 알림 규칙(85% 등)이 먼저 알리고 readiness는 마지막 방어선이다.**
 - **liveness**: 프로세스 상태(`livenessState`)만 본다.
+
+## 백그라운드 작업 지표 (C5b)
+
+모든 `@Scheduled` 작업은 공통 장치 `JobMetrics`로 실행한다(작업 이름은 고정된 값 6개).
+
+| 지표 | 태그 | 설명 |
+|---|---|---|
+| `yona.job.duration` | `job`, `result`(success, failure) | 실행 시간과 횟수 |
+| `yona.job.last.success` | `job` | 마지막 성공 시각(에폭 초, 성공한 적이 없으면 0). **알림은 `time() - 이 값`이 커지면 "작업이 조용히 멈춤"으로 본다** |
+| `yona.job.active` | `job` | 지금 실행 중인 수 |
+
+작업 이름: `notification_mail`, `notification_cleanup`, `temporary_files_cleanup`, `audit_retention`, `audit_stream`, `update_check`. 알려진 작업은 시작할 때 값을 미리 만들어 한 번도 안 돌아도 알림이 잡을 수 있다.
+
+- **백그라운드 일**(푸시 뒤 작업과 풀 리퀘스트 병합, `BackgroundJobRunner`): `yona.background.duration{result}`와 `yona.background.active`. 스레드 풀에 상한이 없어 `active`가 쌓이면 서버가 밀린다는 신호이다. 일의 설명에는 이름이 들어갈 수 있어 태그로 쓰지 않는다(시험으로 고정).
+- **감사 스트리밍**: `yona.audit.stream.backlog{target}`(아직 보내지 않은 기록 수), `yona.audit.stream.failures{target}`(연속 실패), `yona.audit.stream.last.success{target}`(마지막으로 보낸 시각). 설정된 대상만 만든다.
 

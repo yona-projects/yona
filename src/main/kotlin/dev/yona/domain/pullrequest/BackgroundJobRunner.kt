@@ -20,11 +20,17 @@ import java.util.concurrent.Executors
  * `yona.background-async=false`이면 호출한 스레드에서 바로 실행한다(테스트용). 단계는 각자 트랜잭션에서 실행하며 실패하면 오류만 남긴다.
  */
 @Component
-class BackgroundJobRunner(private val properties: YonaProperties, transactionManager: PlatformTransactionManager) {
+class BackgroundJobRunner(private val properties: YonaProperties, transactionManager: PlatformTransactionManager, private val registry: io.micrometer.core.instrument.MeterRegistry) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val transaction = TransactionTemplate(transactionManager)
     private val executor: ExecutorService = Executors.newCachedThreadPool { runnable -> Thread(runnable, "background-job").apply { isDaemon = true } }
+    private val active = java.util.concurrent.atomic.AtomicInteger()
+
+    init {
+        // 푸시 뒤 작업과 풀 리퀘스트 병합이 도는 수이다. 스레드 풀에 상한이 없어 이 값이 쌓이면 서버가 밀리는 신호이다. 설명(`description`)에는 이름이 들어갈 수 있어 태그로 쓰지 않는다(카디널리티, 개인정보)
+        io.micrometer.core.instrument.Gauge.builder("yona.background.active", active) { it.get().toDouble() }.description("지금 실행 중인 백그라운드 일 수").register(registry)
+    }
 
     /**
      * [steps]를 차례로 실행한다. 비동기이면 별개의 스레드에서, 아니면 지금 스레드에서 한다. 단계마다 트랜잭션이 따로이므로 앞 단계(병합 중 표시)가
@@ -46,10 +52,17 @@ class BackgroundJobRunner(private val properties: YonaProperties, transactionMan
     }
 
     private fun execute(description: String, steps: Array<out () -> Unit>) {
+        active.incrementAndGet()
+        val sample = io.micrometer.core.instrument.Timer.start(registry)
+        var result = "success"
         try {
             steps.forEach { step -> transaction.executeWithoutResult { step() } }
         } catch (e: Exception) {
+            result = "failure"
             log.error("Failed to run {}", description, e)
+        } finally {
+            sample.stop(io.micrometer.core.instrument.Timer.builder("yona.background.duration").tag("result", result).description("백그라운드 일의 실행 시간").register(registry))
+            active.decrementAndGet()
         }
     }
 

@@ -20,7 +20,8 @@ import java.util.Date
 class TemporaryFileCleaner(
     private val attachments: AttachmentRepository,
     private val attachmentService: AttachmentService,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val jobs: dev.yona.observability.JobMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -31,7 +32,7 @@ class TemporaryFileCleaner(
     )
     fun scheduled() {
         try {
-            log.info("User uploaded temporary files are cleaned up... {}", cleanUp())
+            log.info("User uploaded temporary files are cleaned up... {}", jobs.run("temporary_files_cleanup") { cleanUp() })
         } catch (e: Exception) {
             log.warn("Failed!! User uploaded temporary files clean-up action failed!", e)
         }

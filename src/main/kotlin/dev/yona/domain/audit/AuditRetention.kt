@@ -144,14 +144,14 @@ class AuditRetention(
 
 /** 보존 처리를 6시간마다 돌린다(서버를 띄운 지 10분 뒤 처음). 실패해도 다음 주기에 다시 한다. */
 @Component
-class AuditRetentionScheduler(private val retention: AuditRetention) {
+class AuditRetentionScheduler(private val retention: AuditRetention, private val jobs: dev.yona.observability.JobMetrics) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(initialDelayString = "PT10M", fixedDelayString = "PT6H")
     fun run() {
         try {
-            retention.purge()
+            jobs.run("audit_retention") { retention.purge() }
         } catch (e: Exception) {
             log.error("감사 로그 보존 처리에 실패했습니다", e)
         }

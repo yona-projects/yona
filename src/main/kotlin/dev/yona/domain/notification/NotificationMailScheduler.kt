@@ -24,7 +24,8 @@ class NotificationMailScheduler(
     private val sender: NotificationMailSender,
     private val lookup: ResourceLookup,
     private val properties: YonaProperties,
-    private val transactions: TransactionTemplate
+    private val transactions: TransactionTemplate,
+    private val jobs: dev.yona.observability.JobMetrics
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -37,7 +38,7 @@ class NotificationMailScheduler(
     fun scheduled() {
         if (!properties.notificationMailEnabled) return
         try {
-            sendDue()
+            jobs.run("notification_mail") { sendDue() }
         } catch (e: Exception) {
             log.warn("알림 메일을 보내는 중 오류가 발생했다", e)
         }
