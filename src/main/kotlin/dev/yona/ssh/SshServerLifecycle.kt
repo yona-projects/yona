@@ -2,7 +2,13 @@ package dev.yona.ssh
 
 import dev.yona.config.YonaProperties
 import dev.yona.repository.DataDirectory
+import dev.yona.domain.audit.AuditActor
+import dev.yona.domain.audit.AuditActorType
 import org.apache.sshd.common.AttributeRepository
+import org.apache.sshd.common.session.Session
+import org.apache.sshd.common.session.SessionListener
+import org.apache.sshd.server.session.ServerSession
+import java.net.InetSocketAddress
 import org.apache.sshd.common.config.keys.KeyUtils
 import org.apache.sshd.common.util.security.SecurityUtils
 import org.apache.sshd.server.Environment
@@ -40,7 +46,13 @@ class SshServerLifecycle(
     private val properties: YonaProperties,
     private val dataDirectory: DataDirectory,
     private val access: SshAccess,
-    private val handlers: List<SshVcsHandler>
+    private val handlers: List<SshVcsHandler>,
+    private val failures: dev.yona.security.TokenFailureLimiter,
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val boundary: dev.yona.domain.audit.AuditBoundary,
+    private val metrics: dev.yona.observability.VcsMetrics,
+    private val users: dev.yona.domain.user.UserRepository,
+    private val deployKeys: dev.yona.domain.sshkey.DeployKeyService
 ) : SmartLifecycle {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -68,6 +80,9 @@ class SshServerLifecycle(
             publickeyAuthenticator = PublickeyAuthenticator { username, key, session -> authenticate(ssh.user, username, key, session) }
             commandFactory = CommandFactory { channel, line -> RepositoryCommand(line, channel) }
             forwardingFilter = RejectAllForwardingFilter.INSTANCE
+            addSessionListener(object : SessionListener {
+                override fun sessionClosed(session: Session) = reportFailedAuthentication(session)
+            })
         }
         executor = Executors.newCachedThreadPool(NamedThreads("yona-ssh"))
         sshServer.start()
@@ -96,11 +111,47 @@ class SshServerLifecycle(
         }
     }
 
-    private fun authenticate(expectedUser: String, username: String, key: java.security.PublicKey, session: org.apache.sshd.server.session.ServerSession): Boolean {
-        if (username != expectedUser) return false
-        val principal = access.authenticate(KeyUtils.getFingerPrint(key)) ?: return false
+    /**
+     * 공개키 인증이다. 같은 주소가 인증에 연달아 실패해 막혀 있으면 거부한다([dev.yona.security.TokenFailureLimiter], HTTP 토큰 인증과 같은 한도). 접속 하나에서 키를 여러 개 시도해도
+     * 실패는 한 번만 센다. 접속이 인증 없이 끝나면 인증 실패로 기록한다([reportFailedAuthentication]).
+     */
+    private fun authenticate(expectedUser: String, username: String, key: java.security.PublicKey, session: ServerSession): Boolean {
+        val address = addressOf(session)
+        if (failures.isBlocked(address)) {
+            if (session.setAttribute(BLOCK_LOGGED, true) == null) remoteContext(session, null) { boundary.blocked(address, CHANNEL) }
+            return false
+        }
+        val principal = if (username == expectedUser) access.authenticate(KeyUtils.getFingerPrint(key)) else null
+        if (principal == null) {
+            session.setAttribute(FAILURE_REASON, if (username == expectedUser) "unknown_key" else "invalid_user")
+            session.setAttribute(FAILURE_USER, username.take(255))
+            if (session.setAttribute(FAILURE_COUNTED, true) == null) failures.recordFailure(address)
+            return false
+        }
+        failures.recordSuccess(address)
         session.setAttribute(PRINCIPAL, principal)
         return true
+    }
+
+    /** 인증하지 못한 채 끝난 접속을 `auth.basic_failure`(채널 `ssh`)로 기록하고 센다. 나중에 다른 키로 인증에 성공한 접속과 막힌 접속은 기록하지 않는다. */
+    private fun reportFailedAuthentication(session: Session) {
+        val server = session as? ServerSession ?: return
+        if (server.getAttribute(PRINCIPAL) != null) return
+        val reason = server.getAttribute(FAILURE_REASON) ?: return
+        remoteContext(server, null) { boundary.basicFailure(server.getAttribute(FAILURE_USER), CHANNEL, reason) }
+    }
+
+    private fun addressOf(session: Session): String = (session.remoteAddress as? InetSocketAddress)?.address?.hostAddress.orEmpty()
+
+    /** 감사 기록에 접속 주소와 접속 종류(`ssh`)를 남기도록 문맥을 정해 [block]을 실행한다. */
+    private fun <T> remoteContext(session: Session, actor: AuditActor?, block: () -> T): T =
+        audit.withRemote(actor ?: AuditActor(AuditActorType.ANONYMOUS, null, null), addressOf(session), CHANNEL, block)
+
+    /** 인증한 접속의 감사 행위자이다. 사용자 키이면 사용자, 배포 키이면 배포 키(번호와 이름)이다. */
+    private fun actorOf(principal: SshPrincipal): AuditActor {
+        principal.userId?.let { id -> return AuditActor(AuditActorType.USER, id, users.findById(id).orElse(null)?.loginId) }
+        val id = principal.deployKeyId
+        return AuditActor(AuditActorType.DEPLOY_KEY, id, id?.let { deployKeys.findName(it) })
     }
 
     /** 명령 하나를 별도 스레드에서 실행한다. 인가를 통과하면 [SshVcsHandler]가 프로토콜을 처리한다. */
@@ -133,13 +184,27 @@ class SshServerLifecycle(
         override fun destroy(channel: ChannelSession) { task?.cancel(true) }
 
         private fun execute(): Int {
-            val principal = channel.session.getAttribute(PRINCIPAL) ?: return fail("ERROR: Not authenticated.")
+            val session = channel.session
+            val principal = session.getAttribute(PRINCIPAL) ?: return fail("ERROR: Not authenticated.")
             val (handler, request) = handlers.firstNotNullOfOrNull { h -> h.parse(line)?.let { h to it } } ?: return fail("ERROR: Invalid command.")
-            return when (val result = access.authorize(principal, request)) {
-                SshAuthorization.NotFound -> fail("ERROR: Repository not found.")
-                is SshAuthorization.Denied -> fail(result.message)
-                is SshAuthorization.Allowed -> handler.execute(result.project, request, line, result.sender, SshStreams(input, output, error))
+            // 푸시 훅이 남기는 감사 기록(git.push 등)에 행위자와 접속 주소가 들어가도록 이 스레드의 문맥을 정한다
+            return remoteContext(session, actorOf(principal)) { run(handler, request, principal) }
+        }
+
+        /** 인가하고 실행한다. 시간과 결과를 `yona.vcs.request`로 남긴다(HTTP와 같은 지표, 결과는 `ok`, `denied`, `not_found`, `error`). */
+        private fun run(handler: SshVcsHandler, request: SshRepositoryRequest, principal: SshPrincipal): Int {
+            var exit = 1
+            val vcs = request.vcs.lowercase()
+            metrics.request(vcs, request.service, "code") { measured ->
+                exit = when (val result = access.authorize(principal, request)) {
+                    SshAuthorization.NotFound -> { measured.result = "not_found"; fail("ERROR: Repository not found.") }
+                    is SshAuthorization.Denied -> { measured.result = "denied"; fail(result.message) }
+                    is SshAuthorization.Allowed -> handler.execute(
+                        result.project, request, line, result.sender, SshStreams(metrics.countedInput(vcs, "code", input), metrics.countedOutput(vcs, "code", output), error)
+                    ).also { if (it != 0) measured.result = "error" }
+                }
             }
+            return exit
         }
 
         private fun fail(message: String): Int {
@@ -156,6 +221,13 @@ class SshServerLifecycle(
     companion object {
         const val HOST_KEY_NAME = "ssh_host_ed25519_key"
 
+        /** 로그와 지표, 감사 기록의 채널 이름이다. */
+        const val CHANNEL = "ssh"
+
         private val PRINCIPAL = AttributeRepository.AttributeKey<SshPrincipal>()
+        private val FAILURE_REASON = AttributeRepository.AttributeKey<String>()
+        private val FAILURE_USER = AttributeRepository.AttributeKey<String>()
+        private val FAILURE_COUNTED = AttributeRepository.AttributeKey<Boolean>()
+        private val BLOCK_LOGGED = AttributeRepository.AttributeKey<Boolean>()
     }
 }

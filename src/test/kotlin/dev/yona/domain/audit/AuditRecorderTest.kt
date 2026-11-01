@@ -260,4 +260,21 @@ class AuditRecorderTest : AbstractIntegrationTest() {
         val file = File("build/tmp/it-audit/audit/audit-${LocalDate.now(ZoneOffset.UTC)}.jsonl")
         assertTrue(!file.exists() || file.readText().isBlank())
     }
+
+    @Test
+    fun `원격 접속 문맥에서 기록하면 행위자와 주소와 접속 종류가 남고 문맥을 벗어나면 돌아온다 (X-3)`() {
+        RequestContextHolder.resetRequestAttributes()
+        val u = user()
+        val inside = recorder.withRemote(AuditActor(AuditActorType.USER, u.id, u.loginId), "10.1.2.3", "ssh") { transaction.execute { recorder.record(AuditEvent("remote.inside")) }!! }
+        assertEquals(AuditActorType.USER, inside.actorType); assertEquals(u.loginId, inside.actorLogin); assertEquals("10.1.2.3", inside.ip); assertEquals("ssh", inside.userAgent)
+        assertTrue(!inside.requestId.isNullOrBlank(), "요청 번호가 정해진다")
+        val outside = transaction.execute { recorder.record(AuditEvent("remote.outside")) }!!
+        assertEquals(AuditActorType.SYSTEM, outside.actorType); assertEquals(null, outside.ip)
+    }
+
+    @Test
+    fun `배포 키 행위자는 키 번호와 이름으로 남는다 (X-3)`() {
+        val entry = recorder.withRemote(AuditActor(AuditActorType.DEPLOY_KEY, 77L, "ci-server"), null, "ssh") { transaction.execute { recorder.record(AuditEvent("remote.deploy")) }!! }
+        assertEquals(AuditActorType.DEPLOY_KEY, entry.actorType); assertEquals(77L, entry.actorId); assertEquals("ci-server", entry.actorLogin)
+    }
 }

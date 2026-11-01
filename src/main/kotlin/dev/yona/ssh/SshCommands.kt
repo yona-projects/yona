@@ -12,8 +12,9 @@ import java.io.OutputStream
  * @property owner 프로젝트 소유자 이름
  * @property name 프로젝트 이름
  * @property write 푸시처럼 저장소를 바꾸는 명령이면 `true`, 복제처럼 읽기만 하면 `false`이다
+ * @property service 지표의 `service` 태그 값이다. git은 `upload_pack`(복제)과 `receive_pack`(푸시)이다
  */
-data class SshRepositoryRequest(val vcs: String, val owner: String, val name: String, val write: Boolean)
+data class SshRepositoryRequest(val vcs: String, val owner: String, val name: String, val write: Boolean, val service: String = if (write) "receive_pack" else "upload_pack")
 
 /** 명령 하나를 실행할 때 쓰는 세 줄의 입출력이다. 입력은 클라이언트가 보내는 바이트, 출력과 오류는 클라이언트로 가는 바이트이다. */
 class SshStreams(val input: InputStream, val output: OutputStream, val error: OutputStream)

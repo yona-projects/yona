@@ -153,6 +153,10 @@ class DeployKeyService(private val keys: DeployKeyRepository, private val sshKey
     @Transactional(readOnly = true)
     fun findByFingerprint(fingerprint: String): DeployKey? = keys.findByFingerprint(fingerprint)
 
+    /** 배포 키의 이름이다. 감사 기록의 행위자 표시에 쓴다. 없으면 `null`이다. */
+    @Transactional(readOnly = true)
+    fun findName(id: Long): String? = keys.findById(id).orElse(null)?.name
+
     /** 키 이벤트이다. 지문, 종류, 쓰기 허용 여부, 저장소만 남기고 공개키 본문은 넣지 않는다. */
     private fun event(action: String, key: DeployKey) = AuditEvent(
         action, targetType = "deploy_key", targetId = key.id?.toString(), targetLabel = key.name,

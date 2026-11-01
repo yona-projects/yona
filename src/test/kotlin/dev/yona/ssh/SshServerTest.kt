@@ -75,6 +75,8 @@ class SshServerTest {
     @Autowired private lateinit var rulesets: RulesetRepository
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var dataDirectory: dev.yona.repository.DataDirectory
+    @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
 
     @TempDir lateinit var work: File
 
@@ -124,6 +126,7 @@ class SshServerTest {
     fun tearDown() {
         deployKeyRepository.deleteAll(); sshKeyRepository.deleteAll()
         auditLogs.deleteAllInBatch()
+        tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
     }
@@ -292,6 +295,96 @@ class SshServerTest {
         val hostKey = File(dataDirectory.root(), "ssh/ssh_host_ed25519_key")
         assertTrue(hostKey.isFile, hostKey.path)
         assertNotNull(server.hostKeyFingerprint)
+    }
+
+    private fun events(action: String) = auditLogs.findAll().filter { it.action == action }
+
+    /** 인증 실패 기록은 접속이 닫힐 때 서버 스레드가 남기므로 잠시 기다린다. */
+    private fun awaitEvents(action: String, count: Int = 1): List<dev.yona.domain.audit.AuditLog> {
+        val end = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < end) { events(action).let { if (it.size >= count) return it }; Thread.sleep(50) }
+        return events(action)
+    }
+
+    private fun timerCount(name: String, vararg tags: String) = meters.find(name).tags(*tags).timer()?.count() ?: 0L
+    private fun counterValue(name: String, vararg tags: String) = meters.find(name).tags(*tags).counters().sumOf { it.count() }
+
+    @Test
+    fun `SSH 푸시도 git push 감사 기록에 사용자와 접속 주소가 남는다 (X-9 B3)`() {
+        assertEquals(0, push(project, register(member), branch = "feature").exit)
+        val event = events("git.push").single { it.projectId == project.id }
+        assertEquals(member.loginId, event.actorLogin)
+        assertEquals(dev.yona.domain.audit.AuditActorType.USER, event.actorType)
+        assertEquals("127.0.0.1", event.ip)
+        assertEquals("ssh", event.userAgent)
+    }
+
+    @Test
+    fun `배포 키로 푸시하면 행위자가 배포 키로 남는다 (X-9 B3)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        assertEquals(0, push(secret, deploy(secret, writable = true)).exit)
+        val event = events("git.push").single { it.projectId == secret.id }
+        assertEquals(dev.yona.domain.audit.AuditActorType.DEPLOY_KEY, event.actorType)
+        assertEquals("d", event.actorLogin)
+    }
+
+    @Test
+    fun `푸시와 복제의 요청 시간과 전송량과 푸시 수를 지표로 남긴다 (X-10 C5c)`() {
+        val key = register(member)
+        val receive = timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "ok")
+        val upload = timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "ok")
+        val bytesIn = counterValue("yona.vcs.transfer", "vcs", "git", "direction", "in")
+        val bytesOut = counterValue("yona.vcs.transfer", "vcs", "git", "direction", "out")
+        val pushes = counterValue("yona.vcs.pushes", "vcs", "git", "kind", "branch", "result", "ok")
+        assertEquals(0, push(project, key).exit)
+        assertEquals(0, clone(project, key).first.exit)
+        assertEquals(receive + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "ok"))
+        assertEquals(upload + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "ok"))
+        assertTrue(counterValue("yona.vcs.transfer", "vcs", "git", "direction", "in") > bytesIn)
+        assertTrue(counterValue("yona.vcs.transfer", "vcs", "git", "direction", "out") > bytesOut)
+        assertEquals(pushes + 1, counterValue("yona.vcs.pushes", "vcs", "git", "kind", "branch", "result", "ok"))
+    }
+
+    @Test
+    fun `거부된 접근은 denied와 not_found로 센다 (X-10 C5c)`() {
+        val denied = timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "denied")
+        val missing = timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "not_found")
+        push(project, register(outsider), branch = "feature")
+        git("ls-remote", "ssh://git@127.0.0.1:${server.boundPort}/nobody/none.git", key = register(member))
+        assertEquals(denied + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "receive_pack", "target", "code", "result", "denied"))
+        assertEquals(missing + 1, timerCount("yona.vcs.request", "vcs", "git", "service", "upload_pack", "target", "code", "result", "not_found"))
+    }
+
+    @Test
+    fun `인증에 실패한 접속은 ssh 채널의 인증 실패로 기록하고 센다 (X-9 A3, X-10 C5d)`() {
+        val failures = counterValue("yona.security.events", "event", "basic_failure", "channel", "ssh")
+        assertNotEquals(0, push(project, newKey()).exit)
+        val event = awaitEvents("auth.basic_failure").single()
+        assertTrue(event.details!!.contains("\"channel\":\"ssh\"") && event.details!!.contains("unknown_key"), event.details)
+        assertEquals("127.0.0.1", event.ip)
+        assertEquals(failures + 1, counterValue("yona.security.events", "event", "basic_failure", "channel", "ssh"))
+    }
+
+    @Test
+    fun `인증에 연달아 실패하면 같은 주소는 막히고 막힌 동안은 등록한 키도 거부된다 (X-5)`() {
+        val good = register(member)
+        assertEquals(0, push(project, good).exit)
+        repeat(5) { assertNotEquals(0, push(project, newKey()).exit) }
+        val blocked = push(project, good, branch = "feature")
+        assertNotEquals(0, blocked.exit)
+        assertTrue(blocked.output.contains("Permission denied"), blocked.output)
+        assertTrue(events("auth.token_blocked").isNotEmpty())
+        tokenFailures.clear()
+        assertEquals(0, push(project, good, branch = "feature").exit)
+    }
+
+    @Test
+    fun `성공한 접속은 실패 횟수를 지운다 (X-5)`() {
+        val good = register(member)
+        repeat(4) { assertNotEquals(0, push(project, newKey()).exit) }
+        assertEquals(0, push(project, good).exit)
+        repeat(4) { assertNotEquals(0, push(project, newKey()).exit) }
+        assertEquals(0, push(project, good, branch = "feature").exit, "성공이 횟수를 지웠으므로 4번 더 실패해도 막히지 않는다")
     }
 
     private fun assertNotEquals(unexpected: Int, actual: Int) = assertTrue(unexpected != actual, "종료 코드가 $unexpected 이면 안 된다")

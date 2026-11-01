@@ -22,7 +22,7 @@ class SecurityMetrics(private val registry: MeterRegistry) {
 
     private companion object {
         const val NONE = "none"
-        val CHANNELS = setOf("api", "git_http", "svn", "web")
+        val CHANNELS = setOf("api", "git_http", "svn", "web", "ssh")
         val VIAS = setOf("web", "api")
     }
 }

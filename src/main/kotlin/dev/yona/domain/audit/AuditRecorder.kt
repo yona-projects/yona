@@ -38,12 +38,31 @@ class AuditRecorder(
     /** 기록 시각의 시계이다(에폭 밀리초). 보존 시험이 옛 시각의 기록을 만들려고 바꾼다. 운영에서는 시스템 시계이다. */
     internal var clock: () -> Long = System::currentTimeMillis
 
+    /** 웹 요청이 아닌 접속(SSH)에서 일하는 스레드의 문맥이다. 행위자, 접속 주소, 접속 종류를 요청 문맥 대신 쓴다. */
+    private class Remote(val actor: AuditActor, val ip: String?, val client: String, val requestId: String = java.util.UUID.randomUUID().toString())
+
+    private val remote = ThreadLocal<Remote?>()
+
+    /**
+     * 웹 요청 밖의 접속(SSH 서버)이 [block]을 실행하는 동안 기록하는 이벤트에 [actor], 접속 주소 [ip], 접속 종류 [client](사용자 에이전트 열에 남는다)를 쓴다(추가 개발 항목 X-3).
+     * 이벤트가 행위자를 직접 주면 그쪽이 우선한다. 블록이 끝나면 이전 문맥으로 돌아간다. 같은 스레드에서만 유효하다.
+     */
+    fun <T> withRemote(actor: AuditActor, ip: String?, client: String, block: () -> T): T {
+        val previous = remote.get()
+        remote.set(Remote(actor, ip?.take(64), client))
+        try {
+            return block()
+        } finally {
+            remote.set(previous)
+        }
+    }
+
     /** 호출한 트랜잭션에서 [event]를 기록한다. 트랜잭션이 없으면 새로 만든다. */
     @Transactional
     fun record(event: AuditEvent): AuditLog {
         val head = lockedHead()
         val request = requestInfo()
-        val actor = event.actor ?: currentActor(request != null)
+        val actor = event.actor ?: remote.get()?.actor ?: currentActor(request != null)
         val entry = AuditLog(
             id = head.lastId + 1, createdMillis = clock(), actorType = actor.type, actorId = actor.id, actorLogin = actor.login?.take(255),
             action = event.action, outcome = event.outcome, targetType = event.targetType, targetId = event.targetId?.take(255), targetLabel = event.targetLabel?.take(255),
@@ -124,6 +143,8 @@ class AuditRecorder(
     private class RequestInfo(val ip: String?, val userAgent: String?, val requestId: String)
 
     private fun requestInfo(): RequestInfo? {
+        // 원격 접속 문맥(SSH)을 명시했으면 그것이 먼저이다
+        remote.get()?.let { return RequestInfo(it.ip, it.client, it.requestId) }
         val attributes = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes ?: return null
         val request = attributes.request
         // 요청 번호는 로그(MDC)와 같은 값이다(`RequestIdFilter`). 필터를 거치지 않은 요청이면 여기서 정한다

@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 
 /** 감사 기록의 행위자 유형이다. */
-enum class AuditActorType { USER, TOKEN, SYSTEM, ANONYMOUS }
+enum class AuditActorType { USER, TOKEN, SYSTEM, ANONYMOUS, DEPLOY_KEY }
 
 /** 감사 기록의 결과이다. `DENIED`는 권한이나 범위가 부족해 거부된 것이다. */
 enum class AuditOutcome { SUCCESS, FAILURE, DENIED }
