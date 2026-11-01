@@ -848,3 +848,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W7 위키 git clone과 push
 `GitHttpController.handleWiki`, `GitHttpService.advertiseWiki`와 `rpcWiki`, `WikiRepositories.openForHttp`, `RepositoryUrls.wikiUrlFor`, 사이드바의 `Clone this wiki locally` 상자를 시험 먼저 만들었다. 시험: `WikiGitHttpTest` 12건(JGit 복제와 푸시), `WikiViewTest`의 복제 주소, 메시지 2개(5개 언어). 결정 A-313. W6(전 화면 순회 비교와 전체 시험)이 남았다.
+
+## [2026-11-01] X-17 W6 검증과 마무리
+전체 시험 3,149건 통과. 전 화면 순회 `wiki-menu` 132/132 통과, 이전 기준 대비 새 문제 0, 새 화면 11. 복제 주소 상자의 글자를 줄였다. X-17 완료.

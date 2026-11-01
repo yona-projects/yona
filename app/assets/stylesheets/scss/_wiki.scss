@@ -28,6 +28,17 @@
     }
   }
 
+  .wiki-clone {
+    .wiki-clone-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .wiki-clone-url {
+      font-size: .6875rem;
+    }
+  }
+
   .wiki-diff {
     font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: .8125rem;
