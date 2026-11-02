@@ -8017,5 +8017,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .tf-choice-text small { color:#666; }
 }
 .two-factor-page .tf-choice:has(input:checked) { border-color:$theme-link; background:#fff8f3; }
-.two-factor-page .tf-scopes { gap:6px; }
-.two-factor-page .tf-scopes .tf-choice { padding:6px 14px; }
+// 한 상자 안에 줄로 나열하는 모양(종류, 범위): 줄마다 구분선만 두고, 범위는 이름과 설명을 한 줄에 맞춰 보인다
+.two-factor-page .tf-group { gap:0; max-width:760px; border:1px solid #ddd; border-radius:6px; overflow:hidden; }
+.two-factor-page .tf-group .tf-choice { border:0; border-radius:0; border-bottom:1px solid #eee; padding:9px 14px; background:#fff; }
+.two-factor-page .tf-group .tf-choice:last-child { border-bottom:0; }
+.two-factor-page .tf-group .tf-choice:has(input:checked) { background:#fff8f3; border-color:#eee; }
+.two-factor-page .tf-scopes .tf-choice { display:grid; grid-template-columns:20px 190px 1fr; align-items:center; column-gap:12px; }
+.two-factor-page .tf-scopes .tf-choice .form-check-input { margin:0; }
+.two-factor-page .tf-scopes .tf-choice-text { display:contents; }
+.two-factor-page .tf-scopes .tf-choice-text small { font-size:0.8125rem; }
+@media (max-width: 640px) { .two-factor-page .tf-scopes .tf-choice { grid-template-columns:20px 1fr; } .two-factor-page .tf-scopes .tf-choice-text small { grid-column:2; } }

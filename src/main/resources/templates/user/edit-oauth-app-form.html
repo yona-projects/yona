@@ -42,7 +42,7 @@
             </div>
             <div class="mb-4">
                 <span class="form-label d-block" th:text="#{oauth.form.type}"></span>
-                <div class="tf-choices">
+                <div class="tf-choices tf-group">
                     <label class="tf-choice" th:each="t : ${ {'public', 'confidential'} }" th:for="'oauth-type-' + ${t}">
                         <input class="form-check-input" type="radio" name="type" th:id="'oauth-type-' + ${t}" th:value="${t}" th:checked="${t == 'confidential'} == ${form.confidential}" th:disabled="${client != null}">
                         <span class="tf-choice-text"><strong th:text="#{'oauth.type.' + ${t}}"></strong><small th:text="#{'oauth.type.' + ${t} + '.help'}"></small></span>
@@ -52,7 +52,7 @@
             <div class="mb-4">
                 <span class="form-label d-block" th:text="#{oauth.form.scopes}"></span>
                 <div class="form-text mb-2" th:text="#{oauth.form.scopes.help}"></div>
-                <div class="tf-choices tf-scopes">
+                <div class="tf-choices tf-group tf-scopes">
                     <label class="tf-choice" th:each="s : ${scopeChoices}" th:for="'oauth-scope-' + ${s}">
                         <input class="form-check-input" type="checkbox" name="scope" th:id="'oauth-scope-' + ${s}" th:value="${s}" th:checked="${form.scopes.contains(s)}">
                         <span class="tf-choice-text"><strong><code th:text="${s}"></code></strong><small th:text="#{'apiToken.scope.' + ${s}}"></small></span>
