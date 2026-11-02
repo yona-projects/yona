@@ -13,7 +13,8 @@ import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
-import dev.yona.web.TemplateHelper
+import dev.yona.web.OAuthAppUrls
+import dev.yona.web.OAuthAppViewSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
@@ -39,22 +40,19 @@ class OAuthAppsSettingsController(
     private val apps: OAuthClientService,
     private val authorized: OAuthAuthorizedAppsService,
     private val settings: SiteSettingService,
-    private val helper: TemplateHelper,
+    private val support: OAuthAppViewSupport,
     private val oidc: dev.yona.oauth2server.oidc.OidcSettings
 ) {
 
-    /** 내가 만든 앱의 한 줄이다. */
-    data class AppRow(val id: Long, val name: String, val clientId: String, val confidential: Boolean, val redirectCount: Int, val createdText: String)
-
     /** 승인한 앱의 한 줄이다. */
-    data class AuthorizedRow(val clientRowId: Long, val name: String, val ownerLoginId: String?, val host: String?, val scopes: List<String>, val approvedText: String)
+    data class AuthorizedRow(val clientRowId: Long, val name: String, val ownerLoginId: String?, val ownerOrganization: String?, val host: String?, val scopes: List<String>, val approvedText: String)
 
     @GetMapping("/user/editform/oauth-apps")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional(readOnly = true)
     fun list(): ModelAndView {
         val user = currentUser()
-        return base("user/edit-oauth-apps").addObject("apps", apps.list(user).map(::appRow)).addObject("authorized", authorized.list(user).map(::authorizedRow))
+        return base("user/edit-oauth-apps").addObject("apps", apps.list(user).map(support::appRow)).addObject("authorized", authorized.list(user).map(::authorizedRow))
             .addObject("userAppsEnabled", settings.oauthUserAppsEnabled())
     }
 
@@ -129,32 +127,18 @@ class OAuthAppsSettingsController(
 
     private fun currentUser(): User = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
 
-    private fun base(template: String) = ModelAndView(template).addObject("title", "userinfo.oauth").addObject("tabId", "oauth-apps")
+    private fun base(template: String) = ModelAndView(template).addObject("title", "userinfo.oauth").addObject("tabId", "oauth-apps").addObject("urls", OAuthAppUrls.USER)
 
-    private fun appRow(c: OAuthClient) = AppRow(requireNotNull(c.id), c.name.orEmpty(), c.clientId.orEmpty(), c.confidential == true, dev.yona.domain.oauth2server.RedirectUris.parse(c.redirectUris).size, helper.dateString(c.createdDate))
-
-    private fun authorizedRow(a: AuthorizedApp) = AuthorizedRow(a.clientRowId, a.name, a.ownerLoginId, a.host, a.scopes, helper.dateString(a.approvedDate))
+    private fun authorizedRow(a: AuthorizedApp) = AuthorizedRow(a.clientRowId, a.name, a.ownerLoginId, a.ownerOrganization, a.host, a.scopes, support.dateText(a.approvedDate))
 
     private fun formView(client: OAuthClient?, errorKey: String?, form: Form): ModelAndView = base("user/edit-oauth-app-form")
         .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
-        .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", oidcInfo(client))
-
-    /** OIDC로 로그인을 붙이는 앱 개발자에게 알려 줄 주소이다(X-40, D-77). OIDC가 켜져 있고 이미 만든 앱의 수정 화면일 때만 있다. */
-    private fun oidcInfo(client: OAuthClient?): Map<String, String>? {
-        if (client == null || !oidc.enabled) return null
-        val request = (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() as? org.springframework.web.context.request.ServletRequestAttributes)?.request ?: return null
-        val base = dev.yona.oauth2server.ProtectedResources.base(request)
-        return linkedMapOf("issuer" to base, "discovery" to "$base/.well-known/openid-configuration")
-    }
+        .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", support.oidcInfo(client))
 
     private fun secretView(client: OAuthClient, secret: String, noticeKey: String): ModelAndView =
         base("user/edit-oauth-app-secret").addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("secret", secret).addObject("noticeKey", noticeKey).addObject("appId", client.id)
 
-    private fun noCache(view: ModelAndView, response: HttpServletResponse): ModelAndView = view.also {
-        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-        response.setHeader(HttpHeaders.PRAGMA, "no-cache")
-        response.setHeader(HttpHeaders.EXPIRES, "0")
-    }
+    private fun noCache(view: ModelAndView, response: HttpServletResponse): ModelAndView = support.noCache(view, response)
 
     /** 만들기와 수정 화면의 입력이다. 오류일 때 입력을 되돌려 주는 데도 쓴다. */
     data class Form(

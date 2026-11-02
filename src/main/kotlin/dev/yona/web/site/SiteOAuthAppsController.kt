@@ -30,12 +30,13 @@ class SiteOAuthAppsController(
     private val apps: OAuthClientService,
     private val consents: OAuthConsentRepository,
     private val users: UserRepository,
+    private val organizations: dev.yona.domain.project.OrganizationRepository,
     private val settings: SiteSettingService,
     private val helper: TemplateHelper
 ) {
 
-    /** 목록의 한 줄이다. [owner]는 사용자가 만든 앱의 소유자 로그인 ID이고 CIMD 앱은 클라이언트 ID의 호스트이다. */
-    data class Row(val id: Long, val name: String, val clientId: String, val owner: String, val registration: String, val users: Long, val createdText: String, val confidential: Boolean)
+    /** 목록의 한 줄이다. [owner]는 사용자가 만든 앱의 소유자 로그인 ID이고, 조직이 소유한 앱은 조직 이름이며([ownerOrganization]이 참), CIMD 앱은 클라이언트 ID의 호스트이다. */
+    data class Row(val id: Long, val name: String, val clientId: String, val owner: String, val ownerOrganization: Boolean, val registration: String, val users: Long, val createdText: String, val confidential: Boolean)
 
     @GetMapping("/sites/oauth-apps")
     @Transactional(readOnly = true)
@@ -65,7 +66,12 @@ class SiteOAuthAppsController(
     }
 
     private fun row(c: OAuthClient): Row {
-        val owner = if (c.registration == OAuthClient.CIMD) runCatching { java.net.URI(c.clientId.orEmpty()).host }.getOrNull().orEmpty() else c.ownerId?.let { users.findById(it).orElse(null)?.loginId }.orEmpty()
-        return Row(requireNotNull(c.id), c.name.orEmpty(), c.clientId.orEmpty(), owner, c.registration.orEmpty(), consents.countByClientRowId(requireNotNull(c.id)), helper.dateString(c.createdDate), c.confidential == true)
+        val ofOrganization = c.registration != OAuthClient.CIMD && c.ownerType == OAuthClient.ORGANIZATION
+        val owner = when {
+            c.registration == OAuthClient.CIMD -> runCatching { java.net.URI(c.clientId.orEmpty()).host }.getOrNull().orEmpty()
+            ofOrganization -> c.ownerId?.let { organizations.findById(it).orElse(null)?.name }.orEmpty()
+            else -> c.ownerId?.let { users.findById(it).orElse(null)?.loginId }.orEmpty()
+        }
+        return Row(requireNotNull(c.id), c.name.orEmpty(), c.clientId.orEmpty(), owner, ofOrganization, c.registration.orEmpty(), consents.countByClientRowId(requireNotNull(c.id)), helper.dateString(c.createdDate), c.confidential == true)
     }
 }

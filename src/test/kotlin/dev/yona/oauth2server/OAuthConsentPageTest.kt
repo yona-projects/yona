@@ -28,6 +28,7 @@ import java.util.Base64
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -41,6 +42,7 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var clientService: OAuthClientService
+    @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
 
     private var n = 0
 
@@ -69,6 +71,16 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
     }
 
     private fun page(session: MockHttpSession, url: String): Document = Jsoup.parse(mockMvc.perform(get(java.net.URI.create(url)).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+
+    @Test
+    fun `조직이 소유한 앱의 승인 화면은 만든 조직의 이름을 보인다`() {
+        val admin = user(); val me = user()
+        val org = organizationService.create("oc${System.nanoTime() % 1000000}", null, admin)
+        val client = (clientService.createFor(dev.yona.domain.oauth2server.ClientOwner.of(org), admin, "조직 앱", "", "https://app.example.com", "https://app.example.com/callback", false, setOf("read:user")) as ClientCreation.Created).client
+        val s = login(me)
+        val line = page(s, consentUrl(s, client, scope = "read:user")).selectFirst("p.tag-line")!!.text()
+        assertTrue(line.contains(org.name!!), line); assertFalse(line.contains(admin.loginId!!), line)
+    }
 
     @Test
     fun `로그인해야 승인 화면을 볼 수 있다`() {

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-39, decisions.md D-78). 조직 설정의 OAuth 앱 목록이다
+  모델: title, orgView, apps(AppRow 목록), urls(OAuthAppUrls), userAppsEnabled
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::oauthPage})}">
+<th:block th:fragment="oauthPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+        <div class="two-factor-page">
+        <p class="text-body-secondary mb-4" th:text="#{oauth.org.description}"></p>
+        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.org.apps', 'oauth.org.apps.empty')}"></th:block>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

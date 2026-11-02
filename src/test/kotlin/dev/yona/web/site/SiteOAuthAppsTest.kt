@@ -47,6 +47,7 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var clients: OAuthClientRepository
     @Autowired private lateinit var consents: OAuthConsentRepository
     @Autowired private lateinit var settings: SiteSettingService
+    @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
 
     private var n = 0
 
@@ -60,6 +61,15 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
     private fun login(u: User) = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", u.loginId!!).param("password", "1234")) }
 
     private fun app(owner: User, name: String) = (clientService.create(owner, name, "", "", "https://a.example/cb", false, setOf("read:user")) as ClientCreation.Created).client
+
+    @Test
+    fun `조직이 소유한 앱은 소유자 칸에 조직 이름을 보인다`() {
+        val admin = user(); val org = organizationService.create("so${System.nanoTime() % 1000000}", null, admin)
+        clientService.createFor(dev.yona.domain.oauth2server.ClientOwner.of(org), admin, "조직 앱", "", "", "https://a.example/cb", false, setOf("read:user"))
+        val doc = Jsoup.parse(mockMvc.perform(get("/sites/oauth-apps").session(login(user(admin = true)))).andReturn().response.contentAsString)
+        val row = doc.select("table#all-apps tr.app-row").single { it.text().contains("조직 앱") }
+        assertTrue(row.text().contains(org.name!!), row.text())
+    }
 
     @Test
     fun `관리자만 앱 목록을 연다`() {

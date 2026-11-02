@@ -41,7 +41,8 @@ class OrganizationManagementService(
     private val repositories: RepositoryService,
     private val events: ApplicationEventPublisher,
     private val sessionUsers: dev.yona.security.SessionUserCache,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val oauthApps: dev.yona.domain.oauth2server.OAuthClientService
 ) {
 
     @PersistenceContext
@@ -233,6 +234,8 @@ class OrganizationManagementService(
     fun delete(organization: Organization) {
         val orgId = requireNotNull(organization.id)
         audit.record(dev.yona.domain.audit.auditOrganization("org.deleted", organization))
+        // 추가 항목(X-39, D-78): 조직이 소유한 OAuth 앱과 그 앱의 인가와 승인도 지운다(토큰이 주인 없이 남지 않게 한다)
+        oauthApps.deleteOwnedBy(dev.yona.domain.oauth2server.ClientOwner.of(organization))
         em.createNativeQuery("delete from user_enrolled_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from favorite_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from organization_user where organization_id = :id").setParameter("id", orgId).executeUpdate()

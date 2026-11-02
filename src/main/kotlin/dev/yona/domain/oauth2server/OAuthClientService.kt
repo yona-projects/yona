@@ -22,6 +22,16 @@ sealed interface ClientEdit {
     data class Rejected(val messageKey: String) : ClientEdit
 }
 
+/**
+ * OAuth 앱의 소유자이다(사용자 또는 조직, X-39 `decisions.md` D-78). [type]은 [OAuthClient.USER]나 [OAuthClient.ORGANIZATION]이고 [id]는 그 소유자의 번호이다.
+ */
+data class ClientOwner(val type: String, val id: Long) {
+    companion object {
+        fun of(user: User) = ClientOwner(OAuthClient.USER, requireNotNull(user.id))
+        fun of(organization: dev.yona.domain.project.Organization) = ClientOwner(OAuthClient.ORGANIZATION, requireNotNull(organization.id))
+    }
+}
+
 /** OAuth 앱이 요청할 수 있는 범위이다(`decisions.md` D-71 9, 11번). */
 object OAuthScopes {
 
@@ -64,60 +74,87 @@ class OAuthClientService(
 
     private val random = SecureRandom()
 
+    /** 사용자가 앱을 만든다. */
     @Transactional
     fun create(
         owner: User, name: String, description: String, homeUrl: String, redirectUris: String, confidential: Boolean, scopes: Set<String>, now: Date = Date()
+    ): ClientCreation = createFor(ClientOwner.of(owner), owner, name, description, homeUrl, redirectUris, confidential, scopes, now)
+
+    /** [owner]가 소유하는 앱을 만든다. [actor]는 만든 사용자이며 감사 기록의 행위자이다. 소유자마다 [MAX_PER_OWNER]개까지이다. */
+    @Transactional
+    fun createFor(
+        owner: ClientOwner, actor: User, name: String, description: String, homeUrl: String, redirectUris: String, confidential: Boolean, scopes: Set<String>, now: Date = Date()
     ): ClientCreation {
-        val ownerId = requireNotNull(owner.id)
         invalid(name, description, homeUrl, redirectUris, scopes)?.let { return ClientCreation.Rejected(it) }
-        if (clients.countByOwnerTypeAndOwnerId(OAuthClient.USER, ownerId) >= MAX_PER_OWNER) return ClientCreation.Rejected("oauth.error.limit")
+        if (clients.countByOwnerTypeAndOwnerId(owner.type, owner.id) >= MAX_PER_OWNER) return ClientCreation.Rejected("oauth.error.limit")
         val secret = if (confidential) SECRET_PREFIX + randomString(SECRET_LENGTH) else null
         val client = clients.save(
             OAuthClient(
                 clientId = CLIENT_ID_PREFIX + randomString(CLIENT_ID_LENGTH), name = name.trim(), description = description.trim(), homeUrl = homeUrl.trim(),
                 redirectUris = RedirectUris.format(RedirectUris.parse(redirectUris)), confidential = confidential, secretHash = secret?.let { TokenHasher.sha256Hex(it) },
-                allowedScopes = ApiScopes.format(scopes), registration = OAuthClient.USER, ownerType = OAuthClient.USER, ownerId = ownerId, createdDate = now
+                allowedScopes = ApiScopes.format(scopes), registration = OAuthClient.USER, ownerType = owner.type, ownerId = owner.id, createdDate = now
             )
         )
-        audit.record(clientEvent("oauth.client_created", client, owner, mapOf("confidential" to confidential, "scopes" to scopes.sorted())))
+        audit.record(clientEvent("oauth.client_created", client, actor, mapOf("confidential" to confidential, "scopes" to scopes.sorted())))
         return ClientCreation.Created(client, secret)
     }
 
     /** 소유자의 앱 목록이다. 최근에 만든 순서이다. */
     @Transactional(readOnly = true)
-    fun list(owner: User): List<OAuthClient> = clients.findByOwnerTypeAndOwnerIdOrderByCreatedDateDescIdDesc(OAuthClient.USER, requireNotNull(owner.id))
+    fun list(owner: User): List<OAuthClient> = listFor(ClientOwner.of(owner))
+
+    /** [owner]가 소유한 앱 목록이다. 최근에 만든 순서이다. */
+    @Transactional(readOnly = true)
+    fun listFor(owner: ClientOwner): List<OAuthClient> = clients.findByOwnerTypeAndOwnerIdOrderByCreatedDateDescIdDesc(owner.type, owner.id)
 
     /** 소유자의 앱 하나이다. 남의 앱이거나 없으면 `null`이다. */
     @Transactional(readOnly = true)
-    fun find(owner: User, id: Long): OAuthClient? = owned(owner, id)
+    fun find(owner: User, id: Long): OAuthClient? = findFor(ClientOwner.of(owner), id)
+
+    /** [owner]가 소유한 앱 하나이다. 다른 소유자의 앱이거나 없으면 `null`이다. */
+    @Transactional(readOnly = true)
+    fun findFor(owner: ClientOwner, id: Long): OAuthClient? = owned(owner, id)
 
     /** 앱의 이름, 설명, 홈 주소, 리디렉션 주소, 허용 범위를 고친다. 클라이언트 ID와 공개 또는 기밀 구분은 바뀌지 않는다. */
     @Transactional
-    fun update(owner: User, id: Long, name: String, description: String, homeUrl: String, redirectUris: String, scopes: Set<String>, now: Date = Date()): ClientEdit {
+    fun update(owner: User, id: Long, name: String, description: String, homeUrl: String, redirectUris: String, scopes: Set<String>, now: Date = Date()): ClientEdit =
+        updateFor(ClientOwner.of(owner), owner, id, name, description, homeUrl, redirectUris, scopes, now)
+
+    /** [owner]의 앱을 고친다. [actor]는 고친 사용자이다. */
+    @Transactional
+    fun updateFor(owner: ClientOwner, actor: User, id: Long, name: String, description: String, homeUrl: String, redirectUris: String, scopes: Set<String>, now: Date = Date()): ClientEdit {
         val client = owned(owner, id) ?: return ClientEdit.Rejected("oauth.error.notFound")
         invalid(name, description, homeUrl, redirectUris, scopes)?.let { return ClientEdit.Rejected(it) }
         client.name = name.trim(); client.description = description.trim(); client.homeUrl = homeUrl.trim()
         client.redirectUris = RedirectUris.format(RedirectUris.parse(redirectUris)); client.allowedScopes = ApiScopes.format(scopes); client.updatedDate = now
-        audit.record(clientEvent("oauth.client_updated", client, owner, mapOf("scopes" to scopes.sorted())))
+        audit.record(clientEvent("oauth.client_updated", client, actor, mapOf("scopes" to scopes.sorted())))
         return ClientEdit.Done(clients.save(client))
     }
 
     /** 기밀 앱의 비밀 값을 새로 만든다. 새 값을 돌려주고 이전 값은 쓸 수 없다. 남의 앱이거나 공개 앱이면 `null`이다. */
     @Transactional
-    fun regenerateSecret(owner: User, id: Long, now: Date = Date()): String? {
+    fun regenerateSecret(owner: User, id: Long, now: Date = Date()): String? = regenerateSecretFor(ClientOwner.of(owner), owner, id, now)
+
+    /** [owner]의 기밀 앱의 비밀 값을 새로 만든다. [actor]는 만든 사용자이다. */
+    @Transactional
+    fun regenerateSecretFor(owner: ClientOwner, actor: User, id: Long, now: Date = Date()): String? {
         val client = owned(owner, id)?.takeIf { it.confidential == true } ?: return null
         val secret = SECRET_PREFIX + randomString(SECRET_LENGTH)
         client.secretHash = TokenHasher.sha256Hex(secret); client.updatedDate = now
         clients.save(client)
-        audit.record(clientEvent("oauth.client_secret_regenerated", client, owner))
+        audit.record(clientEvent("oauth.client_secret_regenerated", client, actor))
         return secret
     }
 
     /** 소유자가 앱을 지운다. 남의 앱이거나 없으면 `false`이다. */
     @Transactional
-    fun delete(owner: User, id: Long): Boolean {
+    fun delete(owner: User, id: Long): Boolean = deleteFor(ClientOwner.of(owner), owner, id)
+
+    /** [owner]의 앱을 지운다. [actor]는 지운 사용자이다. 다른 소유자의 앱이거나 없으면 `false`이다. */
+    @Transactional
+    fun deleteFor(owner: ClientOwner, actor: User, id: Long): Boolean {
         val client = owned(owner, id) ?: return false
-        audit.record(clientEvent("oauth.client_deleted", client, owner, mapOf("by" to "owner")))
+        audit.record(clientEvent("oauth.client_deleted", client, actor, mapOf("by" to "owner")))
         removeClient(client)
         return true
     }
@@ -144,8 +181,15 @@ class OAuthClientService(
 
     /** 사용자가 가진 앱을 모두 지운다(사용자 삭제 처리). */
     @Transactional
-    fun deleteOwnedBy(owner: User) {
-        clients.findByOwnerTypeAndOwnerIdOrderByCreatedDateDescIdDesc(OAuthClient.USER, requireNotNull(owner.id)).forEach { removeClient(it) }
+    fun deleteOwnedBy(owner: User) = deleteOwnedBy(ClientOwner.of(owner))
+
+    /** [owner]가 가진 앱을 모두 지운다. 사용자를 지울 때와 조직을 지울 때 쓴다. 앱의 인가와 승인도 함께 지운다. */
+    @Transactional
+    fun deleteOwnedBy(owner: ClientOwner) {
+        clients.findByOwnerTypeAndOwnerIdOrderByCreatedDateDescIdDesc(owner.type, owner.id).forEach { client ->
+            audit.record(clientEvent("oauth.client_deleted", client, null, mapOf("by" to "owner_deleted")))
+            removeClient(client)
+        }
     }
 
     /** 앱을 지우면 그 앱의 모든 인가(발급한 토큰)와 사용자 승인도 함께 지운다. 토큰은 즉시 쓸 수 없게 된다. */
@@ -158,11 +202,12 @@ class OAuthClientService(
     /** 앱 변경의 감사 이벤트이다. 비밀 값은 담지 않는다. [actor]가 없으면 요청의 행위자(관리자)를 쓴다. */
     private fun clientEvent(action: String, client: OAuthClient, actor: User?, details: Map<String, Any?> = emptyMap()) = dev.yona.domain.audit.AuditEvent(
         action, targetType = "oauth_client", targetId = client.id?.toString(), targetLabel = client.clientId, details = details + mapOf("name" to client.name),
+        organizationId = client.ownerId?.takeIf { client.ownerType == OAuthClient.ORGANIZATION },
         actor = actor?.let { dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, it.id, it.loginId) }
     )
 
-    private fun owned(owner: User, id: Long): OAuthClient? =
-        clients.findById(id).orElse(null)?.takeIf { it.ownerType == OAuthClient.USER && it.ownerId == owner.id }
+    private fun owned(owner: ClientOwner, id: Long): OAuthClient? =
+        clients.findById(id).orElse(null)?.takeIf { it.ownerType == owner.type && it.ownerId == owner.id }
 
     private fun invalid(name: String, description: String, homeUrl: String, redirectUris: String, scopes: Set<String>): String? {
         if (name.trim().isEmpty() || name.trim().length > NAME_MAX) return "oauth.error.name"

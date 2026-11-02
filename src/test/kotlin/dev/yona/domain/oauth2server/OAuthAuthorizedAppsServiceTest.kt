@@ -13,6 +13,7 @@ import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** 승인한 앱 목록과 취소(X-1 6단계, `decisions.md` D-71), 앱 변경의 감사 기록을 검증한다. */
@@ -21,6 +22,7 @@ class OAuthAuthorizedAppsServiceTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var service: OAuthAuthorizedAppsService
     @Autowired private lateinit var clientService: OAuthClientService
+    @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
     @Autowired private lateinit var consents: OAuthConsentRepository
     @Autowired private lateinit var authorizations: OAuthAuthorizationRepository
     @Autowired private lateinit var users: UserRepository
@@ -46,6 +48,16 @@ class OAuthAuthorizedAppsServiceTest : AbstractIntegrationTest() {
         val list = service.list(me)
         assertEquals(1, list.size)
         assertEquals("내가 승인한 앱", list[0].name); assertEquals(owner.loginId, list[0].ownerLoginId); assertEquals(listOf("read:user", "repo"), list[0].scopes); assertTrue(list[0].activeTokens)
+    }
+
+    @Test
+    fun `조직이 소유한 앱은 만든 조직의 이름을 보이고 만든 사용자는 없다`() {
+        val admin = user(); val me = user()
+        val org = organizationService.create("oa${System.nanoTime() % 1000000}", null, admin)
+        val a = (clientService.createFor(ClientOwner.of(org), admin, "조직 앱", "", "", "https://a.example/cb", false, setOf("read:user")) as ClientCreation.Created).client
+        approve(me, a)
+        val row = service.list(me).single()
+        assertEquals(org.name, row.ownerOrganization); assertNull(row.ownerLoginId)
     }
 
     @Test

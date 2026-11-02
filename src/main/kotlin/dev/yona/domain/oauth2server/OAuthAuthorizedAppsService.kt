@@ -12,10 +12,11 @@ import java.net.URI
 import java.util.Date
 
 /**
- * 사용자가 승인한 앱 한 개이다(설정의 "승인한 앱" 목록). [ownerLoginId]는 앱을 만든 사용자이고 CIMD 앱은 없다. [host]는 CIMD 앱이면 클라이언트 ID의 호스트이다.
+ * 사용자가 승인한 앱 한 개이다(설정의 "승인한 앱" 목록). [ownerLoginId]는 앱을 만든 사용자이고 CIMD 앱과 조직 앱은 없다. [ownerOrganization]은 조직이 소유한 앱의 조직 이름이다(X-39). [host]는 CIMD 앱이면 클라이언트 ID의 호스트이다.
  */
 data class AuthorizedApp(
-    val clientRowId: Long, val clientId: String, val name: String, val ownerLoginId: String?, val host: String?, val scopes: List<String>, val approvedDate: Date?, val activeTokens: Boolean
+    val clientRowId: Long, val clientId: String, val name: String, val ownerLoginId: String?, val host: String?, val scopes: List<String>, val approvedDate: Date?, val activeTokens: Boolean,
+    val ownerOrganization: String? = null
 )
 
 /**
@@ -28,6 +29,7 @@ class OAuthAuthorizedAppsService(
     private val authorizations: OAuthAuthorizationRepository,
     private val clients: OAuthClientRepository,
     private val users: UserRepository,
+    private val organizations: dev.yona.domain.project.OrganizationRepository,
     private val audit: AuditRecorder
 ) {
 
@@ -41,7 +43,8 @@ class OAuthAuthorizedAppsService(
             AuthorizedApp(
                 requireNotNull(client.id), requireNotNull(client.clientId), client.name.orEmpty(), client.ownerId?.takeIf { client.ownerType == OAuthClient.USER }?.let { users.findById(it).orElse(null)?.loginId },
                 if (client.registration == OAuthClient.CIMD) runCatching { URI(client.clientId.orEmpty()).host }.getOrNull() else null,
-                consent.scopes.orEmpty().split(',').filter { it.isNotEmpty() }, consent.createdDate, client.id in tokenOwners
+                consent.scopes.orEmpty().split(',').filter { it.isNotEmpty() }, consent.createdDate, client.id in tokenOwners,
+                client.ownerId?.takeIf { client.ownerType == OAuthClient.ORGANIZATION }?.let { organizations.findById(it).orElse(null)?.name }
             )
         }
     }

@@ -26,7 +26,8 @@ class OAuthConsentController(
     private val currentUserProvider: CurrentUserProvider,
     private val authorizations: YonaOAuth2AuthorizationService,
     private val clients: OAuthClientRepository,
-    private val users: UserRepository
+    private val users: UserRepository,
+    private val organizations: dev.yona.domain.project.OrganizationRepository
 ) {
 
     @GetMapping(AuthorizationServerConfig.CONSENT_PAGE)
@@ -44,11 +45,12 @@ class OAuthConsentController(
         if (clientId != null && clientId != client.clientId) return ErrorViews.badRequest()
         val requested = authorization.getAttribute<OAuth2AuthorizationRequest>(OAuth2AuthorizationRequest::class.java.name)?.redirectUri
         val host = requested?.let { runCatching { URI(it).host }.getOrNull() }.orEmpty()
-        val owner = client.ownerId?.let { users.findById(it).orElse(null) }
+        val owner = client.ownerId?.takeIf { client.ownerType == dev.yona.domain.oauth2server.OAuthClient.USER }?.let { users.findById(it).orElse(null) }
+        val ownerOrganization = client.ownerId?.takeIf { client.ownerType == dev.yona.domain.oauth2server.OAuthClient.ORGANIZATION }?.let { organizations.findById(it).orElse(null)?.name }
         return ModelAndView("oauth2/consent")
             .addObject("title", "oauth.consent.heading")
             .addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("homeUrl", client.homeUrl.orEmpty())
-            .addObject("ownerLoginId", owner?.loginId).addObject("redirectHost", host)
+            .addObject("ownerLoginId", owner?.loginId).addObject("ownerOrganization", ownerOrganization).addObject("redirectHost", host)
             .addObject("loopback", host in setOf("localhost", "127.0.0.1", "[::1]", "::1"))
             .addObject("state", state)
             .addObject("cimdHost", if (client.registration == dev.yona.domain.oauth2server.OAuthClient.CIMD) runCatching { URI(client.clientId.orEmpty()).host }.getOrNull() else null)

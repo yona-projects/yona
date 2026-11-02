@@ -28,6 +28,10 @@ class OAuthClientServiceTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var siteUsers: dev.yona.domain.site.SiteUserService
     @Autowired private lateinit var em: jakarta.persistence.EntityManager
+    @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
+    @Autowired private lateinit var management: dev.yona.domain.project.OrganizationManagementService
+    @Autowired private lateinit var consents: OAuthConsentRepository
+    @Autowired private lateinit var logs: dev.yona.domain.audit.AuditLogRepository
 
     private var n = 0
 
@@ -147,5 +151,58 @@ class OAuthClientServiceTest : AbstractIntegrationTest() {
         val gone = user(); val stay = user(); create(gone); val keep = assertIs<ClientCreation.Created>(create(stay)).client
         em.flush(); siteUsers.deleteUser(gone); em.flush(); em.clear()
         assertTrue(service.list(gone).isEmpty()); assertNotNull(clients.findById(keep.id!!).orElse(null))
+    }
+
+    // --- 조직 소유 앱(X-39, D-78) ---
+
+    private fun organization(admin: User) = organizationService.create("oo${++n}${System.nanoTime() % 100000}", null, admin)
+
+    private fun createFor(org: dev.yona.domain.project.Organization, actor: User, name: String = "조직 앱") =
+        service.createFor(ClientOwner.of(org), actor, name, "", "", "https://app.example.com/callback", true, setOf("read:user"))
+
+    @Test
+    fun `조직이 앱을 소유하고 감사 기록은 조직에 속하며 행위자는 만든 사용자이다`() {
+        val admin = user(); val org = organization(admin)
+        val client = assertIs<ClientCreation.Created>(createFor(org, admin)).client
+        assertEquals("ORGANIZATION", client.ownerType); assertEquals(org.id, client.ownerId); assertEquals("USER", client.registration)
+        val event = logs.findAll().single { it.action == "oauth.client_created" }
+        assertEquals(org.id, event.organizationId); assertEquals(admin.id, event.actorId)
+    }
+
+    @Test
+    fun `사용자의 앱 목록과 조직의 앱 목록은 서로 섞이지 않고 남의 소유로는 찾을 수 없다`() {
+        val admin = user(); val org = organization(admin)
+        val mine = assertIs<ClientCreation.Created>(create(admin)).client; val theirs = assertIs<ClientCreation.Created>(createFor(org, admin)).client
+        assertEquals(listOf(mine.id), service.list(admin).map { it.id }); assertEquals(listOf(theirs.id), service.listFor(ClientOwner.of(org)).map { it.id })
+        assertNull(service.find(admin, theirs.id!!)); assertNull(service.findFor(ClientOwner.of(org), mine.id!!))
+        assertNotNull(service.findFor(ClientOwner.of(org), theirs.id!!))
+    }
+
+    @Test
+    fun `조직 앱의 한도는 사용자와 따로 세어 20개이다`() {
+        val admin = user(); val org = organization(admin)
+        repeat(20) { assertIs<ClientCreation.Created>(createFor(org, admin)) }
+        assertEquals("oauth.error.limit", assertIs<ClientCreation.Rejected>(createFor(org, admin)).messageKey)
+        assertIs<ClientCreation.Created>(create(admin))
+    }
+
+    @Test
+    fun `조직 앱도 소유 조직만 고치고 비밀 값을 다시 만들고 지운다`() {
+        val admin = user(); val org = organization(admin); val other = organization(admin)
+        val client = assertIs<ClientCreation.Created>(createFor(org, admin)).client; val id = client.id!!
+        assertIs<ClientEdit.Rejected>(service.updateFor(ClientOwner.of(other), admin, id, "x", "", "", "https://a.example.com/cb", setOf("read:user")))
+        assertIs<ClientEdit.Done>(service.updateFor(ClientOwner.of(org), admin, id, "바뀐 이름", "", "", "https://a.example.com/cb", setOf("read:user")))
+        assertNull(service.regenerateSecretFor(ClientOwner.of(other), admin, id)); assertNotNull(service.regenerateSecretFor(ClientOwner.of(org), admin, id))
+        assertFalse(service.deleteFor(ClientOwner.of(other), admin, id)); assertTrue(service.deleteFor(ClientOwner.of(org), admin, id))
+        assertNull(clients.findById(id).orElse(null))
+    }
+
+    @Test
+    fun `조직을 지우면 그 조직의 앱과 인가와 승인도 지워지고 다른 조직의 앱은 남는다`() {
+        val admin = user(); val org = organization(admin); val other = organization(admin)
+        val gone = assertIs<ClientCreation.Created>(createFor(org, admin)).client; val keep = assertIs<ClientCreation.Created>(createFor(other, admin)).client
+        consents.save(OAuthConsent(clientRowId = gone.id, userId = user().id, scopes = "read:user", createdDate = Date())); em.flush()
+        management.delete(org); em.flush(); em.clear()
+        assertNull(clients.findById(gone.id!!).orElse(null)); assertEquals(0, consents.countByClientRowId(gone.id!!)); assertNotNull(clients.findById(keep.id!!).orElse(null))
     }
 }

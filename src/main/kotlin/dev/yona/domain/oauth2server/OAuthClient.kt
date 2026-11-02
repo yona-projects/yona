@@ -16,7 +16,7 @@ import java.util.Date
  * @property secretHash 비밀 값의 SHA-256(16진수). 기밀 앱만 있다. 비밀 값은 만든 직후 한 번만 보인다
  * @property allowedScopes 이 앱이 요청할 수 있는 범위(쉼표로 이음, `ApiScopes`의 클래식 범위)
  * @property registration 등록 방식. `USER`(직접 등록)와 `CIMD`(문서에서 가져온 캐시)
- * @property ownerType 소유자 종류. `USER`이고 `ORGANIZATION`은 로드맵 X-39에서 연다(테이블은 처음부터 이 구조이다)
+ * @property ownerType 소유자 종류. `USER`(사용자) 또는 `ORGANIZATION`(조직, X-39 `decisions.md` D-78)
  * @property ownerId 소유자 번호
  * @property fetchedDate CIMD 문서를 가져온 시각
  * @property expiresDate CIMD 캐시가 만료되는 시각

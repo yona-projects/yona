@@ -15,6 +15,9 @@
         <a th:href="${base + '/audit'}" th:text="#{organization.audit}" class="nav-link" th:classappend="${requestPath == base + '/audit'} ? 'active'"></a>
     </li>
     <li class="nav-item">
+        <a th:href="${base + '/oauth-apps'}" th:text="#{organization.oauthApps}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/oauth-apps')} ? 'active'"></a>
+    </li>
+    <li class="nav-item">
         <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteForm'} ? 'active'"></a>
     </li>
 </ul>
