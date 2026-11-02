@@ -121,6 +121,90 @@ class LfsStorage(private val dataDirectory: DataDirectory) {
         }
     }
 
+    // --- tus(이어올리기) ---
+
+    /** tus로 받는 중인 업로드의 상태이다. [length]는 올릴 전체 길이, [offset]은 지금까지 받은 바이트이다. */
+    data class TusState(val length: Long, val offset: Long)
+
+    /** [tusAppend]의 결과이다. */
+    sealed interface TusAppend {
+        /** 이어 받았다. [offset]은 새 위치이다. */
+        data class Progress(val offset: Long) : TusAppend
+
+        /** 다 받았고 해시가 맞아 객체로 저장했다. */
+        data class Completed(val size: Long) : TusAppend
+
+        /** 보낸 위치가 지금까지 받은 위치와 다르다. [current]가 맞는 위치이다. */
+        data class OffsetMismatch(val current: Long) : TusAppend
+
+        /** 올리기로 한 길이를 넘는 내용이다. 이번 조각은 받지 않았다. */
+        data object TooLong : TusAppend
+
+        /** 다 받았는데 해시가 oid와 다르다. 받은 조각을 모두 버렸다. */
+        data object HashMismatch : TusAppend
+
+        /** 만들지 않은 업로드이다. */
+        data object NotFound : TusAppend
+    }
+
+    private val tusLocks = java.util.concurrent.ConcurrentHashMap<String, Any>()
+
+    private fun tusFiles(project: Project, oid: String): Pair<File, File> {
+        require(validOid(oid)) { "올바르지 않은 oid입니다" }
+        val dir = File(directoryOf(project), "tus")
+        return File(dir, "$oid.part") to File(dir, "$oid.length")
+    }
+
+    private fun <T> tusLocked(project: Project, oid: String, block: () -> T): T = synchronized(tusLocks.computeIfAbsent("${project.id}:${directoryOf(project).path}:$oid") { Any() }) { block() }
+
+    /** 업로드의 상태이다. 객체가 이미 있으면 다 받은 것으로 본다. 만들지 않았으면 `null`이다. */
+    fun tusState(project: Project, oid: String): TusState? = tusLocked(project, oid) {
+        sizeOf(project, oid)?.let { return@tusLocked TusState(it, it) }
+        val (part, length) = tusFiles(project, oid)
+        if (!part.isFile || !length.isFile) null else length.readText().trim().toLongOrNull()?.let { TusState(it, part.length()) }
+    }
+
+    /** [length] 바이트짜리 업로드를 만든다. 이미 받고 있으면 그대로 둔다(같은 길이일 때). 이미 객체가 있으면 아무것도 하지 않는다. */
+    fun tusCreate(project: Project, oid: String, length: Long) = tusLocked(project, oid) {
+        if (exists(project, oid)) return@tusLocked
+        val (part, lengthFile) = tusFiles(project, oid)
+        part.parentFile.mkdirs()
+        if (part.isFile && lengthFile.isFile && lengthFile.readText().trim().toLongOrNull() == length) return@tusLocked
+        part.writeBytes(ByteArray(0)); lengthFile.writeText(length.toString())
+    }
+
+    /**
+     * [offset]에서 이어 [input]을 붙인다. 위치가 지금까지 받은 위치와 같아야 하고, 길이를 넘으면 이번 조각을 받지 않는다. 다 받으면 SHA-256을 확인해 객체로 옮긴다.
+     */
+    fun tusAppend(project: Project, oid: String, offset: Long, input: InputStream): TusAppend = tusLocked(project, oid) {
+        val (part, lengthFile) = tusFiles(project, oid)
+        if (!part.isFile || !lengthFile.isFile) return@tusLocked TusAppend.NotFound
+        val length = lengthFile.readText().trim().toLongOrNull() ?: return@tusLocked TusAppend.NotFound
+        val current = part.length()
+        if (offset != current) return@tusLocked TusAppend.OffsetMismatch(current)
+        var written = 0L
+        java.io.RandomAccessFile(part, "rw").use { file ->
+            file.seek(current)
+            val buffer = ByteArray(BUFFER)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                if (current + written + read > length) { file.setLength(current); return@tusLocked TusAppend.TooLong }
+                file.write(buffer, 0, read); written += read
+            }
+        }
+        val total = current + written
+        if (total < length) return@tusLocked TusAppend.Progress(total)
+        val digest = MessageDigest.getInstance("SHA-256")
+        part.inputStream().use { stream -> val buffer = ByteArray(BUFFER); while (true) { val read = stream.read(buffer); if (read < 0) break; digest.update(buffer, 0, read) } }
+        if (digest.digest().joinToString("") { "%02x".format(it) } != oid) { part.delete(); lengthFile.delete(); return@tusLocked TusAppend.HashMismatch }
+        val target = objectFile(project, oid)
+        target.parentFile.mkdirs()
+        Files.move(part.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
+        lengthFile.delete()
+        TusAppend.Completed(total)
+    }
+
     /** 사이트 전체의 객체 수와 바이트이다(`repo/lfs` 아래 모든 프로젝트). */
     fun siteUsage(): Usage {
         val root = File(dataDirectory.root(), "repo/lfs")

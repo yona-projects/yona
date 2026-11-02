@@ -57,18 +57,23 @@ class LfsController(
             if (context.failure != null) return@measured context.failure
             val target = requireNotNull(context.project)
             val body = parseBatch(request) ?: return@measured support.error(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid batch request")
-            if (body.transfers != null && "basic" !in body.transfers) return@measured support.error(HttpStatus.UNPROCESSABLE_ENTITY, "Only the basic transfer is supported")
+            // 클라이언트가 고를 수 있다고 한 전송 방식 가운데 앞에 있는 것부터 쓴다. `tus`(이어올리기)는 올리기에만 쓰고 내려받기는 `basic`이다
+            val transfer = chooseTransfer(body.transfers, body.operation) ?: return@measured support.error(HttpStatus.UNPROCESSABLE_ENTITY, "No supported transfer: use basic or tus")
             if (body.operation == LfsService.UPLOAD) support.authorize(context.identity, target, write = true)?.let { return@measured it }
             val base = "${siteUrls.origin()}${siteUrls.path("/${target.owner}/${target.name}.git/info/lfs")}"
             // SSH의 git-lfs-authenticate가 준 토큰으로 온 요청이면 클라이언트가 객체 전송에는 그 헤더를 따로 붙이지 않으므로 동작마다 같은 헤더를 실어 준다
             val bearer = request.getHeader(HttpHeaders.AUTHORIZATION)?.takeIf { it.startsWith("Bearer ${dev.yona.domain.lfs.LfsTokens.PREFIX}") }
             val actionHeader = bearer?.let { mapOf(HttpHeaders.AUTHORIZATION to it) }.orEmpty()
-            val objects = lfs.plan(target, body.operation, body.objects).map { plan ->
+            val plans = lfs.plan(target, body.operation, body.objects)
+            // 실제 클라이언트의 tus는 올리기를 만들지 않고 동작 주소에 곧바로 `HEAD`로 위치를 물으므로, batch가 올릴 객체마다 업로드를 미리 만든다
+            if (transfer == "tus") plans.filterIsInstance<LfsPlan.Upload>().forEach { storage.tusCreate(target, it.request.oid, it.request.size) }
+            val objects = plans.map { plan ->
                 val item = linkedMapOf<String, Any?>("oid" to plan.request.oid, "size" to plan.request.size)
                 when (plan) {
                     is LfsPlan.Download -> item["actions"] = mapOf("download" to withHeader(mapOf("href" to "$base/objects/${plan.request.oid}"), actionHeader))
                     is LfsPlan.Upload -> item["actions"] = mapOf(
-                        "upload" to mapOf("href" to "$base/objects/${plan.request.oid}", "header" to (mapOf("Content-Type" to MediaType.APPLICATION_OCTET_STREAM_VALUE) + actionHeader)),
+                        "upload" to (if (transfer == "tus") withHeader(mapOf("href" to "$base/tus/${plan.request.oid}"), actionHeader)
+                            else mapOf("href" to "$base/objects/${plan.request.oid}", "header" to (mapOf("Content-Type" to MediaType.APPLICATION_OCTET_STREAM_VALUE) + actionHeader))),
                         "verify" to withHeader(mapOf("href" to "$base/verify"), actionHeader)
                     )
                     is LfsPlan.Present -> {}
@@ -77,7 +82,7 @@ class LfsController(
                 // `authenticated`를 주지 않는다: true이면 클라이언트가 동작 주소에 자격을 보내지 않는다(미리 서명한 주소용). 생략해야 같은 자격(Basic)을 객체 전송에도 쓴다
                 item
             }
-            support.lfsJson(HttpStatus.OK, linkedMapOf("transfer" to "basic", "objects" to objects, "hash_algo" to "sha256"))
+            support.lfsJson(HttpStatus.OK, linkedMapOf("transfer" to transfer, "objects" to objects, "hash_algo" to "sha256"))
         }
 
     /** 객체를 올린다. 내용의 SHA-256이 oid와 같아야 하고 한도를 넘으면 413이다. */
@@ -127,6 +132,17 @@ class LfsController(
             val stored = lfs.sizeOf(target, oid) ?: return@measured support.error(HttpStatus.NOT_FOUND, "Object does not exist")
             if (stored != size) support.error(HttpStatus.UNPROCESSABLE_ENTITY, "Object size does not match") else ResponseEntity.ok().build<Void>()
         }
+
+    /**
+     * 쓸 전송 방식이다. 방식을 알리지 않았으면 `basic`이다. 올리기에서 클라이언트가 `tus`를 알렸으면 `tus`를 고른다: 실제 클라이언트는 `basic`을 항상 맨 앞에 두고
+     * `lfs.tustransfers`를 켠 사용자에게만 `tus`를 뒤에 덧붙이므로, 앞에서부터 고르면 `tus`가 영영 선택되지 않는다. 그 밖에는 `basic`이고, 지원하는 것이 없으면 `null`이다.
+     */
+    private fun chooseTransfer(requested: List<String>?, operation: String): String? = when {
+        requested == null -> "basic"
+        operation == LfsService.UPLOAD && "tus" in requested -> "tus"
+        "basic" in requested -> "basic"
+        else -> null
+    }
 
     /** [headers]가 있으면 동작에 `header`로 싣는다. */
     private fun withHeader(action: Map<String, Any?>, headers: Map<String, String>): Map<String, Any?> = if (headers.isEmpty()) action else action + ("header" to headers)
