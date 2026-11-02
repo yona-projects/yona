@@ -70,7 +70,8 @@ AI 에이전트(Claude Code, Codex, Antigravity 등)가 MCP(Model Context Protoc
 - 서버가 먼저 보내는 알림과 요청 취소(SSE)는 없다.
 - 도구 호출 속도 제한은 없다. 실패한 토큰 인증의 제한만 있다.
 - `/mcp`가 v1.6의 `/{사용자}` 주소와 겹친다. 로그인 ID가 `mcp`인 사용자의 프로필 주소가 보호 자원 체인에 가려진다(X-1의 `oauth2`와 같은 한계, v1.6 예약어는 바꾸지 않는다).
-- 실제 Claude Code, Codex, Antigravity 연결은 이 환경에서 직접 확인하지 못했다. 확인 절차는 아래 7절에 있다.
+- 공식 MCP SDK(TypeScript 1.32.2) 클라이언트로 실제 jar에 붙어 확인했다: 401의 `resource_metadata` 발견, 인가 서버 찾기, PKCE와 `resource` 승인, 토큰 교환, 도구 목록(18개)과 호출, MCP 토큰이 외부 API에서 401, PAT가 `/mcp`에서 401. 실제 Claude Code, Codex, Antigravity 연결은 이 환경에서 직접 확인하지 못했다. 확인 절차는 아래 7절에 있다.
+- 승인 요청의 범위가 앱에 허용된 범위를 넘으면(공식 SDK는 401에 `scope`가 없으면 보호 자원 메타데이터의 `scopes_supported` 전부를 요청한다) 앱의 리디렉션 주소로 `invalid_scope` 오류가 돌아온다. 앱을 만들 때 필요한 범위를 모두 허용해야 한다.
 
 ## 7. 클라이언트 연결 확인 절차
 

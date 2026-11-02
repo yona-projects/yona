@@ -974,3 +974,7 @@ Claude Code, Codex, Antigravity의 공식 문서를 확인한 뒤 선생님이 "
 
 ## [2026-11-02] X-6 단계 0, 0b
 MCP 서버 뼈대(Spring AI 스타터, stateless `/mcp`)와 읽기 전용 범위 `read:repo`(외부 API 읽기, 프로젝트 목록, Git과 SVN HTTP 읽기, 5개 언어 설명)를 구현했다. 시험을 먼저 쓰고 구현했다.
+
+## [2026-11-02] X-6 MCP 서버 완료
+단계 0~6을 시험 먼저 쓰고 구현했다(전체 시험 통과). 도구 18개(읽기 11, 쓰기 7), `/mcp` 접근 필터, 토큰 대상 검증(RFC 8707), 관리자 설정, 감사와 지표, 문서(`architecture/mcp-server.md`). 공식 MCP SDK 클라이언트로 실제 jar에 인가부터 도구 호출까지 확인했다(401 발견, PKCE, resource, MCP 토큰은 외부 API 401, PAT는 /mcp 401).
+
