@@ -72,7 +72,52 @@ class SiteSettingService(private val settings: SiteSettingRepository, private va
         if (before != value) audit.record(AuditEvent("site.mcp_write_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
     }
 
+    /** Git LFS 서버를 쓰는지이다(추가 개발 항목 X-8, `decisions.md` D-79). 끄면 LFS 경로는 404이다. 기본은 켠다. */
+    @Transactional(readOnly = true)
+    fun lfsEnabled(): Boolean = settings.findById(LFS_ENABLED).orElse(null)?.value?.let { it == "true" } ?: true
+
+    /** LFS 사용 여부를 바꾼다. 바뀐 값이 있을 때만 감사 기록을 남긴다. */
+    @Transactional
+    fun setLfsEnabled(value: Boolean) {
+        val before = lfsEnabled()
+        settings.save(SiteSetting(LFS_ENABLED, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.lfs_changed", targetType = "site", details = mapOf("setting" to "enabled", "from" to before, "to" to value)))
+    }
+
+    /** LFS 객체 하나의 최대 크기(바이트)이다. 기본은 [DEFAULT_LFS_MAX_OBJECT_SIZE](2 GiB)이다. */
+    @Transactional(readOnly = true)
+    fun lfsMaxObjectSize(): Long = settings.findById(LFS_MAX_OBJECT_SIZE).orElse(null)?.value?.toLongOrNull()?.takeIf { it > 0 } ?: DEFAULT_LFS_MAX_OBJECT_SIZE
+
+    /** LFS 객체 하나의 최대 크기를 바꾼다. 0 이하는 기본값으로 되돌린다. */
+    @Transactional
+    fun setLfsMaxObjectSize(value: Long) {
+        val before = lfsMaxObjectSize()
+        val after = if (value > 0) value else DEFAULT_LFS_MAX_OBJECT_SIZE
+        settings.save(SiteSetting(LFS_MAX_OBJECT_SIZE, after.toString()))
+        if (before != after) audit.record(AuditEvent("site.lfs_changed", targetType = "site", details = mapOf("setting" to "max_object_size", "from" to before, "to" to after)))
+    }
+
+    /** 프로젝트 하나가 LFS에 쓸 수 있는 용량(바이트)이다. 0이면 제한이 없다(기본). */
+    @Transactional(readOnly = true)
+    fun lfsProjectQuota(): Long = settings.findById(LFS_PROJECT_QUOTA).orElse(null)?.value?.toLongOrNull()?.takeIf { it > 0 } ?: 0L
+
+    /** 프로젝트별 LFS 용량 한도를 바꾼다. 0 이하는 제한 없음이다. */
+    @Transactional
+    fun setLfsProjectQuota(value: Long) {
+        val before = lfsProjectQuota()
+        val after = value.coerceAtLeast(0)
+        settings.save(SiteSetting(LFS_PROJECT_QUOTA, after.toString()))
+        if (before != after) audit.record(AuditEvent("site.lfs_changed", targetType = "site", details = mapOf("setting" to "project_quota", "from" to before, "to" to after)))
+    }
+
     companion object {
+        const val LFS_ENABLED = "lfs.enabled"
+        const val LFS_MAX_OBJECT_SIZE = "lfs.max-object-size"
+        const val LFS_PROJECT_QUOTA = "lfs.project-quota"
+
+        /** LFS 객체 하나의 기본 최대 크기이다(2 GiB, 첨부 파일의 기본 한도와 같은 규모). */
+        const val DEFAULT_LFS_MAX_OBJECT_SIZE = 2L * 1024 * 1024 * 1024
+
         const val MCP_ENABLED = "security.mcp-enabled"
         const val MCP_WRITE_ENABLED = "security.mcp-write-enabled"
         const val OAUTH_USER_APPS_ENABLED = "security.oauth-user-apps-enabled"
