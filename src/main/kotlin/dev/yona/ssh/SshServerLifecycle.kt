@@ -46,13 +46,9 @@ class SshServerLifecycle(
     private val properties: YonaProperties,
     private val dataDirectory: DataDirectory,
     private val access: SshAccess,
-    private val handlers: List<SshVcsHandler>,
+    private val runner: SshCommandRunner,
     private val failures: dev.yona.security.TokenFailureLimiter,
-    private val audit: dev.yona.domain.audit.AuditRecorder,
-    private val boundary: dev.yona.domain.audit.AuditBoundary,
-    private val metrics: dev.yona.observability.VcsMetrics,
-    private val users: dev.yona.domain.user.UserRepository,
-    private val deployKeys: dev.yona.domain.sshkey.DeployKeyService
+    private val boundary: dev.yona.domain.audit.AuditBoundary
 ) : SmartLifecycle {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -144,15 +140,7 @@ class SshServerLifecycle(
     private fun addressOf(session: Session): String = (session.remoteAddress as? InetSocketAddress)?.address?.hostAddress.orEmpty()
 
     /** 감사 기록에 접속 주소와 접속 종류(`ssh`)를 남기도록 문맥을 정해 [block]을 실행한다. */
-    private fun <T> remoteContext(session: Session, actor: AuditActor?, block: () -> T): T =
-        audit.withRemote(actor ?: AuditActor(AuditActorType.ANONYMOUS, null, null), addressOf(session), CHANNEL, block)
-
-    /** 인증한 접속의 감사 행위자이다. 사용자 키이면 사용자, 배포 키이면 배포 키(번호와 이름)이다. */
-    private fun actorOf(principal: SshPrincipal): AuditActor {
-        principal.userId?.let { id -> return AuditActor(AuditActorType.USER, id, users.findById(id).orElse(null)?.loginId) }
-        val id = principal.deployKeyId
-        return AuditActor(AuditActorType.DEPLOY_KEY, id, id?.let { deployKeys.findName(it) })
-    }
+    private fun <T> remoteContext(session: Session, actor: AuditActor?, block: () -> T): T = runner.withRemote(actor, addressOf(session), block)
 
     /** 명령 하나를 별도 스레드에서 실행한다. 인가를 통과하면 [SshVcsHandler]가 프로토콜을 처리한다. */
     private inner class RepositoryCommand(private val line: String, private val channel: ChannelSession) : Command {
@@ -186,25 +174,7 @@ class SshServerLifecycle(
         private fun execute(): Int {
             val session = channel.session
             val principal = session.getAttribute(PRINCIPAL) ?: return fail("ERROR: Not authenticated.")
-            val (handler, request) = handlers.firstNotNullOfOrNull { h -> h.parse(line)?.let { h to it } } ?: return fail("ERROR: Invalid command.")
-            // 푸시 훅이 남기는 감사 기록(git.push 등)에 행위자와 접속 주소가 들어가도록 이 스레드의 문맥을 정한다
-            return remoteContext(session, actorOf(principal)) { run(handler, request, principal) }
-        }
-
-        /** 인가하고 실행한다. 시간과 결과를 `yona.vcs.request`로 남긴다(HTTP와 같은 지표, 결과는 `ok`, `denied`, `not_found`, `error`). */
-        private fun run(handler: SshVcsHandler, request: SshRepositoryRequest, principal: SshPrincipal): Int {
-            var exit = 1
-            val vcs = request.vcs.lowercase()
-            metrics.request(vcs, request.service, "code") { measured ->
-                exit = when (val result = access.authorize(principal, request)) {
-                    SshAuthorization.NotFound -> { measured.result = "not_found"; fail("ERROR: Repository not found.") }
-                    is SshAuthorization.Denied -> { measured.result = "denied"; fail(result.message) }
-                    is SshAuthorization.Allowed -> handler.execute(
-                        result.project, request, line, result.sender, SshStreams(metrics.countedInput(vcs, "code", input), metrics.countedOutput(vcs, "code", output), error)
-                    ).also { if (it != 0) measured.result = "error" }
-                }
-            }
-            return exit
+            return runner.run(principal, line, SshStreams(input, output, error), addressOf(session)) { fail(it) }
         }
 
         private fun fail(message: String): Int {
@@ -222,7 +192,7 @@ class SshServerLifecycle(
         const val HOST_KEY_NAME = "ssh_host_ed25519_key"
 
         /** 로그와 지표, 감사 기록의 채널 이름이다. */
-        const val CHANNEL = "ssh"
+        const val CHANNEL = SshCommandRunner.CHANNEL
 
         private val PRINCIPAL = AttributeRepository.AttributeKey<SshPrincipal>()
         private val FAILURE_REASON = AttributeRepository.AttributeKey<String>()
