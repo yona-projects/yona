@@ -121,7 +121,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         val page = page("/user/editform", login(newUser()))
         val tabs = page.select(".page-wrap > ul.nav-tabs li")
         assertEquals(listOf("Edit profile", "Change password", "Notification settings", "Email settings", "User Token", "GPG keys", "SSH keys", "Two-step verification", "OAuth apps", "Linked accounts", "Security log"), tabs.map { it.text().trim() })
-        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token", "/user/editform/gpg", "/user/editform/ssh", "/user/editform/two-factor", "/user/editform/oauth-apps", "/user/editform/audit"), tabs.map { it.selectFirst("a")!!.attr("href") })
+        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token", "/user/editform/gpg", "/user/editform/ssh", "/user/editform/two-factor", "/user/editform/oauth-apps", "/user/editform/linked-accounts", "/user/editform/audit"), tabs.map { it.selectFirst("a")!!.attr("href") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 
