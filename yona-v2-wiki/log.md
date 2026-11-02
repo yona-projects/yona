@@ -1060,3 +1060,6 @@ OIDC와 SAML 2 로그인, 관리자 화면(설정, IdP 메타데이터 가져오
 ## [2026-11-03] X-23 Magpie 연동 구현 계획서
 선생님이 X-23을 시작하자고 하셨다(X-7보다 먼저 끝낼 수 있다는 판단). Magpie의 계약과 선례 어댑터(`github`, `forgejo`)를 다시 읽고 Yona의 지금 REST(X-5, X-12, X-15, X-19 구현 후)와 대조해 빈칸을 정리했다. 어댑터는 코드가 아니라 마크다운 문서이고 `yona` CLI로 풀 수 있다는 점이 핵심이다. 구현은 하지 않았고 결정 질문 10개와 권장안을 [magpie-integration-plan.md](architecture/magpie-integration-plan.md)에 적었다.
 
+## [2026-11-03] X-23 어댑터 도구 결정
+선생님이 Magpie 어댑터가 `yona` CLI만 쓰되 `yona api`를 포함하고, Magpie 계약이 요구하는 동작은 모두 채우자고 정하셨다. 에이전트가 "GitHub 어댑터도 섞어 쓴다"고 한 말은 근거가 부족해 정정했고(GitHub는 `gh` 계열 하나, Jira는 REST 브리지 하나, 문서로 된 어댑터는 GitHub와 Forgejo뿐), 계획서의 질문 1과 5, 단계(CLI 단계 3b)와 4.3을 고쳤다.
+

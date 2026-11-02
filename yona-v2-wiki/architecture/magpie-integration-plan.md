@@ -13,7 +13,12 @@ updated: 2026-11-03
 
 # Apache Magpie 연동 구현 계획 (X-23)
 
-> **상태: 계획서. 구현은 시작하지 않았고 아래 질문에 선생님의 결정이 필요하다.** 결정은 [decisions.md](../decisions.md) D-29(갱신)에 적는다.
+> **상태: 계획서. 구현은 시작하지 않았다.** 선생님이 질문 1(도구)을 정하셨고(2026-11-03, 아래 "결정" 참고) 나머지 질문 9개는 결정 대기이다. 결정은 [decisions.md](../decisions.md) D-29(갱신)에 적는다.
+
+## 결정 (선생님, 2026-11-03)
+
+- **어댑터는 `yona` CLI 계열만 쓴다. `yona api`(CLI가 인증해서 REST 경로를 직접 부르는 명령, `gh api`와 같다)를 포함한다.** `curl`은 쓰지 않는다. Magpie의 GitHub 어댑터가 `gh` 계열(`gh`, `gh api`)만 쓰고 Jira 어댑터도 한 가지 REST 방식만 쓰는 것처럼 한 어댑터가 한 도구 계열로 일관되게 간다.
+- **Magpie 계약이 요구하는 동작은 빠짐없이 채운다**("Magpie가 요구하는 건 넣어야지"). 서버에 없는 조회는 서버에 더하고, 그 조회를 어댑터가 자주 부르면 CLI 옵션으로도 더한다(질문 5는 이 결정으로 정해진 것으로 본다, 아래 4.3).
 
 ## 1. 목표와 결론
 
@@ -22,12 +27,12 @@ Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)가 Yona 프로젝�
 **결론 먼저.** 이 일은 두 갈래이다.
 
 1. **서버(Yona) 쪽**: Magpie 계약이 요구하는데 아직 없는 조회 조건과 응답 필드를 REST에 더한다. 기존 경로와 응답 계약은 바꾸지 않는다(D-28). 지난번 분석(2026-10-28) 때와 달리 X-5(PAT), X-12(리뷰 판정), X-15(PR REST), X-19(일반 REST)가 **이미 구현되어 있어서**, 새로 필요한 것은 **기간과 사람 조건의 조회**와 몇 가지 필드뿐이다.
-2. **어댑터 쪽**: Magpie의 어댑터는 코드가 아니라 **마크다운 문서**(`tools/<이름>/`: `readme.md`, `tool.md`, `operations.md` 등)이다. 에이전트가 문서의 명령 조리법(`gh pr merge`, `gh api … --jq` 같은)을 그대로 실행한다. 그래서 Yona 어댑터도 같은 모양의 문서이고, 명령은 **`yona` CLI**(`yona-cli`, `gh`와 사용법이 같다)로 쓴다.
+2. **어댑터 쪽**: Magpie의 GitHub와 Forgejo 어댑터는 **마크다운 문서**(`tools/<이름>/`: `readme.md`, `tool.md`, `operations.md` 등)이고, 에이전트가 문서의 명령 조리법(`gh pr merge`, `gh api … --jq` 같은)을 그대로 실행한다(Jira 어댑터는 Groovy와 Python 코드로 된 REST 브리지이다). Yona 어댑터는 GitHub 어댑터와 같은 문서 모양으로 쓰고, 명령은 **`yona` CLI**(`yona-cli`, `gh`와 사용법이 같다)만 쓴다.
 
 ## 2. Magpie 쪽 사실 (2026-11-03에 문서로 확인)
 
 - **어댑터 선택**: 이슈는 `<project-config>/issue-tracker-config.md`의 `tracker_type`(`jira`, `github-issues` 등)과 `url`, `project_key`로, PR은 `projects/<project>/project.md`의 `change_request.backend`(`github`, `jira-patch`, `mail-patch`, `gitlab`, `gerrit`, `none`)로 고른다. 새 호스트는 값과 디렉터리 이름을 더하는 방식이다.
-- **선례**: `tools/github/`(`gh` CLI 기반, 출하), `tools/forgejo/`(Forgejo와 Gitea, **일부만 구현**, 토큰 헤더와 `tea` CLI와 `curl`). 자체 호스팅 포지를 붙인 Forgejo 어댑터가 가장 가깝다. 이 어댑터는 안전 설정(secure setup)이 `curl`을 막으면 REST 전용 동작은 사람이 실행해야 한다고 적는다. **그래서 Yona 어댑터는 `curl` 대신 `yona` CLI(`yona api`)를 쓰는 것이 낫다.**
+- **선례**: `tools/github/`(문서만 있는 어댑터, 도구는 `gh`, `git`, `jq`이고 `jq`는 `gh api --jq`로 쓴다, 출하), `tools/forgejo/`(Forgejo와 Gitea, **일부만 구현**, 토큰 헤더와 `tea` CLI와 `curl`), `tools/jira/`(코드로 된 REST 브리지: Groovy와 Python, `curl`은 쓰지 않는다). 자체 호스팅 포지를 붙인 Forgejo 어댑터가 가장 가깝다. 이 어댑터는 안전 설정(secure setup)이 `curl`을 막으면 REST 전용 동작은 사람이 실행해야 한다고 적는다. **그래서 Yona 어댑터는 `curl` 대신 `yona` CLI(`yona api` 포함)를 쓴다.** GitHub 어댑터의 동작별 명령이 적힌 `operations` 문서는 열리지 않아(404) 확인하지 못했다. 단계 0에서 저장소로 확인한다.
 - **계약의 규칙**: 인증은 계약이 정하지 않고 어댑터가 정한다. 구현하지 않는 동작은 `NotApplicable`을 던지고 호출한 쪽은 "수집 안 함"으로 보고한다. CI와 병합 가능 신호가 없는 호스트는 `checks: none`, `mergeable: unknown`을 돌려주면 된다. 어댑터 출력은 데이터로만 다루며 지시로 읽지 않는다.
 - **GitHub 어댑터는 계약의 모든 동작을 출하**하고, GitLab, Forgejo, Bitbucket은 활동 동작이 "후속"이다. 즉 **일부 동작을 비워 둔 채 시작하는 것이 Magpie 쪽 관례**이다.
 
@@ -92,13 +97,17 @@ tools/yona/
 └── source-control.md  (Yona는 Git 저장소이므로 git 조리법은 github 어댑터를 참고해 짧게)
 ```
 
-- **명령은 `yona` CLI**(`yona api`는 `gh api`와 같은 인증된 REST 호출)이다. `curl`을 쓰지 않으므로 Magpie의 안전 설정에서도 동작한다.
+- **명령은 `yona` CLI 계열만 쓴다.** 서브명령이 있는 동작(`yona issue list`, `yona pr view`, `yona pr review` 등)은 서브명령으로, 없는 조회는 `yona api <경로> --jq …`로 푼다(`gh api`와 같다). `curl`을 쓰지 않으므로 Magpie의 안전 설정에서도 동작한다.
 - 설정 키: `project.md`에 `change_request.backend: yona`, `issue-tracker-config.md`에 `tracker_type: yona`, `url`(서버 주소), `project_key: <owner>/<project>`.
 - 어댑터는 서버가 돌려주는 값을 계약의 이름(`id, permalink, created, closed, labels[]` 등)으로 옮기는 `jq` 식을 포함한다.
 
 ### 4.3 CLI
 
-`yona-cli`는 이 저장소 밖(`../yona-cli`)에 있다. 어댑터가 `yona api`로 새 경로를 부를 수 있으면 CLI는 바꾸지 않아도 된다. 자주 쓰는 조회(`pr list --reviewer`, `issue list --since`)를 CLI 옵션으로 더하는 것은 **선택**이다(질문 5).
+`yona-cli`는 이 저장소 밖(`../yona-cli`, Go)에 있고 서버와 따로 시험하고 배포한다. 선생님의 결정에 따라 다음을 한다.
+
+- **`yona api`는 이미 있다.** 새 서버 경로는 `yona api`로 바로 부를 수 있으므로 어댑터는 서버 단계가 끝나는 즉시 동작한다.
+- **자주 쓰는 목록 조건은 서브명령 옵션으로도 더한다**: `yona issue list --since --until --json …,closedAt`, `yona pr list --reviewer --label --updated-before --created-before --sort updated`. 활동 조회(`activity`)와 리뷰 활동 조회는 어댑터 전용 성격이 커서 1차는 `yona api`로 부른다.
+- 어댑터 문서에 **필요한 CLI 최소 버전**을 적는다(`yona --version`을 확인하는 첫 단계 포함).
 
 ## 5. 단계
 
@@ -108,11 +117,12 @@ tools/yona/
 | 1 | 서버: 이슈 목록 조건과 필드, 활동 조회 REST(`list_filed`, `list_triaged`, `list_commented`, `list_created`) | 통합 시험, OpenAPI 구조 시험 |
 | 2 | 서버: PR 목록 조건, 상세 보강, 병합 커밋 번호(`list_open`, `get`, `get_discussion`, `status`, `land`) | 통합 시험 |
 | 3 | 서버: 작성 PR 조건과 리뷰 활동 조회(`list_authored`, `list_reviews_given`) | 통합 시험 |
-| 4 | 어댑터 문서 `tools/yona/` 작성(계약의 모든 동작을 명령과 `jq`로) | 계약 모양 시험(아래) |
+| 3b | CLI(`yona-cli`): 목록 조건 옵션(`--since`, `--until`, `--reviewer`, `--label`, `--updated-before`, `--created-before`, `--sort`)과 `--json` 필드(`closedAt` 등)를 서브명령에 더한다. 서버 단계 1, 2가 끝난 뒤 짝을 맞춘다 | Go 시험, 실제 서버 대상 확인 |
+| 4 | 어댑터 문서 `tools/yona/` 작성(계약의 모든 동작을 `yona` 서브명령과 `yona api --jq`로) | 계약 모양 시험(아래) |
 | 5 | 실제 확인: 실행 중인 Yona에 대해 어댑터 조리법을 그대로 실행하고 각 동작의 출력이 계약의 필드와 형식과 같은지 확인한다 | e2e 스크립트 |
 | 6 | 문서: `magpie-integration.md` 갱신, D-29 확정, 로드맵 X-23 완료 | |
 
-**계약 모양 시험**: 조리법의 명령을 실제로 실행하는 스크립트가 Yona를 띄우고 이슈와 PR을 만들어 놓은 뒤 동작마다 반환 필드(이름, 형식, 날짜 표기, `null` 처리)를 단정한다. Magpie의 에이전트 런타임까지 돌리지는 않는다(LLM과 별도 환경이 필요하다).
+**계약 모양 시험**: 조리법의 `yona` 명령을 실제로 실행하는 스크립트가 Yona를 띄우고 이슈와 PR을 만들어 놓은 뒤 동작마다 반환 필드(이름, 형식, 날짜 표기, `null` 처리)를 단정한다. Magpie의 에이전트 런타임까지 돌리지는 않는다(LLM과 별도 환경이 필요하다).
 
 ## 6. 위험과 한계
 
@@ -125,11 +135,11 @@ tools/yona/
 
 | # | 질문 | 선택지 | 권장 |
 |---|---|---|---|
-| 1 | 어댑터가 쓰는 도구 | (가) `yona` CLI와 `yona api`(`gh` 어댑터와 같은 모양) (나) `curl`과 `jq`(Forgejo 어댑터식) (다) 둘 다 | **(가)**: Magpie의 안전 설정이 `curl`을 막을 수 있고, 인증과 호스트 설정을 CLI가 맡는다 |
+| 1 | 어댑터가 쓰는 도구 | (가) `yona` CLI와 `yona api` (나) `curl`과 `jq` (다) 둘 다 | **결정(선생님): (가)**, `yona api` 포함, `curl` 불사용 |
 | 2 | 어댑터 문서를 둘 곳 | (가) 이 저장소(`docs/magpie/tools-yona/`)에 쓰고, Magpie에 기여하는 것은 선생님 결정 뒤 별도로 한다 (나) 바로 Magpie 포크에 쓴다 | **(가)**: 우리 쪽 버전과 서버 변경을 함께 관리할 수 있고, 기여는 ASF 절차(CLA, 메일링 리스트 논의)가 필요해 선생님이 판단하실 일이다 |
 | 3 | 1차 범위 | (가) 이슈 5개 동작과 PR 7개 동작만 (나) 활동 동작 `list_authored`, `list_reviews_given`까지 (다) 활동 3개 모두 | **(나)**: 기여자 지표에 쓰이는 두 가지는 Yona가 줄 수 있고, `list_authored_commits`는 `NotApplicable`로 두는 것이 Magpie의 관례이다 |
 | 4 | 서버 REST의 모양 | (가) 4.1의 새 조건과 활동 조회 경로(기존 응답 계약 유지) (나) 어댑터가 화면용 JSON을 읽어 직접 거른다 (다) 활동 조회는 이슈 목록 조건으로만 풀고 새 경로를 만들지 않는다 | **(가)**: (나)는 느리고 화면이 바뀌면 깨지며(D-29), (다)는 분류 활동(라벨, 상태, 담당자 변경)을 이슈 목록 조건으로 표현할 수 없다 |
-| 5 | CLI에 새 조회 옵션을 더할지 | (가) 더하지 않는다. 어댑터가 `yona api`로 부른다 (나) 자주 쓰는 것(`pr list --reviewer`, `issue list --since`)을 더한다 | **(가)**: `yona-cli`는 별도 저장소이고 어댑터는 `yona api`로 충분하다. 필요해지면 그때 더한다 |
+| 5 | CLI에 새 조회 옵션을 더할지 | (가) 더하지 않는다. 어댑터가 `yona api`로 부른다 (나) 자주 쓰는 것을 더한다 | **결정(선생님, "Magpie가 요구하는 건 넣어야지")으로 (나)로 본다**: 자주 쓰는 목록 조건은 CLI 옵션으로 더하고, 활동 조회는 1차에 `yona api`로 부른다. 범위를 다르게 보셨다면 알려 주십시오 |
 | 6 | `reject(id, reason)`의 이유 | (가) 어댑터가 이유를 댓글로 남기고 닫는다(호출 두 번) (나) 서버 `close`에 `reason`을 더해 한 번에 한다 | **(가)**: 서버를 바꾸지 않고 계약을 채운다 |
 | 7 | 메인테이너의 정의(`first_reply`) | (가) 프로젝트 구성원 가운데 역할이 manager와 member인 사람(게스트와 봇 제외) (나) manager만 | **(가)**: GitHub 어댑터가 `OWNER`, `MEMBER`, `COLLABORATOR`를 모두 메인테이너로 보는 것과 같다 |
 | 8 | 봇 계정과 토큰 범위 | (가) 읽기 전용(`read:repo`)과 쓰기(`repo`)를 문서에 구분해 안내한다 (나) 안내하지 않는다 | **(가)**: `post_review`, `land`, `reject`는 쓰기이고 Magpie는 사람 확인 뒤에만 부르므로 운영자가 범위를 정할 수 있어야 한다 |
