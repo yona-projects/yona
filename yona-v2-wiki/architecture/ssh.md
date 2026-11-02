@@ -7,7 +7,7 @@ updated: 2026-11-02
 
 # SSH 접근, SSH 키, 배포 키 (X-3, D-66)
 
-**상태: 구현 완료(2026-11-02, 내장 SSH 서버).** 결정과 이유는 [decisions.md D-66](../decisions.md), 구현 판단은 A-323, A-324이다. v1.6에는 없는 추가 항목이며 `yona.ssh.enabled`를 켜지 않으면 포트를 열지 않고 화면과 동작이 v1.6과 같다. 시스템 sshd 연동은 X-3b로 뒤에 한다.
+**상태: 구현 완료(2026-11-02, 내장 SSH 서버와 시스템 sshd 연동).** 결정과 이유는 [decisions.md D-66, D-67](../decisions.md), 구현 판단은 A-323부터 A-325이다. v1.6에는 없는 추가 항목이며 `yona.ssh.enabled`와 `yona.ssh.relay.enabled`를 켜지 않으면 포트도 소켓도 열지 않고 화면과 동작이 v1.6과 같다.
 
 ## 한눈에 보기
 
@@ -22,6 +22,22 @@ updated: 2026-11-02
 | REST | `/user/ssh_keys`, `/users/{user}/ssh_keys`, `/owners/{owner}/projects/{project}/deploy_keys` |
 | 감사와 지표 | `ssh_key.*`, `deploy_key.*`, SSH 푸시의 `git.push`(행위자와 주소), `auth.basic_failure`(채널 `ssh`), `yona.vcs.*`, `yona.security.events{channel=ssh}` |
 
+## 두 방식
+
+| | 내장 SSH 서버 | 시스템 sshd 연동(X-3b) |
+|---|---|---|
+| 켜는 설정 | `yona.ssh.enabled` | `yona.ssh.relay.enabled` |
+| 접속을 받는 것 | Yona(Apache MINA SSHD) | 시스템 OpenSSH sshd(보통 22번 포트) |
+| 주소 | `ssh://git@호스트:2222/소유자/이름.git` | `git@호스트:소유자/이름.git` |
+| 설치 | 없음 | 훅과 계정과 sshd 설정 ([가이드](../../docs/yona-ssh-system-sshd.md)) |
+| 인가와 푸시 훅 | 같다(`SshCommandRunner`, `SshAccess`, `GitSshHandler`) | 같다 |
+
+## 시스템 sshd 연동 (X-3b, D-67)
+
+sshd의 `AuthorizedKeysCommand` 훅(`tools/ssh/yona-ssh-auth.sh`)이 접속자의 공개키를 Yona의 **내부 인증 주소**(`POST /internal/ssh/authenticate`, 루프백과 공유 비밀 값 헤더 요구)에 물으면, Yona는 등록된 사용자 키나 배포 키일 때 **서명한 인증 표**(`v1.<종류>.<번호>.<만료>.<HMAC-SHA256>`, 5분 유효)를 돌려준다. 훅은 표를 심은 강제 명령(`command=`)이 든 `authorized_keys` 한 줄을 인쇄하고, 세션이 시작되면 그 명령이 `socat`으로 Yona의 **중계 소켓**(`SshRelayServer`, 유닉스 도메인 소켓, `rw-rw----`)에 연결해 세 줄(표, 클라이언트 주소, 원본 명령)을 보낸 뒤 입출력을 그대로 이어 붙인다. 중계는 표를 확인하고 내장 서버와 같은 `SshCommandRunner`로 명령을 인가하고 실행한다. 거부 사유는 프로토콜 시작 전에 git의 오류 줄(pkt-line `ERR`)로 보내 git이 `fatal: remote error: <사유>`로 보여 준다. 훅은 모르는 키나 오류에서는 아무것도 인쇄하지 않아 sshd가 인증을 거부한다.
+
+진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했다. 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 훅과 `git`, `socat`으로 돌린다. 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
+
 ## 설정 (`yona.ssh.*`)
 
 | 키 | 기본값 | 설명 |
@@ -31,7 +47,12 @@ updated: 2026-11-02
 | `yona.ssh.bind-address` | 빈 문자열 | 묶는 주소. 비우면 모든 주소 |
 | `yona.ssh.host-key-path` | 빈 문자열 | 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며 처음 시작할 때 만든다 |
 | `yona.ssh.user` | `git` | 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다(GitHub 방식) |
-| `yona.ssh.public-port` | `0` | 복제 주소에 보일 포트. 0이면 실제 포트. 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
+| `yona.ssh.public-port` | `0` | 복제 주소에 보일 포트. 0이면 실제 포트(시스템 sshd 방식만 켰으면 22). 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
+| `yona.ssh.relay.enabled` | `false` | 시스템 sshd 연동을 켠다 |
+| `yona.ssh.relay.socket-path` | 빈 문자열 | 중계 소켓. 비우면 `<데이터>/ssh/relay.sock` |
+| `yona.ssh.relay.internal-secret`, `internal-secret-path` | 빈 문자열 | 훅과 나누는 공유 비밀 값(설정 또는 파일) |
+
+모든 설정은 기본값 그대로 `application.yml`의 `yona.ssh`에 설명과 함께 적어 두었다.
 
 호스트 키는 재시작해도 같아야 클라이언트가 "호스트 키가 바뀌었다"는 경고를 내지 않는다. 데이터 디렉터리를 옮길 때 `ssh/`도 함께 옮긴다. 시작할 때 호스트 키 지문을 로그(`SSH server started on port ...`)에 남긴다.
 
@@ -88,7 +109,7 @@ OpenSSH 공개키 한 줄(`~/.ssh/id_*.pub`)을 MINA의 `PublicKeyEntry`로 읽�
 
 ## 한계
 
-- 시스템 sshd 연동(`AuthorizedKeysCommand`와 소켓 중계)은 X-3b이다. 리눅스에서 포트 22를 쓰려면 지금은 포트 전달이 필요하다.
+- 포트 22를 쓰려면 내장 서버는 root 권한이나 포트 전달이 필요하다. 시스템 sshd 연동을 쓰면 sshd가 22번 포트를 받는다.
 - SSH 키로 한 커밋 서명은 검증하지 않는다(`ssh_key`의 지문과 공개키 형식은 맞춰 두었다).
 - 위키 저장소와 Subversion, Mercurial은 SSH로 접근하지 못한다. Mercurial은 X-7이 처리기를 더한다.
 - 프로젝트 홈의 복제 상자만 SSH 주소를 보인다. 빈 저장소 안내 화면(`code/nohead`)은 HTTP 명령을 그대로 보인다.

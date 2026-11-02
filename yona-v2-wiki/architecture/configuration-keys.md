@@ -55,6 +55,10 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.ssh.host-key-path` | 빈 문자열 | 사용 중(X-3). 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이고 처음 시작할 때 만든다 |
 | (v2 신규) | `yona.ssh.user` | `git` | 사용 중(X-3). 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다 |
 | (v2 신규) | `yona.ssh.public-port` | `0` | 사용 중(X-3). 복제 주소에 보일 포트. 0이면 실제 포트. 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
+| (v2 신규) | `yona.ssh.relay.enabled` | `false` | 사용 중(X-3b). 시스템 OpenSSH sshd 연동(내부 인증 주소와 유닉스 소켓 중계)을 켠다. 끄면 소켓과 내부 주소가 없다 |
+| (v2 신규) | `yona.ssh.relay.socket-path` | 빈 문자열 | 사용 중(X-3b). 중계 소켓 파일. 비우면 `<데이터>/ssh/relay.sock`. 경로 길이 제한(108바이트쯤)이 있다. 훅의 `YONA_SSH_RELAY_SOCKET`과 같아야 한다 |
+| (v2 신규) | `yona.ssh.relay.internal-secret` | 빈 문자열 | 사용 중(X-3b). 훅이 내부 인증 주소를 부를 때 보내는 공유 비밀 값. 비우면 `internal-secret-path` 파일의 값을 쓰고 없으면 만든다 |
+| (v2 신규) | `yona.ssh.relay.internal-secret-path` | 빈 문자열 | 사용 중(X-3b). 공유 비밀 값 파일. 비우면 `<데이터>/ssh/internal-secret` |
 | (v2 신규) | `yona.git-default-branch` | `main` | 사용 중(X-22). 새 Git 저장소의 `HEAD` 브랜치이다. v1.6은 `master`였다 |
 
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.
