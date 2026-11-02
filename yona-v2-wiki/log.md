@@ -985,3 +985,6 @@ MCP 서버 뼈대(Spring AI 스타터, stateless `/mcp`)와 읽기 전용 범위
 ## [2026-11-02] X-41 MCP 풀 리퀘스트 도구
 `create_pull_request`, `review_pull_request`, `close_pull_request`, `reopen_pull_request`를 시험 먼저 쓰고 더했다(D-74). 병합과 삭제 도구는 넣지 않았다.
 
+## [2026-11-02] X-41 MCP 병합 도구와 병합 중 표시 결함 수정
+`merge_pull_request`를 더했다(D-75). 시험이 규칙 묶음이 병합을 막으면 `isMerging` 표시가 남아 승인 뒤에도 병합할 수 없는 결함을 드러내, 조건 검사 뒤로 옮기고 REST 회귀 시험을 더했다.
+

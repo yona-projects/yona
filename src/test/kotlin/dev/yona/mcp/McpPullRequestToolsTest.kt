@@ -29,6 +29,8 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var support: McpToolsSupport
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var pullRequests: PullRequestRepository
+    @Autowired private lateinit var rulesets: dev.yona.domain.project.RulesetRepository
+    @jakarta.persistence.PersistenceContext private lateinit var em: jakarta.persistence.EntityManager
 
     private fun args(f: McpToolsSupport.Fixture) = mapOf("owner" to f.project.owner, "project" to f.project.name)
 
@@ -44,10 +46,10 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
         support.call(mockMvc, token, "create_pull_request", args(f) + mapOf("title" to title, "body" to "본문", "fromBranch" to "feature", "toBranch" to "master"))
 
     @Test
-    fun `풀 리퀘스트 쓰기 도구가 등록되어 있고 병합과 삭제 도구는 없다`() {
+    fun `풀 리퀘스트 쓰기 도구가 등록되어 있고 삭제 도구는 없다`() {
         val names = support.toolNames(mockMvc, support.token(support.user(), "repo"))
-        assertTrue(names.containsAll(setOf("create_pull_request", "review_pull_request", "close_pull_request", "reopen_pull_request")), "등록된 도구: $names")
-        assertTrue(names.none { it.contains("merge") || it.contains("delete") }, "등록된 도구: $names")
+        assertTrue(names.containsAll(setOf("create_pull_request", "review_pull_request", "close_pull_request", "reopen_pull_request", "merge_pull_request")), "등록된 도구: $names")
+        assertTrue(names.none { it.contains("delete") }, "등록된 도구: $names")
     }
 
     @Test
@@ -104,12 +106,77 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
         val token = support.token(f.manager, "read:repo")
         val calls = listOf(
             "create_pull_request" to mapOf("title" to "x", "fromBranch" to "feature", "toBranch" to "master"), "review_pull_request" to mapOf("number" to 1, "verdict" to "COMMENTED", "body" to "x"),
-            "close_pull_request" to mapOf("number" to 1), "reopen_pull_request" to mapOf("number" to 1)
+            "close_pull_request" to mapOf("number" to 1), "reopen_pull_request" to mapOf("number" to 1), "merge_pull_request" to mapOf("number" to 1)
         )
         for ((tool, extra) in calls) {
             val result = support.call(mockMvc, token, tool, args(f) + extra)
             assertTrue(result.error && result.text.contains("403"), "$tool: ${result.text}")
         }
         assertTrue(pullRequests.findAll().none { it.toProject?.id == f.project.id })
+    }
+
+    private fun numberOf(f: McpToolsSupport.Fixture) = pullRequests.findAll().single { it.toProject?.id == f.project.id }.number
+
+    @Test
+    fun `프로젝트 관리자가 풀 리퀘스트를 병합하고 다시 병합하면 오류이다`() {
+        val f = withBranch(support.project())
+        assertFalse(create(f, support.token(f.member, "repo")).error)
+        val number = numberOf(f)
+        val manager = support.token(f.manager, "repo")
+        val merged = support.call(mockMvc, manager, "merge_pull_request", args(f) + mapOf("number" to number, "method" to "merge"))
+        assertFalse(merged.error, merged.text)
+        assertEquals("merged", merged.json!!.get("state").asString())
+        assertEquals(dev.yona.domain.enumeration.State.MERGED, pullRequests.findAll().single { it.toProject?.id == f.project.id }.state)
+        val again = support.call(mockMvc, manager, "merge_pull_request", args(f) + mapOf("number" to number))
+        assertTrue(again.error && again.text.contains("409"), again.text)
+    }
+
+    @Test
+    fun `스쿼시로 병합하며 제목과 본문을 정할 수 있고 모르는 방식은 거부한다`() {
+        val f = withBranch(support.project())
+        assertFalse(create(f, support.token(f.member, "repo")).error)
+        val number = numberOf(f)
+        val manager = support.token(f.manager, "repo")
+        val unknown = support.call(mockMvc, manager, "merge_pull_request", args(f) + mapOf("number" to number, "method" to "fast-forward"))
+        assertTrue(unknown.error && unknown.text.contains("400"), unknown.text)
+        val squash = support.call(mockMvc, manager, "merge_pull_request", args(f) + mapOf("number" to number, "method" to "squash", "commitTitle" to "에이전트 병합", "commitMessage" to "본문"))
+        assertFalse(squash.error, squash.text)
+        assertEquals("squash", squash.json!!.get("mergeMethod").asString())
+    }
+
+    @Test
+    fun `프로젝트 구성원이 아닌 사용자는 repo 범위가 있어도 병합하지 못한다`() {
+        val f = withBranch(support.project())
+        assertFalse(create(f, support.token(f.member, "repo")).error)
+        val result = support.call(mockMvc, support.token(support.user(), "repo"), "merge_pull_request", args(f) + mapOf("number" to numberOf(f)))
+        assertTrue(result.error && result.text.contains("403"), result.text)
+        assertEquals(dev.yona.domain.enumeration.State.OPEN, pullRequests.findAll().single { it.toProject?.id == f.project.id }.state)
+    }
+
+    @Test
+    fun `닫힌 풀 리퀘스트는 병합하지 못한다`() {
+        val f = withBranch(support.project())
+        val manager = support.token(f.manager, "repo")
+        assertFalse(create(f, manager).error)
+        val base = args(f) + mapOf("number" to numberOf(f))
+        assertFalse(support.call(mockMvc, manager, "close_pull_request", base).error)
+        val result = support.call(mockMvc, manager, "merge_pull_request", base)
+        assertTrue(result.error && result.text.contains("409"), result.text)
+    }
+
+    @Test
+    fun `필요한 승인 수를 채우지 못하면 병합은 막히고 승인한 뒤에는 병합된다`() {
+        val f = withBranch(support.project())
+        rulesets.save(dev.yona.domain.project.Ruleset(project = f.project, name = "master", pattern = "master", requiredApprovals = 1, createdDate = java.util.Date()))
+        em.flush(); em.refresh(f.project) // 같은 트랜잭션에서 이미 읽은 프로젝트의 규칙 묶음 목록을 새로 읽는다
+        val author = support.token(f.member, "repo")
+        assertFalse(create(f, author).error)
+        val base = args(f) + mapOf("number" to numberOf(f))
+        val blocked = support.call(mockMvc, author, "merge_pull_request", base)
+        assertTrue(blocked.error && blocked.text.contains("409") && blocked.text.contains("approvals"), blocked.text)
+        // 프로젝트 관리자가 승인한 뒤에는 작성자가 아닌 다른 구성원이 병합할 수 있다
+        assertFalse(support.call(mockMvc, support.token(f.manager, "repo"), "review_pull_request", base + mapOf("verdict" to "APPROVED", "body" to "ok")).also { assertFalse(it.error, it.text) }.error)
+        val merged = support.call(mockMvc, author, "merge_pull_request", base)
+        assertFalse(merged.error, merged.text)
     }
 }

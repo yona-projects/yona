@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 /**
  * MCP 쓰기 도구이다(추가 개발 항목 X-6, `decisions.md` D-72 4번, X-41의 D-74). 되돌리기 쉬운 쓰기만 둔다: 이슈 만들기, 댓글, 닫기와 다시 열기, 풀 리퀘스트 만들기와 댓글과
- * 리뷰 판정과 닫기와 다시 열기, 위키 만들기와 수정. 풀 리퀘스트 병합과 삭제 도구는 두지 않는다(D-74). 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
+ * 리뷰 판정과 닫기와 다시 열기, 위키 만들기와 수정. 병합(`merge_pull_request`)은 D-75로 더했다. 삭제 도구는 두지 않는다. 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
  * 모든 호출은 감사 기록(`mcp.tool_called`)을 남긴다.
  */
 @Component
@@ -90,4 +90,20 @@ class McpWriteTools(private val bridge: McpRestBridge) {
     fun reopenPullRequest(
         @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long
     ): Any? = bridge.call("reopen_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/reopen", target = "$owner/$project")
+
+    @Tool(
+        name = "merge_pull_request",
+        description = "Merge an open pull request. Only users allowed to merge (project managers) can; branch protection rules (required approvals, signed commits, restricted updates) still apply and a failed condition is reported as an error. " +
+            "This changes the target branch and cannot be undone by this server; use it only when the user explicitly asked to merge. Requires the repo scope. / 열린 풀 리퀘스트를 병합한다. 병합 권한이 있는 사용자(프로젝트 관리자)만 할 수 있고 " +
+            "브랜치 보호 규칙(필요한 승인, 서명 필수, 갱신 제한)이 그대로 적용되어 조건을 채우지 못하면 오류로 알린다. 대상 브랜치가 바뀌고 이 서버에서 되돌릴 수 없으므로 사용자가 병합을 분명히 요청했을 때만 쓴다. repo 범위가 필요하다."
+    )
+    fun mergePullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long,
+        @ToolParam(description = "merge, squash or rebase (default: the project's default method) / 병합 방식(생략하면 프로젝트의 기본 방식)", required = false) method: String?,
+        @ToolParam(description = "Commit title for merge and squash (optional) / 병합 커밋 제목", required = false) commitTitle: String?,
+        @ToolParam(description = "Commit message for merge and squash (optional) / 병합 커밋 본문", required = false) commitMessage: String?
+    ): Any? = bridge.call(
+        "merge_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/merge",
+        body = mapOf("method" to method, "commitTitle" to commitTitle, "commitMessage" to commitMessage).filterValues { it != null }, target = "$owner/$project"
+    )
 }
