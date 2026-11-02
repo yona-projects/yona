@@ -25,6 +25,15 @@ java {
 
 repositories {
 	mavenCentral()
+	// 엔터프라이즈 SSO(X-16, D-80 2번): SAML 2를 처리하는 OpenSAML은 Maven Central에 없고 Shibboleth 프로젝트의 저장소에만 있다.
+	// 다른 의존성이 이 저장소에서 섞여 오지 않도록 OpenSAML과 Shibboleth 그룹으로만 한정한다.
+	maven {
+		url = uri("https://build.shibboleth.net/maven/releases/")
+		content {
+			includeGroupByRegex("org\\.opensaml(\\..*)?")
+			includeGroupByRegex("net\\.shibboleth(\\..*)?")
+		}
+	}
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -138,6 +147,9 @@ dependencies {
 	implementation("com.yubico:webauthn-server-core:2.10.1")
 	// OAuth2 인가 서버(X-1, D-71). Spring Security가 인가 코드, PKCE, 토큰 교환을 맡고 저장소와 클라이언트 조회는 직접 구현한다
 	implementation("org.springframework.security:spring-security-oauth2-authorization-server")
+	// 엔터프라이즈 SSO(X-16, D-80 1번): OIDC(`oauth2Login`)와 SAML 2(`saml2Login`)는 스프링 시큐리티 모듈이 검증을 맡는다. SSO 전용 필터 체인에서만 쓴다
+	implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
+	implementation("org.springframework.security:spring-security-saml2-service-provider")
 	// MCP 서버(X-6, D-72): 프로토콜(Streamable HTTP 전송, 도구 목록과 호출)은 Spring AI 스타터가 맡는다
 	implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 
