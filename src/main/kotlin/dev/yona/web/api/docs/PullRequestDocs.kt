@@ -50,7 +50,8 @@ class PullRequestDetail(
     @get:Schema(description = "병합 기준 커밋(보내는 쪽)") val mergedCommitIdFrom: String?,
     @get:Schema(description = "병합 기준 커밋(받는 쪽)") val mergedCommitIdTo: String?,
     @get:Schema(description = "병합된 방식. 병합되지 않았으면 `null`", allowableValues = ["merge", "squash", "rebase"], nullable = true) val mergeMethod: String?,
-    @get:Schema(description = "방식(`merge`, `squash`, `rebase`)마다 허용 여부와 가능 여부") val mergeMethods: Map<String, MergeMethodState>
+    @get:Schema(description = "방식(`merge`, `squash`, `rebase`)마다 허용 여부와 가능 여부") val mergeMethods: Map<String, MergeMethodState>,
+    @get:Schema(description = "이 작성자가 이 프로젝트에 낸 첫 이슈나 풀 리퀘스트인지. 목록 조회에서만 들어 있다(Magpie 연동)", nullable = true) val authorFirstTime: Boolean? = null
 )
 
 @Schema(description = "풀 리퀘스트 목록 응답")
@@ -224,3 +225,33 @@ class PullRequestSearchResponse(
     @get:Schema(description = "최근에 만든 순서의 풀 리퀘스트(한 쪽 20개)") val items: List<PullRequestDetail>,
     page: Int, pageSize: Int, totalPages: Int, totalCount: Long
 ) : PageInfo(page, pageSize, totalPages, totalCount)
+
+@Schema(description = "토론의 한 줄")
+class DiscussionEntry(
+    @get:Schema(description = "작성자 로그인 ID") val author: String,
+    @get:Schema(description = "시각(UTC, 초 단위)") val date: String,
+    @get:Schema(description = "본문") val body: String,
+    @get:Schema(description = "종류", allowableValues = ["comment", "review", "approval", "change-request"]) val kind: String
+)
+
+@Schema(description = "풀 리퀘스트의 토론 응답")
+class PullRequestDiscussionResponse(
+    @get:Schema(description = "댓글과 리뷰(시각 순)") val comments: List<DiscussionEntry>,
+    @get:Schema(description = "참여자 로그인 ID") val participants: List<String>,
+    @get:Schema(description = "열린 리뷰 스레드 수") val unresolvedCount: Int
+)
+
+@Schema(description = "사람이 리뷰한 풀 리퀘스트 하나의 요약")
+class ReviewActivityItem(
+    @get:Schema(description = "풀 리퀘스트 번호") val pullRequestNumber: Long,
+    @get:Schema(description = "웹 화면의 주소") val url: String,
+    @get:Schema(description = "리뷰한 사람") val reviewer: String,
+    @get:Schema(description = "창 안에서 처음 리뷰한 시각(UTC, 초 단위)") val firstReviewAt: String,
+    @get:Schema(description = "창 안의 리뷰 본문 길이의 합") val bodyLength: Int,
+    @get:Schema(description = "리뷰 스레드에 단 댓글 수") val inlineCommentCount: Int,
+    @get:Schema(description = "라벨 이름들") val labels: List<String>
+)
+
+@Schema(description = "사람과 기간별 리뷰 활동 응답")
+class ReviewActivityResponse(@get:Schema(description = "리뷰한 풀 리퀘스트들(처음 리뷰한 시각 순)") val items: List<ReviewActivityItem>)
+

@@ -5,6 +5,7 @@ import dev.yona.domain.enumeration.PullRequestCommitState
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.project.Project
 import jakarta.persistence.criteria.Predicate
+import java.util.Date
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -24,7 +25,10 @@ enum class PullRequestCategory(val code: String, val projectField: String, val o
     OPEN("open", "toProject", "number", State.OPEN),
     CLOSED("closed", "toProject", "received", State.CLOSED, State.MERGED),
     SENT("sent", "fromProject", "created"),
-    ACCEPTED("accepted", "fromProject", "created", State.MERGED)
+    ACCEPTED("accepted", "fromProject", "created", State.MERGED),
+    // 외부 REST(Magpie 연동, X-23)용 분류이다: 병합된 것만, 상태를 가리지 않는 전부
+    MERGED("merged", "toProject", "received", State.MERGED),
+    ALL("all", "toProject", "created", State.OPEN, State.CLOSED, State.MERGED)
 }
 
 /**
@@ -51,7 +55,19 @@ data class PullRequestSearchCondition(
     /** 담당자가 없는 요청만 거른다(GitHub의 `no:assignee`). 값 `assigneeId=none`으로 들어온다 */
     val noAssignee: Boolean = false,
     val labelIds: Set<Long> = emptySet(),
-    val reviewRequestedId: Long? = null
+    val reviewRequestedId: Long? = null,
+    /** 이 시각 이상에 만든 것만(Magpie 연동, X-23) */
+    val createdSince: java.util.Date? = null,
+    /** 이 시각 미만에 만든 것만 */
+    val createdUntil: java.util.Date? = null,
+    /** 이 시각 미만에 마지막으로 갱신된 것만(오래된 것, 갱신 시각이 없으면 만든 시각) */
+    val updatedBefore: java.util.Date? = null,
+    /** 이 시각 이상에 병합(받은)된 것만 */
+    val mergedSince: java.util.Date? = null,
+    /** 이 시각 미만에 병합(받은)된 것만 */
+    val mergedUntil: java.util.Date? = null,
+    /** 정렬 필드를 분류의 기본 대신 쓴다(`updated`, `created`). 내림차순이다 */
+    val orderBy: String? = null
 ) {
     fun withCategory(category: PullRequestCategory) = copy(category = category)
 }
@@ -75,7 +91,7 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
 
     @Transactional(readOnly = true)
     fun search(condition: PullRequestSearchCondition, pageSize: Int = itemsPerPage): PullRequestPage {
-        val sort = Sort.by(Sort.Order.desc(condition.category.order).nullsLast(), Sort.Order.desc("id"))
+        val sort = Sort.by(Sort.Order.desc(condition.orderBy ?: condition.category.order).nullsLast(), Sort.Order.desc("id"))
         val page: Page<PullRequest> = pullRequests.findAll(specification(condition), PageRequest.of((condition.pageNum - 1).coerceAtLeast(0), pageSize, sort))
         return PullRequestPage(page.content, page.totalPages, page.totalElements)
     }
@@ -96,6 +112,11 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
         }
         if (condition.category.states.isNotEmpty()) predicates += root.get<State>("state").`in`(condition.category.states.toList())
         condition.contributorId?.let { predicates += cb.equal(root.get<Any>("contributor").get<Long>("id"), it) }
+        condition.createdSince?.let { predicates += cb.greaterThanOrEqualTo(root.get("created"), it) }
+        condition.createdUntil?.let { predicates += cb.lessThan(root.get("created"), it) }
+        condition.updatedBefore?.let { predicates += cb.lessThan(cb.coalesce(root.get<Date>("updated"), root.get<Date>("created")), it) }
+        condition.mergedSince?.let { predicates += cb.greaterThanOrEqualTo(root.get("received"), it) }
+        condition.mergedUntil?.let { predicates += cb.lessThan(root.get("received"), it) }
         condition.assigneeId?.let { assignee ->
             val sub = query!!.subquery(Long::class.java)
             val pr = sub.correlate(root)

@@ -73,7 +73,7 @@ object ApiScopeRules {
         add("GET", "$PROJECT/pullrequests/{number}", ApiRequirement.Repo)
         add("POST", "$PROJECT/pullrequests", ApiRequirement.Repo)
         add("PATCH", "$PROJECT/pullrequests/{number}", ApiRequirement.Repo)
-        for (part in listOf("commits", "files", "timeline", "reviews", "comments", "reviewercandidates", "assigneecandidates")) add("GET", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
+        for (part in listOf("commits", "files", "timeline", "reviews", "comments", "reviewercandidates", "assigneecandidates", "discussion")) add("GET", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         for (part in listOf("close", "reopen", "merge", "fromBranch/restore", "assignees", "labels", "requestedreviewers")) add("POST", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/pullrequests/{number}/fromBranch", ApiRequirement.Repo)
         for (part in listOf("reviews", "comments")) add("POST", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
@@ -88,6 +88,7 @@ object ApiScopeRules {
         for (part in listOf("members", "assignableusers", "labels", "milestones", "issues")) add("GET", "$PROJECT/$part", ApiRequirement.Repo)
         // Magpie 연동(X-23): 사람과 기간별 댓글 활동(읽기 전용이라 `read:repo`로도 읽는다)
         add("GET", "$PROJECT/activity", ApiRequirement.RepoRead)
+        add("GET", "$PROJECT/activity/reviews", ApiRequirement.RepoRead)
         add("GET", "/-_-api/v1/user/projects", ApiRequirement.AnyRepo)
         add("GET", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.AnyRepo)
         // 프로젝트

@@ -67,3 +67,20 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 - 첨부는 이슈 API처럼 `/-_-api/v1/files`로 먼저 올린 번호를 `temporaryUploadFiles`로 만들기, 고치기, 줄 댓글 달기에 붙인다.
 - 만들 때 출발 프로젝트가 받는 프로젝트 자신이거나 그 포크(또는 원본)여야 하고 브랜치가 실제로 있어야 하는 검사는 화면보다 엄격하다(화면은 v1.6처럼 입력을 믿는다).
 - 병합은 병합하는 동안 병합 중 표시를 저장해 보이게 하므로 메서드에 트랜잭션을 걸지 않는다. 표시는 병합 조건을 확인한 뒤에 저장하고 병합기가 예외를 던지면 거둔다([refactoring-backlog.md] R-76, 선생님 승인 2026-11-02).
+
+## Magpie 연동 (X-23, 2026-11-03)
+
+Magpie의 변경 요청 계약(`contract:change-request`)이 요구하는 조회를 채운다. 기존 필드와 경로는 바꾸지 않고 더하기만 했다. 계획은 [magpie-integration-plan.md](magpie-integration-plan.md)이다. 기간은 `since` 이상, `until` 미만이고 날짜만 쓰면 UTC 0시이다(이슈 쪽과 같다, [api-project-reads.md](api-project-reads.md)).
+
+**목록의 더해진 것** (`GET $P/pullrequests`)
+- `state`에 `merged`(병합된 것만)와 `all`(전부)이 더해졌다. `closed`는 닫힌 것과 병합된 것이다(기존).
+- 질의 `createdSince`, `createdUntil`(만든 기간), `updatedBefore`(마지막 갱신이 이 시각 미만인 오래된 것), `mergedSince`, `mergedUntil`(병합 기간), `sort=updated|created`(내림차순, 생략하면 분류의 기본). 읽을 수 없는 날짜, 거꾸로 된 기간, 알 수 없는 `sort`는 400이다. `author`, `assignee`, `reviewRequested`, `labelIds`는 X-37f에 이미 있다.
+- 항목에 `authorFirstTime`: 작성자가 이 프로젝트에서 처음 낸 이슈나 풀 리퀘스트이면 `true`이다.
+- Magpie의 `list_authored(person, since, end, state)`는 `author`, `createdSince`, `createdUntil`, `state=all` 또는 `merged`(`mergedSince`, `mergedUntil`)와 항목의 `mergedAt`, `authorFirstTime`으로 채운다.
+
+**토론** (`GET $P/pullrequests/{n}/discussion`): `{"comments": [{"author", "date", "body", "kind"}], "participants": [...], "unresolvedCount": N}`. 리뷰 스레드의 댓글은 `comment`, 리뷰는 판정에 따라 `approval`(`APPROVED`), `change-request`(`CHANGES_REQUESTED`), `review`(`COMMENTED`)이다. 시각 순이다. 해제한 리뷰와 임시 저장 댓글은 담지 않는다. `unresolvedCount`는 열린 리뷰 스레드 수이고 `participants`는 댓글이나 리뷰를 남긴 로그인 ID이다. 범위는 `repo`이다.
+
+**리뷰 활동** (`GET $P/activity/reviews?reviewer=&since=&until=`): `{"items": [{"pullRequestNumber", "url", "reviewer", "firstReviewAt", "bodyLength", "inlineCommentCount", "labels"}]}`. 사람이 창 안에서 리뷰한 풀 리퀘스트이고 처음 리뷰한 시각 순이다. `bodyLength`는 창 안의 리뷰 본문 길이의 합, `inlineCommentCount`는 리뷰 스레드에 단 댓글 수이다. 리뷰 본문은 응답에 없다. 범위는 `read:repo` 이상이다. Magpie의 `list_reviews_given`이 쓴다.
+
+**이미 있어 바꾸지 않은 것**: `get`(`GET $P/pullrequests/{n}`, `/commits`, `/files`)와 `status`(상태와 `mergeable`: `clean`, `conflicting`, `unknown`), `post_review`(`POST …/reviews`, `verdict`는 `APPROVED`, `CHANGES_REQUESTED`, `COMMENTED`), `land`(`POST …/merge`의 `method`, 응답의 `mergedCommitIdTo`), `reject`(`POST …/close`, 이유는 어댑터가 댓글로 남긴다). `list_authored_commits`는 1차에서 `NotApplicable`이다.
+

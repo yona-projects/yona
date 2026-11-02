@@ -37,9 +37,9 @@ updated: 2026-11-03
 |---|---|
 | 0 Magpie 저장소 확인 | **완료**(2026-11-03) |
 | 1 서버: 이슈 목록 조건과 필드, 활동 조회(`list_filed`, `list_triaged`, `list_commented`, `list_created`) | **완료**(2026-11-03, `ExternalTrackerActivityApiTest`, 문서는 [api-project-reads.md](api-project-reads.md)) |
-| 2 서버: PR 목록 조건, 상세 보강, 병합 커밋 번호 | 대기 |
-| 3 서버: 작성 PR 조건과 리뷰 활동 조회 | 대기 |
-| 3b CLI 옵션 | 대기 |
+| 2 서버: PR 목록 조건(`state=merged|all`, 기간, 오래됨, 정렬, `authorFirstTime`)과 토론 조회 | **완료**(2026-11-03, 문서는 [api-pull-requests.md](api-pull-requests.md)) |
+| 3 서버: 리뷰 활동 조회(`list_reviews_given`)와 작성 PR 조건(`list_authored`) | **완료**(2026-11-03, 단계 2와 함께) |
+| 3b CLI 옵션(`yona-cli`: `issue list`, `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드) | **완료**(2026-11-03, `yona-cli` 커밋 `c4e341d`, Go 시험 포함) |
 | 4 어댑터 문서 | 대기 |
 | 5 실제 확인 | 대기 |
 | 6 문서와 결정 마무리 | 대기 |

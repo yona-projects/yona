@@ -52,7 +52,8 @@ class ExternalPullRequestApiController(
     private val assignees: dev.yona.domain.pullrequest.PullRequestAssigneeService,
     private val users: dev.yona.domain.user.UserRepository,
     private val history: dev.yona.repository.CommitHistoryService,
-    private val gpgVerification: dev.yona.domain.gpgkey.GpgVerificationService
+    private val gpgVerification: dev.yona.domain.gpgkey.GpgVerificationService,
+    private val trackerActivity: dev.yona.domain.issue.TrackerActivityService
 ) {
 
     /**
@@ -60,7 +61,13 @@ class ExternalPullRequestApiController(
      * 응답은 `{"items": [...], "page", "pageSize", "totalPages", "totalCount"}`이다.
      */
     @ApiOperation(operationId = "listPullRequests", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 목록", description = "받는 프로젝트가 이 프로젝트인 풀 리퀘스트를 쪽으로 나누어 돌려준다. 코드 접근을 구성원으로 제한한 프로젝트는 구성원만 읽는다.")
-    @io.swagger.v3.oas.annotations.Parameter(name = "state", description = "목록의 상태. `closed`는 닫힌 것과 병합된 것", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "open", schema = Schema(allowableValues = ["open", "closed"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "state", description = "목록의 상태. `closed`는 닫힌 것과 병합된 것, `merged`는 병합된 것만, `all`은 전부", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "open", schema = Schema(allowableValues = ["open", "closed", "merged", "all"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "createdSince", description = "이 시각 이상에 만든 것만(Magpie 연동). `2026-02-01`(UTC 0시) 또는 ISO-8601", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "createdUntil", description = "이 시각 미만에 만든 것만", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "updatedBefore", description = "이 시각 미만에 마지막으로 갱신된 것만(오래된 것)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "mergedSince", description = "이 시각 이상에 병합된 것만", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "mergedUntil", description = "이 시각 미만에 병합된 것만", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "sort", description = "정렬(내림차순): `updated`, `created`. 생략하면 분류의 기본", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
     @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
     @io.swagger.v3.oas.annotations.Parameter(name = "pageSize", description = "한 쪽의 개수(1에서 100, 기본 15)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
     @io.swagger.v3.oas.annotations.Parameter(name = "q", description = "제목, 본문, 커밋 메시지, 리뷰 댓글에서 찾을 낱말", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
@@ -81,7 +88,23 @@ class ExternalPullRequestApiController(
         val category = when (state) {
             "open" -> PullRequestCategory.OPEN
             "closed" -> PullRequestCategory.CLOSED
-            else -> return requests.message(HttpStatus.BAD_REQUEST, "state must be open or closed")
+            "merged" -> PullRequestCategory.MERGED
+            "all" -> PullRequestCategory.ALL
+            else -> return requests.message(HttpStatus.BAD_REQUEST, "state must be open, closed, merged or all")
+        }
+        // 기간과 정렬 조건(Magpie 연동, X-23): `since` 이상, `until` 미만. 날짜만 쓰면 UTC 0시이다
+        fun instant(name: String): java.util.Date? = request.getParameter(name)?.takeIf { it.isNotBlank() }?.let { ApiInstants.parse(it) }
+        for (name in listOf("createdSince", "createdUntil", "updatedBefore", "mergedSince", "mergedUntil")) {
+            if (!request.getParameter(name).isNullOrBlank() && instant(name) == null) return requests.message(HttpStatus.BAD_REQUEST, "$name could not be read (e.g. 2026-02-01 or 2026-02-01T00:00:00Z)")
+        }
+        val createdSince = instant("createdSince"); val createdUntil = instant("createdUntil"); val mergedSince = instant("mergedSince"); val mergedUntil = instant("mergedUntil")
+        if (createdSince != null && createdUntil != null && !createdSince.before(createdUntil)) return requests.message(HttpStatus.BAD_REQUEST, "createdSince must be earlier than createdUntil")
+        if (mergedSince != null && mergedUntil != null && !mergedSince.before(mergedUntil)) return requests.message(HttpStatus.BAD_REQUEST, "mergedSince must be earlier than mergedUntil")
+        val orderBy = when (val sort = request.getParameter("sort")?.takeIf { it.isNotBlank() }) {
+            null -> null
+            "updated" -> "updated"
+            "created" -> "created"
+            else -> return requests.message(HttpStatus.BAD_REQUEST, "sort must be updated or created")
         }
         val size = (pageSize ?: search.itemsPerPage).coerceIn(1, MAX_PAGE_SIZE)
         // 조건(X-37f, D-52): 낱말, 보낸 사람, 담당자, 리뷰 요청을 받은 사람(로그인 ID), 라벨 번호(모두 가진 것). 없는 사용자는 400이다
@@ -93,10 +116,14 @@ class ExternalPullRequestApiController(
         val result = search.search(
             PullRequestSearchCondition(
                 target.project, category, filter = request.getParameter("q")?.takeIf { it.isNotBlank() }, contributorId = userId("author"), pageNum = page.coerceAtLeast(1),
-                assigneeId = userId("assignee"), labelIds = labelIds, reviewRequestedId = userId("reviewRequested")
+                assigneeId = userId("assignee"), labelIds = labelIds, reviewRequestedId = userId("reviewRequested"),
+                createdSince = createdSince, createdUntil = createdUntil, updatedBefore = instant("updatedBefore"), mergedSince = mergedSince, mergedUntil = mergedUntil, orderBy = orderBy
             ), size
         )
-        return support.ok(linkedMapOf("items" to result.items.map { json.of(it) }, "page" to page.coerceAtLeast(1), "pageSize" to size, "totalPages" to result.totalPages, "totalCount" to result.totalCount))
+        // 작성자의 첫 기여 여부(Magpie 연동, X-23): 이 작성자가 이 프로젝트에서 처음 낸 이슈나 풀 리퀘스트인지
+        val firsts = trackerActivity.firstContributions(requireNotNull(requireNotNull(target.project).id), result.items.mapNotNull { it.contributor?.id }.toSet())
+        val items = result.items.map { pull -> LinkedHashMap(json.of(pull)).also { item -> item["authorFirstTime"] = pull.contributor?.id?.let { id -> firsts[id]?.let { first -> !first.before(pull.created) } } } }
+        return support.ok(linkedMapOf("items" to items, "page" to page.coerceAtLeast(1), "pageSize" to size, "totalPages" to result.totalPages, "totalCount" to result.totalCount))
     }
 
     /** 풀 리퀘스트 하나이다. */
