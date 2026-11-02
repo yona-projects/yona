@@ -77,6 +77,9 @@ object Saml2Certificates {
         MessageDigest.getInstance("SHA-256").digest(certificate.encoded).joinToString("") { "%02x".format(it) }
     )
 
+    /** 인증서를 PEM 글로 바꾼다. */
+    fun toPem(certificate: X509Certificate): String = pem("CERTIFICATE", certificate.encoded)
+
     private fun pem(type: String, der: ByteArray): String =
         "-----BEGIN $type-----\n" + Base64.getMimeEncoder(64, "\n".toByteArray()).encodeToString(der) + "\n-----END $type-----\n"
 
