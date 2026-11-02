@@ -2576,8 +2576,14 @@ label.inline-list {
         /* 내장 SSH 서버를 켠 사이트의 HTTP와 SSH 선택(X-3, D-66). 입력란(너비 175px)과 복사 단추(86px)가 모두 절대 위치라서 이것도 입력란 왼쪽에 절대 위치로 둔다 */
         .clone-protocol {
             position:absolute;
-            right:270px;
+            right:272px;
             top:5px;
+        }
+
+        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 하고, 단추는 입력란 바로 왼쪽에 붙는다(180px + 복사 단추 86px + 틈 6px) */
+        &.clone-with-protocol .project-clone-url {
+            width:180px;
+            max-width:none;
         }
     }
 }
