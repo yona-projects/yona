@@ -142,18 +142,30 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     // --- 조회 ---
 
     @Test
-    fun `시각을 생략한 이슈는 시각을 비운 채 저장하고 화면은 오류 없이 그린다`() {
+    fun `시각을 생략한 이슈는 만든 시각을 지금으로 채우고 고친 시각은 만든 시각과 같게 한다 (v1_6 결함 수정, D-83)`() {
         val (user, project) = member("nulldate-tk")
+        val before = System.currentTimeMillis() - 2000
         json(post(api(project, "issues")), user.token, """{"issues":[{"title":"시각 없음","body":"내용","number":3}]}""").andExpect(status().isCreated)
         entityManager.flush(); entityManager.clear()
         val saved = issues.findAll().single { it.project?.id == project.id }
-        // v1.6 IssueApi는 createdAt, updatedAt을 생략하면 생성자의 기본값을 null로 덮어쓴다
-        assertNull(saved.createdDate); assertNull(saved.updatedDate)
+        // v1.6 IssueApi는 createdAt, updatedAt을 생략하면 생성자의 기본값을 null로 덮어써 기간 조건과 목록 정렬에서 빠졌다. v2는 지금 시각으로 채운다
+        assertNotNull(saved.createdDate); assertTrue(saved.createdDate!!.time >= before && saved.createdDate!!.time <= System.currentTimeMillis() + 2000)
+        assertEquals(saved.createdDate, saved.updatedDate)
         mockMvc.perform(get("/${project.owner}/${project.name}/issue/3")).andExpect(status().isOk)
         mockMvc.perform(get("/${project.owner}/${project.name}/issues")).andExpect(status().isOk)
-        // 응답에서 비어 있는 시각은 JSON null이 아니라 빈 문자열이다 (v1.6 JodaDateUtil.getDateString(null) = "")
         json(get(api(project, "issues/3")), user.token!!, null).andExpect(status().isOk)
-            .andExpect(jsonPath("$.result.createdAt").value("")).andExpect(jsonPath("$.result.updatedAt").value(""))
+            .andExpect(jsonPath("$.result.createdAt").value(org.hamcrest.Matchers.not(""))).andExpect(jsonPath("$.result.updatedAt").value(org.hamcrest.Matchers.not("")))
+    }
+
+    @Test
+    fun `읽을 수 없는 시각도 지금으로 채우고 ISO-8601 시각은 받는다 (D-83)`() {
+        val (user, project) = member("isodate-tk")
+        json(post(api(project, "issues")), user.token, """{"issues":[{"title":"깨진 시각","body":"a","number":4,"createdAt":"어제 오후"},{"title":"ISO 시각","body":"b","number":5,"createdAt":"2026-02-01T09:00:00Z","updatedAt":"2026-02-03T00:00:00+09:00"}]}""").andExpect(status().isCreated)
+        entityManager.flush(); entityManager.clear()
+        val broken = issues.findAll().single { it.project?.id == project.id && it.number == 4L }; val iso = issues.findAll().single { it.project?.id == project.id && it.number == 5L }
+        assertNotNull(broken.createdDate); assertNotNull(broken.updatedDate)
+        assertEquals(java.time.Instant.parse("2026-02-01T09:00:00Z").toEpochMilli(), iso.createdDate!!.time)
+        assertEquals(java.time.Instant.parse("2026-02-02T15:00:00Z").toEpochMilli(), iso.updatedDate!!.time)
     }
 
     @Test

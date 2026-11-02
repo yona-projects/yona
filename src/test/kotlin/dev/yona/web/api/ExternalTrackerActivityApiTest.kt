@@ -154,6 +154,14 @@ class ExternalTrackerActivityApiTest : AbstractIntegrationTest() {
         call(get("${f.api}/issues").param("state", "all"), token(user())).andExpect(jsonPath("$.items[0].authorFirstTime").value(false))
     }
 
+    @Test
+    fun `같은 시각에 만든 두 이슈 가운데 번호가 작은 쪽만 첫 기여이다`() {
+        val f = project(); val author = user()
+        issue(f, "먼저", author, "2026-02-01T00:00:00Z"); issue(f, "나중", author, "2026-02-01T00:00:00Z")
+        call(get("${f.api}/issues").param("state", "all").param("sort", "number").param("order", "asc"), token(user()))
+            .andExpect(jsonPath("$.items[0].authorFirstTime").value(true)).andExpect(jsonPath("$.items[1].authorFirstTime").value(false))
+    }
+
     // --- 활동 조회 ---
 
     @Test

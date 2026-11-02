@@ -144,7 +144,5 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | T-2 | LDAP 인증 | JNDI | Spring LDAP | D-24 |
 | T-3 | 이메일 수신 | Jakarta Mail IMAP 직접 연결 | Spring Integration IMAP 어댑터 | D-24 |
 | T-4 | 메일 수신: 한 메일이 프로젝트 여러 곳에 이슈를 만든다 | `original_email.message_id` 유일 제약 때문에 두 번째부터 원본 메일 기록 실패(v1.6과 같다) | 유일 제약을 (메시지 ID, 리소스)로 바꿔 문서의 의도대로 여러 리소스를 만든다. DB 스키마 변경이 필요하다 | D-25 |
-
-
-
+| R-131 | REST 이슈 가져오기(`IssueApi.saveIssues`)의 시각 | `createdAt`, `updatedAt`을 생략하거나 읽을 수 없으면 만든 시각과 고친 시각이 비어(NULL) 저장되어, 그 이슈가 기간 조건(`createdSince`, `createdUntil`)과 최근 순 정렬에서 빠진다(이슈 화면은 오류 없이 그려진다). 시각 형식도 `yyyy-MM-dd a hh:mm:ss Z`(영어 AM/PM) 하나뿐이다 | **고쳤다(선생님 지시 2026-11-03, D-83)**: 만든 시각이 없거나 읽을 수 없으면 지금 시각, 고친 시각이 없으면 만든 시각으로 채우고 ISO-8601도 받는다. 게시글 가져오기는 이번 범위가 아니라 v1.6 그대로이다(R-131 후속 판단 대기). 이전에 가져온 이슈의 빈 시각은 그대로 남는다 | `IssueApi.java:403-404, 724-735`, `ExternalIssueService.create`, `ExternalIssueApiTest` |
 

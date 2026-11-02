@@ -519,7 +519,9 @@ class ExternalIssueApiController(
     /** `yyyy-MM-dd a hh:mm:ss Z` 형식(영어)의 시각이다. 없거나 읽을 수 없으면 `null`이다 (v1.6 `parseDateString`). */
     private fun parseDate(node: JsonNode?): Date? {
         if (node == null) return null
-        return try { SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).parse(node.asString()) } catch (e: ParseException) { null }
+        val text = node.asString()
+        // v1.6 형식을 먼저 읽고, 읽을 수 없으면 ISO-8601을 받는다(D-83, 추가). 둘 다 읽을 수 없으면 `null`이다
+        return try { SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).parse(text) } catch (e: ParseException) { ApiInstants.parse(text) }
     }
 
     /** 담당자 배열의 첫 항목을 이메일로 찾는다 (v1.6 `findAssginee`). 없으면 `null`이다. */

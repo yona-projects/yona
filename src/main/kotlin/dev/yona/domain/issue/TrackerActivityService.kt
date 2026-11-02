@@ -28,18 +28,29 @@ class TrackerActivityService(private val issues: IssueRepository) {
         if (issueIds.isEmpty()) return emptyMap()
         return em.createQuery(
             "select e.issue.id, max(e.created) from IssueEvent e where e.issue.id in :ids and e.eventType = :type and lower(cast(e.newValue as string)) = 'closed' group by e.issue.id", Array<Any>::class.java
-        ).setParameter("ids", issueIds).setParameter("type", EventType.ISSUE_STATE_CHANGED).resultList.associate { (it[0] as Long) to (it[1] as Date) }
+        ).setParameter("ids", issueIds).setParameter("type", EventType.ISSUE_STATE_CHANGED).resultList.mapNotNull { row -> (row[0] as? Long)?.let { id -> (row[1] as? Date)?.let { id to it } } }.toMap()
     }
 
-    /** 작성자(사용자 번호) → 이 프로젝트에서 처음 이슈나 풀 리퀘스트를 낸 시각이다. */
-    fun firstContributions(projectId: Long, authorIds: Collection<Long>): Map<Long, Date> {
+    /** 작성자의 첫 기여이다. 시각이 같으면 이슈가 풀 리퀘스트보다, 번호(행 번호)가 작은 쪽이 먼저이다. */
+    data class FirstContribution(val date: Date, val isPullRequest: Boolean, val id: Long)
+
+    /** 작성자(사용자 번호) → 이 프로젝트에서 처음 이슈나 풀 리퀘스트를 낸 것이다. 시각은 초 단위라 같은 시각에 낸 것이 있으면 [FirstContribution]의 순서로 하나만 가린다. */
+    fun firstContributions(projectId: Long, authorIds: Collection<Long>): Map<Long, FirstContribution> {
         if (authorIds.isEmpty()) return emptyMap()
-        val fromIssues = em.createQuery("select i.authorId, min(i.createdDate) from Issue i where i.project.id = :p and i.authorId in :ids group by i.authorId", Array<Any>::class.java)
-            .setParameter("p", projectId).setParameter("ids", authorIds).resultList
-        val fromPulls = em.createQuery("select p.contributor.id, min(p.created) from PullRequest p where p.toProject.id = :p and p.contributor.id in :ids group by p.contributor.id", Array<Any>::class.java)
-            .setParameter("p", projectId).setParameter("ids", authorIds).resultList
-        val result = HashMap<Long, Date>()
-        (fromIssues + fromPulls).forEach { row -> val id = row[0] as Long; val date = row[1] as Date; result.merge(id, date) { a, b -> if (a.before(b)) a else b } }
+        val result = HashMap<Long, FirstContribution>()
+        fun offer(author: Long, candidate: FirstContribution) {
+            val current = result[author]
+            val better = current == null || candidate.date.before(current.date) ||
+                (candidate.date == current.date && (current.isPullRequest && !candidate.isPullRequest || current.isPullRequest == candidate.isPullRequest && candidate.id < current.id))
+            if (better) result[author] = candidate
+        }
+        // 옮겨 온 옛 데이터에는 시각이 비어 있는 행이 있을 수 있어 건너뛴다
+        em.createQuery("select i.authorId, i.createdDate, i.id from Issue i where i.project.id = :p and i.authorId in :ids and i.createdDate is not null and i.createdDate = " +
+            "(select min(j.createdDate) from Issue j where j.project.id = :p and j.authorId = i.authorId)", Array<Any>::class.java)
+            .setParameter("p", projectId).setParameter("ids", authorIds).resultList.forEach { offer(it[0] as Long, FirstContribution(it[1] as Date, false, it[2] as Long)) }
+        em.createQuery("select p.contributor.id, p.created, p.id from PullRequest p where p.toProject.id = :p and p.contributor.id in :ids and p.created is not null and p.created = " +
+            "(select min(q.created) from PullRequest q where q.toProject.id = :p and q.contributor.id = p.contributor.id)", Array<Any>::class.java)
+            .setParameter("p", projectId).setParameter("ids", authorIds).resultList.forEach { offer(it[0] as Long, FirstContribution(it[1] as Date, true, it[2] as Long)) }
         return result
     }
 

@@ -214,7 +214,7 @@ class ExternalProjectReadApiController(
         val items = result.items.map { issue ->
             LinkedHashMap(json.issueSummary(issue, issue.authorId?.let { id -> users.findById(id).orElse(null) })).also { item ->
                 item["closedAt"] = if (issue.state == dev.yona.domain.enumeration.State.CLOSED) ApiInstants.format(closed[issue.id] ?: issue.updatedDate ?: issue.createdDate) else null
-                item["authorFirstTime"] = issue.authorId?.let { id -> firsts[id]?.let { first -> !first.before(issue.createdDate) } }
+                item["authorFirstTime"] = issue.authorId?.let { id -> firsts[id]?.let { first -> !first.isPullRequest && first.id == issue.id } }
             }
         }
         return support.ok(linkedMapOf("items" to items, "page" to current, "pageSize" to size, "totalPages" to result.totalPageCount, "totalCount" to result.totalRows))

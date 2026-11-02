@@ -122,7 +122,7 @@ class ExternalPullRequestApiController(
         )
         // 작성자의 첫 기여 여부(Magpie 연동, X-23): 이 작성자가 이 프로젝트에서 처음 낸 이슈나 풀 리퀘스트인지
         val firsts = trackerActivity.firstContributions(requireNotNull(requireNotNull(target.project).id), result.items.mapNotNull { it.contributor?.id }.toSet())
-        val items = result.items.map { pull -> LinkedHashMap(json.of(pull)).also { item -> item["authorFirstTime"] = pull.contributor?.id?.let { id -> firsts[id]?.let { first -> !first.before(pull.created) } } } }
+        val items = result.items.map { pull -> LinkedHashMap(json.of(pull)).also { item -> item["authorFirstTime"] = pull.contributor?.id?.let { id -> firsts[id]?.let { first -> first.isPullRequest && first.id == pull.id } } } }
         return support.ok(linkedMapOf("items" to items, "page" to page.coerceAtLeast(1), "pageSize" to size, "totalPages" to result.totalPages, "totalCount" to result.totalCount))
     }
 

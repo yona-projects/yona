@@ -1072,3 +1072,6 @@ OIDC와 SAML 2 로그인, 관리자 화면(설정, IdP 메타데이터 가져오
 ## [2026-11-03] X-23 단계 2와 3 완료(서버, PR 계약)
 PR 목록에 `state=merged`와 `all`, 만든 기간과 병합 기간과 오래됨 조건, `sort=updated`, 항목의 `authorFirstTime`을 더했다. 토론 조회(`GET …/pullrequests/{n}/discussion`)와 리뷰 활동 조회(`GET …/activity/reviews`)를 만들었다. `get`, `status`, `post_review`, `land`, `reject`는 이미 있는 REST로 채워져 서버 변경이 없다. 시험은 `ExternalPullRequestMagpieApiTest`(6개)이고 OpenAPI와 범위 규칙에 올렸다. 다음은 CLI 옵션(단계 3b)과 어댑터 문서(단계 4)이다.
 
+## [2026-11-03] X-23 어댑터 확인과 v1.6 결함 수정(D-83)
+어댑터 문서의 조리법 17개를 실제 서버와 `yona` CLI로 그대로 실행하는 확인(`e2e/magpiecheck.mjs`)에서 REST로 만든 이슈의 만든 시각이 비는 v1.6 결함(R-131)을 찾았다. 선생님이 관련 v1.6 결함은 고치라고 하셔서(D-83) 이슈 가져오기의 시각을 채우도록 고치고 ISO-8601도 받게 했으며, 이전 결정 G16-M05는 이슈에 한해 대체했다. 같은 시각에 낸 작성자의 "첫 기여" 동률도 하나만 가리도록 고쳤다. `yona-cli`는 이슈를 만들 때 `createdAt`을 항상 보내고 `pr merge --method`를 더했다.
+
