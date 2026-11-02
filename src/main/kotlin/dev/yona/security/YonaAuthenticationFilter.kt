@@ -30,7 +30,8 @@ class YonaAuthenticationFilter(
     private val apiTokens: ApiTokenService,
     private val failures: TokenFailureLimiter,
     private val audit: dev.yona.domain.audit.AuditBoundary,
-    private val gate: TwoFactorGate
+    private val gate: TwoFactorGate,
+    private val oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService
 ) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -66,6 +67,20 @@ class YonaAuthenticationFilter(
             response.contentType = "application/json;charset=UTF-8"
             response.writer.write("{\"message\":\"too many failed token attempts\"}")
             return false
+        }
+        if (value.startsWith(dev.yona.domain.oauth2server.OAuthAccessTokenService.PREFIX)) {
+            // OAuth 액세스 토큰(X-1): 개인용 토큰과 같은 실패 제한과 범위 검사를 받는다
+            val grant = oauthTokens.authenticate(value)
+            if (grant == null) {
+                failures.recordFailure(address)
+                audit.tokenFailure("oauth")
+                return true
+            }
+            failures.recordSuccess(address)
+            val oauthContext = SecurityContextHolder.createEmptyContext()
+            oauthContext.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes)
+            SecurityContextHolder.setContext(oauthContext)
+            return true
         }
         val token = apiTokens.authenticate(value)
         val owner = token?.user
