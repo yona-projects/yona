@@ -65,7 +65,7 @@ class AuthorizationServerConfig {
                     .tokenGenerator(DelegatingOAuth2TokenGenerator(YonaTokenGenerator()))
                     // 클라이언트 ID 메타데이터 문서(CIMD)를 받는지 알린다(IETF 초안 6절). 관리자 설정을 따른다
                     .authorizationServerMetadataEndpoint { metadata -> metadata.authorizationServerMetadataCustomizer { builder -> builder.claim("client_id_metadata_document_supported", siteSettings.oauthCimdEnabled()) } }
-                    .authorizationEndpoint { endpoint -> endpoint.consentPage(CONSENT_PAGE).authenticationProviders { providers -> providers.forEach { useRequestValidator(it) } } }
+                    .authorizationEndpoint { endpoint -> endpoint.consentPage(CONSENT_PAGE).authorizationRequestConverters { it.add(0, ResourceJoiningConverter()) }.authenticationProviders { providers -> providers.forEach { useRequestValidator(it) } } }
                     .clientAuthentication { auth ->
                         auth.authenticationConverters { it.add(0, PublicClientTokenConverter()) }
                             .authenticationProviders { providers -> providers.forEach { provider -> useSecretHash(provider) }; providers.add(0, PublicClientTokenProvider(registeredClients)) }
@@ -104,7 +104,15 @@ class AuthorizationServerConfig {
         val accepted = if (requested.isNullOrBlank()) registered.size == 1 else RedirectUris.matches(registered, requested)
         if (!accepted) throw redirectUriError(request)
         OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR.accept(context)
+        val resources = ProtectedResources.requested(request.additionalParameters)
+        if (resources.isNotEmpty() && !ProtectedResources.allowed(resources)) throw invalidTarget(request)
     }
+
+    /** 요청한 `resource`가 이 서버의 보호 자원이 아니면 앱의 리디렉션 주소로 `invalid_target` 오류를 돌려보낸다(RFC 8707 2절). */
+    private fun invalidTarget(request: OAuth2AuthorizationCodeRequestAuthenticationToken) = OAuth2AuthorizationCodeRequestAuthenticationException(
+        OAuth2Error("invalid_target", "OAuth 2.0 Parameter: resource", ERROR_URI),
+        OAuth2AuthorizationCodeRequestAuthenticationToken(request.authorizationUri, request.clientId, request.principal as org.springframework.security.core.Authentication, request.redirectUri, request.state, request.scopes, request.additionalParameters)
+    )
 
     private fun redirectUriError(request: OAuth2AuthorizationCodeRequestAuthenticationToken) = OAuth2AuthorizationCodeRequestAuthenticationException(
         OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, "OAuth 2.0 Parameter: redirect_uri", ERROR_URI),
@@ -140,5 +148,46 @@ class OAuthLoginEntryPoint : AuthenticationEntryPoint {
     companion object {
         const val SAVED_REQUEST = "dev.yona.oauth2server.SavedAuthorizationRequest"
         const val RESUME_PATH = "/oauth2/resume"
+    }
+}
+
+/**
+ * 이 서버의 보호 자원이다(RFC 8707, 추가 개발 항목 X-6, `decisions.md` D-72 6번): 외부 API(`<출처>/-_-api/v1`)와 MCP 서버(`<출처>/mcp`).
+ * 출처는 지금 요청에서 얻는다(역방향 프록시 뒤에서도 [WebAuthnContexts]와 같은 규칙).
+ */
+object ProtectedResources {
+
+    /** 지금 요청 기준의 서버 주소(출처와 컨텍스트 경로)이다. */
+    fun base(request: jakarta.servlet.http.HttpServletRequest): String = dev.yona.web.user.WebAuthnContexts.of(request).origin + request.contextPath.orEmpty()
+
+    fun api(request: jakarta.servlet.http.HttpServletRequest): String = base(request) + "/-_-api/v1"
+    fun mcp(request: jakarta.servlet.http.HttpServletRequest): String = base(request) + "/mcp"
+
+    /** 승인 요청의 추가 매개변수에서 `resource` 값들을 읽는다. 반복한 매개변수는 [ResourceJoiningConverter]가 공백으로 이어 한 값으로 만든다. */
+    fun requested(additionalParameters: Map<String, Any?>): Set<String> =
+        additionalParameters["resource"]?.toString().orEmpty().split(' ').filter { it.isNotBlank() }.toSet()
+
+    /** [resources]가 모두 이 서버의 보호 자원인지이다. 조각(`#`)이 있거나 다른 주소면 거짓이다. */
+    fun allowed(resources: Set<String>): Boolean {
+        val request = (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() as? org.springframework.web.context.request.ServletRequestAttributes)?.request ?: return false
+        val known = setOf(api(request), mcp(request))
+        return resources.all { it in known }
+    }
+}
+
+/**
+ * 반복한 `resource` 매개변수(RFC 8707은 여러 개를 허용한다)를 공백으로 이은 한 값으로 바꾼다. 주소에는 공백이 없으므로 안전하고, 승인 요청의 추가 매개변수가 문자열 배열이면
+ * 인가 저장소의 직렬화가 거부하기 때문이다.
+ */
+class ResourceJoiningConverter : org.springframework.security.web.authentication.AuthenticationConverter {
+
+    private val delegate = org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeRequestAuthenticationConverter()
+
+    override fun convert(request: jakarta.servlet.http.HttpServletRequest): org.springframework.security.core.Authentication? {
+        val token = delegate.convert(request) as? OAuth2AuthorizationCodeRequestAuthenticationToken ?: return null
+        val raw = token.additionalParameters["resource"] ?: return token
+        val joined = (raw as? Array<*>)?.joinToString(" ") ?: (raw as? Collection<*>)?.joinToString(" ") ?: return token
+        val parameters = LinkedHashMap(token.additionalParameters).also { it["resource"] = joined }
+        return OAuth2AuthorizationCodeRequestAuthenticationToken(token.authorizationUri, token.clientId, token.principal as org.springframework.security.core.Authentication, token.redirectUri, token.state, token.scopes, parameters)
     }
 }

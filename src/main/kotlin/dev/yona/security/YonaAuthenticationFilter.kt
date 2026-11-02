@@ -79,6 +79,8 @@ class YonaAuthenticationFilter(
                 audit.tokenFailure("oauth")
                 return true
             }
+            // 토큰의 대상(RFC 8707): `resource` 없이 발급되었거나 외부 API를 가리켜 발급된 토큰만 받는다. 다른 자원(MCP)용 토큰은 여기서 쓸 수 없다
+            if (!grant.allows(dev.yona.oauth2server.ProtectedResources.api(request), default = true)) return true
             failures.recordSuccess(address)
             val oauthContext = SecurityContextHolder.createEmptyContext()
             oauthContext.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes)

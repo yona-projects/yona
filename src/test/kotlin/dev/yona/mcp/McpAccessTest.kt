@@ -60,7 +60,7 @@ class McpAccessTest : AbstractIntegrationTest() {
         val token = "yona_oat_" + UUID.randomUUID().toString().replace("-", "")
         authorizations.save(
             OAuthAuthorization(
-                id = UUID.randomUUID().toString(), clientRowId = client(user).id, userId = user.id, grantType = "authorization_code", authorizedScopes = scopes, attributes = "{}",
+                id = UUID.randomUUID().toString(), clientRowId = client(user).id, userId = user.id, grantType = "authorization_code", authorizedScopes = scopes, attributes = "{\"resource\":\"http://localhost/mcp\"}",
                 accessTokenHash = TokenHasher.sha256Hex(token), accessTokenIssuedDate = Date(), accessTokenExpiresDate = Date.from(Instant.now().plusSeconds(3600)), accessTokenScopes = scopes,
                 accessTokenMetadata = "{\"metadata.token.invalidated\":false}", createdDate = Date()
             )

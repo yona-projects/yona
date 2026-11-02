@@ -22,7 +22,8 @@ import org.springframework.web.filter.OncePerRequestFilter
  * 3. `MCP-Protocol-Version` 머리글이 있으면 지원하는 버전이어야 한다. 아니면 400이다. 없으면 규격대로 2025-03-26으로 본다.
  * 4. 토큰이 없거나 틀리면 401이고 `WWW-Authenticate: Bearer resource_metadata="..."`로 보호 자원 메타데이터(RFC 9728)를 알린다.
  *    연달아 실패한 주소는 외부 API와 같이 429로 막는다.
- * 5. 토큰에 읽기 범위(`read:repo`, `repo`는 포함한다)가 없으면 403이고 `error="insufficient_scope"`로 필요한 범위를 알린다.
+ * 5. 토큰이 이 MCP 서버(`<출처>/mcp`)를 가리켜 발급되지 않았으면 401이다(RFC 8707).
+ * 6. 토큰에 읽기 범위(`read:repo`, `repo`는 포함한다)가 없으면 403이고 `error="insufficient_scope"`로 필요한 범위를 알린다.
  */
 class McpAccessFilter(
     private val settings: SiteSettingService,
@@ -56,6 +57,10 @@ class McpAccessFilter(
             return fail(response, 401, "unauthorized request", challenge)
         }
         failures.recordSuccess(address)
+        // 토큰의 대상(RFC 8707): 이 MCP 서버를 가리켜 발급된 토큰만 받는다. 자원 없이 발급된 토큰은 외부 API 전용이다
+        if (!grant.allows(dev.yona.oauth2server.ProtectedResources.mcp(request), default = false)) {
+            return fail(response, 401, "the token was not issued for this resource", "$challenge, error=\"invalid_token\", error_description=\"the token was not issued for this resource\"")
+        }
         if (!ApiScopes.implies(grant.scopes, ApiScopes.READ_REPO)) {
             return fail(response, 403, "the token scope does not allow this request", "$challenge, error=\"insufficient_scope\", scope=\"${ApiScopes.READ_REPO}\"")
         }
