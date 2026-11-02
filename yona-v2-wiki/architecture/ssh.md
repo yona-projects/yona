@@ -45,6 +45,10 @@ sshd의 `AuthorizedKeysCommand` 훅(`tools/ssh/yona-ssh-auth.sh`)이 접속자�
 
 진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했다. 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 훅과 `git`, `socat`으로 돌린다. 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
 
+### Go 도우미 (D-73)
+
+sshd 쪽 도우미는 셸 훅 대신 **Go 실행 파일 `yona-ssh`**(`tools/ssh-helper/`)로도 둘 수 있다. `yona-ssh auth <종류> <본문>`이 `AuthorizedKeysCommand`, `yona-ssh relay --socket <경로> <표>`가 강제 명령이다. `bash`, `curl`, `socat` 없이 셸을 거치지 않고, 클라이언트 명령의 개행을 거부하며, 서버가 먼저 닫으면 입력을 기다리지 않고 끝낸다. 서버 쪽 내부 인증 주소와 소켓 프로토콜은 그대로다. 기존 셸 훅은 대체 수단으로 남는다. Linux, macOS, Windows에서 빌드되지만 Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않아 Windows 서버는 내장 SSH 서버를 쓴다. 시험: `go test`(`tools/ssh-helper`)와 `SshRelayGoHelperTest`(`SshRelayServerTest`를 Go 실행 파일로 되풀이).
+
 ## 설정 (`yona.ssh.*`)
 
 | 키 | 기본값 | 설명 |

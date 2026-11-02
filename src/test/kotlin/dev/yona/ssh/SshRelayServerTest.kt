@@ -52,7 +52,7 @@ import kotlin.test.assertTrue
         "yona.ssh.relay.internal-secret=relay-test-secret"]
 )
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-ssh-relay"])
-class SshRelayServerTest {
+open class SshRelayServerTest {
 
     companion object {
         private val counter = AtomicInteger()
@@ -139,7 +139,8 @@ class SshRelayServerTest {
 
     // --- sshd를 흉내 내는 `ssh` ---
 
-    private val hook = File("tools/ssh/yona-ssh-auth.sh").absolutePath
+    /** 훅 명령이다. 셸 스크립트(기본) 또는 Go 실행 파일의 `auth` 하위 명령이다(하위 클래스가 바꾼다, [SshRelayGoHelperTest]). 공백이 없는 경로여야 한다. */
+    protected open fun hook(): String = File("tools/ssh/yona-ssh-auth.sh").absolutePath
 
     /** sshd가 하는 일을 흉내 낸다: 훅을 불러 authorized_keys 줄을 받고, 없으면 `Permission denied`, 있으면 `command="..."`를 셸로 실행한다. */
     private fun fakeSsh(): File = File(work, "fake-ssh").also {
@@ -148,7 +149,7 @@ class SshRelayServerTest {
             #!/usr/bin/env bash
             # 사용법: fake-ssh <호스트> <명령>  (git이 부르는 모양). 사용할 키는 FAKE_KEY_TYPE, FAKE_KEY_BLOB 환경 변수이다
             command_line="${'$'}{@: -1}"
-            line="${'$'}("$hook" "${'$'}FAKE_KEY_TYPE" "${'$'}FAKE_KEY_BLOB")" || exit 255
+            line="${'$'}(${hook()} "${'$'}FAKE_KEY_TYPE" "${'$'}FAKE_KEY_BLOB")" || exit 255
             if [ -z "${'$'}line" ]; then echo "git@host: Permission denied (publickey)." >&2; exit 255; fi
             value="${'$'}(printf '%s' "${'$'}line" | sed -E 's/^command="(.*)",no-port-forwarding.*${'$'}/\1/' | sed 's/\\"/"/g')"
             export SSH_ORIGINAL_COMMAND="${'$'}command_line" SSH_CLIENT="127.0.0.1 50000 22"

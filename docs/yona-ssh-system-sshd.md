@@ -9,6 +9,32 @@ Yona는 Git SSH 접근을 두 방식으로 제공한다. 둘 중 필요한 것�
 
 두 방식 모두 사용자와 배포 키는 Yona의 **SSH 키** 설정(내 정보, 프로젝트 설정의 배포 키)에서 등록한 공개키를 쓴다. 접근 권한 판정, 브랜치 보호 규칙, 서명 커밋 필수 규칙, 감사 기록은 HTTP와 똑같이 적용된다.
 
+## 두 가지 도우미: Go 실행 파일(권장)과 셸 훅
+
+sshd 쪽에서 쓰는 도우미는 두 가지이고 서버 쪽 소켓 프로토콜은 같다. 하나만 고르면 된다.
+
+| | Go 실행 파일 `yona-ssh`(권장) | 셸 훅 `yona-ssh-auth.sh` |
+|---|---|---|
+| 필요한 것 | 빌드한 파일 하나 | `bash`, `curl`, `socat` |
+| 강제 명령 | 셸 없이 `yona-ssh relay ...` | 셸 한 줄(FIFO, `socat`) |
+| 빌드 | `cd tools/ssh-helper && go build -o yona-ssh .`(Go 1.22 이상) | 없음 |
+| 운영체제 | Linux, macOS, Windows에서 빌드된다. 단 **Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.** Windows 서버는 내장 SSH 서버(`yona.ssh.enabled`)를 쓴다 | Linux, macOS |
+
+이 문서의 단계는 같다. **Go 실행 파일을 쓰려면** 3절의 훅 설치와 4절의 sshd 설정만 아래처럼 바뀐다.
+
+```bash
+cd tools/ssh-helper && go build -o yona-ssh .
+sudo install -o root -g root -m 755 yona-ssh /usr/local/bin/yona-ssh
+```
+
+```
+Match User git
+    AuthorizedKeysCommand /usr/local/bin/yona-ssh auth %t %k
+    AuthorizedKeysCommandUser yona-ssh-hook
+```
+
+설정 파일(`/etc/yona/ssh-auth.conf`)과 공유 비밀 값 파일은 셸 훅과 같다. 실행 파일은 `git` 계정과 훅 계정이 모두 실행할 수 있어야 하고(`755`), 비밀 값 파일은 훅 계정만 읽는다(`relay`는 비밀 값을 읽지 않는다).
+
 ## 동작 방식
 
 ```
@@ -21,7 +47,7 @@ Yona는 Git SSH 접근을 두 방식으로 제공한다. 둘 중 필요한 것�
                                          │   authorized_keys 형식 한 줄을 인쇄(강제 명령에 표를 심는다)
                                          ▼
                                   sshd가 인증을 끝내고 세션을 강제 명령으로 실행
-                                         │ ⑤socat이 입출력을 유닉스 소켓에 이어 붙임
+                                         │ ⑤socat(또는 yona-ssh relay)이 입출력을 유닉스 소켓에 이어 붙임
                                          ▼
                                   Yona의 중계 소켓 ── 인증 표 확인 → 인가 → git 프로토콜과 푸시 훅 실행
 ```

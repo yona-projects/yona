@@ -978,3 +978,6 @@ MCP 서버 뼈대(Spring AI 스타터, stateless `/mcp`)와 읽기 전용 범위
 ## [2026-11-02] X-6 MCP 서버 완료
 단계 0~6을 시험 먼저 쓰고 구현했다(전체 시험 통과). 도구 18개(읽기 11, 쓰기 7), `/mcp` 접근 필터, 토큰 대상 검증(RFC 8707), 관리자 설정, 감사와 지표, 문서(`architecture/mcp-server.md`). 공식 MCP SDK 클라이언트로 실제 jar에 인가부터 도구 호출까지 확인했다(401 발견, PKCE, resource, MCP 토큰은 외부 API 401, PAT는 /mcp 401).
 
+## [2026-11-02] D-73 시스템 sshd 도우미를 Go 실행 파일로
+선생님 제안으로 `tools/ssh-helper/`에 Go 실행 파일 `yona-ssh`(`auth`, `relay`)를 만들었다. Go 단위 시험과, 기존 중계 시험을 Go 실행 파일로 되풀이하는 `SshRelayGoHelperTest`가 모두 통과한다. 셸 훅은 대체 수단으로 남겼다. Windows 번들 OpenSSH 서버가 `AuthorizedKeysCommand`를 지원하지 않는다는 한계를 확인해 기록했다.
+
