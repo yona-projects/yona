@@ -1,6 +1,6 @@
 <!--/*
   이식 원본: app/views/user/partial_edit_tabmenu.scala.html
-  매개변수: tabId(현재 탭: profile, password, notifications, emails, token, gpg, ssh, audit)
+  매개변수: tabId(현재 탭: profile, password, notifications, emails, token, gpg, ssh, two-factor, audit)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)">
 <ul class="nav nav-tabs mt20 mb-3">
@@ -24,6 +24,9 @@
   </li>
   <li class="nav-item">
     <a th:href="@{/user/editform/ssh}" th:text="#{userinfo.ssh}" class="nav-link" th:classappend="${tabId == 'ssh'} ? 'active'"></a>
+  </li>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/two-factor}" th:text="#{userinfo.twoFactor}" class="nav-link" th:classappend="${tabId == 'two-factor'} ? 'active'"></a>
   </li>
   <li class="nav-item">
     <a th:href="@{/user/editform/audit}" th:text="#{userinfo.audit}" class="nav-link" th:classappend="${tabId == 'audit'} ? 'active'"></a>

@@ -125,6 +125,8 @@ dependencies {
 	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
 	// X-3: 내장 SSH 서버(`yona.ssh.enabled`)와 공개키 형식 읽기. 시스템 sshd와는 무관하다(D-66).
 	implementation("org.apache.sshd:sshd-core:2.15.0")
+	// 2단계 인증(X-2, D-69)의 QR 코드를 만든다. 화면에는 인라인 SVG로 내보내므로 핵심 라이브러리만 쓴다
+	implementation("com.google.zxing:core:3.5.3")
 
 	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)

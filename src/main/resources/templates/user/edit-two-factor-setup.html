@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-2(decisions.md D-69): 인증 앱 추가 화면. QR 코드(인라인 SVG)와 직접 입력용 비밀 값, 확인 코드 입력란
+  모델: title, qrSvg(QR 코드 SVG 마크업), secret(네 글자씩 끊은 base32), setupError(오류의 메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::twoFactorPage})}">
+<th:block th:fragment="twoFactorPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{twoFactor.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div th:if="${setupError != null}" class="alert alert-danger" th:text="#{${setupError}}"></div>
+        <h4 th:text="#{twoFactor.setup.title}"></h4>
+        <p th:text="#{twoFactor.setup.scan}"></p>
+        <div id="two-factor-qr" class="mb-3" style="width: 220px;" th:utext="${qrSvg}"></div>
+        <p class="mb-1" th:text="#{twoFactor.setup.manual}"></p>
+        <p><code id="two-factor-secret" th:text="${secret}"></code></p>
+        <form id="two-factor-confirm" method="post" th:action="@{/user/two-factor/totp}">
+            <div class="mb-3">
+                <label for="two-factor-code" class="form-label" th:text="#{twoFactor.setup.code}"></label>
+                <input id="two-factor-code" type="text" name="code" class="form-control" style="max-width: 220px;" autocomplete="one-time-code" inputmode="numeric" autofocus>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success" th:text="#{twoFactor.setup.submit}"></button>
+                <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            </div>
+        </form>
+    </div>
+</div>
+</th:block>
+</html>

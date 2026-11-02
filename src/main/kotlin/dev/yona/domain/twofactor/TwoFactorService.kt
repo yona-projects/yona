@@ -77,6 +77,14 @@ class TwoFactorService(
         return TotpEnrollment(Base32.encode(secret), Totp.otpauthUri(secret, issuer, account))
     }
 
+    /** 시작했지만 아직 확인하지 않은 등록이다. 틀린 코드를 입력했을 때 같은 비밀 값으로 설정 화면을 다시 보이는 데 쓴다. 없으면 `null`이다. */
+    @Transactional(readOnly = true)
+    fun pending(user: User, issuer: String, account: String): TotpEnrollment? {
+        val credential = credentials.findByUserIdOrderById(requireNotNull(user.id)).firstOrNull { it.confirmed != true } ?: return null
+        val secret = secretOf(credential) ?: return null
+        return TotpEnrollment(Base32.encode(secret), Totp.otpauthUri(secret, issuer, account))
+    }
+
     /** 시작한 등록을 사용자가 입력한 코드로 확인한다. 맞으면 2단계 인증이 켜지고 백업 코드를 만든다. */
     @Transactional
     fun confirmTotp(user: User, code: String, now: Instant = Instant.now()): TotpConfirmation {
