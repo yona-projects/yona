@@ -119,7 +119,7 @@ Claude Code는 **MCP 서버**에 붙을 때 OAuth를 쓴다. 즉 Claude Code가 
 
 1. Claude Code가 MCP 주소를 부르면 서버가 401과 `WWW-Authenticate`로 보호 자원 메타데이터 주소를 알려 준다(RFC 9728).
 2. Claude Code가 인가 서버 메타데이터(RFC 8414)를 읽는다.
-3. **등록**: 클라이언트 ID 메타데이터 문서(CIMD, 인가 서버 메타데이터에 `client_id_metadata_document_supported`가 있을 때)나 동적 클라이언트 등록(RFC 7591)으로 스스로 등록한다. 둘 다 안 되면 "Incompatible auth server" 오류가 난다. 클라이언트는 미리 등록, CIMD, 동적 등록, 사용자 입력 순으로 시도한다. **이 계획은 CIMD를 주 방식, 동적 등록을 호환용으로 둔다**(D-71 12번, 선생님 의견 반영, 확정 대기).
+3. **등록**: 클라이언트 ID 메타데이터 문서(CIMD, 인가 서버 메타데이터에 `client_id_metadata_document_supported`가 있을 때)나 동적 클라이언트 등록(RFC 7591)으로 스스로 등록한다. 둘 다 안 되면 "Incompatible auth server" 오류가 난다. 클라이언트는 미리 등록, CIMD, 동적 등록, 사용자 입력 순으로 시도한다. **이 계획은 CIMD를 구현하지 않는다**(D-71 12번, 선생님 결정). Claude Code와 Codex는 동적 등록으로 자동 등록하고, Antigravity는 수동 등록으로만 유지한다.
 4. 브라우저가 열리고 승인 화면에서 사용자가 허용한다(PKCE, `resource`).
 5. 로컬 콜백(`http://localhost:<포트>/callback`)으로 코드를 받아 토큰으로 바꾼다.
 
@@ -127,13 +127,12 @@ Claude Code는 **MCP 서버**에 붙을 때 OAuth를 쓴다. 즉 Claude Code가 
 
 | 길 | 방법 | X-1에서 필요한 것 |
 |---|---|---|
-| **자동**(CIMD 또는 동적 등록) | `claude mcp add --transport http yona https://호스트/mcp` 뒤 `/mcp`로 인증. 별도 입력이 없다 | CIMD 지원(주 방식, SSRF 방어 포함)과 동적 클라이언트 등록(호환용) 켜기(D-71 4, 12번), 메타데이터, 로컬 콜백 허용 |
+| **자동**(동적 등록, Claude Code와 Codex) | `claude mcp add --transport http yona https://호스트/mcp` 뒤 `/mcp`로 인증. 별도 입력이 없다 | 동적 클라이언트 등록 켜기(D-71 4번), 메타데이터, 로컬 콜백 허용 |
 | **수동**(미리 등록) | 사용자가 설정의 "OAuth 앱"에서 공개 앱을 만들고 리디렉션 주소를 `http://localhost:8080/callback`처럼 등록한 뒤 `claude mcp add ... --client-id <ID> --callback-port 8080`(기밀 앱이면 `--client-secret`도) | 앱 만들기 화면, 공개 앱 지원 |
 
 이를 위해 계획에 더하는 규칙은 다음과 같다.
 
-- **CIMD 처리**(권장 (나)를 따를 때): `client_id`가 `https://` 주소이면 인가 서버가 그 문서를 가져온다. 안전 규칙은 HTTPS만, 이름을 풀어 얻은 주소가 사설, 루프백, 링크 로컬이면 거부, 리디렉션 따라가지 않기, 응답 크기와 시간 제한, 짧은 캐시, 문서 안의 `client_id`가 요청한 주소와 같아야 함, 리디렉션 주소는 문서에 있는 것만 허용이다. 승인 화면에는 문서의 이름과 주소(도메인)를 보인다. Claude Code는 문서에 `http://localhost/callback`과 `http://127.0.0.1/callback`을 선언하므로 아래 루프백 규칙이 함께 필요하다.
-- **클라이언트별 공식 문서 확인(2026-11-02)**: Claude Code(`code.claude.com/docs/en/mcp`)는 CIMD와 동적 등록을 모두 지원하고 자동으로 찾으며, 미리 등록한 앱은 `--client-id`, `--client-secret`, 고정 포트는 `--callback-port`이다. Codex(OpenAI MCP 문서)는 인가 서버가 CIMD를 광고하면 CIMD를 고르고 아니면 동적 등록을 쓰며 클라이언트 ID를 주면 항상 그것이 우선한다. Antigravity(`antigravity.google/docs/mcp`)는 동적 등록 서버에는 자동으로 붙고 CIMD는 문서에 없으며, 동적 등록이 없으면 클라이언트 ID를 직접 입력하고 리디렉션 `https://antigravity.google/oauth-callback`을 등록해야 한다. 그래서 **동적 등록을 빼지 않는다**(Antigravity). 동적 등록으로 등록한 공개 클라이언트의 **HTTPS 리디렉션 주소는 허용**한다(Antigravity). 루프백 `http`는 `localhost`와 `127.0.0.1`을 같게 보고 포트를 무시한다(Claude Code의 한 버전이 `127.0.0.1`을 보낸 적이 있다).
+- **클라이언트별 공식 문서 확인(2026-11-02)**: Claude Code(`code.claude.com/docs/en/mcp`)는 CIMD와 동적 등록을 모두 지원하고 자동으로 찾으며, 미리 등록한 앱은 `--client-id`, `--client-secret`, 고정 포트는 `--callback-port`이다. Codex(OpenAI MCP 문서)는 인가 서버가 CIMD를 광고하면 CIMD를 고르고 아니면 동적 등록을 쓰며 클라이언트 ID를 주면 항상 그것이 우선한다. Antigravity(`antigravity.google/docs/mcp`)는 동적 등록 서버에는 자동으로 붙고 CIMD는 문서에 없으며, 동적 등록이 없으면 클라이언트 ID를 직접 입력하고 리디렉션 `https://antigravity.google/oauth-callback`을 등록해야 한다. 그래서 선생님 결정(D-71 12번)으로 **CIMD는 하지 않고 Antigravity는 수동 등록으로만 유지한다**: 설정의 "OAuth 앱"에서 공개 앱을 만들고 리디렉션 `https://antigravity.google/oauth-callback`(HTTPS 주소는 허용한다)을 등록한 뒤 클라이언트 ID를 Antigravity에 직접 입력한다. 루프백 `http`는 `localhost`와 `127.0.0.1`을 같게 보고 포트를 무시한다(Claude Code의 한 버전이 `127.0.0.1`을 보낸 적이 있다).
 - **루프백 리디렉션은 포트를 무시한다**(RFC 8252): 등록한 주소가 `http://localhost/callback`이나 `http://127.0.0.1/callback`이면 요청의 포트가 달라도 허용한다. Claude Code는 기본으로 임의의 로컬 포트를 쓰기 때문이다. 루프백이 아닌 `http` 주소는 계속 거부한다.
 - **요청 범위가 없을 때의 기본 범위**: Claude Code가 `scope`를 보내지 않을 수 있으므로, 앱의 허용 범위 안에서 기본 범위(읽기 계열)를 정한다. 구체적인 목록은 단계 2에서 제시한다.
 - **헤드리스 환경**(`claude -p`, Agent SDK)은 브라우저 인증을 못 하므로 PAT를 헤더로 쓰는 기존 길을 안내한다.
