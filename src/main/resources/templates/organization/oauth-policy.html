@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-39, decisions.md D-78). 조직 설정의 OAuth 앱 정책이다
+  모델: title, orgView, restricted(제한을 켰는지), rows(Row 목록: clientRowId, name, clientId, ownerLabel, ownerOrganization, members, state)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::policyPage})}">
+<th:block th:fragment="policyPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+        <div class="two-factor-page">
+        <p class="text-body-secondary mb-4" th:text="#{oauth.policy.description}"></p>
+        <form id="oauth-policy-form" method="post" th:action="@{/organizations/{name}/oauth-policy(name=${org.name})}">
+            <div class="tf-choices tf-group mb-3">
+                <label class="tf-choice" th:each="r : ${ {'false', 'true'} }" th:for="'policy-' + ${r}">
+                    <input class="form-check-input" type="radio" name="restricted" th:id="'policy-' + ${r}" th:value="${r}" th:checked="${r == 'true'} == ${restricted}">
+                    <span class="tf-choice-text"><strong th:text="#{'oauth.policy.' + ${r}}"></strong><small th:text="#{'oauth.policy.' + ${r} + '.help'}"></small></span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-success" th:text="#{oauth.policy.save}"></button>
+        </form>
+        <section class="tf-section">
+            <h4 th:text="#{oauth.policy.apps}"></h4>
+            <p class="text-body-secondary" th:text="#{oauth.policy.apps.help}"></p>
+            <div id="policy-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(rows)}" th:text="#{oauth.policy.apps.empty}"></div>
+            <table id="policy-apps" class="table table-striped" th:if="${!#lists.isEmpty(rows)}">
+                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{site.oauthApps.owner}"></th><th th:text="#{oauth.policy.members}"></th><th th:text="#{oauth.policy.state}"></th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${rows}" class="policy-app-row">
+                    <td th:text="${r.name}"></td>
+                    <td th:text="${r.ownerOrganization} ? #{oauth.apps.byOrganization(${r.ownerLabel})} : ${r.ownerLabel}"></td>
+                    <td th:text="${r.members}"></td>
+                    <td><span class="policy-state" th:text="#{'oauth.policy.state.' + ${r.state}}"></span></td>
+                    <td class="text-end">
+                        <form method="post" class="d-inline-flex gap-1" th:action="@{/organizations/{name}/oauth-policy/apps/{id}(name=${org.name}, id=${r.clientRowId})}">
+                            <button type="submit" name="state" value="APPROVED" class="btn btn-success btn-sm" th:disabled="${r.state == 'APPROVED'}" th:text="#{oauth.policy.approve}"></button>
+                            <button type="submit" name="state" value="DENIED" class="btn btn-danger btn-sm" th:disabled="${r.state == 'DENIED'}" th:text="#{oauth.policy.deny}"></button>
+                            <button type="submit" name="state" value="PENDING" class="btn btn-outline-secondary btn-sm" th:disabled="${r.state == 'PENDING'}" th:text="#{oauth.policy.reset}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

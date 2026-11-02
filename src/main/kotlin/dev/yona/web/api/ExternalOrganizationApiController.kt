@@ -46,6 +46,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 @AnonymousCheck
 @ResponseBody
 class ExternalOrganizationApiController(
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard,
     private val organizationService: OrganizationService,
     private val management: OrganizationManagementService,
     private val organizationUsers: OrganizationUserRepository,
@@ -64,7 +65,7 @@ class ExternalOrganizationApiController(
     @Transactional(readOnly = true)
     fun mine(request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val rows = organizationUsers.findByUserId(requireNotNull(user.id)).mapNotNull { row -> row.organization?.let { organizationNode(it, user) } }
+        val rows = organizationUsers.findByUserId(requireNotNull(user.id)).mapNotNull { row -> row.organization?.takeIf { !orgPolicy.blocks(it) }?.let { organizationNode(it, user) } }
         return ok(linkedMapOf("result" to rows))
     }
 

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 /** 유효한 OAuth 액세스 토큰이 알려 주는 것이다. [scopes]는 승인한 범위이고 사용자의 실제 권한은 각 기능이 따로 확인한다. */
-data class OAuthGrant(val user: User, val scopes: Set<String>, val authorizationId: String, val clientId: String, val clientName: String, val resources: Set<String> = emptySet(), val oidcScopes: Set<String> = emptySet()) {
+data class OAuthGrant(val user: User, val scopes: Set<String>, val authorizationId: String, val clientId: String, val clientName: String, val clientRowId: Long, val resources: Set<String> = emptySet(), val oidcScopes: Set<String> = emptySet()) {
 
     /**
      * 토큰이 [resource](보호 자원의 주소)에서 쓸 수 있는지이다(RFC 8707, X-6, `decisions.md` D-72 6번). 승인 요청에 `resource`가 없었으면 외부 API(`/-_-api/v1`)에서만 쓸 수 있고,
@@ -40,7 +40,7 @@ class OAuthAccessTokenService(
         val user = users.findById(authorization.userId ?: return null).orElse(null) ?: return null
         if (user.state.isLockedOut()) return null
         val scopes = ApiScopes.parseOrEmpty(authorization.accessTokenScopes) - OAuthScopes.BLOCKED
-        return OAuthGrant(user, scopes, requireNotNull(authorization.id), requireNotNull(client.clientId), client.name.orEmpty(), resourcesOf(authorization.attributes),
+        return OAuthGrant(user, scopes, requireNotNull(authorization.id), requireNotNull(client.clientId), client.name.orEmpty(), requireNotNull(client.id), resourcesOf(authorization.attributes),
             authorization.accessTokenScopes.orEmpty().split(',').map { it.trim() }.filter { it in OAuthScopes.OIDC }.toSet())
     }
 

@@ -53,7 +53,8 @@ class ExternalProjectReadApiController(
     private val issueSearch: IssueSearchService,
     private val users: UserRepository,
     private val accessControl: AccessControl,
-    private val requests: ApiRequests
+    private val requests: ApiRequests,
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard
 ) {
 
     private companion object {
@@ -83,7 +84,7 @@ class ExternalProjectReadApiController(
     fun mine(request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val found = projects.findProjectsByMember(requireNotNull(user.id)).distinctBy { it.id }
-        return support.ok(linkedMapOf("projects" to found.filter { visibleToToken(it) }.sortedBy { it.id }.map { json.project(it) }))
+        return support.ok(linkedMapOf("projects" to found.filter { visibleToToken(it) && orgPolicy.visible(it) }.sortedBy { it.id }.map { json.project(it) }))
     }
 
     /** 소유자(사용자나 조직)의 프로젝트 가운데 토큰 사용자가 읽을 수 있는 것이다. 응답은 `{"projects": [...]}`이다. */

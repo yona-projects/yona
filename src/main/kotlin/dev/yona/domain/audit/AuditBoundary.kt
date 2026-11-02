@@ -95,6 +95,20 @@ class AuditBoundary(private val recorder: AuditRecorder, private val metrics: de
         recordApiScopeDenied(method, path, message)
     }
 
+    /** 조직의 OAuth 앱 정책이 승인하지 않은 앱의 요청을 막았다(X-39). 같은 요청을 [accessDenied]로 또 남기지 않게 표시한다. */
+    fun orgPolicyDenied(organizationId: Long, clientId: String?, method: String, path: String) {
+        metrics.event("oauth_org_policy_denied")
+        recorder.recordIndependent(
+            AuditEvent(
+                "oauth.org_policy_denied", AuditOutcome.DENIED, targetType = "organization", targetId = organizationId.toString(), organizationId = organizationId,
+                details = mapOf("status" to 403, "method" to method, "path" to path, "client_id" to clientId),
+                // 바깥 트랜잭션이 끝난 뒤에 쓰일 수 있어 요청 문맥이 사라지기 전에 행위자를 정해 둔다
+                actor = (org.springframework.security.core.context.SecurityContextHolder.getContext().authentication as? dev.yona.security.YonaAuthentication)
+                    ?.let { AuditActor(AuditActorType.USER, it.principalInfo.userId, it.principalInfo.loginId) }
+            )
+        )
+    }
+
     private fun recordApiScopeDenied(method: String, path: String, message: String) = recorder.recordIndependent(
         AuditEvent("access.api_scope_denied", AuditOutcome.DENIED, targetType = "request", targetLabel = "$method $path".take(255), details = mapOf("status" to 403, "method" to method, "path" to path, "reason" to message))
     )

@@ -248,6 +248,8 @@ class DataService(
                 if ("N4USER" in imported && "OAUTH_CLIENT" !in imported) statement.executeUpdate("delete from oauth_client")
                 statement.executeUpdate("delete from oauth_client where owner_type = 'USER' and owner_id not in (select id from n4user)")
                 statement.executeUpdate("delete from oauth_client where owner_type = 'ORGANIZATION' and owner_id not in (select id from organization)")
+                statement.executeUpdate("delete from organization_oauth_policy where organization_id not in (select id from organization)")
+                statement.executeUpdate("delete from organization_oauth_approval where organization_id not in (select id from organization) or client_row_id not in (select id from oauth_client)")
                 if ("N4USER" in imported) {
                     for (table in listOf("oauth_authorization", "oauth_consent")) if (table.uppercase() !in imported) statement.executeUpdate("delete from $table")
                 }

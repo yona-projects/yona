@@ -45,7 +45,8 @@ class AccessControl(
     private val issues: IssueRepository,
     private val issueComments: IssueCommentRepository,
     private val issueSharers: IssueSharerRepository,
-    private val permissions: SessionPermissions
+    private val permissions: SessionPermissions,
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard
 ) {
 
     // --- 생성 권한 ---
@@ -62,7 +63,7 @@ class AccessControl(
      * 코드 댓글, 리뷰 댓글만 만들 수 있다.
      */
     fun isProjectResourceCreatable(user: User?, project: Project, resourceType: ResourceType): Boolean {
-        if (user == null) return false
+        if (user == null || orgPolicy.masks(project)) return false
 
         if (isSiteManager(user) || isOrganizationAdmin(project.organization, user) ||
             isProjectMember(user, project) || isAllowedIfGroupMember(project, user)
@@ -99,7 +100,9 @@ class AccessControl(
      *
      * @throws IllegalStateException 프로젝트 리소스가 프로젝트를 잃었을 때
      */
-    fun isAllowed(user: User?, resource: Resource, operation: Operation): Boolean {
+    fun isAllowed(requester: User?, resource: Resource, operation: Operation): Boolean {
+        // 조직의 OAuth 앱 정책(X-39, D-78): 제한한 조직이 승인하지 않은 앱의 요청이면 그 조직의 자원에서는 익명과 같게 본다
+        val user = if (orgPolicy.masks(resource)) null else requester
         if (isAnonymousNotAllowed() && user == null) return false
 
         if (isSiteManager(user)) return true

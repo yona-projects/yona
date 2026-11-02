@@ -62,7 +62,8 @@ class ExternalSearchApiController(
     private val accessControl: AccessControl,
     private val siteUrls: SiteUrls,
     private val entityManager: jakarta.persistence.EntityManager,
-    private val pullRequestJson: PullRequestJson
+    private val pullRequestJson: PullRequestJson,
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard
 ) {
 
     /** 사이트 전체에서 찾는다. 토큰 사용자가 볼 수 있는 항목만 나온다. */
@@ -76,7 +77,7 @@ class ExternalSearchApiController(
     @Transactional(readOnly = true)
     fun searchAll(request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        return run(SearchScope(), null, user, request)
+        return run(SearchScope(deniedOrganizations = orgPolicy.deniedOrganizationIds()), null, user, request)
     }
 
     /** 조직 안에서 찾는다. 사이트가 프로젝트 목록을 숨기면 조직 구성원만 찾는다. */
@@ -94,7 +95,7 @@ class ExternalSearchApiController(
         val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val member = organizationUsers.existsByOrganizationIdAndUserId(requireNotNull(organization.id), requireNotNull(user.id)) || accessControl.isAllowed(user, organization.asResource(), Operation.UPDATE)
         if (properties.hideProjectListing && !member) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
-        return run(SearchScope(organization = organization), null, user, request)
+        return run(SearchScope(organization = organization, deniedOrganizations = orgPolicy.deniedOrganizationIds()), null, user, request)
     }
 
     /** 프로젝트 안에서 찾는다. 프로젝트를 읽을 수 있어야 하고 `searchType=project`는 받지 않는다. */
@@ -138,10 +139,13 @@ class ExternalSearchApiController(
         val where = StringBuilder("where (lower(pr.title) like :kw escape '\\' or lower(cast(pr.body as string)) like :kw escape '\\')")
         if (states.isNotEmpty()) where.append(" and pr.state in :states")
         if (visibleProjects != null) where.append(" and pr.toProject.id in :projects")
+        val denied = orgPolicy.deniedOrganizationIds()
+        if (denied.isNotEmpty()) where.append(" and not (coalesce(pr.toProject.organization.id, -1L) in :deniedOrganizations and pr.toProject.projectScope <> :deniedPublicScope)")
         fun <T> query(jpql: String, type: Class<T>) = entityManager.createQuery(jpql, type).also { q ->
             q.setParameter("kw", "%" + keyword.lowercase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
             if (states.isNotEmpty()) q.setParameter("states", states)
             if (visibleProjects != null) q.setParameter("projects", visibleProjects.ifEmpty { listOf(-1L) })
+            if (denied.isNotEmpty()) { q.setParameter("deniedOrganizations", denied); q.setParameter("deniedPublicScope", ProjectScope.PUBLIC) }
         }
         val total = query("select count(pr) from PullRequest pr $where", java.lang.Long::class.java).singleResult.toLong()
         val items = query("select pr from PullRequest pr $where order by pr.created desc, pr.id desc", PullRequest::class.java).setFirstResult((page - 1) * PULL_REQUEST_PAGE_SIZE).setMaxResults(PULL_REQUEST_PAGE_SIZE).resultList

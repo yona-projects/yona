@@ -78,6 +78,7 @@ class OAuthClientService(
     private val clients: OAuthClientRepository,
     private val authorizations: OAuthAuthorizationRepository,
     private val consents: OAuthConsentRepository,
+    private val orgApprovals: OrganizationOAuthApprovalRepository,
     private val audit: dev.yona.domain.audit.AuditRecorder,
     private val oidc: dev.yona.oauth2server.oidc.OidcSettings
 ) {
@@ -225,7 +226,7 @@ class OAuthClientService(
     /** 앱을 지우면 그 앱의 모든 인가(발급한 토큰)와 사용자 승인도 함께 지운다. 토큰은 즉시 쓸 수 없게 된다. */
     private fun removeClient(client: OAuthClient) {
         val rowId = requireNotNull(client.id)
-        authorizations.deleteByClient(rowId); consents.deleteByClient(rowId)
+        authorizations.deleteByClient(rowId); consents.deleteByClient(rowId); orgApprovals.deleteByClient(rowId)
         clients.delete(client)
     }
 

@@ -18,6 +18,7 @@ import org.springframework.web.servlet.HandlerMapping
 class ApiScopeInterceptor(
     private val projects: ProjectService,
     private val audit: dev.yona.domain.audit.AuditBoundary,
+    private val orgPolicy: OAuthOrgPolicyGuard,
     private val providers: List<ApiScopeRuleProvider> = emptyList()
 ) : HandlerInterceptor {
 
@@ -33,8 +34,29 @@ class ApiScopeInterceptor(
         val variables = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) as? Map<String, String>
         val owner = variables?.get("owner")
         val name = variables?.get("projectName")
-        val projectPublic = if (owner != null && name != null) projects.findByOwnerAndProjectName(owner, name)?.projectScope == ProjectScope.PUBLIC else null
-        return if (ApiScopeRules.allows(requirement, scopes, projectPublic)) true else deny(response, 403, "the token scope does not allow this request", request)
+        val project = if (owner != null && name != null) projects.findByOwnerAndProjectName(owner, name) else null
+        val projectPublic = if (owner != null && name != null) project?.projectScope == ProjectScope.PUBLIC else null
+        if (!ApiScopeRules.allows(requirement, scopes, projectPublic)) return deny(response, 403, "the token scope does not allow this request", request)
+        return checkOrgPolicy(request, response, project, owner, variables?.get("org"))
+    }
+
+    /**
+     * 조직의 OAuth 앱 정책을 확인한다(X-39, D-78). 제한한 조직이 승인하지 않은 앱의 요청이면 403과 이유를 돌려주고 조직에 속한 감사 기록을 남긴다.
+     * 프로젝트가 가리켜지면 그 프로젝트의 조직을, `{org}`가 있으면 그 조직을, 프로젝트 없이 소유자만 있으면 소유자가 그런 조직인 쓰기 요청을 막는다.
+     */
+    private fun checkOrgPolicy(request: HttpServletRequest, response: HttpServletResponse, project: dev.yona.domain.project.Project?, owner: String?, organizationName: String?): Boolean {
+        if (orgPolicy.clientRowId() == null) return true
+        val blocked = when {
+            project != null -> orgPolicy.blockingOrganizationId(project, request.method)
+            organizationName != null -> orgPolicy.blockingOrganizationIdNamed(organizationName)
+            else -> orgPolicy.blockingOrganizationIdForOwnerWrite(owner, request.method)
+        } ?: return true
+        audit.orgPolicyDenied(blocked, orgPolicy.clientIdOrNull(), request.method, request.requestURI.removePrefix(request.contextPath.orEmpty()))
+        request.setAttribute(dev.yona.domain.audit.AuditBoundary.RECORDED_ATTRIBUTE, true)
+        response.status = 403
+        response.contentType = "application/json;charset=UTF-8"
+        response.writer.write("{\"message\":\"${OAuthOrgPolicyGuard.MESSAGE}\"}")
+        return false
     }
 
     private fun deny(response: HttpServletResponse, status: Int, message: String, request: HttpServletRequest? = null): Boolean {

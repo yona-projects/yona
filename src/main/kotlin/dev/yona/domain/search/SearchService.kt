@@ -33,8 +33,9 @@ enum class SearchType(val type: String) {
 
 /**
  * 검색 범위이다. 둘 다 없으면 전체, [organization]이 있으면 조직, [project]가 있으면 프로젝트이다.
+ * [deniedOrganizations]는 조직의 OAuth 앱 정책(X-39)이 이 요청의 앱을 막는 조직의 번호이다. 그 조직의 비공개와 보호 프로젝트에 속한 결과는 빼고, 내가 쓴 글도 마찬가지이다.
  */
-data class SearchScope(val organization: Organization? = null, val project: Project? = null)
+data class SearchScope(val organization: Organization? = null, val project: Project? = null, val deniedOrganizations: Set<Long> = emptySet())
 
 /** 종류별 검색 결과 수이다. 프로젝트 범위에서는 [projects]를 세지 않아 0이다. */
 data class SearchCounts(
@@ -156,10 +157,16 @@ class SearchService(
         private fun keywordMatches(): String =
             spec.fields.joinToString(" or ", "(", ")") { "lower(cast($it as string)) like :kw escape '\\'" }
 
-        private fun build(): String = when (type) {
-            SearchType.USER -> userCondition()
-            SearchType.PROJECT -> projectCondition()
-            else -> itemCondition()
+        private fun build(): String {
+            val base = when (type) {
+                SearchType.USER -> return userCondition()
+                SearchType.PROJECT -> projectCondition()
+                else -> itemCondition()
+            }
+            if (scope.deniedOrganizations.isEmpty()) return base
+            val path = if (type == SearchType.PROJECT) "i" else requireNotNull(spec.projectPath)
+            params["deniedOrganizations"] = scope.deniedOrganizations; params["deniedPublicScope"] = ProjectScope.PUBLIC
+            return "($base) and not (coalesce($path.organization.id, -1L) in :deniedOrganizations and $path.projectScope <> :deniedPublicScope)"
         }
 
         private fun me(): Long? = viewer?.id

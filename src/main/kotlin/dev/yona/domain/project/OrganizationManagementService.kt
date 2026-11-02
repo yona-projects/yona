@@ -236,6 +236,8 @@ class OrganizationManagementService(
         audit.record(dev.yona.domain.audit.auditOrganization("org.deleted", organization))
         // 추가 항목(X-39, D-78): 조직이 소유한 OAuth 앱과 그 앱의 인가와 승인도 지운다(토큰이 주인 없이 남지 않게 한다)
         oauthApps.deleteOwnedBy(dev.yona.domain.oauth2server.ClientOwner.of(organization))
+        em.createNativeQuery("delete from organization_oauth_approval where organization_id = :id").setParameter("id", orgId).executeUpdate()
+        em.createNativeQuery("delete from organization_oauth_policy where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from user_enrolled_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from favorite_organization where organization_id = :id").setParameter("id", orgId).executeUpdate()
         em.createNativeQuery("delete from organization_user where organization_id = :id").setParameter("id", orgId).executeUpdate()

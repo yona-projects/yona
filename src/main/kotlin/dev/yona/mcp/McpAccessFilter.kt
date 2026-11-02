@@ -65,7 +65,7 @@ class McpAccessFilter(
             return fail(response, 403, "the token scope does not allow this request", "$challenge, error=\"insufficient_scope\", scope=\"${ApiScopes.READ_REPO}\"")
         }
         val context = SecurityContextHolder.createEmptyContext()
-        context.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes)
+        context.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes, oauthClientRowId = grant.clientRowId)
         SecurityContextHolder.setContext(context)
         chain.doFilter(request, response)
     }

@@ -34,7 +34,9 @@ class YonaAuthentication(
     /** 개인용 API 토큰으로 인증했으면 그 토큰의 범위이다(추가 개발 항목 X-5). 세션과 쿠키 인증은 `null`이며 범위 검사를 받지 않는다. */
     val scopes: Set<String>? = null,
     /** 개인용 API 토큰으로 인증했으면 그 토큰의 번호이다. 감사 로그(X-9)가 어느 토큰으로 한 일인지 남기는 데 쓴다. */
-    val tokenId: Long? = null
+    val tokenId: Long? = null,
+    /** OAuth 액세스 토큰으로 인증했으면 그 토큰을 받은 앱의 행 번호이다(X-39). 조직의 OAuth 앱 정책이 어느 앱의 요청인지 알아보는 데 쓴다. */
+    val oauthClientRowId: Long? = null
 ) :
     AbstractAuthenticationToken(emptyList()) {
 
@@ -53,8 +55,8 @@ class YonaAuthentication(
         private const val serialVersionUID = 1L
 
         /** 사용자 엔티티로부터 인증 객체를 만든다. */
-        fun of(user: User, viaToken: Boolean = false, viaCookie: Boolean = false, scopes: Set<String>? = null, tokenId: Long? = null) =
-            YonaAuthentication(YonaPrincipal(requireNotNull(user.id), user.loginId, user.name), viaToken, viaCookie, scopes, tokenId)
+        fun of(user: User, viaToken: Boolean = false, viaCookie: Boolean = false, scopes: Set<String>? = null, tokenId: Long? = null, oauthClientRowId: Long? = null) =
+            YonaAuthentication(YonaPrincipal(requireNotNull(user.id), user.loginId, user.name), viaToken, viaCookie, scopes, tokenId, oauthClientRowId)
     }
 }
 

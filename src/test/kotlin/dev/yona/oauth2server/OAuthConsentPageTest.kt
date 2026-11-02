@@ -43,6 +43,8 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var clientService: OAuthClientService
     @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
+    @Autowired private lateinit var management: dev.yona.domain.project.OrganizationManagementService
+    @Autowired private lateinit var orgPolicy: dev.yona.domain.oauth2server.OAuthOrgPolicyService
 
     private var n = 0
 
@@ -80,6 +82,17 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
         val s = login(me)
         val line = page(s, consentUrl(s, client, scope = "read:user")).selectFirst("p.tag-line")!!.text()
         assertTrue(line.contains(org.name!!), line); assertFalse(line.contains(admin.loginId!!), line)
+    }
+
+    @Test
+    fun `내가 속한 제한 조직이 승인하지 않은 앱이면 승인 화면에 경고를 보인다`() {
+        val admin = user(); val me = user(); val owner = user()
+        val org = organizationService.create("ow${System.nanoTime() % 1000000}", null, admin); management.addMember(org, admin, me.loginId!!)
+        val client = app(owner); val s = login(me)
+        assertTrue(page(s, consentUrl(s, client, scope = "read:user")).select("#org-policy-warning").isEmpty())
+        orgPolicy.setRestricted(org, true, admin)
+        val warning = page(s, consentUrl(s, client, scope = "read:user")).selectFirst("#org-policy-warning")!!.text()
+        assertTrue(warning.contains(org.name!!), warning)
     }
 
     @Test

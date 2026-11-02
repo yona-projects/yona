@@ -53,7 +53,8 @@ class ExternalUserApiController(
     private val properties: YonaProperties,
     private val entityManager: EntityManager,
     private val issueSearch: dev.yona.domain.issue.IssueSearchService,
-    private val loginSession: dev.yona.security.LoginSessionService
+    private val loginSession: dev.yona.security.LoginSessionService,
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard
 ) {
     private val random = SecureRandom()
 
@@ -115,8 +116,12 @@ class ExternalUserApiController(
             "all" -> "(i.authorId = :user or a.user.id = :user or i.id in :mentioned or i.id in ($favorite))" to mapOf("user" to userId, "mentioned" to mentioned())
             else -> return ResponseEntity.badRequest().build<Void>()
         }
-        val query = entityManager.createQuery("select i from Issue i left join i.assignee a where $where order by i.updatedDate desc, i.id desc", Issue::class.java)
+        // 조직의 OAuth 앱 정책(X-39): 이 요청의 앱이 막히는 조직의 비공개와 보호 프로젝트 이슈는 뺀다
+        val denied = orgPolicy.deniedOrganizationIds()
+        val policy = if (denied.isEmpty()) "" else " and not (coalesce(i.project.organization.id, -1L) in :deniedOrganizations and i.project.projectScope <> :deniedPublicScope)"
+        val query = entityManager.createQuery("select i from Issue i left join i.assignee a where $where$policy order by i.updatedDate desc, i.id desc", Issue::class.java)
         params.forEach { (k, v) -> query.setParameter(k, v) }
+        if (denied.isNotEmpty()) { query.setParameter("deniedOrganizations", denied); query.setParameter("deniedPublicScope", dev.yona.domain.enumeration.ProjectScope.PUBLIC) }
         val items = query.setFirstResult(maxOf(page - 1, 0) * pageNum).setMaxResults(pageNum).resultList
         val base = properties.hostname.ifEmpty { "http://localhost" }
         val result = items.map { issue ->

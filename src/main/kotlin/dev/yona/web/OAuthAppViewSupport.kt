@@ -22,7 +22,9 @@ import java.util.Date
 class OAuthAppViewSupport(
     private val helper: TemplateHelper,
     private val oidc: OidcSettings,
-    private val organizationUsers: dev.yona.domain.project.OrganizationUserRepository
+    private val organizationUsers: dev.yona.domain.project.OrganizationUserRepository,
+    private val organizations: dev.yona.domain.project.OrganizationRepository,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     /** 소유자가 만든 앱의 한 줄이다. */
@@ -56,6 +58,16 @@ class OAuthAppViewSupport(
     /** 목록의 한 줄을 만든다. */
     fun appRow(c: OAuthClient) =
         AppRow(requireNotNull(c.id), c.name.orEmpty(), c.clientId.orEmpty(), c.confidential == true, RedirectUris.parse(c.redirectUris).size, helper.dateString(c.createdDate))
+
+    /** 앱의 소유자 이름이다(사용자는 로그인 ID, 조직은 조직 이름, 문서로 가져온 앱은 호스트). */
+    fun ownerLabel(c: OAuthClient): String = when {
+        c.registration == OAuthClient.CIMD -> runCatching { java.net.URI(c.clientId.orEmpty()).host }.getOrNull().orEmpty()
+        c.ownerType == OAuthClient.ORGANIZATION -> c.ownerId?.let { organizations.findById(it).orElse(null)?.name }.orEmpty()
+        else -> c.ownerId?.let { users.findById(it).orElse(null)?.loginId }.orEmpty()
+    }
+
+    /** 앱의 소유자가 조직이면 `true`이다. */
+    fun ownerIsOrganization(c: OAuthClient): Boolean = c.registration != OAuthClient.CIMD && c.ownerType == OAuthClient.ORGANIZATION
 
     /** 화면에 보일 날짜 글자이다. */
     fun dateText(date: Date?): String = helper.dateString(date)

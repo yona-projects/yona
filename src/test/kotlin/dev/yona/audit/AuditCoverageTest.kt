@@ -41,7 +41,8 @@ class AuditCoverageTest {
         "security/YonaAuthenticationFilter.kt" to listOf("authenticateApi"),
         "web/access/BasicAuthResolver.kt" to listOf("identify"),
         "security/ApiScopeInterceptor.kt" to listOf("deny"),
-        "domain/oauth2server/OAuthClientService.kt" to listOf("create", "update", "regenerateSecret", "delete", "deleteAsAdmin"),
+        "domain/oauth2server/OAuthOrgPolicy.kt" to listOf("setRestricted", "decide"),
+        "domain/oauth2server/OAuthClientService.kt" to listOf("createFor", "updateFor", "regenerateSecretFor", "deleteFor", "deleteAsAdmin", "transfer"),
         "domain/oauth2server/OAuthAuthorizedAppsService.kt" to listOf("revoke")
     )
 

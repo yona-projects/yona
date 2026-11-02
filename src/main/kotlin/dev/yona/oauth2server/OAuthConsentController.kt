@@ -27,7 +27,8 @@ class OAuthConsentController(
     private val authorizations: YonaOAuth2AuthorizationService,
     private val clients: OAuthClientRepository,
     private val users: UserRepository,
-    private val organizations: dev.yona.domain.project.OrganizationRepository
+    private val organizations: dev.yona.domain.project.OrganizationRepository,
+    private val orgPolicy: dev.yona.domain.oauth2server.OAuthOrgPolicyService
 ) {
 
     @GetMapping(AuthorizationServerConfig.CONSENT_PAGE)
@@ -50,7 +51,8 @@ class OAuthConsentController(
         return ModelAndView("oauth2/consent")
             .addObject("title", "oauth.consent.heading")
             .addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("homeUrl", client.homeUrl.orEmpty())
-            .addObject("ownerLoginId", owner?.loginId).addObject("ownerOrganization", ownerOrganization).addObject("redirectHost", host)
+            .addObject("ownerLoginId", owner?.loginId).addObject("ownerOrganization", ownerOrganization)
+            .addObject("restrictedOrganizations", users.findById(requireNotNull(user.id)).orElse(null)?.let { orgPolicy.restrictedUnapprovedOrganizationNames(it, requireNotNull(client.id)) } ?: emptyList<String>()).addObject("redirectHost", host)
             .addObject("loopback", host in setOf("localhost", "127.0.0.1", "[::1]", "::1"))
             .addObject("state", state)
             .addObject("cimdHost", if (client.registration == dev.yona.domain.oauth2server.OAuthClient.CIMD) runCatching { URI(client.clientId.orEmpty()).host }.getOrNull() else null)

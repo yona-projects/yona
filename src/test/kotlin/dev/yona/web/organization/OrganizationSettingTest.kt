@@ -149,8 +149,8 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     fun `설정 하위 메뉴는 설정 구성원 삭제이고 현재 화면이 활성이다`() {
         val org = newOrg()
         val tabs = page(org, login(admin(org))).select(".project-page-wrap > ul.nav-tabs li")
-        assertEquals(listOf("Setting", "Group member", "Audit log", "Group Delete"), tabs.map { it.text() })
-        assertEquals(listOf("/organizations/${org.name}/settingform", "/organizations/${org.name}/members", "/organizations/${org.name}/audit", "/organizations/${org.name}/deleteForm"), tabs.map { it.selectFirst("a")!!.attr("href") })
+        assertEquals(listOf("Setting", "Group member", "Audit log", "OAuth apps", "OAuth app policy", "Group Delete"), tabs.map { it.text() })
+        assertEquals(listOf("/organizations/${org.name}/settingform", "/organizations/${org.name}/members", "/organizations/${org.name}/audit", "/organizations/${org.name}/oauth-apps", "/organizations/${org.name}/oauth-policy", "/organizations/${org.name}/deleteForm"), tabs.map { it.selectFirst("a")!!.attr("href") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 

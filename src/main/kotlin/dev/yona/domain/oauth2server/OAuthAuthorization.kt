@@ -146,6 +146,9 @@ interface OAuthConsentRepository : JpaRepository<OAuthConsent, Long> {
 
     fun findByClientRowIdAndUserId(clientRowId: Long, userId: Long): OAuthConsent?
 
+    /** [userIds] 사용자들의 승인이다(조직 정책 화면의 후보를 구한다, X-39). */
+    fun findByUserIdIn(userIds: Collection<Long>): List<OAuthConsent>
+
     fun countByClientRowId(clientRowId: Long): Long
 
     fun findByUserIdOrderByCreatedDateDescIdDesc(userId: Long): List<OAuthConsent>

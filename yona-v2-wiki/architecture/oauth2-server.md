@@ -113,4 +113,13 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /etc/yona/oidc
 - 조직을 지우면 그 조직의 앱과 앱의 인가(토큰)와 승인이 함께 지워진다. 사용자를 지울 때와 같은 규칙이고 앱마다 감사 기록이 남는다.
 - 감사 기록은 조직 앱이면 `organizationId`를 채워 조직 감사 로그에 나타난다. 승인 화면과 "승인한 앱"과 사이트 앱 목록에는 소유자가 "{조직} 조직"으로 보인다.
 - **소유자 이전**: 앱의 수정 화면에서 앱 이름을 다시 입력해 소유자를 바꾼다. 클라이언트 ID, 비밀 값, 인가, 승인은 그대로이다. 사용자는 **자신이 관리자인 조직**으로, 조직 관리자는 **자기 계정이나 자신이 관리자인 다른 조직**으로 넘길 수 있다(조직에 속하기만 한 사용자는 그 조직으로 넘길 수 없다). 받는 쪽도 앱 20개 한도를 넘지 못한다. 감사 `oauth.client_transferred`.
-- 조직의 OAuth app policy는 같은 항목의 다음 단계이다.
+
+### 조직의 OAuth app policy (X-39, D-78)
+
+- 조직 설정의 "OAuth 앱 정책" 탭(`/organizations/{조직}/oauth-policy`)에서 조직 관리자가 **제한 없음**(기본)과 **승인한 앱만 허용**을 고른다. 제한하면 조직이 승인하지 않은 앱의 OAuth 토큰은 그 조직의 **비공개와 보호 프로젝트, 조직 정보**에 닿지 못한다. 공개 프로젝트는 읽기만 되고 쓰기는 막힌다. 그 조직이 소유한 앱은 항상 승인으로 본다.
+- 승인은 목록에서 한다: 조직 구성원이 승인한 적이 있는 앱이 나오고 앱마다 승인, 거부, 되돌리기를 정한다(대기와 거부는 같게 막힌다). 요청 흐름과 알림은 없다(추가 논의 항목).
+- 적용 대상은 외부 API(`/-_-api/v1`)와 MCP 도구의 OAuth 토큰이다. 개인용 토큰, 세션, git과 SVN은 대상이 아니다.
+- 적용 방식: (1) `ApiScopeInterceptor`가 프로젝트나 `{org}`가 막히는 조직을 가리키면 403 `this organization restricts access by OAuth apps it has not approved`를 돌려주고 감사 `oauth.org_policy_denied`를 남긴다. (2) `AccessControl`이 막히는 조직의 자원을 익명과 같게 본다. (3) 사용자 단위 목록과 검색은 질의 조건으로 막히는 조직의 비공개 항목을 뺀다. 판정은 요청마다 한 번 계산한다(`OAuthOrgPolicyGuard`).
+- 승인 화면에는 내가 속한 제한 조직 가운데 이 앱을 승인하지 않은 조직의 이름과 "관리자가 승인하기 전까지 접근할 수 없다"는 경고가 나온다.
+- 테이블: `organization_oauth_policy`, `organization_oauth_approval`. 감사: `oauth.org_policy_changed`, `oauth.org_app_decided`, `oauth.org_policy_denied`.
+- 검증: `OAuthOrgPolicyServiceTest`, `OAuthOrgPolicyEnforcementTest`(외부 API), `McpOrgPolicyTest`(MCP 도구), `OrganizationOAuthPolicyTest`(화면), `OAuthConsentPageTest`(경고).

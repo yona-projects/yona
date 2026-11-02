@@ -83,7 +83,7 @@ class YonaAuthenticationFilter(
             if (!grant.allows(dev.yona.oauth2server.ProtectedResources.api(request), default = true)) return true
             failures.recordSuccess(address)
             val oauthContext = SecurityContextHolder.createEmptyContext()
-            oauthContext.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes)
+            oauthContext.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes, oauthClientRowId = grant.clientRowId)
             SecurityContextHolder.setContext(oauthContext)
             return true
         }
