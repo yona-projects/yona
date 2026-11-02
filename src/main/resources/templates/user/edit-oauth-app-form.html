@@ -40,21 +40,24 @@
                 <textarea id="oauth-redirects" name="redirectUris" rows="4" class="form-control tf-wide font-monospace" spellcheck="false" th:text="${form.redirectUris}"></textarea>
                 <div class="form-text" th:text="#{oauth.form.redirectUris.help}"></div>
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <span class="form-label d-block" th:text="#{oauth.form.type}"></span>
-                <div class="form-check" th:each="t : ${ {'public', 'confidential'} }">
-                    <input class="form-check-input" type="radio" name="type" th:id="'oauth-type-' + ${t}" th:value="${t}" th:checked="${t == 'confidential'} == ${form.confidential}" th:disabled="${client != null}">
-                    <label class="form-check-label" th:for="'oauth-type-' + ${t}" th:text="#{'oauth.type.' + ${t}}"></label>
+                <div class="tf-choices">
+                    <label class="tf-choice" th:each="t : ${ {'public', 'confidential'} }" th:for="'oauth-type-' + ${t}">
+                        <input class="form-check-input" type="radio" name="type" th:id="'oauth-type-' + ${t}" th:value="${t}" th:checked="${t == 'confidential'} == ${form.confidential}" th:disabled="${client != null}">
+                        <span class="tf-choice-text"><strong th:text="#{'oauth.type.' + ${t}}"></strong><small th:text="#{'oauth.type.' + ${t} + '.help'}"></small></span>
+                    </label>
                 </div>
-                <div class="form-text" th:text="#{oauth.form.type.help}"></div>
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <span class="form-label d-block" th:text="#{oauth.form.scopes}"></span>
-                <div class="form-check" th:each="s : ${scopeChoices}">
-                    <input class="form-check-input" type="checkbox" name="scope" th:id="'oauth-scope-' + ${s}" th:value="${s}" th:checked="${form.scopes.contains(s)}">
-                    <label class="form-check-label" th:for="'oauth-scope-' + ${s}"><code th:text="${s}"></code> <span class="text-body-secondary" th:text="#{'apiToken.scope.' + ${s}}"></span></label>
+                <div class="form-text mb-2" th:text="#{oauth.form.scopes.help}"></div>
+                <div class="tf-choices tf-scopes">
+                    <label class="tf-choice" th:each="s : ${scopeChoices}" th:for="'oauth-scope-' + ${s}">
+                        <input class="form-check-input" type="checkbox" name="scope" th:id="'oauth-scope-' + ${s}" th:value="${s}" th:checked="${form.scopes.contains(s)}">
+                        <span class="tf-choice-text"><strong><code th:text="${s}"></code></strong><small th:text="#{'apiToken.scope.' + ${s}}"></small></span>
+                    </label>
                 </div>
-                <div class="form-text" th:text="#{oauth.form.scopes.help}"></div>
             </div>
             <div class="tf-actions">
                 <button type="submit" class="btn btn-success" th:text="${client == null} ? #{oauth.form.create} : #{oauth.form.save}"></button>

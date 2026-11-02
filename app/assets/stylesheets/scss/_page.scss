@@ -8007,3 +8007,15 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .oauth-consent p { margin-bottom:12px; }
 .oauth-consent form { margin-top:16px; }
 .oauth-consent #oauth-scopes { margin-bottom:16px; }
+
+// 선택지(종류, 범위)를 한 줄에 하나씩 보이는 카드 목록: 체크박스와 라디오가 옆으로 흘러 읽기 어렵던 것을 정리한다(X-1)
+.two-factor-page .tf-choices { display:flex; flex-direction:column; gap:8px; max-width:560px; }
+.two-factor-page .tf-choice {
+    display:flex; align-items:flex-start; gap:12px; margin:0; padding:10px 14px; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-weight:normal;
+    .form-check-input { flex:none; float:none; margin:3px 0 0; }
+    .tf-choice-text { display:flex; flex-direction:column; }
+    .tf-choice-text small { color:#666; }
+}
+.two-factor-page .tf-choice:has(input:checked) { border-color:$theme-link; background:#fff8f3; }
+.two-factor-page .tf-scopes { gap:6px; }
+.two-factor-page .tf-scopes .tf-choice { padding:6px 14px; }
