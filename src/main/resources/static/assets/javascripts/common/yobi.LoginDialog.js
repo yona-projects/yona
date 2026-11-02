@@ -42,6 +42,10 @@ $(function(){
         htElement.welInputId = htElement.welDialog.find("input[name='loginIdOrEmail']");
         htElement.welInputPw = htElement.welDialog.find("input[name='password']");
         htElement.welInputRememberMe = htElement.welDialog.find("input[name='rememberMe']");
+        htElement.welLoginStep = htElement.welDialog.find(".login-step");
+        htElement.welTwoFactorStep = htElement.welDialog.find(".two-factor-step");
+        htElement.welInputCode = htElement.welDialog.find("input[name='code']");
+        htElement.welInputRememberDevice = htElement.welDialog.find("input[name='rememberDevice']");
         htElement.welLoginError = htElement.welDialog.find(".error");
         htElement.welLoginErrorMsg = htElement.welLoginError.find(".error-message");
     }
@@ -56,6 +60,7 @@ $(function(){
             $(weEvt.target).blur();
         }
 
+        _showFirstStep();
         htElement.welLoginError.hide();
         htElement.welInputPw.val("");
         htElement.welInputId.val("");
@@ -72,16 +77,38 @@ $(function(){
         return (["INPUT", "TEXTAREA"].indexOf(el.tagName.toUpperCase()) > -1);
     }
 
+    // Two-step verification: the password step answers {"twoFactor": true}, then the popup asks for the code.
+    function _showFirstStep(){
+        htElement.welTwoFactorStep.hide();
+        htElement.welLoginStep.show();
+        htElement.welInputCode.val("");
+    }
+
+    function _showTwoFactorStep(){
+        htElement.welLoginError.hide();
+        htElement.welLoginStep.hide();
+        htElement.welTwoFactorStep.show();
+        htElement.welInputCode.focus();
+    }
+
     function _onSubmitForm(weEvt){
-        $.ajax(htElement.welForm.attr("action"), {
+        var bCodeStep = htElement.welTwoFactorStep.is(":visible");
+        $.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
             "type": "post",
             "dataType": "json",
-            "data": {
+            "data": bCodeStep ? {
+                "code": htElement.welInputCode.val(),
+                "rememberDevice": htElement.welInputRememberDevice.is(":checked")
+            } : {
                 "loginIdOrEmail" : htElement.welInputId.val(),
                 "password": htElement.welInputPw.val(),
                 "rememberMe": htElement.welInputRememberMe.is(":checked")
             }
-        }).done(function(){
+        }).done(function(htResult){
+            if(htResult && htResult.twoFactor){
+                _showTwoFactorStep();
+                return;
+            }
             document.location.reload();
         }).fail(function(htResult){
             // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
@@ -122,7 +149,7 @@ $(function(){
         htElement.welLoginErrorMsg.html(sMessage);
         htElement.welLoginError.show();
         htElement.welDialog.effect("shake", {"distance": 2}, 200);
-        htElement.welInputId.focus();
+        (htElement.welTwoFactorStep.is(":visible") ? htElement.welInputCode : htElement.welInputId).focus();
     }
 
     _init();

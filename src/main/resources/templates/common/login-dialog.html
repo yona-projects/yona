@@ -7,7 +7,24 @@
     <div class="float-end">
       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
-    <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap">
+    <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap" th:attr="data-two-factor-action=@{/users/login/2fa}">
+      <div class="two-factor-step" style="display: none;">
+        <h4 th:text="#{user.twoFactor.title}"></h4>
+        <p th:text="#{user.twoFactor.help}"></p>
+        <dl>
+          <dd>
+            <input id="two-factor-codeD" name="code" type="text" class="text form-control" autocomplete="one-time-code" th:placeholder="#{user.twoFactor.code}">
+          </dd>
+        </dl>
+        <div class="remember-me-wrap">
+          <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="checkbox form-check-input">
+          <label for="remember-deviceD" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
+        </div>
+        <div class="btns-row nm">
+          <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{user.twoFactor.submit}"></button>
+        </div>
+      </div>
+      <div class="login-step">
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
       </div>
       <th:block th:unless="${site.socialLoginOnly}">
@@ -20,11 +37,14 @@
         </dd>
       </dl>
 
+      </th:block>
+      </div>
       <div class="error">
         <i class="yobicon-error"></i>
         <span class="error-message"></span>
       </div>
-
+      <div class="login-step">
+      <th:block th:unless="${site.socialLoginOnly}">
       <div class="btns-row nm">
         <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{button.login}"></button>
       </div>
@@ -49,6 +69,7 @@
         <a th:href="@{/lostPassword}" th:text="#{title.resetPassword}"></a>
         <span class="gray-txt ml10 mr10">|</span>
         <a th:href="@{/users/signupform}" th:text="#{title.signup}"></a>
+      </div>
       </div>
       </form>
   </div>
