@@ -76,6 +76,7 @@ class SshServerTest {
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var dataDirectory: dev.yona.repository.DataDirectory
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var wikis: dev.yona.repository.WikiRepositories
     @Autowired private lateinit var issues: dev.yona.domain.issue.IssueRepository
     @Autowired private lateinit var issueEvents: dev.yona.domain.issue.IssueEventRepository
     @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
@@ -105,10 +106,10 @@ class SshServerTest {
         return users.save(User(loginId = "$prefix$n", name = "$prefix$n", email = "$prefix$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt))).also { created += it }
     }
 
-    private fun project(scope: ProjectScope): Project {
+    private fun project(scope: ProjectScope, wiki: Boolean = false): Project {
         val n = counter.incrementAndGet()
         val p = projects.save(Project(owner = member.loginId, name = "ssh$n", vcs = "GIT", projectScope = scope))
-        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = wiki))
         projectUsers.save(ProjectUser(user = member, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
         repositories.createRepository(p)
         return p
@@ -131,6 +132,7 @@ class SshServerTest {
         tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
+        File(dataDirectory.root(), "repo").walkTopDown().filter { it.isDirectory && it.name.endsWith(".wiki.git") }.toList().forEach { it.deleteRecursively() }
     }
 
     private class Result(val exit: Int, val output: String)
@@ -261,6 +263,79 @@ class SshServerTest {
         val pushed = git("push", "origin", "master", key = key, dir = dir)
         assertNotEquals(0, pushed.exit)
         assertTrue(pushed.output.contains("protected branch"), pushed.output)
+    }
+
+    // --- 위키 저장소(owner/name.wiki.git, D-68) ---
+
+    private fun wikiUrl(p: Project, suffix: String = ".wiki.git") = "ssh://git@127.0.0.1:${server.boundPort}/${p.owner}/${p.name}$suffix"
+
+    private fun pushWiki(p: Project, key: Key?, suffix: String = ".wiki.git", branch: String = "master"): Result {
+        val dir = File(work, "wiki-push-${counter.incrementAndGet()}").also { it.mkdirs() }
+        check(git("init", "-q", "-b", branch, dir = dir).exit == 0)
+        File(dir, "Home.md").writeText("# 위키"); git("add", ".", dir = dir); git("commit", "-q", "-m", "첫 페이지", dir = dir)
+        return git("push", wikiUrl(p, suffix), "$branch:$branch", key = key, dir = dir)
+    }
+
+    @Test
+    fun `위키 저장소를 구성원이 푸시하고 복제한다 (소 위키 접미어 두 가지)`() {
+        val wp = project(ProjectScope.PUBLIC, wiki = true); val key = register(member)
+        assertEquals(0, pushWiki(wp, key).exit)
+        val dir = File(work, "wiki-clone"); val cloned = git("clone", "-q", wikiUrl(wp, ".wiki"), dir.path, key = key)
+        assertEquals(0, cloned.exit, cloned.output)
+        assertEquals("# 위키", File(dir, "Home.md").readText())
+    }
+
+    @Test
+    fun `위키를 끈 프로젝트는 위키 저장소가 없는 것처럼 거부한다`() {
+        val off = project(ProjectScope.PUBLIC, wiki = false)
+        val result = pushWiki(off, register(member))
+        assertNotEquals(0, result.exit)
+        assertTrue(result.output.contains("Repository not found"), result.output)
+    }
+
+    @Test
+    fun `구성원이 아닌 사용자는 공개 프로젝트의 위키를 복제하지만 푸시는 거부된다`() {
+        val wp = project(ProjectScope.PUBLIC, wiki = true)
+        assertEquals(0, pushWiki(wp, register(member)).exit)
+        val outsiderKey = register(outsider)
+        assertEquals(0, git("clone", "-q", wikiUrl(wp), File(work, "wiki-out").path, key = outsiderKey).exit)
+        val pushed = pushWiki(wp, outsiderKey, branch = "other")
+        assertNotEquals(0, pushed.exit)
+        assertTrue(pushed.output.contains("Permission to"), pushed.output)
+    }
+
+    @Test
+    fun `비공개 프로젝트의 위키는 구성원이 아니면 없는 것처럼 거부한다`() {
+        val wp = project(ProjectScope.PRIVATE, wiki = true)
+        assertEquals(0, pushWiki(wp, register(member)).exit)
+        val result = git("clone", "-q", wikiUrl(wp), File(work, "wiki-priv").path, key = register(outsider))
+        assertNotEquals(0, result.exit)
+        assertTrue(result.output.contains("Repository not found"), result.output)
+    }
+
+    @Test
+    fun `배포 키는 위키에 접근하지 못한다`() {
+        val wp = project(ProjectScope.PRIVATE, wiki = true)
+        assertEquals(0, pushWiki(wp, register(member)).exit)
+        val result = git("clone", "-q", wikiUrl(wp), File(work, "wiki-dk").path, key = deploy(wp, writable = true))
+        assertNotEquals(0, result.exit)
+        assertTrue(result.output.contains("Repository not found"), result.output)
+    }
+
+    @Test
+    fun `위키 푸시는 기본 브랜치를 지우지 못하고 코드 저장소 푸시 훅의 규칙에 걸리지 않는다`() {
+        val wp = project(ProjectScope.PUBLIC, wiki = true); val key = register(member)
+        assertEquals(0, pushWiki(wp, key).exit)
+        val dir = File(work, "wiki-del"); git("clone", "-q", wikiUrl(wp), dir.path, key = key)
+        val deleted = git("push", "origin", ":master", key = key, dir = dir)
+        assertNotEquals(0, deleted.exit)
+    }
+
+    @Test
+    fun `위키 요청은 target이 wiki인 지표로 센다`() {
+        val before = meters.find("yona.vcs.request").tags("vcs", "git", "service", "receive_pack", "target", "wiki", "result", "ok").timer()?.count() ?: 0L
+        assertEquals(0, pushWiki(project(ProjectScope.PUBLIC, wiki = true), register(member)).exit)
+        assertEquals(before + 1, meters.find("yona.vcs.request").tags("vcs", "git", "service", "receive_pack", "target", "wiki", "result", "ok").timer()?.count() ?: 0L)
     }
 
     @Test

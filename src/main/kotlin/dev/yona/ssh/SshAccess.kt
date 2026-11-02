@@ -24,9 +24,9 @@ sealed interface SshAuthorization {
 
     /**
      * 허용한다. [sender]는 브랜치 보호 규칙의 바이패스 판정에 쓰는 사용자이며 배포 키로 접속했으면 `null`이다(배포 키는 규칙을 우회하지 못한다).
-     * [pusher]는 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)을 귀속할 사용자이다. 사용자 키는 [sender]와 같고, 배포 키는 키를 등록한 사용자(활성일 때)이며 없으면 `null`이다(`decisions.md` D-68).
+     * [wiki]이면 [project]의 코드 저장소가 아니라 위키 저장소(`<이름>.wiki.git`)에 대한 허용이다(`decisions.md` D-68). [pusher]는 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)을 귀속할 사용자이다. 사용자 키는 [sender]와 같고, 배포 키는 키를 등록한 사용자(활성일 때)이며 없으면 `null`이다(`decisions.md` D-68).
      */
-    data class Allowed(val project: Project, val sender: User?, val pusher: User? = sender) : SshAuthorization
+    data class Allowed(val project: Project, val sender: User?, val pusher: User? = sender, val wiki: Boolean = false) : SshAuthorization
 
     /** 저장소를 읽을 수 없거나 없다. 있는지 없는지 알려 주지 않으려고 둘을 구분하지 않는다. */
     data object NotFound : SshAuthorization
@@ -46,7 +46,8 @@ class SshAccess(
     private val deployKeys: DeployKeyService,
     private val users: UserRepository,
     private val projects: ProjectService,
-    private val accessControl: AccessControl
+    private val accessControl: AccessControl,
+    private val wikiService: dev.yona.domain.wiki.WikiService
 ) {
 
     /** 지문으로 접속한 키를 인증한다. 등록되지 않았거나 주인이 잠기거나 삭제되었으면 `null`이다. */
@@ -62,12 +63,30 @@ class SshAccess(
     /** 인증한 접속이 [request]의 저장소에서 읽거나 쓸 수 있는지 판정한다. 접속한 뒤에 바뀐 상태(잠김, 키 삭제)도 반영한다. */
     @Transactional(readOnly = true)
     fun authorize(principal: SshPrincipal, request: SshRepositoryRequest): SshAuthorization {
-        val project = projects.findByOwnerAndProjectName(request.owner, request.name)?.takeIf { it.vcs.equals(request.vcs, ignoreCase = true) } ?: return SshAuthorization.NotFound
+        val found = projects.findByOwnerAndProjectName(request.owner, request.name)
+        // HTTP와 같다: 같은 이름의 프로젝트가 있으면 코드 저장소가 우선이고, 없을 때만 `<이름>.wiki`를 그 프로젝트의 위키 저장소로 본다
+        if (found == null && request.vcs.equals(GIT, ignoreCase = true) && request.name.endsWith(WIKI_SUFFIX) && request.name.length > WIKI_SUFFIX.length) return authorizeWiki(principal, request)
+        val project = found?.takeIf { it.vcs.equals(request.vcs, ignoreCase = true) } ?: return SshAuthorization.NotFound
         principal.deployKeyId?.let { return authorizeDeployKey(it, project, request) }
         val user = principal.userId?.let { users.findById(it).orElse(null) }?.takeIf { usable(it) } ?: return SshAuthorization.NotFound
         if (!allowed(project, user, Operation.READ)) return SshAuthorization.NotFound
         if (request.write && !allowed(project, user, Operation.UPDATE)) return SshAuthorization.Denied("ERROR: Permission to ${request.owner}/${request.name} denied to ${user.loginId}.")
         return SshAuthorization.Allowed(project, user)
+    }
+
+    /**
+     * 프로젝트 위키 저장소의 인가이다([dev.yona.web.git.GitHttpController]의 위키 판정과 같다). 위키를 끈 프로젝트는 없는 것처럼 `NotFound`이다. 복제는 위키 읽기 권한, 푸시는 위키 수정 권한(구성원)이며
+     * 코드를 구성원에게만 여는 설정은 적용하지 않는다. 배포 키는 코드 저장소 전용이라 위키에 접근하지 못한다.
+     */
+    private fun authorizeWiki(principal: SshPrincipal, request: SshRepositoryRequest): SshAuthorization {
+        val project = projects.findByOwnerAndProjectName(request.owner, request.name.removeSuffix(WIKI_SUFFIX)) ?: return SshAuthorization.NotFound
+        if (!wikiService.enabled(project) || principal.userId == null) return SshAuthorization.NotFound
+        val user = users.findById(principal.userId).orElse(null)?.takeIf { usable(it) } ?: return SshAuthorization.NotFound
+        val resource = dev.yona.access.ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project)
+        if (!accessControl.isAllowed(user, resource, Operation.READ)) return SshAuthorization.NotFound
+        if (request.write && !accessControl.isAllowed(user, resource, Operation.UPDATE)) return SshAuthorization.Denied("ERROR: Permission to ${request.owner}/${request.name} denied to ${user.loginId}.")
+        if (!wikiService.available(project)) return SshAuthorization.Denied("ERROR: The wiki of this project is not available.")
+        return SshAuthorization.Allowed(project, user, wiki = true)
     }
 
     private fun authorizeDeployKey(id: Long, project: Project, request: SshRepositoryRequest): SshAuthorization {
@@ -87,5 +106,10 @@ class SshAccess(
         var needed = operation
         if (project.isCodeAccessibleMemberOnly == true && !projects.hasMember(project, user)) needed = Operation.UPDATE
         return accessControl.isAllowed(user, dev.yona.access.ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), needed)
+    }
+
+    private companion object {
+        const val GIT = "GIT"
+        const val WIKI_SUFFIX = ".wiki"
     }
 }

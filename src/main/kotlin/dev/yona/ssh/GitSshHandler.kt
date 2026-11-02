@@ -13,7 +13,7 @@ import java.io.IOException
  * ([GitHooks])을 쓰므로 브랜치 보호 규칙, 서명 커밋 필수 규칙, 풀 리퀘스트와 웹훅 처리가 HTTP와 똑같이 적용된다. 연결이 양방향 파이프라 `git-upload-pack`도 요청과 응답을 한 연결에서 주고받는다.
  */
 @Component
-class GitSshHandler(private val repositories: RepositoryService, private val hooks: GitHooks) : SshVcsHandler {
+class GitSshHandler(private val repositories: RepositoryService, private val hooks: GitHooks, private val wikis: dev.yona.repository.WikiRepositories) : SshVcsHandler {
 
     private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
 
@@ -21,13 +21,19 @@ class GitSshHandler(private val repositories: RepositoryService, private val hoo
 
     override fun execute(grant: SshAuthorization.Allowed, request: SshRepositoryRequest, command: String, streams: SshStreams): Int {
         val project = grant.project
+        if (grant.wiki && request.write) wikis.create(requireNotNull(project.owner), requireNotNull(project.name))
         return try {
-            repositories.openRepository(project).use { repository ->
+            open(grant).use { repository ->
                 if (request.write) {
                     ReceivePack(repository).apply {
-                        // 규칙의 바이패스는 사용자 키의 사용자만 받는다(배포 키는 규칙을 우회하지 못한다). 푸시 뒤 작업은 귀속할 사용자가 있으면 그 사용자의 푸시로 처리한다(D-68)
-                        preReceiveHook = hooks.preReceive(project, grant.sender)
-                        postReceiveHook = hooks.postReceive(project, grant.pusher)
+                        if (grant.wiki) {
+                            // 위키 저장소는 HTTP와 같이 푸시 전후 훅이 없고 브랜치 삭제는 거부한다(기본 브랜치를 지우면 위키가 비어 버린다)
+                            isAllowDeletes = false
+                        } else {
+                            // 규칙의 바이패스는 사용자 키의 사용자만 받는다(배포 키는 규칙을 우회하지 못한다). 푸시 뒤 작업은 귀속할 사용자가 있으면 그 사용자의 푸시로 처리한다(D-68)
+                            preReceiveHook = hooks.preReceive(project, grant.sender)
+                            postReceiveHook = hooks.postReceive(project, grant.pusher)
+                        }
                     }.receive(streams.input, streams.output, streams.error)
                 } else {
                     UploadPack(repository).upload(streams.input, streams.output, streams.error)
@@ -45,6 +51,15 @@ class GitSshHandler(private val repositories: RepositoryService, private val hoo
             streams.output.flush()
             streams.error.flush()
         }
+    }
+
+    /**
+     * 저장소를 연다. 위키는 푸시를 받을 때 없으면 먼저 만들고, 복제는 위키를 한 번도 쓰지 않았어도 빈 저장소처럼 열린다(HTTP와 같다).
+     */
+    private fun open(grant: SshAuthorization.Allowed): org.eclipse.jgit.lib.Repository {
+        if (!grant.wiki) return repositories.openRepository(grant.project)
+        val owner = requireNotNull(grant.project.owner); val name = requireNotNull(grant.project.name)
+        return wikis.openForHttp(owner, name)
     }
 
     companion object {
