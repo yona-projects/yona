@@ -28,7 +28,7 @@ data class SignatureVerification(
  * 커밋과 주석 태그의 서명을 등록된 GPG 키로 검증한다(추가 개발 항목 X-4, `decisions.md` D-65). `gpg.format=ssh`로 한 SSH 서명은 등록된 사용자 SSH 키로 검증한다(D-68). Verified이려면 서명이 맞고([GpgSignatureVerifier]),
  * 서명한 키의 주인이 활성 사용자이며, 커밋터(태그는 태그를 단 사람) 이메일이 키의 사용자 ID에 있고, 그 이메일이 주인이 확인한 이메일(대표 이메일 또는 확인한 보조 이메일)이어야 한다.
  *
- * 판정마다 `yona.gpg.verifications` 지표를 센다([dev.yona.observability.GpgMetrics]).
+ * 판정마다 `yona.gpg.verifications` 지표를 서명 형식(`format`)별로 센다([dev.yona.observability.GpgMetrics]).
  *
  * 결과는 키와 이메일 등록에 따라 바뀌므로 저장하지 않고 요청마다 계산한다(서명 한 건의 검증은 밀리초 미만이다). 읽은 공개키 묶음만 캐시한다.
  */
@@ -52,7 +52,7 @@ class GpgVerificationService(
     fun verifyTag(payload: SignedPayload?, taggerEmail: String?, now: Instant = Instant.now()): SignatureVerification = verify("tag", payload, taggerEmail, now)
 
     private fun verify(target: String, payload: SignedPayload?, email: String?, now: Instant): SignatureVerification =
-        judge(payload, email, now).also { metrics.verification(target, it.reason) }
+        judge(payload, email, now).also { metrics.verification(target, it.reason, it.format) }
 
     private fun judge(payload: SignedPayload?, email: String?, now: Instant): SignatureVerification {
         payload ?: return SignatureVerification(GpgReason.UNSIGNED)
