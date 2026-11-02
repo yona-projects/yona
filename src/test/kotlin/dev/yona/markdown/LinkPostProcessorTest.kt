@@ -24,9 +24,10 @@ class LinkPostProcessorTest {
     }
 
     @Test
-    fun `블록 요소는 jsoup 1_8_3의 들여쓰기 출력으로 쓴다 (v1_6 doc_body_html)`() {
+    fun `블록 요소 사이에 줄바꿈을 넣지 않는다(들여쓰기 출력을 끈다, 화면은 v1_6과 같다)`() {
         val html = "<p>a<br>b</p><ul><li>x<br>y</li></ul>"
-        val expected = "<p>a<br>b</p>\n<ul>\n <li>x<br>y</li>\n</ul>"
+        // v1.6(jsoup 1.8.3)은 블록 요소 앞뒤에 줄바꿈과 들여쓰기를 넣었다. 지금은 들여쓰기 출력을 꺼서 넣지 않는다. 블록 요소 사이의 공백은 화면에 나타나지 않는다(A-336)
+        val expected = "<p>a<br>b</p><ul><li>x<br>y</li></ul>"
         assertEquals(expected, processor().removeJavascriptInHref(html))
         assertEquals(expected, processor(noReferrer = true).checkReferrer(html))
     }
@@ -53,8 +54,9 @@ class LinkPostProcessorTest {
     @Test
     fun `같은 사이트의 링크와 상대 링크에는 붙이지 않는다`() {
         val html = "<a href=\"https://yona.example.com/a\">x</a><a href=\"/b\">y</a>"
-        // jsoup 1.8.3의 기본 출력은 인라인 요소를 줄에 나눠 쓴다(v1.6 `doc.body().html()`)
-        assertEquals("<a href=\"https://yona.example.com/a\">x</a>\n<a href=\"/b\">y</a>", processor(noReferrer = true).checkReferrer(html))
+        // v1.6(jsoup 1.8.3)의 들여쓰기 출력은 본문 바로 아래의 인라인 요소 사이에 줄바꿈을 넣었다. 지금은 읽은 글자 그대로 쓴다. 마크다운 변환 결과는 인라인 요소를 `<p>` 안에 두므로
+        // 본문 바로 아래에 인라인 요소가 나란히 놓이는 일은 없고, 있다면 사용자가 직접 쓴 HTML뿐이다(알려진 차이, A-336)
+        assertEquals("<a href=\"https://yona.example.com/a\">x</a><a href=\"/b\">y</a>", processor(noReferrer = true).checkReferrer(html))
     }
 
     @Test

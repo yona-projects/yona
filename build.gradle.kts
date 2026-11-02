@@ -147,7 +147,7 @@ dependencies {
 	// v1.6이 변환 실패 때 원문을 감싸는 데 쓴 `StringEscapeUtils.escapeHtml`(commons-lang 2.x)
 	implementation("commons-lang:commons-lang:2.6")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20190610.1")
-	implementation("org.jsoup:jsoup:1.8.3")
+	implementation("org.jsoup:jsoup:1.23.2")
 	// Subversion WebDAV(D-26): DAV 서블릿은 javax 서블릿 API를 쓰므로 Jakarta 서블릿 위에 변환 어댑터를 둔다.
 	svnDavWar("org.tmatesoft.svnkit:svnkit-dav:1.10.11@war")
 	implementation(files(svnDavClasses))
