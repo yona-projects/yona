@@ -1023,3 +1023,6 @@ GitHub 조직 설정과 Yona의 현재 조직 화면을 Playwright로 캡처해 
 
 ## [2026-11-02] X-8 Git LFS 완료
 `tus` 이어올리기(A-343), 시스템 sshd 중계의 `git-lfs-authenticate` 확인, 영어 화면 문구 정리까지 끝냈다. 실제 git-lfs 3.8.1로 6 MiB 객체를 2 MiB까지 올린 뒤 이어 올려 해시가 맞는 것을 확인했다.
+
+## [2026-11-02] X-8 실제 sshd 컨테이너 확인
+선생님 허락으로 AlmaLinux 8 컨테이너(OpenSSH 8.0 sshd)와 Go 도우미 중계에서 실제 git-lfs 3.8.1로 push, clone, lock, unlock을 확인했다. 컨테이너는 확인 뒤 지웠다.

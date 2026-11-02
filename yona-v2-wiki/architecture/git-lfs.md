@@ -6,7 +6,7 @@ updated: 2026-11-02
 
 # Git LFS 서버(X-8)
 
-> **상태: 완료(2026-11-02). 단계 0~7 구현과 시험을 마쳤고, 실제 `git-lfs` 3.8.1과 실제 `ssh`로 HTTP, 내장 SSH 서버, `tus` 이어올리기를 확인했다. 시스템 OpenSSH 중계는 실제 sshd 없이 sshd를 흉내 낸 스크립트와 Go 도우미로 확인했다.** 계획과 결정 이유는 [git-lfs-plan.md](git-lfs-plan.md)와 [decisions.md](../decisions.md) D-79에 있다. v1.6에는 LFS 서버가 없어 새 경로만 더한 추가 항목이다(v1.6의 기존 경로와 동작은 바꾸지 않았다).
+> **상태: 완료(2026-11-02). 단계 0~7 구현과 시험을 마쳤고, 실제 `git-lfs` 3.8.1과 실제 `ssh`로 HTTP, 내장 SSH 서버, `tus` 이어올리기를 확인했다. 시스템 OpenSSH 중계는 실제 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)와 Go 도우미로 확인했다.** 계획과 결정 이유는 [git-lfs-plan.md](git-lfs-plan.md)와 [decisions.md](../decisions.md) D-79에 있다. v1.6에는 LFS 서버가 없어 새 경로만 더한 추가 항목이다(v1.6의 기존 경로와 동작은 바꾸지 않았다).
 
 ## 1. 구성
 
