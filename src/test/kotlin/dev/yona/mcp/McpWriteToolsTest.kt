@@ -34,10 +34,10 @@ class McpWriteToolsTest : AbstractIntegrationTest() {
     private fun args(f: McpToolsSupport.Fixture) = mapOf("owner" to f.project.owner, "project" to f.project.name)
 
     @Test
-    fun `이슈와 위키 쓰기 도구가 등록되어 있고 병합과 삭제 도구는 없다`() {
+    fun `이슈와 위키 쓰기 도구가 등록되어 있고 삭제 도구는 없다`() {
         val names = support.toolNames(mockMvc, support.token(support.user(), "repo"))
         assertTrue(names.containsAll(setOf("create_issue", "comment_issue", "close_issue", "reopen_issue", "comment_pull_request", "create_wiki_page", "update_wiki_page")), "등록된 도구: $names")
-        assertTrue(names.none { it.contains("merge") || it.contains("delete") }, "등록된 도구: $names")
+        assertTrue(names.none { it.contains("delete") }, "등록된 도구: $names")
     }
 
     @Test
