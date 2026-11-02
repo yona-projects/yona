@@ -109,7 +109,7 @@ class SshRelayServer(
                 val command = readLine(input)
                 if (address == null || command == null) return reject(output, "Invalid handshake.")
                 val principal = tokens.verify(tokenLine) ?: return reject(output, "Invalid credentials.")
-                runner.run(principal, command, SshStreams(input, output, OutputStream.nullOutputStream()), address.takeIf { it.isNotBlank() }) { reject(output, it.removePrefix("ERROR: ")) }
+                runner.run(principal, command, SshStreams(input, output, OutputStream.nullOutputStream()), address.takeIf { it.isNotBlank() }) { reject(output, it.removePrefix("ERROR: "), plain = command.startsWith("git-lfs-authenticate")) }
                 output.flush()
             } catch (e: Exception) {
                 log.warn("SSH relay connection failed", e)
@@ -118,8 +118,12 @@ class SshRelayServer(
         }
     }
 
-    /** git의 오류 줄(`ERR <사유>`)을 pkt-line으로 쓴다. 프로토콜이 시작되기 전에만 쓴다. */
-    private fun reject(output: OutputStream, message: String) {
+    /**
+     * git의 오류 줄(`ERR <사유>`)을 pkt-line으로 쓴다. 프로토콜이 시작되기 전에만 쓴다. [plain]이 참이면(`git-lfs-authenticate`) 사유를 그냥 한 줄 글로 쓴다:
+     * 그 명령의 클라이언트(git-lfs)는 JSON을 기다리므로 pkt-line 접두어 없이 읽을 수 있는 글이 오류 메시지에 그대로 보이는 편이 낫다(X-8).
+     */
+    private fun reject(output: OutputStream, message: String, plain: Boolean = false) {
+        if (plain) { output.write("$message\n".toByteArray()); output.flush(); return }
         val body = "ERR $message".toByteArray()
         output.write("%04x".format(body.size + 4).toByteArray())
         output.write(body)

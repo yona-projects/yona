@@ -248,6 +248,18 @@ open class SshRelayServerTest {
     }
 
     @Test
+    fun `중계로도 git-lfs-authenticate가 HTTP 주소와 토큰을 알려 주고 권한 없는 사용자는 거부한다`() {
+        val key = register(member)
+        val ok = run(fakeSsh().path, "git@host", "git-lfs-authenticate '${project.owner}/${project.name}.git' upload", key = key)
+        assertEquals(0, ok.exit, ok.output)
+        assertTrue(ok.output.contains("\"href\"") && ok.output.contains("/${project.owner}/${project.name}.git/info/lfs") && ok.output.contains("Bearer yona_lfs_"), ok.output)
+        val denied = run(fakeSsh().path, "git@host", "git-lfs-authenticate '${project.owner}/${project.name}.git' upload", key = register(user("lfsdeny")))
+        // 중계는 거부 사유를 출력으로 알리고(종료 코드로는 알리지 못한다) git-lfs가 읽을 수 있게 pkt-line 접두어 없이 글로 쓴다
+        assertTrue(denied.output.contains("denied") && !denied.output.contains("ERR ") && !denied.output.contains("\"href\""), denied.output)
+        assertTrue(!run(fakeSsh().path, "git@host", "git-lfs-authenticate 'x' nope", key = key).output.contains("\"href\""))
+    }
+
+    @Test
     fun `등록하지 않은 키는 훅이 거부해 Permission denied이다`() {
         val result = push(project, newKey())
         assertNotEquals(0, result.exit)
