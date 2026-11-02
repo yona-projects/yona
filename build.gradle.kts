@@ -139,6 +139,8 @@ dependencies {
 	// GPG 서명 검증(X-4, D-65). 사용자가 등록한 공개키로 검증하므로 서버 로컬 키링을 읽는 JGit의 gpg.bc 모듈은 쓰지 않고 BouncyCastle을 직접 쓴다
 	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
 	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+	// SAML SP 키쌍의 자체 서명 인증서를 만든다(X-16, D-80 19번)
+	implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
 	// X-3: 내장 SSH 서버(`yona.ssh.enabled`)와 공개키 형식 읽기. 시스템 sshd와는 무관하다(D-66).
 	implementation("org.apache.sshd:sshd-core:2.15.0")
 	// 2단계 인증(X-2, D-69)의 QR 코드를 만든다. 화면에는 인라인 SVG로 내보내므로 핵심 라이브러리만 쓴다
