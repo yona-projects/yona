@@ -22,6 +22,11 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.time.Duration
+import org.springframework.security.authentication.ProviderManager
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml5AuthenticationRequestResolver
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 
 /**
  * 엔터프라이즈 SSO 전용 보안 필터 체인이다(X-16, `decisions.md` D-80 1번). `/sso/` 아래만 맡아 기존 보안 체인(`YonaAuthenticationFilter`)과 섞이지 않는다. OIDC는 스프링 시큐리티의 `oauth2Login`이
@@ -32,7 +37,10 @@ class SsoSecurityConfig {
 
     @Bean
     @Order(2)
-    fun ssoSecurityFilterChain(http: HttpSecurity, registrations: SsoClientRegistrations, success: SsoLoginSuccessHandler, failure: SsoLoginFailureHandler): SecurityFilterChain =
+    fun ssoSecurityFilterChain(
+        http: HttpSecurity, registrations: SsoClientRegistrations, success: SsoLoginSuccessHandler, failure: SsoLoginFailureHandler,
+        saml: SsoSaml2Registrations, samlSuccess: SsoSaml2SuccessHandler, settings: dev.yona.domain.sso.SsoSettingsService
+    ): SecurityFilterChain =
         http.securityMatcher("/sso/**")
             .csrf { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
@@ -48,6 +56,18 @@ class SsoSecurityConfig {
                 }
                 login.redirectionEndpoint { it.baseUri("/sso/oidc/callback/*") }
                 login.successHandler(success)
+                login.failureHandler(failure)
+            }
+            .saml2Login { login ->
+                val resolver = RelyingPartyRegistrationResolver { _, _ -> saml.findByRegistrationId(SsoSaml2Registrations.ID) }
+                login.relyingPartyRegistrationRepository(saml)
+                login.authenticationRequestResolver(OpenSaml5AuthenticationRequestResolver(resolver).apply {
+                    setRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher(SsoSaml2Registrations.AUTHENTICATE_PATH))
+                })
+                login.authenticationConverter(Saml2AuthenticationTokenConverter(resolver))
+                login.loginProcessingUrl(SsoSaml2Registrations.ACS_PATH)
+                login.authenticationManager(ProviderManager(SsoSaml2Provider(settings)))
+                login.successHandler(samlSuccess)
                 login.failureHandler(failure)
             }
             .build()

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody
  * Core 4절)를 연다. 둘 다 돌아갈 곳과 시작 방식을 세션에 두고 스프링 시큐리티의 인가 요청 주소로 보내 **평소와 같은 인가 코드 흐름**을 새로 시작한다(요청 없이 도착한 토큰을 받는 길은 없다).
  */
 @Controller
-class SsoLoginController(private val settings: SsoSettingsService, private val siteUrls: SiteUrls) {
+class SsoLoginController(private val settings: SsoSettingsService, private val siteUrls: SiteUrls, private val saml2: SsoSaml2Registrations) {
 
     /** 앱에서 시작하는 로그인이다. 꺼져 있으면 404이다. */
     @GetMapping("/sso/oidc/login")
@@ -42,6 +42,24 @@ class SsoLoginController(private val settings: SsoSettingsService, private val s
         if (iss.isNullOrBlank() || iss != row.issuerUri) return ResponseEntity.badRequest().build()
         remember(request, SsoReturn.resolve(targetLinkUri, siteUrls.origin()), loginHint?.take(255)?.takeIf { it.none { c -> c.isISOControl() } }, initiated = true)
         return redirect()
+    }
+
+    /** 앱에서 시작하는 SAML 2 로그인이다. 꺼져 있으면 404이다. */
+    @GetMapping("/sso/saml2/login")
+    @ResponseBody
+    fun samlLogin(@RequestParam(required = false) returnTo: String?, request: HttpServletRequest): ResponseEntity<Void> {
+        if (settings.saml2().enabled != true) return ResponseEntity.notFound().build()
+        remember(request, SsoReturn.resolve(returnTo, siteUrls.origin()), null, initiated = false)
+        return ResponseEntity.status(HttpStatus.FOUND).header(HttpHeaders.LOCATION, siteUrls.path(SsoSaml2Registrations.AUTHENTICATE_PATH)).build()
+    }
+
+    /** SP 메타데이터(XML)이다. IdP 관리자가 이 주소를 읽어 Yona를 등록한다. SAML 2가 꺼져 있으면 404이다. */
+    @GetMapping("/sso/saml2/metadata/{registrationId}", produces = ["application/samlmetadata+xml"])
+    @ResponseBody
+    fun samlMetadata(@org.springframework.web.bind.annotation.PathVariable registrationId: String): ResponseEntity<String> {
+        val registration = saml2.findByRegistrationId(registrationId) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"saml-sp-metadata.xml\"")
+            .body(org.springframework.security.saml2.provider.service.metadata.OpenSaml5MetadataResolver().resolve(registration))
     }
 
     private fun enabled() = settings.oidc().enabled == true
