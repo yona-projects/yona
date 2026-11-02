@@ -4,7 +4,7 @@ package dev.yona.domain.gpgkey
  * 서명 한 개와 그 서명이 덮는 바이트이다.
  *
  * @property data 서명 대상 바이트
- * @property signature ASCII armor 서명 글(`-----BEGIN PGP SIGNATURE-----`로 시작)
+ * @property signature ASCII armor 서명 글(`-----BEGIN PGP SIGNATURE-----` 또는 SSH 서명 `-----BEGIN SSH SIGNATURE-----`로 시작)
  */
 class SignedPayload(val data: ByteArray, val signature: ByteArray)
 
@@ -12,11 +12,12 @@ class SignedPayload(val data: ByteArray, val signature: ByteArray)
  * git 개체 원문에서 서명과 서명 대상을 가려낸다(X-4). git이 서명을 만들고 검증할 때와 같은 규칙이다.
  *
  * - 커밋: 머리글 `gpgsig`(이어지는 줄은 공백 하나로 시작)가 서명이고, 그 머리글을 뺀 원문이 서명 대상이다.
- * - 주석 태그: 원문 끝에 붙은 `-----BEGIN PGP SIGNATURE-----` 블록이 서명이고, 그 앞까지가 서명 대상이다.
+ * - 주석 태그: 원문 끝에 붙은 `-----BEGIN PGP SIGNATURE-----`(SSH 서명은 `-----BEGIN SSH SIGNATURE-----`) 블록이 서명이고, 그 앞까지가 서명 대상이다.
  */
 object GitSignatures {
 
-    private const val BEGIN = "-----BEGIN PGP SIGNATURE-----"
+    /** 서명 블록이 시작하는 줄이다. OpenPGP 서명과 SSH 서명(`gpg.format=ssh`, D-68)이다. */
+    private val BEGIN_MARKERS = listOf("-----BEGIN PGP SIGNATURE-----", "-----BEGIN SSH SIGNATURE-----")
     private val GPGSIG = "gpgsig ".toByteArray()
 
     /** 커밋 원문 [raw]에서 서명을 가려낸다. 서명이 없으면 `null`이다. 머리글 영역(첫 빈 줄 앞)만 본다. */
@@ -47,16 +48,21 @@ object GitSignatures {
         return SignedPayload(data, (signature.toString() + "\n").toByteArray(Charsets.UTF_8))
     }
 
-    /** 주석 태그 원문 [raw]에서 서명을 가려낸다. 서명이 없으면 `null`이다. */
+    /** 주석 태그 원문 [raw]에서 서명을 가려낸다(OpenPGP 또는 SSH). 서명이 없으면 `null`이다. */
     fun ofTag(raw: ByteArray): SignedPayload? {
-        val marker = BEGIN.toByteArray()
+        val index = BEGIN_MARKERS.maxOf { lastLineStart(raw, it.toByteArray()) }
+        if (index < 0) return null
+        return SignedPayload(raw.copyOfRange(0, index), raw.copyOfRange(index, raw.size))
+    }
+
+    /** [marker]로 시작하는 줄 가운데 마지막 줄의 시작 위치이다. 없으면 -1이다. */
+    private fun lastLineStart(raw: ByteArray, marker: ByteArray): Int {
         var index = raw.size
         while (true) {
             index = lastIndexOf(raw, marker, index - 1)
-            if (index < 0) return null
-            if (index == 0 || raw[index - 1] == '\n'.code.toByte()) break
+            if (index < 0) return -1
+            if (index == 0 || raw[index - 1] == '\n'.code.toByte()) return index
         }
-        return SignedPayload(raw.copyOfRange(0, index), raw.copyOfRange(index, raw.size))
     }
 
     private fun startsWith(raw: ByteArray, at: Int, prefix: ByteArray) = at + prefix.size <= raw.size && prefix.indices.all { raw[at + it] == prefix[it] }

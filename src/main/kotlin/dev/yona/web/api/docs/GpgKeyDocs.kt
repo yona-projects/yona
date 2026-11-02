@@ -7,7 +7,8 @@ class VerificationNode(
     @get:Schema(description = "Verified이면 참") val verified: Boolean,
     @get:Schema(description = "판정 이유: `valid`, `unsigned`, `unknown_key`, `expired_key`, `not_signing_key`, `malformed_signature`, `invalid`, `no_user`, `bad_email`, `unverified_email`", example = "valid") val reason: String,
     @get:Schema(description = "서명한 키 주인의 로그인 ID. 주인을 확정하지 못했으면 없다") val signer: String? = null,
-    @get:Schema(description = "서명이 밝힌 발행 키 ID(16자리 16진수). 서명이 없거나 읽을 수 없으면 없다") val keyId: String? = null
+    @get:Schema(description = "서명이 밝힌 발행 키 ID(16자리 16진수). SSH 서명은 키 지문(`SHA256:...`)이다. 서명이 없거나 읽을 수 없으면 없다") val keyId: String? = null,
+    @get:Schema(description = "서명 형식: `gpg`(OpenPGP) 또는 `ssh`(`gpg.format=ssh`, 등록한 사용자 SSH 키로 검증). 서명이 없으면 `gpg`이다", example = "gpg") val format: String = "gpg"
 )
 
 @Schema(description = "GPG 하위 키")

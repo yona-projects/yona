@@ -110,6 +110,40 @@ class CommitSignatureViewTest : AbstractIntegrationTest() {
         assertEquals(key.keyId, box.selectFirst(".gpg-key-id")!!.text())
     }
 
+    @Autowired private lateinit var sshKeyService: dev.yona.domain.sshkey.SshKeyService
+
+    @org.junit.jupiter.api.io.TempDir lateinit var keyDir: java.io.File
+
+    @Test
+    fun `SSH 키로 서명한 커밋은 Verified로 보이고 서명한 사람과 키 지문과 SSH 설명을 보인다 (D-68)`() {
+        val p = project(); val alice = user("alice@example.com", "alice")
+        val key = dev.yona.domain.sshkey.TestSshSigner.newKey(keyDir)
+        sshKeyService.add(alice, "k", key.publicLine)
+        val verified = SignedGitObjects.sshCommit(repositories, p, key, "alice@example.com", "SSH 서명")
+        val unknown = SignedGitObjects.sshCommit(repositories, p, dev.yona.domain.sshkey.TestSshSigner.newKey(keyDir), "alice@example.com", "모르는 SSH 키", parent = verified)
+        val rows = page("/${p.owner}/${p.name}/commits").select("tbody tr")
+        val badges = rows.map { it.selectFirst(".gpg-badge")!! }
+        assertEquals(listOf("unknown_key", "valid"), badges.map { it.attr("data-reason") })
+        assertTrue(badges[1].hasClass("gpg-verified"))
+        assertTrue(badges[1].attr("title").contains("SSH"), "SSH 서명은 SSH 키 설명이다: ${badges[1].attr("title")}")
+        assertTrue(badges[0].attr("title").contains("SSH") && !badges[0].attr("title").startsWith("sshKey."), badges[0].attr("title"))
+        val box = page("/${p.owner}/${p.name}/commit/$verified").selectFirst(".gpg-signature-box")!!
+        assertEquals("alice", box.selectFirst(".gpg-signer")!!.text())
+        assertTrue(box.selectFirst(".gpg-key-id")!!.text().startsWith("SHA256:"), "SSH 서명은 키 지문을 보인다")
+        assertNotNull(unknown)
+    }
+
+    @Test
+    fun `SSH 키로 서명한 주석 태그도 태그 목록에서 Verified이다 (D-68)`() {
+        val p = project(); val alice = user("alice@example.com", "alice")
+        val key = dev.yona.domain.sshkey.TestSshSigner.newKey(keyDir)
+        sshKeyService.add(alice, "k", key.publicLine)
+        val commit = SignedGitObjects.commit(repositories, p, null, "alice@example.com", "기준")
+        SignedGitObjects.sshAnnotatedTag(repositories, p, key, "v1", "alice@example.com", commit)
+        val badge = page("/${p.owner}/${p.name}/tags").selectFirst(".gpg-badge")!!
+        assertEquals("valid", badge.attr("data-reason")); assertTrue(badge.hasClass("gpg-verified"))
+    }
+
     @Test
     fun `커밋 상세에서 서명이 없으면 서명 상자가 없다`() {
         val p = project()

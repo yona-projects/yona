@@ -3,5 +3,5 @@
   매개변수: b(SignatureBadge)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="badge(b)" th:if="${b != null}"><span class="gpg-badge badge"
-    th:classappend="${b.verified} ? 'gpg-verified bg-success' : 'gpg-unverified bg-secondary'" th:attr="data-reason=${b.reason}"
-    th:title="#{'gpgKey.reason.' + ${b.reason}}" th:text="${b.verified} ? #{gpgKey.verified} : #{gpgKey.unverified}"></span></th:block>
+    th:classappend="${b.verified} ? 'gpg-verified bg-success' : 'gpg-unverified bg-secondary'" th:attr="data-reason=${b.reason}, data-format=${b.format}"
+    th:title="#{${(b.format == 'ssh' ? 'sshKey.reason.' : 'gpgKey.reason.') + b.reason}}" th:text="${b.verified} ? #{gpgKey.verified} : #{gpgKey.unverified}"></span></th:block>

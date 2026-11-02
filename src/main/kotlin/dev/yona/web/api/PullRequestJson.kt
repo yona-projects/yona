@@ -94,9 +94,9 @@ class PullRequestJson(
         "authoredAt" to iso(commit.authorDate), "state" to commit.state?.name?.lowercase()
     ).also { node -> verification?.let { node["verification"] = verification(it) } }
 
-    /** 서명 판정의 JSON이다(X-4, D-65). 서명한 사람과 키 ID는 알 때만 담는다. */
+    /** 서명 판정의 JSON이다(X-4, D-65, SSH 서명은 D-68). 서명한 사람과 키 ID(SSH 서명은 키 지문)는 알 때만 담는다. */
     fun verification(result: dev.yona.domain.gpgkey.SignatureVerification): Map<String, Any?> =
-        linkedMapOf<String, Any?>("verified" to result.verified, "reason" to result.reason.code).also { node ->
+        linkedMapOf<String, Any?>("verified" to result.verified, "reason" to result.reason.code, "format" to result.format).also { node ->
             result.signerLogin?.let { node["signer"] = it }
             result.keyId?.let { node["keyId"] = it }
         }

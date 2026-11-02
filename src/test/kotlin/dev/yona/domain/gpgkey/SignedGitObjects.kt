@@ -65,4 +65,39 @@ object SignedGitObjects {
             repository.updateRef("refs/tags/$name").apply { setNewObjectId(id); setForceUpdate(true) }.update()
             id.name
         }
+
+    /** [commit]과 같지만 SSH 키로 서명한다(`gpg.format=ssh`, D-68). */
+    fun sshCommit(
+        repositories: RepositoryService, project: Project, key: dev.yona.domain.sshkey.TestSshSigner.Key, committerEmail: String, message: String = "ssh signed commit", branch: String = "master",
+        time: Long = 1_800_000_000_000L, parent: String? = null
+    ): String = repositories.openRepository(project).use { repository ->
+        val inserter = repository.newObjectInserter()
+        val tree = TreeFormatter().apply { append("a.txt", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, "a".toByteArray())) }
+        val ident = PersonIdent("Committer", committerEmail, Date(time), UTC)
+        val builder = CommitBuilder().apply {
+            setTreeId(inserter.insert(tree)); author = ident; committer = ident; this.message = message
+            parent?.let { setParentId(org.eclipse.jgit.lib.ObjectId.fromString(it)) }
+        }
+        builder.setGpgSignature(GpgSignature(dev.yona.domain.sshkey.TestSshSigner.sign(key, builder.build()).toByteArray()))
+        val id = inserter.insert(builder)
+        inserter.flush()
+        repository.updateRef("refs/heads/$branch").apply { setNewObjectId(id); setForceUpdate(true) }.update()
+        if (branch == "master") repository.updateRef(Constants.HEAD, false).link("refs/heads/master")
+        id.name
+    }
+
+    /** [annotatedTag]와 같지만 SSH 키로 서명한다. */
+    fun sshAnnotatedTag(repositories: RepositoryService, project: Project, key: dev.yona.domain.sshkey.TestSshSigner.Key, name: String, taggerEmail: String, commitId: String, time: Long = 1_800_000_100_000L): String =
+        repositories.openRepository(project).use { repository ->
+            val inserter = repository.newObjectInserter()
+            val builder = TagBuilder().apply {
+                tag = name; tagger = PersonIdent("Tagger", taggerEmail, Date(time), UTC); message = "릴리스 $name\n"
+                setObjectId(repository.resolve(commitId), Constants.OBJ_COMMIT)
+            }
+            val unsigned = builder.build()
+            val id = inserter.insert(Constants.OBJ_TAG, unsigned + dev.yona.domain.sshkey.TestSshSigner.sign(key, unsigned).toByteArray())
+            inserter.flush()
+            repository.updateRef("refs/tags/$name").apply { setNewObjectId(id); setForceUpdate(true) }.update()
+            id.name
+        }
 }
