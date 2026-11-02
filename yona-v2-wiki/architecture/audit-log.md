@@ -61,6 +61,8 @@ server:
 | `oauth.authorized`, `oauth.token_issued`, `oauth.authorization_revoked` | 성공 | 사용자가 앱을 승인하고(`details.scopes`), 토큰을 발급하고(`details.grant`: authorization_code, refresh_token), 승인을 취소한다. 토큰 값은 남기지 않는다 | `YonaOAuth2AuthorizationConsentService`, `YonaOAuth2AuthorizationService`, `OAuthAuthorizedAppsService` |
 | `oauth.refresh_reuse_detected` | 거부 | 이미 쓴 갱신 토큰이 다시 와서 그 인가 전체를 취소했다(탈취 의심) | `YonaOAuth2AuthorizationService` |
 | `site.oauth_cimd_changed`, `site.oauth_user_apps_changed` | 성공 | 관리자가 CIMD 클라이언트 허용과 사용자의 앱 만들기 허용을 바꿨다(`details.from`, `to`) | `SiteSettingService` |
+| `site.lfs_changed` | 성공 | 관리자가 Git LFS 사용, 객체 최대 크기, 프로젝트 용량 한도를 바꿨다(`details.setting`, `from`, `to`, X-8) | `SiteSettingService` |
+| `lfs.lock_created`, `lfs.lock_released` | 성공 | LFS 파일을 잠그고 푼다(`details.path`, 풀 때 `force`, `owner_id`). 프로젝트에 속한다(X-8) | `LfsLockService` |
 | `site.mcp_enabled_changed`, `site.mcp_write_changed` | 성공 | 관리자가 MCP 서버 사용과 쓰기 도구 허용을 바꿨다(`details.from`, `to`, X-6) | `SiteSettingService` |
 | `mcp.tool_called` | 성공, 실패 | MCP 쓰기 도구를 불렀다(`details.tool`, 실패면 `details.error`, `targetLabel`은 `소유자/프로젝트`). 읽기 도구는 남기지 않고 지표로 센다. 도구가 부른 REST의 변경 기록은 따로 남는다(X-6) | `McpRestBridge` |
 | `auth.token_blocked` | 거부 | 인증 실패가 쌓여 주소가 막힘(같은 주소는 1분에 한 번만) | 인증 필터, `BasicAuthResolver` |
