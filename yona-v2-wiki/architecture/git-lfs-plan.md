@@ -14,7 +14,7 @@ updated: 2026-11-02
 
 ## 2. 프로토콜 요약(공식 규격 기준)
 
-- 클라이언트는 저장소 주소 뒤에 `/info/lfs`를 붙여 서버를 찾는다. 우리의 저장소 주소 `https://host/{소유자}/{프로젝트}`에서는 `https://host/{소유자}/{프로젝트}/info/lfs`이다.
+- 클라이언트는 저장소(remote) 주소에서 LFS 주소를 **자동으로 만든다**. 주소가 `.git`으로 끝나면 `/info/lfs`를 붙이고, **끝나지 않으면 `.git/info/lfs`를 붙인다**(공식 서버 탐색 규격). Yona의 저장소 주소는 v1.6부터 `https://host/{소유자}/{프로젝트}`(`.git` 없음)이므로 클라이언트가 실제로 부르는 주소는 `https://host/{소유자}/{프로젝트}.git/info/lfs`이다. **그래서 LFS 경로는 `{프로젝트}.git` 꼴을 받아야 하고, 지금의 git HTTP 경로(`.git` 없는 `info/refs`)와는 모양이 다르다.** 사용자가 `lfs.url`로 직접 지정하면 `.git` 없는 주소도 쓰므로 둘 다 받는다. (단계 0에서 실제 클라이언트로 확인한다.)
 - **Batch API** `POST …/info/lfs/objects/batch`: 본문 `{"operation": "download"|"upload", "transfers": ["basic"], "objects": [{"oid", "size"}]}`. 응답은 객체마다 `actions`(`download`, `upload`, `verify`)의 `href`와 `header`를 준다. 이미 있는 객체의 업로드는 `actions`를 비운다. 미디어 타입은 `application/vnd.git-lfs+json`이다.
 - **basic 전송**: 업로드는 `PUT …/objects/{oid}`, 내려받기는 `GET …/objects/{oid}`(`Range` 이어받기), 올린 뒤 선택적으로 `POST …/verify`.
 - 객체 이름 `oid`는 내용의 **SHA-256 16진수 64자**이다. 서버는 올라온 내용의 해시와 크기가 맞는지 확인해야 한다.
@@ -28,13 +28,15 @@ updated: 2026-11-02
 
 | 경로 | 메서드 | 필요한 권한 |
 |---|---|---|
-| `/{소유자}/{프로젝트}/info/lfs/objects/batch` | POST | `operation`에 따라 읽기 또는 쓰기 |
-| `/{소유자}/{프로젝트}/info/lfs/objects/{oid}` | GET, PUT | 읽기, 쓰기 |
-| `/{소유자}/{프로젝트}/info/lfs/verify` | POST | 쓰기 |
+| `/{소유자}/{프로젝트}[.git]/info/lfs/objects/batch` | POST | `operation`에 따라 읽기 또는 쓰기 |
+| `/{소유자}/{프로젝트}[.git]/info/lfs/objects/{oid}` | GET, PUT | 읽기, 쓰기 |
+| `/{소유자}/{프로젝트}[.git]/info/lfs/verify` | POST | 쓰기 |
 
 - 권한 판단은 **git HTTP와 똑같이** 한다: `BasicAuthResolver`로 신원을 확인하고 `allowsRepository(identity, project, write)`로 토큰 범위를 보며(읽기 `repo`와 `read:repo`, 공개 프로젝트의 `public_repo`, 쓰기 `repo`), `AccessControl`로 프로젝트 권한을 본다. 쓰기는 푸시 권한과 같다.
 - 개인용 토큰만 받고 OAuth 토큰은 받지 않는 현재 git HTTP 규칙(D-70)을 그대로 따른다. 그래서 조직의 OAuth 앱 정책(D-78)은 이 경로에 해당하지 않는다.
 - 공개 프로젝트의 내려받기는 익명도 된다(git 복제와 같다). 인증 실패 제한(`TokenFailureLimiter`)과 지표(`VcsMetrics`, `vcs=git_lfs`)도 같이 쓴다.
+
+- `[.git]`은 있어도 없어도 같은 프로젝트로 본다. 프로젝트 이름에 `.git` 접미사를 쓰는 경우는 v1.6 이름 규칙에서 따로 확인한다(단계 0). 이 경로 처리는 LFS 경로에만 두고 기존 git HTTP 경로(`info/refs`, `git-upload-pack`)는 바꾸지 않는다(v1.6 계약 유지).
 
 ### 3.2 저장
 
