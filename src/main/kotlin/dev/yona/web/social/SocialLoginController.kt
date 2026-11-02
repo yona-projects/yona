@@ -42,8 +42,7 @@ class SocialLoginController(
     private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
     private val credentials: UserCredentialRepository,
     private val currentUserProvider: CurrentUserProvider,
-    private val audit: dev.yona.domain.audit.AuditBoundary,
-    private val siteSettings: dev.yona.domain.site.SiteSettingService
+    private val audit: dev.yona.domain.audit.AuditBoundary
 ) {
 
     /** 인증을 시작하거나(코드 없음) 제공자가 돌아온 뒤의 처리를 한다(코드 있음). */
@@ -56,8 +55,8 @@ class SocialLoginController(
         request: HttpServletRequest,
         response: HttpServletResponse
     ): Any {
-        // SSO 전용 모드에서는 소셜 로그인을 받지 않는다(X-16, D-80 12번)
-        if (siteSettings.ssoOnly()) return RedirectSupport.see(request, response, "/users/loginform", mapOf(RedirectSupport.WARNING to "sso.error.ssoOnly"))
+        // 사내 인증(LDAP, 사내 OIDC, 사내 SAML 2)을 쓰는 사이트는 소셜 로그인을 받지 않는다(D-81)
+        if (providers.blockedByEnterpriseLogin()) return RedirectSupport.see(request, response, "/users/loginform", mapOf(RedirectSupport.WARNING to "social.error.disabled"))
         val found = providers.find(provider) ?: return providerNotFound(provider, response)
         // v1.6: 거절은 안내 화면으로, 그 밖의 오류는 오류 문구를 본문으로 한 500이다.
         if (error == "access_denied") return RedirectSupport.see(request, response, "/authenticate/$provider/denied")

@@ -23,7 +23,8 @@ class LoginFormController(
     private val socialSession: dev.yona.web.social.SocialSession,
     private val social: dev.yona.domain.social.SocialAccountService,
     private val loginSession: dev.yona.security.LoginSessionService,
-    private val twoFactorLogin: dev.yona.security.TwoFactorLogin
+    private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
+    private val socialProviders: dev.yona.domain.social.SocialProviders
 ) {
 
     @GetMapping("/users/loginform")
@@ -40,7 +41,7 @@ class LoginFormController(
         }
         // 소셜 로그인은 마쳤지만 로컬 세션이 없는 상태이면 연결된 사용자를 이어받는다(v1.6 `linkWithExistedOrCreateLocalUser`).
         // 이동할 주소가 없으면 v1.6은 오류가 난다. 홈으로 보낸다([refactoring-backlog.md] R-59).
-        socialSession.current(request)?.let { current ->
+        socialSession.current(request)?.takeIf { !socialProviders.blockedByEnterpriseLogin() }?.let { current ->
             val resumed = social.resume(dev.yona.domain.social.SocialIdentity(current.provider, current.providerUserId, null, null)).user
             if (resumed != null && twoFactorLogin.required(resumed, request)) {
                 twoFactorLogin.begin(request, resumed, "social", true, if (redirectUrl.isNullOrEmpty()) "/" else redirectUrl)

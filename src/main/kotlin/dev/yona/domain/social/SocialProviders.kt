@@ -8,7 +8,18 @@ import org.springframework.stereotype.Component
  * 설정 `application.social.login.support`에 올라 있고 클라이언트 ID와 비밀이 설정된 것만 쓴다(A-95).
  */
 @Component
-class SocialProviders(private val properties: YonaProperties) {
+class SocialProviders(
+    private val properties: YonaProperties,
+    private val ldap: dev.yona.domain.ldap.LdapAuthService,
+    private val sso: dev.yona.domain.sso.SsoSettingsService,
+    private val siteSettings: dev.yona.domain.site.SiteSettingService
+) {
+
+    /**
+     * 사내 인증(LDAP, 사내 OIDC, 사내 SAML 2) 중 하나라도 쓰거나 SSO 전용 모드이면 `true`이다. 이때 소셜 로그인은 받지 않는다(`decisions.md` D-81, 선생님 지시 2026-11-03).
+     * 사내 계정으로만 들어오게 하는 사이트에서 개인 소셜 계정이 뒷문이 되지 않게 한다.
+     */
+    fun blockedByEnterpriseLogin(): Boolean = ldap.enabled || sso.anyEnabled() || siteSettings.ssoOnly()
 
     private val social get() = properties.social
 
@@ -24,14 +35,14 @@ class SocialProviders(private val properties: YonaProperties) {
     )
 
     /** 로그인 화면에 버튼으로 보일 제공자 키이다. v1.6 `forProviders`의 순서를 따른다(GitHub, Google). */
-    fun available(): List<String> = all.filter { it.key in social.allowedProviders() && it.configured }.map { it.key }
+    fun available(): List<String> = if (blockedByEnterpriseLogin()) emptyList() else all.filter { it.key in social.allowedProviders() && it.configured }.map { it.key }
 
     /**
      * 인증을 시작할 수 있는 제공자를 찾는다. 알 수 없거나 설정이 없으면 `null`이다.
      * 허용 목록(`application.social.login.support`)은 보지 않는다. v1.6은 그 값을 화면의 버튼에만 쓰고
      * `/authenticate/:provider`는 등록된 제공자면 목록과 무관하게 연다(A-95 (2)를 되돌림).
      */
-    fun find(key: String): SocialProvider? = all.firstOrNull { it.key == key && it.configured }
+    fun find(key: String): SocialProvider? = if (blockedByEnterpriseLogin()) null else all.firstOrNull { it.key == key && it.configured }
 
     /**
      * 제공자가 인증을 마치고 돌아올 주소이다 (`play-authenticate.<제공자>.redirectUri`).

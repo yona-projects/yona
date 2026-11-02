@@ -49,6 +49,7 @@ updated: 2026-11-02
 - **SAML 2**: 로그인 시작이 AuthnRequest를 만들고 응답은 요청 ID로 짝을 짓는다. 응답 또는 어설션에 서명이 있어야 하고 발급자, Audience, Destination, Recipient, 유효 시간을 검증한다. 같은 응답을 다시 보내면 거절한다.
 - **계정**: `발급자|subject`(SAML은 `발급자|NameID`)를 `linked_account`(`sso-oidc`, `sso-saml2`)에 안정 식별자로 저장한다. 처음 보는 신원은 같은 이메일의 로컬 계정에 연결하되 **IdP가 이메일을 확인했다고 알린 경우에만**(OIDC `email_verified`, SAML은 관리자가 신뢰하기로 한 IdP의 속성) 연결한다. 없으면 자동으로 만든다(설정으로 끈다).
 - **2단계 인증**: SSO 로그인은 Yona의 2단계 인증을 거치지 않는다(IdP가 MFA를 맡는다, D-80 11번). 로그인 유지 쿠키는 만들지 않는다.
+- **소셜 로그인 차단**(D-81): LDAP, 사내 OIDC, 사내 SAML 2 가운데 하나라도 쓰면 소셜 로그인 단추를 숨기고 `/authenticate/{제공자}`의 시작과 돌아옴을 막는다(`SocialProviders.blockedByEnterpriseLogin`). 모두 끄면 돌아온다.
 - **SSO 전용 모드**(사이트 관리, 기본 끔): 로컬 비밀번호 로그인, LDAP, 소셜 로그인을 막고 SSO 단추만 보인다. **사이트 관리자만 로컬 로그인을 쓸 수 있다**(비상 경로, `/users/loginform?local=true`). 켜려면 켠 SSO가 하나 이상 있어야 한다.
 - **IdP 시작 로그인**(프로토콜마다 관리자 설정, 기본 끔): SAML은 요청 없는 응답을 받되 요청 ID가 없어야 하고 어설션 ID 재사용을 [SsoReplayCache]로 막으며 RelayState는 같은 사이트의 경로만 받는다. OIDC는 `iss`가 설정과 같아야 한다.
 - **SAML SP 키**: 앱 안에서 RSA 3072 키쌍과 5년 자체 서명 인증서를 만들거나 PKCS#8 키와 인증서를 올린다(짝 확인). 비밀 키는 `SecretCipher`(용도 `yona.sso.secret`)로 암호화해 저장하고 화면에 다시 보이지 않는다. 다시 만들면 이전 키가 "교체 중"으로 남아 암호화된 어설션을 풀 때 함께 쓰고, 관리자가 IdP 갱신을 확인한 뒤 지운다. 요청 서명은 기본 끔이고 SP 키가 있어야 켤 수 있다.
@@ -57,7 +58,7 @@ updated: 2026-11-02
 
 ### Yona가 OIDC 제공자이면서 사내 IdP로 로그인하는 경우(X-40과 X-16의 조합)
 
-외부 앱(예: Woodpecker)이 Yona로 로그인을 요청하면 인가 서버가 로그인하지 않은 사용자를 `/users/loginform?redirectUrl=/oauth2/resume`로 보낸다. 사용자는 이 화면에서 사내 IdP 단추를 눌러 로그인하고(`returnTo`가 `/oauth2/resume`을 이어받는다), 로그인이 끝나면 보관해 둔 승인 요청이 이어져 승인 화면을 거쳐 외부 앱이 인가 코드와 ID 토큰을 받는다. ID 토큰의 `sub`는 SSO로 만들어졌거나 연결된 Yona 사용자의 번호이다. 사내 IdP 로그인이 거절되면(예: 이메일 미확인) 승인 요청은 이어지지 않는다. 외부 앱이 먼저 사내 IdP로 가는 것이 아니라 **사용자가 Yona 로그인 화면에서 고르는** 구조이며, SSO 전용 모드이면 사내 IdP 단추만 남는다. **로그인 수단에 상관없이** 같은 흐름이다. 로그인 화면의 숨은 `redirectUrl`(`/oauth2/resume`)이 비밀번호 폼(LDAP 포함, 2단계 인증을 켠 경우는 코드를 확인한 뒤)으로 이어지고, SSO 단추는 `returnTo`로 이어받는다. 시험은 사내 OIDC가 `SsoWithOidcProviderTest`, 비밀번호와 2단계 인증과 SAML이 `OAuthResumeAfterLoginTest`, LDAP이 `OAuthResumeAfterLdapLoginTest`이다(소셜 로그인은 이 확인의 범위에서 뺐다). 실제 확인은 `e2e/ssoprovider.mjs`(외부 앱 대신 `openid-client` 라이브러리)이다.
+외부 앱(예: Woodpecker)이 Yona로 로그인을 요청하면 인가 서버가 로그인하지 않은 사용자를 `/users/loginform?redirectUrl=/oauth2/resume`로 보낸다. 사용자는 이 화면에서 사내 IdP 단추를 눌러 로그인하고(`returnTo`가 `/oauth2/resume`을 이어받는다), 로그인이 끝나면 보관해 둔 승인 요청이 이어져 승인 화면을 거쳐 외부 앱이 인가 코드와 ID 토큰을 받는다. ID 토큰의 `sub`는 SSO로 만들어졌거나 연결된 Yona 사용자의 번호이다. 사내 IdP 로그인이 거절되면(예: 이메일 미확인) 승인 요청은 이어지지 않는다. 외부 앱이 먼저 사내 IdP로 가는 것이 아니라 **사용자가 Yona 로그인 화면에서 고르는** 구조이며, SSO 전용 모드이면 사내 IdP 단추만 남는다. **로그인 수단에 상관없이** 같은 흐름이다. 로그인 화면의 숨은 `redirectUrl`(`/oauth2/resume`)이 비밀번호 폼(LDAP 포함, 2단계 인증을 켠 경우는 코드를 확인한 뒤)으로 이어지고, SSO 단추는 `returnTo`로 이어받는다. 시험은 사내 OIDC가 `SsoWithOidcProviderTest`, 비밀번호와 2단계 인증과 SAML이 `OAuthResumeAfterLoginTest`, LDAP이 `OAuthResumeAfterLdapLoginTest`이다(소셜 로그인은 사내 인증을 쓰면 차단되므로 이 확인에서 뺐다). 실제 확인은 `e2e/ssoprovider.mjs`(외부 앱 대신 `openid-client` 라이브러리)이다.
 
 ## 4. 알아 둘 점
 

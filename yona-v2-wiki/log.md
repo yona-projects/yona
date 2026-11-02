@@ -1047,3 +1047,6 @@ GitHub 조직 설정과 Yona의 현재 조직 화면을 Playwright로 캡처해 
 
 ## [2026-11-02] X-16 엔터프라이즈 SSO 완료
 OIDC와 SAML 2 로그인, 관리자 화면(설정, IdP 메타데이터 가져오기, SAML SP 키 만들기, 올리기, 교체), 로그인 화면 단추, SSO 전용 모드, IdP 시작 로그인(재사용 방지), 연결된 계정(본인과 관리자 해제), 지표와 감사를 구현했다. 가짜 IdP 시험 외에 Keycloak 26.4 컨테이너로 실제 로그인(암호화된 어설션과 IdP 시작 포함) 15건을 Playwright로 확인했다. 결과는 [enterprise-sso.md](architecture/enterprise-sso.md), 구현 판단은 A-344.
+
+## [2026-11-03] 사내 인증을 쓰면 소셜 로그인 차단 (D-81)
+선생님이 사내 IdP(SAML, OIDC)나 LDAP을 설정하면 소셜 로그인을 허용하지 않기로 하셨다. 소셜 단추를 숨기고 시작과 돌아옴을 막았으며, v1.6의 LDAP과 소셜 병행 동작이 바뀌는 점을 `differences-from-v16.md`에 적었다. 같은 날 Yona가 OIDC 제공자일 때 비밀번호, 2단계 인증, SAML, LDAP, 사내 OIDC 로그인 뒤 승인 요청이 이어지는지 시험을 더했다.
