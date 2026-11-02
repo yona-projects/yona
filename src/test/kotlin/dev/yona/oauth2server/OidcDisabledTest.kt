@@ -6,6 +6,7 @@ import dev.yona.domain.oauth2server.OAuthClientService
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
+import org.jsoup.Jsoup
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -25,6 +26,7 @@ class OidcDisabledTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var clientService: OAuthClientService
+    @Autowired private lateinit var admins: dev.yona.domain.user.SiteAdminRepository
 
     @Test
     fun `키를 정하지 않으면 발견 문서와 사용자 정보는 404이다`() {
@@ -49,5 +51,16 @@ class OidcDisabledTest : AbstractIntegrationTest() {
         val session = org.springframework.mock.web.MockHttpSession().also { mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/users/login").session(it).param("loginIdOrEmail", u.loginId!!).param("password", "1234")) }
         val form = mockMvc.perform(get("/user/editform/oauth-apps/new").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
         assertTrue(form.contains("id=\"oauth-scope-repo\"") && !form.contains("id=\"oauth-scope-openid\""))
+    }
+
+    @Test
+    fun `사이트 관리자의 보안 화면에 OIDC가 꺼져 있다는 것과 켜는 법이 보인다`() {
+        val salt = LegacyPasswordHasher.generateSalt()
+        val a = users.save(dev.yona.domain.user.User(loginId = "oa${System.nanoTime() % 100000}", name = "x", email = "oa${System.nanoTime()}@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+        admins.save(dev.yona.domain.user.SiteAdmin(admin = a))
+        val session = org.springframework.mock.web.MockHttpSession().also { mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/users/login").session(it).param("loginIdOrEmail", a.loginId!!).param("password", "1234")) }
+        val page = mockMvc.perform(get("/sites/security").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
+        val section = Jsoup.parse(page).select("#oidc-status").first()!!
+        assertTrue(section.attr("data-state") == "disabled" && section.text().contains("yona.oauth2.oidc.signing-key-file"), section.text())
     }
 }

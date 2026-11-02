@@ -137,7 +137,15 @@ class OAuthAppsSettingsController(
 
     private fun formView(client: OAuthClient?, errorKey: String?, form: Form): ModelAndView = base("user/edit-oauth-app-form")
         .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
-        .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled))
+        .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", oidcInfo(client))
+
+    /** OIDC로 로그인을 붙이는 앱 개발자에게 알려 줄 주소이다(X-40, D-77). OIDC가 켜져 있고 이미 만든 앱의 수정 화면일 때만 있다. */
+    private fun oidcInfo(client: OAuthClient?): Map<String, String>? {
+        if (client == null || !oidc.enabled) return null
+        val request = (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() as? org.springframework.web.context.request.ServletRequestAttributes)?.request ?: return null
+        val base = dev.yona.oauth2server.ProtectedResources.base(request)
+        return linkedMapOf("issuer" to base, "discovery" to "$base/.well-known/openid-configuration")
+    }
 
     private fun secretView(client: OAuthClient, secret: String, noticeKey: String): ModelAndView =
         base("user/edit-oauth-app-secret").addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("secret", secret).addObject("noticeKey", noticeKey).addObject("appId", client.id)

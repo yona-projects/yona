@@ -42,6 +42,26 @@
     </div>
 </form>
 
+<section id="oidc-status" class="security-settings mt-4" th:attr="data-state=${oidc.enabled} ? 'enabled' : 'disabled'">
+    <h4 th:text="#{site.security.oidc}"></h4>
+    <p class="text-body-secondary" th:text="#{site.security.oidc.description}"></p>
+    <th:block th:if="${oidc.enabled}">
+        <p><span class="badge bg-success" th:text="#{site.security.oidc.enabled}"></span></p>
+        <dl class="row">
+            <dt class="col-sm-3" th:text="#{site.security.oidc.issuer}"></dt><dd class="col-sm-9"><code th:text="${oidc.issuer}"></code></dd>
+            <dt class="col-sm-3" th:text="#{site.security.oidc.discovery}"></dt><dd class="col-sm-9"><code th:text="${oidc.discovery}"></code></dd>
+            <dt class="col-sm-3" th:text="#{site.security.oidc.jwks}"></dt><dd class="col-sm-9"><code th:text="${oidc.jwks}"></code></dd>
+            <dt class="col-sm-3" th:text="#{site.security.oidc.algorithm}"></dt><dd class="col-sm-9"><code th:text="${oidc.algorithm}"></code></dd>
+            <dt class="col-sm-3" th:text="#{site.security.oidc.kid}"></dt><dd class="col-sm-9"><code th:text="${oidc.kid}"></code></dd>
+        </dl>
+        <p class="text-body-secondary" th:text="#{site.security.oidc.keyHelp}"></p>
+    </th:block>
+    <th:block th:unless="${oidc.enabled}">
+        <p><span class="badge bg-secondary" th:text="#{site.security.oidc.disabled}"></span></p>
+        <p th:utext="#{site.security.oidc.howto}"></p>
+    </th:block>
+</section>
+
 <form id="mcp-settings-form" class="security-settings mt-4" method="post" th:action="@{/sites/security/mcp}">
     <h4 th:text="#{site.security.mcp}"></h4>
     <p class="text-body-secondary" th:text="#{site.security.mcp.description}"></p>

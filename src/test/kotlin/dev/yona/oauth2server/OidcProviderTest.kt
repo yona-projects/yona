@@ -12,6 +12,7 @@ import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
+import org.jsoup.Jsoup
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -47,6 +48,7 @@ class OidcProviderTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var clientService: OAuthClientService
+    @Autowired private lateinit var admins: dev.yona.domain.user.SiteAdminRepository
 
     private val json = JsonMapper()
     private var n = 0
@@ -205,5 +207,26 @@ class OidcProviderTest : AbstractIntegrationTest() {
         val consent = mockMvc.perform(get(java.net.URI.create(location)).session(l.session)).andExpect(status().isOk).andReturn().response.contentAsString
         assertTrue(consent.contains("Yona 계정으로 로그인") || consent.contains("Sign in with your Yona account"), "승인 화면에 openid 설명이 나와야 한다")
         assertFalse(consent.contains("??apiToken.scope"), "설명 키가 빠지면 안 된다")
+    }
+
+    @Test
+    fun `내가 만든 앱의 수정 화면에 연동 주소가 보인다`() {
+        val l = login(setOf("openid", "profile", "email"))
+        val edit = mockMvc.perform(get("/user/editform/oauth-apps/${l.client.id}").session(l.session)).andExpect(status().isOk).andReturn().response.contentAsString
+        assertTrue(edit.contains("id=\"oidc-info\""), "OIDC 연동 정보 영역이 있어야 한다")
+        assertTrue(edit.contains("http://localhost/.well-known/openid-configuration"), "발견 문서 주소가 보여야 한다")
+        val create = mockMvc.perform(get("/user/editform/oauth-apps/new").session(l.session)).andExpect(status().isOk).andReturn().response.contentAsString
+        assertFalse(create.contains("id=\"oidc-info\""), "새 앱을 만드는 화면에는 아직 주소 영역이 없다")
+    }
+
+    @Test
+    fun `사이트 관리자의 보안 화면에 OIDC가 켜져 있다고 키 번호와 함께 보인다`() {
+        val a = user(); admins.save(dev.yona.domain.user.SiteAdmin(admin = a))
+        val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", a.loginId!!).param("password", "1234")) }
+        val page = mockMvc.perform(get("/sites/security").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
+        val section = Jsoup.parse(page).select("#oidc-status").first()!!
+        assertEquals("enabled", section.attr("data-state"))
+        assertTrue(section.text().contains(publicKey().keyID), "서명 키 번호가 보여야 한다")
+        assertTrue(section.text().contains("RS256") && section.text().contains("http://localhost/.well-known/openid-configuration"))
     }
 }
