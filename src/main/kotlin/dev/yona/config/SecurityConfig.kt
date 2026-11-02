@@ -57,7 +57,11 @@ class SecurityConfig {
             .httpBasic { it.disable() }
             .logout { it.disable() }
             .headers { headers ->
-                headers.frameOptions { it.sameOrigin() }
+                // 승인(동의) 화면(X-1)은 다른 곳에 끼워 넣어 클릭을 가로채지 못하도록 DENY이고, 그 밖은 SAMEORIGIN이다
+                headers.frameOptions { it.disable() }
+                headers.addHeaderWriter { request, response ->
+                    response.setHeader("X-Frame-Options", if (request.requestURI.removePrefix(request.contextPath.orEmpty()) == "/oauth2/consent") "DENY" else "SAMEORIGIN")
+                }
                 headers.cacheControl { it.disable() }
             }
             .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate), SecurityContextHolderFilter::class.java)

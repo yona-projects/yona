@@ -247,6 +247,13 @@ class DataService(
             connection.createStatement().use { statement ->
                 if ("N4USER" in imported && "OAUTH_CLIENT" !in imported) statement.executeUpdate("delete from oauth_client")
                 statement.executeUpdate("delete from oauth_client where owner_type = 'USER' and owner_id not in (select id from n4user)")
+                if ("N4USER" in imported) {
+                    for (table in listOf("oauth_authorization", "oauth_consent")) if (table.uppercase() !in imported) statement.executeUpdate("delete from $table")
+                }
+                for (table in listOf("oauth_authorization", "oauth_consent")) {
+                    statement.executeUpdate("delete from $table where user_id not in (select id from n4user)")
+                    statement.executeUpdate("delete from $table where " + (if (table == "oauth_authorization") "client_row_id" else "client_row_id") + " not in (select id from oauth_client)")
+                }
             }
             connection.commit()
         } catch (e: Exception) {

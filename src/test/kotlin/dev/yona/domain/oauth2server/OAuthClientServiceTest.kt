@@ -76,6 +76,17 @@ class OAuthClientServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `SSH 키와 GPG 키와 배포 키의 모든 범위는 OAuth 앱에 주지 않는다`() {
+        val u = user()
+        for (scope in listOf("admin", "write", "read").flatMap { p -> listOf("ssh_key", "gpg_key", "deploy_key").map { "$p:$it" } }) {
+            assertEquals("oauth.error.scope", assertIs<ClientCreation.Rejected>(create(u, scopes = setOf("read:user", scope))).messageKey, scope)
+        }
+        assertTrue(OAuthScopes.grantable().none { it.endsWith("_key") || it == "site_admin" })
+        assertTrue(OAuthScopes.grantable().containsAll(listOf("repo", "read:user", "read:org", "user:email")))
+        assertEquals(0, clients.count())
+    }
+
+    @Test
     fun `여러 줄 리디렉션 주소는 정리해 저장한다`() {
         val c = assertIs<ClientCreation.Created>(create(user(), redirect = " https://a.example/cb \n\nhttp://localhost/cb\nhttps://a.example/cb")).client
         assertEquals(listOf("https://a.example/cb", "http://localhost/cb"), RedirectUris.parse(c.redirectUris))

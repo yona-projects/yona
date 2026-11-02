@@ -117,7 +117,10 @@ class SiteUserService(
             // 추가 항목(X-4): GPG 키도 지운다. 하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다
             entityManager.createNativeQuery("delete from gpg_key where user_id = :id and parent_id is not null").setParameter("id", id).executeUpdate()
             entityManager.createNativeQuery("delete from gpg_key where user_id = :id").setParameter("id", id).executeUpdate()
-            // 추가 항목(X-1): 사용자가 만든 OAuth 앱도 지운다
+            // 추가 항목(X-1): 사용자가 만든 OAuth 앱과 그 앱의 인가와 승인, 사용자가 승인한 인가와 승인도 지운다
+            for (table in listOf("oauth_authorization", "oauth_consent")) {
+                entityManager.createNativeQuery("delete from $table where user_id = :id or client_row_id in (select id from oauth_client where owner_type = 'USER' and owner_id = :id)").setParameter("id", id).executeUpdate()
+            }
             entityManager.createNativeQuery("delete from oauth_client where owner_type = 'USER' and owner_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-2): 2단계 인증 데이터도 지운다
             for (table in listOf("two_factor_backup_code", "known_device", "two_factor_credential")) entityManager.createNativeQuery("delete from $table where user_id = :id").setParameter("id", id).executeUpdate()

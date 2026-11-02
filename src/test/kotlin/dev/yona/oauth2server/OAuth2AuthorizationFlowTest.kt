@@ -219,4 +219,15 @@ class OAuth2AuthorizationFlowTest : AbstractIntegrationTest() {
         val stored = authorizations.findAll().single()
         assertTrue(stored.accessTokenMetadata!!.contains("\"metadata.token.invalidated\":true"), stored.accessTokenMetadata)
     }
+
+    @Test
+    fun `앱을 지우면 그 앱의 인가와 승인도 지워지고 토큰은 더 쓸 수 없다`() {
+        val owner = user(); val (client) = app(owner); val s = login(owner)
+        val token = body(exchange(client, approve(s, client)))
+        assertEquals(1, authorizations.count())
+        assertTrue(clientService.delete(owner, client.id!!))
+        assertEquals(0, authorizations.count())
+        val refresh = mockMvc.perform(post("/oauth2/token").param("grant_type", "refresh_token").param("refresh_token", token["refresh_token"] as String).param("client_id", client.clientId!!)).andReturn()
+        assertEquals(401, refresh.response.status, "지운 앱은 인증하지 못한다")
+    }
 }

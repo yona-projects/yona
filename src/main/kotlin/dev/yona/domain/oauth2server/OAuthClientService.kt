@@ -25,8 +25,12 @@ sealed interface ClientEdit {
 /** OAuth 앱이 요청할 수 있는 범위이다(`decisions.md` D-71 9, 11번). */
 object OAuthScopes {
 
-    /** OAuth 앱에 **주지 않는** 범위이다. 사이트 관리자 범위는 외부 앱에 사이트 전체 권한을 위임하는 사고를 막으려고 뺀다. */
-    val BLOCKED: Set<String> = setOf(ApiScopes.SITE_ADMIN)
+    /**
+     * OAuth 앱에 **주지 않는** 범위이다(선생님 결정 2026-11-02, D-71 11번). 사이트 관리자 범위(`site_admin`)는 외부 앱에 사이트 전체 권한을 위임하는 사고를 막으려고 빼고,
+     * SSH 키, GPG 키, 배포 키의 모든 범위(`admin:`, `write:`, `read:`)는 앱이 자기 키를 몰래 등록해 계정에 지속적으로 접근하는 일(계정 탈취)과 키 목록 노출을 막으려고 뺀다.
+     * 이 범위가 필요한 도구는 개인용 토큰(PAT)을 쓴다.
+     */
+    val BLOCKED: Set<String> = setOf(ApiScopes.SITE_ADMIN) + listOf("ssh_key", "gpg_key", "deploy_key").flatMap { listOf("admin:$it", "write:$it", "read:$it") }
 
     /** 앱이 고를 수 있는 범위(화면에 보이는 순서)이다. */
     fun grantable(): List<String> = ApiScopes.selectable(true).filter { it !in BLOCKED }
@@ -40,7 +44,11 @@ object OAuthScopes {
  * 기밀 앱의 비밀 값은 `yona_cs_`로 시작하는 무작위 값이고 SHA-256만 저장한다(개인용 토큰과 같은 방식).
  */
 @Service
-class OAuthClientService(private val clients: OAuthClientRepository) {
+class OAuthClientService(
+    private val clients: OAuthClientRepository,
+    private val authorizations: OAuthAuthorizationRepository,
+    private val consents: OAuthConsentRepository
+) {
 
     private val random = SecureRandom()
 
@@ -94,7 +102,7 @@ class OAuthClientService(private val clients: OAuthClientRepository) {
     @Transactional
     fun delete(owner: User, id: Long): Boolean {
         val client = owned(owner, id) ?: return false
-        clients.delete(client)
+        removeClient(client)
         return true
     }
 
@@ -113,13 +121,22 @@ class OAuthClientService(private val clients: OAuthClientRepository) {
     @Transactional
     fun deleteAsAdmin(id: Long): Boolean {
         val client = clients.findById(id).orElse(null) ?: return false
-        clients.delete(client)
+        removeClient(client)
         return true
     }
 
     /** 사용자가 가진 앱을 모두 지운다(사용자 삭제 처리). */
     @Transactional
-    fun deleteOwnedBy(owner: User) = clients.deleteByOwnerTypeAndOwnerId(OAuthClient.USER, requireNotNull(owner.id))
+    fun deleteOwnedBy(owner: User) {
+        clients.findByOwnerTypeAndOwnerIdOrderByCreatedDateDescIdDesc(OAuthClient.USER, requireNotNull(owner.id)).forEach { removeClient(it) }
+    }
+
+    /** 앱을 지우면 그 앱의 모든 인가(발급한 토큰)와 사용자 승인도 함께 지운다. 토큰은 즉시 쓸 수 없게 된다. */
+    private fun removeClient(client: OAuthClient) {
+        val rowId = requireNotNull(client.id)
+        authorizations.deleteByClient(rowId); consents.deleteByClient(rowId)
+        clients.delete(client)
+    }
 
     private fun owned(owner: User, id: Long): OAuthClient? =
         clients.findById(id).orElse(null)?.takeIf { it.ownerType == OAuthClient.USER && it.ownerId == owner.id }
