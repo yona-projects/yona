@@ -177,6 +177,15 @@ class SvnDavTest {
     }
 
     @Test
+    fun `read repo 토큰은 읽기 요청만 통과시키고 쓰기 요청은 막는다`() {
+        val member = user("svr"); val p = project(member, ProjectScope.PRIVATE); createdProjects += p
+        val readOnly = (apiTokens.create(member, "svn", setOf("read:repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value
+        val path = "/svn/${p.owner}/${p.name}"
+        org.junit.jupiter.api.Assertions.assertEquals(200, rawWithPassword("OPTIONS", path, member.loginId!!, readOnly).statusCode())
+        org.junit.jupiter.api.Assertions.assertEquals(403, rawWithPassword("MKCOL", "$path/!svn/wrk/x", member.loginId!!, readOnly).statusCode(), "쓰기 요청은 repo가 필요하다")
+    }
+
+    @Test
     fun `공개 프로젝트는 public repo 토큰으로 인증한다`() {
         val member = user("svp"); val p = project(member, ProjectScope.PUBLIC); createdProjects += p
         val good = (apiTokens.create(member, "svn", setOf("public_repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value

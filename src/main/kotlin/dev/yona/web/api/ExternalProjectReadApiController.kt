@@ -203,9 +203,9 @@ class ExternalProjectReadApiController(
         return support.ok(linkedMapOf("items" to items, "page" to current, "pageSize" to size, "totalPages" to result.totalPageCount, "totalCount" to result.totalRows))
     }
 
-    /** 토큰의 범위로 이 프로젝트를 볼 수 있는지이다: `repo`는 모두, `public_repo`는 공개(`PUBLIC`) 프로젝트만이다. */
+    /** 토큰의 범위로 이 프로젝트를 볼 수 있는지이다: `repo`와 `read:repo`는 모두, `public_repo`는 공개(`PUBLIC`) 프로젝트만이다. */
     private fun visibleToToken(project: Project): Boolean {
         val scopes = (SecurityContextHolder.getContext().authentication as? YonaAuthentication)?.scopes ?: return false
-        return ApiScopes.implies(scopes, ApiScopes.REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && project.projectScope == ProjectScope.PUBLIC)
+        return ApiScopes.implies(scopes, ApiScopes.READ_REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && project.projectScope == ProjectScope.PUBLIC)
     }
 }

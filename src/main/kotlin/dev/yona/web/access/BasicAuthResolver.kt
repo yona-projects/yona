@@ -82,11 +82,13 @@ class BasicAuthResolver(
     }
 
     /**
-     * 토큰으로 인증한 요청이 [project]의 저장소에 접근할 수 있는지이다. `repo`는 모든 프로젝트, `public_repo`는 공개(`PUBLIC`) 프로젝트만이다.
+     * 토큰으로 인증한 요청이 [project]의 저장소에 접근할 수 있는지이다. 읽기(복제, 가져오기)는 `repo`나 `read:repo`이면 모든 프로젝트, `public_repo`이면
+     * 공개(`PUBLIC`) 프로젝트만 된다. 쓰기([write], 푸시와 커밋)는 `repo`, 공개 프로젝트의 `public_repo`만 되고 `read:repo`로는 안 된다(X-6, D-72 10번).
      * 세션으로 식별한 요청은 범위 검사를 받지 않는다.
      */
-    fun allowsRepository(identity: BasicIdentity, project: Project): Boolean =
-        identity.tokenScopes == null || ApiScopeRules.allows(ApiRequirement.Repo, identity.tokenScopes, project.projectScope == ProjectScope.PUBLIC)
+    fun allowsRepository(identity: BasicIdentity, project: Project, write: Boolean = false): Boolean =
+        identity.tokenScopes == null ||
+            ApiScopeRules.allows(if (write) ApiRequirement.Repo else ApiRequirement.RepoRead, identity.tokenScopes, project.projectScope == ProjectScope.PUBLIC)
 
     private companion object {
         /** 새 토큰: `yona_pat_` + 임의 40자 */

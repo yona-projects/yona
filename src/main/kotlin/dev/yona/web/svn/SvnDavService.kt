@@ -57,9 +57,8 @@ class SvnDavService(
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
-        if (!basicAuth.allowsRepository(identity, project)) return text(response, 403, "The token scope does not allow repository access")
-
         val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
+        if (!basicAuth.allowsRepository(identity, project, write = operation == Operation.UPDATE)) return text(response, 403, "The token scope does not allow repository access")
         if (!metrics.span("vcs.authorize", "vcs" to "svn") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")

@@ -115,8 +115,8 @@ class GitHttpController(
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName)
             ?: return handleWiki(ownerName, projectName, service, advertise, identity, request, response, req)
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
-        // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
-        if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
+        // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(읽기는 `repo`나 `read:repo`, 공개 프로젝트는 `public_repo`, 푸시는 `repo`나 공개 프로젝트의 `public_repo`)
+        if (!basicAuth.allowsRepository(identity, project, write = service != GitHttpService.UPLOAD_PACK)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
 
         if (!metrics.span("vcs.authorize", "vcs" to "git") { isAllowed(project, user, service) }) {
             if (user == null) {
@@ -159,7 +159,7 @@ class GitHttpController(
         // 위키를 끈 프로젝트는 저장소가 있어도 없는 것처럼 404이다(D-61)
         if (!wikiService.enabled(project)) return ResponseEntity.notFound().build<Void>()
         req.target = "wiki"
-        if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
+        if (!basicAuth.allowsRepository(identity, project, write = service != GitHttpService.UPLOAD_PACK)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
         val user = identity.user
         val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
         if (!metrics.span("vcs.authorize", "vcs" to "git", "target" to "wiki") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation) }) {

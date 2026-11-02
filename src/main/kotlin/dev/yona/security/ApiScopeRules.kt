@@ -16,6 +16,15 @@ sealed interface ApiRequirement {
     /** `repo`나 `public_repo` 어느 쪽이든 된다(프로젝트에 묶이지 않는 첨부 올리기) */
     data object AnyRepo : ApiRequirement
 
+    /** 읽기 요청(`GET`)의 [Repo]: `read:repo`도 된다(X-6, D-72 5번) */
+    data object RepoRead : ApiRequirement
+
+    /** 읽기 요청(`GET`)의 [RepoOnly]: `repo`나 `read:repo`이다 */
+    data object RepoOnlyRead : ApiRequirement
+
+    /** 읽기 요청(`GET`)의 [AnyRepo]: `repo`, `public_repo`, `read:repo` 어느 쪽이든 된다 */
+    data object AnyRepoRead : ApiRequirement
+
     /** 이름 있는 범위(포함 관계를 따른다) */
     data class Scope(val name: String) : ApiRequirement
 }
@@ -170,7 +179,16 @@ object ApiScopeRules {
 
     /** 명세의 경로(정규식을 뗀 `{number}` 형식)와 메서드에 해당하는 대응표의 요구이다. OpenAPI 문서가 범위를 채울 때 쓴다(X-31). 표에 없으면 `null`이다. */
     fun requirementByPlainPath(method: String, plainPath: String): ApiRequirement? =
-        TABLE.entries.firstOrNull { (key, _) -> key.first.equals(method, ignoreCase = true) && plain(key.second) == plainPath }?.value
+        TABLE.entries.firstOrNull { (key, _) -> key.first.equals(method, ignoreCase = true) && plain(key.second) == plainPath }?.let { forMethod(method, it.value) }
+
+    /** 읽기 요청(`GET`)이면 프로젝트 범위 요건을 `read:repo`도 허용하는 요건으로 바꾼다. 쓰기 요청은 그대로이다. */
+    private fun forMethod(method: String, requirement: ApiRequirement): ApiRequirement =
+        if (!method.equals("GET", ignoreCase = true)) requirement else when (requirement) {
+            ApiRequirement.Repo -> ApiRequirement.RepoRead
+            ApiRequirement.RepoOnly -> ApiRequirement.RepoOnlyRead
+            ApiRequirement.AnyRepo -> ApiRequirement.AnyRepoRead
+            else -> requirement
+        }
 
     /** 스프링 경로 패턴에서 정규식(`{number:[0-9]+}`)과 나머지 전부 잡기(`{*name}`)를 떼어 명세의 경로 형식(`{number}`, `{name}`)으로 만든다. */
     fun plain(pattern: String): String = pattern.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}").replace(Regex("\\{\\*(\\w+)\\}"), "{$1}")
@@ -180,7 +198,7 @@ object ApiScopeRules {
 
     /** [method]와 스프링이 고른 경로 패턴 [pattern]이 요구하는 범위이다. 표에 없으면 `null`이다. */
     fun requirement(method: String, pattern: String): ApiRequirement? =
-        TABLE[method.uppercase() to pattern] ?: if (method.equals("GET", ignoreCase = true) && DOC_PREFIXES.any { pattern.startsWith(it) }) ApiRequirement.None else null
+        TABLE[method.uppercase() to pattern]?.let { forMethod(method, it) } ?: if (method.equals("GET", ignoreCase = true) && DOC_PREFIXES.any { pattern.startsWith(it) }) ApiRequirement.None else null
 
     /**
      * OpenAPI 문서의 화면과 명세와 정적 자원 경로이다(X-31, D-50). 누구나 읽으므로 범위가 필요 없다. springdoc이 자원 경로를 여럿 만들어
@@ -196,6 +214,9 @@ object ApiScopeRules {
         ApiRequirement.None -> true
         ApiRequirement.RepoOnly -> ApiScopes.implies(scopes, ApiScopes.REPO)
         ApiRequirement.AnyRepo -> ApiScopes.implies(scopes, ApiScopes.REPO) || ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO)
+        ApiRequirement.RepoOnlyRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO)
+        ApiRequirement.AnyRepoRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO) || ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO)
+        ApiRequirement.RepoRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && projectPublic == true)
         ApiRequirement.Repo -> ApiScopes.implies(scopes, ApiScopes.REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && projectPublic == true)
         is ApiRequirement.Scope -> ApiScopes.implies(scopes, requirement.name)
     }

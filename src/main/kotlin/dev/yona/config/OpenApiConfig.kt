@@ -140,6 +140,9 @@ class OpenApiConfig {
     private fun scopeText(requirement: ApiRequirement): String = when (requirement) {
         ApiRequirement.Repo -> "`repo`(공개 프로젝트이면 `public_repo`도 가능)"
         ApiRequirement.RepoOnly -> "`repo`"
+        ApiRequirement.RepoRead -> "`repo` 또는 `read:repo`(공개 프로젝트이면 `public_repo`도 가능)"
+        ApiRequirement.RepoOnlyRead -> "`repo` 또는 `read:repo`"
+        ApiRequirement.AnyRepoRead -> "`repo`, `read:repo` 또는 `public_repo`"
         ApiRequirement.AnyRepo -> "`repo` 또는 `public_repo`"
         is ApiRequirement.Scope -> {
             val wider = ApiScopes.selectable(siteManager = true).filter { it != requirement.name && ApiScopes.implies(setOf(it), requirement.name) }
@@ -151,6 +154,9 @@ class OpenApiConfig {
     private fun scopeNames(requirement: ApiRequirement): List<String> = when (requirement) {
         ApiRequirement.Repo -> listOf("repo", "public_repo")
         ApiRequirement.RepoOnly -> listOf("repo")
+        ApiRequirement.RepoRead -> listOf("repo", "read:repo", "public_repo")
+        ApiRequirement.RepoOnlyRead -> listOf("repo", "read:repo")
+        ApiRequirement.AnyRepoRead -> listOf("repo", "read:repo", "public_repo")
         ApiRequirement.AnyRepo -> listOf("repo", "public_repo")
         is ApiRequirement.Scope -> listOf(requirement.name)
         ApiRequirement.None -> emptyList()

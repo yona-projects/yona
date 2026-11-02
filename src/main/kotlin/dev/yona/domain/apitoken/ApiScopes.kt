@@ -9,20 +9,23 @@ object ApiScopes {
 
     const val REPO = "repo"
     const val PUBLIC_REPO = "public_repo"
+
+    /** 프로젝트 내용을 읽기만 하는 범위이다(X-6, D-72 5번). `repo`가 포함한다 */
+    const val READ_REPO = "read:repo"
     const val SITE_ADMIN = "site_admin"
 
     /** 사이트 관리자가 아니어도 고를 수 있는 범위이다. 화면에 보이는 순서이다. */
     private val GENERAL: List<String> = listOf(
-        "repo", "public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook", "admin:org", "write:org", "read:org", "user", "read:user", "user:email",
+        "repo", "read:repo", "public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook", "admin:org", "write:org", "read:org", "user", "read:user", "user:email",
         "admin:gpg_key", "write:gpg_key", "read:gpg_key", "admin:ssh_key", "write:ssh_key", "read:ssh_key", "admin:deploy_key", "write:deploy_key", "read:deploy_key"
     )
 
     /**
-     * 각 범위가 포함하는 범위이다(자기 자신은 항상 포함한다). `repo`는 프로젝트 웹훅 범위와 `public_repo`를, `admin:`은 `write:`와 `read:`를,
+     * 각 범위가 포함하는 범위이다(자기 자신은 항상 포함한다). `repo`는 프로젝트 웹훅 범위와 `public_repo`와 `read:repo`를, `admin:`은 `write:`와 `read:`를,
      * `user`는 `read:user`와 `user:email`을, `admin:gpg_key`는 `write:gpg_key`와 `read:gpg_key`를 포함한다(X-4, D-65). SSH 키(`ssh_key`)와 배포 키(`deploy_key`)도 같다(X-3, D-66). 그 밖의 범위는 서로 포함하지 않는다.
      */
     private val INCLUDES: Map<String, Set<String>> = mapOf(
-        "repo" to setOf("public_repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook"),
+        "repo" to setOf("public_repo", "read:repo", "admin:repo_hook", "write:repo_hook", "read:repo_hook"),
         "admin:repo_hook" to setOf("write:repo_hook", "read:repo_hook"),
         "write:repo_hook" to setOf("read:repo_hook"),
         "admin:org" to setOf("write:org", "read:org"),

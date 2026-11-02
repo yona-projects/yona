@@ -41,6 +41,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | (범위 없음) | 공개 정보 읽기 | 공개 프로젝트와 프로필 읽기 |
 | `repo` | 공개와 비공개 저장소 전체 권한(코드, 이슈, 풀 리퀘스트, 웹훅 포함) | 사용자가 접근할 수 있는 **모든 프로젝트**의 코드, 이슈, 풀 리퀘스트, 게시글, 마일스톤, 라벨, 웹훅 |
 | `public_repo` | 공개 저장소만 | **공개 프로젝트**만 |
+| `read:repo` | (GitHub에 없음, Yona 추가, X-6 D-72 5번) | 접근할 수 있는 **모든 프로젝트의 읽기만**(`GET`, 복제와 가져오기). 쓰기는 `repo`가 필요하다. `repo`가 포함한다 |
 | `admin:repo_hook`, `write:repo_hook`, `read:repo_hook` | 저장소 웹훅 관리, 쓰기, 읽기(`repo`가 이미 포함) | 프로젝트 웹훅만 제한해서 줄 때 |
 | `read:org`, `write:org`, `admin:org` | 조직 구성원, 프로젝트 읽기, 쓰기, 전체 관리 | 조직 정보, 구성원, 조직 설정 |
 | `user`(`read:user`, `user:email`을 포함) | 프로필 읽기와 쓰기 | 프로필, 내 이슈 목록, 통계, 이메일 |
@@ -101,7 +102,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | `GET /-_-api/v1/user/issues` | 토큰 | `repo`(비공개 이슈 포함) 또는 `public_repo`(공개만 걸러 줌) | 이슈별 `READ` |
 | `GET /-_-api/v1/users/{user}/statistics` | 토큰 | `read:user` | 로그인 사용자 |
 | `POST /-_-api/v1/users/token` | 아이디와 비밀번호 | 해당 없음(토큰을 만든다) | 비밀번호 |
-| Git, SVN HTTP 접근(`/{user}/{project}.git/**`, `/svn/**`) | 비밀번호 칸의 토큰 | `repo` 또는 `public_repo` | 코드 읽기, 쓰기 권한 |
+| Git, SVN HTTP 접근(`/{user}/{project}.git/**`, `/svn/**`) | 비밀번호 칸의 토큰 | 읽기(복제, 가져오기): `repo`, `read:repo` 또는 `public_repo`(공개 프로젝트). 쓰기(푸시, 커밋): `repo` 또는 `public_repo`(공개 프로젝트) | 코드 읽기, 쓰기 권한 |
 | `POST /-_-api/v1/users` | 세션 | `site_admin` | 사이트 관리자 |
 | `GET /-_-api/v1/admin/users`, `PATCH .../admin/users/{user}` | 세션이나 토큰 | `site_admin` | 사이트 관리자 |
 
@@ -276,3 +277,7 @@ Yona 권장: 선택지는 7, 30, 60, 90일, 사용자 지정 날짜, 없음(경�
 ## 편집과 다시 만들기 (2026-10-29, A-212)
 
 목록(`user/edit-token`), 만들기(`user/edit-token-new`), 편집(`user/edit-token-edit`)은 화면이 셋이고 입력 조각(이름, 범위 목록, 만료 선택과 달력)을 `user/partial-token-form`으로 함께 쓴다. 편집 화면에는 이름과 범위 저장, 다시 만들기(새 값 발급과 만료 새로 지정), 삭제가 카드로 나뉘어 있다. 만료를 편집에서 바꾸지 못하는 이유는 값 교체 없이 수명이 늘어나는 것을 막기 위해서이다.
+
+## `read:repo`(읽기 전용 범위, X-6, D-72 5번과 10번)
+
+프로젝트 범위 요건(`Repo`, `RepoOnly`, `AnyRepo`)은 `GET` 요청에서 각각 `RepoRead`, `RepoOnlyRead`, `AnyRepoRead`로 바뀌어 `read:repo`도 통과시킨다(`ApiScopeRules.forMethod`). 쓰기 요청의 요건은 그대로이므로 `read:repo`만 가진 토큰은 쓰기 요청이 403이다. 프로젝트 목록(`ExternalProjectReadApiController`)은 `read:repo`로 모든 프로젝트를 본다. Git과 SVN HTTP는 `BasicAuthResolver.allowsRepository(write)`가 읽기와 쓰기를 가른다: Git은 `git-upload-pack`이 읽기, `git-receive-pack`이 쓰기이고 SVN은 `OPTIONS`, `PROPFIND`, `GET`, `REPORT`가 읽기이다. 기존 토큰의 동작은 바뀌지 않는다.

@@ -114,6 +114,18 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `read repo 토큰은 복제와 가져오기만 되고 푸시는 막는다`() {
+        val owner = user(); val priv = project(owner, ProjectScope.PRIVATE)
+        val t = newToken(owner, "read:repo")
+        refs(priv, basic(owner.loginId!!, t), service = "git-upload-pack").andExpect(status().isOk)
+        refs(priv, basic(owner.loginId!!, t), service = "git-receive-pack").andExpect(status().isForbidden)
+        mockMvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/${priv.owner}/${priv.name}/git-receive-pack")
+                .header("Authorization", basic(owner.loginId!!, t)).contentType("application/x-git-receive-pack-request").content(ByteArray(0))
+        ).andExpect(status().isForbidden)
+    }
+
+    @Test
     fun `저장소 범위가 없는 토큰은 코드 접근에 쓸 수 없다`() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE)
         refs(p, basic(owner.loginId!!, newToken(owner, "user", "read:org"))).andExpect(status().isForbidden)
