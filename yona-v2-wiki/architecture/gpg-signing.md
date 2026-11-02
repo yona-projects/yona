@@ -19,7 +19,7 @@ updated: 2026-11-02
 | 표시 | 커밋 이력, 커밋 상세, 풀 리퀘스트 변경 화면의 커밋 정보, 태그 목록. 서명이 없으면 아무것도 보이지 않는다(GitHub와 같다) |
 | REST | `/user/gpg_keys`(목록, 한 건, 등록, 삭제), `/users/{user}/gpg_keys`, 태그와 풀 리퀘스트 커밋 응답의 `verification` |
 | 규칙 | 규칙 묶음의 "서명 커밋 필수"(푸시 훅과 병합 검사) |
-| 감사와 지표 | `gpg_key.added`, `gpg_key.deleted`, `yona.gpg.verifications{target, reason, format}`(`format`은 `gpg` 또는 `ssh`) |
+| 감사와 지표 | `gpg_key.added`, `gpg_key.deleted`, `yona.signature.verifications{target, reason, format}`(`format`은 `gpg` 또는 `ssh`) |
 
 ## 판정 (GitHub의 `verification.reason`과 같은 코드)
 
