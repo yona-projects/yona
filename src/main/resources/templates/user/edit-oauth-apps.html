@@ -19,7 +19,7 @@
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('oauth-apps')}"></th:block>
         <div class="two-factor-page">
-        <p class="text-body-secondary" th:text="#{oauth.description}"></p>
+        <p class="text-body-secondary mb-4" th:text="#{oauth.description}"></p>
 
         <section>
             <h4 th:text="#{oauth.apps.mine}"></h4>
@@ -51,7 +51,7 @@
             <p th:text="#{oauth.apps.authorized.description}"></p>
             <div id="authorized-empty" class="tf-empty" th:if="${#lists.isEmpty(authorized)}" th:text="#{oauth.apps.authorized.empty}"></div>
             <table id="authorized-apps" class="table table-striped" th:if="${!#lists.isEmpty(authorized)}">
-                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.by}"></th><th th:text="#{oauth.form.scopes}"></th><th th:text="#{oauth.apps.approvedDate}"></th><th></th></tr></thead>
+                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.by}"></th><th th:text="#{oauth.apps.scopes}"></th><th th:text="#{oauth.apps.approvedDate}"></th><th></th></tr></thead>
                 <tbody>
                 <tr th:each="x : ${authorized}" class="authorized-row">
                     <td th:text="${x.name}"></td>

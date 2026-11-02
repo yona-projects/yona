@@ -8003,3 +8003,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .two-factor-page .tf-wide { max-width:560px; }
 .two-factor-page .tf-secret-value { display:inline-block; padding:8px 12px; font-size:1rem; letter-spacing:1px; word-break:break-all; }
+
+.oauth-consent p { margin-bottom:12px; }
+.oauth-consent form { margin-top:16px; }
+.oauth-consent #oauth-scopes { margin-bottom:16px; }

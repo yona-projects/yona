@@ -51,6 +51,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 삭제) | `yona.git-http-password-auth` | (없음) | 삭제(D-70). Git, SVN의 HTTP 접근은 항상 토큰만 받는다. 설정에 남아 있어도 읽지 않는다 |
 | (v2 신규) | `yona.ssh.enabled` | `false` | 사용 중(X-3). 내장 SSH 서버(Apache MINA SSHD)를 켠다. 끄면 포트를 열지 않고 화면과 동작이 v1.6과 같다 |
 | (v2 신규) | `yona.two-factor.reset-user` | 비어 있음 | 사용 중(X-2). 로그인 ID를 적고 시작하면 그 사용자의 2단계 인증을 지운다(긴급 해제). 쓴 뒤에는 지운다 |
+| (v2 신규) | `yona.oauth2.cimd-allow-private-hosts` | `false` | 사용 중(X-1). CIMD 문서를 가져올 때 공인 주소가 아닌 곳(루프백, 사설)도 허용한다. **개발과 시험 전용**이다. 운영에서 켜면 서버가 내부 자원을 대신 읽게 하는 공격(SSRF)에 열린다 |
 | (v2 신규) | `yona.ssh.port` | `2222` | 사용 중(X-3). SSH 서버가 받는 포트. 0이면 운영체제가 고른다(시험용) |
 | (v2 신규) | `yona.ssh.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |
 | (v2 신규) | `yona.ssh.host-key-path` | 빈 문자열 | 사용 중(X-3). 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이고 처음 시작할 때 만든다 |
