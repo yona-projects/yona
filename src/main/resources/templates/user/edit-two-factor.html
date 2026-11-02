@@ -49,7 +49,7 @@
             <h4 th:text="#{twoFactor.backup.title}"></h4>
             <p id="backup-remaining" th:text="#{twoFactor.backup.remaining(${backupRemaining})}"></p>
             <form method="post" th:action="@{/user/two-factor/backup-codes}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.backup.regenerate.confirm} + '\');'">
-                <button type="submit" class="btn btn-outline-secondary" th:text="#{twoFactor.backup.regenerate}"></button>
+                <button type="submit" class="btn btn-secondary" th:text="#{twoFactor.backup.regenerate}"></button>
             </form>
         </section>
 
