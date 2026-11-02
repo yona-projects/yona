@@ -153,3 +153,17 @@ class IssueLabelsChanged(
     @get:Schema(description = "프로젝트 소유자") val id: String,
     @get:Schema(description = "붙은 라벨 수") val labels: Int
 )
+
+@Schema(description = "활동이 있는 스레드(이슈 또는 풀 리퀘스트) 하나")
+class TrackerActivityItem(
+    @get:Schema(description = "번호") val number: Long,
+    @get:Schema(description = "풀 리퀘스트이면 `true`") @get:com.fasterxml.jackson.annotation.JsonProperty("isPullRequest") val isPullRequest: Boolean,
+    @get:Schema(description = "웹 화면의 주소") val url: String,
+    @get:Schema(description = "그 사람이 창 안에서 처음 댓글을 단 시각(UTC, 초 단위)") val firstActivity: String,
+    @get:Schema(description = "라벨 이름들") val labels: List<String>,
+    @get:Schema(description = "구성원이 처음 남긴 문구 댓글의 주소(`phrases`와 `maintainers`를 주었을 때). 없으면 `null`", nullable = true) val pushbackCandidate: String?
+)
+
+@Schema(description = "사람과 기간별 댓글 활동 응답")
+class TrackerActivityResponse(@get:Schema(description = "활동이 있는 스레드들(처음 댓글을 단 시각 순)") val items: List<TrackerActivityItem>)
+

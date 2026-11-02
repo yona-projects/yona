@@ -48,7 +48,11 @@ data class IssueSearchCondition(
     val favoriteId: Long? = null,
     val mentionId: Long? = null,
     val dueDate: Date? = null,
-    val projectNames: List<String> = emptyList()
+    val projectNames: List<String> = emptyList(),
+    /** 이 시각 이상에 만든 이슈만 찾는다(Magpie 연동, X-23). */
+    val createdSince: Date? = null,
+    /** 이 시각 미만에 만든 이슈만 찾는다(Magpie 연동, X-23). */
+    val createdUntil: Date? = null
 ) {
     /** 담당자, 작성자 조건 중 하나라도 있으면 `true`이다 (v1.6 `hasCondition`). 초안 목록을 보일지 정할 때 쓴다. */
     fun hasCondition(): Boolean = assigneeId != null || authorId != null || mentionId != null || commenterId != null || sharerId != null || favoriteId != null
@@ -243,6 +247,8 @@ class IssueSearchService(private val entityManager: EntityManager) {
             }
             if (condition.commentedCheck) clauses += "i.numOfComments >= 1"
             condition.dueDate?.let { clauses += "i.dueDate < :dueBefore"; params["dueBefore"] = nextDay(it) }
+            condition.createdSince?.let { clauses += "i.createdDate >= :createdSince"; params["createdSince"] = it }
+            condition.createdUntil?.let { clauses += "i.createdDate < :createdUntil"; params["createdUntil"] = it }
             if (project != null && condition.authorId == null && condition.filter.isBlank() && condition.labelIds.isEmpty() && condition.assigneeId == null && condition.mentionId == null) {
                 clauses += "i.parent is null"
             }

@@ -31,6 +31,19 @@ updated: 2026-11-03
 - **검증기**(`skill-and-tool-validator`)는 스킬 정의(`SKILL.md`)의 머리 정보, 상대 링크, `<PROJECT>`, `<upstream>`, `<tracker>` 자리표시자 규칙을 검사한다. 어댑터 문서(`tools/*`)에는 적용되지 않으므로, 어댑터는 **링크 무결성과 자리표시자 규칙**을 우리 시험이 같은 방식으로 확인한다.
 - **활동 동작의 정의**(GitHub 어댑터 기준): `list_triaged`는 "다른 사람이 연 이슈에 사람이 댓글을 단 것"이고 라벨 이벤트는 검색하지 않는다(GitHub는 댓글만 센다). `list_commented`는 이슈와 PR 모두이고 **창 안의 첫 댓글 날짜**로 날짜를 매긴다. 이 정의에 맞춰 Yona의 활동 조회는 **댓글을 기준**으로 하고 분류 변경(라벨, 상태, 담당자)은 선택 확장으로 둔다.
 
+## 진행 상황
+
+| 단계 | 상태 |
+|---|---|
+| 0 Magpie 저장소 확인 | **완료**(2026-11-03) |
+| 1 서버: 이슈 목록 조건과 필드, 활동 조회(`list_filed`, `list_triaged`, `list_commented`, `list_created`) | **완료**(2026-11-03, `ExternalTrackerActivityApiTest`, 문서는 [api-project-reads.md](api-project-reads.md)) |
+| 2 서버: PR 목록 조건, 상세 보강, 병합 커밋 번호 | 대기 |
+| 3 서버: 작성 PR 조건과 리뷰 활동 조회 | 대기 |
+| 3b CLI 옵션 | 대기 |
+| 4 어댑터 문서 | 대기 |
+| 5 실제 확인 | 대기 |
+| 6 문서와 결정 마무리 | 대기 |
+
 ## 1. 목표와 결론
 
 Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)가 Yona 프로젝트의 이슈와 풀 리퀘스트(PR)를 다룰 수 있게 한다. 구체적으로 Magpie의 두 계약 `contract:tracker`(이슈, 읽기 전용)와 `contract:change-request`(PR, 읽기와 쓰기)를 Yona용 어댑터가 채우게 한다.

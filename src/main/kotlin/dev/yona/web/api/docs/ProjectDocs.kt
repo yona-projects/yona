@@ -93,7 +93,9 @@ class IssueSummary(
     @get:Schema(description = "고친 시각") val updatedAt: String,
     @get:Schema(description = "마감일. 없으면 `null`", nullable = true) val dueDate: String?,
     @get:Schema(description = "댓글 수") val numOfComments: Int,
-    @get:Schema(description = "웹 화면의 주소") val url: String
+    @get:Schema(description = "웹 화면의 주소") val url: String,
+    @get:Schema(description = "이슈를 닫은 시각(UTC, 초 단위). 목록 조회에서만 들어 있고 열린 이슈는 `null`", nullable = true) val closedAt: String? = null,
+    @get:Schema(description = "이 작성자가 이 프로젝트에 낸 첫 이슈나 풀 리퀘스트인지. 목록 조회에서만 들어 있고 작성자를 모르면 `null`", nullable = true) val authorFirstTime: Boolean? = null
 )
 
 @Schema(description = "라벨 번호와 이름")

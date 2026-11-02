@@ -1066,3 +1066,6 @@ OIDC와 SAML 2 로그인, 관리자 화면(설정, IdP 메타데이터 가져오
 ## [2026-11-03] X-23 단계 0 완료, 결정 확정
 선생님이 "진행해줘"로 나머지 질문을 권장안대로 수용하셨고 Magpie 저장소 내려받기(약 29MB)를 허락하셨다. `tools/github`, `forgejo`, `change-request`, `tracker`와 검증기를 읽어 어댑터 구성과 `Coverage`(완전과 부분) 규칙을 확인했다. GitHub 어댑터는 `gh` 계열만 쓴다. 활동 조회의 기준은 댓글이다. 다음은 단계 1(서버 REST)이다.
 
+## [2026-11-03] X-23 단계 1 완료(서버, 이슈 계약)
+이슈 목록에 `createdSince`와 `createdUntil`(UTC, 이상과 미만), 항목에 `closedAt`과 `authorFirstTime`을 더하고, 사람과 기간별 댓글 활동 조회(`GET $P/activity`, `kind`는 `commented`나 `triaged`, 밀어내기 후보 주소 포함)를 만들었다. 활동의 기준은 댓글이다. 시험은 `ExternalTrackerActivityApiTest`(7개)이고 OpenAPI 구조 시험과 범위 규칙에 올렸다. 다음은 단계 2(PR 목록 조건과 상세 보강)이다.
+

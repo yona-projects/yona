@@ -54,7 +54,8 @@ class ExternalProjectReadApiController(
     private val users: UserRepository,
     private val accessControl: AccessControl,
     private val requests: ApiRequests,
-    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard
+    private val orgPolicy: dev.yona.security.OAuthOrgPolicyGuard,
+    private val trackerActivity: dev.yona.domain.issue.TrackerActivityService
 ) {
 
     private companion object {
@@ -175,6 +176,8 @@ class ExternalProjectReadApiController(
     @io.swagger.v3.oas.annotations.Parameter(name = "order", description = "정렬 방향", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "desc", schema = Schema(allowableValues = ["asc", "desc"]))
     @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
     @io.swagger.v3.oas.annotations.Parameter(name = "pageSize", description = "한 쪽의 개수(1에서 100)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "15")
+    @io.swagger.v3.oas.annotations.Parameter(name = "createdSince", description = "이 시각 이상에 만든 이슈만(Magpie 연동). `2026-02-01`(UTC 0시) 또는 ISO-8601", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "createdUntil", description = "이 시각 미만에 만든 이슈만(Magpie 연동)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
     @ApiResponse(responseCode = "200", description = "이슈 목록", content = [Content(schema = Schema(implementation = IssueListResponse::class))])
     @ApiResponse(responseCode = "400", description = "`state`, `sort`, `order`가 틀렸거나 없는 사용자이다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
@@ -184,10 +187,14 @@ class ExternalProjectReadApiController(
         @PathVariable owner: String, @PathVariable projectName: String, @RequestParam(defaultValue = "open") state: String, @RequestParam(required = false) q: String?,
         @RequestParam(required = false) assignee: String?, @RequestParam(required = false) author: String?, @RequestParam(required = false) milestoneId: Long?,
         @RequestParam(defaultValue = "createdDate") sort: String, @RequestParam(defaultValue = "desc") order: String, @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(required = false) pageSize: Int?, request: HttpServletRequest
+        @RequestParam(required = false) pageSize: Int?, @RequestParam(required = false) createdSince: String?, @RequestParam(required = false) createdUntil: String?, request: HttpServletRequest
     ): Any {
         val target = support.target(owner, projectName, null, request, requireCodeAccess = false)
         target.error?.let { return it }
+        // 기간 조건(Magpie 연동, X-23): `createdSince` 이상, `createdUntil` 미만. 날짜만 쓰면 UTC 0시이다
+        val since = if (createdSince.isNullOrBlank()) null else ApiInstants.parse(createdSince) ?: return support.badRequest("createdSince could not be read (e.g. 2026-02-01 or 2026-02-01T00:00:00Z)")
+        val until = if (createdUntil.isNullOrBlank()) null else ApiInstants.parse(createdUntil) ?: return support.badRequest("createdUntil could not be read (e.g. 2026-03-01 or 2026-03-01T00:00:00Z)")
+        if (since != null && until != null && !since.before(until)) return support.badRequest("createdSince must be earlier than createdUntil")
         if (state !in setOf("open", "closed", "all")) return support.badRequest("state must be open, closed or all")
         if (sort !in SORTS) return support.badRequest("sort must be one of ${SORTS.joinToString(", ")}")
         if (order != "asc" && order != "desc") return support.badRequest("order must be asc or desc")
@@ -197,10 +204,19 @@ class ExternalProjectReadApiController(
         val size = (pageSize ?: DEFAULT_PAGE_SIZE).coerceIn(1, MAX_PAGE_SIZE)
         val current = page.coerceAtLeast(1)
         val condition = IssueSearchCondition(
-            state = state, orderBy = sort, orderDir = order, filter = q.orEmpty(), pageNum = current - 1, milestoneId = milestoneId, labelIds = labelIds, authorId = authorId, assigneeId = assigneeId
+            state = state, orderBy = sort, orderDir = order, filter = q.orEmpty(), pageNum = current - 1, milestoneId = milestoneId, labelIds = labelIds, authorId = authorId, assigneeId = assigneeId,
+            createdSince = since, createdUntil = until
         )
         val result = issueSearch.search(requireNotNull(target.project), condition, target.user, size)
-        val items = result.items.map { json.issueSummary(it, it.authorId?.let { id -> users.findById(id).orElse(null) }) }
+        // Magpie 연동(X-23): 닫은 시각과 작성자의 첫 기여 여부를 더한다(기존 필드는 그대로이다)
+        val closed = trackerActivity.closedAt(result.items.filter { it.state == dev.yona.domain.enumeration.State.CLOSED }.mapNotNull { it.id })
+        val firsts = trackerActivity.firstContributions(requireNotNull(requireNotNull(target.project).id), result.items.mapNotNull { it.authorId }.toSet())
+        val items = result.items.map { issue ->
+            LinkedHashMap(json.issueSummary(issue, issue.authorId?.let { id -> users.findById(id).orElse(null) })).also { item ->
+                item["closedAt"] = if (issue.state == dev.yona.domain.enumeration.State.CLOSED) ApiInstants.format(closed[issue.id] ?: issue.updatedDate ?: issue.createdDate) else null
+                item["authorFirstTime"] = issue.authorId?.let { id -> firsts[id]?.let { first -> !first.before(issue.createdDate) } }
+            }
+        }
         return support.ok(linkedMapOf("items" to items, "page" to current, "pageSize" to size, "totalPages" to result.totalPageCount, "totalCount" to result.totalRows))
     }
 

@@ -1,0 +1,80 @@
+package dev.yona.domain.issue
+
+import dev.yona.domain.comment.IssueComment
+import dev.yona.domain.enumeration.EventType
+import dev.yona.domain.pullrequest.PullRequest
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.Date
+
+/**
+ * Magpie의 이슈 계약(`contract:tracker`, 로드맵 X-23)을 채우는 읽기 전용 조회이다. 이슈를 닫은 시각, 작성자의 첫 기여 시각, 사람과 기간별 댓글 활동을 한 번에 묶어 구한다.
+ * 활동의 기준은 **댓글**이다(Magpie의 GitHub 어댑터가 `commenter:`로 찾는 것과 같다). 날짜는 그 사람이 창 안에서 처음 댓글을 단 시각이고 창은 `since` 이상 `until` 미만이다.
+ */
+@Service
+@Transactional(readOnly = true)
+class TrackerActivityService(private val issues: IssueRepository) {
+
+    @PersistenceContext
+    private lateinit var em: EntityManager
+
+    /** 활동이 있는 스레드(이슈 또는 풀 리퀘스트) 하나이다. [commentUrlSuffix]는 밀어내기 후보 댓글을 가리키는 앵커(`#comment-번호`)이고 없으면 `null`이다. */
+    data class ActivityThread(val number: Long, val isPullRequest: Boolean, val firstActivity: Date, val labels: List<String>, val pushbackCommentId: Long? = null)
+
+    /** 이슈 번호(행 번호) → 닫은 시각이다. 닫힘 이벤트가 없는 이슈(옮겨 온 데이터)는 들어 있지 않다. */
+    fun closedAt(issueIds: Collection<Long>): Map<Long, Date> {
+        if (issueIds.isEmpty()) return emptyMap()
+        return em.createQuery(
+            "select e.issue.id, max(e.created) from IssueEvent e where e.issue.id in :ids and e.eventType = :type and lower(cast(e.newValue as string)) = 'closed' group by e.issue.id", Array<Any>::class.java
+        ).setParameter("ids", issueIds).setParameter("type", EventType.ISSUE_STATE_CHANGED).resultList.associate { (it[0] as Long) to (it[1] as Date) }
+    }
+
+    /** 작성자(사용자 번호) → 이 프로젝트에서 처음 이슈나 풀 리퀘스트를 낸 시각이다. */
+    fun firstContributions(projectId: Long, authorIds: Collection<Long>): Map<Long, Date> {
+        if (authorIds.isEmpty()) return emptyMap()
+        val fromIssues = em.createQuery("select i.authorId, min(i.createdDate) from Issue i where i.project.id = :p and i.authorId in :ids group by i.authorId", Array<Any>::class.java)
+            .setParameter("p", projectId).setParameter("ids", authorIds).resultList
+        val fromPulls = em.createQuery("select p.contributor.id, min(p.created) from PullRequest p where p.toProject.id = :p and p.contributor.id in :ids group by p.contributor.id", Array<Any>::class.java)
+            .setParameter("p", projectId).setParameter("ids", authorIds).resultList
+        val result = HashMap<Long, Date>()
+        (fromIssues + fromPulls).forEach { row -> val id = row[0] as Long; val date = row[1] as Date; result.merge(id, date) { a, b -> if (a.before(b)) a else b } }
+        return result
+    }
+
+    /**
+     * [login]이 [since] 이상 [until] 미만에 댓글을 단 스레드이다. [triagedOnly]이면 **다른 사람이 연 이슈**만(풀 리퀘스트와 자기 이슈는 뺀다). 처음 댓글을 단 시각 순이다.
+     * [maintainers]와 [phrases]가 있으면 스레드마다 구성원이 처음 남긴 문구 댓글을 찾아 [ActivityThread.pushbackCommentId]에 담는다(본문은 내보내지 않는다).
+     */
+    fun commented(projectId: Long, login: String, since: Date, until: Date, triagedOnly: Boolean, maintainers: Set<String> = emptySet(), phrases: List<String> = emptyList()): List<ActivityThread> {
+        val issueRows = em.createQuery(
+            "select c.issue.id, min(c.createdDate) from IssueComment c where c.projectId = :p and c.authorLoginId = :login and c.createdDate >= :since and c.createdDate < :until" +
+                (if (triagedOnly) " and (c.issue.authorLoginId is null or c.issue.authorLoginId <> :login)" else "") + " group by c.issue.id", Array<Any>::class.java
+        ).setParameter("p", projectId).setParameter("login", login).setParameter("since", since).setParameter("until", until).resultList
+        val pullRows = if (triagedOnly) emptyList() else em.createQuery(
+            "select t.pullRequest.id, min(rc.createdDate) from ReviewComment rc join rc.thread t where t.pullRequest is not null and t.pullRequest.toProject.id = :p and rc.authorLoginId = :login " +
+                "and rc.createdDate >= :since and rc.createdDate < :until group by t.pullRequest.id", Array<Any>::class.java
+        ).setParameter("p", projectId).setParameter("login", login).setParameter("since", since).setParameter("until", until).resultList
+
+        val threads = ArrayList<ActivityThread>()
+        val issueById = issues.findAllById(issueRows.map { it[0] as Long }).associateBy { it.id }
+        issueRows.forEach { row ->
+            val issue = issueById[row[0] as Long] ?: return@forEach
+            threads += ActivityThread(requireNotNull(issue.number), false, row[1] as Date, issue.labels.map { it.name.orEmpty() }.sorted(), pushback(issue, maintainers, phrases))
+        }
+        pullRows.forEach { row ->
+            val pull = em.find(PullRequest::class.java, row[0] as Long) ?: return@forEach
+            threads += ActivityThread(requireNotNull(pull.number), true, row[1] as Date, pull.labels.map { it.name.orEmpty() }.sorted())
+        }
+        return threads.sortedWith(compareBy({ it.firstActivity }, { it.isPullRequest }, { it.number }))
+    }
+
+    /** 구성원이 처음 남긴, 문구를 담은 댓글의 번호이다. 문구나 명단이 없거나 해당 댓글이 없으면 `null`이다. */
+    private fun pushback(issue: Issue, maintainers: Set<String>, phrases: List<String>): Long? {
+        if (maintainers.isEmpty() || phrases.isEmpty()) return null
+        val wanted = phrases.map { it.lowercase() }
+        return em.createQuery("select c from IssueComment c where c.issue.id = :id order by c.createdDate asc, c.id asc", IssueComment::class.java).setParameter("id", issue.id).resultList
+            .firstOrNull { c -> c.authorLoginId in maintainers && c.contents.orEmpty().lowercase().let { text -> wanted.any { it in text } } }?.id
+    }
+}
