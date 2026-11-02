@@ -37,13 +37,13 @@
             </tbody>
         </table>
 
-        <div class="d-flex flex-wrap gap-4 align-items-start mb-3">
-            <form th:if="${!hasTotp}" method="post" th:action="@{/user/two-factor/begin}">
-                <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
+        <div class="two-factor-controls d-flex flex-wrap gap-3 align-items-center mb-3">
+            <form th:if="${!hasTotp}" class="d-flex" method="post" th:action="@{/user/two-factor/begin}">
+                <button type="submit" class="btn btn-success text-nowrap" th:text="#{twoFactor.add}"></button>
             </form>
             <form id="security-key-form" class="d-flex gap-2" style="display: none;" onsubmit="return false;">
-                <input id="security-key-name" type="text" class="form-control" style="max-width: 220px;" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
-                <button id="security-key-add" type="button" class="btn btn-success" th:text="#{twoFactor.securityKey.add}"></button>
+                <input id="security-key-name" type="text" class="form-control" style="width: 260px;" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
+                <button id="security-key-add" type="button" class="btn btn-success text-nowrap" th:text="#{twoFactor.securityKey.add}"></button>
             </form>
         </div>
         <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
@@ -52,7 +52,7 @@
         <h4 class="mt-4" th:text="#{twoFactor.backup.title}"></h4>
         <p id="backup-remaining" th:text="#{twoFactor.backup.remaining(${backupRemaining})}"></p>
         <form method="post" th:action="@{/user/two-factor/backup-codes}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.backup.regenerate.confirm} + '\');'">
-            <button type="submit" class="btn btn-outline-secondary btn-sm" th:text="#{twoFactor.backup.regenerate}"></button>
+            <button type="submit" class="btn btn-outline-secondary" th:text="#{twoFactor.backup.regenerate}"></button>
         </form>
 
         <h4 class="mt-4" th:text="#{twoFactor.devices.title}"></h4>

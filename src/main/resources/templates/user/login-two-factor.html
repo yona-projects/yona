@@ -23,16 +23,14 @@
                  th:placeholder="#{user.twoFactor.code}">
         </dd>
       </dl>
-      <div class="act-row">
-        <div class="remember-me-wrap float-start">
-          <input id="remember-device" type="checkbox" name="rememberDevice" value="true" class="checkbox form-check-input">
-          <label for="remember-device" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
-        </div>
+      <div class="form-check mb-3">
+        <input id="remember-device" type="checkbox" name="rememberDevice" value="true" class="form-check-input">
+        <label for="remember-device" class="form-check-label" th:text="#{user.twoFactor.rememberDevice}"></label>
       </div>
       <div class="btns-row">
         <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{user.twoFactor.submit}"></button>
       </div>
-      <div th:if="${securityKey}" id="security-key-login" class="btns-row" style="display: none;">
+      <div th:if="${securityKey}" id="security-key-login" class="btns-row mt-2" style="display: none;">
         <button type="button" id="security-key-use" class="ybtn ybtn-large ybtn-fullsize" th:text="#{twoFactor.securityKey.use}"></button>
       </div>
       <div id="security-key-error" class="error" style="display: none;"></div>

@@ -7950,3 +7950,18 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     border-color: #6c757d;
     color: #fff;
 }
+
+// 2단계 인증(X-2, D-69): 로그인 폼의 입력창 규칙(밑줄만 있는 글상자)이 BS5 체크박스까지 납작하게 만들므로 2단계 화면의 체크박스만 BS5 기본 모양으로 되돌린다
+.login-form-wrap .form-check { padding-left:1.5em; margin-bottom:15px; }
+.login-form-wrap .form-check .form-check-input {
+    width:1em !important; height:1em !important; margin-left:-1.5em; margin-top:.2em; padding:0;
+    border:1px solid rgba(0, 0, 0, 0.4) !important; border-radius:.25em;
+}
+.login-form-wrap .form-check .form-check-input:checked { background-color:$theme-link; border-color:$theme-link !important; }
+
+// 2단계 인증 설정 화면: 글상자와 단추의 높이를 맞춘다
+.two-factor-controls {
+    .form-control, .btn { height:40px; }
+    .btn { padding-top:0; padding-bottom:0; display:inline-flex; align-items:center; }
+}
+.loginDialog .two-factor-step .btns-row .ybtn { height:38px; line-height:36px; padding-top:0; padding-bottom:0; margin-bottom:8px; }

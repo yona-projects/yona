@@ -16,16 +16,14 @@
             <input id="two-factor-codeD" name="code" type="text" class="text form-control" autocomplete="one-time-code" th:placeholder="#{user.twoFactor.code}">
           </dd>
         </dl>
-        <div class="act-row">
-          <div class="remember-me-wrap float-start">
-            <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="checkbox form-check-input">
-            <label for="remember-deviceD" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
-          </div>
+        <div class="form-check mb-3">
+          <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="form-check-input">
+          <label for="remember-deviceD" class="form-check-label" th:text="#{user.twoFactor.rememberDevice}"></label>
         </div>
         <div class="btns-row nm">
           <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{user.twoFactor.submit}"></button>
         </div>
-        <div class="btns-row nm security-key-step" style="display: none;">
+        <div class="btns-row nm mt-2 security-key-step" style="display: none;">
           <button type="button" class="ybtn fullsize security-key-use" th:text="#{twoFactor.securityKey.use}"
                   th:attr="data-options-uri=@{/users/login/2fa/webauthn/options},data-submit-uri=@{/users/login/2fa/webauthn}"></button>
         </div>
