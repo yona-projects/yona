@@ -6,7 +6,7 @@ updated: 2026-11-02
 
 # 엔터프라이즈 SSO(X-16) 구현 계획
 
-> **상태: 결정 확정(2026-11-02, D-80). 구현은 시작하지 않았고 선생님이 지시할 때 단계 0부터 한다.** 결정은 [decisions.md](../decisions.md) D-80에 있다.
+> **상태: 구현 완료(2026-11-02, 단계 0~7). 결과는 [enterprise-sso.md](enterprise-sso.md)에 있다. 계획 중 `auth.sso_login`은 `auth.login_success`의 `details.method`로 바꿨다(A-344).** 결정은 [decisions.md](../decisions.md) D-80에 있다.
 
 ## 1. 목적
 

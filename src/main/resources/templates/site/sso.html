@@ -3,7 +3,7 @@
   Yona, 21st Century Project Hosting SW
 
   v1.6에 없는 추가 화면이다(X-16, decisions.md D-80). 사이트 관리의 SSO 설정(OIDC, SAML 2)
-  모델: title, oidc, saml2, oidcSecretSet, redirectUri, initiateUrl, acsUrl, entityId, metadataUrl, idpCertificates, spCertificate, spPreviousCertificate
+  모델: title, tab(처음 열 탭: general, oidc, saml2, saml2-keys), oidc, saml2, oidcSecretSet, redirectUri, initiateUrl, acsUrl, entityId, metadataUrl, idpCertificates, spCertificate, spPreviousCertificate
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::ssoPage})}">
@@ -12,6 +12,14 @@
 <h3 th:text="#{site.sso.title}"></h3>
 <p class="text-body-secondary" th:text="#{site.sso.description}"></p>
 
+<ul class="nav nav-tabs mb-3" id="sso-tabs" role="tablist">
+    <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'general'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-general" id="sso-tab-general" th:text="#{site.sso.tab.general}"></button></li>
+    <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'oidc'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-oidc" id="sso-tab-oidc" th:text="#{site.sso.tab.oidc}"></button></li>
+    <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2" id="sso-tab-saml2" th:text="#{site.sso.tab.saml2}"></button></li>
+    <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2-keys'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2-keys" id="sso-tab-saml2-keys" th:text="#{site.sso.tab.saml2Keys}"></button></li>
+</ul>
+<div class="tab-content">
+<div class="tab-pane fade" th:classappend="${tab == 'general'} ? 'show active'" id="sso-pane-general" role="tabpanel">
 <form id="sso-mode-form" class="security-settings" method="post" th:action="@{/sites/sso/mode}">
     <label class="option" for="sso-only">
         <input class="form-check-input" type="checkbox" name="ssoOnly" id="sso-only" value="true" th:checked="${ssoOnly}">
@@ -20,6 +28,8 @@
     <button type="submit" class="btn btn-success mt-2" th:text="#{site.sso.save}"></button>
 </form>
 
+</div>
+<div class="tab-pane fade" th:classappend="${tab == 'oidc'} ? 'show active'" id="sso-pane-oidc" role="tabpanel">
 <!-- OIDC -->
 <h4 class="mt-4" th:text="#{site.sso.oidc.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.oidc.help}"></p>
@@ -87,8 +97,8 @@
     <span th:if="${oidc.discoveryCheckedDate != null}" class="text-body-secondary ms-2" th:text="#{site.sso.oidc.checkedAt(${#dates.format(oidc.discoveryCheckedDate, 'yyyy-MM-dd HH:mm')})}"></span>
 </form>
 
-<hr class="my-4">
-
+</div>
+<div class="tab-pane fade" th:classappend="${tab == 'saml2'} ? 'show active'" id="sso-pane-saml2" role="tabpanel">
 <!-- SAML 2 -->
 <h4 th:text="#{site.sso.saml2.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.saml2.help}"></p>
@@ -174,7 +184,9 @@
     <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
 </form>
 
-<h5 class="mt-4" th:text="#{site.sso.saml2.sp.title}"></h5>
+</div>
+<div class="tab-pane fade" th:classappend="${tab == 'saml2-keys'} ? 'show active'" id="sso-pane-saml2-keys" role="tabpanel">
+<h4 th:text="#{site.sso.saml2.sp.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.saml2.sp.help}"></p>
 <div th:if="${spCertificate != null}" id="saml2-sp-current" class="mb-3">
     <code th:text="${spCertificate.subject}"></code>
@@ -202,6 +214,8 @@
     <textarea name="certificate" rows="4" class="form-control mb-2" th:placeholder="#{site.sso.saml2.sp.upload.certificate}"></textarea>
     <button type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.saml2.sp.upload}"></button>
 </form>
+</div>
+</div>
 </div>
 </th:block>
 </html>

@@ -1,0 +1,15 @@
+{
+  "realm": "corp",
+  "enabled": true,
+  "sslRequired": "none",
+  "users": [
+    { "username": "kim", "enabled": true, "email": "kim@corp.example", "emailVerified": true, "firstName": "길동", "lastName": "김", "credentials": [{ "type": "password", "value": "kimpw1234", "temporary": false }] },
+    { "username": "lee", "enabled": true, "email": "lee@corp.example", "emailVerified": false, "firstName": "영희", "lastName": "이", "credentials": [{ "type": "password", "value": "leepw1234", "temporary": false }] }
+  ],
+  "clients": [
+    {
+      "clientId": "yona-oidc", "enabled": true, "protocol": "openid-connect", "publicClient": false, "secret": "oidc-secret-1234", "standardFlowEnabled": true,
+      "redirectUris": ["http://localhost:19410/*"], "attributes": { "pkce.code.challenge.method": "S256" }
+    }
+  ]
+}

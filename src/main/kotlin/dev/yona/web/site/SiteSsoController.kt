@@ -43,10 +43,10 @@ class SiteSsoController(
 ) {
 
     @GetMapping("/sites/sso")
-    fun form(): ModelAndView {
+    fun form(@org.springframework.web.bind.annotation.RequestParam(required = false) tab: String?): ModelAndView {
         val oidc = settings.oidc(); val saml2 = settings.saml2()
         val origin = siteUrls.origin()
-        return ModelAndView("site/sso").addObject("title", "site.sidebar.sso").addObject("oidc", oidc).addObject("saml2", saml2)
+        return ModelAndView("site/sso").addObject("title", "site.sidebar.sso").addObject("tab", tab?.takeIf { it in TABS } ?: "general").addObject("oidc", oidc).addObject("saml2", saml2)
             .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
             .addObject("redirectUri", origin + siteUrls.path("/sso/oidc/callback/oidc")).addObject("initiateUrl", origin + siteUrls.path("/sso/oidc/initiate"))
             .addObject("acsUrl", origin + siteUrls.path("/sso/saml2/acs")).addObject("entityId", saml2.spEntityId?.takeIf { it.isNotBlank() } ?: (origin + siteUrls.path("/sso/saml2/metadata/saml2")))
@@ -59,8 +59,8 @@ class SiteSsoController(
     /** SSO 전용 모드를 바꾼다. 켜려면 켠 SSO가 하나 이상 있어야 한다. */
     @PostMapping("/sites/sso/mode")
     fun saveMode(request: HttpServletRequest, response: HttpServletResponse): Any =
-        if (siteSettings.setSsoOnly(request.getParameter("ssoOnly") == "true")) RedirectSupport.see(request, response, PAGE, mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
-        else warn(request, response, "site.sso.only.needProvider")
+        if (siteSettings.setSsoOnly(request.getParameter("ssoOnly") == "true")) RedirectSupport.see(request, response, "$PAGE?tab=general", mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
+        else warn(request, response, "site.sso.only.needProvider", "general")
 
     /** OIDC 설정을 저장한다. 사용을 켜는데 연결이나 값이 맞지 않으면 저장하지 않고 이유를 경고로 보인다. */
     @PostMapping("/sites/sso/oidc")
@@ -72,14 +72,14 @@ class SiteSsoController(
             scopes = text("scopes"), emailClaim = text("emailClaim"), nameClaim = text("nameClaim"), loginIdClaim = text("loginIdClaim"), autoCreate = flag("autoCreate"), linkByEmail = flag("linkByEmail"),
             allowUnverifiedEmail = flag("allowUnverifiedEmail"), nameSync = flag("nameSync"), initiateEnabled = flag("initiateEnabled"), clockSkewSeconds = text("clockSkewSeconds").toIntOrNull() ?: 60
         )
-        return result(request, response, settings.saveOidc(form, actor()))
+        return result(request, response, settings.saveOidc(form, actor()), "oidc")
     }
 
     /** 저장된 OIDC 설정의 연결을 다시 확인하고 결과를 알린다. */
     @PostMapping("/sites/sso/oidc/check")
     fun checkOidc(request: HttpServletRequest, response: HttpServletResponse): Any {
         val error = settings.checkOidc()
-        return RedirectSupport.see(request, response, PAGE, mapOf((if (error == null) RedirectSupport.SUCCESS else RedirectSupport.WARNING) to (error?.messageKey ?: "site.sso.checked")))
+        return RedirectSupport.see(request, response, "$PAGE?tab=oidc", mapOf((if (error == null) RedirectSupport.SUCCESS else RedirectSupport.WARNING) to (error?.messageKey ?: "site.sso.checked")))
     }
 
     /** SAML 2 설정을 저장한다. */
@@ -93,7 +93,7 @@ class SiteSsoController(
             autoCreate = flag("autoCreate"), linkByEmail = flag("linkByEmail"), allowUnverifiedEmail = flag("allowUnverifiedEmail"), nameSync = flag("nameSync"), initiateEnabled = flag("initiateEnabled"),
             signRequests = flag("signRequests"), clockSkewSeconds = text("clockSkewSeconds").toIntOrNull() ?: 60, idpSsoBinding = text("idpSsoBinding").ifEmpty { "REDIRECT" }
         )
-        return result(request, response, settings.saveSaml2(form, actor()))
+        return result(request, response, settings.saveSaml2(form, actor()), "saml2")
     }
 
     /** IdP 메타데이터(붙여 넣은 XML 또는 https 주소)를 읽어 발급자, 로그인 주소, 인증서를 채운다. 사용 여부는 바꾸지 않는다. */
@@ -101,25 +101,25 @@ class SiteSsoController(
     fun importMetadata(request: HttpServletRequest, response: HttpServletResponse): Any {
         val xml = request.getParameter("metadataXml")?.takeIf { it.isNotBlank() } ?: request.getParameter("metadataUrl")?.takeIf { it.isNotBlank() }?.let { fetcher.fetch(it) }
         val imported = xml?.let { settings.importSaml2Metadata(it) }
-        if (imported !is Saml2MetadataImport.Imported) return warn(request, response, (imported as? Saml2MetadataImport.Invalid)?.error?.messageKey ?: SsoSaveError.UNREACHABLE.messageKey)
-        return result(request, response, settings.applySaml2Metadata(imported, actor()))
+        if (imported !is Saml2MetadataImport.Imported) return warn(request, response, (imported as? Saml2MetadataImport.Invalid)?.error?.messageKey ?: SsoSaveError.UNREACHABLE.messageKey, "saml2")
+        return result(request, response, settings.applySaml2Metadata(imported, actor()), "saml2")
     }
 
     /** SP 키쌍을 새로 만든다. 이미 있으면 이전 키로 옮겨 함께 둔다. */
     @PostMapping("/sites/sso/saml2/keys/generate")
     fun generateKeys(request: HttpServletRequest, response: HttpServletResponse): Any =
-        result(request, response, settings.generateSpKeys(java.net.URI.create(siteUrls.origin()).host ?: "yona", actor()))
+        result(request, response, settings.generateSpKeys(java.net.URI.create(siteUrls.origin()).host ?: "yona", actor()), "saml2-keys")
 
     /** 외부에서 만든 SP 비밀 키(PKCS#8 PEM)와 인증서(PEM)를 올린다. */
     @PostMapping("/sites/sso/saml2/keys/upload")
     fun uploadKeys(request: HttpServletRequest, response: HttpServletResponse): Any =
-        result(request, response, settings.uploadSpKeys(request.getParameter("privateKey").orEmpty(), request.getParameter("certificate").orEmpty(), actor()))
+        result(request, response, settings.uploadSpKeys(request.getParameter("privateKey").orEmpty(), request.getParameter("certificate").orEmpty(), actor()), "saml2-keys")
 
     /** 교체 중인 이전 SP 키를 지운다. */
     @PostMapping("/sites/sso/saml2/keys/remove-previous")
     fun removePrevious(request: HttpServletRequest, response: HttpServletResponse): Any {
         settings.removePreviousSpKeys(actor())
-        return RedirectSupport.see(request, response, PAGE, mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
+        return RedirectSupport.see(request, response, "$PAGE?tab=saml2-keys", mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
     }
 
     /** SP 인증서를 PEM 파일로 내려받는다. IdP 관리자에게 전달한다. 키가 없으면 404이다. */
@@ -130,12 +130,13 @@ class SiteSsoController(
         return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/x-pem-file")).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"yona-saml-sp.pem\"").body(pem)
     }
 
-    private fun result(request: HttpServletRequest, response: HttpServletResponse, result: SsoSaveResult): Any = when (result) {
-        is SsoSaveResult.Saved -> RedirectSupport.see(request, response, PAGE, mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
-        is SsoSaveResult.Rejected -> warn(request, response, result.error.messageKey)
+    private fun result(request: HttpServletRequest, response: HttpServletResponse, result: SsoSaveResult, tab: String): Any = when (result) {
+        is SsoSaveResult.Saved -> RedirectSupport.see(request, response, "$PAGE?tab=$tab", mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
+        is SsoSaveResult.Rejected -> warn(request, response, result.error.messageKey, tab)
     }
 
-    private fun warn(request: HttpServletRequest, response: HttpServletResponse, key: String): Any = RedirectSupport.see(request, response, PAGE, mapOf(RedirectSupport.WARNING to key))
+    private fun warn(request: HttpServletRequest, response: HttpServletResponse, key: String, tab: String = "general"): Any =
+        RedirectSupport.see(request, response, "$PAGE?tab=$tab", mapOf(RedirectSupport.WARNING to key))
 
     private fun actor() = currentUserProvider.get().user?.id?.let { users.findById(it).orElse(null) }
 
@@ -149,6 +150,7 @@ class SiteSsoController(
 
     private companion object {
         const val PAGE = "/sites/sso"
+        val TABS = setOf("general", "oidc", "saml2", "saml2-keys")
         const val EXPIRY_WARNING_DAYS = 30L
     }
 }

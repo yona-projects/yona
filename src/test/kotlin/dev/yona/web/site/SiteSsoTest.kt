@@ -100,6 +100,22 @@ class SiteSsoTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `화면은 탭으로 나뉘고 저장한 뒤에는 같은 탭이 열린다`() {
+        val s = admin()
+        val doc = page(s)
+        assertEquals(listOf("sso-tab-general", "sso-tab-oidc", "sso-tab-saml2", "sso-tab-saml2-keys"), doc.select("#sso-tabs button").map { it.id() })
+        assertEquals(listOf("sso-pane-general"), doc.select(".tab-pane.active").map { it.id() })
+        for (tab in listOf("oidc", "saml2", "saml2-keys")) {
+            val active = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=$tab").session(s)).andReturn().response.contentAsString).select(".tab-pane.active").map { it.id() }
+            assertEquals(listOf("sso-pane-$tab"), active)
+        }
+        assertEquals(listOf("sso-pane-general"), Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=nope").session(s)).andReturn().response.contentAsString).select(".tab-pane.active").map { it.id() })
+        assertEquals("/sites/sso?tab=oidc", flashed(s, "/sites/sso/oidc", *oidcParams()).getHeader("Location"))
+        assertEquals("/sites/sso?tab=saml2", flashed(s, "/sites/sso/saml2", *samlParams()).getHeader("Location"))
+        assertEquals("/sites/sso?tab=saml2-keys", flashed(s, "/sites/sso/saml2/keys/generate").getHeader("Location"))
+    }
+
+    @Test
     fun `OIDC 설정을 저장하면 반영되고 클라이언트 비밀 값은 화면에 다시 나오지 않는다`() {
         val s = admin()
         val response = flashed(s, "/sites/sso/oidc", *oidcParams())
@@ -118,7 +134,7 @@ class SiteSsoTest : AbstractIntegrationTest() {
         val s = admin()
         val response = flashed(s, "/sites/sso/oidc", *oidcParams(issuer = "http://203.0.113.9/nothing"))
         assertTrue(settings.oidc().enabled != true)
-        assertEquals("/sites/sso", response.getHeader("Location"))
+        assertEquals("/sites/sso?tab=oidc", response.getHeader("Location"))
     }
 
     @Test
