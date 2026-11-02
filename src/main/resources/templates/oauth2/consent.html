@@ -17,8 +17,10 @@
     <p class="tag-line" th:if="${ownerOrganization != null}" th:text="#{oauth.consent.byOrganization(${ownerOrganization})}"></p>
   </div>
   <div class="login-form-wrap frm-wrap oauth-consent tf-challenge">
-    <div id="org-policy-warning" class="alert alert-warning" th:if="${!#lists.isEmpty(restrictedOrganizations)}" th:text="#{oauth.consent.orgRestricted(${#strings.listJoin(restrictedOrganizations, ', ')})}"></div>
-    <div id="loopback-warning" class="alert alert-warning" th:if="${loopback}" th:text="#{oauth.consent.loopback}"></div>
+    <div id="consent-warnings" class="alert alert-warning" th:if="${loopback or !#lists.isEmpty(restrictedOrganizations)}">
+      <p id="org-policy-warning" class="mb-0" th:if="${!#lists.isEmpty(restrictedOrganizations)}" th:text="#{oauth.consent.orgRestricted(${#strings.listJoin(restrictedOrganizations, ', ')})}"></p>
+      <p id="loopback-warning" th:classappend="${#lists.isEmpty(restrictedOrganizations)} ? 'mb-0' : 'mt-2 mb-0'" th:if="${loopback}" th:text="#{oauth.consent.loopback}"></p>
+    </div>
     <p id="cimd-note" class="text-body-secondary" th:if="${cimdHost != null}" th:text="#{oauth.consent.cimd(${cimdHost})}"></p>
     <p th:text="#{oauth.consent.requests}"></p>
     <ul id="oauth-scopes" class="list-unstyled">
