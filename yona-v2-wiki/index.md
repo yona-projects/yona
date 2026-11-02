@@ -111,6 +111,7 @@
 - [SSH 접근과 SSH 키, 배포 키 설계](architecture/ssh.md): 설정으로 켜는 내장 SSH 서버(MINA SSHD), 사용자 SSH 키와 배포 키(목록, 추가 두 화면), 인가, 감사와 지표, 복제 주소(X-3, D-66, 구현 완료)
 - [2단계 인증 설계](architecture/two-factor.md): 인증 앱(TOTP), 보안 키(WebAuthn), 백업 코드, 알려진 기기, 로그인 입구별 처리, 관리자 강제와 해제(X-2, D-69, 구현 완료)
 - [OAuth2 인가 서버](architecture/oauth2-server.md): PKCE, 불투명 토큰, 갱신 토큰 회전과 재사용 탐지, CIMD(SSRF 방어), 승인 화면, 사용자가 만드는 OAuth 앱, 외부 API 접근(X-1, D-71, 구현 완료)
+- OIDC 제공자: [oauth2-server.md](architecture/oauth2-server.md)의 "OIDC 제공자" 절(Sign in with Yona, ID 토큰 RS256, `/oauth2/userinfo`, 운영자가 정하는 서명 키, X-40, D-77)
 - [MCP 서버](architecture/mcp-server.md): Streamable HTTP(세션 없음), OAuth 토큰만, 토큰 대상 검증(RFC 8707), REST를 같은 길로 부르는 도구, 감사와 지표, 클라이언트 연결 절차 (X-6, D-72)
 - [MCP 서버 구현 계획](architecture/mcp-server-plan.md): 계획과 단계 0~6
 - [OAuth2 인증 서버 구현 계획](architecture/oauth2-server-plan.md): 불투명 토큰, 클래식 범위, 인가 서버 엔드포인트, 승인 화면, 동적 등록, 단계 0~8 (X-1, D-71 답변 대기, 계획만)

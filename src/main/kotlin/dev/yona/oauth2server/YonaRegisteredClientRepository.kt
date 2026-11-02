@@ -20,7 +20,9 @@ import java.time.Duration
  * 동적 클라이언트 등록은 하지 않으므로 [save]는 지원하지 않는다. 모든 앱에 PKCE와 승인 화면을 요구하고, 액세스 토큰은 불투명(reference) 토큰이다.
  */
 @Component
-class YonaRegisteredClientRepository(private val clients: OAuthClientRepository, private val cimd: dev.yona.oauth2server.cimd.CimdClientResolver) : RegisteredClientRepository {
+class YonaRegisteredClientRepository(
+    private val clients: OAuthClientRepository, private val cimd: dev.yona.oauth2server.cimd.CimdClientResolver, private val oidc: dev.yona.oauth2server.oidc.OidcSettings
+) : RegisteredClientRepository {
 
     override fun save(registeredClient: RegisteredClient) = throw UnsupportedOperationException("OAuth 앱은 설정 화면에서만 등록한다")
 
@@ -38,7 +40,7 @@ class YonaRegisteredClientRepository(private val clients: OAuthClientRepository,
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
             .redirectUris { uris -> uris.addAll(RedirectUris.parse(client.redirectUris)) }
-            .scopes { scopes -> scopes.addAll(ApiScopes.parseOrEmpty(client.allowedScopes)) }
+            .scopes { scopes -> scopes.addAll(dev.yona.domain.oauth2server.OAuthScopes.parseAllowed(client.allowedScopes, oidc.enabled)) }
             .clientSettings(ClientSettings.builder().requireProofKey(true).requireAuthorizationConsent(true).build())
             .tokenSettings(
                 TokenSettings.builder().accessTokenFormat(OAuth2TokenFormat.REFERENCE).accessTokenTimeToLive(ACCESS_TOKEN_TTL)

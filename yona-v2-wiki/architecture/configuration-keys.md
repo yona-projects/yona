@@ -52,6 +52,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.ssh.enabled` | `false` | 사용 중(X-3). 내장 SSH 서버(Apache MINA SSHD)를 켠다. 끄면 포트를 열지 않고 화면과 동작이 v1.6과 같다 |
 | (v2 신규) | `yona.two-factor.reset-user` | 비어 있음 | 사용 중(X-2). 로그인 ID를 적고 시작하면 그 사용자의 2단계 인증을 지운다(긴급 해제). 쓴 뒤에는 지운다 |
 | (v2 신규) | `yona.oauth2.cimd-allow-private-hosts` | `false` | 사용 중(X-1). CIMD 문서를 가져올 때 공인 주소가 아닌 곳(루프백, 사설)도 허용한다. **개발과 시험 전용**이다. 운영에서 켜면 서버가 내부 자원을 대신 읽게 하는 공격(SSRF)에 열린다 |
+| (v2 신규) | `yona.oauth2.oidc.signing-key-file` | (없음, OIDC 꺼짐) | 사용 중(X-40). OIDC 제공자의 ID 토큰 서명 키 파일이다(PKCS#8 PEM의 RSA 개인키, 2048비트 이상). 비워 두면 OIDC가 꺼진다. 정했는데 읽을 수 없으면 서버가 시작하지 않는다. 키의 자동 생성은 추가 논의 항목이다([oauth2-server.md](oauth2-server.md)) |
 | (v2 신규) | `spring.ai.mcp.server.*` | `enabled: true`, `protocol: STATELESS`, `name: yona-mcp-server` | 사용 중(X-6). MCP 서버(`/mcp`)를 만드는 Spring AI 스타터의 설정이다. 경로 `/mcp`는 스타터의 기본값이고 `McpAccessFilter`가 같은 경로를 전제하므로 바꾸지 않는다. 사용 여부와 쓰기 도구 허용은 키가 아니라 사이트 관리의 "보안" 화면 설정(`security.mcp-enabled`, `security.mcp-write-enabled`)이다 |
 | (v2 신규) | `yona.ssh.port` | `2222` | 사용 중(X-3). SSH 서버가 받는 포트. 0이면 운영체제가 고른다(시험용) |
 | (v2 신규) | `yona.ssh.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |

@@ -61,3 +61,44 @@ v1.6에는 없는 추가 개발 항목이다. Yona가 OAuth 2.1 인가 서버가
 ## 검증
 
 단위(리디렉션 규칙, CIMD 문서 검증, 주소 정책), 실제 TLS 서버로 CIMD 전송(리디렉션 거부, 크기와 시간 제한, 재바인딩 이름 거부), 인가 코드 + PKCE 전체 흐름(MockMvc), CIMD 클라이언트 흐름, 승인 화면, 자원 쪽 접근과 git 거부, 설정과 관리자 화면 시험. Playwright로 승인 화면과 설정 화면을 확인했다.
+
+## OIDC 제공자 ("Sign in with Yona", X-40, D-77)
+
+다른 앱이 Yona 계정으로 로그인하게 하는 OpenID Connect 제공자이다. X-1의 인가 서버 위에 얹었고 방향은 X-16(Yona가 외부 IdP로 로그인)과 반대이다. **운영자가 ID 토큰 서명 키를 정해 줘야 켜진다**(키의 자동 생성은 추가 논의 항목).
+
+**켜는 법**: PKCS#8 PEM의 RSA 개인키(2048비트 이상)를 만들어 `yona.oauth2.oidc.signing-key-file`에 경로를 준다. 키를 정하지 않으면 OIDC는 꺼져 있다(발견 문서와 사용자 정보 404, `openid` `profile` `email` 범위를 앱에 줄 수 없고 저장된 앱의 OIDC 범위도 무시한다). 정했는데 읽을 수 없거나 형식이 틀리거나 2048비트 미만이면 서버가 시작하지 않는다.
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /etc/yona/oidc-key.pem && chmod 600 /etc/yona/oidc-key.pem
+```
+
+| 주소 | 설명 |
+|---|---|
+| `/.well-known/openid-configuration` | 발견 문서(발급자, 엔드포인트, `id_token_signing_alg_values_supported: [RS256]`, `scopes_supported`, `claims_supported`, `code_challenge_methods_supported: [S256]`) |
+| `/oauth2/jwks` | 공개키 목록(Spring Authorization Server가 서명 키 `JWKSource`가 있으면 자동으로 연다. 개인키 성분은 걸러서 낸다. `kid`는 공개키의 SHA-256 지문) |
+| `/oauth2/userinfo` | 사용자 정보(`GET`, `POST`, `Authorization: Bearer <액세스 토큰>`). 토큰이 없으면 401, 틀리면 401 `invalid_token`, `openid` 범위가 없으면 403 `insufficient_scope` |
+
+**흐름**: 앱을 만들 때 `openid`, `profile`, `email` 범위를 고르고(앱 만들기 화면과 승인 화면에 5개 언어 설명이 나온다), 승인 요청에 `scope=openid ...`와 `nonce`를 보내면 토큰 응답에 `id_token`이 함께 온다. 액세스 토큰은 지금처럼 불투명 토큰(`yona_oat_`)이고 ID 토큰만 RS256 JWT이다.
+
+**ID 토큰**: 유효 10분. `iss`는 발견 문서와 같은 값(요청의 출처와 컨텍스트 경로), `sub`은 **사용자 번호**(불변), `aud`는 앱, `nonce`는 요청 값 그대로, 범위가 정한 사용자 클레임을 함께 싣는다.
+
+| 범위 | 클레임 |
+|---|---|
+| `openid` | `sub` |
+| `profile` | `name`, `preferred_username`(로그인 ID), `picture`(프로필 사진의 절대 주소), `updated_at` |
+| `email` | `email` |
+
+`email_verified`는 **보내지 않는다**(기본 이메일에 인증 표시가 없어 어느 값도 거짓이 되기 때문이다). 조직 소속(`groups`) 같은 Yona 고유 클레임도 없다. 사용자 정보 주소도 같은 클레임을 같은 범위 규칙으로 돌려준다.
+
+**주소가 `/userinfo`가 아닌 이유**: 로드맵에는 `/userinfo`로 적었으나 v1.6의 `/{사용자}` 경로와 겹쳐 `userinfo`라는 사용자의 프로필 주소를 가리므로, 이미 예약한 `oauth2` 아래(`/oauth2/userinfo`)에 두었다. 발견 문서가 알려 주므로 라이브러리 사용에는 영향이 없다.
+
+**알려진 한계**
+- 갱신 토큰으로 새 ID 토큰을 주지 않는다(ID 토큰을 저장하지 않는다. 첫 로그인에서 받은 것을 쓴다).
+- 로그아웃 연동(`end_session_endpoint`)이 없다(추가 논의 항목).
+- 서명 키의 교체는 파일을 바꾸고 재시작하는 방식이고, 이전 키로 서명된 ID 토큰은 새 공개키로 검증되지 않는다(ID 토큰은 10분만 유효하다). 자동 순환은 없다.
+- CIMD로 등록하는 앱은 OIDC 범위를 받지 않는다(문서의 `scope`에서 무시한다).
+- 보호 자원 메타데이터(`/.well-known/oauth-protected-resource`)의 지원 범위에는 OIDC 범위를 넣지 않는다(자원 접근 범위가 아니다).
+- 발견 문서의 `issuer`와 ID 토큰의 `iss`는 같은 값(요청 기준 출처)이지만, 기존 `/.well-known/oauth-authorization-server`의 `issuer`는 라이브러리가 요청에서 만든 값이다. 역방향 프록시 뒤에서는 두 값이 다를 수 있어 `X-Forwarded-*` 설정을 맞춰야 한다.
+
+**검증**: 시험 `OidcProviderTest`(발견 문서, 공개키 목록, ID 토큰 서명과 클레임과 nonce와 유효 시간, 범위별 클레임, 사용자 정보의 401/403, 앱 화면)와 `OidcDisabledTest`(꺼진 상태)이다. 실제 jar에 공개된 OIDC 클라이언트 라이브러리(`openid-client` 6.8)로 발견, PKCE, 승인, 토큰 교환, **ID 토큰의 서명과 `iss`와 `aud`와 `exp`와 `nonce` 검증**, 사용자 정보를 확인했다.
+

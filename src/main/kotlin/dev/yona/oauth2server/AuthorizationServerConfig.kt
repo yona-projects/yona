@@ -56,13 +56,13 @@ class AuthorizationServerConfig {
     fun authorizationServerSecurityFilterChain(
         http: HttpSecurity, users: UserRepository, sessionUsers: SessionUserCache, apiTokens: ApiTokenService, tokenFailures: TokenFailureLimiter, audit: AuditBoundary, gate: TwoFactorGate, oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
         registeredClients: YonaRegisteredClientRepository, authorizations: YonaOAuth2AuthorizationService, consents: YonaOAuth2AuthorizationConsentService,
-        siteSettings: dev.yona.domain.site.SiteSettingService
+        siteSettings: dev.yona.domain.site.SiteSettingService, idTokenGenerator: org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.server.authorization.token.JwtGenerator>
     ): SecurityFilterChain {
         val configurer = OAuth2AuthorizationServerConfigurer()
         http.securityMatcher(configurer.endpointsMatcher)
             .with(configurer) { server ->
                 server.registeredClientRepository(registeredClients).authorizationService(authorizations).authorizationConsentService(consents)
-                    .tokenGenerator(DelegatingOAuth2TokenGenerator(YonaTokenGenerator()))
+                    .tokenGenerator(DelegatingOAuth2TokenGenerator(*listOfNotNull(YonaTokenGenerator(), idTokenGenerator.getIfAvailable()).toTypedArray()))
                     // 클라이언트 ID 메타데이터 문서(CIMD)를 받는지 알린다(IETF 초안 6절). 관리자 설정을 따른다
                     .authorizationServerMetadataEndpoint { metadata -> metadata.authorizationServerMetadataCustomizer { builder -> builder.claim("client_id_metadata_document_supported", siteSettings.oauthCimdEnabled()) } }
                     .authorizationEndpoint { endpoint -> endpoint.consentPage(CONSENT_PAGE).authorizationRequestConverters { it.add(0, ResourceJoiningConverter()) }.authenticationProviders { providers -> providers.forEach { useRequestValidator(it) } } }

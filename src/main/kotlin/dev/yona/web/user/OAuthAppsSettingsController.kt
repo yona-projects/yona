@@ -39,7 +39,8 @@ class OAuthAppsSettingsController(
     private val apps: OAuthClientService,
     private val authorized: OAuthAuthorizedAppsService,
     private val settings: SiteSettingService,
-    private val helper: TemplateHelper
+    private val helper: TemplateHelper,
+    private val oidc: dev.yona.oauth2server.oidc.OidcSettings
 ) {
 
     /** 내가 만든 앱의 한 줄이다. */
@@ -136,7 +137,7 @@ class OAuthAppsSettingsController(
 
     private fun formView(client: OAuthClient?, errorKey: String?, form: Form): ModelAndView = base("user/edit-oauth-app-form")
         .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
-        .addObject("scopeChoices", OAuthScopes.grantable())
+        .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled))
 
     private fun secretView(client: OAuthClient, secret: String, noticeKey: String): ModelAndView =
         base("user/edit-oauth-app-secret").addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("secret", secret).addObject("noticeKey", noticeKey).addObject("appId", client.id)
@@ -158,7 +159,7 @@ class OAuthAppsSettingsController(
             )
 
             fun of(client: OAuthClient) = Form(
-                client.name.orEmpty(), client.description.orEmpty(), client.homeUrl.orEmpty(), client.redirectUris.orEmpty(), client.confidential == true, ApiScopes.parseOrEmpty(client.allowedScopes)
+                client.name.orEmpty(), client.description.orEmpty(), client.homeUrl.orEmpty(), client.redirectUris.orEmpty(), client.confidential == true, OAuthScopes.parseAllowed(client.allowedScopes, true)
             )
         }
     }

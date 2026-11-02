@@ -32,11 +32,21 @@ object OAuthScopes {
      */
     val BLOCKED: Set<String> = setOf(ApiScopes.SITE_ADMIN) + listOf("ssh_key", "gpg_key", "deploy_key").flatMap { listOf("admin:$it", "write:$it", "read:$it") }
 
-    /** 앱이 고를 수 있는 범위(화면에 보이는 순서)이다. */
+    /** OIDC 범위이다(X-40, D-77). 사용자 식별(`openid`), 프로필(`profile`), 이메일(`email`). 서명 키를 정해 OIDC를 켠 서버에서만 앱에 줄 수 있다. */
+    val OIDC: List<String> = listOf("openid", "profile", "email")
+
+    /** 앱이 고를 수 있는 API 범위(화면에 보이는 순서)이다. 보호 자원 메타데이터의 지원 범위도 이것이다(OIDC 범위는 자원 접근 범위가 아니다). */
     fun grantable(): List<String> = ApiScopes.selectable(true).filter { it !in BLOCKED }
 
-    /** [scopes]가 비어 있지 않고 모두 [grantable]이면 `true`이다. */
-    fun valid(scopes: Collection<String>): Boolean = scopes.isNotEmpty() && scopes.all { it in grantable() }
+    /** 앱이 고를 수 있는 범위 전부이다. [oidc]가 참이면(OIDC가 켜져 있으면) OIDC 범위를 앞에 둔다. */
+    fun forApps(oidc: Boolean): List<String> = (if (oidc) OIDC else emptyList()) + grantable()
+
+    /** [scopes]가 비어 있지 않고 모두 [forApps]이면 `true`이다. */
+    fun valid(scopes: Collection<String>, oidc: Boolean = false): Boolean = scopes.isNotEmpty() && scopes.all { it in forApps(oidc) }
+
+    /** 저장된 쉼표 문자열에서 앱에 허용된 범위를 읽는다. 모르는 범위는 건너뛰고, OIDC 범위는 [oidc]가 참일 때만 받는다. */
+    fun parseAllowed(raw: String?, oidc: Boolean): Set<String> =
+        ApiScopes.parseOrEmpty(raw) + (if (oidc) raw.orEmpty().split(',').map { it.trim() }.filter { it in OIDC } else emptyList())
 }
 
 /**
@@ -48,7 +58,8 @@ class OAuthClientService(
     private val clients: OAuthClientRepository,
     private val authorizations: OAuthAuthorizationRepository,
     private val consents: OAuthConsentRepository,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val oidc: dev.yona.oauth2server.oidc.OidcSettings
 ) {
 
     private val random = SecureRandom()
@@ -159,7 +170,7 @@ class OAuthClientService(
         if (homeUrl.isNotBlank() && !validHomeUrl(homeUrl.trim())) return "oauth.error.homeUrl"
         val uris = RedirectUris.parse(redirectUris)
         if (uris.isEmpty() || uris.size > MAX_REDIRECTS || uris.any { RedirectUris.problem(it) != null }) return "oauth.error.redirect"
-        if (!OAuthScopes.valid(scopes)) return "oauth.error.scope"
+        if (!OAuthScopes.valid(scopes, oidc.enabled)) return "oauth.error.scope"
         return null
     }
 

@@ -210,8 +210,17 @@ data class YonaProperties(
      *
      * @property cimdAllowPrivateHosts 클라이언트 ID 메타데이터 문서를 가져올 때 공인 주소가 아닌 곳(루프백, 사설 주소)도 허용한다(`yona.oauth2.cimd-allow-private-hosts`, 기본 꺼짐).
      *   **개발과 시험에서만** 켠다. 운영에서 켜면 서버가 내부 자원을 대신 읽게 하는 공격(SSRF)에 열린다
+     * @property oidc OIDC 제공자 설정(추가 개발 항목 X-40, `decisions.md` D-77)
      */
-    data class OAuth2(val cimdAllowPrivateHosts: Boolean = false)
+    data class OAuth2(val cimdAllowPrivateHosts: Boolean = false, val oidc: Oidc = Oidc()) {
+
+        /**
+         * @property signingKeyFile ID 토큰 서명 키 파일(`yona.oauth2.oidc.signing-key-file`)이다. PKCS#8 PEM 형식의 RSA 개인키(`-----BEGIN PRIVATE KEY-----`, 2048비트 이상 권장)이고
+         *   `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out oidc-key.pem`으로 만든다. **비워 두면 OIDC는 꺼진다.** 정했는데 읽을 수 없으면 서버가 시작하지 않는다.
+         *   서버가 키를 자동으로 만드는 방식은 추가 논의 항목이다(D-77 3번)
+         */
+        data class Oidc(val signingKeyFile: String = "")
+    }
 
     /**
      * 2단계 인증 설정이다(추가 개발 항목 X-2, `decisions.md` D-69).
