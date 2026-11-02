@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-8, decisions.md D-79). 사이트 관리의 Git LFS 설정
+  모델: title, enabled, maxObjectMb, quotaMb, objectCount, usageText
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::lfsPage})}">
+<th:block th:fragment="lfsPage">
+<div class="two-factor-page">
+<h3 th:text="#{site.lfs.title}"></h3>
+<p class="text-body-secondary" th:text="#{site.lfs.description}"></p>
+<form id="lfs-settings-form" class="security-settings" method="post" th:action="@{/sites/lfs}">
+    <label class="option" for="lfs-enabled">
+        <input class="form-check-input" type="checkbox" name="enabled" id="lfs-enabled" value="true" th:checked="${enabled}">
+        <span class="option-text"><strong th:text="#{site.lfs.enabled}"></strong><small th:text="#{site.lfs.enabled.help}"></small></span>
+    </label>
+    <div class="mb-3 mt-3">
+        <label for="lfs-max-object" class="form-label" th:text="#{site.lfs.maxObject}"></label>
+        <input id="lfs-max-object" type="number" min="1" name="maxObjectMb" class="form-control tf-wide" th:value="${maxObjectMb}">
+        <div class="form-text" th:text="#{site.lfs.maxObject.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="lfs-quota" class="form-label" th:text="#{site.lfs.quota}"></label>
+        <input id="lfs-quota" type="number" min="0" name="quotaMb" class="form-control tf-wide" th:value="${quotaMb}">
+        <div class="form-text" th:text="#{site.lfs.quota.help}"></div>
+    </div>
+    <button type="submit" class="btn btn-success" th:text="#{site.lfs.save}"></button>
+</form>
+<h4 class="mt-4" th:text="#{site.lfs.usage}"></h4>
+<p id="lfs-site-usage" th:text="#{lfs.usage(${objectCount}, ${usageText})}"></p>
+</div>
+</th:block>
+</html>

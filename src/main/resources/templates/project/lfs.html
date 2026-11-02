@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-8, decisions.md D-79). 프로젝트 설정의 Git LFS: 저장 사용량과 현재 잠금 목록, 잠금 강제 풀기
+  모델: title, projectView, enabled(LFS 사용 여부), objectCount, usageText, quotaText(없으면 한도 없음), maxObjectText, locks(LockRow 목록: id, path, owner, lockedText)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::lfsPage})}">
+<th:block th:fragment="lfsPage" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap" id="lfsPage">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/lfs'})}"></th:block>
+        <p class="form-text mt10" th:text="#{lfs.description}"></p>
+        <div class="alert alert-warning" th:unless="${enabled}" th:text="#{lfs.disabled}"></div>
+
+        <h4 th:text="#{lfs.usage.title}"></h4>
+        <p id="lfs-usage">
+            <th:block th:text="#{lfs.usage(${objectCount}, ${usageText})}"></th:block>
+            <th:block th:if="${quotaText != null}"> <span class="text-body-secondary" th:text="#{lfs.usage.quota(${quotaText})}"></span></th:block>
+            <br><span class="text-body-secondary" th:text="#{lfs.usage.maxObject(${maxObjectText})}"></span>
+        </p>
+
+        <h4 th:text="#{lfs.locks.title}"></h4>
+        <p class="form-text" th:text="#{lfs.locks.description}"></p>
+        <p id="lfs-locks-empty" class="empty" th:if="${#lists.isEmpty(locks)}" th:text="#{lfs.locks.empty}"></p>
+        <table id="lfs-locks" class="table table-striped" th:if="${!#lists.isEmpty(locks)}">
+            <thead><tr><th th:text="#{lfs.locks.path}"></th><th th:text="#{lfs.locks.owner}"></th><th th:text="#{lfs.locks.date}"></th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${locks}" class="lfs-lock-row">
+                <td><code th:text="${l.path}"></code></td>
+                <td th:text="${l.owner}"></td>
+                <td th:text="${l.lockedText}"></td>
+                <td class="text-end">
+                    <form method="post" th:action="${base + '/setting/lfs/locks/' + l.id + '/delete'}" th:attr="onsubmit='return confirm(\'' + #{lfs.locks.release.confirm} + '\');'">
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{lfs.locks.release}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</th:block>
+</html>

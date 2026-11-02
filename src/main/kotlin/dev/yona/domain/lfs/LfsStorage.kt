@@ -121,6 +121,14 @@ class LfsStorage(private val dataDirectory: DataDirectory) {
         }
     }
 
+    /** 사이트 전체의 객체 수와 바이트이다(`repo/lfs` 아래 모든 프로젝트). */
+    fun siteUsage(): Usage {
+        val root = File(dataDirectory.root(), "repo/lfs")
+        if (!root.isDirectory) return Usage(0, 0)
+        val files = root.walkTopDown().filter { it.isFile && "/objects/" in it.path.replace(File.separatorChar, '/') }.toList()
+        return Usage(files.size.toLong(), files.sumOf { it.length() })
+    }
+
     /** 프로젝트의 객체 수와 바이트이다. */
     fun usage(project: Project): Usage {
         val objects = File(directoryOf(project), "objects")
