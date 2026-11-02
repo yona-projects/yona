@@ -52,7 +52,7 @@ class McpToolsSupport(
     fun project(scope: ProjectScope = ProjectScope.PUBLIC): Fixture {
         val k = ++n
         val project = projects.save(Project(owner = "mto$k", name = "mtp$k", vcs = "GIT", projectScope = scope, overview = "개요 $k", createdDate = Date(1_700_000_000_000L)))
-        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         val manager = user().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
         val member = user().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
         return Fixture(project, manager, member)

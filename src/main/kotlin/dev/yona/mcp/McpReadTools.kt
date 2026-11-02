@@ -70,7 +70,7 @@ class McpReadTools(private val bridge: McpRestBridge) {
         @ToolParam(description = "Title filter / 제목 검색어", required = false) query: String?
     ): Any? = bridge.call("list_wiki_pages", "GET", "${project(owner, project)}/wiki/pages", mapOf("q" to query), target = "$owner/$project")
 
-    @Tool(name = "get_wiki_page", description = "Get a wiki page by name (use slashes for sub paths, e.g. Guides/Setup). / 위키 페이지를 이름으로 조회한다(하위 경로는 슬래시).")
+    @Tool(name = "get_wiki_page", description = "Get a wiki page by name. / 위키 페이지를 이름으로 조회한다.")
     fun getWikiPage(
         @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
         @ToolParam(description = "Page name / 페이지 이름") name: String, @ToolParam(description = "Revision (optional) / 리비전(생략 가능)", required = false) revision: String?

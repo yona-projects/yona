@@ -12,5 +12,5 @@ import org.springframework.context.annotation.Configuration
 class McpToolsConfig {
 
     @Bean
-    fun mcpToolCallbackProvider(read: McpReadTools): ToolCallbackProvider = MethodToolCallbackProvider.builder().toolObjects(read).build()
+    fun mcpToolCallbackProvider(read: McpReadTools, write: McpWriteTools): ToolCallbackProvider = MethodToolCallbackProvider.builder().toolObjects(read, write).build()
 }

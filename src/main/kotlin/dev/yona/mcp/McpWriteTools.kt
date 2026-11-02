@@ -1,0 +1,61 @@
+package dev.yona.mcp
+
+import dev.yona.mcp.McpRestBridge.Companion.seg
+import org.springframework.ai.tool.annotation.Tool
+import org.springframework.ai.tool.annotation.ToolParam
+import org.springframework.stereotype.Component
+
+/**
+ * MCP 쓰기 도구이다(추가 개발 항목 X-6, `decisions.md` D-72 4번). 되돌리기 쉬운 쓰기만 둔다: 이슈 만들기, 댓글, 닫기와 다시 열기, 풀 리퀘스트 댓글, 위키 만들기와 수정.
+ * 풀 리퀘스트 만들기, 리뷰 판정, 병합, 삭제는 두지 않는다(로드맵 X-41). 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
+ * 모든 호출은 감사 기록(`mcp.tool_called`)을 남긴다.
+ */
+@Component
+class McpWriteTools(private val bridge: McpRestBridge) {
+
+    private fun project(owner: String, project: String) = "/-_-api/v1/owners/${seg(owner)}/projects/${seg(project)}"
+
+    @Tool(name = "create_issue", description = "Create an issue. Requires the repo scope. / 이슈를 만든다. repo 범위가 필요하다.")
+    fun createIssue(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Title / 제목") title: String, @ToolParam(description = "Body in Markdown / 본문(마크다운)", required = false) body: String?
+    ): Any? = bridge.call("create_issue", "POST", "${project(owner, project)}/issues", body = mapOf("issues" to listOf(mapOf("title" to title, "body" to body.orEmpty()))), target = "$owner/$project")
+
+    @Tool(name = "comment_issue", description = "Add a comment to an issue. Requires the repo scope. / 이슈에 댓글을 단다. repo 범위가 필요하다.")
+    fun commentIssue(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Issue number / 이슈 번호") number: Long, @ToolParam(description = "Comment in Markdown / 댓글(마크다운)") comment: String
+    ): Any? = bridge.call("comment_issue", "POST", "${project(owner, project)}/issues/$number/comments", body = mapOf("comment" to comment), target = "$owner/$project")
+
+    @Tool(name = "close_issue", description = "Close an issue. Requires the repo scope. / 이슈를 닫는다. repo 범위가 필요하다.")
+    fun closeIssue(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Issue number / 이슈 번호") number: Long
+    ): Any? = bridge.call("close_issue", "PATCH", "${project(owner, project)}/issues/$number", body = mapOf("state" to "closed"), target = "$owner/$project")
+
+    @Tool(name = "reopen_issue", description = "Reopen a closed issue. Requires the repo scope. / 닫힌 이슈를 다시 연다. repo 범위가 필요하다.")
+    fun reopenIssue(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Issue number / 이슈 번호") number: Long
+    ): Any? = bridge.call("reopen_issue", "PATCH", "${project(owner, project)}/issues/$number", body = mapOf("state" to "open"), target = "$owner/$project")
+
+    @Tool(name = "comment_pull_request", description = "Add a comment to a pull request. Requires the repo scope. / 풀 리퀘스트에 댓글을 단다. repo 범위가 필요하다.")
+    fun commentPullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long, @ToolParam(description = "Comment in Markdown / 댓글(마크다운)") body: String
+    ): Any? = bridge.call("comment_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/comments", body = mapOf("body" to body), target = "$owner/$project")
+
+    @Tool(name = "create_wiki_page", description = "Create a wiki page. Requires the repo scope. / 위키 페이지를 만든다. repo 범위가 필요하다.")
+    fun createWikiPage(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Page title / 페이지 제목") title: String, @ToolParam(description = "Content in Markdown / 내용(마크다운)", required = false) content: String?,
+        @ToolParam(description = "Commit message (optional) / 커밋 메시지", required = false) message: String?
+    ): Any? = bridge.call("create_wiki_page", "POST", "${project(owner, project)}/wiki/pages", body = mapOf("title" to title, "content" to content, "message" to message).filterValues { it != null }, target = "$owner/$project")
+
+    @Tool(name = "update_wiki_page", description = "Edit a wiki page's content and/or rename it. Requires the repo scope. / 위키 페이지의 내용을 고치거나 이름을 바꾼다. repo 범위가 필요하다.")
+    fun updateWikiPage(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Current page name / 현재 페이지 이름") name: String, @ToolParam(description = "New title for renaming (optional) / 새 제목(이름 변경)", required = false) title: String?,
+        @ToolParam(description = "New content (optional) / 새 내용", required = false) content: String?, @ToolParam(description = "Commit message (optional) / 커밋 메시지", required = false) message: String?
+    ): Any? = bridge.call(
+        "update_wiki_page", "PATCH", "${project(owner, project)}/wiki/pages/${seg(name)}", body = mapOf("title" to title, "content" to content, "message" to message).filterValues { it != null }, target = "$owner/$project"
+    )
+}
