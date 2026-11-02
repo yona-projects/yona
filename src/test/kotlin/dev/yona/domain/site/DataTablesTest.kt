@@ -13,19 +13,19 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 63개이고(v1_6의 47개와 추가한 테이블 16개) 이름 순서로 정렬되어 있다`() {
-        assertEquals(63, DataTables.all.size)
+    fun `테이블은 69개이고(v1_6의 47개와 추가한 테이블 22개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(69, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("API_TOKEN", DataTables.all.first().name)
         assertEquals("WATCH", DataTables.all.last().name)
     }
 
     @Test
-    fun `조인 테이블 열두 개와 사이트 설정과 OAuth 인가만 시퀀스가 없다`() {
+    fun `조인 테이블과 한 행짜리 설정 테이블과 사이트 설정과 OAuth 인가만 시퀀스가 없다`() {
         assertEquals(
             setOf(
-                "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "NOTIFICATION_EVENT_N4USER",
-                "OAUTH_AUTHORIZATION", "PROJECT_LABEL", "PULL_REQUEST_ASSIGNEE", "PULL_REQUEST_ISSUE_LABEL", "PULL_REQUEST_REVIEWERS", "PULL_REQUEST_REVIEW_REQUEST", "SITE_SETTING", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
+                "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "LDAP_SETTINGS", "NOTIFICATION_EVENT_N4USER",
+                "OAUTH_AUTHORIZATION", "OIDC_SSO_SETTINGS", "ORGANIZATION_OAUTH_POLICY", "SAML2_SSO_SETTINGS", "PROJECT_LABEL", "PULL_REQUEST_ASSIGNEE", "PULL_REQUEST_ISSUE_LABEL", "PULL_REQUEST_REVIEWERS", "PULL_REQUEST_REVIEW_REQUEST", "SITE_SETTING", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
             ),
             DataTables.all.filter { !it.hasSequence }.map { it.name }.toSet()
         )
@@ -40,7 +40,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals(11, DataTables.find("N4USER")!!.columns.size)
         // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
         assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
-        assertEquals(32, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
+        assertEquals(34, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
     @Test

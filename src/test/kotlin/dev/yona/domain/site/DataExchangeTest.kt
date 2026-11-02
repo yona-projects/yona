@@ -368,6 +368,70 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사내 로그인 설정(LDAP, OIDC, SAML 2)을 내보내고 다시 가져온다 (X-16, D-82)`() {
+        jdbc.update("delete from ldap_settings"); jdbc.update("delete from oidc_sso_settings"); jdbc.update("delete from saml2_sso_settings")
+        jdbc.update("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, login_property, use_email_base_login, fallback_to_local_login, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", true, "ldaps", "ldap.rt.example", "636", "ou=rt,dc=example", "uid", false, true)
+        jdbc.update("insert into oidc_sso_settings(id, enabled, display_name, issuer_uri, client_id, client_secret, scopes, auto_create, link_by_email, clock_skew_seconds, discovery_json, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
+            true, "왕복 OIDC", "https://idp.rt.example", "rt-client", "v1.iv.secret", "openid email", true, true, 90, "{\"issuer\":\"https://idp.rt.example\"}")
+        jdbc.update("insert into saml2_sso_settings(id, enabled, display_name, idp_entity_id, idp_sso_url, idp_certificates, sp_private_key, sp_certificate, initiate_enabled, sign_requests, clock_skew_seconds, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
+            true, "왕복 SAML", "https://idp.rt.example/metadata", "https://idp.rt.example/sso", "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----", "v1.iv.key", "-----BEGIN CERTIFICATE-----\nBBB\n-----END CERTIFICATE-----", true, false, 45)
+        val bytes = exportBytes()
+        jdbc.update("delete from ldap_settings"); jdbc.update("delete from oidc_sso_settings"); jdbc.update("delete from saml2_sso_settings")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals("ldap.rt.example", jdbc.queryForObject("select host from ldap_settings where id = 1", String::class.java))
+        assertEquals("ldaps", jdbc.queryForObject("select protocol from ldap_settings where id = 1", String::class.java))
+        assertEquals("v1.iv.secret", jdbc.queryForObject("select client_secret from oidc_sso_settings where id = 1", String::class.java))
+        assertEquals(90, jdbc.queryForObject("select clock_skew_seconds from oidc_sso_settings where id = 1", Int::class.java))
+        assertEquals("{\"issuer\":\"https://idp.rt.example\"}", jdbc.queryForObject("select discovery_json from oidc_sso_settings where id = 1", String::class.java))
+        assertEquals("v1.iv.key", jdbc.queryForObject("select sp_private_key from saml2_sso_settings where id = 1", String::class.java))
+        assertEquals("https://idp.rt.example/sso", jdbc.queryForObject("select idp_sso_url from saml2_sso_settings where id = 1", String::class.java))
+        jdbc.update("delete from ldap_settings"); jdbc.update("delete from oidc_sso_settings"); jdbc.update("delete from saml2_sso_settings")
+    }
+
+    @Test
+    fun `사내 로그인 설정 테이블이 없는 옛 파일을 가져와도 지금 설정은 그대로이다 (X-16)`() {
+        jdbc.update("delete from ldap_settings")
+        jdbc.update("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, updated_date) values (1, ?, ?, ?, ?, ?, current_timestamp)", true, "ldap", "keep.example", "389", "dc=keep")
+        import("""{"label": [{"id": 73, "name": "old", "category": null}]}""")
+        assertEquals("keep.example", jdbc.queryForObject("select host from ldap_settings where id = 1", String::class.java))
+        jdbc.update("delete from ldap_settings")
+    }
+
+    @Test
+    fun `LFS 잠금과 조직 OAuth 정책과 승인을 내보내고 다시 가져온다 (X-8, X-39)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881511L, "lfsrt", "잠금")
+        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881512L, "lfsrt", "lfsrt")
+        jdbc.update("insert into organization(id, name, descr, created) values (?, ?, null, current_timestamp)", 881513L, "orgrt")
+        jdbc.update("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 881514L, "yona_app_lfsrt", "앱", "https://a.example/cb", true, "h", "read:user", "USER", "USER", 881511L)
+        jdbc.update("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, ref_name, locked_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 61L, 881512L, "a/b.psd", "hash-rt-1", 881511L, "refs/heads/master")
+        jdbc.update("insert into organization_oauth_policy(organization_id, restricted, updated_date, updated_by) values (?, ?, current_timestamp, ?)", 881513L, true, 881511L)
+        jdbc.update("insert into organization_oauth_approval(id, organization_id, client_row_id, state, decided_by, decided_date) values (?, ?, ?, ?, ?, current_timestamp)", 62L, 881513L, 881514L, "APPROVED", 881511L)
+        val bytes = exportBytes()
+        jdbc.update("delete from lfs_lock"); jdbc.update("delete from organization_oauth_policy"); jdbc.update("delete from organization_oauth_approval")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals("a/b.psd", jdbc.queryForObject("select path from lfs_lock where id = 61", String::class.java))
+        assertEquals(true, jdbc.queryForObject("select restricted from organization_oauth_policy where organization_id = 881513", Boolean::class.java))
+        assertEquals("APPROVED", jdbc.queryForObject("select state from organization_oauth_approval where id = 62", String::class.java))
+    }
+
+    @Test
+    fun `가져온 뒤 없는 프로젝트나 조직이나 앱을 가리키는 LFS 잠금과 조직 OAuth 행은 정리한다 (X-8, X-39)`() {
+        import("""{"LFS_LOCK": [{"id": 1, "project_id": 999021, "path": "x", "path_hash": "h", "owner_user_id": 999022, "ref_name": null, "locked_date": 1700000000000}],
+            "ORGANIZATION_OAUTH_POLICY": [{"organization_id": 999023, "restricted": true, "updated_date": 1700000000000, "updated_by": null}],
+            "ORGANIZATION_OAUTH_APPROVAL": [{"id": 1, "organization_id": 999023, "client_row_id": 999024, "state": "APPROVED", "decided_by": null, "decided_date": 1700000000000}]}""")
+        assertEquals(0, count("lfs_lock")); assertEquals(0, count("organization_oauth_policy")); assertEquals(0, count("organization_oauth_approval"))
+    }
+
+    @Test
+    fun `사용자와 조직이 있는 옛 파일을 가져오면 남아 있던 LFS 잠금과 조직 OAuth 행은 비운다 (X-8, X-39)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881611L, "oldlfs", "옛")
+        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881612L, "oldlfs", "oldlfs")
+        jdbc.update("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, locked_date) values (?, ?, ?, ?, ?, current_timestamp)", 63L, 881612L, "z", "hash-old", 881611L)
+        import("""{"N4USER": [{"id": 881611, "login_id": "oldlfs", "name": "옛"}], "PROJECT": [], "ORGANIZATION": []}""")
+        assertEquals(0, count("lfs_lock"))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

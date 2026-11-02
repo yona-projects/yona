@@ -143,7 +143,7 @@ class DataService(
                     cleanSshKeys(connection, imported)
                     cleanTwoFactor(connection, imported)
                     cleanOAuthClients(connection, imported)
-                    cleanLfsLocks(connection)
+                    cleanLfsLocks(connection, imported)
                     cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
@@ -243,9 +243,13 @@ class DataService(
      * OAuth 앱 테이블(추가 개발 항목 X-1, `decisions.md` D-71)을 가져온 뒤 바로잡는다. [cleanTwoFactor]와 같은 이유로, 파일에 사용자가 있는데 이 테이블이 없으면(v1.6 파일) 남아 있던 행을 비우고,
      * 소유자가 사용자인데 그 사용자가 없는 행은 지운다.
      */
-    private fun cleanLfsLocks(connection: Connection) {
+    private fun cleanLfsLocks(connection: Connection, imported: List<String>) {
         try {
-            connection.createStatement().use { it.executeUpdate("delete from lfs_lock where project_id not in (select id from project) or owner_user_id not in (select id from n4user)") }
+            connection.createStatement().use { statement ->
+                // 파일에 프로젝트가 있는데 잠금 테이블이 없으면(v1.6 파일) 남아 있던 잠금은 바뀐 프로젝트 번호에 엉뚱하게 붙을 수 있으므로 비운다
+                if ("PROJECT" in imported && "LFS_LOCK" !in imported) statement.executeUpdate("delete from lfs_lock")
+                statement.executeUpdate("delete from lfs_lock where project_id not in (select id from project) or owner_user_id not in (select id from n4user)")
+            }
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean LFS lock rows after the import", e)
@@ -259,6 +263,8 @@ class DataService(
                 if ("N4USER" in imported && "OAUTH_CLIENT" !in imported) statement.executeUpdate("delete from oauth_client")
                 statement.executeUpdate("delete from oauth_client where owner_type = 'USER' and owner_id not in (select id from n4user)")
                 statement.executeUpdate("delete from oauth_client where owner_type = 'ORGANIZATION' and owner_id not in (select id from organization)")
+                if ("ORGANIZATION" in imported && "ORGANIZATION_OAUTH_POLICY" !in imported) statement.executeUpdate("delete from organization_oauth_policy")
+                if ("ORGANIZATION" in imported && "ORGANIZATION_OAUTH_APPROVAL" !in imported) statement.executeUpdate("delete from organization_oauth_approval")
                 statement.executeUpdate("delete from organization_oauth_policy where organization_id not in (select id from organization)")
                 statement.executeUpdate("delete from organization_oauth_approval where organization_id not in (select id from organization) or client_row_id not in (select id from oauth_client)")
                 if ("N4USER" in imported) {

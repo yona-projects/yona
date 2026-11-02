@@ -70,7 +70,11 @@ updated: 2026-11-02
 - 로그아웃은 Yona 세션만 끝낸다(IdP 단일 로그아웃은 추가 논의).
 - 시험 중 서버가 만든 사용자의 로그인 ID에서 `sso`는 예약어이다(`/sso/` 주소와 겹치지 않게).
 
-## 5. 시험
+## 5. 내보내기와 가져오기
+
+사이트 데이터 내보내기와 가져오기(`/sites/data`)에 `LDAP_SETTINGS`, `OIDC_SSO_SETTINGS`, `SAML2_SSO_SETTINGS`가 들어간다([data-exchange.md](../subsystems/data-exchange.md)). 클라이언트 비밀 값과 SAML SP 비밀 키는 암호화된 채로 옮겨지며 **사이트 비밀 키(`yona.secret`)가 같아야 풀린다.** 이 테이블이 없는 파일(v1.6 파일 포함)을 가져와도 지금 설정은 그대로이다. 연결 정보(`linked_account`)는 v1.6처럼 옮기지 않는다.
+
+## 6. 시험
 
 - **가짜 IdP(자동 시험)**: OIDC는 JDK HTTP 서버가 Discovery, JWKS, 토큰을 흉내 낸다(`FakeOidcIdp`). SAML은 OpenSAML로 서명, 암호화한 응답을 만든다(`FakeSamlIdp`). 서명, 발급자, 대상, 수신 주소, 요청 ID, 만료, 재사용, 이메일 미확인, 잠긴 사용자, 열린 리디렉션, IdP 시작 로그인, 암호화 어설션, 키 교체, SSO 전용 모드를 확인한다.
 - **실제 IdP(수동 확인, 2026-11-02)**: Keycloak 26.4 컨테이너(`e2e/keycloak/realm-corp.json`, 실행은 `e2e/ssokeycloak.mjs`)로 OIDC와 SAML 2 로그인(서명된 응답과 **암호화된 어설션**), IdP 시작 SAML 로그인, 이메일 미확인 거절, 연결된 계정, SSO 전용 모드를 Playwright로 15건 확인했다. 관리자 화면에서 설정하고 IdP 메타데이터는 **주소로 가져왔다**.

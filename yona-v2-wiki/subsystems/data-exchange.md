@@ -7,7 +7,7 @@ updated: 2026-10-29
 
 # 데이터 내보내기와 가져오기
 
-코드: `domain/site/DataTables`(52개 테이블 명세: v1.6의 47개와 추가 항목의 테이블 5개: X-14 연결 테이블 2개, X-12 리뷰, X-5 토큰, X-27 리뷰 요청 연결 테이블), `DataService`, `web/site/SiteDataController`.
+코드: `domain/site/DataTables`(69개 테이블 명세: v1.6의 47개와 추가 항목의 테이블 22개, 아래 "추가 항목의 테이블" 절), `DataService`, `web/site/SiteDataController`.
 
 ## 파일 모양
 
@@ -31,3 +31,22 @@ updated: 2026-10-29
 값 바인딩(JSON `null`일 때): 정수는 `0`(널을 허용하는 28개 컬럼은 SQL NULL), 문자열과 긴 문자열은 NULL(문자열이 아닌 값도 NULL), 불린은 `false`, 시각은 `0`이거나 `null`이면 NULL. 행에 키가 없으면 그 테이블이 실패한다. 결과(`DataImportResult`)에 성공과 실패한 테이블 이름이 담기지만 화면은 `/`로 이동할 뿐이다(R-56).
 
 기존 데이터를 교체하므로 가져오기 전에 반드시 내보내기로 백업한다. Git 저장소와 첨부 파일 본문은 다루지 않는다.
+
+## 추가 항목의 테이블 (69개 중 22개, 2026-11-03 기준)
+
+v1.6 파일에는 없는 테이블이라 **없는 파일을 가져와도 된다.** 파일에 이 테이블이 없을 때의 동작은 테이블 종류에 따라 다르다. 사용자, 프로젝트, 조직 번호를 가리키는 테이블은 파일에 그 부모 테이블이 있는데 이 테이블이 없으면(번호가 바뀌어 엉뚱하게 붙을 수 있으므로) 남아 있던 행을 비우고, 어느 경우든 없는 부모를 가리키는 행은 지운다(`DataService`의 `clean…`). **사이트 설정 테이블은 파일에 없으면 지금 설정을 그대로 둔다.**
+
+| 항목 | 테이블 |
+|---|---|
+| X-14, X-12, X-27 풀 리퀘스트 | `PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`, `PULL_REQUEST_REVIEW`, `PULL_REQUEST_REVIEW_REQUEST` |
+| X-5 토큰 | `API_TOKEN` |
+| X-4, X-3 키 | `GPG_KEY`, `SSH_KEY`, `DEPLOY_KEY` |
+| X-2 2단계 인증 | `TWO_FACTOR_CREDENTIAL`, `TWO_FACTOR_BACKUP_CODE`, `KNOWN_DEVICE`, `SITE_SETTING` |
+| X-1 OAuth 앱 | `OAUTH_CLIENT`, `OAUTH_AUTHORIZATION`, `OAUTH_CONSENT` |
+| X-39 조직 OAuth 앱 정책(2026-11-03에 더함) | `ORGANIZATION_OAUTH_POLICY`, `ORGANIZATION_OAUTH_APPROVAL` |
+| X-8 Git LFS 잠금(2026-11-03에 더함) | `LFS_LOCK`(객체 파일은 데이터 폴더 `repo/lfs`에 있어 이 파일에 들어가지 않는다) |
+| X-16, D-82 사내 로그인 설정(2026-11-03에 더함) | `LDAP_SETTINGS`, `OIDC_SSO_SETTINGS`, `SAML2_SSO_SETTINGS`(각각 한 행) |
+
+- **비밀 값**: `OIDC_SSO_SETTINGS.client_secret`, `SAML2_SSO_SETTINGS.sp_private_key`와 `sp_previous_private_key`, `TWO_FACTOR_CREDENTIAL.secret_encrypted`는 사이트 비밀 키(`yona.secret`)로 암호화되어 있다. **다른 사이트로 옮길 때는 비밀 키를 같게 해야 풀린다.** 다르면 SSO 설정은 가져오지만 클라이언트 비밀 값을 다시 입력하고 SP 키를 다시 만들어야 한다.
+- **내보내지 않는 것**: `audit_log`, `audit_chain_head`, `audit_stream_cursor`(감사 기록은 이 파일로 옮기지 않는다), `device_authorization`(잠깐 쓰는 값). 소셜 로그인과 SSO의 **연결 정보(`user_credential`, `linked_account`)는 v1.6처럼 내보내지 않는다.** 그래서 사이트를 옮기면 SSO 사용자는 다음 로그인 때 확인된 같은 이메일로 다시 연결된다.
+
