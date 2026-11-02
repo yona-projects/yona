@@ -6493,7 +6493,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .loginDialog {
-    width:460px; margin-left:-230px;
+    // BS5의 .modal은 화면 전체를 덮는 바깥 틀이라 폭과 음수 여백(BS2의 위치 잡기)을 틀이 아니라 .modal-dialog에 준다
+    .modal-dialog { max-width:460px; }
     input { @include box-shadow(none); }
     .login-form-wrap { margin:20px auto !important; }
     .error {

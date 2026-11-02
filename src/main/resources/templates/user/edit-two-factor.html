@@ -23,7 +23,7 @@
         <p th:if="${!enabled}" id="two-factor-off" class="empty" th:text="#{twoFactor.list.empty}"></p>
 
         <table id="two-factor-list" class="table table-striped" th:if="${enabled}">
-            <thead><tr><th th:text="#{twoFactor.method}"></th><th th:text="#{twoFactor.devices.name}"></th><th th:text="#{sshKey.createdDate}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th></th></tr></thead>
+            <thead><tr><th th:text="#{twoFactor.method}"></th><th th:text="#{sshKey.name}"></th><th th:text="#{sshKey.createdDate}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th></th></tr></thead>
             <tbody>
             <tr th:each="m : ${methods}" class="method-row" th:attr="data-type=${m.type}">
                 <td th:text="${m.type == 'TOTP'} ? #{twoFactor.method.totp} : #{twoFactor.method.securityKey}"></td>

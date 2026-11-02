@@ -16,9 +16,11 @@
             <input id="two-factor-codeD" name="code" type="text" class="text form-control" autocomplete="one-time-code" th:placeholder="#{user.twoFactor.code}">
           </dd>
         </dl>
-        <div class="remember-me-wrap">
-          <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="checkbox form-check-input">
-          <label for="remember-deviceD" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
+        <div class="act-row">
+          <div class="remember-me-wrap float-start">
+            <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="checkbox form-check-input">
+            <label for="remember-deviceD" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
+          </div>
         </div>
         <div class="btns-row nm">
           <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{user.twoFactor.submit}"></button>

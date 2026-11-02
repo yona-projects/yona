@@ -109,6 +109,7 @@
 - [architecture/next-vs-next2-source-closeness.md](architecture/next-vs-next2-source-closeness.md): next와 next2를 v1.6 소스와 대조한 라우트, 메시지, 정적 자원, 테이블 일치율
 - [architecture/v16-remaining-differences.md](architecture/v16-remaining-differences.md): v1.6과 아직 다른 점의 전체 목록. 고칠 수 없는 것, 의도해서 둔 것, v1.6 오류를 v2가 정상 처리하는 것(요청 단위 표), 권한 차이, 메일 수신 차이
 - [SSH 접근과 SSH 키, 배포 키 설계](architecture/ssh.md): 설정으로 켜는 내장 SSH 서버(MINA SSHD), 사용자 SSH 키와 배포 키(목록, 추가 두 화면), 인가, 감사와 지표, 복제 주소(X-3, D-66, 구현 완료)
+- [2단계 인증 설계](architecture/two-factor.md): 인증 앱(TOTP), 보안 키(WebAuthn), 백업 코드, 알려진 기기, 로그인 입구별 처리, 관리자 강제와 해제(X-2, D-69, 구현 완료)
 - [GPG 커밋 서명 검증 설계](architecture/gpg-signing.md): 공개키 등록(목록, 추가 두 화면), BouncyCastle 검증, Verified 표시, REST, 서명 커밋 필수 규칙(X-4, D-65, 구현 완료)
 - [개인용 API 토큰 설계](architecture/api-token.md): Classic 범위 토큰, 해시 저장, 옛 토큰 이관, D-20 대체(X-5, D-36, 구현 완료)
 - [일반 REST 1차: 프로젝트 단위 조회](architecture/api-project-reads.md): 프로젝트, 구성원, 담당자 후보, 라벨, 마일스톤, 이슈 목록과 검색(X-19, D-40)

@@ -23,9 +23,11 @@
                  th:placeholder="#{user.twoFactor.code}">
         </dd>
       </dl>
-      <div class="remember-me-wrap">
-        <input id="remember-device" type="checkbox" name="rememberDevice" value="true" class="checkbox form-check-input">
-        <label for="remember-device" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
+      <div class="act-row">
+        <div class="remember-me-wrap float-start">
+          <input id="remember-device" type="checkbox" name="rememberDevice" value="true" class="checkbox form-check-input">
+          <label for="remember-device" class="bg-checkbox" th:text="#{user.twoFactor.rememberDevice}"></label>
+        </div>
       </div>
       <div class="btns-row">
         <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{user.twoFactor.submit}"></button>

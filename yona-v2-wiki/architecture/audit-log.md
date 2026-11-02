@@ -53,6 +53,7 @@ server:
 | `auth.logout` | 성공 | 로그인한 사용자의 로그아웃 | `LoginController` |
 | `auth.token_failure` | 실패 | 외부 API의 틀린 토큰 | `YonaAuthenticationFilter` |
 | `auth.basic_failure` | 실패 | git HTTP의 틀린 비밀번호나 토큰(`details.channel`, `reason`) | `BasicAuthResolver` |
+| `two_factor.enabled`, `two_factor.disabled`, `two_factor.method_removed`, `two_factor.backup_code_used`, `two_factor.backup_codes_regenerated`, `site.two_factor_enforcement_changed` | 성공 | 2단계 인증의 켜기, 끄기(`by`: user, admin, emergency), 수단 삭제, 백업 코드, 강제 방식 변경(X-2, D-69). 비밀 값과 코드는 남기지 않는다. 로그인 실패 이유에 `two_factor_invalid`, `two_factor_locked`가 더해진다 | `TwoFactorService`, `SiteSettingService`, `TwoFactorLogin` |
 | `auth.token_blocked` | 거부 | 인증 실패가 쌓여 주소가 막힘(같은 주소는 1분에 한 번만) | 인증 필터, `BasicAuthResolver` |
 | `access.denied` | 거부 | 응답이 403인 모든 요청(대상은 `메서드 경로`, 질의 문자열 제외) | `AccessDeniedAuditFilter`(인증 필터 뒤) |
 | `access.api_scope_denied` | 거부 | 토큰 범위가 모자란 외부 API 요청. `access.denied`로 또 남기지 않는다 | `ApiScopeInterceptor` |
