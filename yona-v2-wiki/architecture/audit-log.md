@@ -54,7 +54,8 @@ server:
 | `auth.token_failure` | 실패 | 외부 API의 틀린 토큰 | `YonaAuthenticationFilter` |
 | `auth.basic_failure` | 실패 | git HTTP의 틀린 비밀번호나 토큰(`details.channel`, `reason`) | `BasicAuthResolver` |
 | `two_factor.enabled`, `two_factor.disabled`, `two_factor.method_removed`, `two_factor.backup_code_used`, `two_factor.backup_codes_regenerated`, `site.two_factor_enforcement_changed` | 성공 | 2단계 인증의 켜기, 끄기(`by`: user, admin, emergency), 수단 삭제, 백업 코드, 강제 방식 변경(X-2, D-69). 비밀 값과 코드는 남기지 않는다. 로그인 실패 이유에 `two_factor_invalid`, `two_factor_locked`가 더해진다 | `TwoFactorService`, `SiteSettingService`, `TwoFactorLogin` |
-| `oauth.client_created`, `oauth.client_updated`, `oauth.client_secret_regenerated`, `oauth.client_deleted` | 성공 | OAuth 앱을 만들고 고치고 비밀 값을 다시 만들고 지운다(`details.by`: owner, admin). 비밀 값은 남기지 않는다(X-1, D-71) | `OAuthClientService` |
+| `oauth.client_created`, `oauth.client_updated`, `oauth.client_secret_regenerated`, `oauth.client_deleted` | 성공 | OAuth 앱을 만들고 고치고 비밀 값을 다시 만들고 지운다(`details.by`: owner, admin, owner_deleted). 비밀 값은 남기지 않는다. 조직이 소유한 앱이면 `organizationId`를 채워 조직 감사 로그에 나타난다(X-1, X-39, D-71, D-78) |
+| `oauth.client_transferred` | 성공 | OAuth 앱의 소유자를 이전한다(`details.from`, `details.to`는 `user:번호`나 `organization:번호`). 받는 조직(없으면 보내는 조직)의 감사 로그에 나타난다(X-39, D-78) | `OAuthClientService` | `OAuthClientService` |
 | `oauth.authorized`, `oauth.token_issued`, `oauth.authorization_revoked` | 성공 | 사용자가 앱을 승인하고(`details.scopes`), 토큰을 발급하고(`details.grant`: authorization_code, refresh_token), 승인을 취소한다. 토큰 값은 남기지 않는다 | `YonaOAuth2AuthorizationConsentService`, `YonaOAuth2AuthorizationService`, `OAuthAuthorizedAppsService` |
 | `oauth.refresh_reuse_detected` | 거부 | 이미 쓴 갱신 토큰이 다시 와서 그 인가 전체를 취소했다(탈취 의심) | `YonaOAuth2AuthorizationService` |
 | `site.oauth_cimd_changed`, `site.oauth_user_apps_changed` | 성공 | 관리자가 CIMD 클라이언트 허용과 사용자의 앱 만들기 허용을 바꿨다(`details.from`, `to`) | `SiteSettingService` |

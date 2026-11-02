@@ -20,6 +20,9 @@ class OAuthAppUrls(val list: String, val new: String, val create: String, privat
     /** 비밀 값 다시 만들기 주소이다. */
     fun secret(id: Long?): String = "$actionBase/$id/secret"
 
+    /** 앱 소유자 이전 주소이다. */
+    fun transfer(id: Long?): String = "$actionBase/$id/transfer"
+
     /** 앱 지우기 주소이다. */
     fun delete(id: Long?): String = "$actionBase/$id/delete"
 

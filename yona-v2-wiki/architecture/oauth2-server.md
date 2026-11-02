@@ -57,7 +57,7 @@ v1.6에는 없는 추가 개발 항목이다. Yona가 OAuth 2.1 인가 서버가
 
 ## 감사와 지표
 
-감사: `oauth.client_created`, `oauth.client_updated`, `oauth.client_secret_regenerated`, `oauth.client_deleted`, `oauth.authorized`, `oauth.token_issued`, `oauth.authorization_revoked`, `oauth.refresh_reuse_detected`, `site.oauth_cimd_changed`, `site.oauth_user_apps_changed`. 토큰과 비밀 값은 남기지 않는다. 지표: `yona.oauth.tokens{grant, client_type}`(발급 수). 토큰 실패는 `auth.token_failure`(채널 `oauth`).
+감사: `oauth.client_created`, `oauth.client_updated`, `oauth.client_secret_regenerated`, `oauth.client_deleted`, `oauth.client_transferred`, `oauth.authorized`, `oauth.token_issued`, `oauth.authorization_revoked`, `oauth.refresh_reuse_detected`, `site.oauth_cimd_changed`, `site.oauth_user_apps_changed`. 토큰과 비밀 값은 남기지 않는다. 지표: `yona.oauth.tokens{grant, client_type}`(발급 수). 토큰 실패는 `auth.token_failure`(채널 `oauth`).
 
 ## 검증
 
@@ -112,4 +112,5 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /etc/yona/oidc
 - 앱 개수 한도 20개는 소유자별로 센다. 사용자가 20개를 만들어도 그 사용자가 관리하는 조직은 따로 20개이다.
 - 조직을 지우면 그 조직의 앱과 앱의 인가(토큰)와 승인이 함께 지워진다. 사용자를 지울 때와 같은 규칙이고 앱마다 감사 기록이 남는다.
 - 감사 기록은 조직 앱이면 `organizationId`를 채워 조직 감사 로그에 나타난다. 승인 화면과 "승인한 앱"과 사이트 앱 목록에는 소유자가 "{조직} 조직"으로 보인다.
-- 소유자 이전과 조직의 OAuth app policy는 같은 항목의 다음 단계이다.
+- **소유자 이전**: 앱의 수정 화면에서 앱 이름을 다시 입력해 소유자를 바꾼다. 클라이언트 ID, 비밀 값, 인가, 승인은 그대로이다. 사용자는 **자신이 관리자인 조직**으로, 조직 관리자는 **자기 계정이나 자신이 관리자인 다른 조직**으로 넘길 수 있다(조직에 속하기만 한 사용자는 그 조직으로 넘길 수 없다). 받는 쪽도 앱 20개 한도를 넘지 못한다. 감사 `oauth.client_transferred`.
+- 조직의 OAuth app policy는 같은 항목의 다음 단계이다.

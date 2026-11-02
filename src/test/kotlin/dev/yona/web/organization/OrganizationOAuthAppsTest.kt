@@ -151,4 +151,36 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
         val x = Setup(); appOf(x.org, x.admin, "조직 전용 앱")
         assertFalse(page(login(x.admin), "/user/editform/oauth-apps").text().contains("조직 전용 앱"))
     }
+
+    @Test
+    fun `수정 화면에 이전 대상으로 내 계정과 내가 관리하는 다른 조직만 보인다`() {
+        val x = Setup(); val s = login(x.admin); val app = appOf(x.org, x.admin)
+        val mine = organizationService.create("oorg4$stamp${++n}", null, x.admin)
+        val foreign = organizationService.create("oorg5$stamp${++n}", null, x.outsider).also { management.addMember(it, x.outsider, x.admin.loginId!!) }
+        val options = page(s, "${x.base}/${app.id}").select("form#oauth-transfer-form select[name=target] option").map { it.attr("value") }
+        assertEquals(setOf("user", "org:${mine.name}"), options.toSet()); assertFalse(options.contains("org:${foreign.name}")); assertFalse(options.contains("org:${x.org.name}"))
+        assertNotNull(page(s, "${x.base}/${app.id}").selectFirst("form#oauth-transfer-form input[name=confirm]"))
+    }
+
+    @Test
+    fun `이전하면 앱이 대상 소유자로 옮겨 가고 이름이 틀리거나 허용되지 않은 대상이면 400이다`() {
+        val x = Setup(); val s = login(x.admin); val app = appOf(x.org, x.admin, "옮길 앱")
+        val mine = organizationService.create("oorg6$stamp${++n}", null, x.admin)
+        val foreign = organizationService.create("oorg7$stamp${++n}", null, x.outsider).also { management.addMember(it, x.outsider, x.admin.loginId!!) }
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(s).param("target", "user").param("confirm", "틀린 이름")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(s).param("target", "org:${foreign.name}").param("confirm", "옮길 앱")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(s).param("target", "org:없는조직").param("confirm", "옮길 앱")).andExpect(status().isBadRequest)
+        assertEquals(x.org.id, clients.findById(app.id!!).get().ownerId)
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "옮길 앱")).andExpect(status().is3xxRedirection)
+        assertEquals(mine.id, clients.findById(app.id!!).get().ownerId)
+        mockMvc.perform(get("${x.base}/${app.id}").session(s)).andExpect(status().isNotFound)
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(s).param("target", "user").param("confirm", "옮길 앱")).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `조직 관리자가 아니면 이전할 수 없다`() {
+        val x = Setup(); val app = appOf(x.org, x.admin, "옮길 앱")
+        mockMvc.perform(post("${x.base}/${app.id}/transfer").session(login(x.member)).param("target", "user").param("confirm", "옮길 앱")).andExpect(status().isForbidden)
+        assertEquals(x.org.id, clients.findById(app.id!!).get().ownerId)
+    }
 }

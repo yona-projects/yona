@@ -36,8 +36,8 @@
         </section>
 </th:block>
 
-<!--/* 앱 만들기와 수정 양식. 모델: client, form, formError, scopeChoices, oidcInfo, urls */-->
-<th:block th:fragment="appForm(client, form, formError, scopeChoices, oidcInfo, urls)">
+<!--/* 앱 만들기와 수정 양식. 모델: client, form, formError, scopeChoices, oidcInfo, urls, transferTargets(소유자 이전 대상 목록) */-->
+<th:block th:fragment="appForm(client, form, formError, scopeChoices, oidcInfo, urls, transferTargets)">
         <div th:if="${formError != null}" class="alert alert-danger" th:text="#{${formError}}"></div>
         <h4 th:text="${client == null} ? #{oauth.form.title.new} : #{oauth.form.title.edit}"></h4>
         <p th:if="${client != null}" class="mb-3"><span th:text="#{oauth.apps.clientId}"></span>: <code id="edit-client-id" th:text="${client.clientId}"></code></p>
@@ -96,6 +96,23 @@
             <p th:text="#{oauth.secret.regenerate.help}"></p>
             <form method="post" th:action="@{${urls.secret(client.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.secret.regenerate.confirm} + '\');'">
                 <button type="submit" class="btn btn-secondary" th:text="#{oauth.secret.regenerate}"></button>
+            </form>
+        </section>
+        <section id="oauth-transfer" class="tf-section" th:if="${client != null and !#lists.isEmpty(transferTargets)}">
+            <h4 th:text="#{oauth.transfer.title}"></h4>
+            <p th:text="#{oauth.transfer.help}"></p>
+            <form id="oauth-transfer-form" method="post" th:action="@{${urls.transfer(client.id)}}">
+                <div class="mb-3">
+                    <label for="oauth-transfer-target" class="form-label" th:text="#{oauth.transfer.target}"></label>
+                    <select id="oauth-transfer-target" name="target" class="form-select tf-wide">
+                        <option th:each="t : ${transferTargets}" th:value="${t.value}" th:text="${t.organization} ? #{oauth.apps.byOrganization(${t.name})} : #{oauth.transfer.myAccount(${t.name})}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="oauth-transfer-confirm" class="form-label" th:text="#{oauth.transfer.confirm}"></label>
+                    <input id="oauth-transfer-confirm" type="text" name="confirm" autocomplete="off" class="form-control tf-wide">
+                </div>
+                <button type="submit" class="btn btn-danger" th:text="#{oauth.transfer.submit}"></button>
             </form>
         </section>
 </th:block>

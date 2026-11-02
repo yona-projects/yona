@@ -5,7 +5,7 @@
   https://yona.io
 
   추가 개발 항목 X-1(decisions.md D-71): OAuth 앱 만들기와 수정 화면. 종류(공개, 기밀)는 만든 뒤 바꿀 수 없다
-  모델: title, client(수정이면 id, clientId, confidential), form(Form), formError(오류의 메시지 키), scopeChoices(고를 수 있는 범위), oidcInfo(OIDC가 켜져 있고 수정일 때 issuer, discovery), urls(OAuthAppUrls)
+  모델: title, client(수정이면 id, clientId, confidential), form(Form), formError(오류의 메시지 키), scopeChoices(고를 수 있는 범위), oidcInfo(OIDC가 켜져 있고 수정일 때 issuer, discovery), urls(OAuthAppUrls), transferTargets(소유자 이전 대상)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::oauthPage})}">
@@ -19,7 +19,7 @@
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('oauth-apps')}"></th:block>
         <div class="two-factor-page">
-        <th:block th:replace="~{oauth/partial-apps :: appForm(${client}, ${form}, ${formError}, ${scopeChoices}, ${oidcInfo}, ${urls})}"></th:block>
+        <th:block th:replace="~{oauth/partial-apps :: appForm(${client}, ${form}, ${formError}, ${scopeChoices}, ${oidcInfo}, ${urls}, ${transferTargets})}"></th:block>
         </div>
     </div>
 </div>

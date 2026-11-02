@@ -3,7 +3,7 @@
   Yona, 21st Century Project Hosting SW
 
   v1.6에 없는 추가 화면이다(X-39, decisions.md D-78). 조직 설정의 OAuth 앱 만들기와 수정 화면이다
-  모델: title, orgView, client, form, formError, scopeChoices, oidcInfo, urls
+  모델: title, orgView, client, form, formError, scopeChoices, oidcInfo, urls, transferTargets(소유자 이전 대상)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::oauthPage})}">
@@ -14,7 +14,7 @@
     <div class="project-page-wrap">
         <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
         <div class="two-factor-page">
-        <th:block th:replace="~{oauth/partial-apps :: appForm(${client}, ${form}, ${formError}, ${scopeChoices}, ${oidcInfo}, ${urls})}"></th:block>
+        <th:block th:replace="~{oauth/partial-apps :: appForm(${client}, ${form}, ${formError}, ${scopeChoices}, ${oidcInfo}, ${urls}, ${transferTargets})}"></th:block>
         </div>
     </div>
 </div>

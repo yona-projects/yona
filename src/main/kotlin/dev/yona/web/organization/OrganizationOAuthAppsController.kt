@@ -6,6 +6,7 @@ import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.oauth2server.ClientCreation
 import dev.yona.domain.oauth2server.ClientEdit
 import dev.yona.domain.oauth2server.ClientOwner
+import dev.yona.domain.oauth2server.ClientTransfer
 import dev.yona.domain.oauth2server.OAuthClient
 import dev.yona.domain.oauth2server.OAuthClientService
 import dev.yona.domain.oauth2server.OAuthScopes
@@ -109,6 +110,20 @@ class OrganizationOAuthAppsController(
         return support.noCache(secretView(organization, client, secret, "oauth.secret.regenerated"), response)
     }
 
+    /** 앱을 내 계정이나 내가 관리하는 다른 조직으로 넘긴다(X-39, D-78). 이름을 다시 입력해야 하고, 허용되지 않은 대상이거나 이름이 틀리면 400이다. */
+    @PostMapping("/organizations/{organizationName}/oauth-apps/{id}/transfer")
+    @Transactional
+    fun transfer(@PathVariable organizationName: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
+        val organization = guard(organizationName) ?: return notFoundOrForbidden(organizationName)
+        val owner = ClientOwner.of(organization); val actor = actor(); val client = apps.findFor(owner, id) ?: return ErrorViews.notFound()
+        val target = support.resolveTarget(actor, owner, request.getParameter("target"))
+            ?: return formView(organization, client, "oauth.transfer.error.target", OAuthAppsSettingsController.Form.of(client)).also { it.status = HttpStatus.BAD_REQUEST }
+        return when (val result = apps.transfer(owner, actor, id, target, request.getParameter("confirm").orEmpty())) {
+            is ClientTransfer.Rejected -> formView(organization, client, result.messageKey, OAuthAppsSettingsController.Form.of(client)).also { it.status = HttpStatus.BAD_REQUEST }
+            is ClientTransfer.Done -> RedirectSupport.see(request, response, basePath(organization), mapOf(RedirectSupport.SUCCESS to "oauth.transfer.done"))
+        }
+    }
+
     @PostMapping("/organizations/{organizationName}/oauth-apps/{id}/delete")
     @Transactional
     fun delete(@PathVariable organizationName: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
@@ -136,6 +151,7 @@ class OrganizationOAuthAppsController(
     private fun formView(organization: Organization, client: OAuthClient?, errorKey: String?, form: OAuthAppsSettingsController.Form): ModelAndView = base(organization, "organization/oauth-app-form")
         .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
         .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", support.oidcInfo(client))
+        .addObject("transferTargets", client?.let { support.transferTargets(actor(), ClientOwner.of(organization)) } ?: emptyList<OAuthAppViewSupport.TransferTarget>())
 
     private fun secretView(organization: Organization, client: OAuthClient, secret: String, noticeKey: String): ModelAndView =
         base(organization, "organization/oauth-app-secret").addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("secret", secret).addObject("noticeKey", noticeKey).addObject("appId", client.id)

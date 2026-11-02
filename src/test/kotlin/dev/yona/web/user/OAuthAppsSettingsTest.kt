@@ -51,6 +51,8 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var consents: OAuthConsentRepository
     @Autowired private lateinit var authorizations: OAuthAuthorizationRepository
     @Autowired private lateinit var settings: SiteSettingService
+    @Autowired private lateinit var organizationService: dev.yona.domain.project.OrganizationService
+    @Autowired private lateinit var management: dev.yona.domain.project.OrganizationManagementService
 
     private var n = 0
 
@@ -186,5 +188,20 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
         mockMvc.perform(createParams().session(s)).andExpect(status().isForbidden)
         assertTrue(page(s).select("tr.app-row").size == 1, "이미 만든 앱은 보인다")
         mockMvc.perform(post("/user/oauth-apps/${own.client.id}/delete").session(s)).andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    fun `사용자의 앱은 내가 관리하는 조직으로만 이전할 수 있다`() {
+        val me = user(); val other = user(); val s = login(me); val app = app(me, "옮길 앱")
+        val mine = organizationService.create("ua${System.nanoTime() % 1000000}", null, me)
+        val foreign = organizationService.create("ub${System.nanoTime() % 1000000}", null, other).also { management.addMember(it, other, me.loginId!!) }
+        val options = page(s, "/user/editform/oauth-apps/${app.client.id}").select("form#oauth-transfer-form select[name=target] option").map { it.attr("value") }
+        assertEquals(listOf("org:${mine.name}"), options)
+        mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${foreign.name}").param("confirm", "옮길 앱")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "아님")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "옮길 앱")).andExpect(status().is3xxRedirection)
+        assertEquals(mine.id, clients.findById(app.client.id!!).get().ownerId)
+        assertTrue(page(s).select("tr.app-row").isEmpty())
+        mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "옮길 앱")).andExpect(status().isNotFound)
     }
 }

@@ -16,6 +16,12 @@ sealed interface ClientCreation {
     data class Rejected(val messageKey: String) : ClientCreation
 }
 
+/** OAuth 앱 소유자 이전 결과이다. */
+sealed interface ClientTransfer {
+    data class Done(val client: OAuthClient) : ClientTransfer
+    data class Rejected(val messageKey: String) : ClientTransfer
+}
+
 /** OAuth 앱 고치기 결과이다. */
 sealed interface ClientEdit {
     data class Done(val client: OAuthClient) : ClientEdit
@@ -26,6 +32,10 @@ sealed interface ClientEdit {
  * OAuth 앱의 소유자이다(사용자 또는 조직, X-39 `decisions.md` D-78). [type]은 [OAuthClient.USER]나 [OAuthClient.ORGANIZATION]이고 [id]는 그 소유자의 번호이다.
  */
 data class ClientOwner(val type: String, val id: Long) {
+
+    /** 감사 기록에 담을 글자이다(`user:번호`, `organization:번호`). */
+    fun label(): String = "${type.lowercase()}:$id"
+
     companion object {
         fun of(user: User) = ClientOwner(OAuthClient.USER, requireNotNull(user.id))
         fun of(organization: dev.yona.domain.project.Organization) = ClientOwner(OAuthClient.ORGANIZATION, requireNotNull(organization.id))
@@ -157,6 +167,26 @@ class OAuthClientService(
         audit.record(clientEvent("oauth.client_deleted", client, actor, mapOf("by" to "owner")))
         removeClient(client)
         return true
+    }
+
+    /**
+     * [from]이 소유한 앱을 [to]에게 넘긴다(X-39, D-78 5번). 클라이언트 ID, 비밀 값, 인가(토큰), 승인은 그대로이고 소유자만 바뀐다. 앱 이름을 [confirmName]으로 다시 입력해야 한다.
+     * [to]로 넘길 권한이 있는지(조직 관리자인지)는 부르는 쪽이 확인한다. 소유자가 같거나, [to]의 앱이 한도([MAX_PER_OWNER])에 이르렀거나, 이름이 맞지 않으면 거절한다.
+     * 감사 기록은 조직이 낀 쪽의 조직에 속하게 하고(받는 조직 우선), 보내는 쪽과 받는 쪽을 `사용자:번호`와 `조직:번호` 꼴로 담는다.
+     */
+    @Transactional
+    fun transfer(from: ClientOwner, actor: User, id: Long, to: ClientOwner, confirmName: String, now: Date = Date()): ClientTransfer {
+        val client = owned(from, id) ?: return ClientTransfer.Rejected("oauth.error.notFound")
+        if (from == to) return ClientTransfer.Rejected("oauth.transfer.error.same")
+        if (confirmName.trim() != client.name) return ClientTransfer.Rejected("oauth.transfer.error.confirm")
+        if (clients.countByOwnerTypeAndOwnerId(to.type, to.id) >= MAX_PER_OWNER) return ClientTransfer.Rejected("oauth.error.limit")
+        client.ownerType = to.type; client.ownerId = to.id; client.updatedDate = now
+        clients.save(client)
+        val organizationId = listOf(to, from).firstOrNull { it.type == OAuthClient.ORGANIZATION }?.id
+        audit.record(
+            clientEvent("oauth.client_transferred", client, actor, mapOf("from" to from.label(), "to" to to.label())).copy(organizationId = organizationId)
+        )
+        return ClientTransfer.Done(client)
     }
 
     /** 비밀 값이 [clientId] 기밀 앱의 것이면 `true`이다(상수 시간 비교). 공개 앱이거나 앱이 없으면 `false`이다. */

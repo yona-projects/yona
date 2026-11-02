@@ -4,6 +4,8 @@ import dev.yona.domain.apitoken.ApiScopes
 import dev.yona.domain.oauth2server.AuthorizedApp
 import dev.yona.domain.oauth2server.ClientCreation
 import dev.yona.domain.oauth2server.ClientEdit
+import dev.yona.domain.oauth2server.ClientOwner
+import dev.yona.domain.oauth2server.ClientTransfer
 import dev.yona.domain.oauth2server.OAuthAuthorizedAppsService
 import dev.yona.domain.oauth2server.OAuthClient
 import dev.yona.domain.oauth2server.OAuthClientService
@@ -108,6 +110,19 @@ class OAuthAppsSettingsController(
         return noCache(secretView(client, secret, "oauth.secret.regenerated"), response)
     }
 
+    /** 앱을 내가 관리하는 조직으로 넘긴다(X-39, D-78). 이름을 다시 입력해야 하고, 허용되지 않은 대상이거나 이름이 틀리면 400이다. */
+    @PostMapping("/user/oauth-apps/{id}/transfer")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @Transactional
+    fun transfer(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
+        val user = currentUser(); val owner = ClientOwner.of(user); val client = apps.find(user, id) ?: return ErrorViews.notFound()
+        val target = support.resolveTarget(user, owner, request.getParameter("target")) ?: return formView(client, "oauth.transfer.error.target", Form.of(client)).also { it.status = HttpStatus.BAD_REQUEST }
+        return when (val result = apps.transfer(owner, user, id, target, request.getParameter("confirm").orEmpty())) {
+            is ClientTransfer.Rejected -> formView(client, result.messageKey, Form.of(client)).also { it.status = HttpStatus.BAD_REQUEST }
+            is ClientTransfer.Done -> RedirectSupport.see(request, response, "/user/editform/oauth-apps", mapOf(RedirectSupport.SUCCESS to "oauth.transfer.done"))
+        }
+    }
+
     @PostMapping("/user/oauth-apps/{id}/delete")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
@@ -134,6 +149,7 @@ class OAuthAppsSettingsController(
     private fun formView(client: OAuthClient?, errorKey: String?, form: Form): ModelAndView = base("user/edit-oauth-app-form")
         .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
         .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", support.oidcInfo(client))
+        .addObject("transferTargets", client?.let { support.transferTargets(currentUser(), ClientOwner.of(currentUser())) } ?: emptyList<OAuthAppViewSupport.TransferTarget>())
 
     private fun secretView(client: OAuthClient, secret: String, noticeKey: String): ModelAndView =
         base("user/edit-oauth-app-secret").addObject("clientName", client.name).addObject("clientId", client.clientId).addObject("secret", secret).addObject("noticeKey", noticeKey).addObject("appId", client.id)

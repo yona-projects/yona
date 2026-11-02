@@ -205,4 +205,42 @@ class OAuthClientServiceTest : AbstractIntegrationTest() {
         management.delete(org); em.flush(); em.clear()
         assertNull(clients.findById(gone.id!!).orElse(null)); assertEquals(0, consents.countByClientRowId(gone.id!!)); assertNotNull(clients.findById(keep.id!!).orElse(null))
     }
+
+    // --- 소유자 이전(X-39, D-78 5번) ---
+
+    @Test
+    fun `사용자의 앱을 조직으로 이전하면 소유자만 바뀌고 클라이언트 ID와 비밀 값과 승인은 그대로이다`() {
+        val admin = user(); val org = organization(admin)
+        val created = assertIs<ClientCreation.Created>(create(admin)); val client = created.client; val clientId = client.clientId; val secretHash = client.secretHash
+        consents.save(OAuthConsent(clientRowId = client.id, userId = user().id, scopes = "read:user", createdDate = Date())); em.flush()
+        val done = assertIs<ClientTransfer.Done>(service.transfer(ClientOwner.of(admin), admin, client.id!!, ClientOwner.of(org), client.name!!))
+        assertEquals("ORGANIZATION", done.client.ownerType); assertEquals(org.id, done.client.ownerId)
+        assertEquals(clientId, done.client.clientId); assertEquals(secretHash, done.client.secretHash); assertEquals(1, consents.countByClientRowId(client.id!!))
+        assertTrue(service.list(admin).isEmpty()); assertEquals(listOf(client.id), service.listFor(ClientOwner.of(org)).map { it.id })
+        val event = logs.findAll().single { it.action == "oauth.client_transferred" }
+        assertEquals(org.id, event.organizationId); assertEquals(admin.id, event.actorId)
+        assertTrue(event.details!!.contains("\"from\":\"user:${admin.id}\"") && event.details!!.contains("\"to\":\"organization:${org.id}\""), event.details)
+    }
+
+    @Test
+    fun `조직의 앱을 다른 조직이나 사용자에게 이전할 수 있다`() {
+        val admin = user(); val a = organization(admin); val b = organization(admin)
+        val client = assertIs<ClientCreation.Created>(createFor(a, admin)).client
+        assertIs<ClientTransfer.Done>(service.transfer(ClientOwner.of(a), admin, client.id!!, ClientOwner.of(b), client.name!!))
+        assertEquals(listOf(client.id), service.listFor(ClientOwner.of(b)).map { it.id }); assertTrue(service.listFor(ClientOwner.of(a)).isEmpty())
+        assertIs<ClientTransfer.Done>(service.transfer(ClientOwner.of(b), admin, client.id!!, ClientOwner.of(admin), client.name!!))
+        assertEquals(listOf(client.id), service.list(admin).map { it.id })
+    }
+
+    @Test
+    fun `이전은 앱 이름을 다시 입력해야 하고 같은 소유자나 남의 앱이나 한도를 넘으면 거절한다`() {
+        val admin = user(); val org = organization(admin); val other = organization(admin)
+        val client = assertIs<ClientCreation.Created>(create(admin)).client; val id = client.id!!
+        assertEquals("oauth.transfer.error.confirm", assertIs<ClientTransfer.Rejected>(service.transfer(ClientOwner.of(admin), admin, id, ClientOwner.of(org), "틀린 이름")).messageKey)
+        assertEquals("oauth.transfer.error.same", assertIs<ClientTransfer.Rejected>(service.transfer(ClientOwner.of(admin), admin, id, ClientOwner.of(admin), client.name!!)).messageKey)
+        assertEquals("oauth.error.notFound", assertIs<ClientTransfer.Rejected>(service.transfer(ClientOwner.of(other), admin, id, ClientOwner.of(org), client.name!!)).messageKey)
+        repeat(20) { createFor(org, admin) }
+        assertEquals("oauth.error.limit", assertIs<ClientTransfer.Rejected>(service.transfer(ClientOwner.of(admin), admin, id, ClientOwner.of(org), client.name!!)).messageKey)
+        assertEquals(admin.id, clients.findById(id).get().ownerId); assertTrue(logs.findAll().none { it.action == "oauth.client_transferred" })
+    }
 }
