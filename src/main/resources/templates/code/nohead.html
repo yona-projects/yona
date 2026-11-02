@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/nohead.scala.html
-  모델: title("프로젝트이름 - Code"), projectView, cloneUrl(복제 주소. 구성원이면 `로그인ID@`가 들어 있다), canUpdate
+  모델: title("프로젝트이름 - Code"), projectView, cloneUrl(복제 주소. 구성원이면 `로그인ID@`가 들어 있다), sshCloneUrl(SSH 복제 주소. 내장 SSH 서버나 시스템 sshd 연동을 켰을 때만, D-68), canUpdate
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::noheadPage})}">
@@ -17,25 +17,30 @@
             <div class="col-lg-12">
                 <th:block th:utext="#{code.nohead}"></th:block>
                 <th:block th:if="${canUpdate}">
+                <!--/* 내장 SSH 서버나 시스템 sshd 연동을 켠 사이트에서만 보인다(X-3, D-68). 복제 주소를 HTTP와 SSH로 바꿔 볼 수 있다. 켜지 않으면 v1.6과 같은 안내이다 */-->
+                <div th:if="${sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol mb-2" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" th:attr="data-clone-url=${cloneUrl}">HTTP</button>
+                    <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${sshCloneUrl}">SSH</button>
+                </div>
                 <h5 th:text="#{code.nohead.clone(${siteName})}"></h5>
-                <pre><code th:text="'git clone ' + ${cloneUrl} + ' ' + ${project.name} + '
-cd ' + ${project.name} + '/
-echo &quot;# ' + ${project.name} + '&quot; > README.md
+                <pre><code>git clone <span class="clone-url" th:text="${cloneUrl}"></span> <th:block th:text="${project.name}"></th:block>
+cd <th:block th:text="${project.name}"></th:block>/
+echo "# <th:block th:text="${project.name}"></th:block>" &gt; README.md
 git add README.md
-git commit -m &quot;Hello ' + ${siteName} + '&quot;
-git push origin master'"></code></pre>
+git commit -m "Hello <th:block th:text="${siteName}"></th:block>"
+git push origin master</code></pre>
                 <h5 th:text="#{code.nohead.init(${siteName})}"></h5>
-                <pre><code th:text="'mkdir ' + ${project.name} + '
-cd ' + ${project.name} + '/
-echo &quot;# ' + ${project.name} + '&quot; > README.md
+                <pre><code>mkdir <th:block th:text="${project.name}"></th:block>
+cd <th:block th:text="${project.name}"></th:block>/
+echo "# <th:block th:text="${project.name}"></th:block>" &gt; README.md
 git init
 git add README.md
-git commit -m &quot;Hello ' + ${siteName} + '&quot;
-git remote add origin ' + ${cloneUrl} + '
-git push origin master'"></code></pre>
+git commit -m "Hello <th:block th:text="${siteName}"></th:block>"
+git remote add origin <span class="clone-url" th:text="${cloneUrl}"></span>
+git push origin master</code></pre>
                 <h5 th:text="#{code.nohead.remote(${siteName})}"></h5>
-                <pre><code th:text="'git remote add origin ' + ${cloneUrl} + '
-git push origin master'"></code></pre>
+                <pre><code>git remote add origin <span class="clone-url" th:text="${cloneUrl}"></span>
+git push origin master</code></pre>
                 <h5 th:text="#{code.nohead.pull.push}"></h5>
                 <pre><code>git pull origin master
 git push origin master</code></pre>
@@ -44,6 +49,18 @@ git push origin master</code></pre>
         </div>
     </div>
 </div>
+<script th:if="${sshCloneUrl != null}">
+    (function(){
+        var box = document.querySelector(".clone-protocol");
+        if (!box) { return; }
+        box.addEventListener("click", function(event){
+            var button = event.target.closest("button");
+            if (!button) { return; }
+            Array.prototype.forEach.call(box.querySelectorAll("button"), function(b){ b.classList.toggle("active", b === button); });
+            Array.prototype.forEach.call(document.querySelectorAll(".clone-url"), function(span){ span.textContent = button.getAttribute("data-clone-url"); });
+        });
+    })();
+</script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Nohead", {

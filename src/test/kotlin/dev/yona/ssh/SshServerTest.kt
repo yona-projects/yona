@@ -338,6 +338,31 @@ class SshServerTest {
         assertEquals(before + 1, meters.find("yona.vcs.request").tags("vcs", "git", "service", "receive_pack", "target", "wiki", "result", "ok").timer()?.count() ?: 0L)
     }
 
+    // --- SSH 키로 서명한 커밋과 서명 커밋 필수 규칙(D-68) ---
+
+    @Test
+    fun `서명 커밋 필수 규칙은 등록한 SSH 키로 서명한 커밋을 받고 서명 없는 커밋은 거부한다`() {
+        val key = register(member)
+        assertEquals(0, push(project, key).exit)
+        rulesets.save(Ruleset(project = project, name = "master", pattern = "master", createdDate = java.util.Date()).apply { requireSignedCommits = true; blockForcePushes = false })
+        val plain = user("sg").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
+        val plainKey = register(plain)
+        val dir = File(work, "signed").also { it.mkdirs() }
+        git("clone", "-q", url(project), dir.path, key = plainKey)
+        File(dir, "unsigned.txt").writeText("u"); git("add", ".", dir = dir); git("commit", "-q", "-m", "서명 없음", dir = dir)
+        val rejected = git("push", "origin", "master", key = plainKey, dir = dir)
+        assertNotEquals(0, rejected.exit)
+        assertTrue(rejected.output.contains("must have verified signatures"), rejected.output)
+        // 같은 사용자의 SSH 키로 서명하면(커밋터 이메일은 사용자가 확인한 이메일) 받는다
+        git("reset", "-q", "--hard", "HEAD~1", dir = dir)
+        File(dir, "signed.txt").writeText("s"); git("add", ".", dir = dir)
+        val signingKey = plainKey.file.path
+        val commit = run("git", "-c", "user.name=T", "-c", "user.email=${plain.email}", "-c", "gpg.format=ssh", "-c", "user.signingkey=$signingKey", "commit", "-q", "-S", "-m", "SSH 서명", key = plainKey, dir = dir)
+        assertEquals(0, commit.exit, commit.output)
+        val accepted = git("push", "origin", "master", key = plainKey, dir = dir)
+        assertEquals(0, accepted.exit, accepted.output)
+    }
+
     @Test
     fun `쓰기 배포 키는 푸시할 수 있다`() {
         val secret = project(ProjectScope.PRIVATE)

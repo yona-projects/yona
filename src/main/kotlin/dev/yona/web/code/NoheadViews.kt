@@ -44,6 +44,8 @@ class NoheadViews(
             .addObject("title", if (subversion) "title.commitHistory" else "${project.name} - " + messages.getMessage("menu.code", null, LocaleContextHolder.getLocale()))
             .addObject("projectView", views.of(project))
             .addObject("cloneUrl", repositoryUrls.urlFor(project, request, if (subversion) null else loginId))
+            // SSH를 켠 사이트의 Git 프로젝트에만 있다(D-68). 없으면 안내가 v1.6과 같다
+            .addObject("sshCloneUrl", repositoryUrls.sshUrlFor(project, request))
             .addObject("loginId", viewer?.loginId.orEmpty())
             .addObject("canUpdate", accessControl.isAllowed(viewer, project.asResource(), Operation.UPDATE))
     }
