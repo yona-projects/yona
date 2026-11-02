@@ -807,7 +807,7 @@ updated: 2026-10-29
   3. 서버가 먼저 연결을 닫으면(거부 등) 클라이언트 입력을 기다리지 않고 바로 끝낸다. 입력이 끝나면 쓰기 쪽만 닫아 서버에 끝을 알린다(FIFO와 별도 프로세스가 필요 없다).
   4. 설정은 셸 훅과 같은 파일(`/etc/yona/ssh-auth.conf`)과 키(`YONA_INTERNAL_URL`, `YONA_SSH_SECRET_FILE`, `YONA_SSH_RELAY_SOCKET`)를 쓴다. 파일이 환경 변수를 이긴다(셸 훅이 파일을 `source`하던 것과 같다).
 - **Windows의 한계(확인한 사실)**: Windows에 들어 있는 OpenSSH 서버(Win32-OpenSSH)는 **`AuthorizedKeysCommand`를 지원하지 않는다**([Microsoft 문서](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh-server-configuration)). 그래서 Windows에서는 이 도우미가 빌드되어도 번들 sshd가 부르지 않는다. Windows 서버에서 SSH로 접근하게 하려면 **내장 SSH 서버**(`yona.ssh.enabled`, X-3a)를 쓴다. `AuthorizedKeysCommand`를 지원하는 다른 sshd를 Windows에 두는 경우에만 이 도우미가 쓰인다(그 경우는 확인하지 못했다). 또 Yona의 중계 소켓은 소유자와 그룹 권한(`rw-rw----`)을 전제로 하므로 Windows에서의 접근 제어는 별도 검토가 필요하다.
-- **시험**: Go 단위 시험(`tools/ssh-helper`, `go test`)과, 기존 중계 시험(`SshRelayServerTest`)을 Go 실행 파일로 되풀이하는 `SshRelayGoHelperTest`(실제 훅 대신 `go build`한 파일로 12개 시험이 같은 결과)이다. 진짜 sshd(AlmaLinux 컨테이너)와의 연결은 아직 확인하지 않았다.
+- **시험**: Go 단위 시험(`tools/ssh-helper`, `go test`)과, 기존 중계 시험(`SshRelayServerTest`)을 Go 실행 파일로 되풀이하는 `SshRelayGoHelperTest`(실제 훅 대신 `go build`한 파일로 12개 시험이 같은 결과)이다. **진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너, `openssh-server-8.0p1`)로도 확인했다(2026-11-02)**: `ssh -T`의 셸 거부 안내, 미등록 키 거부(`Permission denied`), 푸시, 복제, 미등록 키의 복제 거부, 없는 저장소(`Repository not found.`), git이 아닌 명령(`ls`)은 실행하지 않고 `ERR Invalid command.`만 받음, 개행이 든 명령 거부. Go 실행 파일은 `CGO_ENABLED=0`으로 빌드한 정적 파일을 컨테이너에 복사해 썼다.
 - **상태**: 확정(선생님, 2026-11-02), 구현 완료. 구현 판단은 A-331이다.
 
 ### D-68. SSH 후속: 배포 키 푸시의 사용자 귀속, 위키 저장소 SSH, SSH 키 서명 검증, 빈 저장소 안내와 위키의 SSH 주소 (2026-11-02, 선생님 지시)

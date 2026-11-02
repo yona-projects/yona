@@ -980,4 +980,5 @@ MCP 서버 뼈대(Spring AI 스타터, stateless `/mcp`)와 읽기 전용 범위
 
 ## [2026-11-02] D-73 시스템 sshd 도우미를 Go 실행 파일로
 선생님 제안으로 `tools/ssh-helper/`에 Go 실행 파일 `yona-ssh`(`auth`, `relay`)를 만들었다. Go 단위 시험과, 기존 중계 시험을 Go 실행 파일로 되풀이하는 `SshRelayGoHelperTest`가 모두 통과한다. 셸 훅은 대체 수단으로 남겼다. Windows 번들 OpenSSH 서버가 `AuthorizedKeysCommand`를 지원하지 않는다는 한계를 확인해 기록했다.
+진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)에서 Go 도우미로 셸 거부 안내, 미등록 키 거부, 푸시, 복제, 없는 저장소 메시지, 비 git 명령과 개행 명령 거부를 확인했다.
 

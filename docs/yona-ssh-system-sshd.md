@@ -58,7 +58,7 @@ Match User git
 
 ## 설치
 
-이 절차는 AlmaLinux 8 컨테이너의 OpenSSH 8.0 sshd로 실제로 확인했다. 아래 예시는 Yona가 `yona` 계정으로 같은 호스트에서 돌고 HTTP 포트가 9000이라고 가정한다.
+이 절차는 AlmaLinux 8 컨테이너의 OpenSSH 8.0 sshd로 셸 훅과 Go 실행 파일 두 가지 모두 실제로 확인했다. 아래 예시는 Yona가 `yona` 계정으로 같은 호스트에서 돌고 HTTP 포트가 9000이라고 가정한다.
 
 ### 1. Yona 설정
 
