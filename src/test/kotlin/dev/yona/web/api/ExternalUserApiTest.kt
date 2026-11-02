@@ -185,6 +185,23 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
         json(get("/-_-api/v1/user/issues?page=2&pageNum=1"), me.token, null).andExpect(status().isOk).andExpect(jsonPath("$.result.length()").value(0))
     }
 
+    // --- 프로필 (X-23, Magpie `contract:people`의 `get_profile`) ---
+
+    @Test
+    fun `사용자 프로필은 로그인 ID와 이름만 돌려주고 없거나 쓸 수 없는 계정은 404이다`() {
+        val me = newUser(); val other = newUser()
+        val tk = newUser(token = "prof-token-${++sequence}").token
+        mockMvc.perform(get("/-_-api/v1/users/${other.loginId!!.uppercase()}").header("Authorization", "token $tk")).andExpect(status().isOk)
+            .andExpect(jsonPath("$.loginId").value(other.loginId)).andExpect(jsonPath("$.name").value(other.name))
+            .andExpect(jsonPath("$.email").doesNotExist()).andExpect(jsonPath("$.password").doesNotExist()).andExpect(jsonPath("$.token").doesNotExist()).andExpect(jsonPath("$.state").doesNotExist())
+        mockMvc.perform(get("/-_-api/v1/users/nobody-here").header("Authorization", "token $tk")).andExpect(status().isNotFound)
+        other.state = dev.yona.domain.enumeration.UserState.LOCKED; entityManager.flush()
+        mockMvc.perform(get("/-_-api/v1/users/${other.loginId}").header("Authorization", "token $tk")).andExpect(status().isNotFound)
+        other.state = dev.yona.domain.enumeration.UserState.DELETED; entityManager.flush()
+        mockMvc.perform(get("/-_-api/v1/users/${other.loginId}").header("Authorization", "token $tk")).andExpect(status().isNotFound)
+        mockMvc.perform(get("/-_-api/v1/users/${me.loginId}")).andExpect(status().isUnauthorized)
+    }
+
     // --- 통계 ---
 
     @Test

@@ -1,0 +1,10 @@
+import { join } from 'node:path';
+import { chromium } from 'playwright';
+import { ROOT, startServer } from './lib/server.mjs';
+const B = await startServer({ port: 19394, dataDir: join(ROOT, '.state', 'x2') });
+const br = await chromium.launch(); const p = await (await br.newContext()).newPage();
+await p.goto(B.base + '/users/loginform');
+console.log(JSON.stringify(await p.evaluate(() => { const e = document.querySelector('#remember-me'); const c = getComputedStyle(e); return { w: c.width, h: c.height, border: c.border, bg: c.backgroundColor, appearance: c.appearance, cls: e.className }; })));
+await p.evaluate(() => document.querySelector('#remember-me').checked = false);
+await p.locator('.act-row').screenshot({ path: join(ROOT, 'shots', 'x2-chk.png') });
+await br.close(); await B.stop();

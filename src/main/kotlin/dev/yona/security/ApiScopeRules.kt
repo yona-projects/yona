@@ -164,6 +164,7 @@ object ApiScopeRules {
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))
+        add("GET", "/-_-api/v1/users/{user}", ApiRequirement.Scope("read:user"))
         add("POST", "/-_-api/v1/users", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
         add("GET", "/-_-api/v1/admin/users", ApiRequirement.Scope(ApiScopes.SITE_ADMIN))
         // 사이트 백업(X-37g, D-52)

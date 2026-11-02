@@ -37,6 +37,12 @@ class MyIssueProject(val id: Long, val name: String)
 @Schema(description = "내 이슈 목록 응답")
 class MyIssueList(@get:Schema(description = "최근 수정 순서의 이슈") val result: List<MyIssue>)
 
+@Schema(description = "사용자의 공개 프로필. 웹의 사용자 화면에 보이는 로그인 ID와 이름뿐이고 이메일, 상태, 토큰은 담지 않는다")
+class UserProfile(
+    @get:Schema(description = "로그인 ID(저장된 대소문자)", example = "alice") val loginId: String,
+    @get:Schema(description = "이름", example = "앨리스") val name: String
+)
+
 @Schema(description = "사용자의 활동 개수. 없는 사용자는 모두 0이다")
 class UserStatistics(
     @get:Schema(description = "쓴 이슈 수") val issue: Long, @get:Schema(description = "쓴 글 수") val posting: Long,

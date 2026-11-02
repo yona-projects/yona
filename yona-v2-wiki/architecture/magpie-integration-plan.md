@@ -43,15 +43,16 @@ updated: 2026-11-03
 | 4 어댑터 문서(`docs/magpie/tools-yona/`: `README.md`, `tool.md`, `operations.md`, `source-control.md`) | **완료**(2026-11-03) |
 | 5 실제 확인(`e2e/magpiecheck.mjs`: 문서의 조리법을 실제 서버와 `yona` CLI로 그대로 실행해 계약의 필드와 형식을 확인(처음 19개 28건, 단계 7 이후 40개 64건)) | **완료**(2026-11-03, 28/28) |
 | 6 문서와 결정 마무리 | **완료**(2026-11-03) |
-| 7 GitHub 어댑터 범위 맞춤(2안: 서버 변경 없이 쓰기 조리법과 `issue-template.md`, `labels.md`, `status-rollup.md`를 추가) | **완료**(2026-11-03, 조리법 40개, 실제 확인 64/64) |
+| 7 GitHub 어댑터 범위 맞춤(쓰기 조리법과 `issue-template.md`, `labels.md`, `status-rollup.md`를 추가) | **완료**(2026-11-03, 조리법 40개, 실제 확인 64/64) |
+| 8 프로필 API(`GET /-_-api/v1/users/{user}`, 3안)로 `get_profile` 보강 | **완료**(2026-11-03, `ExternalUserApiTest`, A-346) |
 
 ## 구현 결과
 
 - **서버**: 이슈 목록의 기간 조건과 `closedAt`, `authorFirstTime`, 활동 조회(`GET $P/activity`), PR 목록의 상태와 기간과 정렬, 토론(`GET …/discussion`), 리뷰 활동(`GET $P/activity/reviews`). 문서는 [api-project-reads.md](api-project-reads.md)와 [api-pull-requests.md](api-pull-requests.md)에 있다.
 - **CLI**(`yona-cli`): `issue list`와 `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드, `pr merge --method`와 `--json`, 이슈를 만들 때 `createdAt`을 항상 보낸다.
 - **어댑터 문서**: `docs/magpie/tools-yona/`(영어, Magpie의 `tools/yona/`로 기여할 수 있는 모양). 두 계약의 모든 동작과 활동 동작 세 가지(`list_authored`, `list_reviews_given`, `list_authored_commits`)를 채운다. 사람을 생략하는 형태(`list_reviews_given`)와 분류 이벤트(`list_triaged`)도 채웠다. **Magpie 쪽에 기여하는 것은 ASF 절차(CLA, 메일링 리스트 논의)가 필요해 선생님의 결정을 기다린다.**
-- **GitHub 어댑터 범위 맞춤(단계 7)**: Magpie의 `tools/github/`(문서 8개)와 대조해 계약 밖의 쓰기 동작을 채웠다. `operations.md`에 이슈 읽기, 만들기, 라벨·담당자·본문 수정, 댓글, 닫기와 다시 열기, 마일스톤 목록·만들기·지정, 라벨 목록·만들기, PR 만들기와 라벨 수정, `contract:people`(`get_profile`, `list_collaborators`, `add_team_member`)를 더했고, `issue-template.md`(본문 필드 읽기와 바꾸기), `labels.md`(수명주기 라벨과 빠진 라벨 확인), `status-rollup.md`(상태 요약 댓글 찾기·덧붙이기·지우기)를 새로 썼다. 서버와 CLI는 바꾸지 않았다. 바깥 글(제목, 본문, 댓글)이 명령줄에 들어가지 않도록 `jq --rawfile`과 `yona api --input -`을 쓴다(`yona` CLI의 `--title`과 `--body`는 명령줄 문자열뿐이다). 셸 명령 치환이 든 제목으로 실제 실행해 풀리지 않음을 확인한다.
-- **제공하지 않는 것과 한계**: `project-board.md`(Yona에는 상태 열이 있는 프로젝트 보드가 없다. 게시판은 용도가 다르다), 닫는 이유(Yona에 `not planned` 개념이 없다), 이슈 담당자는 한 명, 이슈 템플릿 양식(양식 파일이 없다). `get_profile`은 프로젝트가 볼 수 있는 계정(구성원과 담당자 후보)의 존재와 이름만 알 수 있어, 구성원이 아닌 기여자는 `NotApplicable`이다(서버에 다른 사용자의 프로필 API가 없다. 3안으로 `GET /-_-api/v1/users/{user}`를 추가하면 풀린다). `list_collaborators`는 사이트 관리자를 담지 못하고 공개 프로젝트는 누구나 읽으므로 구성원 명단이라는 한계를 문서에 적었다.
+- **GitHub 어댑터 범위 맞춤(단계 7)**: Magpie의 `tools/github/`(문서 8개)와 대조해 계약 밖의 쓰기 동작을 채웠다. `operations.md`에 이슈 읽기, 만들기, 라벨·담당자·본문 수정, 댓글, 닫기와 다시 열기, 마일스톤 목록·만들기·지정, 라벨 목록·만들기, PR 만들기와 라벨 수정, `contract:people`(`get_profile`, `list_collaborators`, `add_team_member`)를 더했고, `issue-template.md`(본문 필드 읽기와 바꾸기), `labels.md`(수명주기 라벨과 빠진 라벨 확인), `status-rollup.md`(상태 요약 댓글 찾기·덧붙이기·지우기)를 새로 썼다. 이 단계에서는 서버와 CLI를 바꾸지 않았다(프로필 API는 단계 8). 바깥 글(제목, 본문, 댓글)이 명령줄에 들어가지 않도록 `jq --rawfile`과 `yona api --input -`을 쓴다(`yona` CLI의 `--title`과 `--body`는 명령줄 문자열뿐이다). 셸 명령 치환이 든 제목으로 실제 실행해 풀리지 않음을 확인한다.
+- **제공하지 않는 것과 한계**: `project-board.md`(Yona에는 상태 열이 있는 프로젝트 보드가 없다. 게시판은 용도가 다르다), 닫는 이유(Yona에 `not planned` 개념이 없다), 이슈 담당자는 한 명, 이슈 템플릿 양식(양식 파일이 없다). `get_profile`은 단계 8의 프로필 API로 구성원이 아닌 기여자의 존재와 이름까지 확인한다(없는 계정은 `null`). 다른 프로필 항목(회사, 웹사이트, 공개 이메일, 연결한 계정)은 Yona에 없어 비워 둔다. `list_collaborators`는 사이트 관리자를 담지 못하고 공개 프로젝트는 누구나 읽으므로 구성원 명단이라는 한계를 문서에 적었다.
 - **확인 중 찾은 v1.6 결함**: REST로 이슈를 가져올 때 만든 시각이 비는 결함(R-131)을 선생님 지시로 고쳤다(D-83).
 - **Magpie 쪽 변경에 대비**: 어댑터 문서는 읽은 시점(2026-11-03)의 계약을 따른다. 계약이 바뀌면 `e2e/magpiecheck.mjs`가 조리법과 필드의 차이를 알려 준다.
 

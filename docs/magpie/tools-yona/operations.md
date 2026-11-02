@@ -442,16 +442,17 @@ The Yona resolution of [`contract:people`](../people/README.md). A Yona *team* i
 
 | Verb | Yona resolution |
 |---|---|
-| `get_profile(<login>)` | The recipe below: `exists` and `display_name` only, the same reach as the Jira adapter. `organization`, `website`, `public_email` are `null` and `linked_accounts` is `[]` because the server exposes no profile of other users. An account that is not a member or an assignable user of the project cannot be told from a missing one, so the answer is `NotApplicable`, never `null`. |
+| `get_profile(<login>)` | The recipe below: `exists` and `display_name` for any usable account (`GET /-_-api/v1/users/<login>`). `organization`, `website`, `public_email` are `null` and `linked_accounts` is `[]` because Yona keeps none of them as a public profile. A missing, locked or deleted account answers `404` and the recipe prints `null`. |
 | `list_collaborators(<repo>)` | [Collaborator lookup](#collaborator-lookup-roster). **Known limitation:** Yona site administrators can read every project and the members endpoint leaves them out, and on a public project everybody can read. The skill must therefore tell the maintainer that the list is the project roster, not every reader. |
 | `add_team_member(<org>, <login>)` | The recipe below, a write; run only after the skill's confirmation. The answer is `409` when the person is a member already. |
 | the authenticated user (`<viewer>`) | [Authentication](#authentication) |
 
 <!-- recipe:get_profile -->
 ```bash
-yona api "/-_-api/v1/owners/<owner>/projects/<project>/assignableusers?query=<login>" \
-  | jq -c --arg login "<login>" '[.users[] | select(.loginId | ascii_downcase == ($login | ascii_downcase))] | first
-      | if . == null then "NotApplicable" else {exists: true, display_name: .name, organization: null, website: null, public_email: null, linked_accounts: []} end'
+if out=$(yona api /-_-api/v1/users/<login> 2>&1); then
+  echo "$out" | jq -c '{exists: true, display_name: .name, organization: null, website: null, public_email: null, linked_accounts: []}'
+elif echo "$out" | grep -q 'HTTP 404'; then echo null
+else echo "$out" >&2; exit 1; fi
 ```
 
 <!-- recipe:add_team_member -->

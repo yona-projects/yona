@@ -101,6 +101,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | `POST .../posts`, `.../posts/{number}/comments` | 토큰이나 세션 | 위와 같음 | 게시글, 댓글 만들기 권한 |
 | `GET /-_-api/v1/user/issues` | 토큰 | `repo`(비공개 이슈 포함) 또는 `public_repo`(공개만 걸러 줌) | 이슈별 `READ` |
 | `GET /-_-api/v1/users/{user}/statistics` | 토큰 | `read:user` | 로그인 사용자 |
+| `GET /-_-api/v1/users/{user}` (X-23, 프로필: 로그인 ID와 이름) | 토큰 | `read:user` | 로그인 사용자 |
 | `POST /-_-api/v1/users/token` | 아이디와 비밀번호 | 해당 없음(토큰을 만든다) | 비밀번호 |
 | Git, SVN HTTP 접근(`/{user}/{project}.git/**`, `/svn/**`) | 비밀번호 칸의 토큰 | 읽기(복제, 가져오기): `repo`, `read:repo` 또는 `public_repo`(공개 프로젝트). 쓰기(푸시, 커밋): `repo` 또는 `public_repo`(공개 프로젝트) | 코드 읽기, 쓰기 권한 |
 | `POST /-_-api/v1/users` | 세션 | `site_admin` | 사이트 관리자 |

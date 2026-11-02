@@ -1,0 +1,13 @@
+import { join } from 'node:path';
+import { rmSync } from 'node:fs';
+import { chromium } from 'playwright';
+import { ADMIN, ROOT, startServer } from './lib/server.mjs';
+const state = join(ROOT, '.state', 'x2b'); rmSync(state, { recursive: true, force: true });
+const B = await startServer({ port: 19395, dataDir: state });
+const br = await chromium.launch(); const p = await (await br.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
+const shot = async (n) => { await p.waitForTimeout(500); await p.screenshot({ path: join(ROOT, 'shots', `x2-${n}.png`), fullPage: true }); };
+await p.goto(B.base + '/users/loginform'); await p.fill('input[name=loginIdOrEmail]', 'admin'); await p.fill('input[name=password]', ADMIN.password); await p.click('.login-form-wrap button[type=submit]');
+await p.goto(B.base + '/sites/security'); await p.check('#enforce-ALL'); await shot('09-admin-security');
+await p.click('#security-form button[type=submit]'); await p.waitForTimeout(500); console.log('saved at', p.url());
+await p.goto(B.base + '/'); await p.waitForTimeout(500); console.log('admin enforced lands', p.url()); await shot('10-enforced-redirect');
+await br.close(); await B.stop();

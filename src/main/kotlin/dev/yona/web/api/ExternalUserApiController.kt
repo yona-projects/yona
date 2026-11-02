@@ -138,6 +138,24 @@ class ExternalUserApiController(
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("result" to result))
     }
 
+    // --- 프로필 ---
+
+    /**
+     * 사용자의 공개 프로필(로그인 ID와 이름)이다. 로그인 ID는 대소문자를 가리지 않고 찾는다. 없는 계정, 잠긴 계정, 삭제된 계정은 모두 404이다(구분해 알려 주지 않는다).
+     * 추가 개발 항목 X-23: Magpie `contract:people`의 `get_profile`이 구성원이 아닌 기여자의 존재와 이름을 확인하는 데 쓴다.
+     */
+    @ApiOperation(operationId = "getUserProfile", tags = [ApiTags.USER], summary = "사용자 프로필", description = "사용자의 로그인 ID와 이름이다. 이메일과 상태는 돌려주지 않는다. 없는 계정, 잠긴 계정, 삭제된 계정은 모두 404이다.")
+    @ApiResponse(responseCode = "200", description = "프로필", content = [Content(schema = Schema(implementation = UserProfile::class))])
+    @ApiResponse(responseCode = "404", description = "사용할 수 있는 계정이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @GetMapping("/-_-api/v1/users/{user}")
+    @AnonymousCheck(requiresLogin = true)
+    @Transactional(readOnly = true)
+    fun profile(@PathVariable("user") loginId: String): Any {
+        val target = users.findByLoginIdIgnoreCase(loginId)?.takeIf { it.state != UserState.LOCKED && it.state != UserState.DELETED }
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(mapOf("message" to "not found"))
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("loginId" to target.loginId, "name" to target.name))
+    }
+
     // --- 통계 ---
 
     /** 사용자의 글, 댓글, 담당, 추천 개수이다. 없는 사용자는 모두 0이다. 로그인해야 한다. */

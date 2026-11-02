@@ -63,6 +63,7 @@ class ApiScopeRulesTest {
         assertEquals(ApiRequirement.RepoOnly, req("POST", "/-_-api/v1/owners/{owner}/projects"))
         assertEquals(ApiRequirement.RepoOnlyRead, req("GET", "/-_-api/v1/user/issues"))
         assertEquals(ApiRequirement.Scope("read:user"), req("GET", "/-_-api/v1/users/{user}/statistics"))
+        assertEquals(ApiRequirement.Scope("read:user"), req("GET", "/-_-api/v1/users/{user}"))
         assertEquals(ApiRequirement.Scope("site_admin"), req("POST", "/-_-api/v1/users"))
         assertEquals(ApiRequirement.Scope("site_admin"), req("GET", "/-_-api/v1/admin/users"))
         assertEquals(ApiRequirement.Scope("site_admin"), req("PATCH", "/-_-api/v1/admin/users/{user}"))

@@ -57,6 +57,7 @@ updated: 2026-10-29
 | `POST …/labels`, `POST …/milestones`, `GET …/exports`, `GET …/posts/{number}/watchers` | `repo`, `public_repo`(인증 방식은 구현 때 하나씩 확인) |
 | `POST /users` | `site_admin` |
 | `GET /users/{user}/statistics` | `read:user` |
+| `GET /users/{user}` (X-23) | `read:user` |
 | `GET /admin/users`, `PATCH /admin/users/{user}` | `site_admin` |
 | `POST /files`(첨부 올리기)의 API 주소 | 새 `POST /-_-api/v1/files`: `repo`, `public_repo` |
 

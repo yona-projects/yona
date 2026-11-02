@@ -39,7 +39,7 @@ const isIso = (v) => typeof v === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(Z
 
 try {
   // --- 데이터 준비: 프로젝트, 이슈, 포크와 풀 리퀘스트 ---
-  const admin = new Session(B.base); await admin.login(ADMIN.loginId); token = await admin.deviceToken('repo');
+  const admin = new Session(B.base); await admin.login(ADMIN.loginId); token = await admin.deviceToken('repo read:user');
   const dev = new Session(B.base); await dev.signup('dev1', '개발자', 'dev1@example.com'); await dev.login('dev1'); const devToken = await dev.deviceToken('repo');
   await admin.api('POST', '/user/projects', { name: PROJECT, description: 'Magpie 확인', scope: 'PUBLIC', vcs: 'GIT' });
   const work = mkdtempSync(join(tmpdir(), 'magpie-work-')); const git = (cwd, ...a) => execFileSync('git', a, { cwd, stdio: 'pipe', encoding: 'utf8' });
@@ -168,9 +168,9 @@ try {
   check('pr_create: 같은 브랜치 쌍은 다시 만들지 못한다', run('pr_create', { ...w, 'title-file': wf('t3.txt', '또\n'), 'body-file': wf('b4.txt', '또\n'), 'from-owner': 'dev1', 'from-project': PROJECT, 'from-branch': 'topic-c', 'to-branch': 'master' }, { fail: true }) === null);
   run('pr_edit_labels', { N: prNew, label: 'needs triage' });
   check('pr_edit_labels', JSON.stringify(await admin.api('GET', `${API}/pullrequests/${prNew}`)).includes('needs triage'));
-  const prof = json('get_profile', { login: 'admin' });
-  check('get_profile: 프로젝트 구성원', prof && prof.exists === true && typeof prof.display_name === 'string' && prof.linked_accounts.length === 0 && prof.website === null, JSON.stringify(prof));
-  check('get_profile: 구성원이 아닌 계정은 NotApplicable', run('get_profile', { login: 'dev1' }) === '"NotApplicable"' && run('get_profile', { login: 'nobody' }) === '"NotApplicable"');
+  const prof = json('get_profile', { login: 'dev1' });
+  check('get_profile: 구성원이 아닌 기여자도 확인한다', prof && prof.exists === true && prof.display_name === '개발자' && prof.linked_accounts.length === 0 && prof.website === null, JSON.stringify(prof));
+  check('get_profile: 없는 계정은 null', run('get_profile', { login: 'nobody' }) === 'null');
   const repoToken = token; token = await admin.deviceToken('repo read:org write:org admin:org', 'yona-e2e-org');
   await admin.api('POST', '/orgs', { name: 'acme', description: '회사' });
   check('add_team_member', run('add_team_member', { org: 'acme', login: 'dev1' }) === 'dev1');

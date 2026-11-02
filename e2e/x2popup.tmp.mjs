@@ -1,0 +1,12 @@
+import { join } from 'node:path';
+import { chromium } from 'playwright';
+import { ADMIN, ROOT, startServer } from './lib/server.mjs';
+const B = await startServer({ port: 19394, dataDir: join(ROOT, '.state', 'x2') });
+const br = await chromium.launch(); const p = await (await br.newContext({ viewport: { width: 1280, height: 700 } })).newPage();
+await p.goto(B.base + '/'); await p.evaluate(() => window.bootstrap.Modal.getOrCreateInstance(document.querySelector('#loginDialog')).show()); await p.waitForTimeout(1500);
+await p.screenshot({ path: join(ROOT, 'shots', 'x2-08a-popup-first.png') });
+await p.fill('#loginDialog input[name=loginIdOrEmail]', ADMIN.loginId); await p.fill('#loginDialog input[name=password]', ADMIN.password);
+await p.click('#loginDialog .login-step button[type=submit]'); await p.waitForSelector('#loginDialog .two-factor-step', { state: 'visible' }); await p.waitForTimeout(1500);
+await p.screenshot({ path: join(ROOT, 'shots', 'x2-08-popup-step.png') });
+console.log(JSON.stringify(await p.evaluate(() => { const r = document.querySelector('#loginDialog .modal-dialog').getBoundingClientRect(); return [r.left, r.width]; })));
+await br.close(); await B.stop();
