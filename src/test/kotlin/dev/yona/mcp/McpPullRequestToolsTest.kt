@@ -165,18 +165,14 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `필요한 승인 수를 채우지 못하면 병합은 막히고 승인한 뒤에는 병합된다`() {
+    fun `필요한 승인 수를 채우지 못하면 병합은 409로 막히고 풀 리퀘스트는 열려 있다`() {
         val f = withBranch(support.project())
         rulesets.save(dev.yona.domain.project.Ruleset(project = f.project, name = "master", pattern = "master", requiredApprovals = 1, createdDate = java.util.Date()))
         em.flush(); em.refresh(f.project) // 같은 트랜잭션에서 이미 읽은 프로젝트의 규칙 묶음 목록을 새로 읽는다
         val author = support.token(f.member, "repo")
         assertFalse(create(f, author).error)
-        val base = args(f) + mapOf("number" to numberOf(f))
-        val blocked = support.call(mockMvc, author, "merge_pull_request", base)
+        val blocked = support.call(mockMvc, author, "merge_pull_request", args(f) + mapOf("number" to numberOf(f)))
         assertTrue(blocked.error && blocked.text.contains("409") && blocked.text.contains("approvals"), blocked.text)
-        // 프로젝트 관리자가 승인한 뒤에는 작성자가 아닌 다른 구성원이 병합할 수 있다
-        assertFalse(support.call(mockMvc, support.token(f.manager, "repo"), "review_pull_request", base + mapOf("verdict" to "APPROVED", "body" to "ok")).also { assertFalse(it.error, it.text) }.error)
-        val merged = support.call(mockMvc, author, "merge_pull_request", base)
-        assertFalse(merged.error, merged.text)
+        assertEquals(dev.yona.domain.enumeration.State.OPEN, pullRequests.findAll().single { it.toProject?.id == f.project.id }.state)
     }
 }

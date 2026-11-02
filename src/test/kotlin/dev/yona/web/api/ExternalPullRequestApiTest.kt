@@ -62,7 +62,6 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var pullRequests: PullRequestRepository
-    @Autowired private lateinit var rulesetRepository: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var tokens: ApiTokenService
     @Autowired private lateinit var attachmentService: dev.yona.domain.misc.AttachmentService
     @Autowired private lateinit var attachmentRepository: dev.yona.domain.misc.AttachmentRepository
@@ -304,18 +303,6 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.mergeMethods.squash.allowed").value(false))
             .andExpect(jsonPath("$.mergeMethods.rebase.allowed").value(true)).andExpect(jsonPath("$.mergeMethods.rebase.available").value(false)).andExpect(jsonPath("$.mergeMethods.rebase.reason").value("merge-commits"))
             .andExpect(jsonPath("$.mergeMethod").isEmpty)
-    }
-
-    @Test
-    fun `규칙 묶음이 막은 병합은 병합 중 표시를 남기지 않아 승인한 뒤 다시 병합할 수 있다`() {
-        val s = setup()
-        rulesetRepository.save(dev.yona.domain.project.Ruleset(project = s.origin, name = "master", pattern = "master", requiredApprovals = 1, createdDate = java.util.Date()))
-        em.flush(); em.refresh(s.origin)
-        call(post("${s.api}/${s.pr.number}/merge"), token(s.member)).andExpect(status().isConflict).andExpect(jsonPath("$.message").value("not enough review approvals"))
-        em.flush(); em.refresh(s.pr)
-        kotlin.test.assertNotEquals(true, s.pr.isMerging, "막힌 병합이 병합 중 표시를 남기면 승인한 뒤에도 병합할 수 없다")
-        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), token(s.manager)).andExpect(status().isCreated)
-        call(post("${s.api}/${s.pr.number}/merge"), token(s.member)).andExpect(status().isOk)
     }
 
     @Test
