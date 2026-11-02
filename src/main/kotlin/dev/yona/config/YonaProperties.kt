@@ -221,8 +221,25 @@ data class YonaProperties(
         val bindAddress: String = "",
         val hostKeyPath: String = "",
         val user: String = "git",
-        val publicPort: Int = 0
-    )
+        val publicPort: Int = 0,
+        val relay: Relay = Relay()
+    ) {
+
+        /**
+         * 시스템 sshd 연동(`AuthorizedKeysCommand`와 유닉스 소켓 중계) 설정이다(추가 개발 항목 X-3b, `decisions.md` D-67). 꺼져 있으면 소켓을 열지 않고 내부 인증 주소도 없다.
+         *
+         * @property enabled 시스템 sshd 연동을 켠다(`yona.ssh.relay.enabled`, 기본 꺼짐)
+         * @property socketPath 중계 소켓 파일 경로. 비우면 데이터 디렉터리의 `ssh/relay.sock`이다. 소켓 경로는 운영체제가 108바이트쯤으로 제한하므로 데이터 디렉터리가 깊으면 짧은 경로를 직접 정한다
+         * @property internalSecret 훅 스크립트가 내부 인증 주소를 부를 때 보내는 공유 비밀 값이다. 비우면 [internalSecretPath] 파일의 값을 쓰고, 파일이 없으면 만들어 둔다
+         * @property internalSecretPath 공유 비밀 값을 담은 파일. 비우면 데이터 디렉터리의 `ssh/internal-secret`이다
+         */
+        data class Relay(
+            val enabled: Boolean = false,
+            val socketPath: String = "",
+            val internalSecret: String = "",
+            val internalSecretPath: String = ""
+        )
+    }
 
     /**
      * LDAP 로그인 설정이다 (v1.6 `application.use.ldap.login.supoort`(키의 오타가 그대로 실제 키이다)와 `ldap.*`).
