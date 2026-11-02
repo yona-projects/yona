@@ -15,12 +15,12 @@ object LoginIdRules {
 
     /**
      * 예약어이다. v1.6은 기동할 때 라우트 표의 각 경로 첫 구간을 모아 만들고 `new`, `projects`, `orgs`, `organizations`를 더했다.
-     * v2는 v1.6 라우트에서 뽑은 목록을 고정해서 쓴다(화면 주소가 v1.6과 같아야 하므로 같은 이름이 막혀야 한다).
+     * v2는 v1.6 라우트에서 뽑은 목록을 고정해서 쓴다(화면 주소가 v1.6과 같아야 하므로 같은 이름이 막혀야 한다). 엔터프라이즈 SSO의 `/sso/` 아래(X-16, D-80)를 위해 `sso`를 더했다.
      */
     val RESERVED_WORDS: Set<String> = setOf(
         "-_-api", "assets", "authenticate", "categories", "comments", "favicon.ico", "files", "info", "labels", "logout",
         "lostPassword", "markdown", "messages.js", "migration", "new", "noti", "notification", "notifications", "organizations",
-        "orgs", "project", "projectform", "projects", "resetPassword", "restricted", "search", "sites", "svn", "threads",
+        "orgs", "project", "projectform", "projects", "resetPassword", "restricted", "search", "sites", "sso", "svn", "threads",
         "unwatch", "user", "users", "verify", "watch"
     )
 

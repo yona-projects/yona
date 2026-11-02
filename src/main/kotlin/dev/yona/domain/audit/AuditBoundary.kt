@@ -14,14 +14,14 @@ class AuditBoundary(private val recorder: AuditRecorder, private val metrics: de
     /** 주소마다 마지막으로 차단 이벤트를 남긴 시각이다. 막힌 주소가 요청을 계속 보내도 기록이 쏟아지지 않게 한다. */
     private val blockedLogged = ConcurrentHashMap<String, Long>()
 
-    fun loginSuccess(user: User, method: String) {
+    fun loginSuccess(user: User, method: String, extra: Map<String, Any?> = emptyMap()) {
         metrics.event("login_success")
-        recordLoginSuccess(user, method)
+        recordLoginSuccess(user, method, extra)
     }
 
-    private fun recordLoginSuccess(user: User, method: String) = recorder.recordIndependent(
+    private fun recordLoginSuccess(user: User, method: String, extra: Map<String, Any?>) = recorder.recordIndependent(
         AuditEvent(
-            "auth.login_success", targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId, details = mapOf("method" to method),
+            "auth.login_success", targetType = "user", targetId = user.id?.toString(), targetLabel = user.loginId, details = mapOf("method" to method) + extra,
             actor = AuditActor(AuditActorType.USER, user.id, user.loginId)
         )
     )
@@ -38,6 +38,19 @@ class AuditBoundary(private val recorder: AuditRecorder, private val metrics: de
             details = mapOf("reason" to reason), actor = AuditActor(AuditActorType.ANONYMOUS, null, loginKey?.take(255))
         )
     )
+
+    /**
+     * SSO 로그인을 거절했다(X-16). [reason]은 거절 사유 코드(`email_unverified`, `locked`, `invalid_token` 등)이고 [protocol]은 `oidc`나 `saml2`이다. 토큰과 응답 내용은 남기지 않는다.
+     */
+    fun ssoFailure(protocol: String, reason: String, email: String? = null) {
+        metrics.event("login_failure", denied = true)
+        recorder.recordIndependent(
+            AuditEvent(
+                "auth.sso_failure", AuditOutcome.DENIED, targetType = "user", targetLabel = email?.take(255), details = mapOf("protocol" to protocol, "reason" to reason),
+                actor = AuditActor(AuditActorType.ANONYMOUS, null, email?.take(255))
+            )
+        )
+    }
 
     /** 로그인한 사용자의 로그아웃이다. 로그인하지 않았으면 남기지 않는다. */
     fun logout(user: User?) {

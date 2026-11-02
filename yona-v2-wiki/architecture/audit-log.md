@@ -50,6 +50,8 @@ server:
 |---|---|---|---|
 | `auth.login_success` | 성공 | 비밀번호나 소셜 로그인 성공(`details.method`) | `LoginController`, `SocialLoginController` |
 | `auth.login_failure` | 실패 또는 거부 | 틀린 비밀번호와 없는 사용자(같은 이유 `invalid_credentials`), 잠김(`locked_after_authentication`), 삭제됨(`deleted`) | `LoginController`(폼과 AJAX) |
+| `auth.sso_failure` | 거부 | SSO 로그인을 거절했다(`details.protocol`: `oidc`, `saml2`, `details.reason`: `email_unverified`, `locked`, `invalid_id_token`, `invalid_nonce`, `authorization_request_not_found`, `access_denied` 등). 시도한 이메일만 남기고 토큰과 응답 내용은 남기지 않는다(X-16) | `AuditBoundary` |
+| `site.sso_changed` | 성공 | 관리자가 SSO 설정을 바꿨다(`details.protocol`, `enabled`, `issuer`, `client_id`, `secret_changed`, 계정 맞추기 규칙). 비밀 값은 남기지 않는다(X-16) | `SsoSettingsService` |
 | `auth.logout` | 성공 | 로그인한 사용자의 로그아웃 | `LoginController` |
 | `auth.token_failure` | 실패 | 외부 API의 틀린 토큰 | `YonaAuthenticationFilter` |
 | `auth.basic_failure` | 실패 | git HTTP의 틀린 비밀번호나 토큰(`details.channel`, `reason`) | `BasicAuthResolver` |

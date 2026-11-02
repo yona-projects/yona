@@ -40,6 +40,6 @@ class LoginIdRulesTest {
 
     @Test
     fun `예약어 목록은 v1 6 라우트의 첫 구간과 네 개의 추가어이다`() {
-        assertEquals(34, LoginIdRules.RESERVED_WORDS.size)
+        assertEquals(35, LoginIdRules.RESERVED_WORDS.size) // v1.6의 34개에 `sso`(엔터프라이즈 SSO 경로, X-16)를 더했다
     }
 }

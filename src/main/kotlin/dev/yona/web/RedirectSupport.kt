@@ -50,6 +50,15 @@ object RedirectSupport {
     }
 
     /**
+     * 서블릿 필터와 인증 처리기(디스패처 서블릿 앞)에서 다음 요청에 한 번만 보일 값을 저장한다(X-16 SSO 로그인 실패 안내). 이 시점에는 요청에 flash 관리자와 출력 flash가 아직 없어
+     * [saveFlash]를 쓸 수 없으므로 세션 flash 관리자를 직접 쓴다. 값의 순서 표지는 [saveFlash]와 같다.
+     */
+    fun saveFlashBeforeDispatch(request: HttpServletRequest, response: HttpServletResponse, flash: Map<String, Any>) {
+        val flashMap = FlashMap().apply { putAll(flash); this[ORDER] = flash.keys.joinToString("\u0001") }
+        org.springframework.web.servlet.support.SessionFlashMapManager().saveOutputFlashMap(flashMap, request, response)
+    }
+
+    /**
      * 이 요청에서 화면을 그리면서 보여 줄 일회성 메시지를 심는다. v1.6의 `flash(...)` 뒤 `return badRequest(render(...))`와 같다:
      * 이번 화면에 바로 보이고(레이아웃이 앞 요청이 남긴 값에 이번 요청이 심은 값을 더해 보인다), 응답이 앞 값을 이어서 다시 심으므로
      * 다음 요청 한 번에도 보인다(v1.6 flash 쿠키의 동작).
