@@ -124,6 +124,7 @@ data class YonaProperties(
     @DurationUnit(ChronoUnit.MILLIS) val mailboxPollingInterval: Duration = Duration.ofMinutes(5),
     val ldap: Ldap = Ldap(),
     val ssh: Ssh = Ssh(),
+    val twoFactor: TwoFactor = TwoFactor(),
     val protocol: String = "ldap",
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
@@ -202,6 +203,13 @@ data class YonaProperties(
         val ssl: Boolean = true,
         val folder: String = "Inbox"
     )
+
+    /**
+     * 2단계 인증 설정이다(추가 개발 항목 X-2, `decisions.md` D-69).
+     *
+     * @property resetUser 긴급 해제할 사용자의 로그인 ID(`yona.two-factor.reset-user`). 서버를 시작할 때 그 사용자의 2단계 인증을 지운다. 쓴 뒤에는 비운다
+     */
+    data class TwoFactor(val resetUser: String = "")
 
     /**
      * 내장 SSH 서버 설정이다(추가 개발 항목 X-3, `decisions.md` D-66). 꺼져 있으면 포트를 열지 않는다.

@@ -151,6 +151,15 @@ class TwoFactorService(
         return true
     }
 
+    /** 서버 설정에 의한 긴급 해제이다(`yona.two-factor.reset-user`). 감사 기록의 구분은 `emergency`이다. 지울 데이터가 없었으면 `false`이다. */
+    @Transactional
+    fun resetByEmergency(target: User): Boolean {
+        if (credentials.findByUserIdOrderById(requireNotNull(target.id)).isEmpty()) return false
+        clear(target)
+        audit.record(auditUser("two_factor.disabled", target, mapOf("by" to "emergency")))
+        return true
+    }
+
     /** 사용자의 2단계 인증 데이터를 모두 지운다(감사 기록을 남기지 않는다. 호출하는 쪽이 남긴다). */
     @Transactional
     fun clear(user: User) {

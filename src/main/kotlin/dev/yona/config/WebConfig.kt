@@ -27,7 +27,8 @@ class WebConfig(
     private val preferredLanguageInterceptor: PreferredLanguageInterceptor,
     private val apiScopeInterceptor: dev.yona.security.ApiScopeInterceptor,
     private val defaultHeadersInterceptor: dev.yona.web.DefaultHeadersInterceptor,
-    private val flashDisplayInterceptor: dev.yona.web.layout.FlashDisplayInterceptor
+    private val flashDisplayInterceptor: dev.yona.web.layout.FlashDisplayInterceptor,
+    private val twoFactorEnforcementInterceptor: dev.yona.security.TwoFactorEnforcementInterceptor
 ) : WebMvcConfigurer {
 
     /** 현재 시각을 알려 주는 시계이다. 시각에 의존하는 표시를 테스트에서 고정할 수 있게 주입해서 쓴다. */
@@ -65,6 +66,8 @@ class WebConfig(
         registry.addInterceptor(apiScopeInterceptor).addPathPatterns("/-_-api", "/-_-api/**")
         // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다
         registry.addInterceptor(accessChainInterceptor)
+        // 관리자가 2단계 인증을 강제했으면 대상 사용자를 등록 화면으로 보낸다(X-2, D-69)
+        registry.addInterceptor(twoFactorEnforcementInterceptor)
         // 비밀 키 설정 화면은 접근 검사 뒤에 둔다. Play는 애너테이션 액션을 Global.onRequest 액션보다 바깥에서 실행하므로, 익명이 열 수 없는 주소는 검사가
         // 먼저 막는다(로그인 안내 403)
         registry.addInterceptor(siteSecretInterceptor)

@@ -67,6 +67,7 @@
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
                    th:text="#{'button.user.makeAccountUnlock.' + ${row.state == 'LOCKED'}}"></a>
                 <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
+                <a th:if="${row.twoFactorEnabled}" class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.twoFactorResetUrl}}" th:text="#{button.user.resetTwoFactor}"></a>
                 <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'text-bg-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>

@@ -38,14 +38,16 @@ class SiteUserController(
     private val service: SiteUserService,
     private val users: UserRepository,
     private val avatars: AvatarService,
-    private val helper: TemplateHelper
+    private val helper: TemplateHelper,
+    private val twoFactor: dev.yona.domain.twofactor.TwoFactorService
 ) {
 
     /** 목록의 한 줄이다. */
     data class UserRow(
         val id: Long, val loginId: String, val name: String, val email: String, val avatarUrl: String, val createdText: String,
         val guest: Boolean, val state: String, val siteManager: Boolean, val lastStateModified: String,
-        val guestUrl: String, val lockUrl: String, val siteAdminUrl: String, val resetPasswordUrl: String, val deleteUrl: String
+        val guestUrl: String, val lockUrl: String, val siteAdminUrl: String, val resetPasswordUrl: String, val deleteUrl: String,
+        val twoFactorEnabled: Boolean = false, val twoFactorResetUrl: String = ""
     ) {
         /** 기본 아바타이면 `true`이다. v1.6은 이때 `alt`, `width`, `height` 없이 그림만 낸다. */
         val defaultAvatar: Boolean get() = avatarUrl == dev.yona.security.AvatarService.DEFAULT_AVATAR_URL
@@ -95,6 +97,20 @@ class SiteUserController(
         return listView(0, query, userState)
     }
 
+    /** 사용자의 2단계 인증을 해제한다(추가 개발 항목 X-2, `decisions.md` D-69. 기기를 잃어버린 사용자를 돕는다). 잠금 전환과 같은 모양으로 목록을 다시 그린다. */
+    @PostMapping("/sites/resetTwoFactor")
+    @Transactional
+    fun resetTwoFactor(
+        @RequestParam loginId: String, @RequestParam(required = false) state: String?, @RequestParam(required = false) query: String?,
+        request: HttpServletRequest, response: HttpServletResponse
+    ): Any {
+        val userState = parseState(state) ?: return ErrorViews.badRequest()
+        val target = users.findByLoginIdIgnoreCase(loginId)
+            ?: return RedirectSupport.see(request, response, "/sites/userList?pageNum=0", mapOf(RedirectSupport.WARNING to "user.notExists.name"))
+        twoFactor.resetByAdmin(target)
+        return listView(0, query, userState)
+    }
+
     @PostMapping("/sites/toggleGuestMode")
     @Transactional
     fun toggleGuestMode(
@@ -141,7 +157,8 @@ class SiteUserController(
             lastStateModified = dev.yona.util.JavaDates.toString(user.lastStateModifiedDate).orEmpty(),
             guestUrl = toggle("/sites/toggleGuestMode"), lockUrl = toggle("/sites/toggleAccountLock"),
             siteAdminUrl = "/sites/toggleSiteAdminRole/$loginId", resetPasswordUrl = "/$loginId?action=resetPassword",
-            deleteUrl = "/sites/user/delete${user.id}"
+            deleteUrl = "/sites/user/delete${user.id}",
+            twoFactorEnabled = twoFactor.isEnabled(user), twoFactorResetUrl = toggle("/sites/resetTwoFactor")
         )
     }
 
