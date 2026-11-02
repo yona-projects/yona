@@ -54,6 +54,10 @@ server:
 | `auth.token_failure` | 실패 | 외부 API의 틀린 토큰 | `YonaAuthenticationFilter` |
 | `auth.basic_failure` | 실패 | git HTTP의 틀린 비밀번호나 토큰(`details.channel`, `reason`) | `BasicAuthResolver` |
 | `two_factor.enabled`, `two_factor.disabled`, `two_factor.method_removed`, `two_factor.backup_code_used`, `two_factor.backup_codes_regenerated`, `site.two_factor_enforcement_changed` | 성공 | 2단계 인증의 켜기, 끄기(`by`: user, admin, emergency), 수단 삭제, 백업 코드, 강제 방식 변경(X-2, D-69). 비밀 값과 코드는 남기지 않는다. 로그인 실패 이유에 `two_factor_invalid`, `two_factor_locked`가 더해진다 | `TwoFactorService`, `SiteSettingService`, `TwoFactorLogin` |
+| `oauth.client_created`, `oauth.client_updated`, `oauth.client_secret_regenerated`, `oauth.client_deleted` | 성공 | OAuth 앱을 만들고 고치고 비밀 값을 다시 만들고 지운다(`details.by`: owner, admin). 비밀 값은 남기지 않는다(X-1, D-71) | `OAuthClientService` |
+| `oauth.authorized`, `oauth.token_issued`, `oauth.authorization_revoked` | 성공 | 사용자가 앱을 승인하고(`details.scopes`), 토큰을 발급하고(`details.grant`: authorization_code, refresh_token), 승인을 취소한다. 토큰 값은 남기지 않는다 | `YonaOAuth2AuthorizationConsentService`, `YonaOAuth2AuthorizationService`, `OAuthAuthorizedAppsService` |
+| `oauth.refresh_reuse_detected` | 거부 | 이미 쓴 갱신 토큰이 다시 와서 그 인가 전체를 취소했다(탈취 의심) | `YonaOAuth2AuthorizationService` |
+| `site.oauth_cimd_changed`, `site.oauth_user_apps_changed` | 성공 | 관리자가 CIMD 클라이언트 허용과 사용자의 앱 만들기 허용을 바꿨다(`details.from`, `to`) | `SiteSettingService` |
 | `auth.token_blocked` | 거부 | 인증 실패가 쌓여 주소가 막힘(같은 주소는 1분에 한 번만) | 인증 필터, `BasicAuthResolver` |
 | `access.denied` | 거부 | 응답이 403인 모든 요청(대상은 `메서드 경로`, 질의 문자열 제외) | `AccessDeniedAuditFilter`(인증 필터 뒤) |
 | `access.api_scope_denied` | 거부 | 토큰 범위가 모자란 외부 API 요청. `access.denied`로 또 남기지 않는다 | `ApiScopeInterceptor` |

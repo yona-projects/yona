@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-1(decisions.md D-71): 설정의 OAuth 앱 화면. 한 화면에 내가 만든 앱과 승인한 앱이 있다
+  모델: title, apps(AppRow 목록), authorized(AuthorizedRow 목록), userAppsEnabled
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::oauthPage})}">
+<th:block th:fragment="oauthPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{oauth.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('oauth-apps')}"></th:block>
+        <div class="two-factor-page">
+        <p class="text-body-secondary" th:text="#{oauth.description}"></p>
+
+        <section>
+            <h4 th:text="#{oauth.apps.mine}"></h4>
+            <div id="my-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(apps)}" th:text="#{oauth.apps.mine.empty}"></div>
+            <table id="my-apps" class="table table-striped" th:if="${!#lists.isEmpty(apps)}">
+                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.clientId}"></th><th th:text="#{oauth.form.type}"></th><th th:text="#{sshKey.createdDate}"></th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${apps}" class="app-row">
+                    <td><a th:href="@{/user/editform/oauth-apps/{id}(id=${a.id})}" th:text="${a.name}"></a></td>
+                    <td><code th:text="${a.clientId}"></code></td>
+                    <td th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></td>
+                    <td th:text="${a.createdText}"></td>
+                    <td class="text-end">
+                        <form method="post" th:action="@{/user/oauth-apps/{id}/delete(id=${a.id})}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.delete.confirm} + '\');'">
+                            <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.delete}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="tf-actions">
+                <a id="oauth-app-new" class="btn btn-success" th:if="${userAppsEnabled}" th:href="@{/user/editform/oauth-apps/new}" th:text="#{oauth.apps.new}"></a>
+                <span id="user-apps-disabled" class="text-body-secondary" th:unless="${userAppsEnabled}" th:text="#{oauth.apps.disabled}"></span>
+            </div>
+        </section>
+
+        <section class="tf-section">
+            <h4 th:text="#{oauth.apps.authorized}"></h4>
+            <p th:text="#{oauth.apps.authorized.description}"></p>
+            <div id="authorized-empty" class="tf-empty" th:if="${#lists.isEmpty(authorized)}" th:text="#{oauth.apps.authorized.empty}"></div>
+            <table id="authorized-apps" class="table table-striped" th:if="${!#lists.isEmpty(authorized)}">
+                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.by}"></th><th th:text="#{oauth.form.scopes}"></th><th th:text="#{oauth.apps.approvedDate}"></th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="x : ${authorized}" class="authorized-row">
+                    <td th:text="${x.name}"></td>
+                    <td th:text="${x.ownerLoginId != null} ? ${x.ownerLoginId} : ${x.host}"></td>
+                    <td><code th:each="s : ${x.scopes}" th:text="${s}" class="me-1"></code></td>
+                    <td th:text="${x.approvedText}"></td>
+                    <td class="text-end">
+                        <form method="post" th:action="@{/user/oauth-apps/authorized/{id}/revoke(id=${x.clientRowId})}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.authorized.revoke.confirm} + '\');'">
+                            <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.authorized.revoke}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

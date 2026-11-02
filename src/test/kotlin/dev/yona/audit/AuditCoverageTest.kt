@@ -40,7 +40,9 @@ class AuditCoverageTest {
         "web/api/ExternalSiteBackupApiController.kt" to listOf("export", "import"),
         "security/YonaAuthenticationFilter.kt" to listOf("authenticateApi"),
         "web/access/BasicAuthResolver.kt" to listOf("identify"),
-        "security/ApiScopeInterceptor.kt" to listOf("deny")
+        "security/ApiScopeInterceptor.kt" to listOf("deny"),
+        "domain/oauth2server/OAuthClientService.kt" to listOf("create", "update", "regenerateSecret", "delete", "deleteAsAdmin"),
+        "domain/oauth2server/OAuthAuthorizedAppsService.kt" to listOf("revoke")
     )
 
     /** 소스에서 [name] 함수의 본문(다음 같은 들여쓰기의 함수가 시작하기 전까지)이다. */

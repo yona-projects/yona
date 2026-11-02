@@ -120,8 +120,8 @@ class ProfileEditTest : AbstractIntegrationTest() {
     fun `탭 메뉴는 여덟 개이고 현재 탭이 활성이다`() {
         val page = page("/user/editform", login(newUser()))
         val tabs = page.select(".page-wrap > ul.nav-tabs li")
-        assertEquals(listOf("Edit profile", "Change password", "Notification settings", "Email settings", "User Token", "GPG keys", "SSH keys", "Two-step verification", "Security log"), tabs.map { it.text().trim() })
-        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token", "/user/editform/gpg", "/user/editform/ssh", "/user/editform/two-factor", "/user/editform/audit"), tabs.map { it.selectFirst("a")!!.attr("href") })
+        assertEquals(listOf("Edit profile", "Change password", "Notification settings", "Email settings", "User Token", "GPG keys", "SSH keys", "Two-step verification", "OAuth apps", "Security log"), tabs.map { it.text().trim() })
+        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token", "/user/editform/gpg", "/user/editform/ssh", "/user/editform/two-factor", "/user/editform/oauth-apps", "/user/editform/audit"), tabs.map { it.selectFirst("a")!!.attr("href") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 

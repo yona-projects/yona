@@ -36,7 +36,20 @@ class SiteSettingService(private val settings: SiteSettingRepository, private va
         if (before != value) audit.record(AuditEvent("site.oauth_cimd_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
     }
 
+    /** 일반 사용자가 OAuth 앱을 만들 수 있는지이다(추가 개발 항목 X-1). 기본은 만들 수 있다. */
+    @Transactional(readOnly = true)
+    fun oauthUserAppsEnabled(): Boolean = settings.findById(OAUTH_USER_APPS_ENABLED).orElse(null)?.value?.let { it == "true" } ?: true
+
+    /** 사용자의 앱 만들기 허용 여부를 바꾼다. 바뀐 값이 있을 때만 감사 기록을 남긴다. */
+    @Transactional
+    fun setOauthUserAppsEnabled(value: Boolean) {
+        val before = oauthUserAppsEnabled()
+        settings.save(SiteSetting(OAUTH_USER_APPS_ENABLED, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.oauth_user_apps_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
+    }
+
     companion object {
+        const val OAUTH_USER_APPS_ENABLED = "security.oauth-user-apps-enabled"
         const val OAUTH_CIMD_ENABLED = "security.oauth-cimd-enabled"
         const val TWO_FACTOR_ENFORCEMENT = "security.two-factor-enforcement"
     }
