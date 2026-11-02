@@ -12,7 +12,7 @@ updated: 2026-11-02
 
 Yona를 OAuth 2.1 인가 서버로 만들어, 사용자의 승인을 받은 외부 앱이 개인용 토큰(PAT)을 손으로 붙여 넣지 않고 Yona의 API에 접근하게 한다. 직접 쓰임은 두 가지이다.
 
-1. **MCP 서버(X-6)의 인증 기반.** Claude 같은 대화형 클라이언트는 원격 서버가 401을 주면 인가 서버를 스스로 찾아(RFC 9728, RFC 8414) 클라이언트를 등록하고(RFC 7591) 브라우저 승인 화면을 띄운 뒤 토큰을 받는다. 이 흐름이 되려면 인가 서버가 있어야 한다.
+1. **MCP 서버(X-6)의 인증 기반.** Claude 같은 대화형 클라이언트는 원격 서버가 401을 주면 인가 서버를 스스로 찾아(RFC 9728, RFC 8414) 클라이언트를 등록하고(CIMD) 브라우저 승인 화면을 띄운 뒤 토큰을 받는다. 이 흐름이 되려면 인가 서버가 있어야 한다.
 2. **제3자 앱의 위임 접근**(GitHub OAuth Apps와 같다). 사이트 관리자가 앱을 등록하고, 사용자가 승인 화면에서 범위를 확인하고 허용한다.
 
 PAT(X-5)와 기기 인증(X-37i)은 그대로 두고 병행한다. PAT는 스크립트와 CI, 기기 인증은 CLI, OAuth는 브라우저 승인이 가능한 앱이 쓴다.
@@ -25,7 +25,7 @@ PAT(X-5)와 기기 인증(X-37i)은 그대로 두고 병행한다. PAT는 스크
 | `ApiTokenService`, 토큰 인증 필터 경로(`/-_-api/v1`은 토큰 전용), `TokenFailureLimiter`, 요청 범위 `YonaAuthentication(viaToken, scopes, tokenId)` | OAuth 액세스 토큰도 **같은 인증 객체와 같은 범위 검사**로 받는다(별도 필터 체계를 만들지 않는다) |
 | 기기 인증(`/-_-api/v1/oauth/device/code`, `/-_-api/v1/oauth/token`) | 경로가 겹치지 않게 인가 서버 경로는 `/oauth2/*`로 둔다. 기기 인증이 발급한 토큰은 PAT 취급 그대로 |
 | 2단계 인증과 강제 이동(X-2) | 승인 화면(`/oauth2/authorize`)은 로그인한 세션이 필요하므로 2단계와 강제 규칙을 자동으로 따른다 |
-| `site_setting`과 "보안" 관리자 화면(X-2) | DCR 허용 여부 같은 설정을 같은 곳에 둔다 |
+| `site_setting`과 "보안" 관리자 화면(X-2) | CIMD 허용 여부 같은 설정을 같은 곳에 둔다 |
 | 감사 로그(X-9), 지표, 사이트 내보내기·가져오기, 사용자 삭제 처리 | 새 테이블과 이벤트를 같은 규칙으로 붙인다 |
 | 설정 화면 구성 규칙(GPG, SSH 키는 목록과 추가 두 화면, 삭제만) | 앱 목록은 수정과 비밀 값 재발급이 있어 한 화면의 구역으로 두고 만들기와 수정만 별도 화면으로 한다(3-7절) |
 
@@ -57,7 +57,7 @@ JWT가 아니라 `yona_oat_` 접두어의 불투명 토큰을 쓰고, 서버가 
 | `POST /oauth2/token` | 인가 코드 교환, 갱신 토큰 교환(회전). 클라이언트 인증은 `none`(공개 클라이언트, PKCE), `client_secret_basic`, `client_secret_post` |
 | `POST /oauth2/revoke` | RFC 7009 취소 |
 | `POST /oauth2/introspect` | RFC 7662(기밀 클라이언트만) |
-| `POST /oauth2/register` | RFC 7591 동적 클라이언트 등록(공개 클라이언트만, 허용 여부는 설정, 속도 제한) |
+| (등록 엔드포인트 없음) | **동적 클라이언트 등록(RFC 7591)은 하지 않는다**(D-71 4번 변경). 자동 등록은 CIMD로만 한다: `client_id`가 `https://` 주소이면 `/oauth2/authorize` 요청 때 인가 서버가 그 주소의 문서를 가져와 확인한다(3-9절) |
 | `GET /.well-known/oauth-authorization-server` | RFC 8414 메타데이터 |
 | `GET /.well-known/oauth-protected-resource[...]` | RFC 9728. 보호 자원(`/-_-api/v1`, 나중에 MCP)별 메타데이터 |
 | `GET/POST /oauth2/consent` | 승인 화면(GitHub 모양) |
@@ -74,7 +74,7 @@ git과 SVN의 HTTP는 D-70대로 클래식 토큰(`yona_pat_`)만 받는다. **O
 
 | 테이블 | 내용 |
 |---|---|
-| `oauth_client` | 클라이언트 번호, 이름, 설명, 홈 주소, 리디렉션 주소들, 공개/기밀, 비밀 값 해시(기밀), 허용 범위, 등록 방식(사용자, 관리자, 동적), **소유자 종류(`USER`, `ORGANIZATION`)와 소유자 번호**, 생성 시각. 이번 구현은 `USER`만 쓰고, 조직 소유 화면은 X-39(X-1 이후)에서 연다. 테이블은 처음부터 이 구조로 잡아 나중에 바꾸지 않는다. 비밀 값 재발급과 리디렉션 주소 수정을 지원한다 |
+| `oauth_client` | 클라이언트 번호, 이름, 설명, 홈 주소, 리디렉션 주소들, 공개/기밀, 비밀 값 해시(기밀), 허용 범위, 등록 방식(`USER` 직접 등록, `CIMD` 문서에서 가져온 캐시 행). CIMD 행은 문서 주소를 클라이언트 번호로 쓰고 문서의 내용과 가져온 시각과 만료 시각을 담는다, **소유자 종류(`USER`, `ORGANIZATION`)와 소유자 번호**, 생성 시각. 이번 구현은 `USER`만 쓰고, 조직 소유 화면은 X-39(X-1 이후)에서 연다. 테이블은 처음부터 이 구조로 잡아 나중에 바꾸지 않는다. 비밀 값 재발급과 리디렉션 주소 수정을 지원한다 |
 | `oauth_authorization` | 인가 코드, 액세스 토큰 해시, 갱신 토큰 해시, 사용자, 클라이언트, 승인 범위, 발급 대상(resource), 만료, 취소 시각, PKCE 값 |
 | `oauth_consent` | 사용자와 클라이언트별 승인한 범위(다음 승인 때 이미 허용한 범위는 묻지 않는다) |
 
@@ -99,8 +99,8 @@ Yona가 OAuth **제공자**가 되므로 "앱을 만드는 쪽(개발자)"과 "�
 | **설정 탭 "OAuth 앱"** (한 화면, 두 구역) | `/user/editform/oauth-apps` | ① **내가 만든 앱**: 이름, 클라이언트 ID, 공개/기밀, 리디렉션 주소를 목록으로 보이고 앱마다 "수정"(이름, 홈 주소, 리디렉션 주소), "비밀 값 다시 만들기"(기밀 앱), "삭제" 단추를 둔다. 위쪽에 "새 앱 만들기" 단추. ② **승인한 앱**: 내가 승인한 외부 앱과 범위, 승인한 날짜를 목록으로 보이고 "취소"(그 앱의 모든 토큰이 즉시 무효) 단추를 둔다 |
 | 앱 만들기와 수정 | `/user/editform/oauth-apps/new`, `/user/editform/oauth-apps/{id}` | 이름, 설명, 홈 주소, 리디렉션 주소(여러 줄), 공개/기밀 선택. 만든 직후(그리고 비밀 값을 다시 만든 직후) 기밀 앱의 **클라이언트 비밀 값을 한 번만** 보인다. 수정 화면에는 클라이언트 ID와 가려진 비밀 값 자리, 이 앱을 승인한 사용자 수가 나온다 |
 | **승인(동의) 화면** | `/oauth2/consent` | 외부 앱이 접근을 요청할 때 사용자가 본다. 앱 이름과 만든 사용자, 요청 범위를 풀어서 보이고 허용과 거부 단추를 둔다. 이미 허용한 범위만 요청하면 건너뛴다 |
-| **관리자 "OAuth 앱"** | `/sites/oauth-apps` | **사이트 전체의 앱 목록**(소유자, 등록 방식, 승인한 사용자 수). 관리자는 문제 있는 앱을 삭제(모든 토큰 취소)할 수 있다. 동적 등록으로 생긴 앱도 여기에 보인다 |
-| 관리자 "보안" | `/sites/security` | "동적 클라이언트 등록 허용"과 "사용자의 앱 만들기 허용" 설정을 더한다 |
+| **관리자 "OAuth 앱"** | `/sites/oauth-apps` | **사이트 전체의 앱 목록**(소유자, 등록 방식, 승인한 사용자 수). 관리자는 문제 있는 앱을 삭제(모든 토큰 취소)할 수 있다. CIMD로 가져온 앱도 여기에 보이고 지울 수 있다 |
+| 관리자 "보안" | `/sites/security` | "CIMD 클라이언트 허용"과 "사용자의 앱 만들기 허용" 설정을 더한다 |
 
 이번 구현에서 앱 소유자는 사용자 한 명이다. 조직이 앱을 소유하는 기능(조직 설정 화면의 앱 구역, 조직 관리자만 만들고 고침, Gitea와 같다)은 **X-39로 X-1이 끝난 뒤에 진행한다**(선생님 결정, D-71 질문 3번). 테이블은 소유자 종류와 번호로 잡아 두므로 그때 테이블을 바꾸지 않는다. 목록과 추가를 두 화면으로 나누는 기존 규칙(GPG, SSH 키)은 **삭제만 있는 목록**에 적용하던 것이라, 수정과 비밀 값 재발급이 있는 앱 목록에는 맞지 않으므로 Forgejo처럼 한 화면의 구역으로 두고 만들기와 수정만 별도 화면으로 한다.
 
@@ -110,7 +110,7 @@ Yona가 OAuth **제공자**가 되므로 "앱을 만드는 쪽(개발자)"과 "�
 
 - 감사: `oauth.client_registered`, `oauth.client_deleted`, `oauth.authorized`(사용자가 승인), `oauth.denied`, `oauth.token_issued`(교환 성공, 갱신 구분), `oauth.revoked`, `oauth.refresh_reuse_detected`(탈취 의심), 토큰 실패는 `auth.token_failure`에 채널 `oauth`. 비밀 값과 토큰은 남기지 않는다.
 - 지표: `yona.oauth.tokens{grant,client_type,result}`, `yona.oauth.authorizations{result}`.
-- 동적 등록은 주소당 분당 10회 제한(`next`와 같은 값). 승인 화면에는 클릭재킹을 막는 `frame-ancestors 'none'`을 건다.
+- CIMD 문서 가져오기는 주소당 분당 10회, 같은 문서 주소는 캐시 시간 안에 다시 가져오지 않는다. 승인 화면에는 클릭재킹을 막는 `frame-ancestors 'none'`을 건다.
 - 리디렉션 주소의 `javascript:`와 데이터 스킴, 프래그먼트 포함 값을 거부한다.
 
 ### 3-9. Claude Code 연동
@@ -119,7 +119,7 @@ Claude Code는 **MCP 서버**에 붙을 때 OAuth를 쓴다. 즉 Claude Code가 
 
 1. Claude Code가 MCP 주소를 부르면 서버가 401과 `WWW-Authenticate`로 보호 자원 메타데이터 주소를 알려 준다(RFC 9728).
 2. Claude Code가 인가 서버 메타데이터(RFC 8414)를 읽는다.
-3. **등록**: 클라이언트 ID 메타데이터 문서(CIMD, 인가 서버 메타데이터에 `client_id_metadata_document_supported`가 있을 때)나 동적 클라이언트 등록(RFC 7591)으로 스스로 등록한다. 둘 다 안 되면 "Incompatible auth server" 오류가 난다. 클라이언트는 미리 등록, CIMD, 동적 등록, 사용자 입력 순으로 시도한다. **이 계획은 CIMD를 구현하지 않는다**(D-71 12번, 선생님 결정). Claude Code와 Codex는 동적 등록으로 자동 등록하고, Antigravity는 수동 등록으로만 유지한다.
+3. **등록**: 클라이언트 ID 메타데이터 문서(CIMD, 인가 서버 메타데이터에 `client_id_metadata_document_supported`가 있을 때)로 스스로 등록한다. **이 계획은 CIMD를 구현하고 동적 클라이언트 등록(DCR)은 하지 않는다**(D-71 4번과 12번, 선생님 결정). CIMD가 안 되는 클라이언트는 수동 등록을 쓴다.
 4. 브라우저가 열리고 승인 화면에서 사용자가 허용한다(PKCE, `resource`).
 5. 로컬 콜백(`http://localhost:<포트>/callback`)으로 코드를 받아 토큰으로 바꾼다.
 
@@ -127,12 +127,13 @@ Claude Code는 **MCP 서버**에 붙을 때 OAuth를 쓴다. 즉 Claude Code가 
 
 | 길 | 방법 | X-1에서 필요한 것 |
 |---|---|---|
-| **자동**(동적 등록, Claude Code와 Codex) | `claude mcp add --transport http yona https://호스트/mcp` 뒤 `/mcp`로 인증. 별도 입력이 없다 | 동적 클라이언트 등록 켜기(D-71 4번), 메타데이터, 로컬 콜백 허용 |
+| **자동**(CIMD, Claude Code와 Codex) | `claude mcp add --transport http yona https://호스트/mcp` 뒤 `/mcp`로 인증. 별도 입력이 없다 | CIMD 지원과 SSRF 방어, 메타데이터, 로컬 콜백 허용 |
 | **수동**(미리 등록) | 사용자가 설정의 "OAuth 앱"에서 공개 앱을 만들고 리디렉션 주소를 `http://localhost:8080/callback`처럼 등록한 뒤 `claude mcp add ... --client-id <ID> --callback-port 8080`(기밀 앱이면 `--client-secret`도) | 앱 만들기 화면, 공개 앱 지원 |
 
 이를 위해 계획에 더하는 규칙은 다음과 같다.
 
-- **클라이언트별 공식 문서 확인(2026-11-02)**: Claude Code(`code.claude.com/docs/en/mcp`)는 CIMD와 동적 등록을 모두 지원하고 자동으로 찾으며, 미리 등록한 앱은 `--client-id`, `--client-secret`, 고정 포트는 `--callback-port`이다. Codex(OpenAI MCP 문서)는 인가 서버가 CIMD를 광고하면 CIMD를 고르고 아니면 동적 등록을 쓰며 클라이언트 ID를 주면 항상 그것이 우선한다. Antigravity(`antigravity.google/docs/mcp`)는 동적 등록 서버에는 자동으로 붙고 CIMD는 문서에 없으며, 동적 등록이 없으면 클라이언트 ID를 직접 입력하고 리디렉션 `https://antigravity.google/oauth-callback`을 등록해야 한다. 그래서 선생님 결정(D-71 12번)으로 **CIMD는 하지 않고 Antigravity는 수동 등록으로만 유지한다**: 설정의 "OAuth 앱"에서 공개 앱을 만들고 리디렉션 `https://antigravity.google/oauth-callback`(HTTPS 주소는 허용한다)을 등록한 뒤 클라이언트 ID를 Antigravity에 직접 입력한다. 루프백 `http`는 `localhost`와 `127.0.0.1`을 같게 보고 포트를 무시한다(Claude Code의 한 버전이 `127.0.0.1`을 보낸 적이 있다).
+- **CIMD 처리**: `client_id`가 `https://` 주소이면 인가 서버가 그 문서를 가져와 확인한다. 안전 규칙은 HTTPS만, 이름을 풀어 얻은 주소가 사설, 루프백, 링크 로컬이면 거부(가져오는 시점의 주소로 검사), 리디렉션 따라가지 않기, 응답 크기와 시간 제한, 짧은 캐시, 문서 안의 `client_id`가 요청한 주소와 같아야 함, 리디렉션 주소는 문서에 있는 것만 허용, 승인 화면에 문서의 이름과 도메인을 보임이다. 공개 클라이언트(`token_endpoint_auth_method: none`)만 받는다.
+- **클라이언트별 공식 문서 확인(2026-11-02)**: Claude Code(`code.claude.com/docs/en/mcp`)는 CIMD와 동적 등록을 모두 지원하고 자동으로 찾으며, 미리 등록한 앱은 `--client-id`, `--client-secret`, 고정 포트는 `--callback-port`이다. Codex(OpenAI MCP 문서)는 인가 서버가 CIMD를 광고하면 CIMD를 고르고 클라이언트 ID를 주면 항상 그것이 우선한다. Antigravity(`antigravity.google/docs/mcp`)는 동적 등록 서버에는 자동으로 붙고 **CIMD는 문서에 없다**. 그래서 선생님 결정(D-71 4번, 12번)으로 **CIMD를 구현하고 동적 등록은 하지 않으며, Antigravity는 수동 등록으로만 유지한다**: 설정의 "OAuth 앱"에서 공개 앱을 만들고 리디렉션 `https://antigravity.google/oauth-callback`(HTTPS 주소는 허용한다)을 등록한 뒤 클라이언트 ID를 Antigravity에 직접 입력한다. 루프백 `http`는 `localhost`와 `127.0.0.1`을 같게 보고 포트를 무시한다(Claude Code의 한 버전이 `127.0.0.1`을 보낸 적이 있다).
 - **루프백 리디렉션은 포트를 무시한다**(RFC 8252): 등록한 주소가 `http://localhost/callback`이나 `http://127.0.0.1/callback`이면 요청의 포트가 달라도 허용한다. Claude Code는 기본으로 임의의 로컬 포트를 쓰기 때문이다. 루프백이 아닌 `http` 주소는 계속 거부한다.
 - **요청 범위가 없을 때의 기본 범위**: Claude Code가 `scope`를 보내지 않을 수 있으므로, 앱의 허용 범위 안에서 기본 범위(읽기 계열)를 정한다. 구체적인 목록은 단계 2에서 제시한다.
 - **헤드리스 환경**(`claude -p`, Agent SDK)은 브라우저 인증을 못 하므로 PAT를 헤더로 쓰는 기존 길을 안내한다.
@@ -147,7 +148,7 @@ Claude Code는 **MCP 서버**에 붙을 때 OAuth를 쓴다. 즉 Claude Code가 
 | 2 | 인가 서버 엔드포인트: authorize, token(인가 코드, 갱신 회전, 재사용 탐지), revoke, introspect, 메타데이터(RFC 8414), PKCE 강제, 리디렉션 검증 | 전체 흐름을 거치는 MockMvc 시험(인가 코드부터 토큰까지), RFC 시험 벡터 |
 | 3 | 승인 화면과 로그인 이동(redirectUrl, 2단계 인증과 강제 이동과 함께), 이미 허용한 범위 건너뛰기, 거부 | 웹 시험, Playwright 화면 |
 | 4 | 자원 쪽: `YonaAuthenticationFilter`의 Bearer `yona_oat_` 경로, 범위 교집합, 취소와 만료, audience, `WWW-Authenticate`와 보호 자원 메타데이터(RFC 9728), 실패 제한 | 기존 외부 API 시험을 OAuth 토큰으로도 돌리는 공통 시험 |
-| 5 | 동적 클라이언트 등록(RFC 7591), 속도 제한, 설정(관리자 "보안"에 동적 등록과 사용자 앱 만들기의 켜기와 끄기) | 등록 시험, 속도 제한 시험 |
+| 5 | **CIMD**(문서 가져오기와 검증, SSRF 방어, 캐시, 속도 제한, 메타데이터의 `client_id_metadata_document_supported`), 설정(관리자 "보안"에 CIMD와 사용자 앱 만들기의 켜기와 끄기) | CIMD 시험(SSRF 거부 사례 포함), 속도 제한 시험 |
 | 6 | 설정 탭 "OAuth 앱"(내가 만든 앱, 승인한 앱), 앱 만들기와 수정과 비밀 값 재발급, 관리자 "OAuth 앱" 목록, 메시지 5개 언어 | 화면 시험, Playwright |
 | 7 | 감사 이벤트, 지표, OpenAPI 문서와 구조 시험(`AuditCoverageTest` 등), 위키(`oauth2-server.md`, 구성 키, 감사, 차이 장부), 전체 시험 | 전체 시험 |
 | 8 | **실제 클라이언트 확인**: 공식 MCP Java SDK나 `curl`과 간단한 앱으로 인가 코드 + PKCE 전체를 외부 프로세스로 확인하고, 브라우저에서 승인 화면을 Playwright로 확인 | 캡처와 로그 |
