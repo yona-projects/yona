@@ -6,7 +6,7 @@ updated: 2026-11-02
 
 # OAuth2 인증 서버(X-1) 구현 계획
 
-> **상태: 계획만 있다. 선생님이 착수를 지시하기 전에는 구현하지 않는다**(2026-11-02 지시). 결정이 필요한 항목은 [decisions.md](../decisions.md) D-71에 질문으로 올려 두었고, 아직 답을 받지 않았다. 이 계획은 D-71의 권장안을 전제로 쓴다. 답이 달라지면 해당 단계를 고친다.
+> **상태: 계획만 있다. 선생님이 착수를 지시하기 전에는 구현하지 않는다**(2026-11-02 지시). 결정은 [decisions.md](../decisions.md) D-71에서 2026-11-02에 확정되었다(OIDC는 X-40으로 미루고, git과 SVN HTTP에는 OAuth 토큰을 받지 않는다).
 
 ## 1. 목적
 
@@ -68,7 +68,7 @@ JWT가 아니라 `yona_oat_` 접두어의 불투명 토큰을 쓰고, 서버가 
 
 `YonaAuthenticationFilter`의 API 경로가 `Authorization: Bearer yona_oat_...`를 받아 해시로 찾고, 만료와 취소를 확인한 뒤 `YonaAuthentication(viaToken=true, scopes=승인 범위, tokenId)`를 만든다. 범위는 **승인한 범위와 주인의 실제 권한의 교집합**이다(PAT와 같다). `resource`(RFC 8707)가 있으면 발급된 대상(audience)과 요청 경로를 비교한다. 실패는 `TokenFailureLimiter`로 세고 401 `WWW-Authenticate`에 보호 자원 메타데이터 주소를 싣는다(RFC 9728).
 
-git과 SVN의 HTTP는 D-70대로 클래식 토큰(`yona_pat_`)만 받는다. OAuth 토큰을 받을지는 D-71에 질문으로 올렸다.
+git과 SVN의 HTTP는 D-70대로 클래식 토큰(`yona_pat_`)만 받는다. **OAuth 토큰(`yona_oat_`)은 받으면 안 된다**(D-71 6번, 선생님 결정). 시험으로 고정한다: `yona_oat_` 값을 git과 SVN HTTP의 Basic 비밀번호 칸에 넣으면 비밀번호와 같이 401로 거부하고 실패로 세지 않는다.
 
 ### 3-5. 데이터
 
@@ -135,4 +135,4 @@ X-6(MCP 서버)은 이 계획의 범위가 아니다. 단계 4의 보호 자원 
 - 불투명 토큰과 라이브러리의 토큰 생성기 연결(`OAuth2TokenGenerator`)이 필요하다. 라이브러리의 `OAuth2Authorization` 직렬화(속성 맵)를 JPA에 담는 부분이 `next`에서도 가장 까다로웠다.
 - 기존 `SecurityConfig`가 하나의 체인에 사용자 정의 필터를 쓰므로, 인가 서버 체인이 앞에서 요청을 가로채는 범위를 엔드포인트로 좁혀야 한다.
 - 승인 화면 도입으로 로그인 직후 이동(`redirectUrl`)이 긴 주소를 다룬다. v1.6의 `redirectUrl` 처리(외부 주소로 열리는 결함, R-06)를 승인 흐름에서 악용하지 못하게 `/oauth2/authorize`만 허용하는 확인이 필요하다.
-- 이 단계에서 정하지 않는 것: OIDC("Sign in with yona", ID 토큰, `/userinfo`)는 D-71의 질문 5번이다. 조직이 소유하는 앱은 X-39이다(테이블 구조만 이번에 맞춘다).
+- 이 단계에서 하지 않는 것: OIDC("Sign in with Yona", ID 토큰, `/userinfo`)는 로드맵 X-40이다(D-71 5번). 조직이 소유하는 앱은 X-39이다(테이블 구조만 이번에 맞춘다).
