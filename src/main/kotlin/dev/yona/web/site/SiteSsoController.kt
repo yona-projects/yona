@@ -35,6 +35,7 @@ import java.time.Instant
 @AnonymousCheck
 class SiteSsoController(
     private val settings: SsoSettingsService,
+    private val siteSettings: dev.yona.domain.site.SiteSettingService,
     private val siteUrls: SiteUrls,
     private val fetcher: Saml2MetadataFetcher,
     private val currentUserProvider: CurrentUserProvider,
@@ -46,7 +47,7 @@ class SiteSsoController(
         val oidc = settings.oidc(); val saml2 = settings.saml2()
         val origin = siteUrls.origin()
         return ModelAndView("site/sso").addObject("title", "site.sidebar.sso").addObject("oidc", oidc).addObject("saml2", saml2)
-            .addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
+            .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
             .addObject("redirectUri", origin + siteUrls.path("/sso/oidc/callback/oidc")).addObject("initiateUrl", origin + siteUrls.path("/sso/oidc/initiate"))
             .addObject("acsUrl", origin + siteUrls.path("/sso/saml2/acs")).addObject("entityId", saml2.spEntityId?.takeIf { it.isNotBlank() } ?: (origin + siteUrls.path("/sso/saml2/metadata/saml2")))
             .addObject("metadataUrl", origin + siteUrls.path("/sso/saml2/metadata/saml2"))
@@ -54,6 +55,12 @@ class SiteSsoController(
             .addObject("spCertificate", saml2.spCertificate?.takeIf { it.isNotBlank() }?.let { describe(Saml2Certificates.parseCertificate(it)) })
             .addObject("spPreviousCertificate", saml2.spPreviousCertificate?.takeIf { it.isNotBlank() }?.let { describe(Saml2Certificates.parseCertificate(it)) })
     }
+
+    /** SSO 전용 모드를 바꾼다. 켜려면 켠 SSO가 하나 이상 있어야 한다. */
+    @PostMapping("/sites/sso/mode")
+    fun saveMode(request: HttpServletRequest, response: HttpServletResponse): Any =
+        if (siteSettings.setSsoOnly(request.getParameter("ssoOnly") == "true")) RedirectSupport.see(request, response, PAGE, mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
+        else warn(request, response, "site.sso.only.needProvider")
 
     /** OIDC 설정을 저장한다. 사용을 켜는데 연결이나 값이 맞지 않으면 저장하지 않고 이유를 경고로 보인다. */
     @PostMapping("/sites/sso/oidc")

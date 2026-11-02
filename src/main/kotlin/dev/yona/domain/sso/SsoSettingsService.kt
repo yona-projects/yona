@@ -29,6 +29,10 @@ class SsoSettingsService(
     private val cipher by lazy { SecretCipher(properties.secret, "yona.sso.secret") }
     private val mapper = JsonMapper.builder().build()
 
+    /** 켠 SSO(OIDC 또는 SAML 2)가 하나라도 있으면 `true`이다. */
+    @Transactional(readOnly = true)
+    fun anyEnabled(): Boolean = oidc().enabled == true || saml2().enabled == true
+
     /** OIDC 설정이다. 저장한 적이 없으면 꺼진 기본값이다(저장하지 않는다). */
     @Transactional(readOnly = true)
     fun oidc(): OidcSsoSettings = oidcSettings.findById(ROW).orElseGet { OidcSsoSettings() }

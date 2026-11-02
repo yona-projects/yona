@@ -39,7 +39,7 @@ class SsoSecurityConfig {
     @Order(2)
     fun ssoSecurityFilterChain(
         http: HttpSecurity, registrations: SsoClientRegistrations, success: SsoLoginSuccessHandler, failure: SsoLoginFailureHandler,
-        saml: SsoSaml2Registrations, samlSuccess: SsoSaml2SuccessHandler, settings: dev.yona.domain.sso.SsoSettingsService
+        saml: SsoSaml2Registrations, samlSuccess: SsoSaml2SuccessHandler, settings: dev.yona.domain.sso.SsoSettingsService, replay: SsoReplayCache
     ): SecurityFilterChain =
         http.securityMatcher("/sso/**")
             .csrf { it.disable() }
@@ -66,7 +66,7 @@ class SsoSecurityConfig {
                 })
                 login.authenticationConverter(Saml2AuthenticationTokenConverter(resolver))
                 login.loginProcessingUrl(SsoSaml2Registrations.ACS_PATH)
-                login.authenticationManager(ProviderManager(SsoSaml2Provider(settings)))
+                login.authenticationManager(ProviderManager(SsoSaml2Provider(settings, replay)))
                 login.successHandler(samlSuccess)
                 login.failureHandler(failure)
             }

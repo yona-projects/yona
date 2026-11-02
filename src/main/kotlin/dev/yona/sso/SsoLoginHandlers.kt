@@ -34,7 +34,8 @@ import org.springframework.stereotype.Component
 class SsoSignInCompleter(
     private val accounts: SsoAccountService,
     private val loginSession: LoginSessionService,
-    private val audit: AuditBoundary
+    private val audit: AuditBoundary,
+    private val metrics: dev.yona.observability.SsoMetrics
 ) {
 
     /** [identity]로 로그인을 마친다. 거절되면 로그인 화면으로 보내고 실패를 남긴다. */
@@ -44,9 +45,13 @@ class SsoSignInCompleter(
         request.getSession(false)?.removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
         val protocol = if (identity.protocol == SsoProtocol.SAML2) "saml2" else "oidc"
         when (val result = accounts.signIn(identity, policy)) {
-            is SsoSignInResult.Rejected -> SsoLoginFailures.redirect(request, response, audit, protocol, result.reason.name.lowercase(), identity.email, result.reason.messageKey)
+            is SsoSignInResult.Rejected -> {
+                metrics.login(protocol, "rejected", initiated(request))
+                SsoLoginFailures.redirect(request, response, audit, protocol, result.reason.name.lowercase(), identity.email, result.reason.messageKey)
+            }
             is SsoSignInResult.Success -> {
-                val initiated = request.getSession(false)?.getAttribute(SsoReturn.INITIATED) == true
+                val initiated = initiated(request)
+                metrics.login(protocol, "success", initiated)
                 loginSession.start(request, response, result.user, twoFactorVerified = true)
                 val extra = mapOf("created" to result.created, "linked" to result.linked)
                 audit.loginSuccess(result.user, "sso-$protocol", if (initiated) extra + ("initiated" to "idp") else extra)
@@ -56,6 +61,8 @@ class SsoSignInCompleter(
         }
     }
 }
+
+private fun initiated(request: HttpServletRequest): Boolean = request.getAttribute(SsoReturn.INITIATED) == true || request.getSession(false)?.getAttribute(SsoReturn.INITIATED) == true
 
 /** OIDC 인가 코드 흐름이 ID 토큰 검증을 마친 뒤의 처리이다. ID 토큰의 클레임을 [SsoIdentity]로 바꿔 [SsoSignInCompleter]에 넘긴다. */
 @Component
@@ -92,6 +99,8 @@ class SsoSaml2SuccessHandler(private val settings: SsoSettingsService, private v
         val nameId = principal.name
         val email = attribute(row.emailAttribute) ?: nameId.takeIf { EMAIL_LIKE.matches(it) }
         val identity = SsoIdentity(SsoProtocol.SAML2, row.idpEntityId.orEmpty(), nameId, email, true, attribute(row.nameAttribute), attribute(row.loginIdAttribute))
+        // IdP가 시작한 로그인은 RelayState가 돌아갈 곳이다. 같은 사이트의 경로만 받는다
+        if (request.getAttribute(SsoReturn.INITIATED) == true) SsoReturn.safePath(request.getParameter("RelayState"))?.let { request.setAttribute(SsoReturn.RETURN_TO, it) }
         completer.complete(request, response, identity, settings.saml2Policy())
     }
 
@@ -100,12 +109,14 @@ class SsoSaml2SuccessHandler(private val settings: SsoSettingsService, private v
 
 /** 프로토콜 오류(서명, 발급자, 대상, 만료, nonce, state, IdP 오류)로 SSO 로그인이 실패했을 때의 처리이다. 로그인 화면으로 보내고 감사 기록을 남긴다. */
 @Component
-class SsoLoginFailureHandler(private val audit: AuditBoundary) : AuthenticationFailureHandler {
+class SsoLoginFailureHandler(private val audit: AuditBoundary, private val metrics: dev.yona.observability.SsoMetrics) : AuthenticationFailureHandler {
 
     override fun onAuthenticationFailure(request: HttpServletRequest, response: HttpServletResponse, exception: AuthenticationException) {
         val saml = exception as? Saml2AuthenticationException
         val code = saml?.saml2Error?.errorCode ?: (exception as? OAuth2AuthenticationException)?.error?.errorCode ?: exception.javaClass.simpleName
-        SsoLoginFailures.redirect(request, response, audit, if (saml != null) "saml2" else "oidc", code.lowercase().take(60), null, "sso.error.failed")
+        val protocol = if (saml != null) "saml2" else "oidc"
+        metrics.login(protocol, "failed", initiated(request))
+        SsoLoginFailures.redirect(request, response, audit, protocol, code.lowercase().take(60), null, "sso.error.failed")
     }
 }
 

@@ -42,6 +42,7 @@ class SsoSaml2LoginTest : AbstractIntegrationTest() {
     @Autowired private lateinit var linked: LinkedAccountRepository
     @Autowired private lateinit var logs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var siteUrls: SiteUrls
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
 
     private val idp = FakeSamlIdp()
     private var n = 0
@@ -50,13 +51,13 @@ class SsoSaml2LoginTest : AbstractIntegrationTest() {
     private val acs get() = siteUrls.origin() + siteUrls.path("/sso/saml2/acs")
     private val spEntityId get() = siteUrls.origin() + siteUrls.path("/sso/saml2/metadata/saml2")
 
-    private fun configure(enabled: Boolean = true, signRequests: Boolean = false, allowUnverified: Boolean = false) {
+    private fun configure(enabled: Boolean = true, signRequests: Boolean = false, allowUnverified: Boolean = false, initiate: Boolean = false) {
         if (signRequests) settings.generateSpKeys("yona.example.com", null)
         val result = settings.saveSaml2(
             Saml2SsoForm(
                 enabled = enabled, displayName = "회사 SAML", idpEntityId = idp.entityId, idpSsoUrl = idp.ssoUrl, idpCertificates = idp.certificatePem, spEntityId = "", nameIdFormat = "",
                 emailAttribute = "email", nameAttribute = "name", loginIdAttribute = "uid", autoCreate = true, linkByEmail = true, allowUnverifiedEmail = allowUnverified, nameSync = false,
-                initiateEnabled = false, signRequests = signRequests, clockSkewSeconds = 60
+                initiateEnabled = initiate, signRequests = signRequests, clockSkewSeconds = 60
             ), null
         )
         assertIs<SsoSaveResult.Saved>(result)
@@ -258,5 +259,71 @@ class SsoSaml2LoginTest : AbstractIntegrationTest() {
     fun `IdP가 실패를 알린 응답은 로그인시키지 않는다`() {
         configure(); val s = start()
         assertRejected(acsPost(s, idp.response(s.requestId, acs, spEntityId, "x", attributes(), statusValue = "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed")), s.session)
+    }
+
+    // --- IdP가 시작하는 로그인 ---
+
+    private fun unsolicited(session: MockHttpSession, saml: String, relayState: String? = null) =
+        mockMvc.perform(post("/sso/saml2/acs").session(session).param("SAMLResponse", saml).apply { relayState?.let { param("RelayState", it) } }).andReturn().response
+
+    @Test
+    fun `IdP 시작 로그인을 켜면 요청 없이 도착한 응답으로 로그인되고 감사 기록에 남는다`() {
+        configure(initiate = true); val session = MockHttpSession()
+        val response = unsolicited(session, idp.response(null, acs, spEntityId, "subject-idp", attributes("idp-$stamp@corp.example", "포털")), relayState = "/user/editform")
+        assertEquals(302, response.status); assertEquals("/user/editform", response.getHeader("Location")); assertTrue(loggedIn(session))
+        flushAudit()
+        assertTrue(logs.findAll().any { it.action == "auth.login_success" && it.details!!.contains("idp") })
+    }
+
+    @Test
+    fun `IdP 시작 로그인의 RelayState가 바깥 주소이면 첫 화면으로 보낸다`() {
+        configure(initiate = true)
+        for (relay in listOf("https://evil.example/x", "//evil.example", "javascript:alert(1)")) {
+            val session = MockHttpSession()
+            val response = unsolicited(session, idp.response(null, acs, spEntityId, "subject-r$relay".take(20), attributes("relay-${relay.hashCode()}-$stamp@corp.example")), relayState = relay)
+            assertEquals("/", response.getHeader("Location"), relay)
+        }
+    }
+
+    @Test
+    fun `IdP 시작 로그인을 꺼 두면 요청 없는 응답을 받지 않는다`() {
+        configure(initiate = false); val session = MockHttpSession()
+        assertRejected(unsolicited(session, idp.response(null, acs, spEntityId, "x", attributes("off-$stamp@corp.example"))), session)
+    }
+
+    @Test
+    fun `요청 없이 도착한 응답이 요청 ID를 담고 있으면 거절한다`() {
+        configure(initiate = true); val session = MockHttpSession()
+        assertRejected(unsolicited(session, idp.response("_forged-request", acs, spEntityId, "x", attributes("forged-$stamp@corp.example"))), session)
+    }
+
+    @Test
+    fun `같은 어설션을 다시 보내면 거절한다`() {
+        configure(initiate = true)
+        val saml = idp.response(null, acs, spEntityId, "subject-replay", attributes("replay-$stamp@corp.example"), assertionId = "_replay-$stamp")
+        val first = MockHttpSession(); assertEquals(302, unsolicited(first, saml).status); assertTrue(loggedIn(first))
+        val second = MockHttpSession(); assertRejected(unsolicited(second, saml), second)
+    }
+
+    @Test
+    fun `IdP 시작 로그인도 서명과 대상과 만료를 검사한다`() {
+        configure(initiate = true)
+        val cases = listOf(
+            idp.response(null, acs, spEntityId, "x", attributes("a-$stamp@corp.example"), wrongKey = true),
+            idp.response(null, acs, "https://other-sp.example/", "x", attributes("b-$stamp@corp.example")),
+            idp.response(null, acs, spEntityId, "x", attributes("c-$stamp@corp.example"), notBefore = java.time.Instant.now().minusSeconds(900), notOnOrAfter = java.time.Instant.now().minusSeconds(600)),
+            idp.response(null, acs, spEntityId, "x", attributes("d-$stamp@corp.example"), issuer = "https://evil.example/idp")
+        )
+        cases.forEach { saml -> val session = MockHttpSession(); assertRejected(unsolicited(session, saml), session) }
+    }
+
+    @Test
+    fun `로그인 결과를 프로토콜별 지표로 센다`() {
+        configure()
+        fun count(result: String) = meters.find("yona.sso.logins").tags("protocol", "saml2", "result", result, "initiated", "false").counter()?.count() ?: 0.0
+        val ok = count("success"); val bad = count("failed")
+        val s = start(); acsPost(s, idp.response(s.requestId, acs, spEntityId, "subject-m", attributes("metric-$stamp@corp.example")))
+        val f = start(); acsPost(f, idp.response(f.requestId, acs, spEntityId, "x", attributes(), wrongKey = true))
+        assertEquals(ok + 1, count("success")); assertEquals(bad + 1, count("failed"))
     }
 }

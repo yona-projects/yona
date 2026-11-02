@@ -12,6 +12,14 @@
 <h3 th:text="#{site.sso.title}"></h3>
 <p class="text-body-secondary" th:text="#{site.sso.description}"></p>
 
+<form id="sso-mode-form" class="security-settings" method="post" th:action="@{/sites/sso/mode}">
+    <label class="option" for="sso-only">
+        <input class="form-check-input" type="checkbox" name="ssoOnly" id="sso-only" value="true" th:checked="${ssoOnly}">
+        <span class="option-text"><strong th:text="#{site.sso.only.title}"></strong><small th:text="#{site.sso.only.help}"></small></span>
+    </label>
+    <button type="submit" class="btn btn-success mt-2" th:text="#{site.sso.save}"></button>
+</form>
+
 <!-- OIDC -->
 <h4 class="mt-4" th:text="#{site.sso.oidc.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.oidc.help}"></p>

@@ -9,7 +9,11 @@ import org.springframework.transaction.annotation.Transactional
  * 사이트 설정의 읽기와 쓰기이다(추가 개발 항목 X-2, `decisions.md` D-69). 바꾼 설정은 감사 기록에 남긴다.
  */
 @Service
-class SiteSettingService(private val settings: SiteSettingRepository, private val audit: AuditRecorder) {
+class SiteSettingService(
+    private val settings: SiteSettingRepository,
+    private val audit: AuditRecorder,
+    private val sso: dev.yona.domain.sso.SsoSettingsService
+) {
 
     /** 2단계 인증 강제 방식이다. 저장한 값이 없거나 알아볼 수 없으면 [TwoFactorEnforcement.OFF]이다. */
     @Transactional(readOnly = true)
@@ -110,7 +114,25 @@ class SiteSettingService(private val settings: SiteSettingRepository, private va
         if (before != after) audit.record(AuditEvent("site.lfs_changed", targetType = "site", details = mapOf("setting" to "project_quota", "from" to before, "to" to after)))
     }
 
+    /** SSO 전용 모드인지이다(추가 개발 항목 X-16, `decisions.md` D-80 12번). 켜면 로컬 비밀번호 로그인, LDAP, 소셜 로그인을 막는다(사이트 관리자의 로컬 로그인만 남긴다). 기본은 끈다. */
+    @Transactional(readOnly = true)
+    fun ssoOnly(): Boolean = settings.findById(SSO_ONLY).orElse(null)?.value == "true"
+
+    /**
+     * SSO 전용 모드를 바꾼다. 켜려면 켠 SSO(OIDC 또는 SAML 2)가 하나 이상 있어야 하며, 없으면 바꾸지 않고 `false`를 돌려준다(모두가 로그인하지 못하는 일을 막는다).
+     * 바뀐 값이 있을 때만 감사 기록을 남긴다.
+     */
+    @Transactional
+    fun setSsoOnly(value: Boolean): Boolean {
+        if (value && !sso.anyEnabled()) return false
+        val before = ssoOnly()
+        settings.save(SiteSetting(SSO_ONLY, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.sso_changed", targetType = "site", details = mapOf("setting" to "sso_only", "from" to before, "to" to value)))
+        return true
+    }
+
     companion object {
+        const val SSO_ONLY = "security.sso-only"
         const val LFS_ENABLED = "lfs.enabled"
         const val LFS_MAX_OBJECT_SIZE = "lfs.max-object-size"
         const val LFS_PROJECT_QUOTA = "lfs.project-quota"

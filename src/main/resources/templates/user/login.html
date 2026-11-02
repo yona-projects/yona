@@ -11,7 +11,8 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::loginPage})}">
 <th:block th:fragment="loginPage"
           th:with="loginIdPlaceHolder=${!#strings.isEmpty(site.loginPageLoginIdPlaceholder) ? site.loginPageLoginIdPlaceholder : #messages.msg('user.login.key')},
-                   passwordPlaceHolder=${!#strings.isEmpty(site.loginPagePasswordPlaceholder) ? site.loginPagePasswordPlaceholder : #messages.msg('user.password')}">
+                   passwordPlaceHolder=${!#strings.isEmpty(site.loginPagePasswordPlaceholder) ? site.loginPagePasswordPlaceholder : #messages.msg('user.password')},
+                   localLogin=${!ssoLogin.only or param.local != null}">
 <div class="page full">
   <div class="center-wrap tag-line-wrap login">
     <h1 class="title" th:utext="#{title.loginFor(${site.siteName})}"></h1>
@@ -23,7 +24,7 @@
       <input type="hidden" name="redirectUrl" th:value="${redirectUrl}" />
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
       </div>
-      <th:block th:unless="${site.socialLoginOnly}">
+      <th:block th:if="${!site.socialLoginOnly and localLogin}">
       <dl>
         <dd>
           <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email form-control" autocomplete="off" th:placeholder="${loginIdPlaceHolder}">
@@ -38,13 +39,19 @@
       </div>
       </th:block>
 
-      <div class="btns-row nm">
+      <div th:if="${!#lists.isEmpty(ssoLogin.providers)}" class="btns-row nm sso-login-wrap">
+        <div th:if="${localLogin and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
+        <a th:each="provider : ${ssoLogin.providers}" th:href="@{${provider.path}(returnTo=${redirectUrl})}" class="ybtn oauth-login-btn sso-login-btn"
+           th:text="#{sso.login.button(${#strings.isEmpty(provider.label) ? #messages.msg('sso.login.default') : provider.label})}"></a>
+        <a th:if="${ssoLogin.only and !localLogin}" class="sso-local-link" th:href="@{/users/loginform(local=true)}" th:text="#{sso.login.localLink}"></a>
+      </div>
+      <div class="btns-row nm" th:unless="${ssoLogin.only}">
         <th:block th:if="${!socialLoggedIn}">
           <div th:if="${socialLoginSupported and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
           <a th:each="provider : ${socialProviders}" th:href="@{'/authenticate/' + ${provider.key}}" class="ybtn oauth-login-btn" th:utext="${provider.html}"></a>
         </th:block>
       </div>
-      <div class="act-row mt5" th:unless="${site.socialLoginOnly}">
+      <div class="act-row mt5" th:if="${!site.socialLoginOnly and localLogin}">
         <div class="remember-me-wrap float-start">
           <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox form-check-input" checked>
           <label for="remember-me" class="bg-checkbox" th:text="#{title.rememberMe}"></label>

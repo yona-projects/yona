@@ -29,7 +29,7 @@
       <div class="login-step">
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
       </div>
-      <th:block th:unless="${site.socialLoginOnly}">
+      <th:block th:unless="${site.socialLoginOnly or ssoLogin.only}">
       <dl>
         <dd>
           <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email form-control" autocomplete="off" th:placeholder="#{user.login.key}">
@@ -46,14 +46,20 @@
         <span class="error-message"></span>
       </div>
       <div class="login-step">
-      <th:block th:unless="${site.socialLoginOnly}">
+      <th:block th:unless="${site.socialLoginOnly or ssoLogin.only}">
       <div class="btns-row nm">
         <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{button.login}"></button>
       </div>
       </th:block>
 
+      <div th:if="${!#lists.isEmpty(ssoLogin.providers) and !socialLoggedIn}" class="btns-row nm sso-login-wrap">
+        <div th:if="${!ssoLogin.only and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
+        <a th:each="provider : ${ssoLogin.providers}" th:href="@{${provider.path}(returnTo=${requestUri})}" class="ybtn oauth-login-btn sso-login-btn"
+           th:text="#{sso.login.button(${#strings.isEmpty(provider.label) ? #messages.msg('sso.login.default') : provider.label})}"></a>
+        <a th:if="${ssoLogin.only}" class="sso-local-link" th:href="@{/users/loginform(local=true)}" th:text="#{sso.login.localLink}"></a>
+      </div>
       <div class="btns-row nm">
-        <th:block th:if="${!socialLoggedIn}">
+        <th:block th:if="${!socialLoggedIn and !ssoLogin.only}">
           <div th:if="${socialLoginSupported and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
           <a th:each="provider : ${socialProviders}" th:href="@{'/authenticate/' + ${provider.key}}" class="ybtn oauth-login-btn" th:utext="${provider.html}"></a>
         </th:block>
@@ -62,7 +68,7 @@
           <a th:href="@{/logout}" class="ybtn oauth-login-btn" th:text="#{title.logout}"></a>
         </th:block>
       </div>
-      <div class="act-row right-txt mt20" th:unless="${site.socialLoginOnly}">
+      <div class="act-row right-txt mt20" th:unless="${site.socialLoginOnly or ssoLogin.only}">
         <div class="float-start">
           <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox form-check-input" checked>
           <label for="remember-meD" class="bg-checkbox" th:text="#{title.rememberMe}"></label>

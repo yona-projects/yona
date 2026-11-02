@@ -30,6 +30,11 @@ sealed interface LoginResult {
     /** 계정이 삭제되었다(`user.deleted`). */
     data object Deleted : LoginResult
 
+    /**
+     * SSO 전용 모드(X-16, `decisions.md` D-80 12번)라 로컬 비밀번호 로그인을 받지 않는다. 사이트 관리자의 로컬 로그인만 비상 경로로 남는다.
+     */
+    data object SsoOnly : LoginResult
+
     /** 계정이 없거나 패스워드가 틀렸다(`user.login.invalid`). */
     data object InvalidCredentials : LoginResult
 

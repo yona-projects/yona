@@ -50,7 +50,8 @@ class LayoutModelFactory(
     private val messages: org.springframework.context.MessageSource,
     private val updates: dev.yona.domain.site.UpdateCheckService,
     private val socialProviders: dev.yona.domain.social.SocialProviders,
-    private val socialSession: dev.yona.web.social.SocialSession
+    private val socialSession: dev.yona.web.social.SocialSession,
+    private val ssoLoginOptions: dev.yona.sso.SsoLoginOptions
 ) {
 
     /** 업데이트 알림이다. [version]은 새 버전, [url]은 릴리스 페이지이다. */
@@ -84,6 +85,7 @@ class LayoutModelFactory(
         "socialProviders" to socialProviders.available().map { SocialButton(it, dev.yona.web.ProviderLogos.signIn(it, properties.social.githubName, request.contextPath)) },
         "socialLoginSupported" to socialProviders.available().isNotEmpty(),
         "socialLoggedIn" to socialSession.hasKeys(request),
+        "ssoLogin" to ssoLoginOptions.view(),
         // 안쪽으로 넘긴(forward) 요청도 처음 요청한 경로를 쓴다. v1.6 `request().path()`가 `/go` 같은 주소를 그대로 보여 주기 때문이다
         "requestPath" to ((request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI) as? String) ?: request.requestURI),
         "isMac" to (request.getHeader("User-Agent")?.contains("Macintosh") == true),

@@ -35,9 +35,11 @@ object SsoReturn {
 
     /** 세션에서 돌아갈 곳을 꺼내고 지운다. 없으면 `/`이다. */
     fun pop(request: HttpServletRequest): String {
-        val session = request.getSession(false) ?: return "/"
-        val value = session.getAttribute(RETURN_TO) as? String
-        session.removeAttribute(RETURN_TO)
+        // IdP가 시작한 SAML 로그인은 세션이 없어 요청 속성에 둔다
+        val fromRequest = request.getAttribute(RETURN_TO) as? String
+        val session = request.getSession(false)
+        val value = fromRequest ?: session?.getAttribute(RETURN_TO) as? String
+        session?.removeAttribute(RETURN_TO)
         return safePath(value) ?: "/"
     }
 }

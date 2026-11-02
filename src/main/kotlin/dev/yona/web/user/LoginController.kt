@@ -43,7 +43,9 @@ class LoginController(
     private val audit: dev.yona.domain.audit.AuditBoundary,
     private val completion: dev.yona.security.LoginCompletion,
     private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
-    private val webAuthn: dev.yona.domain.twofactor.WebAuthnService
+    private val webAuthn: dev.yona.domain.twofactor.WebAuthnService,
+    private val siteSettings: dev.yona.domain.site.SiteSettingService,
+    private val siteAdmins: dev.yona.domain.user.SiteAdminRepository
 ) {
 
 
@@ -107,6 +109,8 @@ class LoginController(
                     RedirectSupport.see(request, response, target, result.flash)
                 }
             }
+            LoginResult.SsoOnly ->
+                RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "sso.error.ssoOnly"))
             LoginResult.Locked ->
                 RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.locked"))
             LoginResult.Deleted ->
@@ -147,6 +151,7 @@ class LoginController(
                 // v1.6의 `ok("{}")`는 문자열이라 Content-Type이 text/plain이다.
                 ResponseEntity.ok().contentType(MediaType("text", "plain", Charsets.UTF_8)).body("{}")
             }
+            LoginResult.SsoOnly -> message(HttpStatus.FORBIDDEN, "sso.error.ssoOnly")
             LoginResult.Locked, LoginResult.LockedAfterAuthentication -> message(HttpStatus.FORBIDDEN, "user.locked")
             LoginResult.Deleted -> message(HttpStatus.NOT_FOUND, "user.deleted")
             LoginResult.InvalidCredentials, is LoginResult.InvalidWithNotice -> message(HttpStatus.FORBIDDEN, "user.login.invalid")
@@ -163,12 +168,18 @@ class LoginController(
      * `locked`, `deleted`, `locked_after_authentication`이다. 비밀번호는 어디에도 남기지 않는다.
      */
     private fun authenticate(loginKey: String, password: String, request: HttpServletRequest): LoginResult {
+        // SSO 전용 모드에서는 사이트 관리자만 로컬로 로그인한다(비상 경로). 입력한 ID가 관리자가 아니면 비밀번호를 확인하기 전에 거절한다
+        if (siteSettings.ssoOnly() && users.findByLoginKey(loginKey)?.id?.let { siteAdmins.existsByAdminId(it) } != true) {
+            audit.loginFailure(loginKey, "sso_only", denied = true)
+            return LoginResult.SsoOnly
+        }
         val result = authenticator.authenticate(loginKey, password)
         when (result) {
             // 2단계 인증을 켠 사용자의 로그인 성공은 2단계를 마친 뒤에 남긴다(X-2, D-69)
             is LoginResult.Success -> if (!twoFactorLogin.required(result.user, request)) audit.loginSuccess(result.user, "password")
             LoginResult.Locked -> audit.loginFailure(loginKey, "locked", denied = true)
             LoginResult.Deleted -> audit.loginFailure(loginKey, "deleted", denied = true)
+            LoginResult.SsoOnly -> Unit
             LoginResult.LockedAfterAuthentication -> audit.loginFailure(loginKey, "locked_after_authentication", denied = true)
             LoginResult.InvalidCredentials, is LoginResult.InvalidWithNotice -> audit.loginFailure(loginKey, "invalid_credentials", denied = false)
         }
