@@ -12,6 +12,12 @@ updated: 2026-11-02
 
 큰 바이너리 파일(디자인 자산, 데이터 세트, 빌드 산출물)을 git 저장소 밖에 두고 저장소에는 **포인터 파일**만 두는 Git LFS를 Yona가 서버로서 받아 준다. v1.6에는 LFS 서버가 없어 `git lfs push`가 실패한다. 이 항목은 v1.6의 기존 동작과 계약을 바꾸지 않고 **새 경로만 더하는** 추가 항목이다(D-28).
 
+## 1.1 현황(2026-11-02 조사)
+
+- **이 저장소(`next2`)에는 LFS 컨트롤러가 없다.** 소스와 시험 어디에도 LFS 코드가 없고, 사이트 구성에도 LFS 항목이 없다.
+- **v1.6에도 LFS 서버가 없다.** v1.6은 JGit의 `jgit.lfs` 의존성만 가지고 있을 뿐 LFS 라우트가 없다(`yona-v1.6-wiki`의 tech-stack, medium-severity-fix-status 기록).
+- **이전 구현인 `next` 브랜치에는 시제품이 있다**: JGit의 LFS 서버 라이브러리(`org.eclipse.jgit.lfs.server`의 `LfsProtocolServlet`, `FileLfsRepository`)를 서블릿으로 등록하고(`/git-lfs/*`), 객체 전송용 `LfsStorageController`(`/git-lfs/{소유자}/{프로젝트}/objects/{oid}`)와 옛 프로젝트 이름 해석(`LfsLocation`)을 가졌다. 저장은 `yona.lfs.base-dir/<소유자>/<프로젝트>`이고 사용자가 `lfs.url`을 설정해 쓰는 방식이다. 이 시제품은 **인증이 없고**(경로만 알면 올리고 내려받는다), **올라온 내용의 해시와 크기를 확인하지 않으며**, 한도와 이어받기가 없다. 참고만 하고 그대로 옮기지 않는다. 옛 이름 해석은 `findByPreviousPlaceOf` 규칙(v1.6 GitApp)을 따라 이 계획에 넣는다(단계 2).
+
 ## 2. 프로토콜 요약(공식 규격 기준)
 
 - 클라이언트는 저장소(remote) 주소에서 LFS 주소를 **자동으로 만든다**. 주소가 `.git`으로 끝나면 `/info/lfs`를 붙이고, **끝나지 않으면 `.git/info/lfs`를 붙인다**(공식 서버 탐색 규격). Yona의 저장소 주소는 v1.6부터 `https://host/{소유자}/{프로젝트}`(`.git` 없음)이므로 클라이언트가 실제로 부르는 주소는 `https://host/{소유자}/{프로젝트}.git/info/lfs`이다. **그래서 LFS 경로는 `{프로젝트}.git` 꼴을 받아야 하고, 지금의 git HTTP 경로(`.git` 없는 `info/refs`)와는 모양이 다르다.** 사용자가 `lfs.url`로 직접 지정하면 `.git` 없는 주소도 쓰므로 둘 다 받는다. (단계 0에서 실제 클라이언트로 확인한다.)
