@@ -7986,13 +7986,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
-    .tf-code {
-        display:block; box-sizing:border-box; width:100% !important; height:46px; margin:0 0 14px !important; padding:0 14px;
-        border:1px solid #c8c8c8 !important; border-radius:6px !important; background:#fff;
-        text-align:center; font-size:1.25rem; font-weight:bold; letter-spacing:4px; box-shadow:none;
-    }
-    .tf-code::placeholder { font-size:0.875rem; font-weight:normal; letter-spacing:0; color:#999; }
-    .tf-code:focus { outline:0; border-color:$orange !important; box-shadow:0 0 0 3px rgba(255, 117, 48, .18); }
     .tf-remember { display:flex; align-items:center; gap:8px; margin:0 0 16px; font-size:0.8125rem; font-weight:normal; cursor:pointer; }
     .tf-remember input.form-check-input {
         appearance:none; -webkit-appearance:none; flex:none; width:18px !important; height:18px !important; margin:0; padding:0; cursor:pointer;

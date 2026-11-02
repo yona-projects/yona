@@ -17,8 +17,12 @@
   </div>
   <div class="login-form-wrap frm-wrap">
     <form id="two-factor-form" class="tf-challenge" th:action="@{/users/login/2fa}" method="POST">
-      <input id="two-factor-code" name="code" type="text" class="form-control tf-code" autocomplete="one-time-code" inputmode="text" autofocus
-             th:placeholder="#{user.twoFactor.code}">
+      <dl>
+        <dd>
+          <input id="two-factor-code" name="code" type="text" class="text form-control" autocomplete="one-time-code" inputmode="text" autofocus
+                 th:placeholder="#{user.twoFactor.code}">
+        </dd>
+      </dl>
       <label class="tf-remember" for="remember-device">
         <input id="remember-device" type="checkbox" name="rememberDevice" value="true" class="form-check-input">
         <span th:text="#{user.twoFactor.rememberDevice}"></span>

@@ -11,7 +11,11 @@
       <div class="two-factor-step tf-challenge" style="display: none;">
         <h4 th:text="#{user.twoFactor.title}"></h4>
         <p th:text="#{user.twoFactor.help}"></p>
-        <input id="two-factor-codeD" name="code" type="text" class="form-control tf-code" autocomplete="one-time-code" th:placeholder="#{user.twoFactor.code}">
+        <dl>
+          <dd>
+            <input id="two-factor-codeD" name="code" type="text" class="text form-control" autocomplete="one-time-code" th:placeholder="#{user.twoFactor.code}">
+          </dd>
+        </dl>
         <label class="tf-remember" for="remember-deviceD">
           <input id="remember-deviceD" type="checkbox" name="rememberDevice" class="form-check-input">
           <span th:text="#{user.twoFactor.rememberDevice}"></span>
