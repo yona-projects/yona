@@ -122,6 +122,8 @@ class SiteUserService(
                 entityManager.createNativeQuery("delete from $table where user_id = :id or client_row_id in (select id from oauth_client where owner_type = 'USER' and owner_id = :id)").setParameter("id", id).executeUpdate()
             }
             entityManager.createNativeQuery("delete from oauth_client where owner_type = 'USER' and owner_id = :id").setParameter("id", id).executeUpdate()
+            // 추가 항목(X-8): 사용자가 잠근 LFS 파일 잠금도 지운다
+            entityManager.createNativeQuery("delete from lfs_lock where owner_user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-2): 2단계 인증 데이터도 지운다
             for (table in listOf("two_factor_backup_code", "known_device", "two_factor_credential")) entityManager.createNativeQuery("delete from $table where user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-3): SSH 키도 지운다

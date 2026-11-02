@@ -28,7 +28,8 @@ class ProjectDeletionService(
     private val issueService: dev.yona.domain.issue.IssueService,
     private val projectService: ProjectService,
     private val audit: dev.yona.domain.audit.AuditRecorder,
-    private val lfs: dev.yona.domain.lfs.LfsService
+    private val lfs: dev.yona.domain.lfs.LfsService,
+    private val locks: dev.yona.domain.lfs.LfsLockService
 ) {
 
     @PersistenceContext
@@ -41,6 +42,7 @@ class ProjectDeletionService(
         audit.record(dev.yona.domain.audit.auditProject("project.deleted", project, mapOf("scope" to project.projectScope?.name, "vcs" to project.vcs)))
         // 이 프로젝트를 원본으로 둔 포크가 빌려 쓰던 LFS 객체를 포크로 옮겨 둔다(X-8, D-79 4번). 디렉터리는 저장소와 함께 호출한 쪽이 지운다
         lfs.adoptForForks(project)
+        locks.deleteOfProject(project)
         projectService.forget(project)
 
         // 이 프로젝트와 포크(원본 연결이 이 프로젝트인 프로젝트)의 풀 리퀘스트를 지운다.
