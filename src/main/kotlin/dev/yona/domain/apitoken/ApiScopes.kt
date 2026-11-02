@@ -53,6 +53,12 @@ object ApiScopes {
         return result
     }
 
+    /** 쉼표로 이은 범위 문자열을 읽되 모르는 범위는 건너뛴다(저장된 값을 읽을 때 쓴다). */
+    fun parseOrEmpty(raw: String?): Set<String> {
+        val known = GENERAL.toSet() + SITE_ADMIN
+        return raw.orEmpty().split(',').map { it.trim() }.filter { it in known }.toCollection(LinkedHashSet())
+    }
+
     /** 범위 집합을 저장용 쉼표 문자열로 만든다. */
     fun format(scopes: Collection<String>): String = scopes.joinToString(",")
 

@@ -46,6 +46,9 @@ class YonaAuthentication(
 
     override fun getPrincipal(): YonaPrincipal = principalInfo
 
+    /** 사용자 번호의 글이다. OAuth 인가 서버(X-1)가 승인과 인가의 주인 이름으로 쓴다. */
+    override fun getName(): String = principalInfo.userId.toString()
+
     companion object {
         private const val serialVersionUID = 1L
 

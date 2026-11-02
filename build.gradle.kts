@@ -129,6 +129,8 @@ dependencies {
 	implementation("com.google.zxing:core:3.5.3")
 	// 2단계 인증의 보안 키(WebAuthn, 패스키) 검증이다. 두 번째 단계로만 쓴다(X-2, D-69)
 	implementation("com.yubico:webauthn-server-core:2.10.1")
+	// OAuth2 인가 서버(X-1, D-71). Spring Security가 인가 코드, PKCE, 토큰 교환을 맡고 저장소와 클라이언트 조회는 직접 구현한다
+	implementation("org.springframework.security:spring-security-oauth2-authorization-server")
 
 	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
