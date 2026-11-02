@@ -118,6 +118,7 @@
 - [Git LFS 서버](architecture/git-lfs.md): X-8 구현 결과(경로, 인증, 저장, 잠금, SSH, 화면)
 - [엔터프라이즈 SSO 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [엔터프라이즈 SSO](architecture/enterprise-sso.md): X-16 구현 결과(OIDC, SAML 2, SP 키, SSO 전용 모드, 연결된 계정, Keycloak 확인)
+- [Apache Magpie 연동 구현 계획](architecture/magpie-integration-plan.md): X-23 계획과 결정 질문(D-29 갱신)
 - [엔터프라이즈 SSO 구현 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [OAuth2 인증 서버 구현 계획](architecture/oauth2-server-plan.md): 불투명 토큰, 클래식 범위, 인가 서버 엔드포인트, 승인 화면, 동적 등록, 단계 0~8 (X-1, D-71 답변 대기, 계획만)
 - [GPG 커밋 서명 검증 설계](architecture/gpg-signing.md): 공개키 등록(목록, 추가 두 화면), BouncyCastle 검증, Verified 표시, REST, 서명 커밋 필수 규칙(X-4, D-65, 구현 완료)
