@@ -39,6 +39,15 @@ springdoc:
     path: /-_-api/docs
 
 spring:
+  # MCP 서버(X-6, `decisions.md` D-72): Spring AI 스타터가 Streamable HTTP를 맡는다. 첫 구현은 세션 없이 일반 JSON으로 답하는 STATELESS이다(SSE 응답은 필요해질 때 더한다).
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: yona-mcp-server
+        version: "1.0.0"
+        protocol: STATELESS
+        instructions: "Yona 프로젝트의 이슈, 풀 리퀘스트, 위키를 조회하고 일부는 쓸 수 있는 MCP 서버입니다. OAuth 토큰이 필요합니다. / MCP server for Yona issues, pull requests and wiki. Requires an OAuth token."
   autoconfigure:
     exclude:
       # 스프링 시큐리티가 임시 사용자와 비밀번호를 만들어 WARN 로그로 남긴다. 이 앱은 쓰지 않는 값이지만 로그에 비밀번호가 찍히고 OTLP 로그로 수집기에 나간다(X-10)

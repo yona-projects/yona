@@ -97,6 +97,13 @@ val svnDavClasses by tasks.registering(Jar::class) {
 	}
 }
 
+// Spring AI의 버전은 Spring Boot BOM이 관리하지 않으므로 그 BOM을 명시적으로 import한다(X-6, D-72).
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
+	}
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -131,6 +138,8 @@ dependencies {
 	implementation("com.yubico:webauthn-server-core:2.10.1")
 	// OAuth2 인가 서버(X-1, D-71). Spring Security가 인가 코드, PKCE, 토큰 교환을 맡고 저장소와 클라이언트 조회는 직접 구현한다
 	implementation("org.springframework.security:spring-security-oauth2-authorization-server")
+	// MCP 서버(X-6, D-72): 프로토콜(Streamable HTTP 전송, 도구 목록과 호출)은 Spring AI 스타터가 맡는다
+	implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 
 	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
