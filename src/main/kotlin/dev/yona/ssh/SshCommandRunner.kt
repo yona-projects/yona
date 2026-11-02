@@ -55,7 +55,7 @@ class SshCommandRunner(
                 SshAuthorization.NotFound -> { measured.result = "not_found"; fail(reject, "ERROR: Repository not found.") }
                 is SshAuthorization.Denied -> { measured.result = "denied"; fail(reject, result.message) }
                 is SshAuthorization.Allowed -> handler.execute(
-                    result.project, request, line, result.sender,
+                    result, request, line,
                     SshStreams(metrics.countedInput(vcs, "code", streams.input), metrics.countedOutput(vcs, "code", streams.output), streams.error)
                 ).also { if (it != 0) measured.result = "error" }
             }

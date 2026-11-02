@@ -33,7 +33,9 @@ class DeployKeyController(
     private val projectService: ProjectService,
     private val deployKeys: DeployKeyService,
     private val views: ProjectViewFactory,
-    private val helper: TemplateHelper
+    private val helper: TemplateHelper,
+    private val currentUserProvider: dev.yona.security.CurrentUserProvider,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     /** 목록의 한 줄이다. */
@@ -64,7 +66,8 @@ class DeployKeyController(
         val keyName = request.getParameter("name").orEmpty()
         val publicKey = request.getParameter("publicKey").orEmpty()
         val writable = request.getParameter("writable") == "true"
-        return when (val result = deployKeys.add(project, keyName, publicKey, writable)) {
+        val creator = currentUserProvider.get().user?.id?.let { users.findById(it).orElse(null) }
+        return when (val result = deployKeys.add(project, keyName, publicKey, writable, createdBy = creator)) {
             is DeployKeyAddition.Added -> RedirectSupport.see(request, response, listUrl(project))
             is DeployKeyAddition.Rejected -> newView(project, result.code, keyName, publicKey, writable).also { it.status = HttpStatus.BAD_REQUEST }
         }

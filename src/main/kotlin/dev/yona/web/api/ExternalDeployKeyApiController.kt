@@ -41,7 +41,8 @@ class ExternalDeployKeyApiController(
     private val keys: DeployKeyService,
     private val accessControl: AccessControl,
     private val requests: ApiRequests,
-    private val json: PullRequestJson
+    private val json: PullRequestJson,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     @ApiOperation(operationId = "listDeployKeys", tags = [ApiTags.PROJECT], summary = "프로젝트의 배포 키 목록", description = "프로젝트의 배포 키를 최근에 등록한 순서로 돌려준다. 프로젝트 관리자만 읽는다. Git 프로젝트가 아니면 400이다. 필요한 범위는 `read:deploy_key`이다.")
@@ -86,7 +87,8 @@ class ExternalDeployKeyApiController(
         val publicKey = body.get("publicKey")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "publicKey is required")
         val name = body.get("name")?.takeIf { !it.isNull }?.let { if (it.isString) it.asString("") else return requests.message(HttpStatus.BAD_REQUEST, "name must be a string") }
         val readOnly = body.get("readOnly")?.takeIf { !it.isNull }?.let { if (it.isBoolean) it.asBoolean() else return requests.message(HttpStatus.BAD_REQUEST, "readOnly must be a boolean") } ?: true
-        return when (val result = keys.add(project, name, publicKey, writable = !readOnly)) {
+        val caller = request.getAttribute(CALLER) as? dev.yona.domain.user.User
+        return when (val result = keys.add(project, name, publicKey, writable = !readOnly, createdBy = caller)) {
             is DeployKeyAddition.Added -> ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("result" to node(result.key)))
             is DeployKeyAddition.Rejected ->
                 if (result.code == "deployKey.error.duplicate") requests.message(HttpStatus.CONFLICT, "the ssh key is already registered")
@@ -110,6 +112,7 @@ class ExternalDeployKeyApiController(
     /** 토큰 주인과 프로젝트를 확인한다. 토큰이 없으면 401, 프로젝트가 없으면 404, 설정을 고칠 수 없으면 403, Git 프로젝트가 아니면 400이다. */
     private inline fun authorize(owner: String, projectName: String, request: HttpServletRequest, reject: (Any) -> Nothing): Project {
         val user = requests.tokenUser(request) ?: reject(requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request"))
+        request.setAttribute(CALLER, user)
         val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: reject(requests.message(HttpStatus.NOT_FOUND, "not found"))
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) reject(requests.message(HttpStatus.FORBIDDEN, "Forbidden request"))
         if (project.vcs != RepositoryService.VCS_GIT) reject(requests.message(HttpStatus.BAD_REQUEST, "deploy keys are only for Git projects"))
@@ -117,6 +120,11 @@ class ExternalDeployKeyApiController(
     }
 
     private fun node(key: DeployKey): Map<String, Any?> = linkedMapOf(
-        "id" to key.id, "name" to key.name, "keyType" to key.keyType, "fingerprint" to key.fingerprint, "publicKey" to key.publicKey, "readOnly" to (key.readOnly != false), "createdAt" to json.iso(key.createdDate)
+        "id" to key.id, "name" to key.name, "keyType" to key.keyType, "fingerprint" to key.fingerprint, "publicKey" to key.publicKey, "readOnly" to (key.readOnly != false),
+        "createdBy" to key.createdById?.let { users.findById(it).orElse(null)?.loginId }, "createdAt" to json.iso(key.createdDate)
     )
+
+    private companion object {
+        const val CALLER = "dev.yona.web.api.ExternalDeployKeyApiController.caller"
+    }
 }

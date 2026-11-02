@@ -76,6 +76,8 @@ class SshServerTest {
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var dataDirectory: dev.yona.repository.DataDirectory
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var issues: dev.yona.domain.issue.IssueRepository
+    @Autowired private lateinit var issueEvents: dev.yona.domain.issue.IssueEventRepository
     @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
 
     @TempDir lateinit var work: File
@@ -233,6 +235,32 @@ class SshServerTest {
         val pushed = push(secret, key, branch = "feature")
         assertNotEquals(0, pushed.exit)
         assertTrue(pushed.output.contains("read-only"), pushed.output)
+    }
+
+    @Test
+    fun `배포 키로 푸시한 뒤의 작업은 키를 등록한 사용자에게 귀속된다 (D-68)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val issue = issues.save(dev.yona.domain.issue.Issue(project = secret, number = 1, title = "이슈"))
+        val key = newKey().also { deployKeys.add(secret, "d", it.publicLine, true, createdBy = member) }
+        val dir = File(work, "attr").also { it.mkdirs() }
+        git("init", "-q", "-b", "master", dir = dir); File(dir, "a.txt").writeText("x"); git("add", ".", dir = dir); git("commit", "-q", "-m", "고침 #1", dir = dir)
+        assertEquals(0, git("push", url(secret), "master:master", key = key, dir = dir).exit)
+        val events = issueEvents.findByIssueIdOrderByCreatedAscIdAsc(issue.id!!)
+        assertEquals(listOf(dev.yona.domain.enumeration.EventType.ISSUE_REFERRED_FROM_COMMIT), events.map { it.eventType })
+        assertEquals(member.loginId, events.single().senderLoginId)
+    }
+
+    @Test
+    fun `배포 키를 등록한 사용자가 프로젝트 관리자여도 브랜치 보호 규칙은 우회하지 못한다 (D-68)`() {
+        val admin = register(member)
+        assertEquals(0, push(project, admin).exit)
+        rulesets.save(Ruleset(project = project, name = "master", pattern = "master", createdDate = java.util.Date()).apply { requirePullRequest = true; blockForcePushes = false; bypassAdmins = true })
+        val key = newKey().also { deployKeys.add(project, "d", it.publicLine, true, createdBy = member) }
+        val (_, dir) = clone(project, key)
+        File(dir, "more.txt").writeText("more"); git("add", ".", dir = dir); git("commit", "-q", "-m", "more", dir = dir)
+        val pushed = git("push", "origin", "master", key = key, dir = dir)
+        assertNotEquals(0, pushed.exit)
+        assertTrue(pushed.output.contains("protected branch"), pushed.output)
     }
 
     @Test

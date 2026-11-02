@@ -99,6 +99,13 @@ class DeployKeyServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `등록한 사용자를 남기고 지정하지 않으면 비운다`() {
+        val p = project(); val owner = users.save(User(loginId = "dkc${++sequence}", name = "dkc", email = "dkc$sequence@example.com"))
+        assertEquals(owner.id, added(service.add(p, "a", TestSshKey.generate().publicLine, false, createdBy = owner)).createdById)
+        assertNull(added(service.add(p, "b", TestSshKey.generate().publicLine, false)).createdById)
+    }
+
+    @Test
     fun `지문으로 배포 키와 저장소를 찾는다`() {
         val p = project(); val source = TestSshKey.generate()
         service.add(p, "k", source.publicLine, false)

@@ -109,9 +109,10 @@ class DeployKeyService(private val keys: DeployKeyRepository, private val sshKey
      * 배포 키를 등록한다. 거절 조건은 [SshKeyService.add]와 같고 한도는 저장소 단위이다.
      *
      * @param writable 쓰기(푸시)를 허용하면 `true`이다. 기본은 읽기 전용이다
+     * @param createdBy 키를 등록한 사용자. 이 키로 푸시한 뒤의 작업이 이 사용자에게 귀속된다(D-68)
      */
     @Transactional
-    fun add(project: Project, name: String?, text: String, writable: Boolean, now: Date = Date()): DeployKeyAddition {
+    fun add(project: Project, name: String?, text: String, writable: Boolean, now: Date = Date(), createdBy: User? = null): DeployKeyAddition {
         val given = name?.trim().orEmpty()
         if (given.length > NAME_MAX) return DeployKeyAddition.Rejected("deployKey.error.name")
         val parsed = try {
@@ -125,7 +126,7 @@ class DeployKeyService(private val keys: DeployKeyRepository, private val sshKey
         val saved = keys.save(
             DeployKey(
                 project = project, name = given.ifEmpty { parsed.comment.ifEmpty { parsed.fingerprint } }.take(NAME_MAX), fingerprint = parsed.fingerprint, keyType = parsed.type,
-                publicKey = parsed.publicKey, readOnly = !writable, createdDate = now
+                publicKey = parsed.publicKey, readOnly = !writable, createdById = createdBy?.id, createdDate = now
             )
         )
         audit.record(event("deploy_key.added", saved))

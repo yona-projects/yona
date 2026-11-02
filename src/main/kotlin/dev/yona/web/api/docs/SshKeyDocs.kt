@@ -44,6 +44,7 @@ class DeployKeyNode(
     @get:Schema(description = "지문(`SHA256:...`)") val fingerprint: String,
     @get:Schema(description = "공개키 한 줄(`종류 본문`)") val publicKey: String,
     @get:Schema(description = "읽기 전용이면 참. 거짓이면 푸시도 할 수 있다") val readOnly: Boolean,
+    @get:Schema(description = "키를 등록한 사용자의 로그인 ID. 이 키로 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)이 이 사용자에게 귀속된다. 없으면 없다") val createdBy: String?,
     @get:Schema(description = "등록한 시각") val createdAt: String?
 )
 

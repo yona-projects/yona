@@ -193,6 +193,7 @@ object DataTables {
             DataColumn("key_type", STRING),
             DataColumn("public_key", CLOB),
             DataColumn("read_only", BOOLEAN),
+            DataColumn("created_by_id", LONG, nullableLong = true),
             DataColumn("created_date", TIMESTAMP)
         ),
         // 추가 개발 항목 X-3(D-66)의 사용자 SSH 공개키이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.

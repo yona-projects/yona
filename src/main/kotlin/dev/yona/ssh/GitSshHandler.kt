@@ -1,7 +1,5 @@
 package dev.yona.ssh
 
-import dev.yona.domain.project.Project
-import dev.yona.domain.user.User
 import dev.yona.repository.GitHooks
 import dev.yona.repository.RepositoryService
 import org.eclipse.jgit.errors.RepositoryNotFoundException
@@ -21,13 +19,15 @@ class GitSshHandler(private val repositories: RepositoryService, private val hoo
 
     override fun parse(command: String): SshRepositoryRequest? = Companion.parse(command)
 
-    override fun execute(project: Project, request: SshRepositoryRequest, command: String, sender: User?, streams: SshStreams): Int {
+    override fun execute(grant: SshAuthorization.Allowed, request: SshRepositoryRequest, command: String, streams: SshStreams): Int {
+        val project = grant.project
         return try {
             repositories.openRepository(project).use { repository ->
                 if (request.write) {
                     ReceivePack(repository).apply {
-                        preReceiveHook = hooks.preReceive(project, sender)
-                        postReceiveHook = hooks.postReceive(project, sender)
+                        // 규칙의 바이패스는 사용자 키의 사용자만 받는다(배포 키는 규칙을 우회하지 못한다). 푸시 뒤 작업은 귀속할 사용자가 있으면 그 사용자의 푸시로 처리한다(D-68)
+                        preReceiveHook = hooks.preReceive(project, grant.sender)
+                        postReceiveHook = hooks.postReceive(project, grant.pusher)
                     }.receive(streams.input, streams.output, streams.error)
                 } else {
                     UploadPack(repository).upload(streams.input, streams.output, streams.error)

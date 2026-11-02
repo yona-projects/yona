@@ -1,7 +1,5 @@
 package dev.yona.ssh
 
-import dev.yona.domain.project.Project
-import dev.yona.domain.user.User
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -31,8 +29,8 @@ interface SshVcsHandler {
     /**
      * 인가를 통과한 요청을 실행한다. 프로토콜의 오류는 클라이언트가 읽을 수 있게 [SshStreams.error]에 쓴다.
      *
-     * @param sender 푸시한 사용자. 배포 키로 접속했으면 `null`이다
+     * @param grant 인가 결과. 프로젝트와, 규칙의 바이패스 판정에 쓰는 사용자([SshAuthorization.Allowed.sender], 배포 키는 `null`)와, 푸시 뒤 작업을 귀속할 사용자([SshAuthorization.Allowed.pusher])가 있다
      * @return 프로세스 종료 코드와 같은 값. 성공은 0이다
      */
-    fun execute(project: Project, request: SshRepositoryRequest, command: String, sender: User?, streams: SshStreams): Int
+    fun execute(grant: SshAuthorization.Allowed, request: SshRepositoryRequest, command: String, streams: SshStreams): Int
 }

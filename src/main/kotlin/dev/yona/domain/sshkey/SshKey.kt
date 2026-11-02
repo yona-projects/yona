@@ -57,6 +57,8 @@ interface SshKeyRepository : JpaRepository<SshKey, Long> {
  *
  * @property project 키가 속한 저장소(프로젝트)
  * @property readOnly 읽기 전용이면 `true`이다. `false`이면 푸시도 할 수 있다
+ * @property createdById 키를 등록한 사용자 번호이다(`decisions.md` D-68). 이 키로 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)을 이 사용자에게 귀속한다.
+ * 사용자 삭제와 부딪히지 않게 외래 키를 두지 않으며, 사용자가 없거나 잠기거나 삭제되었으면 귀속하지 않는다
  */
 @Entity
 @Table(
@@ -79,6 +81,8 @@ class DeployKey(
     var publicKey: String? = null,
     @Column(name = "read_only")
     var readOnly: Boolean? = true,
+    @Column(name = "created_by_id")
+    var createdById: Long? = null,
     @Column(name = "created_date")
     var createdDate: Date? = null
 )

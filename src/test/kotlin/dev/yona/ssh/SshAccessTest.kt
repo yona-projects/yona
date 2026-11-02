@@ -135,6 +135,31 @@ class SshAccessTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `배포 키로 푸시하면 규칙의 바이패스 대상(sender)은 없고 푸시 뒤 작업은 키를 등록한 사용자에게 귀속된다`() {
+        val creator = user(); val p = project(ProjectScope.PRIVATE)
+        val key = TestSshKey.generate(); deployKeys.add(p, "d", key.publicLine, true, createdBy = creator)
+        val grant = allowed(access.authorize(access.authenticate(key.fingerprint)!!, write(p)))
+        assertNull(grant.sender, "관리자가 등록한 키여도 브랜치 보호 규칙을 우회하면 안 된다")
+        assertEquals(creator.id, grant.pusher?.id)
+    }
+
+    @Test
+    fun `등록한 사용자가 없거나 잠기거나 삭제되었으면 귀속할 사용자가 없다`() {
+        val p = project(ProjectScope.PRIVATE)
+        val none = deployKey(p, true)
+        assertNull(allowed(access.authorize(access.authenticate(none.fingerprint)!!, write(p))).pusher)
+        val locked = user(UserState.LOCKED); val key = TestSshKey.generate(); deployKeys.add(p, "l", key.publicLine, true, createdBy = locked)
+        assertNull(allowed(access.authorize(access.authenticate(key.fingerprint)!!, write(p))).pusher)
+    }
+
+    @Test
+    fun `사용자 키로 푸시하면 사용자가 바이패스 대상이자 귀속 대상이다`() {
+        val u = user(); val p = project(); join(u, p, RoleType.MEMBER)
+        val grant = allowed(access.authorize(access.authenticate(keyOf(u).fingerprint)!!, write(p)))
+        assertEquals(u.id, grant.sender?.id); assertEquals(u.id, grant.pusher?.id)
+    }
+
+    @Test
     fun `쓰기 배포 키는 자기 저장소에 쓸 수 있다`() {
         val p = project(ProjectScope.PRIVATE); val principal = access.authenticate(deployKey(p, true).fingerprint)!!
         assertTrue(access.authorize(principal, write(p)) is SshAuthorization.Allowed)

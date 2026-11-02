@@ -140,6 +140,14 @@ class ExternalDeployKeyApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `등록한 사용자가 createdBy로 보인다`() {
+        val project = newProject(); val (user, token) = newUser(listOf("write:deploy_key", "read:deploy_key"))
+        projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
+        json(post(path(project)), token, body("a", TestSshKey.generate().publicLine)).andExpect(status().isCreated).andExpect(jsonPath("$.result.createdBy").value(user.loginId!!))
+        json(get(path(project)), token).andExpect(jsonPath("$.keys[0].createdBy").value(user.loginId!!))
+    }
+
+    @Test
     fun `받을 수 없는 키와 틀린 본문은 400, 같은 키는 409이다`() {
         val project = newProject(); val token = joined(project, RoleType.MANAGER, listOf("write:deploy_key"))
         json(post(path(project)), token, body("x", "not a key")).andExpect(status().isBadRequest)

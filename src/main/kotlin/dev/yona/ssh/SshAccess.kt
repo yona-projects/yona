@@ -22,8 +22,11 @@ data class SshPrincipal(val fingerprint: String, val userId: Long?, val deployKe
 /** 인가 결과이다. */
 sealed interface SshAuthorization {
 
-    /** 허용한다. [sender]는 푸시한 사용자이며 배포 키로 접속했으면 `null`이다. */
-    data class Allowed(val project: Project, val sender: User?) : SshAuthorization
+    /**
+     * 허용한다. [sender]는 브랜치 보호 규칙의 바이패스 판정에 쓰는 사용자이며 배포 키로 접속했으면 `null`이다(배포 키는 규칙을 우회하지 못한다).
+     * [pusher]는 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)을 귀속할 사용자이다. 사용자 키는 [sender]와 같고, 배포 키는 키를 등록한 사용자(활성일 때)이며 없으면 `null`이다(`decisions.md` D-68).
+     */
+    data class Allowed(val project: Project, val sender: User?, val pusher: User? = sender) : SshAuthorization
 
     /** 저장소를 읽을 수 없거나 없다. 있는지 없는지 알려 주지 않으려고 둘을 구분하지 않는다. */
     data object NotFound : SshAuthorization
@@ -70,7 +73,8 @@ class SshAccess(
     private fun authorizeDeployKey(id: Long, project: Project, request: SshRepositoryRequest): SshAuthorization {
         val key = deployKeys.find(project, id) ?: return SshAuthorization.NotFound
         if (request.write && key.readOnly != false) return SshAuthorization.Denied("ERROR: The deploy key for ${request.owner}/${request.name} is read-only.")
-        return SshAuthorization.Allowed(project, null)
+        val creator = key.createdById?.let { users.findById(it).orElse(null) }?.takeIf { usable(it) }
+        return SshAuthorization.Allowed(project, sender = null, pusher = creator)
     }
 
     private fun usable(user: User) = user.state != UserState.LOCKED && user.state != UserState.DELETED
