@@ -253,7 +253,8 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))
         assertEquals("/${project.owner}/${project.name}/setting/rulesets", tabs[2].selectFirst("a")?.attr("href"))
         assertEquals("/${project.owner}/${project.name}/setting/deploykeys", tabs[3].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[4].selectFirst("a")?.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/setting/lfs", tabs[4].selectFirst("a")?.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[5].selectFirst("a")?.attr("href"))
     }
 
     @Test
