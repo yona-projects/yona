@@ -50,6 +50,11 @@ class TwoFactorSettingsController(
     @Transactional(readOnly = true)
     fun list(): ModelAndView = listView(currentUser())
 
+    /** 보안 키 추가 화면이다(이름 입력과 등록). 등록은 브라우저 스크립트가 [WebAuthnSettingsController]를 불러 한다. */
+    @GetMapping("/user/editform/two-factor/security-key")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    fun securityKeyForm(): ModelAndView = base("user/edit-two-factor-key")
+
     /** 인증 앱 추가를 시작하고 QR 코드가 있는 설정 화면을 보인다. 이미 켜져 있으면 목록으로 돌려보낸다. */
     @PostMapping("/user/two-factor/begin")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)

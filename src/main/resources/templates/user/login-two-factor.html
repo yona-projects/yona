@@ -19,7 +19,7 @@
     <form id="two-factor-form" th:action="@{/users/login/2fa}" method="POST">
       <dl>
         <dd>
-          <input id="two-factor-code" name="code" type="text" class="text form-control" autocomplete="one-time-code" inputmode="text" autofocus
+          <input id="two-factor-code" name="code" type="text" class="text form-control tf-code" autocomplete="one-time-code" inputmode="text" autofocus
                  th:placeholder="#{user.twoFactor.code}">
         </dd>
       </dl>

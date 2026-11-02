@@ -11,14 +11,19 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::securityPage})}">
 <th:block th:fragment="securityPage">
 <h3 th:text="#{site.security.title}"></h3>
-<form id="security-form" method="post" th:action="@{/sites/security}">
+<form id="security-form" class="security-settings" method="post" th:action="@{/sites/security}">
     <h4 th:text="#{site.security.twoFactor}"></h4>
     <p class="text-body-secondary" th:text="#{site.security.twoFactor.description}"></p>
-    <div class="form-check mb-2" th:each="mode : ${T(dev.yona.domain.site.TwoFactorEnforcement).values()}">
+    <label class="option" th:each="mode : ${T(dev.yona.domain.site.TwoFactorEnforcement).values()}" th:for="'enforce-' + ${mode.name()}">
         <input class="form-check-input" type="radio" name="twoFactorEnforcement" th:id="'enforce-' + ${mode.name()}" th:value="${mode.name()}" th:checked="${mode.name() == enforcement}">
-        <label class="form-check-label" th:for="'enforce-' + ${mode.name()}" th:text="#{'site.security.twoFactor.' + ${mode.name()}}"></label>
+        <span class="option-text">
+            <strong th:text="#{'site.security.twoFactor.' + ${mode.name()}}"></strong>
+            <small th:text="#{'site.security.twoFactor.' + ${mode.name()} + '.help'}"></small>
+        </span>
+    </label>
+    <div class="tf-actions">
+        <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
     </div>
-    <button type="submit" class="btn btn-success mt-2" th:text="#{button.save}"></button>
 </form>
 </th:block>
 </html>

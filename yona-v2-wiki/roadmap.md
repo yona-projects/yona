@@ -99,33 +99,10 @@ updated: 2026-11-02
 
 v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`com.github.yonaprojects.yona`)에 구현이 있으므로 설계와 시험을 참고하되, 패키지(`dev.yona`)와 v1.6 계약은 `next2` 기준을 지킨다. 착수 전에 순서와 범위를 선생님께 묻는다.
 
-### 남은 항목 요약 (2026-11-02 기준)
-
-X-2(2단계 인증)는 2026-11-02에 끝났다. 아래는 표 전체에서 아직 끝나지 않은 항목만 모은 것이다. 표의 상태가 기준이고 이 요약은 읽기 편하게 줄인 것이다.
-
-| 구분 | 항목 | 내용 | 비고 |
-|---|---|---|---|
-| 진행 중 | X-9 | 감사 로그 2차: git 전송 이벤트, 웹훅과 syslog 스트리밍 | D-62 |
-| 진행 중 | X-37 | CLI용 서버 보강(X-37a~k) 중 남은 단계, 기기 인증 | D-52. X-37h는 서버 변경 없음으로 정했다 |
-| 진행 중 | X-38i | BS2 고유 모양의 현대화: 남은 컴포넌트와 select2 4.x(보류) | D-56 |
-| 진행 중 | X-13 | 브랜치 보호 규칙의 남은 부분(규칙 묶음 X-32~X-34가 대체한 나머지) | D-46 |
-| 대기 | X-1 | OAuth2 인증 서버(동적 클라이언트 등록 포함) | X-6의 기반. 다음 후보 |
-| 대기 | X-6 | MCP 서버 | X-1 이후 |
-| 대기 | X-7 | Mercurial 저장소(hg4j) | SSH 접근은 X-3의 처리기 구조에 올린다 |
-| 대기 | X-8 | Git LFS | |
-| 대기 | X-16 | 엔터프라이즈 SSO(SAML2, OIDC)와 소셜 계정 병합 | |
-| 대기 | X-20 | 프런트엔드 현대화(Vue 3 위젯, CodeMirror 6, Turbo 등) | 화면 동작은 v1.6과 같게 둔다는 조건 |
-| 대기 | X-24 | yona CLI를 이 서버의 `/-_-api/v1` 계약에 맞추는 일 | |
-| 대기 | X-35 | 규칙 묶음 완성(바이패스, 우회 방식, 선형 이력 등) | 가장 낮은 우선순위 |
-| 보류 | X-23 | Apache Magpie 연동 | 선생님 지시로 쌓아 둠 |
-| 보류 | X-25 | CI/Actions와 프런트엔드 분리 | 자동 진행 제외(P3-05) |
-
-X-2의 후속으로 정하지 않은 것: 2단계 인증을 끌 때 현재 비밀번호나 코드를 다시 묻는지(A-328 2번).
-
 | # | 항목 | `next`의 참고 위치 | 상태 | 비고 |
 |---|---|---|---|---|
 | X-1 | OAuth2 Authorization Server(동적 클라이언트 등록 포함) | `domain/oauth2server`, `config/oauth2server` | 대기 | X-6 MCP 서버의 인증 기반 |
-| X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기, 관리자 강제와 해제) | `domain/twofactor` | **구현 완료(2026-11-02), 결정은 D-69** | 설계는 [architecture/two-factor.md](architecture/two-factor.md). 구현 판단은 A-328 |
+| X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기, 관리자 강제와 해제) | `domain/twofactor` | **구현 완료(2026-11-02), 결정은 D-69** | 설계는 [architecture/two-factor.md](architecture/two-factor.md). 구현 판단은 A-328. 정하지 않은 것: 2단계 인증을 끌 때 현재 비밀번호나 코드를 다시 묻는지 |
 | X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `ssh` | **구현 완료(2026-11-02, 내장 SSH 서버), 결정은 D-66** | 설명은 [architecture/ssh.md](architecture/ssh.md). 설정 `yona.ssh.enabled`(기본 꺼짐)로 켜는 Apache MINA SSHD, 사용자 SSH 키와 프로젝트 배포 키(읽기 전용 기본), 목록과 추가 두 화면(삭제 버튼만), REST, 감사와 지표, 프로젝트 홈의 SSH 복제 주소. 실제 `ssh`와 `git`으로 복제, 푸시, 읽기 전용 배포 키의 푸시 거부, 보호 규칙 적용을 확인했다. 명령은 저장소 종류별 처리기라 X-7(Mercurial)이 같은 자리에 더한다. **시스템 sshd 연동(X-3b, D-67, `docs/yona-ssh-system-sshd.md`)과 후속(D-68: 위키 저장소 SSH, SSH 키 서명 검증, 빈 저장소 안내와 위키의 SSH 주소, 배포 키 푸시의 사용자 귀속)도 구현했다. SVN의 SSH 접근은 하지 않기로 했다** |
 | X-4 | GPG 커밋 서명 검증(키 등록, 커밋과 태그의 Verified 표시, REST, 서명 커밋 필수 규칙) | `domain/gpgkey` | **구현 완료(2026-11-02), 결정은 D-65** | 일곱 단계가 모두 끝났다. 설명은 [architecture/gpg-signing.md](architecture/gpg-signing.md). BouncyCastle 직접 검증, 실제 gpg 2.4.8과 git의 키와 서명으로 호환 확인. 만료와 폐기 키는 지금 기준으로 Unverified. 설정 화면은 목록과 추가 두 화면(삭제 버튼만) |
 | X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | **구현 완료(2026-10-29)** | D-36: Classic 토큰을 먼저 도입하고 v1.6 사용자 토큰은 레거시 Classic 토큰으로 이관한다(공존이 아니라 이관). 모든 토큰이 사용자 권한을 확인한다(D-20 대체). Fine-grained는 X-5b로 나눈다. 상세는 [architecture/api-token.md](architecture/api-token.md) |

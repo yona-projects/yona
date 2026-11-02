@@ -81,8 +81,18 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `켜지 않았으면 안내와 인증 앱 추가 버튼만 보인다`() {
         val list = page(login(user()))
-        assertNotNull(list.selectFirst("p#two-factor-off")); assertNotNull(list.selectFirst("form[action$=/user/two-factor/begin] button"))
+        assertNotNull(list.selectFirst("#two-factor-off")); assertNotNull(list.selectFirst("form[action$=/user/two-factor/begin] button"))
         assertNull(list.selectFirst("form[action$=/user/two-factor/disable]")); assertNull(list.selectFirst("#two-factor-secret"))
+    }
+
+    @Test
+    fun `보안 키 추가는 목록과 따로 있는 화면이고 이름 입력란과 등록 단추가 있다`() {
+        mockMvc.perform(get("/user/editform/two-factor/security-key")).andExpect(status().is3xxRedirection)
+        val s = login(user())
+        assertTrue(page(s).selectFirst("a#security-key-new")!!.attr("href").endsWith("/user/editform/two-factor/security-key"))
+        val add = page(s, "/user/editform/two-factor/security-key")
+        assertNotNull(add.selectFirst("input#security-key-name")); assertNotNull(add.selectFirst("button#security-key-add"))
+        assertTrue(add.select("ul.nav-tabs a[href$=/user/editform/two-factor]").single().hasClass("active"))
     }
 
     @Test
@@ -112,7 +122,7 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
         val codes = done.select("#backup-codes li").map { it.text().trim() }
         assertEquals(10, codes.size); assertTrue(codes.all { Regex("[a-z2-9]{5}-[a-z2-9]{5}").matches(it) })
         val list = page(s)
-        assertNull(list.selectFirst("p#two-factor-off")); assertEquals(1, list.select("table#two-factor-list tr.method-row").size)
+        assertNull(list.selectFirst("#two-factor-off")); assertEquals(1, list.select("table#two-factor-list tr.method-row").size)
         assertTrue(list.selectFirst("#backup-remaining")!!.text().contains("10"))
         assertTrue(list.select("#backup-codes li").isEmpty(), "백업 코드는 다시 보이지 않는다")
     }
@@ -136,7 +146,7 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
         val u = user(); val s = login(u); enable(u, s)
         val id = doc(mockMvc.perform(get("/user/editform/two-factor").session(s)).andReturn().response.contentAsString).selectFirst("tr.method-row form")!!.attr("action").substringAfter("/credentials/").substringBefore("/delete")
         mockMvc.perform(post("/user/two-factor/credentials/$id/delete").session(s)).andExpect(status().is3xxRedirection)
-        assertNotNull(page(s).selectFirst("p#two-factor-off"))
+        assertNotNull(page(s).selectFirst("#two-factor-off"))
         assertFalse(service.isEnabled(users.findById(u.id!!).get()))
     }
 

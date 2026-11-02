@@ -18,13 +18,17 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="two-factor-page">
         <div class="alert alert-success" th:text="#{${noticeKey}}"></div>
         <h4 th:text="#{twoFactor.backup.title}"></h4>
-        <p th:text="#{twoFactor.backup.help}"></p>
-        <ul id="backup-codes" class="list-unstyled font-monospace fs-5">
+        <p class="text-body-secondary" th:text="#{twoFactor.backup.help}"></p>
+        <ul id="backup-codes" class="tf-codes">
             <li th:each="c : ${codes}" th:text="${c}"></li>
         </ul>
-        <a th:href="@{/user/editform/two-factor}" class="btn btn-success" th:text="#{twoFactor.backup.done}"></a>
+        <div class="tf-actions">
+            <a th:href="@{/user/editform/two-factor}" class="btn btn-success" th:text="#{twoFactor.backup.done}"></a>
+        </div>
+        </div>
     </div>
 </div>
 </th:block>

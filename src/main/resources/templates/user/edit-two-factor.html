@@ -4,8 +4,8 @@
   Copyright Yona & Yobi Authors & NAVER Corp.
   https://yona.io
 
-  추가 개발 항목 X-2(decisions.md D-69): 2단계 인증 목록 화면. 인증 앱, 백업 코드, 알려진 기기를 한 화면에서 다룬다
-  모델: title, enabled, backupRemaining, devices(DeviceRow 목록)
+  추가 개발 항목 X-2(decisions.md D-69): 2단계 인증 목록 화면. 수단 목록과 추가 단추, 백업 코드, 알려진 기기
+  모델: title, enabled, hasTotp, methods(MethodRow 목록), backupRemaining, devices(DeviceRow 목록)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::twoFactorPage})}">
@@ -18,9 +18,10 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="two-factor-page">
         <p class="text-body-secondary" th:text="#{twoFactor.description}"></p>
 
-        <p th:if="${!enabled}" id="two-factor-off" class="empty" th:text="#{twoFactor.list.empty}"></p>
+        <div th:if="${!enabled}" id="two-factor-off" class="tf-empty" th:text="#{twoFactor.list.empty}"></div>
 
         <table id="two-factor-list" class="table table-striped" th:if="${enabled}">
             <thead><tr><th th:text="#{twoFactor.method}"></th><th th:text="#{sshKey.name}"></th><th th:text="#{sshKey.createdDate}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th></th></tr></thead>
@@ -28,7 +29,7 @@
             <tr th:each="m : ${methods}" class="method-row" th:attr="data-type=${m.type}">
                 <td th:text="${m.type == 'TOTP'} ? #{twoFactor.method.totp} : #{twoFactor.method.securityKey}"></td>
                 <td th:text="${m.name}"></td><td th:text="${m.createdText}"></td><td th:text="${m.lastUsedText}"></td>
-                <td>
+                <td class="text-end">
                     <form method="post" th:action="@{/user/two-factor/credentials/{id}/delete(id=${m.id})}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{twoFactor.delete}"></button>
                     </form>
@@ -37,63 +38,44 @@
             </tbody>
         </table>
 
-        <div class="two-factor-controls d-flex flex-wrap gap-3 align-items-center mb-3">
-            <form th:if="${!hasTotp}" class="d-flex" method="post" th:action="@{/user/two-factor/begin}">
-                <button type="submit" class="btn btn-success text-nowrap" th:text="#{twoFactor.add}"></button>
+        <div class="tf-actions">
+            <form th:if="${!hasTotp}" method="post" th:action="@{/user/two-factor/begin}">
+                <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
             </form>
-            <form id="security-key-form" class="d-flex gap-2" style="display: none;" onsubmit="return false;">
-                <input id="security-key-name" type="text" class="form-control" style="width: 260px;" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
-                <button id="security-key-add" type="button" class="btn btn-success text-nowrap" th:text="#{twoFactor.securityKey.add}"></button>
-            </form>
+            <a id="security-key-new" class="btn btn-success" th:href="@{/user/editform/two-factor/security-key}" th:text="#{twoFactor.securityKey.add}"></a>
         </div>
-        <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
 
-        <th:block th:if="${enabled}">
-        <h4 class="mt-4" th:text="#{twoFactor.backup.title}"></h4>
-        <p id="backup-remaining" th:text="#{twoFactor.backup.remaining(${backupRemaining})}"></p>
-        <form method="post" th:action="@{/user/two-factor/backup-codes}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.backup.regenerate.confirm} + '\');'">
-            <button type="submit" class="btn btn-outline-secondary" th:text="#{twoFactor.backup.regenerate}"></button>
-        </form>
+        <section class="tf-section" th:if="${enabled}">
+            <h4 th:text="#{twoFactor.backup.title}"></h4>
+            <p id="backup-remaining" th:text="#{twoFactor.backup.remaining(${backupRemaining})}"></p>
+            <form method="post" th:action="@{/user/two-factor/backup-codes}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.backup.regenerate.confirm} + '\');'">
+                <button type="submit" class="btn btn-outline-secondary" th:text="#{twoFactor.backup.regenerate}"></button>
+            </form>
+        </section>
 
-        <h4 class="mt-4" th:text="#{twoFactor.devices.title}"></h4>
-        <p class="text-body-secondary" th:text="#{twoFactor.devices.description}"></p>
-        <table id="device-list" class="table table-striped" th:if="${!#lists.isEmpty(devices)}">
-            <thead><tr><th th:text="#{twoFactor.devices.name}"></th><th th:text="#{twoFactor.devices.ip}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th th:text="#{twoFactor.devices.expires}"></th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="d : ${devices}" class="device-row">
-                <td th:text="${d.name}"></td><td th:text="${d.ip}"></td><td th:text="${d.lastUsedText}"></td><td th:text="${d.expiresText}"></td>
-                <td>
-                    <form method="post" th:action="@{/user/two-factor/devices/{id}/delete(id=${d.id})}">
-                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{twoFactor.devices.delete}"></button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <p th:if="${#lists.isEmpty(devices)}" class="empty" th:text="#{twoFactor.devices.empty}"></p>
-        </th:block>
+        <section class="tf-section" th:if="${enabled}">
+            <h4 th:text="#{twoFactor.devices.title}"></h4>
+            <p th:text="#{twoFactor.devices.description}"></p>
+            <table id="device-list" class="table table-striped" th:if="${!#lists.isEmpty(devices)}">
+                <thead><tr><th th:text="#{twoFactor.devices.name}"></th><th th:text="#{twoFactor.devices.ip}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th th:text="#{twoFactor.devices.expires}"></th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${devices}" class="device-row">
+                    <td th:text="${d.name}"></td><td th:text="${d.ip}"></td><td th:text="${d.lastUsedText}"></td><td th:text="${d.expiresText}"></td>
+                    <td class="text-end">
+                        <form method="post" th:action="@{/user/two-factor/devices/{id}/delete(id=${d.id})}">
+                            <button type="submit" class="btn btn-danger btn-sm" th:text="#{twoFactor.devices.delete}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(devices)}" class="tf-empty" th:text="#{twoFactor.devices.empty}"></div>
+        </section>
+        </div>
     </div>
 </div>
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.webauthn.js}"></script>
-<script type="text/javascript" th:inline="javascript">
-    $(function () {
-        var form = $("#security-key-form");
-        if (!window.YonaWebAuthn || !YonaWebAuthn.supported()) { form.hide(); return; }
-        form.css("display", "flex");
-        function showError(key) { $("#security-key-error").text(Messages(key)).show(); }
-        $("#security-key-add").on("click", function () {
-            $("#security-key-error").hide();
-            $.post(/*[[@{/user/two-factor/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
-                return YonaWebAuthn.register(options);
-            }).then(function (credential) {
-                return $.post(/*[[@{/user/two-factor/webauthn/register}]]*/ "", { name: $("#security-key-name").val(), credential: credential }, null, "json");
-            }).then(function () {
-                location.href = /*[[@{/user/two-factor/webauthn/done}]]*/ "";
-            }).catch(function (e) {
-                showError(e && e.responseJSON && e.responseJSON.message ? e.responseJSON.message : "twoFactor.securityKey.rejected");
-            });
-        });
-    });
+<script type="text/javascript">
+    $(function () { if (!window.PublicKeyCredential) { $("#security-key-new").hide(); } });
 </script>
 </th:block>
 </html>

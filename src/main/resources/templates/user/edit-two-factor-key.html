@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-2(decisions.md D-69): 보안 키 추가 화면(이름 입력과 등록). 목록(edit-two-factor.html)과 따로 둔다
+  모델: title
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::twoFactorPage})}">
+<th:block th:fragment="twoFactorPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{twoFactor.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="two-factor-page">
+        <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
+        <h4 th:text="#{twoFactor.securityKey.add}"></h4>
+        <p class="text-body-secondary" th:text="#{twoFactor.securityKey.help}"></p>
+        <div class="mb-3">
+            <label for="security-key-name" class="form-label" th:text="#{twoFactor.securityKey.nameLabel}"></label>
+            <input id="security-key-name" type="text" class="form-control tf-narrow" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
+        </div>
+        <div class="tf-actions">
+            <button id="security-key-add" type="button" class="btn btn-success" th:text="#{twoFactor.securityKey.register}"></button>
+            <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+        </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.webauthn.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function () {
+        function showError(key) { $("#security-key-error").text(Messages(key)).show(); }
+        if (!window.YonaWebAuthn || !YonaWebAuthn.supported()) { $("#security-key-add").prop("disabled", true); showError("twoFactor.securityKey.unsupported"); return; }
+        $("#security-key-add").on("click", function () {
+            $("#security-key-error").hide();
+            $.post(/*[[@{/user/two-factor/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
+                return YonaWebAuthn.register(options);
+            }).then(function (credential) {
+                return $.post(/*[[@{/user/two-factor/webauthn/register}]]*/ "", { name: $("#security-key-name").val(), credential: credential }, null, "json");
+            }).then(function () {
+                location.href = /*[[@{/user/two-factor/webauthn/done}]]*/ "";
+            }).catch(function (e) {
+                showError(e && e.responseJSON && e.responseJSON.message ? e.responseJSON.message : "twoFactor.securityKey.rejected");
+            });
+        });
+    });
+</script>
+</th:block>
+</html>
