@@ -55,6 +55,10 @@ updated: 2026-11-02
 - **연결된 계정**: 본인은 자기 연결을 보고 해제한다(SSO 전용 모드가 꺼져 있을 때만). 사이트 관리자는 사용자 목록에서 SSO 연결을 모두 해제한다(소셜 연결은 두고, 전용 모드여도 가능). 해제는 `auth.sso_unlinked`로 남는다.
 - **감사와 지표**: 로그인 성공은 `auth.login_success`(`details.method`가 `sso-oidc`, `sso-saml2`, 새 사용자인지와 연결인지, IdP 시작이면 `initiated`), 거절과 실패는 `auth.sso_failure`(`details.protocol`, `details.reason`), 설정 변경은 `site.sso_changed`(비밀 값 제외)이다([audit-log.md](audit-log.md)).
 
+### Yona가 OIDC 제공자이면서 사내 IdP로 로그인하는 경우(X-40과 X-16의 조합)
+
+외부 앱(예: Woodpecker)이 Yona로 로그인을 요청하면 인가 서버가 로그인하지 않은 사용자를 `/users/loginform?redirectUrl=/oauth2/resume`로 보낸다. 사용자는 이 화면에서 사내 IdP 단추를 눌러 로그인하고(`returnTo`가 `/oauth2/resume`을 이어받는다), 로그인이 끝나면 보관해 둔 승인 요청이 이어져 승인 화면을 거쳐 외부 앱이 인가 코드와 ID 토큰을 받는다. ID 토큰의 `sub`는 SSO로 만들어졌거나 연결된 Yona 사용자의 번호이다. 사내 IdP 로그인이 거절되면(예: 이메일 미확인) 승인 요청은 이어지지 않는다. 외부 앱이 먼저 사내 IdP로 가는 것이 아니라 **사용자가 Yona 로그인 화면에서 고르는** 구조이며, SSO 전용 모드이면 사내 IdP 단추만 남는다. 시험은 `SsoWithOidcProviderTest`, 실제 확인은 `e2e/ssoprovider.mjs`(외부 앱 대신 `openid-client` 라이브러리)이다.
+
 ## 4. 알아 둘 점
 
 - **암호화된 어설션은 응답에도 서명이 있어야 풀린다.** 스프링 시큐리티가 서명 래핑 공격을 막으려고 서명 없는 응답의 암호화 어설션을 해독하지 않는다. 대부분의 IdP(Okta, Entra ID, Keycloak)는 응답과 어설션 모두에 서명할 수 있다.
