@@ -1,6 +1,12 @@
 package dev.yona.web.code
 
 /**
+ * 파일이 Git LFS 포인터일 때 화면에 더하는 안내이다(X-8, `decisions.md` D-79 10번). [sizeText]는 실제 파일의 크기, [downloadUrl]은 객체를 내려받는 주소이고
+ * 서버에 객체가 없으면 `null`이다.
+ */
+data class LfsFileView(val sizeText: String, val downloadUrl: String?)
+
+/**
  * 코드 브라우저의 브랜치 선택 상자 항목이다. [url]은 고르면 이동할 주소, [label]은 참조 이름(`refs/heads/master`)이다.
  * [group]은 항목이 속한 구역 제목의 메시지 키(`title.branches`, `title.tags`)이고 구역이 없으면 `null`이다(SVN).
  */
@@ -52,7 +58,7 @@ data class FileView(
     val fileName: String, val path: String, val revId: String, val rawUrl: String, val openUrl: String, val historyUrl: String, val commitUrl: String,
     val userHref: String, val avatarUrl: String?, val author: String, val ago: String, val commitMessage: String, val lineEnding: String,
     val commentCount: Long, val binary: Boolean, val mode: String, val size: Long, val mimeType: String, val data: String?, val renderedMarkdown: String?,
-    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true
+    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true, val lfs: LfsFileView? = null
 ) {
     /**
      * 코드 영역(`#showCode`)의 `data-mimeType` 값이다. v1.6 템플릿은 `@files.get("mimeType")`의 JSON 노드를 그대로 찍어 따옴표가 값에 들어간다

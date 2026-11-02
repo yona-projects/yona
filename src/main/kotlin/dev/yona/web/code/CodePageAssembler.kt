@@ -25,7 +25,8 @@ class CodePageAssembler(
     private val markdown: ProjectMarkdownRenderer,
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
-    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService
+    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService,
+    private val lfs: dev.yona.domain.lfs.LfsService
 ) {
 
     /**
@@ -124,8 +125,26 @@ class CodePageAssembler(
             ago = (info["createdDate"] as? Long)?.let { helper.agoOrDateString(Date(it)) }.orEmpty(), commitMessage = info["commitMessage"] as? String ?: "",
             lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = if (git) reviewThreads.countOnCommit(project, revId, "/$path").toLong() else 0L, binary = binary, mode = mode, size = size, mimeType = mimeType,
             data = data, renderedMarkdown = if (mode == "markdown" && data != null) markdown.renderFileInCodeBrowser(data, project) else null,
-            editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager, git = git
+            editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager, git = git,
+            lfs = lfsView(project, mode, data, path, base)
         )
+    }
+
+    /** Git LFS 포인터 파일이면 안내를 만든다(X-8). LFS를 쓰지 않는 프로젝트이거나 포인터가 아니면 `null`이다. 원래 내용(포인터 텍스트)은 그대로 보인다. */
+    private fun lfsView(project: Project, mode: String, data: String?, path: String, base: String): LfsFileView? {
+        if (mode != "code" || data == null || !lfs.available(project)) return null
+        val pointer = dev.yona.domain.lfs.LfsPointer.parse(data) ?: return null
+        val present = lfs.locate(project, pointer.oid) != null
+        val name = URLEncoder.encode(path.substringAfterLast('/'), Charsets.UTF_8).replace("+", "%20")
+        return LfsFileView(readableSize(pointer.size), if (present) "$base/lfs/${pointer.oid}?name=$name" else null)
+    }
+
+    private fun readableSize(bytes: Long): String {
+        if (bytes < 1024) return "$bytes B"
+        val units = listOf("KB", "MB", "GB", "TB")
+        var value = bytes.toDouble(); var unit = -1
+        while (value >= 1024 && unit < units.lastIndex) { value /= 1024; unit++ }
+        return String.format(java.util.Locale.ROOT, "%.1f %s", value, units[unit])
     }
 
     private fun userLink(loginId: String): String = if (loginId.isNotEmpty()) "/$loginId" else "javascript:void(); return false;"

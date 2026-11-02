@@ -115,6 +115,11 @@
                         </div>
                     </div>
 
+                    <div id="lfs-pointer" class="alert alert-info" th:if="${f.lfs != null}">
+                        <strong th:text="#{code.lfs.stored(${f.lfs.sizeText})}"></strong>
+                        <a th:if="${f.lfs.downloadUrl != null}" th:href="${f.lfs.downloadUrl}" class="lfs-download ybtn ms-2" th:text="#{button.download}"></a>
+                        <span th:if="${f.lfs.downloadUrl == null}" class="lfs-missing text-body-secondary ms-2" th:text="#{code.lfs.missing}"></span>
+                    </div>
                     <div id="showImage" class="image-wrap" th:if="${f.mode == 'image'}"><img th:src="${f.rawUrl}"></div>
                     <div id="showFile" class="file-wrap" th:if="${f.mode == 'binary'}">
                         <p>
