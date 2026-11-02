@@ -82,6 +82,18 @@ class SsoSettingsService(
         return SsoSaveResult.Saved(row)
     }
 
+    /**
+     * 저장된 OIDC 설정의 연결을 다시 확인한다(발견 문서를 받아 발급자를 맞춰 본다). 맞으면 캐시한 발견 값과 확인 시각을 새로 고치고 `null`을, 아니면 오류를 돌려준다.
+     */
+    @Transactional
+    fun checkOidc(): SsoSaveError? {
+        val row = oidcSettings.findById(ROW).orElse(null) ?: return SsoSaveError.INVALID_ISSUER
+        val found = discoveryClient.fetch(row.issuerUri.orEmpty())
+        val discovery = found.discovery ?: return found.error
+        row.discoveryJson = mapper.writeValueAsString(discovery); row.discoveryCheckedDate = Date(); oidcSettings.save(row)
+        return null
+    }
+
     // --- SAML 2 ---
 
     /** SAML 2 설정이다. 저장한 적이 없으면 꺼진 기본값이다(저장하지 않는다). */
@@ -156,6 +168,19 @@ class SsoSettingsService(
         } catch (e: Exception) {
             Saml2MetadataImport.Invalid()
         }
+    }
+
+    /**
+     * IdP 메타데이터에서 읽은 값으로 발급자, 로그인 주소, 로그인 요청 방식, 서명 인증서를 채운다. 사용 여부와 나머지 설정은 바꾸지 않는다(관리자가 확인한 뒤 켠다).
+     */
+    @Transactional
+    fun applySaml2Metadata(imported: Saml2MetadataImport.Imported, actor: User?): SsoSaveResult {
+        if (validateIssuer(imported.ssoUrl, allowQuery = true) != null) return SsoSaveResult.Rejected(SsoSaveError.HTTPS_REQUIRED)
+        val row = saml2Settings.findById(ROW).orElseGet { Saml2SsoSettings() }
+        row.idpEntityId = imported.entityId; row.idpSsoUrl = imported.ssoUrl; row.idpSsoBinding = imported.binding; row.idpCertificates = imported.certificatesPem.joinToString("\n"); row.updatedDate = Date()
+        saml2Settings.save(row)
+        record(actor, mapOf("protocol" to "saml2", "metadata_imported" to true, "idp_entity_id" to imported.entityId, "idp_sso_url" to imported.ssoUrl))
+        return SsoSaveResult.Saved(row)
     }
 
     /** SP 키쌍(RSA 3072, 자체 서명 인증서 5년)을 새로 만든다. 이미 키가 있으면 이전 키로 옮겨 함께 둔다(IdP가 새 인증서를 올릴 때까지, `decisions.md` D-80 21번). */

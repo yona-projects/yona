@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-16, decisions.md D-80). 사이트 관리의 SSO 설정(OIDC, SAML 2)
+  모델: title, oidc, saml2, oidcSecretSet, redirectUri, initiateUrl, acsUrl, entityId, metadataUrl, idpCertificates, spCertificate, spPreviousCertificate
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::ssoPage})}">
+<th:block th:fragment="ssoPage">
+<div class="two-factor-page">
+<h3 th:text="#{site.sso.title}"></h3>
+<p class="text-body-secondary" th:text="#{site.sso.description}"></p>
+
+<!-- OIDC -->
+<h4 class="mt-4" th:text="#{site.sso.oidc.title}"></h4>
+<p class="text-body-secondary" th:text="#{site.sso.oidc.help}"></p>
+<dl class="sso-notify">
+    <dt th:text="#{site.sso.oidc.redirectUri}"></dt><dd><code id="oidc-redirect-uri" th:text="${redirectUri}"></code></dd>
+    <dt th:text="#{site.sso.oidc.initiateUrl}"></dt><dd><code id="oidc-initiate-url" th:text="${initiateUrl}"></code></dd>
+</dl>
+<form id="sso-oidc-form" class="security-settings" method="post" th:action="@{/sites/sso/oidc}">
+    <label class="option" for="oidc-enabled">
+        <input class="form-check-input" type="checkbox" name="enabled" id="oidc-enabled" value="true" th:checked="${oidc.enabled}">
+        <span class="option-text"><strong th:text="#{site.sso.enabled}"></strong><small th:text="#{site.sso.enabled.help}"></small></span>
+    </label>
+    <div class="mb-3 mt-3">
+        <label for="oidc-display" class="form-label" th:text="#{site.sso.displayName}"></label>
+        <input id="oidc-display" type="text" name="displayName" maxlength="100" class="form-control" th:value="${oidc.displayName}">
+        <div class="form-text" th:text="#{site.sso.displayName.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="oidc-issuer" class="form-label" th:text="#{site.sso.oidc.issuer}"></label>
+        <input id="oidc-issuer" type="url" name="issuerUri" class="form-control" th:value="${oidc.issuerUri}" placeholder="https://idp.example.com/realms/corp">
+        <div class="form-text" th:text="#{site.sso.oidc.issuer.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="oidc-client-id" class="form-label" th:text="#{site.sso.oidc.clientId}"></label>
+        <input id="oidc-client-id" type="text" name="clientId" class="form-control" th:value="${oidc.clientId}" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="oidc-client-secret" class="form-label" th:text="#{site.sso.oidc.clientSecret}"></label>
+        <input id="oidc-client-secret" type="password" name="clientSecret" value="" class="form-control" autocomplete="new-password"
+               th:placeholder="${oidcSecretSet} ? #{site.sso.secret.keep} : ''">
+        <div class="form-text" th:text="#{site.sso.oidc.clientSecret.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="oidc-scopes" class="form-label" th:text="#{site.sso.oidc.scopes}"></label>
+        <input id="oidc-scopes" type="text" name="scopes" class="form-control" th:value="${oidc.scopes}">
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3"><label for="oidc-email-claim" class="form-label" th:text="#{site.sso.claim.email}"></label>
+            <input id="oidc-email-claim" type="text" name="emailClaim" class="form-control" th:value="${oidc.emailClaim}"></div>
+        <div class="col-md-4 mb-3"><label for="oidc-name-claim" class="form-label" th:text="#{site.sso.claim.name}"></label>
+            <input id="oidc-name-claim" type="text" name="nameClaim" class="form-control" th:value="${oidc.nameClaim}"></div>
+        <div class="col-md-4 mb-3"><label for="oidc-loginid-claim" class="form-label" th:text="#{site.sso.claim.loginId}"></label>
+            <input id="oidc-loginid-claim" type="text" name="loginIdClaim" class="form-control" th:value="${oidc.loginIdClaim}"></div>
+    </div>
+    <h5 th:text="#{site.sso.accounts.title}"></h5>
+    <label class="option" for="oidc-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="oidc-auto-create" value="true" th:checked="${oidc.autoCreate}">
+        <span class="option-text"><strong th:text="#{site.sso.autoCreate}"></strong><small th:text="#{site.sso.autoCreate.help}"></small></span></label>
+    <label class="option" for="oidc-link-by-email"><input class="form-check-input" type="checkbox" name="linkByEmail" id="oidc-link-by-email" value="true" th:checked="${oidc.linkByEmail}">
+        <span class="option-text"><strong th:text="#{site.sso.linkByEmail}"></strong><small th:text="#{site.sso.linkByEmail.help}"></small></span></label>
+    <label class="option" for="oidc-allow-unverified"><input class="form-check-input" type="checkbox" name="allowUnverifiedEmail" id="oidc-allow-unverified" value="true" th:checked="${oidc.allowUnverifiedEmail}">
+        <span class="option-text"><strong th:text="#{site.sso.allowUnverified}"></strong><small th:text="#{site.sso.allowUnverified.oidc.help}"></small></span></label>
+    <label class="option" for="oidc-name-sync"><input class="form-check-input" type="checkbox" name="nameSync" id="oidc-name-sync" value="true" th:checked="${oidc.nameSync}">
+        <span class="option-text"><strong th:text="#{site.sso.nameSync}"></strong><small th:text="#{site.sso.nameSync.help}"></small></span></label>
+    <label class="option" for="oidc-initiate"><input class="form-check-input" type="checkbox" name="initiateEnabled" id="oidc-initiate" value="true" th:checked="${oidc.initiateEnabled}">
+        <span class="option-text"><strong th:text="#{site.sso.initiate}"></strong><small th:text="#{site.sso.initiate.oidc.help}"></small></span></label>
+    <div class="mb-3 mt-3">
+        <label for="oidc-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
+        <input id="oidc-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control tf-wide" th:value="${oidc.clockSkewSeconds}">
+        <div class="form-text" th:text="#{site.sso.clockSkew.help}"></div>
+    </div>
+    <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
+</form>
+<form method="post" th:action="@{/sites/sso/oidc/check}" class="mt-2">
+    <button id="oidc-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.oidc.check}"></button>
+    <span th:if="${oidc.discoveryCheckedDate != null}" class="text-body-secondary ms-2" th:text="#{site.sso.oidc.checkedAt(${#dates.format(oidc.discoveryCheckedDate, 'yyyy-MM-dd HH:mm')})}"></span>
+</form>
+
+<hr class="my-4">
+
+<!-- SAML 2 -->
+<h4 th:text="#{site.sso.saml2.title}"></h4>
+<p class="text-body-secondary" th:text="#{site.sso.saml2.help}"></p>
+<dl class="sso-notify">
+    <dt th:text="#{site.sso.saml2.entityId}"></dt><dd><code id="saml2-entity-id" th:text="${entityId}"></code></dd>
+    <dt th:text="#{site.sso.saml2.acsUrl}"></dt><dd><code id="saml2-acs-url" th:text="${acsUrl}"></code></dd>
+    <dt th:text="#{site.sso.saml2.metadataUrl}"></dt><dd><code id="saml2-metadata-url" th:text="${metadataUrl}"></code></dd>
+</dl>
+
+<form id="sso-saml2-metadata-form" method="post" th:action="@{/sites/sso/saml2/metadata}" class="mb-3">
+    <h5 th:text="#{site.sso.saml2.metadata.title}"></h5>
+    <div class="form-text mb-2" th:text="#{site.sso.saml2.metadata.help}"></div>
+    <input type="url" name="metadataUrl" class="form-control mb-2" placeholder="https://idp.example.com/metadata">
+    <textarea name="metadataXml" rows="4" class="form-control mb-2" th:placeholder="#{site.sso.saml2.metadata.xml}"></textarea>
+    <button type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.saml2.metadata.import}"></button>
+</form>
+
+<form id="sso-saml2-form" class="security-settings" method="post" th:action="@{/sites/sso/saml2}">
+    <label class="option" for="saml2-enabled">
+        <input class="form-check-input" type="checkbox" name="enabled" id="saml2-enabled" value="true" th:checked="${saml2.enabled}">
+        <span class="option-text"><strong th:text="#{site.sso.enabled}"></strong><small th:text="#{site.sso.enabled.help}"></small></span>
+    </label>
+    <div class="mb-3 mt-3">
+        <label for="saml2-display" class="form-label" th:text="#{site.sso.displayName}"></label>
+        <input id="saml2-display" type="text" name="displayName" maxlength="100" class="form-control" th:value="${saml2.displayName}">
+        <div class="form-text" th:text="#{site.sso.displayName.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="saml2-idp-entity" class="form-label" th:text="#{site.sso.saml2.idpEntityId}"></label>
+        <input id="saml2-idp-entity" type="text" name="idpEntityId" class="form-control" th:value="${saml2.idpEntityId}">
+    </div>
+    <div class="mb-3">
+        <label for="saml2-idp-sso" class="form-label" th:text="#{site.sso.saml2.idpSsoUrl}"></label>
+        <input id="saml2-idp-sso" type="url" name="idpSsoUrl" class="form-control" th:value="${saml2.idpSsoUrl}">
+        <input type="hidden" name="idpSsoBinding" th:value="${saml2.idpSsoBinding}">
+    </div>
+    <div class="mb-3">
+        <label for="saml2-idp-certs" class="form-label" th:text="#{site.sso.saml2.idpCertificates}"></label>
+        <textarea id="saml2-idp-certs" name="idpCertificates" rows="6" class="form-control" th:text="${saml2.idpCertificates}"></textarea>
+        <div class="form-text" th:text="#{site.sso.saml2.idpCertificates.help}"></div>
+        <ul id="saml2-idp-certificates" class="list-unstyled mt-2">
+            <li th:each="cert : ${idpCertificates}" class="idp-cert" th:classappend="${cert.expired or cert.expiring} ? 'expiring'">
+                <code th:text="${cert.subject}"></code>
+                <span th:text="#{site.sso.cert.notAfter(${#dates.format(cert.notAfter, 'yyyy-MM-dd')})}"></span>
+                <strong th:if="${cert.expired}" class="text-danger" th:text="#{site.sso.cert.expired}"></strong>
+                <strong th:if="${!cert.expired and cert.expiring}" class="text-warning" th:text="#{site.sso.cert.expiring}"></strong>
+                <small class="text-body-secondary d-block" th:text="'SHA-256 ' + ${cert.fingerprint}"></small>
+            </li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3"><label for="saml2-email-attr" class="form-label" th:text="#{site.sso.attr.email}"></label>
+            <input id="saml2-email-attr" type="text" name="emailAttribute" class="form-control" th:value="${saml2.emailAttribute}"></div>
+        <div class="col-md-4 mb-3"><label for="saml2-name-attr" class="form-label" th:text="#{site.sso.attr.name}"></label>
+            <input id="saml2-name-attr" type="text" name="nameAttribute" class="form-control" th:value="${saml2.nameAttribute}"></div>
+        <div class="col-md-4 mb-3"><label for="saml2-loginid-attr" class="form-label" th:text="#{site.sso.attr.loginId}"></label>
+            <input id="saml2-loginid-attr" type="text" name="loginIdAttribute" class="form-control" th:value="${saml2.loginIdAttribute}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="saml2-sp-entity" class="form-label" th:text="#{site.sso.saml2.spEntityId}"></label>
+        <input id="saml2-sp-entity" type="text" name="spEntityId" class="form-control" th:value="${saml2.spEntityId}" th:placeholder="${entityId}">
+        <div class="form-text" th:text="#{site.sso.saml2.spEntityId.help}"></div>
+    </div>
+    <div class="mb-3">
+        <label for="saml2-nameid" class="form-label" th:text="#{site.sso.saml2.nameIdFormat}"></label>
+        <input id="saml2-nameid" type="text" name="nameIdFormat" class="form-control" th:value="${saml2.nameIdFormat}" placeholder="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
+    </div>
+    <h5 th:text="#{site.sso.accounts.title}"></h5>
+    <label class="option" for="saml2-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="saml2-auto-create" value="true" th:checked="${saml2.autoCreate}">
+        <span class="option-text"><strong th:text="#{site.sso.autoCreate}"></strong><small th:text="#{site.sso.autoCreate.help}"></small></span></label>
+    <label class="option" for="saml2-link-by-email"><input class="form-check-input" type="checkbox" name="linkByEmail" id="saml2-link-by-email" value="true" th:checked="${saml2.linkByEmail}">
+        <span class="option-text"><strong th:text="#{site.sso.linkByEmail}"></strong><small th:text="#{site.sso.linkByEmail.help}"></small></span></label>
+    <label class="option" for="saml2-name-sync"><input class="form-check-input" type="checkbox" name="nameSync" id="saml2-name-sync" value="true" th:checked="${saml2.nameSync}">
+        <span class="option-text"><strong th:text="#{site.sso.nameSync}"></strong><small th:text="#{site.sso.nameSync.help}"></small></span></label>
+    <label class="option" for="saml2-initiate"><input class="form-check-input" type="checkbox" name="initiateEnabled" id="saml2-initiate" value="true" th:checked="${saml2.initiateEnabled}">
+        <span class="option-text"><strong th:text="#{site.sso.initiate}"></strong><small th:text="#{site.sso.initiate.saml2.help}"></small></span></label>
+    <label class="option" for="saml2-sign-requests"><input class="form-check-input" type="checkbox" name="signRequests" id="saml2-sign-requests" value="true" th:checked="${saml2.signRequests}">
+        <span class="option-text"><strong th:text="#{site.sso.saml2.signRequests}"></strong><small th:text="#{site.sso.saml2.signRequests.help}"></small></span></label>
+    <div class="mb-3 mt-3">
+        <label for="saml2-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
+        <input id="saml2-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control tf-wide" th:value="${saml2.clockSkewSeconds}">
+    </div>
+    <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
+</form>
+
+<h5 class="mt-4" th:text="#{site.sso.saml2.sp.title}"></h5>
+<p class="text-body-secondary" th:text="#{site.sso.saml2.sp.help}"></p>
+<div th:if="${spCertificate != null}" id="saml2-sp-current" class="mb-3">
+    <code th:text="${spCertificate.subject}"></code>
+    <span th:text="#{site.sso.cert.notAfter(${#dates.format(spCertificate.notAfter, 'yyyy-MM-dd')})}"></span>
+    <strong th:if="${spCertificate.expired}" class="text-danger" th:text="#{site.sso.cert.expired}"></strong>
+    <strong th:if="${!spCertificate.expired and spCertificate.expiring}" class="text-warning" th:text="#{site.sso.cert.expiring}"></strong>
+    <small id="saml2-sp-fingerprint" class="text-body-secondary d-block" th:text="'SHA-256 ' + ${spCertificate.fingerprint}"></small>
+    <a class="btn btn-outline-secondary btn-sm mt-1" th:href="@{/sites/sso/saml2/sp-certificate.pem}" th:text="#{site.sso.saml2.sp.download}"></a>
+</div>
+<div th:if="${spPreviousCertificate != null}" id="saml2-sp-previous" class="mb-3">
+    <strong th:text="#{site.sso.saml2.sp.previous}"></strong>
+    <span th:text="#{site.sso.cert.notAfter(${#dates.format(spPreviousCertificate.notAfter, 'yyyy-MM-dd')})}"></span>
+    <small class="text-body-secondary d-block" th:text="'SHA-256 ' + ${spPreviousCertificate.fingerprint}"></small>
+    <form method="post" th:action="@{/sites/sso/saml2/keys/remove-previous}" class="mt-1">
+        <button type="submit" class="btn btn-outline-danger btn-sm" th:text="#{site.sso.saml2.sp.removePrevious}"></button>
+        <span class="form-text" th:text="#{site.sso.saml2.sp.removePrevious.help}"></span>
+    </form>
+</div>
+<form method="post" th:action="@{/sites/sso/saml2/keys/generate}" class="mb-3">
+    <button id="saml2-generate-keys" type="submit" class="btn btn-outline-secondary" th:text="${spCertificate == null} ? #{site.sso.saml2.sp.generate} : #{site.sso.saml2.sp.regenerate}"></button>
+</form>
+<form id="saml2-upload-keys" method="post" th:action="@{/sites/sso/saml2/keys/upload}" class="mb-3">
+    <div class="form-text mb-2" th:text="#{site.sso.saml2.sp.upload.help}"></div>
+    <textarea name="privateKey" rows="4" class="form-control mb-2" th:placeholder="#{site.sso.saml2.sp.upload.privateKey}" autocomplete="off"></textarea>
+    <textarea name="certificate" rows="4" class="form-control mb-2" th:placeholder="#{site.sso.saml2.sp.upload.certificate}"></textarea>
+    <button type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.saml2.sp.upload}"></button>
+</form>
+</div>
+</th:block>
+</html>
