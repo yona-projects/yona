@@ -1,6 +1,7 @@
 package dev.yona.domain.lfs
 
 import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.site.SiteSettingService
 import org.springframework.stereotype.Service
 
@@ -29,10 +30,34 @@ sealed interface LfsPlan {
  * 내려받기는 있는 객체만, 올리기는 없는 객체만 동작을 준다. 객체 하나의 최대 크기와 프로젝트의 용량 한도를 넘는 올리기는 그 객체만 413 오류이다.
  */
 @Service
-class LfsService(private val storage: LfsStorage, private val settings: SiteSettingService) {
+class LfsService(private val storage: LfsStorage, private val settings: SiteSettingService, private val projects: ProjectRepository) {
 
     /** LFS를 쓸 수 있는 프로젝트이면 `true`이다(사이트 설정이 켜져 있고 저장소 종류가 지원된다). */
     fun available(project: Project): Boolean = settings.lfsEnabled() && LfsSupport.supports(project)
+
+    /**
+     * [oid] 객체가 있는 프로젝트를 찾는다. 자기 저장소를 먼저 보고, 없으면 포크의 원본, 그 원본의 원본 순으로 올라가며 읽기로 빌려 쓴다(D-79 4번). 어디에도 없으면 `null`이다.
+     * 순환이나 지나치게 깊은 연결은 [MAX_FORK_DEPTH]에서 멈춘다.
+     */
+    fun locate(project: Project, oid: String): Project? {
+        var current: Project? = project
+        var depth = 0
+        while (current != null && depth <= MAX_FORK_DEPTH) {
+            if (storage.exists(current, oid)) return current
+            current = current.originalProject
+            depth++
+        }
+        return null
+    }
+
+    /** [oid] 객체의 크기이다. 자기 저장소나 원본 쪽에서 찾고 없으면 `null`이다. */
+    fun sizeOf(project: Project, oid: String): Long? = locate(project, oid)?.let { storage.sizeOf(it, oid) }
+
+    /** 원본 프로젝트를 지우기 전에 부른다. 이 프로젝트를 원본으로 둔 포크마다 이 프로젝트의 객체를 포크로 가져가게 한다(D-79 4번). */
+    fun adoptForForks(project: Project) {
+        val id = project.id ?: return
+        projects.findByOriginalProjectId(id).forEach { storage.adopt(project, it) }
+    }
 
     /** [operation](`download` 또는 `upload`)의 [objects]를 판단한다. 같은 batch 안의 올리기는 용량 한도에 누적해서 센다. */
     fun plan(project: Project, operation: String, objects: List<LfsObjectRequest>): List<LfsPlan> {
@@ -44,14 +69,14 @@ class LfsService(private val storage: LfsStorage, private val settings: SiteSett
                 !LfsStorage.validOid(item.oid) -> LfsPlan.Failure(item, 422, "Invalid oid")
                 item.size < 0 -> LfsPlan.Failure(item, 422, "Invalid size")
                 operation == DOWNLOAD -> {
-                    val stored = storage.sizeOf(project, item.oid)
+                    val stored = sizeOf(project, item.oid)
                     when {
                         stored == null -> LfsPlan.Failure(item, 404, "Object does not exist")
                         stored != item.size -> LfsPlan.Failure(item, 422, "Object size does not match")
                         else -> LfsPlan.Download(item)
                     }
                 }
-                storage.exists(project, item.oid) -> LfsPlan.Present(item)
+                locate(project, item.oid) != null -> LfsPlan.Present(item)
                 item.size > maxObject -> LfsPlan.Failure(item, 413, "Object exceeds the maximum size")
                 quota > 0 && committed + item.size > quota -> LfsPlan.Failure(item, 413, "Project exceeds the LFS storage quota")
                 else -> { committed += item.size; LfsPlan.Upload(item) }
@@ -67,6 +92,8 @@ class LfsService(private val storage: LfsStorage, private val settings: SiteSett
     }
 
     companion object {
+        /** 포크 연결을 따라 올라가는 최대 깊이이다. */
+        const val MAX_FORK_DEPTH = 16
         const val DOWNLOAD = "download"
         const val UPLOAD = "upload"
     }

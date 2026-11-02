@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  * 저장소 열기는 Git만 지원한다.
  */
 @Service
-class RepositoryService(private val git: GitRepositories, private val svn: SvnRepositories, private val wiki: WikiRepositories) {
+class RepositoryService(private val git: GitRepositories, private val svn: SvnRepositories, private val wiki: WikiRepositories, private val lfs: dev.yona.domain.lfs.LfsStorage) {
 
     /**
      * 프로젝트의 저장소를 새로 만든다. 같은 위치에 이미 있으면 먼저 지운다 (v1.6 `createRepository`).
@@ -47,9 +47,15 @@ class RepositoryService(private val git: GitRepositories, private val svn: SvnRe
             VCS_SUBVERSION -> svn.move(owner(project), name(project), newOwner, newName)
             else -> throw unsupported(project)
         }
-        // 위키 저장소는 프로젝트의 VCS와 무관하게 항상 따라간다 (X-17, D-60).
-        return moved && wiki.move(owner(project), name(project), newOwner, newName)
+        // 위키 저장소는 프로젝트의 VCS와 무관하게 항상 따라간다 (X-17, D-60). LFS 객체도 따라간다(X-8, D-79).
+        return moved && wiki.move(owner(project), name(project), newOwner, newName) && lfs.move(owner(project), name(project), newOwner, newName)
     }
+
+    /**
+     * 프로젝트의 LFS 객체를 지운다. 없으면 아무 일도 하지 않는다. 프로젝트를 지울 때만 부른다(위키와 같다). 포크가 빌려 쓰던 객체는 그 전에
+     * [dev.yona.domain.lfs.LfsService.adoptForForks]로 포크가 가져가 있어야 한다.
+     */
+    fun deleteLfs(project: Project) = lfs.delete(project)
 
     /** 프로젝트의 위키 저장소를 만든다. 이미 있으면 아무 일도 하지 않는다. 프로젝트의 VCS와 무관하게 git이다 (X-17, D-60). */
     fun createWiki(project: Project) = wiki.create(owner(project), name(project))

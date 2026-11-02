@@ -106,7 +106,8 @@ class LfsController(
             if (context.failure != null) return@measured context.failure
             val target = requireNotNull(context.project)
             if (!LfsStorage.validOid(oid)) return@measured error(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid oid")
-            val file = storage.objectFile(target, oid).takeIf { it.isFile } ?: return@measured error(HttpStatus.NOT_FOUND, "Object does not exist")
+            val holder = lfs.locate(target, oid) ?: return@measured error(HttpStatus.NOT_FOUND, "Object does not exist")
+            val file = storage.objectFile(holder, oid)
             val resource: Resource = FileSystemResource(file)
             ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).contentLength(file.length()).body(resource)
         }
@@ -122,7 +123,7 @@ class LfsController(
             val node = runCatching { mapper.readTree(request.inputStream) }.getOrNull()
             val oid = node?.get("oid")?.asString("").orEmpty(); val size = node?.get("size")?.takeIf { it.isNumber }?.asLong() ?: -1
             if (!LfsStorage.validOid(oid) || size < 0) return@measured error(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid verify request")
-            val stored = storage.sizeOf(target, oid) ?: return@measured error(HttpStatus.NOT_FOUND, "Object does not exist")
+            val stored = lfs.sizeOf(target, oid) ?: return@measured error(HttpStatus.NOT_FOUND, "Object does not exist")
             if (stored != size) error(HttpStatus.UNPROCESSABLE_ENTITY, "Object size does not match") else ResponseEntity.ok().build<Void>()
         }
 

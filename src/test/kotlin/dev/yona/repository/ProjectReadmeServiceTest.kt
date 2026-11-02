@@ -28,7 +28,7 @@ class ProjectReadmeServiceTest {
 
     @BeforeEach
     fun setUp() {
-        repositories = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it), WikiRepositories(it)) }
+        repositories = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it), WikiRepositories(it), dev.yona.domain.lfs.LfsStorage(it)) }
         readme = ProjectReadmeService(repositories, dev.yona.repository.svn.SvnRepositories(DataDirectory(YonaProperties(dataDir = dataDir.path))))
         repositories.createRepository(project)
     }

@@ -89,6 +89,38 @@ class LfsStorage(private val dataDirectory: DataDirectory) {
         }
     }
 
+    /**
+     * 프로젝트의 LFS 디렉터리를 새 소유자와 이름 위치로 옮긴다(개명, 이전). 옮길 것이 없으면 `true`이다. 새 위치에 이미 있으면 `false`이다.
+     * 저장소 디렉터리를 옮기는 곳([dev.yona.repository.RepositoryService.moveRepository])에서 함께 부른다.
+     */
+    fun move(oldOwner: String, oldName: String, newOwner: String, newName: String): Boolean {
+        val source = directoryOf(oldOwner, oldName)
+        if (!source.exists()) return true
+        val target = directoryOf(newOwner, newName)
+        if (target.exists()) return false
+        target.parentFile.mkdirs()
+        Files.move(source.toPath(), target.toPath())
+        return true
+    }
+
+    /** 프로젝트의 LFS 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
+    fun delete(project: Project) { directoryOf(project).deleteRecursively() }
+
+    /**
+     * [from]의 객체 가운데 [to]에 없는 것을 [to]로 가져간다. 같은 파일 시스템이면 하드 링크로 디스크를 더 쓰지 않고, 안 되면 복사한다.
+     * 원본 프로젝트를 지울 때 포크가 빌려 쓰던 객체를 포크가 갖게 한다(`decisions.md` D-79 4번).
+     */
+    fun adopt(from: Project, to: Project) {
+        val objects = File(directoryOf(from), "objects")
+        if (!objects.isDirectory) return
+        objects.walkTopDown().filter { it.isFile }.forEach { source ->
+            val target = objectFile(to, source.name)
+            if (target.exists()) return@forEach
+            target.parentFile.mkdirs()
+            try { Files.createLink(target.toPath(), source.toPath()) } catch (e: Exception) { Files.copy(source.toPath(), target.toPath()) }
+        }
+    }
+
     /** 프로젝트의 객체 수와 바이트이다. */
     fun usage(project: Project): Usage {
         val objects = File(directoryOf(project), "objects")

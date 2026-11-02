@@ -190,6 +190,7 @@ class ExternalProjectManageApiController(
         deletion.delete(project)
         repositories.deleteRepository(project)
         repositories.deleteWiki(project)
+        repositories.deleteLfs(project)
         return ResponseEntity.noContent().build<Void>()
     }
 

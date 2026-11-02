@@ -29,7 +29,7 @@ class WikiRepositoriesTest {
 
     private fun service(): RepositoryService {
         val directory = directory()
-        return RepositoryService(GitRepositories(directory), SvnRepositories(directory), wiki())
+        return RepositoryService(GitRepositories(directory), SvnRepositories(directory), wiki(), dev.yona.domain.lfs.LfsStorage(directory))
     }
 
     private fun project(owner: String = "alice", name: String = "demo", vcs: String = "GIT") =
