@@ -351,6 +351,23 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 없는 사용자가 소유한 OAuth 앱 행은 정리한다 (X-1)`() {
+        import("""{"OAUTH_CLIENT": [{"id": 1, "client_id": "yona_app_orphan", "name": "x", "description": "", "home_url": "", "redirect_uris": "https://a.example/cb", "confidential": true, "secret_hash": "h", "allowed_scopes": "read:user", "registration": "USER", "owner_type": "USER", "owner_id": 999021, "created_date": 1700000000000, "updated_date": 0, "fetched_date": 0, "expires_date": 0}]}""")
+        assertEquals(0, count("oauth_client"))
+    }
+
+    @Test
+    fun `OAuth 앱을 내보내고 다시 가져온다 (X-1)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881411L, "oarnd", "왕복")
+        jdbc.update("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 41L, "yona_app_rt", "왕복 앱", "https://a.example/cb", true, "hash-rt", "read:user", "USER", "USER", 881411L)
+        val bytes = exportBytes()
+        jdbc.update("delete from oauth_client")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals("왕복 앱", jdbc.queryForObject("select name from oauth_client where id = 41", String::class.java))
+        assertEquals("hash-rt", jdbc.queryForObject("select secret_hash from oauth_client where id = 41", String::class.java))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

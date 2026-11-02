@@ -142,6 +142,7 @@ class DataService(
                     cleanGpgKeys(connection, imported)
                     cleanSshKeys(connection, imported)
                     cleanTwoFactor(connection, imported)
+                    cleanOAuthClients(connection, imported)
                     cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
@@ -233,6 +234,23 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean SSH keys after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * OAuth 앱 테이블(추가 개발 항목 X-1, `decisions.md` D-71)을 가져온 뒤 바로잡는다. [cleanTwoFactor]와 같은 이유로, 파일에 사용자가 있는데 이 테이블이 없으면(v1.6 파일) 남아 있던 행을 비우고,
+     * 소유자가 사용자인데 그 사용자가 없는 행은 지운다.
+     */
+    private fun cleanOAuthClients(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("N4USER" in imported && "OAUTH_CLIENT" !in imported) statement.executeUpdate("delete from oauth_client")
+                statement.executeUpdate("delete from oauth_client where owner_type = 'USER' and owner_id not in (select id from n4user)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean OAuth client rows after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }
