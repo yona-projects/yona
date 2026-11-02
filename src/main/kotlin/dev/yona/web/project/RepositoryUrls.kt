@@ -29,10 +29,20 @@ class RepositoryUrls(private val properties: YonaProperties) {
      * @param port 주소에 쓸 포트. 기본은 `yona.ssh.public-port`, 그것이 0이면 서버가 실제로 받는 포트이다
      */
     fun sshUrlFor(project: Project, request: HttpServletRequest, port: Int = sshPort()): String? {
-        if (!(properties.ssh.enabled || properties.ssh.relay.enabled) || project.vcs != "GIT") return null
+        if (project.vcs != "GIT") return null
+        return sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}.git")
+    }
+
+    /**
+     * 프로젝트 위키 저장소의 SSH 복제 주소이다(`decisions.md` D-68). 프로젝트의 저장소 종류와 무관하게 git이며 이름 끝이 `.wiki.git`이다. SSH를 켜지 않았으면 `null`이다.
+     */
+    fun sshWikiUrlFor(project: Project, request: HttpServletRequest, port: Int = sshPort()): String? =
+        sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}.wiki.git")
+
+    private fun sshUrl(request: HttpServletRequest, port: Int, path: String): String? {
+        if (!(properties.ssh.enabled || properties.ssh.relay.enabled)) return null
         val host = properties.hostname.ifEmpty { request.serverName }
         val user = properties.ssh.user
-        val path = "${encode(project.owner)}/${encode(project.name)}.git"
         return if (port == 22) "$user@$host:$path" else "ssh://$user@$host:$port/$path"
     }
 

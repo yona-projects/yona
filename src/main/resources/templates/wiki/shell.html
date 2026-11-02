@@ -18,6 +18,11 @@
     <div th:if="${sidebarHtml != null}" class="wiki-custom-sidebar markdown-wrap mt-3" th:utext="${sidebarHtml}"></div>
     <div th:if="${cloneUrl != null}" class="wiki-clone mt-4">
         <h4 class="wiki-clone-title" th:text="#{wiki.clone.title}">Clone this wiki locally</h4>
+        <!--/* 내장 SSH 서버나 시스템 sshd 연동을 켠 사이트에서만 보인다(D-68) */-->
+        <div th:if="${sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol wiki-clone-protocol mb-1" role="group">
+            <button type="button" class="btn btn-outline-secondary selected" th:attr="data-clone-url=${cloneUrl}">HTTP</button>
+            <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${sshCloneUrl}">SSH</button>
+        </div>
         <div class="input-group input-group-sm">
             <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
             <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
@@ -40,6 +45,13 @@
             });
             if (more) more.classList.toggle("d-none", expanded || !!needle);
         }
+        var protocol = document.querySelector(".wiki-clone-protocol");
+        if (protocol) protocol.addEventListener("click", function (event) {
+            var button = event.target.closest("button");
+            if (!button) return;
+            protocol.querySelectorAll("button").forEach(function (b) { b.classList.toggle("selected", b === button); });
+            document.querySelector(".wiki-clone-url").value = button.getAttribute("data-clone-url");
+        });
         var copy = document.querySelector(".wiki-clone-copy");
         if (copy) copy.addEventListener("click", function () {
             var url = document.querySelector(".wiki-clone-url");

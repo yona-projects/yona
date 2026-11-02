@@ -57,6 +57,15 @@ class RepositoryUrlsSshTest {
     }
 
     @Test
+    fun `위키 저장소의 SSH 주소는 이름 끝이 wiki git이고 프로젝트의 저장소 종류와 무관하다`() {
+        val on = urls(YonaProperties.Ssh(enabled = true))
+        assertEquals("ssh://git@yona.example.com:2222/owner/repo.wiki.git", on.sshWikiUrlFor(git, request(), 2222))
+        assertEquals("git@yona.example.com:owner/repo.wiki.git", on.sshWikiUrlFor(git, request(), 22))
+        assertEquals("ssh://git@yona.example.com:2222/o/n.wiki.git", on.sshWikiUrlFor(Project(owner = "o", name = "n", vcs = "Subversion"), request(), 2222))
+        assertNull(urls(YonaProperties.Ssh()).sshWikiUrlFor(git, request(), 2222))
+    }
+
+    @Test
     fun `Git이 아닌 프로젝트에는 SSH 주소가 없다`() {
         assertNull(urls(YonaProperties.Ssh(enabled = true)).sshUrlFor(Project(owner = "o", name = "n", vcs = "Subversion"), request(), 2222))
     }

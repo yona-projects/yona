@@ -2582,8 +2582,8 @@ label.inline-list {
 
         /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 하고, 단추는 입력란 바로 왼쪽에 붙는다(180px + 복사 단추 86px + 틈 6px) */
         &.clone-with-protocol .project-clone-url {
-            width:180px;
-            max-width:none;
+            width:180px !important;
+            max-width:180px !important;
         }
     }
 }
@@ -7936,4 +7936,16 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     float: right;
     margin-left: 0.75rem;
     margin-top: 0.125rem;
+}
+
+/* HTTP와 SSH 복제 주소 선택 단추(X-3, D-66, D-68). 선택된 단추를 `selected`로 표시한다. 기존 단추 규칙이 BS5의 `active` 모양을 뒤집어 버려 자체 규칙으로 그린다 */
+.clone-protocol .btn {
+    background-color: #fff;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+.clone-protocol .btn.selected {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
 }

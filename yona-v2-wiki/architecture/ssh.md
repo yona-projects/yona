@@ -7,7 +7,7 @@ updated: 2026-11-02
 
 # SSH 접근, SSH 키, 배포 키 (X-3, D-66)
 
-**상태: 구현 완료(2026-11-02, 내장 SSH 서버와 시스템 sshd 연동).** 결정과 이유는 [decisions.md D-66, D-67](../decisions.md), 구현 판단은 A-323부터 A-325이다. v1.6에는 없는 추가 항목이며 `yona.ssh.enabled`와 `yona.ssh.relay.enabled`를 켜지 않으면 포트도 소켓도 열지 않고 화면과 동작이 v1.6과 같다.
+**상태: 구현 완료(2026-11-02, 내장 SSH 서버, 시스템 sshd 연동, 후속).** 결정과 이유는 [decisions.md D-66, D-67, D-68](../decisions.md), 구현 판단은 A-323부터 A-326이다. v1.6에는 없는 추가 항목이며 `yona.ssh.enabled`와 `yona.ssh.relay.enabled`를 켜지 않으면 포트도 소켓도 열지 않고 화면과 동작이 v1.6과 같다.
 
 ## 한눈에 보기
 
@@ -21,6 +21,13 @@ updated: 2026-11-02
 | 푸시 | HTTP와 같은 JGit과 같은 푸시 훅(`GitHooks`)이라 브랜치 보호 규칙, 서명 커밋 필수 규칙, 풀 리퀘스트와 웹훅 처리가 똑같이 적용된다 |
 | REST | `/user/ssh_keys`, `/users/{user}/ssh_keys`, `/owners/{owner}/projects/{project}/deploy_keys` |
 | 감사와 지표 | `ssh_key.*`, `deploy_key.*`, SSH 푸시의 `git.push`(행위자와 주소), `auth.basic_failure`(채널 `ssh`), `yona.vcs.*`, `yona.security.events{channel=ssh}` |
+
+## 후속 (D-68)
+
+- **위키 저장소**: `ssh://git@호스트/소유자/이름.wiki.git`(또는 `.wiki`)을 HTTP와 같은 규칙으로 받는다. 같은 이름의 프로젝트가 있으면 코드가 우선이다. 위키를 끈 프로젝트와 접근 권한이 없는 사용자에게는 `Repository not found`이고, 푸시는 구성원만 하며 기본 브랜치 삭제는 거부한다. 배포 키는 접근하지 못한다. 위키의 "로컬에 복제" 상자에도 HTTP와 SSH 선택이 생긴다.
+- **배포 키 푸시의 귀속**: `deploy_key.created_by_id`(키를 등록한 사용자)에게 푸시 뒤 작업(이슈 번호 참조, 풀 리퀘스트 갱신, 커밋 알림)을 귀속한다. **규칙의 바이패스는 주지 않는다**(관리자가 등록한 키여도 보호 규칙을 우회하지 못한다). 등록한 사용자가 없거나 잠기거나 삭제되었으면 그 작업을 건너뛴다. 감사 행위자는 계속 `DEPLOY_KEY`이다. REST 응답에 `createdBy`가 있다.
+- **SSH 서명 검증**: [gpg-signing.md](gpg-signing.md)의 SSH 서명 절.
+- **빈 저장소 안내**: 서버를 켠 사이트에서 HTTP와 SSH 복제 주소를 고르는 단추가 생기고 안내의 명령이 선택을 따른다.
 
 ## 두 방식
 
@@ -110,8 +117,5 @@ OpenSSH 공개키 한 줄(`~/.ssh/id_*.pub`)을 MINA의 `PublicKeyEntry`로 읽�
 ## 한계
 
 - 포트 22를 쓰려면 내장 서버는 root 권한이나 포트 전달이 필요하다. 시스템 sshd 연동을 쓰면 sshd가 22번 포트를 받는다.
-- SSH 키로 한 커밋 서명은 검증하지 않는다(`ssh_key`의 지문과 공개키 형식은 맞춰 두었다).
-- 위키 저장소와 Subversion, Mercurial은 SSH로 접근하지 못한다. Mercurial은 X-7이 처리기를 더한다.
-- 프로젝트 홈의 복제 상자만 SSH 주소를 보인다. 빈 저장소 안내 화면(`code/nohead`)은 HTTP 명령을 그대로 보인다.
-- 배포 키의 푸시는 푸시한 사용자가 없어 풀 리퀘스트 자동 갱신, 이슈 참조, 커밋 알림이 일어나지 않는다.
+- Subversion과 Mercurial은 SSH로 접근하지 못한다(SVN의 SSH 접근은 하지 않기로 했고 Mercurial은 X-7이 처리기를 더한다).
 - 접속하는 동안 도중에 한도를 넘은 동시 접속 수를 제한하지는 않는다(MINA의 기본 대기 시간만 쓴다).

@@ -40,7 +40,7 @@
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
                 <!--/* 내장 SSH 서버를 켠 사이트에서만 보인다(X-3, D-66). 켜지 않으면 v1.6과 같은 복제 상자이다. 상자의 float와 absolute 배치를 건드리지 않게 상자 아래 줄에 둔다 */-->
                 <div th:if="${projectView.sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol" role="group">
-                    <button type="button" class="btn btn-outline-secondary active" th:attr="data-clone-url=${projectView.cloneUrl}">HTTP</button>
+                    <button type="button" class="btn btn-outline-secondary selected" th:attr="data-clone-url=${projectView.cloneUrl}">HTTP</button>
                     <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${projectView.sshCloneUrl}">SSH</button>
                 </div>
                 <script th:if="${projectView.sshCloneUrl != null}">
@@ -50,7 +50,7 @@
                         box.addEventListener("click", function(event){
                             var button = event.target.closest("button");
                             if (!button) { return; }
-                            Array.prototype.forEach.call(box.querySelectorAll("button"), function(b){ b.classList.toggle("active", b === button); });
+                            Array.prototype.forEach.call(box.querySelectorAll("button"), function(b){ b.classList.toggle("selected", b === button); });
                             input.value = button.getAttribute("data-clone-url");
                         });
                     })();

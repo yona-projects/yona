@@ -311,6 +311,8 @@ class WikiViewController(
             .addObject("canWrite", canWrite(project))
             .addObject("activeName", activeName)
             .addObject("cloneUrl", repositoryUrls.wikiUrlFor(project, currentRequest(), currentUserProvider.get().user?.loginId))
+            // SSH를 켠 사이트에서만 있다(D-68). 없으면 복제 상자가 이전과 같다
+            .addObject("sshCloneUrl", repositoryUrls.sshWikiUrlFor(project, currentRequest()))
             .addObject("pages", pageList.map { WikiPageLink(it.name, it.title, pageUrl(base, it.name), it.name == activeName) })
             .addObject("sidebarHtml", wikiService.sidebar(project)?.let { render(project, it, names) })
             .addObject("footerHtml", wikiService.footer(project)?.let { render(project, it, names) })

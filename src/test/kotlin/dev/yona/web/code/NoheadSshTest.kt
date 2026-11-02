@@ -69,6 +69,7 @@ class NoheadSshTest : AbstractIntegrationTest() {
         val buttons = doc.select(".clone-protocol button")
         assertEquals(listOf("HTTP", "SSH"), buttons.map { it.text() })
         assertEquals("ssh://git@code.example.org:2222/${p.owner}/${p.name}.git", buttons[1].attr("data-clone-url"))
+        assertEquals(listOf(true, false), buttons.map { it.hasClass("selected") })
         val urls = doc.select("pre code .clone-url").map { it.text() }
         assertEquals(3, urls.size, "git clone, git remote add 두 곳, 세 군데에 주소가 있다")
         assertTrue(urls.all { it == buttons[0].attr("data-clone-url") }, urls.toString())

@@ -59,7 +59,7 @@ class ProjectHomeSshTest : AbstractIntegrationTest() {
         assertEquals(listOf("HTTP", "SSH"), buttons.map { it.text() })
         assertEquals("http://code.example.org/${p.owner}/${p.name}", buttons[0].attr("data-clone-url"))
         assertEquals("ssh://git@code.example.org:2222/${p.owner}/${p.name}.git", buttons[1].attr("data-clone-url"))
-        assertEquals(listOf(true, false), buttons.map { it.hasClass("active") })
+        assertEquals(listOf(true, false), buttons.map { it.hasClass("selected") })
     }
 
     @Test
