@@ -89,6 +89,7 @@ object ApiScopeRules {
         // Magpie 연동(X-23): 사람과 기간별 댓글 활동(읽기 전용이라 `read:repo`로도 읽는다)
         add("GET", "$PROJECT/activity", ApiRequirement.RepoRead)
         add("GET", "$PROJECT/activity/reviews", ApiRequirement.RepoRead)
+        add("GET", "$PROJECT/activity/commits", ApiRequirement.RepoRead)
         add("GET", "/-_-api/v1/user/projects", ApiRequirement.AnyRepo)
         add("GET", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.AnyRepo)
         // 프로젝트

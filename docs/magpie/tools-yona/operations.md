@@ -55,7 +55,7 @@ yona api /-_-api/v1/user | jq -r .loginId
 
 ## Contract: tracker
 
-The read-only activity queries of [`contract:tracker`](../tracker/README.md). Activity means **comments**, the same basis as the GitHub adapter's `commenter:` search; label, state and assignee changes are not counted, and Yona has no component or priority field.
+The read-only activity queries of [`contract:tracker`](../tracker/README.md). `list_commented` counts **comments**, the same basis as the GitHub adapter's `commenter:` search. `list_triaged` also counts changes of **labels, state, assignee and milestone** that the person made on issues others filed (Yona has no component or priority field).
 
 ### `list_filed(<login>, <since>, <end>)`
 
@@ -68,7 +68,7 @@ yona_pages yona issue list -R <upstream> --state all --author <login> --created-
 
 ### `list_triaged(<login>, <since>, <end>)`
 
-Issues others filed that the person commented on, dated by the person's first comment in the window. `pushback_candidate` stays `null` unless the caller passes a phrase list and a maintainer roster (then add `&phrases=<phrases>&maintainers=<maintainers>`, both comma-separated and URL-encoded): the server scans the thread inside Yona and returns only the link of the first maintainer comment containing a phrase, never a comment body.
+Issues others filed that the person commented on or changed (label, state, assignee, milestone), dated by the person's first such action in the window. `pushback_candidate` stays `null` unless the caller passes a phrase list and a maintainer roster (then add `&phrases=<phrases>&maintainers=<maintainers>`, both comma-separated and URL-encoded): the server scans the thread inside Yona and returns only the link of the first maintainer comment containing a phrase, never a comment body.
 
 <!-- recipe:list_triaged -->
 ```bash
@@ -223,7 +223,7 @@ yona_pages yona pr list -R <upstream> --state all --author <login> --created-sin
 
 ### `list_reviews_given(<login>, <since>, <end>)`
 
-`body_length` is the total length of the review bodies in the window and `inline_comment_count` counts review-thread comments; no body is returned.
+`body_length` is the total length of the review bodies in the window and `inline_comment_count` counts review-thread comments; no body is returned. Without a person, drop `reviewer=<login>&` and add `&membersOnly=true` (project members only, the counterpart of the GitHub adapter keeping `OWNER`, `MEMBER` and `COLLABORATOR` reviewers); each item is then one (change, reviewer) pair. Run the second recipe for that form:
 
 <!-- recipe:list_reviews_given -->
 ```bash
@@ -232,9 +232,22 @@ yona api "/-_-api/v1/owners/<owner>/projects/<project>/activity/reviews?reviewer
       first_review_at: .firstReviewAt, body_length: .bodyLength, inline_comment_count: .inlineCommentCount, labels: .labels}]}'
 ```
 
-### `list_authored_commits(<login>)`
+<!-- recipe:list_reviews_given_all -->
+```bash
+yona api "/-_-api/v1/owners/<owner>/projects/<project>/activity/reviews?since=<since>&until=<end>&membersOnly=true" \
+  | jq --arg server "${YONA_HOST%/}" '{total: (.items | length), items: [.items[] | {change_id: (.pullRequestNumber | tostring), change_permalink: ($server + .url), reviewer: .reviewer,
+      first_review_at: .firstReviewAt, body_length: .bodyLength, inline_comment_count: .inlineCommentCount, labels: .labels}]}'
+```
 
-Raises `NotApplicable`: Yona cannot search commits by author e-mail yet, so the consuming skill reports the stream as "not collected".
+### `list_authored_commits(<login>, limit=30)`
+
+Commits on the default branch whose author e-mail is one of the person's verified Yona e-mail addresses (primary or additional), newest first. The e-mail is a lookup key only: the recipe returns it as `author_email` for the consuming skill, which must not put it into a draft. `signed_off_by` is `true` when the message has a `Signed-off-by:` trailer. `change_id` is `null` (Yona does not link a commit to its pull request here). The server scans the latest 3000 commits; when it stops short of `limit` with more history left the response has `"capped": true`.
+
+<!-- recipe:list_authored_commits -->
+```bash
+yona api "/-_-api/v1/owners/<owner>/projects/<project>/activity/commits?author=<login>&limit=30" \
+  | jq '[.items[] | {sha: .sha, change_id: null, author_name: .authorName, author_email: .authorEmail, signed_off_by: (.message | test("(^|\n)Signed-off-by:"))}]'
+```
 
 ## Error handling
 

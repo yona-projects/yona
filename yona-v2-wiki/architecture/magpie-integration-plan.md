@@ -41,14 +41,14 @@ updated: 2026-11-03
 | 3 서버: 리뷰 활동 조회(`list_reviews_given`)와 작성 PR 조건(`list_authored`) | **완료**(2026-11-03, 단계 2와 함께) |
 | 3b CLI 옵션(`yona-cli`: `issue list`, `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드) | **완료**(2026-11-03, `yona-cli` 커밋 `c4e341d`, Go 시험 포함) |
 | 4 어댑터 문서(`docs/magpie/tools-yona/`: `README.md`, `tool.md`, `operations.md`, `source-control.md`) | **완료**(2026-11-03) |
-| 5 실제 확인(`e2e/magpiecheck.mjs`: 문서의 조리법 17개를 실제 서버와 `yona` CLI로 그대로 실행해 계약의 필드와 형식을 26건 확인) | **완료**(2026-11-03, 26/26) |
+| 5 실제 확인(`e2e/magpiecheck.mjs`: 문서의 조리법 19개를 실제 서버와 `yona` CLI로 그대로 실행해 계약의 필드와 형식을 28건 확인) | **완료**(2026-11-03, 28/28) |
 | 6 문서와 결정 마무리 | **완료**(2026-11-03) |
 
 ## 구현 결과
 
 - **서버**: 이슈 목록의 기간 조건과 `closedAt`, `authorFirstTime`, 활동 조회(`GET $P/activity`), PR 목록의 상태와 기간과 정렬, 토론(`GET …/discussion`), 리뷰 활동(`GET $P/activity/reviews`). 문서는 [api-project-reads.md](api-project-reads.md)와 [api-pull-requests.md](api-pull-requests.md)에 있다.
 - **CLI**(`yona-cli`): `issue list`와 `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드, `pr merge --method`와 `--json`, 이슈를 만들 때 `createdAt`을 항상 보낸다.
-- **어댑터 문서**: `docs/magpie/tools-yona/`(영어, Magpie의 `tools/yona/`로 기여할 수 있는 모양). 두 계약의 모든 동작과 활동 동작 두 가지를 채우고 `list_authored_commits`만 `NotApplicable`이다. **Magpie 쪽에 기여하는 것은 ASF 절차(CLA, 메일링 리스트 논의)가 필요해 선생님의 결정을 기다린다.**
+- **어댑터 문서**: `docs/magpie/tools-yona/`(영어, Magpie의 `tools/yona/`로 기여할 수 있는 모양). 두 계약의 모든 동작과 활동 동작 세 가지(`list_authored`, `list_reviews_given`, `list_authored_commits`)를 채운다. 사람을 생략하는 형태(`list_reviews_given`)와 분류 이벤트(`list_triaged`)도 채웠다. **Magpie 쪽에 기여하는 것은 ASF 절차(CLA, 메일링 리스트 논의)가 필요해 선생님의 결정을 기다린다.**
 - **확인 중 찾은 v1.6 결함**: REST로 이슈를 가져올 때 만든 시각이 비는 결함(R-131)을 선생님 지시로 고쳤다(D-83).
 - **Magpie 쪽 변경에 대비**: 어댑터 문서는 읽은 시점(2026-11-03)의 계약을 따른다. 계약이 바뀌면 `e2e/magpiecheck.mjs`가 조리법과 필드의 차이를 알려 준다.
 
@@ -95,7 +95,7 @@ Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)가 Yona 프로젝�
 | `status(id)` | PR 상태와 `mergeable`이 나온다 | **없음**(`checks`는 Yona에 CI가 없어 `none`) |
 | `list_authored(person, since, end, state)` | `GET /-_-api/v1/search/pullrequests`가 있다 | **작성자와 기간, 병합 시각 조건**과 `landed_at`, `author_first_time` |
 | `list_reviews_given(person, since, end)` | 리뷰는 `pull_request_review`에 저장되어 있다 | **사람과 기간별 리뷰 조회**(`first_review_at`, `body_length`, `inline_comment_count`) |
-| `list_authored_commits(person, limit)` | 커밋 이력 REST는 있으나 작성자 이메일로 찾는 조회는 확인하지 못했다 | 1차에서는 `NotApplicable`(선택 동작) |
+| `list_authored_commits(person, limit)` | 작성자 이메일로 찾는 조회가 없었다 | **구현함**(`GET $P/activity/commits`, 2026-11-03). 처음에 `NotApplicable`로 두려던 것을 선생님의 "요구하는 건 넣어야지"에 따라 채웠다 |
 
 ### 3.3 인증
 

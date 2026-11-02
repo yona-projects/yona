@@ -167,3 +167,18 @@ class TrackerActivityItem(
 @Schema(description = "사람과 기간별 댓글 활동 응답")
 class TrackerActivityResponse(@get:Schema(description = "활동이 있는 스레드들(처음 댓글을 단 시각 순)") val items: List<TrackerActivityItem>)
 
+@Schema(description = "사람이 쓴 커밋 하나")
+class AuthoredCommitItem(
+    @get:Schema(description = "커밋 번호(40자리)") val sha: String,
+    @get:Schema(description = "작성자 이름") val authorName: String,
+    @get:Schema(description = "커밋에 적힌 작성자 이메일. 찾는 열쇠로만 쓴다") val authorEmail: String,
+    @get:Schema(description = "커밋 메시지 전체") val message: String,
+    @get:Schema(description = "작성 시각(UTC, 초 단위)") val committedAt: String
+)
+
+@Schema(description = "사람이 쓴 커밋 응답")
+class AuthoredCommitsResponse(
+    @get:Schema(description = "커밋들(최근 순)") val items: List<AuthoredCommitItem>,
+    @get:Schema(description = "최근 3000개까지만 훑는데 그 안에서 `limit`개를 다 채우지 못하고 이력이 더 있으면 `true`") val capped: Boolean
+)
+

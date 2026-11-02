@@ -19,7 +19,7 @@ It never calls `curl`, so it also works under the shipped secure setup.
 ## Coverage
 
 Every verb of `contract:tracker` (`list_filed`, `list_triaged`, `list_commented`, `list_created`, `first_reply`) and of `contract:change-request` (`list_open`, `get`, `get_discussion`, `status`, `post_review`, `land`, `reject`) is implemented.
-Of the contributor-activity verbs, `list_authored` and `list_reviews_given` are implemented; `list_authored_commits` raises `NotApplicable` (Yona has no commit search by author e-mail yet).
+All three contributor-activity verbs (`list_authored`, `list_reviews_given`, `list_authored_commits`) are implemented, with and without a person where the contract allows it.
 Issue-body schemas, lifecycle labels and project boards are **out of scope** for this adapter, so `issue-template.md`, `labels.md` and `project-board.md` are not provided.
 
 ## Prerequisites

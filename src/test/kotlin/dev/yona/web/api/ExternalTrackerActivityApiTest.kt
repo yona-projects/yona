@@ -189,6 +189,21 @@ class ExternalTrackerActivityApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `triaged는 라벨과 상태와 담당자를 바꾼 것도 분류로 센다`() {
+        val f = project(); val author = user(); val l = label(f, "triage")
+        val byEvent = issue(f, "분류 이벤트", author, "2026-01-01T00:00:00Z", labels = listOf(l)); val none = issue(f, "아무 일 없음", author, "2026-01-02T00:00:00Z")
+        val own = issue(f, "내 이슈", f.member, "2026-01-03T00:00:00Z")
+        em.persist(IssueEvent(created = at("2026-02-03T00:00:00Z"), senderLoginId = f.member.loginId, issue = byEvent, eventType = EventType.ISSUE_LABEL_CHANGED, oldValue = "", newValue = "triage"))
+        em.persist(IssueEvent(created = at("2026-02-04T00:00:00Z"), senderLoginId = f.member.loginId, issue = own, eventType = EventType.ISSUE_STATE_CHANGED, oldValue = "open", newValue = "closed"))
+        em.persist(IssueEvent(created = at("2026-03-05T00:00:00Z"), senderLoginId = f.member.loginId, issue = none, eventType = EventType.ISSUE_ASSIGNEE_CHANGED, oldValue = "", newValue = "x"))
+        em.flush()
+        call(get("${f.api}/activity").param("actor", f.member.loginId!!).param("kind", "triaged").param("since", "2026-02-01").param("until", "2026-03-01"), token(user()))
+            .andExpect(jsonPath("$.items.length()").value(1)).andExpect(jsonPath("$.items[0].number").value(byEvent.number!!.toInt())).andExpect(jsonPath("$.items[0].firstActivity").value("2026-02-03T00:00:00Z"))
+        // commented는 댓글만 센다(이벤트는 세지 않는다)
+        call(get("${f.api}/activity").param("actor", f.member.loginId!!).param("kind", "commented").param("since", "2026-02-01").param("until", "2026-03-01"), token(user())).andExpect(jsonPath("$.items.length()").value(0))
+    }
+
+    @Test
     fun `밀어내기 후보는 메인테이너가 처음 남긴 문구 댓글의 주소이다`() {
         val f = project(); val author = user()
         val a = issue(f, "A", author, "2026-01-01T00:00:00Z")

@@ -56,9 +56,11 @@ Magpie의 이슈 계약(`contract:tracker`)이 요구하는 기간과 사람 조
 **활동 조회** (`GET $P/activity`)
 - 질의: `actor`(로그인 ID, 필수), `since`(필수), `until`(생략하면 지금), `kind`(`commented` 기본 또는 `triaged`), `phrases`와 `maintainers`(쉼표로 나눔, 선택).
 - 응답 `{"items": [{"number", "isPullRequest", "url", "firstActivity", "labels", "pushbackCandidate"}]}`. 항목은 그 사람이 창 안에서 **처음 댓글을 단 시각**의 순서이다. 창은 `since` 이상 `until` 미만이다.
-- `commented`는 이슈와 풀 리퀘스트(리뷰 스레드 댓글) 모두이고, `triaged`는 **다른 사람이 연 이슈**에 단 댓글만이다(풀 리퀘스트와 자기 이슈는 뺀다). 활동의 기준을 댓글로 한 것은 Magpie의 GitHub 어댑터가 `commenter:`로 찾는 것과 같다. Yona에는 구성 요소와 우선순위가 없고, 라벨, 상태, 담당자 변경은 1차에 세지 않는다.
+- `commented`는 이슈와 풀 리퀘스트(리뷰 스레드 댓글) 모두이고 댓글만 센다(Magpie의 GitHub 어댑터가 `commenter:`로 찾는 것과 같다). `triaged`는 **다른 사람이 연 이슈**만(풀 리퀘스트와 자기 이슈는 뺀다) 대상이고, 댓글에 더해 **상태, 담당자, 라벨, 마일스톤을 바꾼 것**도 센다(이슈 이벤트, Magpie 계약의 분류 정의). 날짜는 둘 중 이른 쪽이다. Yona에는 구성 요소와 우선순위가 없다.
 - `phrases`와 `maintainers`를 함께 주면 이슈마다 **구성원이 처음 남긴 문구 댓글**(문구는 대소문자 무시, 포함 검사)의 주소를 `pushbackCandidate`에 `…/issue/{n}#comment-{id}`로 담는다. 풀 리퀘스트 항목은 `null`이다. **댓글 본문은 응답에 없다**(Magpie 계약의 "본문은 어댑터 안에 둔다").
 - 400: `actor`나 `since`가 없음, 없는 사용자, 읽을 수 없는 날짜, `since`가 `until`보다 늦음, 알 수 없는 `kind`. 프로젝트 읽기 권한과 토큰 범위를 따른다(`repo`, `read:repo`, 공개 프로젝트는 `public_repo`).
 - **같은 시각에 낸 것의 처리**: 시각이 초 단위라 한 작성자의 이슈나 풀 리퀘스트가 같은 시각이면 이슈가 풀 리퀘스트보다, 번호가 작은 쪽이 먼저이다(`authorFirstTime`은 그 하나만 `true`이다).
 - **REST로 이슈를 가져올 때의 시각(D-83, R-131)**: `createdAt`을 생략하거나 읽을 수 없으면 지금 시각으로 채우고 `updatedAt`을 생략하면 만든 시각으로 채운다. 시각은 v1.6 형식(`2026-11-03 PM 02:02:11 +0900`) 또는 ISO-8601이다. **이 수정 전에 시각 없이 가져온 이슈는 시각이 비어 기간 조건에 걸리지 않는다.**
+
+**사람이 쓴 커밋** (`GET $P/activity/commits?author=&limit=`, Magpie `list_authored_commits`): `{"items": [{"sha", "authorName", "authorEmail", "message", "committedAt"}], "capped": false}`. 사람의 **대표 이메일과 인증한 추가 이메일**(대소문자 무시)로 기본 브랜치의 이력에서 찾고 최근 순으로 `limit`개(1 이상, 100을 넘으면 100, 기본 30)를 돌려준다. 최근 3000개까지만 훑고, 그 안에서 `limit`개를 다 채우지 못하고 이력이 더 있으면 `capped`가 `true`이다. 이메일은 찾는 열쇠이고 `authorEmail`은 커밋에 적힌 값이다. Git 프로젝트만이고 Subversion은 빈 목록이다. 코드 접근 권한과 `read:repo` 이상이 필요하다.
 

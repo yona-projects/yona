@@ -173,7 +173,19 @@ class ExternalPullRequestMagpieApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.items.length()").value(1)).andExpect(jsonPath("$.items[0].pullRequestNumber").value(a.number!!.toInt())).andExpect(jsonPath("$.items[0].firstReviewAt").value("2026-02-02T00:00:00Z"))
             .andExpect(jsonPath("$.items[0].reviewer").value(f.manager.loginId)).andExpect(jsonPath("$.items[0].bodyLength").value(5)).andExpect(jsonPath("$.items[0].inlineCommentCount").value(1))
             .andExpect(jsonPath("$.items[0].url").value(org.hamcrest.Matchers.endsWith("/pullRequest/${a.number}")))
-        call(get("${f.api}/activity/reviews").param("since", "2026-02-01"), token(user())).andExpect(status().isBadRequest)
         call(get("${f.api}/activity/reviews").param("reviewer", "nobody-here").param("since", "2026-02-01"), token(user())).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `리뷰 활동은 사람을 생략하면 프로젝트 전체의 리뷰를 돌려주고 membersOnly이면 구성원만이다`() {
+        val f = project(); val author = user(); val outsider = user(); val pr = pull(f, author, "2026-01-01T00:00:00Z")
+        em.persist(PullRequestReview(pullRequest = pr, authorId = f.manager.id, authorLoginId = f.manager.loginId, verdict = ReviewVerdict.APPROVED, contents = "구성원 리뷰", createdDate = at("2026-02-02T00:00:00Z")))
+        em.persist(PullRequestReview(pullRequest = pr, authorId = outsider.id, authorLoginId = outsider.loginId, verdict = ReviewVerdict.COMMENTED, contents = "외부 리뷰", createdDate = at("2026-02-03T00:00:00Z")))
+        em.flush()
+        val t = token(user())
+        call(get("${f.api}/activity/reviews").param("since", "2026-02-01").param("until", "2026-03-01"), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.items.length()").value(2)).andExpect(jsonPath("$.items[0].reviewer").value(f.manager.loginId)).andExpect(jsonPath("$.items[1].reviewer").value(outsider.loginId))
+        call(get("${f.api}/activity/reviews").param("since", "2026-02-01").param("until", "2026-03-01").param("membersOnly", "true"), t)
+            .andExpect(jsonPath("$.items.length()").value(1)).andExpect(jsonPath("$.items[0].reviewer").value(f.manager.loginId))
     }
 }

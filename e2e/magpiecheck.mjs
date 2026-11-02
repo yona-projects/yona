@@ -53,7 +53,7 @@ try {
   await admin.api('PATCH', `/owners/${OWNER}/projects/${PROJECT}/issues/${n2}`, { state: 'closed' }, { ok: [200, 204] }).catch(async () => admin.api('PUT', `/owners/${OWNER}/projects/${PROJECT}/issues/${n2}`, { state: 'closed' }));
   // 포크와 두 개의 풀 리퀘스트
   await dev.api('POST', `/owners/${OWNER}/projects/${PROJECT}/forks`, {});
-  const fork = join(work, 'fork'); git(work, 'clone', '-q', `http://dev1:${devToken}@${B.base.replace('http://', '')}/dev1/${PROJECT}`, 'fork'); git(fork, 'config', 'user.email', 'd@example.com'); git(fork, 'config', 'user.name', 'dev1');
+  const fork = join(work, 'fork'); git(work, 'clone', '-q', `http://dev1:${devToken}@${B.base.replace('http://', '')}/dev1/${PROJECT}`, 'fork'); git(fork, 'config', 'user.email', 'dev1@example.com'); git(fork, 'config', 'user.name', 'dev1');
   const branchPush = (name, file) => { git(fork, 'checkout', '-q', '-b', name, 'master'); writeFileSync(join(fork, file), `${name}\n`); git(fork, 'add', '.'); git(fork, 'commit', '-q', '-m', `feat: ${name}`); git(fork, 'push', '-q', 'origin', name); };
   branchPush('topic-a', 'b.txt'); branchPush('topic-b', 'c.txt');
   const cliEnv = { ...process.env, PATH: bin + ':' + process.env.PATH, YONA_HOST: B.base, YONA_CLI_CONFIG_DIR: join(bin, 'cfg2') };
@@ -112,6 +112,10 @@ try {
   const authored = json('list_authored', { login: 'dev1' });
   check('list_authored', authored.total === 2 && authored.items.every((x) => typeof x.id === 'string' && x.author === 'dev1' && ['landed', 'rejected', 'open'].includes(x.state) && 'landed_at' in x && typeof x.author_first_time === 'boolean'), JSON.stringify(authored));
   check('list_authored: 병합한 것은 landed_at이 있다', authored.items.some((x) => x.state === 'landed' && x.landed_at), JSON.stringify(authored.items));
+  const commits = json('list_authored_commits', { login: 'dev1' });
+  check('list_authored_commits', commits.length >= 1 && commits.every((x) => /^[0-9a-f]{40}$/.test(x.sha) && x.change_id === null && x.author_email === 'dev1@example.com' && typeof x.signed_off_by === 'boolean'), JSON.stringify(commits));
+  const reviewsAll = json('list_reviews_given_all', {});
+  check('list_reviews_given(사람 생략)', reviewsAll.total >= 1 && reviewsAll.items.every((x) => x.reviewer === 'admin'), JSON.stringify(reviewsAll));
   const reviews = json('list_reviews_given', { login: 'admin' });
   check('list_reviews_given', reviews.total >= 1 && reviews.items.every((x) => typeof x.change_id === 'string' && x.reviewer === 'admin' && isIsoZ(x.first_review_at) && typeof x.body_length === 'number' && typeof x.inline_comment_count === 'number'), JSON.stringify(reviews));
 } catch (e) {

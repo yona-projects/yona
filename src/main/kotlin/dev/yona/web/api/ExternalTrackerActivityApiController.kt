@@ -2,6 +2,7 @@ package dev.yona.web.api
 
 import dev.yona.domain.issue.TrackerActivityService
 import dev.yona.web.api.docs.ApiTags
+import dev.yona.web.api.docs.AuthoredCommitsResponse
 import dev.yona.web.api.docs.TrackerActivityResponse
 import dev.yona.domain.user.UserRepository
 import dev.yona.util.SiteUrls
@@ -27,7 +28,9 @@ class ExternalTrackerActivityApiController(
     private val support: PullRequestApiSupport,
     private val activity: TrackerActivityService,
     private val users: UserRepository,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val emails: dev.yona.domain.user.EmailRepository,
+    private val history: dev.yona.repository.CommitHistoryService
 ) {
 
     /**
@@ -72,5 +75,39 @@ class ExternalTrackerActivityApiController(
             )
         }
         return support.ok(linkedMapOf("items" to items))
+    }
+
+    /**
+     * 사람이 쓴 커밋이다(Magpie `list_authored_commits`). 사람의 대표 이메일과 인증한 추가 이메일(대소문자 무시)로 기본 브랜치의 이력에서 찾고 최근 순으로 `limit`개(1에서 100, 기본 30)를 돌려준다.
+     * 이력은 최근 3000개까지만 훑으며 그 안에서 `limit`개를 다 채우지 못하고 이력이 더 있으면 `capped`가 `true`이다. 이메일은 찾는 열쇠이고 응답의 `authorEmail`은 커밋에 적힌 값이다.
+     * Git 프로젝트만 다루고 Subversion은 빈 목록이다.
+     */
+    @io.swagger.v3.oas.annotations.Operation(operationId = "listAuthoredCommits", tags = [ApiTags.ISSUE], summary = "사람이 쓴 커밋", description = "사람의 이메일로 기본 브랜치의 커밋을 최근 순으로 찾는다(Magpie 연동).")
+    @io.swagger.v3.oas.annotations.Parameter(name = "author", description = "로그인 ID(필수)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, required = true)
+    @io.swagger.v3.oas.annotations.Parameter(name = "limit", description = "개수(1 이상, 100을 넘으면 100, 기본 30)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @ApiResponse(responseCode = "200", description = "커밋 목록", content = [Content(schema = Schema(implementation = AuthoredCommitsResponse::class))])
+    @ApiResponse(responseCode = "400", description = "`author`가 없거나 없는 사용자이다. `limit`이 1보다 작다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/activity/commits")
+    @Transactional(readOnly = true)
+    fun commits(@PathVariable owner: String, @PathVariable projectName: String, @RequestParam(required = false) author: String?, @RequestParam(required = false) limit: Int?, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, null, request)
+        target.error?.let { return it }
+        val project = requireNotNull(target.project)
+        val login = author?.trim()?.takeIf { it.isNotEmpty() } ?: return support.badRequest("author is required")
+        val person = users.findByLoginId(login) ?: return support.badRequest("no user by $login")
+        if (limit != null && limit < 1) return support.badRequest("limit must be at least 1")
+        val wanted = (listOfNotNull(person.email) + emails.findByUserIdOrderById(requireNotNull(person.id)).filter { it.valid == true }.mapNotNull { it.email }).map { it.lowercase() }.toSet()
+        val max = (limit ?: 30).coerceAtMost(100)
+        val scanned = if (project.vcs == "GIT") history.history(project, 0, COMMIT_SCAN_CAP, null, null).orEmpty() else emptyList()
+        val found = scanned.filter { it.authorEmail.lowercase() in wanted }
+        val items = found.take(max).map {
+            linkedMapOf("sha" to it.id, "authorName" to it.authorName, "authorEmail" to it.authorEmail, "message" to it.message, "committedAt" to ApiInstants.format(it.authorDate))
+        }
+        return support.ok(linkedMapOf("items" to items, "capped" to (found.size < max && scanned.size >= COMMIT_SCAN_CAP)))
+    }
+
+    private companion object {
+        /** 한 번에 훑는 이력의 최대 개수이다. */
+        const val COMMIT_SCAN_CAP = 3000
     }
 }

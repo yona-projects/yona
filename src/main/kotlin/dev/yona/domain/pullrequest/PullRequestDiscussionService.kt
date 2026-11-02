@@ -37,19 +37,21 @@ class PullRequestDiscussionService(private val threads: dev.yona.domain.comment.
         return Discussion(entries, entries.map { it.author }.filter { it.isNotEmpty() }.distinct(), visibleThreads.count { it.state == dev.yona.domain.enumeration.ThreadState.OPEN })
     }
 
-    /** [login]이 [since] 이상 [until] 미만에 리뷰한 풀 리퀘스트별 요약이다(처음 리뷰한 시각 순). */
-    fun reviewsGiven(projectId: Long, login: String, since: Date, until: Date): List<ReviewActivity> {
+    /** [login]이 [since] 이상 [until] 미만에 리뷰한 풀 리퀘스트별 요약이다(처음 리뷰한 시각 순). [login]이 `null`이면 프로젝트 전체이고 (풀 리퀘스트, 리뷰한 사람)마다 한 줄이다. */
+    fun reviewsGiven(projectId: Long, login: String?, since: Date, until: Date): List<ReviewActivity> {
         val reviewRows = em.createQuery(
-            "select r from PullRequestReview r where r.pullRequest.toProject.id = :p and r.authorLoginId = :login and r.createdDate >= :since and r.createdDate < :until order by r.createdDate asc, r.id asc", PullRequestReview::class.java
-        ).setParameter("p", projectId).setParameter("login", login).setParameter("since", since).setParameter("until", until).resultList
-        return reviewRows.groupBy { requireNotNull(it.pullRequest) }.map { (pull, rows) ->
+            "select r from PullRequestReview r where r.pullRequest.toProject.id = :p and r.authorLoginId is not null" + (if (login != null) " and r.authorLoginId = :login" else "") +
+                " and r.createdDate >= :since and r.createdDate < :until order by r.createdDate asc, r.id asc", PullRequestReview::class.java
+        ).setParameter("p", projectId).apply { if (login != null) setParameter("login", login) }.setParameter("since", since).setParameter("until", until).resultList
+        return reviewRows.groupBy { requireNotNull(it.pullRequest) to it.authorLoginId.orEmpty() }.map { (key, rows) ->
+            val (pull, reviewer) = key
             val inline = em.createQuery(
                 "select count(rc) from ReviewComment rc where rc.thread.pullRequest.id = :pr and rc.authorLoginId = :login and rc.createdDate >= :since and rc.createdDate < :until", Long::class.javaObjectType
-            ).setParameter("pr", pull.id).setParameter("login", login).setParameter("since", since).setParameter("until", until).singleResult
-            ReviewActivity(requireNotNull(pull.number), requireNotNull(rows.first().createdDate), rows.sumOf { it.contents.orEmpty().length }, inline.toInt(), pull.labels.map { it.name.orEmpty() }.sorted())
+            ).setParameter("pr", pull.id).setParameter("login", reviewer).setParameter("since", since).setParameter("until", until).singleResult
+            ReviewActivity(requireNotNull(pull.number), reviewer, requireNotNull(rows.first().createdDate), rows.sumOf { it.contents.orEmpty().length }, inline.toInt(), pull.labels.map { it.name.orEmpty() }.sorted())
         }.sortedBy { it.firstReviewAt }
     }
 
     /** 사람이 한 풀 리퀘스트에 창 안에서 남긴 리뷰의 요약이다. [bodyLength]는 리뷰 본문 길이의 합이고 [inlineCommentCount]는 리뷰 스레드에 단 댓글 수이다. */
-    data class ReviewActivity(val pullRequestNumber: Long, val firstReviewAt: Date, val bodyLength: Int, val inlineCommentCount: Int, val labels: List<String>)
+    data class ReviewActivity(val pullRequestNumber: Long, val reviewer: String, val firstReviewAt: Date, val bodyLength: Int, val inlineCommentCount: Int, val labels: List<String>)
 }

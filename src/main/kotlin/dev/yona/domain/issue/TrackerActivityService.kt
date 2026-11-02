@@ -68,11 +68,23 @@ class TrackerActivityService(private val issues: IssueRepository) {
                 "and rc.createdDate >= :since and rc.createdDate < :until group by t.pullRequest.id", Array<Any>::class.java
         ).setParameter("p", projectId).setParameter("login", login).setParameter("since", since).setParameter("until", until).resultList
 
+        // 분류(`triaged`)는 댓글에 더해 라벨, 상태, 담당자, 마일스톤을 바꾼 것도 센다(Magpie 계약 `list_triaged`). 날짜는 둘 중 이른 쪽이다
+        val firstByIssue = LinkedHashMap<Long, Date>()
+        issueRows.forEach { row -> firstByIssue[row[0] as Long] = row[1] as Date }
+        if (triagedOnly) {
+            em.createQuery(
+                "select e.issue.id, min(e.created) from IssueEvent e where e.issue.project.id = :p and e.senderLoginId = :login and e.eventType in :types and e.created >= :since and e.created < :until " +
+                    "and (e.issue.authorLoginId is null or e.issue.authorLoginId <> :login) group by e.issue.id", Array<Any>::class.java
+            ).setParameter("p", projectId).setParameter("login", login).setParameter("since", since).setParameter("until", until).setParameter("types", TRIAGE_EVENTS).resultList.forEach { row ->
+                val id = row[0] as? Long ?: return@forEach; val date = row[1] as? Date ?: return@forEach
+                firstByIssue.merge(id, date) { a, b -> if (a.before(b)) a else b }
+            }
+        }
         val threads = ArrayList<ActivityThread>()
-        val issueById = issues.findAllById(issueRows.map { it[0] as Long }).associateBy { it.id }
-        issueRows.forEach { row ->
-            val issue = issueById[row[0] as Long] ?: return@forEach
-            threads += ActivityThread(requireNotNull(issue.number), false, row[1] as Date, issue.labels.map { it.name.orEmpty() }.sorted(), pushback(issue, maintainers, phrases))
+        val issueById = issues.findAllById(firstByIssue.keys).associateBy { it.id }
+        firstByIssue.forEach { (id, date) ->
+            val issue = issueById[id] ?: return@forEach
+            threads += ActivityThread(requireNotNull(issue.number), false, date, issue.labels.map { it.name.orEmpty() }.sorted(), pushback(issue, maintainers, phrases))
         }
         pullRows.forEach { row ->
             val pull = em.find(PullRequest::class.java, row[0] as Long) ?: return@forEach
@@ -87,5 +99,10 @@ class TrackerActivityService(private val issues: IssueRepository) {
         val wanted = phrases.map { it.lowercase() }
         return em.createQuery("select c from IssueComment c where c.issue.id = :id order by c.createdDate asc, c.id asc", IssueComment::class.java).setParameter("id", issue.id).resultList
             .firstOrNull { c -> c.authorLoginId in maintainers && c.contents.orEmpty().lowercase().let { text -> wanted.any { it in text } } }?.id
+    }
+
+    private companion object {
+        /** 분류로 세는 이슈 이벤트이다: 상태, 담당자, 라벨, 마일스톤 변경. */
+        val TRIAGE_EVENTS = listOf(EventType.ISSUE_STATE_CHANGED, EventType.ISSUE_ASSIGNEE_CHANGED, EventType.ISSUE_LABEL_CHANGED, EventType.ISSUE_MILESTONE_CHANGED)
     }
 }
