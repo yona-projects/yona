@@ -113,3 +113,8 @@ Yona의 PR 경로는 거의 모두 화면용(HTML)이고 `/-_-api/v1` 아래에 
 | 위를 채운 뒤에도 남는 것 | 기간·작성자 조건의 이슈 목록, 이슈·PR 활동 조회(`list_filed`, `list_triaged`, `list_commented`, `list_created`, `list_reviews_given`) |
 
 연동 자체는 X-23으로 올려 두었고 **보류(쌓아 둠)** 상태이다.
+
+## 5. 구현 결과 (2026-11-03)
+
+이 문서가 정리한 빈칸은 X-23으로 채웠다. 결과와 결정은 [magpie-integration-plan.md](magpie-integration-plan.md)와 D-29, D-83에 있다. 이슈 쪽의 `list_filed`, `list_triaged`, `list_commented`, `list_created`, `first_reply`와 PR 쪽의 `list_open`, `get`, `get_discussion`, `status`, `post_review`, `land`, `reject`, 활동 동작 `list_authored`, `list_reviews_given`이 `docs/magpie/tools-yona/`의 어댑터 문서로 채워졌다(`list_authored_commits`는 `NotApplicable`).
+

@@ -13,7 +13,7 @@ updated: 2026-11-03
 
 # Apache Magpie 연동 구현 계획 (X-23)
 
-> **상태: 결정 확정(2026-11-03), 구현 진행 중.** 선생님이 질문 1(도구)과 5(CLI 옵션)를 정하셨고, 나머지 질문 8개는 "진행해줘"로 **권장안대로 확정**되었다(7절 표). 단계 0(Magpie 저장소 확인)은 끝났고(아래 "단계 0 결과"), 단계 1(서버 REST)부터 TDD로 진행한다. 결정은 [decisions.md](../decisions.md) D-29에 적었다.
+> **상태: 구현 완료(2026-11-03).** 선생님이 질문 1(도구)과 5(CLI 옵션)를 정하셨고, 나머지 질문 8개는 "진행해줘"로 **권장안대로 확정**되었다(7절 표). 단계 0(Magpie 저장소 확인)은 끝났고(아래 "단계 0 결과"), 단계 1(서버 REST)부터 TDD로 진행한다. 결정은 [decisions.md](../decisions.md) D-29에 적었다.
 
 ## 결정 (선생님, 2026-11-03)
 
@@ -40,9 +40,17 @@ updated: 2026-11-03
 | 2 서버: PR 목록 조건(`state=merged|all`, 기간, 오래됨, 정렬, `authorFirstTime`)과 토론 조회 | **완료**(2026-11-03, 문서는 [api-pull-requests.md](api-pull-requests.md)) |
 | 3 서버: 리뷰 활동 조회(`list_reviews_given`)와 작성 PR 조건(`list_authored`) | **완료**(2026-11-03, 단계 2와 함께) |
 | 3b CLI 옵션(`yona-cli`: `issue list`, `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드) | **완료**(2026-11-03, `yona-cli` 커밋 `c4e341d`, Go 시험 포함) |
-| 4 어댑터 문서 | 대기 |
-| 5 실제 확인 | 대기 |
-| 6 문서와 결정 마무리 | 대기 |
+| 4 어댑터 문서(`docs/magpie/tools-yona/`: `README.md`, `tool.md`, `operations.md`, `source-control.md`) | **완료**(2026-11-03) |
+| 5 실제 확인(`e2e/magpiecheck.mjs`: 문서의 조리법 17개를 실제 서버와 `yona` CLI로 그대로 실행해 계약의 필드와 형식을 26건 확인) | **완료**(2026-11-03, 26/26) |
+| 6 문서와 결정 마무리 | **완료**(2026-11-03) |
+
+## 구현 결과
+
+- **서버**: 이슈 목록의 기간 조건과 `closedAt`, `authorFirstTime`, 활동 조회(`GET $P/activity`), PR 목록의 상태와 기간과 정렬, 토론(`GET …/discussion`), 리뷰 활동(`GET $P/activity/reviews`). 문서는 [api-project-reads.md](api-project-reads.md)와 [api-pull-requests.md](api-pull-requests.md)에 있다.
+- **CLI**(`yona-cli`): `issue list`와 `pr list`의 기간, 정렬, 상태 옵션과 `--json` 필드, `pr merge --method`와 `--json`, 이슈를 만들 때 `createdAt`을 항상 보낸다.
+- **어댑터 문서**: `docs/magpie/tools-yona/`(영어, Magpie의 `tools/yona/`로 기여할 수 있는 모양). 두 계약의 모든 동작과 활동 동작 두 가지를 채우고 `list_authored_commits`만 `NotApplicable`이다. **Magpie 쪽에 기여하는 것은 ASF 절차(CLA, 메일링 리스트 논의)가 필요해 선생님의 결정을 기다린다.**
+- **확인 중 찾은 v1.6 결함**: REST로 이슈를 가져올 때 만든 시각이 비는 결함(R-131)을 선생님 지시로 고쳤다(D-83).
+- **Magpie 쪽 변경에 대비**: 어댑터 문서는 읽은 시점(2026-11-03)의 계약을 따른다. 계약이 바뀌면 `e2e/magpiecheck.mjs`가 조리법과 필드의 차이를 알려 준다.
 
 ## 1. 목표와 결론
 
