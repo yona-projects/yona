@@ -60,18 +60,21 @@ class LfsController(
             if (body.transfers != null && "basic" !in body.transfers) return@measured support.error(HttpStatus.UNPROCESSABLE_ENTITY, "Only the basic transfer is supported")
             if (body.operation == LfsService.UPLOAD) support.authorize(context.identity, target, write = true)?.let { return@measured it }
             val base = "${siteUrls.origin()}${siteUrls.path("/${target.owner}/${target.name}.git/info/lfs")}"
+            // SSH의 git-lfs-authenticate가 준 토큰으로 온 요청이면 클라이언트가 객체 전송에는 그 헤더를 따로 붙이지 않으므로 동작마다 같은 헤더를 실어 준다
+            val bearer = request.getHeader(HttpHeaders.AUTHORIZATION)?.takeIf { it.startsWith("Bearer ${dev.yona.domain.lfs.LfsTokens.PREFIX}") }
+            val actionHeader = bearer?.let { mapOf(HttpHeaders.AUTHORIZATION to it) }.orEmpty()
             val objects = lfs.plan(target, body.operation, body.objects).map { plan ->
                 val item = linkedMapOf<String, Any?>("oid" to plan.request.oid, "size" to plan.request.size)
                 when (plan) {
-                    is LfsPlan.Download -> item["actions"] = mapOf("download" to mapOf("href" to "$base/objects/${plan.request.oid}"))
+                    is LfsPlan.Download -> item["actions"] = mapOf("download" to withHeader(mapOf("href" to "$base/objects/${plan.request.oid}"), actionHeader))
                     is LfsPlan.Upload -> item["actions"] = mapOf(
-                        "upload" to mapOf("href" to "$base/objects/${plan.request.oid}", "header" to mapOf("Content-Type" to MediaType.APPLICATION_OCTET_STREAM_VALUE)),
-                        "verify" to mapOf("href" to "$base/verify")
+                        "upload" to mapOf("href" to "$base/objects/${plan.request.oid}", "header" to (mapOf("Content-Type" to MediaType.APPLICATION_OCTET_STREAM_VALUE) + actionHeader)),
+                        "verify" to withHeader(mapOf("href" to "$base/verify"), actionHeader)
                     )
                     is LfsPlan.Present -> {}
                     is LfsPlan.Failure -> item["error"] = mapOf("code" to plan.code, "message" to plan.message)
                 }
-                if (plan !is LfsPlan.Failure) item["authenticated"] = true
+                // `authenticated`를 주지 않는다: true이면 클라이언트가 동작 주소에 자격을 보내지 않는다(미리 서명한 주소용). 생략해야 같은 자격(Basic)을 객체 전송에도 쓴다
                 item
             }
             support.lfsJson(HttpStatus.OK, linkedMapOf("transfer" to "basic", "objects" to objects, "hash_algo" to "sha256"))
@@ -124,6 +127,9 @@ class LfsController(
             val stored = lfs.sizeOf(target, oid) ?: return@measured support.error(HttpStatus.NOT_FOUND, "Object does not exist")
             if (stored != size) support.error(HttpStatus.UNPROCESSABLE_ENTITY, "Object size does not match") else ResponseEntity.ok().build<Void>()
         }
+
+    /** [headers]가 있으면 동작에 `header`로 싣는다. */
+    private fun withHeader(action: Map<String, Any?>, headers: Map<String, String>): Map<String, Any?> = if (headers.isEmpty()) action else action + ("header" to headers)
 
     private class BatchBody(val operation: String, val transfers: List<String>?, val objects: List<LfsObjectRequest>)
 

@@ -108,6 +108,19 @@ class LfsSshTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `토큰으로 온 batch 응답은 동작마다 같은 인증 헤더를 실어 준다 - 실제 클라이언트는 객체 전송에 SSH가 준 헤더를 따로 붙이지 않는다`() {
+        val u = user(); val p = project(ProjectScope.PUBLIC)
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = u, project = p, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
+        val auth = bearerOf(SshAuthorization.Allowed(p, u), "git-lfs-authenticate '/${p.owner}/${p.name}.git' upload")
+        mockMvc.perform(batch(p, "upload", auth)).andExpect(status().isOk)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.objects[0].actions.upload.header.Authorization").value(auth))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.objects[0].actions.upload.header.Content-Type").value("application/octet-stream"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.objects[0].actions.verify.header.Authorization").value(auth))
+        mockMvc.perform(post("/${p.owner}/${p.name}.git/info/lfs/objects/batch").contentType(lfsJson).accept(lfsJson).header(HttpHeaders.AUTHORIZATION, auth).content("""{"operation":"download","objects":[{"oid":"${"b".repeat(64)}","size":1}]}"""))
+            .andExpect(status().isOk)
+    }
+
+    @Test
     fun `올리기 토큰은 두 동작 모두 통하지만 다른 프로젝트에는 통하지 않는다`() {
         val u = user(); val p = project(ProjectScope.PUBLIC); val other = project(ProjectScope.PUBLIC)
         projectUsers.save(dev.yona.domain.project.ProjectUser(user = u, project = p, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get())); val auth = bearerOf(SshAuthorization.Allowed(p, u), "git-lfs-authenticate '/${p.owner}/${p.name}.git' upload")

@@ -114,6 +114,13 @@ class LfsApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `batch 응답은 authenticated를 주지 않는다 - 주면 실제 클라이언트가 객체 전송에 자격을 보내지 않는다`() {
+        val member = user(); val p = project(member = member)
+        mockMvc.perform(batch(p, "upload", listOf("a".repeat(64) to 1), basic(member))).andExpect(jsonPath("$.objects[0].authenticated").doesNotExist())
+        mockMvc.perform(batch(p, "download", listOf("a".repeat(64) to 1), basic(member))).andExpect(jsonPath("$.objects[0].authenticated").doesNotExist())
+    }
+
+    @Test
     fun `주소는 프로젝트 점 git과 프로젝트 둘 다 받는다`() {
         val member = user(); val p = project(member = member); val oid = "a".repeat(64)
         for (suffix in listOf(".git", "")) mockMvc.perform(batch(p, "download", listOf(oid to 1), basic(member), suffix)).andExpect(status().isOk)
