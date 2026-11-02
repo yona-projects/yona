@@ -40,7 +40,9 @@ class LoginController(
     private val loginSession: dev.yona.security.LoginSessionService,
     private val properties: dev.yona.config.YonaProperties,
     private val home: dev.yona.web.home.HomeController,
-    private val audit: dev.yona.domain.audit.AuditBoundary
+    private val audit: dev.yona.domain.audit.AuditBoundary,
+    private val completion: dev.yona.security.LoginCompletion,
+    private val twoFactorLogin: dev.yona.security.TwoFactorLogin
 ) {
 
 
@@ -91,13 +93,18 @@ class LoginController(
                 .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "user.login.required")) }
         }
 
-        return when (val result = authenticate(loginKey, password)) {
+        return when (val result = authenticate(loginKey, password, request)) {
             is LoginResult.Success -> {
-                completeLogin(request, response, result)
                 val redirectUrl = request.getParameter("redirectUrl")
-                RedirectSupport.see(
-                    request, response, if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl), result.flash
-                )
+                val target = if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl)
+                if (twoFactorLogin.required(result.user, request)) {
+                    // 2단계 인증을 켠 사용자는 비밀번호만으로 로그인되지 않는다(X-2, D-69). 2단계 화면에서 코드를 확인한 뒤에 로그인을 끝낸다
+                    twoFactorLogin.begin(request, result.user, "password", wantsRememberMe(request), target, result.flash.mapValues { it.value.toString() })
+                    RedirectSupport.see(request, response, dev.yona.security.TwoFactorLogin.CHALLENGE_PATH)
+                } else {
+                    completeLogin(request, response, result)
+                    RedirectSupport.see(request, response, target, result.flash)
+                }
             }
             LoginResult.Locked ->
                 RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.locked"))
@@ -128,8 +135,13 @@ class LoginController(
         val password = request.getParameter("password")
         if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) return message(HttpStatus.BAD_REQUEST, "user.login.required")
 
-        return when (val result = authenticate(loginKey, password)) {
+        return when (val result = authenticate(loginKey, password, request)) {
             is LoginResult.Success -> {
+                if (twoFactorLogin.required(result.user, request)) {
+                    // 팝업이 코드 입력 단계로 바뀌도록 알린다(X-2, D-69). 로그인은 코드를 확인한 뒤에 끝난다
+                    twoFactorLogin.begin(request, result.user, "password", wantsRememberMe(request), null)
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("twoFactor" to true))
+                }
                 completeLogin(request, response, result)
                 // v1.6의 `ok("{}")`는 문자열이라 Content-Type이 text/plain이다.
                 ResponseEntity.ok().contentType(MediaType("text", "plain", Charsets.UTF_8)).body("{}")
@@ -149,10 +161,11 @@ class LoginController(
      * 비밀번호로 인증하고 결과를 감사 로그에 남긴다(X-9, D-62). 성공은 사용자 행위자로, 실패는 시도한 ID와 함께 남기며 이유는 `invalid_credentials`(없는 사용자와 틀린 비밀번호를 같게 둔다),
      * `locked`, `deleted`, `locked_after_authentication`이다. 비밀번호는 어디에도 남기지 않는다.
      */
-    private fun authenticate(loginKey: String, password: String): LoginResult {
+    private fun authenticate(loginKey: String, password: String, request: HttpServletRequest): LoginResult {
         val result = authenticator.authenticate(loginKey, password)
         when (result) {
-            is LoginResult.Success -> audit.loginSuccess(result.user, "password")
+            // 2단계 인증을 켠 사용자의 로그인 성공은 2단계를 마친 뒤에 남긴다(X-2, D-69)
+            is LoginResult.Success -> if (!twoFactorLogin.required(result.user, request)) audit.loginSuccess(result.user, "password")
             LoginResult.Locked -> audit.loginFailure(loginKey, "locked", denied = true)
             LoginResult.Deleted -> audit.loginFailure(loginKey, "deleted", denied = true)
             LoginResult.LockedAfterAuthentication -> audit.loginFailure(loginKey, "locked_after_authentication", denied = true)
@@ -161,20 +174,12 @@ class LoginController(
         return result
     }
 
+    /** Play 폼 바인딩(Spring DataBinder)은 체크박스가 보내는 on을 참으로 읽는다: true, on, yes, 1 */
+    private fun wantsRememberMe(request: HttpServletRequest): Boolean = request.getParameter("rememberMe")?.lowercase() in setOf("true", "on", "yes", "1")
+
     /** 로그인 성공 처리: 세션에 기록하고, 로그인 유지를 켰으면 쿠키를 만들고, 사용자의 언어를 갱신한다. */
     private fun completeLogin(request: HttpServletRequest, response: HttpServletResponse, result: LoginResult.Success) {
-        val user = result.user
-        // Play 폼 바인딩(Spring DataBinder)은 체크박스가 보내는 on을 참으로 읽는다: true, on, yes, 1
-        if (request.getParameter("rememberMe")?.lowercase() in setOf("true", "on", "yes", "1")) {
-            response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
-                maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
-                path = "/"
-            })
-        }
-        user.lang = LocaleContextHolder.getLocale().toLanguageTag()
-        users.save(user)
-
-        loginSession.start(request, response, user)
+        completion.complete(request, response, result.user, wantsRememberMe(request), twoFactorVerified = false)
     }
 
     /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `processLogout`). */

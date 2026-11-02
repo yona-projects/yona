@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-2(decisions.md D-69): 로그인의 2단계 화면. 비밀번호를 확인한 사용자가 인증 앱 코드나 백업 코드를 입력한다
+  모델: title(문서 제목 메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::twoFactorPage})}">
+<th:block th:fragment="twoFactorPage">
+<div class="page full">
+  <div class="center-wrap tag-line-wrap login">
+    <h1 class="title" th:text="#{user.twoFactor.title}"></h1>
+    <p class="tag-line" th:text="#{user.twoFactor.help}"></p>
+  </div>
+  <div class="login-form-wrap frm-wrap">
+    <form id="two-factor-form" th:action="@{/users/login/2fa}" method="POST">
+      <dl>
+        <dd>
+          <input id="two-factor-code" name="code" type="text" class="text form-control" autocomplete="one-time-code" inputmode="text" autofocus
+                 th:placeholder="#{user.twoFactor.code}">
+        </dd>
+      </dl>
+      <div class="btns-row">
+        <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{user.twoFactor.submit}"></button>
+      </div>
+      <div class="act-row mt5">
+        <div class="links-wrap float-end">
+          <a th:href="@{/users/loginform}" th:text="#{user.twoFactor.cancel}"></a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</th:block>
+</html>
