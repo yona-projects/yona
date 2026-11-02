@@ -10,13 +10,18 @@
 #
 # 모르는 키이거나 오류가 나면 아무것도 인쇄하지 않고 0으로 끝난다(sshd가 인증을 거부한다). 접근을 잘못 허용하는 쪽이 아니라 조용히 실패하는 쪽으로 만들었다.
 #
-# 환경 변수(모두 선택):
+# 설정(모두 선택): /etc/yona/ssh-auth.conf(YONA_SSH_CONFIG로 경로를 바꾼다)에 `이름=값` 줄로 두거나 환경 변수로 준다. sshd가 훅을 부를 때는 환경 변수가 전달되지 않으므로 운영에서는 파일을 쓴다.
 #   YONA_INTERNAL_URL        Yona 서버의 주소. 기본 http://127.0.0.1:9000 (같은 호스트여야 한다. 내부 주소는 루프백 요청만 받는다)
 #   YONA_SSH_SECRET_FILE     공유 비밀 값을 담은 파일. 기본 /etc/yona/ssh-internal-secret (Yona의 yona.ssh.relay.internal-secret과 같은 값)
 #   YONA_SSH_RELAY_SOCKET    중계 소켓 경로. 기본 /var/lib/yona/ssh/relay.sock (Yona의 yona.ssh.relay.socket-path와 같은 경로)
 #
 # 필요한 도구: bash, curl, socat
 set -euo pipefail
+
+# sshd는 AuthorizedKeysCommand를 최소한의 환경으로 실행하므로 환경 변수를 줄 수 없다. 설정은 파일에 둔다(없으면 기본값을 쓴다).
+CONFIG_FILE="${YONA_SSH_CONFIG:-/etc/yona/ssh-auth.conf}"
+# shellcheck disable=SC1090
+[ -r "$CONFIG_FILE" ] && . "$CONFIG_FILE"
 
 YONA_URL="${YONA_INTERNAL_URL:-http://127.0.0.1:9000}"
 SECRET_FILE="${YONA_SSH_SECRET_FILE:-/etc/yona/ssh-internal-secret}"

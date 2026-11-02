@@ -3,6 +3,32 @@ yona:
     # 알림 메일의 보내는 주소: `user@domain`(domain을 비우면 사이트 호스트 이름). 접속 정보는 spring.mail.*로 설정한다.
     user: yona
     domain: yona.local
+  # git SSH 접근(추가 개발 항목 X-3, X-3b). 두 방식 중 필요한 것을 켠다. 둘 다 꺼 두면 포트와 소켓을 열지 않고 화면도 v1.6과 같다.
+  ssh:
+    # 방식 1: 앱 안에 내장한 SSH 서버(Apache MINA SSHD). 켜면 아래 포트를 연다. 접속 주소는 ssh://git@호스트:포트/소유자/저장소.git 이다.
+    enabled: false
+    # 내장 SSH 서버가 받는 포트. 22로 바꾸려면 root 권한이나 포트 전달(iptables, 컨테이너 -p 22:2222)이 필요하다. 0이면 운영체제가 비어 있는 포트를 고른다(시험용).
+    port: 2222
+    # 묶을 주소. 비우면 모든 주소.
+    bind-address: ""
+    # 호스트 키 파일. 비우면 <데이터 디렉터리>/ssh/ssh_host_ed25519_key 이고, 처음 시작할 때 만든다. 데이터 디렉터리를 옮길 때 함께 옮긴다.
+    host-key-path: ""
+    # 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다. 시스템 sshd 방식에서는 sshd의 전용 계정 이름이다.
+    user: git
+    # 복제 주소에 보일 포트. 0이면 실제 포트(시스템 sshd 방식은 22). 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다.
+    public-port: 0
+    # 방식 2: 시스템 OpenSSH sshd 연동(AuthorizedKeysCommand + 유닉스 소켓 중계). 포트 22의 sshd가 접속을 받고 저장소 처리는 이 서버가 한다.
+    # 접속 주소는 git@호스트:소유자/저장소.git 이다. 설치 방법은 docs/yona-ssh-system-sshd.md 를 본다.
+    relay:
+      enabled: false
+      # 중계 소켓 파일. 비우면 <데이터 디렉터리>/ssh/relay.sock 이다. 운영체제의 경로 길이 제한(108바이트쯤)이 있어 데이터 디렉터리가 깊으면 짧은 경로를 직접 정한다.
+      # 훅 스크립트의 YONA_SSH_RELAY_SOCKET과 같아야 한다.
+      socket-path: ""
+      # 훅 스크립트가 내부 인증 주소를 부를 때 보내는 공유 비밀 값. 비우면 internal-secret-path 파일의 값을 쓰고 없으면 만든다.
+      # 훅 스크립트 쪽 파일(YONA_SSH_SECRET_FILE)에도 같은 값을 둔다. 환경 변수 YONA_SSH_RELAY_INTERNAL_SECRET로도 줄 수 있다.
+      internal-secret: ""
+      # 공유 비밀 값 파일. 비우면 <데이터 디렉터리>/ssh/internal-secret 이다.
+      internal-secret-path: ""
 
 # OpenAPI 문서(X-31, D-50). 외부 API 이름 공간(`/-_-api`) 안에 두어 사용자 이름 예약어를 더하지 않는다.
 springdoc:

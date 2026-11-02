@@ -14,6 +14,8 @@ class SshDisabledTest : AbstractIntegrationTest() {
     @Test
     fun `기본 설정에서는 SSH 서버가 없다`() {
         assertEquals(0, context.getBeanNamesForType(SshServerLifecycle::class.java).size)
+        assertEquals(0, context.getBeanNamesForType(SshRelayServer::class.java).size, "시스템 sshd 중계도 켜지 않으면 소켓을 열지 않는다")
+        assertEquals(0, context.getBeanNamesForType(dev.yona.web.ssh.SshInternalController::class.java).size, "내부 인증 주소도 없다")
         // 인증과 인가 서비스와 처리기는 있어도 포트를 열지 않는다
         assertEquals(1, context.getBeanNamesForType(SshAccess::class.java).size)
     }

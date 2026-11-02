@@ -49,6 +49,14 @@ class RepositoryUrlsSshTest {
     }
 
     @Test
+    fun `시스템 sshd 연동만 켜면 포트 22의 scp 형식 주소이고 공개 포트를 정하면 그 포트를 쓴다`() {
+        val relay = YonaProperties.Ssh(relay = YonaProperties.Ssh.Relay(enabled = true))
+        assertEquals("git@yona.example.com:owner/repo.git", urls(relay).sshUrlFor(git, request()))
+        assertEquals("ssh://git@yona.example.com:2200/owner/repo.git", urls(relay.copy(publicPort = 2200)).sshUrlFor(git, request()))
+        assertNull(urls(YonaProperties.Ssh()).sshUrlFor(git, request()), "둘 다 꺼져 있으면 주소가 없다")
+    }
+
+    @Test
     fun `Git이 아닌 프로젝트에는 SSH 주소가 없다`() {
         assertNull(urls(YonaProperties.Ssh(enabled = true)).sshUrlFor(Project(owner = "o", name = "n", vcs = "Subversion"), request(), 2222))
     }
