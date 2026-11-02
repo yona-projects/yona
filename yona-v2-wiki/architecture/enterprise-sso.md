@@ -57,7 +57,7 @@ updated: 2026-11-02
 
 ### Yona가 OIDC 제공자이면서 사내 IdP로 로그인하는 경우(X-40과 X-16의 조합)
 
-외부 앱(예: Woodpecker)이 Yona로 로그인을 요청하면 인가 서버가 로그인하지 않은 사용자를 `/users/loginform?redirectUrl=/oauth2/resume`로 보낸다. 사용자는 이 화면에서 사내 IdP 단추를 눌러 로그인하고(`returnTo`가 `/oauth2/resume`을 이어받는다), 로그인이 끝나면 보관해 둔 승인 요청이 이어져 승인 화면을 거쳐 외부 앱이 인가 코드와 ID 토큰을 받는다. ID 토큰의 `sub`는 SSO로 만들어졌거나 연결된 Yona 사용자의 번호이다. 사내 IdP 로그인이 거절되면(예: 이메일 미확인) 승인 요청은 이어지지 않는다. 외부 앱이 먼저 사내 IdP로 가는 것이 아니라 **사용자가 Yona 로그인 화면에서 고르는** 구조이며, SSO 전용 모드이면 사내 IdP 단추만 남는다. 시험은 `SsoWithOidcProviderTest`, 실제 확인은 `e2e/ssoprovider.mjs`(외부 앱 대신 `openid-client` 라이브러리)이다.
+외부 앱(예: Woodpecker)이 Yona로 로그인을 요청하면 인가 서버가 로그인하지 않은 사용자를 `/users/loginform?redirectUrl=/oauth2/resume`로 보낸다. 사용자는 이 화면에서 사내 IdP 단추를 눌러 로그인하고(`returnTo`가 `/oauth2/resume`을 이어받는다), 로그인이 끝나면 보관해 둔 승인 요청이 이어져 승인 화면을 거쳐 외부 앱이 인가 코드와 ID 토큰을 받는다. ID 토큰의 `sub`는 SSO로 만들어졌거나 연결된 Yona 사용자의 번호이다. 사내 IdP 로그인이 거절되면(예: 이메일 미확인) 승인 요청은 이어지지 않는다. 외부 앱이 먼저 사내 IdP로 가는 것이 아니라 **사용자가 Yona 로그인 화면에서 고르는** 구조이며, SSO 전용 모드이면 사내 IdP 단추만 남는다. **로그인 수단에 상관없이** 같은 흐름이다. 로그인 화면의 숨은 `redirectUrl`(`/oauth2/resume`)이 비밀번호 폼(LDAP 포함, 2단계 인증을 켠 경우는 코드를 확인한 뒤)으로 이어지고, SSO 단추는 `returnTo`로 이어받는다. 시험은 사내 OIDC가 `SsoWithOidcProviderTest`, 비밀번호와 2단계 인증과 SAML이 `OAuthResumeAfterLoginTest`, LDAP이 `OAuthResumeAfterLdapLoginTest`이다(소셜 로그인은 이 확인의 범위에서 뺐다). 실제 확인은 `e2e/ssoprovider.mjs`(외부 앱 대신 `openid-client` 라이브러리)이다.
 
 ## 4. 알아 둘 점
 
