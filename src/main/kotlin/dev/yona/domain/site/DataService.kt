@@ -141,6 +141,7 @@ class DataService(
                     cleanTokens(connection, imported)
                     cleanGpgKeys(connection, imported)
                     cleanSshKeys(connection, imported)
+                    cleanTwoFactor(connection, imported)
                     cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
@@ -232,6 +233,25 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean SSH keys after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * 2단계 인증 테이블(추가 개발 항목 X-2, `decisions.md` D-69)을 가져온 뒤 바로잡는다. [cleanSshKeys]와 같은 이유로, 파일에 사용자가 있는데 이 테이블이 없으면(v1.6 파일) 남아 있던 행은
+     * 바뀐 사용자 번호에 엉뚱하게 붙을 수 있으므로 비우고, 없는 사용자를 가리키는 행은 지운다.
+     */
+    private fun cleanTwoFactor(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                for (table in listOf("two_factor_credential", "two_factor_backup_code", "known_device")) {
+                    if ("N4USER" in imported && table.uppercase() !in imported) statement.executeUpdate("delete from $table")
+                    statement.executeUpdate("delete from $table where user_id not in (select id from n4user)")
+                }
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean two-factor tables after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }

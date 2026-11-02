@@ -329,6 +329,28 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 없는 사용자를 가리키는 2단계 인증 행은 정리한다 (X-2)`() {
+        import("""{"TWO_FACTOR_CREDENTIAL": [{"id": 1, "user_id": 999011, "type": "TOTP", "name": "x", "secret_encrypted": "v1.a.b", "confirmed": true, "last_used_step": 0, "created_date": 1700000000000, "last_used_date": 0}],
+            "TWO_FACTOR_BACKUP_CODE": [{"id": 1, "user_id": 999011, "code_hash": "h", "used_date": 0, "created_date": 1700000000000}],
+            "KNOWN_DEVICE": [{"id": 1, "user_id": 999011, "token_hash": "t", "name": "n", "ip": "1.1.1.1", "created_date": 1700000000000, "last_used_date": 0, "expires_date": 1800000000000}]}""")
+        assertEquals(0, count("two_factor_credential")); assertEquals(0, count("two_factor_backup_code")); assertEquals(0, count("known_device"))
+    }
+
+    @Test
+    fun `2단계 인증 데이터를 내보내고 다시 가져온다 (X-2)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881311L, "tfrt", "왕복")
+        jdbc.update("insert into two_factor_credential(id, user_id, type, name, secret_encrypted, confirmed, last_used_step, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 31L, 881311L, "TOTP", "TOTP", "v1.iv.ct", true, 55L)
+        jdbc.update("insert into two_factor_backup_code(id, user_id, code_hash, created_date) values (?, ?, ?, current_timestamp)", 32L, 881311L, "hash1")
+        jdbc.update("insert into known_device(id, user_id, token_hash, name, ip, created_date, expires_date) values (?, ?, ?, ?, ?, current_timestamp, current_timestamp)", 33L, 881311L, "tok1", "Firefox", "10.0.0.1")
+        val bytes = exportBytes()
+        jdbc.update("delete from known_device"); jdbc.update("delete from two_factor_backup_code"); jdbc.update("delete from two_factor_credential")
+        service.import(ByteArrayInputStream(bytes))
+        assertEquals(55L, jdbc.queryForObject("select last_used_step from two_factor_credential where id = 31", Long::class.java))
+        assertEquals("hash1", jdbc.queryForObject("select code_hash from two_factor_backup_code where id = 32", String::class.java))
+        assertEquals("Firefox", jdbc.queryForObject("select name from known_device where id = 33", String::class.java))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

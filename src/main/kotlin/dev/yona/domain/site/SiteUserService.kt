@@ -117,6 +117,8 @@ class SiteUserService(
             // 추가 항목(X-4): GPG 키도 지운다. 하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다
             entityManager.createNativeQuery("delete from gpg_key where user_id = :id and parent_id is not null").setParameter("id", id).executeUpdate()
             entityManager.createNativeQuery("delete from gpg_key where user_id = :id").setParameter("id", id).executeUpdate()
+            // 추가 항목(X-2): 2단계 인증 데이터도 지운다
+            for (table in listOf("two_factor_backup_code", "known_device", "two_factor_credential")) entityManager.createNativeQuery("delete from $table where user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-3): SSH 키도 지운다
             entityManager.createNativeQuery("delete from ssh_key where user_id = :id").setParameter("id", id).executeUpdate()
         }
