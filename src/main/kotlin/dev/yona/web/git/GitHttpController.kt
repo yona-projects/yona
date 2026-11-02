@@ -29,7 +29,7 @@ import java.util.zip.GZIPInputStream
 /**
  * Git 클라이언트(`git clone`, `fetch`, `push`)가 쓰는 smart-HTTP 주소이다. v1.6 `GitApp`(`app/controllers/GitApp.java`)에 해당한다.
  *
- * 인증은 HTTP Basic(`loginId:password`)이다. 자격이 없거나 틀리면 익명으로 본다. 익명이 권한이 없으면 `401`로 로그인을 요구하고
+ * 인증은 HTTP Basic(`loginId:토큰`)이다. 비밀번호 칸에는 개인용 API 토큰만 받는다(D-70). 자격이 없거나 틀리면 익명으로 본다. 익명이 권한이 없으면 `401`로 로그인을 요구하고
  * (`WWW-Authenticate: Basic realm="Yobi"`), 로그인한 사용자가 권한이 없으면 `403`과 안내 문구이다.
  * 복제와 가져오기는 읽기 권한, 푸시는 수정 권한이 필요하다. 코드를 구성원에게만 여는 프로젝트는 읽기도 수정 권한을 요구한다.
  * 프로젝트 이름이 바뀌었으면 이전 이름으로도 찾는다.
@@ -102,6 +102,10 @@ class GitHttpController(
     /** 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36). */
     private fun tooManyAttempts(): ResponseEntity<String> = text(HttpStatus.TOO_MANY_REQUESTS, "Too many failed authentication attempts")
 
+    /** 401 본문이다. 비밀번호 칸에 토큰이 아닌 값을 보냈으면 토큰을 쓰라고 안내한다(D-70). */
+    private fun unauthorizedMessage(identity: dev.yona.web.access.BasicIdentity) =
+        if (identity.passwordRefused) dev.yona.web.access.BasicIdentity.PASSWORD_REFUSED_MESSAGE else "Invalid username or password"
+
     private fun handle(
         ownerName: String, projectName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse,
         req: dev.yona.observability.VcsMetrics.Request
@@ -117,7 +121,7 @@ class GitHttpController(
         if (!metrics.span("vcs.authorize", "vcs" to "git") { isAllowed(project, user, service) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
-                return text(HttpStatus.UNAUTHORIZED, "Invalid username or password")
+                return text(HttpStatus.UNAUTHORIZED, unauthorizedMessage(identity))
             }
             return forbidden(user, ownerName, projectName, request.getHeader("User-Agent"))
         }
@@ -161,7 +165,7 @@ class GitHttpController(
         if (!metrics.span("vcs.authorize", "vcs" to "git", "target" to "wiki") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation) }) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
-                return text(HttpStatus.UNAUTHORIZED, "Invalid username or password")
+                return text(HttpStatus.UNAUTHORIZED, unauthorizedMessage(identity))
             }
             return forbidden(user, ownerName, repositoryName, request.getHeader("User-Agent"))
         }

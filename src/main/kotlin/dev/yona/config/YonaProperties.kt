@@ -108,8 +108,6 @@ data class YonaProperties(
     val apiTokenBlockMinutes: Long = 15,
     /** 새 토큰의 최대 수명(일)이다. 0이면 제한이 없고 "만료 없음"도 고를 수 있다 (`yona.api-token-max-days`). */
     val apiTokenMaxDays: Int = 0,
-    /** Git, SVN의 HTTP 접근이 비밀번호도 받는지이다. `false`이면 토큰만 받는다 (`yona.git-http-password-auth`, 기본은 v1.6처럼 받는다). */
-    val gitHttpPasswordAuth: Boolean = true,
     /** 지원하는 화면 언어이다. `Accept-Language`에 가장 알맞은 것을 고르고 맞는 것이 없으면 첫 번째를 쓴다 (`application.langs`). */
     val langs: List<String> = listOf("en-US", "ko-KR", "ja-JP", "ru-RU", "uz-UZ"),
     @DurationUnit(ChronoUnit.MILLIS) val issueEventDraftTime: Duration = Duration.ofSeconds(30),

@@ -32,9 +32,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Git의 HTTP 접근에서 개인용 API 토큰을 비밀번호 대신 쓰는 것을 검증한다(로드맵 X-5, `decisions.md` D-36, `architecture/api-token.md` 4절).
- * 사용자 이름(로그인 ID)과 비밀번호 칸의 토큰이 같은 사용자의 것이어야 하고, 범위가 `repo`나 공개 프로젝트의 `public_repo`여야 하며,
- * 새 형식 토큰은 확인에 실패해도 비밀번호로 넘기지 않는다. 같은 주소에서 5회 실패하면 막는다.
+ * Git의 HTTP 접근이 토큰만 받는 것을 검증한다(로드맵 X-5, `decisions.md` D-36, `architecture/api-token.md` 4절, D-70). 비밀번호 칸에는 개인용 API 토큰만 쓸 수 있고 비밀번호는 항상 거부한다.
+ * 사용자 이름(로그인 ID)과 비밀번호 칸의 토큰이 같은 사용자의 것이어야 하고, 범위가 `repo`나 공개 프로젝트의 `public_repo`여야 한다.
+ * 맞지 않는 새 형식 토큰과 옛 토큰 모양의 값은 실패로 세어 같은 주소에서 5회 실패하면 막는다. 비밀번호는 실패로 세지 않는다.
  */
 @AutoConfigureMockMvc
 @Transactional
@@ -68,6 +68,9 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
     }
 
     private fun newToken(user: User, vararg scopes: String): String = (tokens.create(user, "git", scopes.toSet(), null) as TokenCreation.Created).value
+
+    /** 모양은 새 토큰이지만 맞지 않는 값이다. 맞지 않는 토큰은 실패로 센다. */
+    private fun badToken(seed: Int) = "yona_pat_" + seed.toString().padStart(40, 'x')
 
     private fun basic(user: String, password: String) = "Basic " + Base64.getEncoder().encodeToString("$user:$password".toByteArray())
 
@@ -132,23 +135,47 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `옛 토큰과 모양이 같은 비밀번호는 토큰이 없으면 비밀번호로 확인한다`() {
+    fun `옛 토큰과 모양이 같은 값이 맞는 토큰이 아니면 비밀번호여도 거부한다 (D-70)`() {
         val lookalike = Base64.getEncoder().encodeToString(ByteArray(32) { (it * 5 + 2).toByte() })
         val owner = user(password = lookalike); val p = project(owner, ProjectScope.PRIVATE)
-        refs(p, basic(owner.loginId!!, lookalike)).andExpect(status().isOk)
+        refs(p, basic(owner.loginId!!, lookalike)).andExpect(status().isUnauthorized)
     }
 
     @Test
-    fun `비밀번호 인증은 그대로 되고 세션 쿠키를 심는다 (v1_6)`() {
+    fun `비밀번호는 맞아도 항상 거부하고 안내 문구에 토큰을 쓰라고 알린다 (D-70)`() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE)
-        val result = refs(p, basic(owner.loginId!!, "1234")).andExpect(status().isOk).andReturn()
-        assertEquals(true, result.request.getSession(false) != null, "v1.6은 비밀번호 인증에 세션을 만든다")
+        val result = refs(p, basic(owner.loginId!!, "1234")).andExpect(status().isUnauthorized).andReturn()
+        assertEquals(true, result.response.contentAsString.contains("personal access token"), result.response.contentAsString)
+        assertEquals("Basic realm=\"Yobi\"", result.response.getHeader("WWW-Authenticate"))
+        assertNull(result.request.getSession(false), "비밀번호로는 웹 세션을 만들지 않는다")
+    }
+
+    @Test
+    fun `비밀번호 시도는 실패로 세지 않아 토큰으로 바꾼 뒤에도 막히지 않는다 (D-70)`() {
+        val owner = user(); val p = project(owner, ProjectScope.PRIVATE); val t = newToken(owner, "repo")
+        repeat(12) { refs(p, basic(owner.loginId!!, "1234"), ip = "10.8.1.1").andExpect(status().isUnauthorized) }
+        refs(p, basic(owner.loginId!!, t), ip = "10.8.1.1").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `공개 프로젝트는 비밀번호를 보내도 익명으로 읽고 푸시는 401이다 (D-70)`() {
+        val owner = user(); val p = project(owner, ProjectScope.PUBLIC)
+        refs(p, basic(owner.loginId!!, "1234"), service = "git-upload-pack").andExpect(status().isOk)
+        refs(p, basic(owner.loginId!!, "1234"), service = "git-receive-pack").andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `토큰 인증은 웹 세션을 만들지 않는다 (D-70)`() {
+        val owner = user(); val p = project(owner, ProjectScope.PRIVATE); val t = newToken(owner, "repo")
+        val result = refs(p, basic(owner.loginId!!, t)).andExpect(status().isOk).andReturn()
+        assertNull(result.request.getSession(false))
+        assertEquals(0, result.response.cookies.size)
     }
 
     @Test
     fun `같은 주소에서 5회 실패하면 막고 다른 주소는 영향이 없다`() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE); val t = newToken(owner, "repo")
-        repeat(5) { refs(p, basic(owner.loginId!!, "wrong$it"), ip = "10.7.7.7").andExpect(status().isUnauthorized) }
+        repeat(5) { refs(p, basic(owner.loginId!!, badToken(it)), ip = "10.7.7.7").andExpect(status().isUnauthorized) }
         refs(p, basic(owner.loginId!!, t), ip = "10.7.7.7").andExpect(status().isTooManyRequests)
         refs(p, basic(owner.loginId!!, t), ip = "10.6.6.6").andExpect(status().isOk)
     }
@@ -156,9 +183,9 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
     @Test
     fun `성공하면 실패 횟수를 지운다`() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE); val t = newToken(owner, "repo")
-        repeat(4) { refs(p, basic(owner.loginId!!, "wrong$it"), ip = "10.5.5.5").andExpect(status().isUnauthorized) }
+        repeat(4) { refs(p, basic(owner.loginId!!, badToken(it)), ip = "10.5.5.5").andExpect(status().isUnauthorized) }
         refs(p, basic(owner.loginId!!, t), ip = "10.5.5.5").andExpect(status().isOk)
-        repeat(4) { refs(p, basic(owner.loginId!!, "again$it"), ip = "10.5.5.5").andExpect(status().isUnauthorized) }
+        repeat(4) { refs(p, basic(owner.loginId!!, badToken(it + 10)), ip = "10.5.5.5").andExpect(status().isUnauthorized) }
         refs(p, basic(owner.loginId!!, t), ip = "10.5.5.5").andExpect(status().isOk)
     }
 
@@ -166,6 +193,6 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
     fun `익명 요청은 실패로 세지 않는다`() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE)
         repeat(10) { refs(p, null, ip = "10.4.4.4").andExpect(status().isUnauthorized) }
-        refs(p, basic(owner.loginId!!, "1234"), ip = "10.4.4.4").andExpect(status().isOk)
+        refs(p, basic(owner.loginId!!, newToken(owner, "repo")), ip = "10.4.4.4").andExpect(status().isOk)
     }
 }

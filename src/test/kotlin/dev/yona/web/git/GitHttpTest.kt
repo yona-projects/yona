@@ -75,6 +75,7 @@ class GitHttpTest {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var deletion: ProjectDeletionService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
+    @Autowired private lateinit var apiTokenService: dev.yona.domain.apitoken.ApiTokenService
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
     @Autowired private lateinit var recentVisits: dev.yona.domain.project.RecentVisitService
     @Autowired private lateinit var recentProjects: dev.yona.domain.project.RecentProjectRepository
@@ -119,7 +120,7 @@ class GitHttpTest {
     @AfterEach
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
-        apiTokenRepository.deleteAll()
+        apiTokenRepository.deleteAll(); tokenCache.clear()
         // GPG 키도 사용자를 참조한다(하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다, X-4)
         gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }
         gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
@@ -134,10 +135,16 @@ class GitHttpTest {
 
     private fun url(p: Project = project) = "http://localhost:$port/${p.owner}/${p.name}"
 
-    private fun credentials(u: User, password: String = "1234") = UsernamePasswordCredentialsProvider(u.loginId, password)
+    /** 사용자마다 한 번 만든 개인용 API 토큰이다. git HTTP는 토큰만 받는다(D-70). */
+    private val tokenCache = mutableMapOf<Long, String>()
+
+    private fun tokenOf(u: User): String = tokenCache.getOrPut(requireNotNull(u.id)) { (apiTokenService.create(u, "git", setOf("repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value }
+
+    /** [password]를 주지 않으면 사용자의 토큰이다. 틀린 값을 시험할 때만 [password]를 준다. */
+    private fun credentials(u: User, password: String? = null) = UsernamePasswordCredentialsProvider(u.loginId, password ?: tokenOf(u))
 
     /** 작업 디렉터리를 새로 만들어 파일 하나를 커밋하고 [target] 브랜치로 밀어 넣는다. */
-    private fun push(p: Project, user: User?, branch: String = "master", password: String = "1234", file: String = "a.txt", ref: String = "refs/heads/$branch") {
+    private fun push(p: Project, user: User?, branch: String = "master", password: String? = null, file: String = "a.txt", ref: String = "refs/heads/$branch") {
         val dir = File(work, "push-${counter.incrementAndGet()}")
         Git.init().setDirectory(dir).setInitialBranch(branch).call().use { git ->
             File(dir, file).writeText("hello")
@@ -174,7 +181,7 @@ class GitHttpTest {
     @Test
     fun `Basic 인증은 로그인 ID로만 찾고 이메일 사용자 이름은 받지 않는다 (v1_6 authenticateWithPlainPassword)`() {
         val secret = project(ProjectScope.PRIVATE)
-        fun auth(name: String) = "Basic " + java.util.Base64.getEncoder().encodeToString("$name:1234".toByteArray())
+        fun auth(name: String) = "Basic " + java.util.Base64.getEncoder().encodeToString("$name:${tokenOf(member)}".toByteArray())
         val byLogin = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to auth(member.loginId!!)))
         assertEquals(200, byLogin.statusCode())
         val byEmail = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to auth(member.email!!)))
@@ -375,7 +382,7 @@ class GitHttpTest {
         assertTrue(String(response.body()).startsWith("001e# service=git-upload-pack\n"))
     }
 
-    private fun basic(u: User, password: String = "1234") = "Basic " + java.util.Base64.getEncoder().encodeToString("${u.loginId}:$password".toByteArray())
+    private fun basic(u: User, password: String? = null) = "Basic " + java.util.Base64.getEncoder().encodeToString("${u.loginId}:${password ?: tokenOf(u)}".toByteArray())
 
     private fun advertise(p: Project, authorization: String? = null, cookie: String? = null): HttpResponse<ByteArray> =
         HttpClient.newHttpClient().send(
@@ -385,23 +392,33 @@ class GitHttpTest {
         )
 
     @Test
-    fun `Basic 인증에 성공하면 세션 쿠키를 심고 그 쿠키로 다시 인증된다 (v1_6 BasicAuthAction)`() {
+    fun `Basic 인증은 세션 쿠키를 심지 않아 쿠키만으로는 읽을 수 없다 (D-70, v1_6은 비밀번호 인증으로 세션을 만들었다)`() {
         val secret = project(ProjectScope.PRIVATE)
         val first = advertise(secret, basic(member))
         assertEquals(200, first.statusCode())
-        val cookie = first.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }?.substringBefore(';')
-        assertTrue(cookie != null, first.headers().toString())
-        // 쿠키만 보내도 세션 사용자로 읽을 수 있고, 쿠키가 없으면 401이다
-        assertEquals(200, advertise(secret, cookie = cookie).statusCode())
+        assertTrue(first.headers().allValues("Set-Cookie").none { it.startsWith("JSESSIONID=") }, first.headers().toString())
         assertEquals(401, advertise(secret).statusCode())
     }
 
     @Test
-    fun `틀린 Basic 자격이어도 세션 쿠키 사용자로 되돌아간다 (v1_6 UserApp_currentUser)`() {
+    fun `비밀번호를 보내면 401과 토큰 안내이고 웹 세션을 만들지 않는다 (D-70)`() {
         val secret = project(ProjectScope.PRIVATE)
-        val cookie = advertise(secret, basic(member)).headers().allValues("Set-Cookie").first { it.startsWith("JSESSIONID=") }.substringBefore(';')
-        assertEquals(401, advertise(secret, basic(member, "wrong")).statusCode())
-        assertEquals(200, advertise(secret, basic(member, "wrong"), cookie).statusCode())
+        val response = advertise(secret, basic(member, "1234"))
+        assertEquals(401, response.statusCode())
+        assertTrue(String(response.body()).contains("personal access token"), String(response.body()))
+        assertTrue(response.headers().allValues("Set-Cookie").none { it.startsWith("JSESSIONID=") })
+    }
+
+    @Test
+    fun `틀린 토큰이어도 웹 로그인 세션 쿠키 사용자로 되돌아간다 (v1_6 UserApp_currentUser)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val login = HttpClient.newHttpClient().send(
+            HttpRequest.newBuilder(URI.create("http://localhost:$port/users/login")).header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString("loginIdOrEmail=${member.loginId}&password=1234")).build(), HttpResponse.BodyHandlers.ofString()
+        )
+        val cookie = login.headers().allValues("Set-Cookie").first { it.startsWith("JSESSIONID=") }.substringBefore(';')
+        assertEquals(401, advertise(secret, basic(member, "yona_pat_" + "x".repeat(40))).statusCode())
+        assertEquals(200, advertise(secret, basic(member, "yona_pat_" + "x".repeat(40)), cookie).statusCode())
     }
 
     private fun raw(path: String, method: String = "GET", body: ByteArray? = null, vararg headers: Pair<String, String>): HttpResponse<ByteArray> =
@@ -424,14 +441,12 @@ class GitHttpTest {
     private fun sessionCookie(response: HttpResponse<ByteArray>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }
 
     @Test
-    fun `Basic 인증은 404와 403 응답에도 세션 쿠키를 심는다 (v1_6 BasicAuthAction이 가장 바깥)`() {
+    fun `Basic 인증은 404와 403 응답에도 세션 쿠키를 심지 않는다 (D-70)`() {
         val noProject = raw("/${member.loginId}/nothing/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to basic(member)))
-        assertEquals(404, noProject.statusCode()); assertTrue(sessionCookie(noProject) != null)
+        assertEquals(404, noProject.statusCode()); assertTrue(sessionCookie(noProject) == null)
         val noService = raw("/${project.owner}/${project.name}/info/refs", headers = arrayOf("Authorization" to basic(member)))
-        assertEquals(403, noService.statusCode()); assertTrue(String(noService.body()).contains("Unsupported service: getanyfile")); assertTrue(sessionCookie(noService) != null)
-        // 자격이 틀리면 쿠키가 없고, 형식이 틀리면(콜론 없음) 400이다
-        val wrong = raw("/${member.loginId}/nothing/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to basic(member, "wrong")))
-        assertEquals(404, wrong.statusCode()); assertTrue(sessionCookie(wrong) == null)
+        assertEquals(403, noService.statusCode()); assertTrue(String(noService.body()).contains("Unsupported service: getanyfile")); assertTrue(sessionCookie(noService) == null)
+        // 형식이 틀리면(콜론 없음) 400이다
         val malformed = raw("/${project.owner}/${project.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to "Basic bm9jb2xvbg=="))
         assertEquals(400, malformed.statusCode()); assertTrue(sessionCookie(malformed) == null)
     }

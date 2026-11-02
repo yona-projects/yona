@@ -160,12 +160,14 @@ class AuditBoundaryTest : AbstractIntegrationTest() {
     // --- git HTTP 인증 ---
 
     @Test
-    fun `git HTTP의 틀린 비밀번호는 인증 실패로 남긴다`() {
+    fun `git HTTP의 맞지 않는 토큰은 인증 실패로 남기고 비밀번호는 남기지 않는다 (D-70)`() {
         val u = user()
         val p = projects.save(Project(owner = u.loginId, name = "gp$stamp", vcs = "GIT", projectScope = ProjectScope.PRIVATE))
         menuSettings.save(ProjectMenuSetting(project = p, code = true))
-        val basic = "Basic " + java.util.Base64.getEncoder().encodeToString("${u.loginId}:wrong".toByteArray())
-        mockMvc.perform(get("/${u.loginId}/${p.name}/info/refs").param("service", "git-upload-pack").header("Authorization", basic))
+        fun basic(secret: String) = "Basic " + java.util.Base64.getEncoder().encodeToString("${u.loginId}:$secret".toByteArray())
+        mockMvc.perform(get("/${u.loginId}/${p.name}/info/refs").param("service", "git-upload-pack").header("Authorization", basic("wrong")))
+        assertTrue(eventsOf("auth.basic_failure").isEmpty(), "비밀번호는 확인하지 않으므로 인증 실패로 남기지 않는다")
+        mockMvc.perform(get("/${u.loginId}/${p.name}/info/refs").param("service", "git-upload-pack").header("Authorization", basic("yona_pat_" + "x".repeat(40))))
         val e = eventsOf("auth.basic_failure").single()
         assertEquals(u.loginId, e.actorLogin); assertEquals(AuditOutcome.FAILURE, e.outcome)
         assertTrue(e.details!!.contains("git_http"))

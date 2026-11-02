@@ -119,7 +119,7 @@ class SvnDavTest {
     @AfterEach
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
-        apiTokenRepository.deleteAll()
+        apiTokenRepository.deleteAll(); tokenCache.clear()
         tokenFailures.clear()
         createdProjects.forEach { runCatching { deletion.delete(it) } }
         createdProjects.clear()
@@ -129,9 +129,14 @@ class SvnDavTest {
 
     private fun url(p: Project) = "http://localhost:$port/svn/${p.owner}/${p.name}"
 
-    private fun client(p: Project, user: User? = null, password: String = "1234"): SVNRepository =
+    /** 사용자마다 한 번 만든 개인용 API 토큰이다. SVN HTTP는 토큰만 받는다(D-70). */
+    private val tokenCache = mutableMapOf<Long, String>()
+
+    private fun tokenOf(u: User): String = tokenCache.getOrPut(requireNotNull(u.id)) { (apiTokens.create(u, "svn", setOf("repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value }
+
+    private fun client(p: Project, user: User? = null, password: String? = null): SVNRepository =
         SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url(p))).also {
-            if (user != null) it.authenticationManager = BasicAuthenticationManager.newInstance(user.loginId, password.toCharArray())
+            if (user != null) it.authenticationManager = BasicAuthenticationManager.newInstance(user.loginId, (password ?: tokenOf(user)).toCharArray())
         }
 
     /** HTTP로 파일 하나를 올리는 커밋을 만든다. */
@@ -148,7 +153,7 @@ class SvnDavTest {
 
     private fun raw(method: String, path: String, auth: User? = null): HttpResponse<String> {
         val builder = HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).method(method, HttpRequest.BodyPublishers.noBody())
-        if (auth != null) builder.header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${auth.loginId}:1234".toByteArray()))
+        if (auth != null) builder.header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${auth.loginId}:${tokenOf(auth)}".toByteArray()))
         return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString())
     }
 
@@ -244,7 +249,7 @@ class SvnDavTest {
         // Depth 머리글이 없는 LOCK은 SVNKit 1.10이 깊이 infinity로 보고 400으로 거절하므로 0으로 바꿔 받는다
         val body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><lockinfo xmlns=\"DAV:\"><lockscope><exclusive/></lockscope><locktype><write/></locktype><owner>l</owner></lockinfo>"
         val request = HttpRequest.newBuilder(URI.create("${url(publicProject)}/lock.txt")).method("LOCK", HttpRequest.BodyPublishers.ofString(body))
-            .header("Content-Type", "text/xml").header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${member.loginId}:1234".toByteArray())).build()
+            .header("Content-Type", "text/xml").header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${member.loginId}:${tokenOf(member)}".toByteArray())).build()
         val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
         assertEquals(200, response.statusCode(), response.body())
         assertTrue(response.headers().firstValue("Lock-Token").isPresent)
@@ -371,14 +376,14 @@ class SvnDavTest {
     }
 
     @Test
-    fun `올바른 Basic 자격이면 404와 403 응답에도 세션 쿠키가 심기고 자격이 없으면 심기지 않는다`() {
-        // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션이 실린다
+    fun `토큰으로 인증하면 404와 403 응답에도 세션 쿠키를 심지 않는다 (D-70)`() {
+        // v1.6은 비밀번호 인증으로 웹 세션을 만들어 이후의 403, 404 응답에도 세션이 실렸다. 토큰만 받는 지금은 어느 응답에도 세션 쿠키가 없다(D-70)
         fun cookie(response: HttpResponse<String>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }
         val git = project(member, ProjectScope.PUBLIC, "GIT")
         assertEquals(404, raw("GET", "/svn/${member.loginId}/none", member).statusCode())
-        assertTrue(cookie(raw("GET", "/svn/${member.loginId}/none", member)) != null)
-        assertTrue(cookie(raw("GET", "/svn/${git.owner}/${git.name}", member)) != null)
-        assertTrue(cookie(raw("GET", "/svn/${member.loginId}", member)) != null)
+        assertTrue(cookie(raw("GET", "/svn/${member.loginId}/none", member)) == null)
+        assertTrue(cookie(raw("GET", "/svn/${git.owner}/${git.name}", member)) == null)
+        assertTrue(cookie(raw("GET", "/svn/${member.loginId}", member)) == null)
         assertTrue(cookie(raw("GET", "/svn/${member.loginId}/none")) == null)
     }
 }

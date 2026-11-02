@@ -72,6 +72,7 @@ class WikiGitHttpTest {
     @Autowired private lateinit var wiki: WikiService
     @Autowired private lateinit var deletion: ProjectDeletionService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
+    @Autowired private lateinit var apiTokenService: dev.yona.domain.apitoken.ApiTokenService
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
 
     @TempDir lateinit var work: File
@@ -104,7 +105,7 @@ class WikiGitHttpTest {
 
     @AfterEach
     fun tearDown() {
-        apiTokenRepository.deleteAll()
+        apiTokenRepository.deleteAll(); tokenCache.clear()
         tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { wikis.delete(it.owner!!, it.name!!); deletion.delete(it) }
         users.deleteAll(created)
@@ -112,10 +113,15 @@ class WikiGitHttpTest {
 
     private fun wikiUrl(p: Project = project, suffix: String = ".wiki.git") = "http://localhost:$port/${p.owner}/${p.name}$suffix"
 
-    private fun credentials(u: User, password: String = "1234") = UsernamePasswordCredentialsProvider(u.loginId, password)
+    /** 사용자마다 한 번 만든 개인용 API 토큰이다. git HTTP는 토큰만 받는다(D-70). */
+    private val tokenCache = mutableMapOf<Long, String>()
+
+    private fun tokenOf(u: User): String = tokenCache.getOrPut(requireNotNull(u.id)) { (apiTokenService.create(u, "git", setOf("repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value }
+
+    private fun credentials(u: User, password: String? = null) = UsernamePasswordCredentialsProvider(u.loginId, password ?: tokenOf(u))
 
     /** 작업 디렉터리에 마크다운 파일 하나를 커밋해 위키 저장소로 밀어 넣는다. */
-    private fun push(p: Project, user: User?, file: String = "Home.md", text: String = "hello", suffix: String = ".wiki.git", ref: String = "refs/heads/master", password: String = "1234") {
+    private fun push(p: Project, user: User?, file: String = "Home.md", text: String = "hello", suffix: String = ".wiki.git", ref: String = "refs/heads/master", password: String? = null) {
         val dir = File(work, "push-${counter.incrementAndGet()}")
         Git.init().setDirectory(dir).setInitialBranch("master").call().use { git ->
             File(dir, file).apply { parentFile.mkdirs() }.writeText(text)

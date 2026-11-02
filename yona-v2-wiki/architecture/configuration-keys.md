@@ -48,7 +48,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.api-token-failure-limit` | `5` | 사용 중(X-5). 같은 주소에서 토큰(Git, SVN 비밀번호 포함) 인증에 연달아 실패하면 막는 횟수이다. 0 이하이면 제한하지 않는다 |
 | (v2 신규) | `yona.api-token-block-minutes` | `15` | 사용 중(X-5). 실패 한도를 넘은 주소를 막는 시간(분)이다 |
 | (v2 신규) | `yona.api-token-max-days` | `0` | 사용 중(X-5). 새 토큰의 최대 수명(일)이다. 0이면 제한이 없고 "만료 없음"도 고를 수 있다 |
-| (v2 신규) | `yona.git-http-password-auth` | `true` | 사용 중(X-5). Git, SVN의 HTTP 접근이 비밀번호도 받는지이다. `false`이면 토큰만 받는다 |
+| (v2 삭제) | `yona.git-http-password-auth` | (없음) | 삭제(D-70). Git, SVN의 HTTP 접근은 항상 토큰만 받는다. 설정에 남아 있어도 읽지 않는다 |
 | (v2 신규) | `yona.ssh.enabled` | `false` | 사용 중(X-3). 내장 SSH 서버(Apache MINA SSHD)를 켠다. 끄면 포트를 열지 않고 화면과 동작이 v1.6과 같다 |
 | (v2 신규) | `yona.ssh.port` | `2222` | 사용 중(X-3). SSH 서버가 받는 포트. 0이면 운영체제가 고른다(시험용) |
 | (v2 신규) | `yona.ssh.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |
