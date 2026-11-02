@@ -6,7 +6,7 @@ updated: 2026-11-02
 
 # Git LFS(X-8) 구현 계획
 
-> **상태: 단계 1~5 구현과 시험 완료(2026-11-02, 시험 기준). 단계 0(실제 `git-lfs` 클라이언트 확인), 6(문서 정리), 7(`tus`)은 남았다. 구현의 결과는 [git-lfs.md](git-lfs.md)에 있다.** 결정은 [decisions.md](../decisions.md) D-79에 있다.
+> **상태: 모든 단계 완료(2026-11-02). 구현의 결과는 [git-lfs.md](git-lfs.md)에 있다.** 결정은 [decisions.md](../decisions.md) D-79에 있다.
 
 ## 1. 목적
 

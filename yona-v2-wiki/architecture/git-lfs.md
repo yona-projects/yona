@@ -6,7 +6,7 @@ updated: 2026-11-02
 
 # Git LFS 서버(X-8)
 
-> **상태: 단계 1~5 구현과 시험 완료. 실제 `git-lfs` 3.8.1과 실제 `ssh`로 HTTP와 내장 SSH 서버 경로를 확인했다(단계 0, 2026-11-02). `tus`(단계 7)와 시스템 OpenSSH 중계 경로의 LFS 확인은 남았다.** 계획과 결정 이유는 [git-lfs-plan.md](git-lfs-plan.md)와 [decisions.md](../decisions.md) D-79에 있다. v1.6에는 LFS 서버가 없어 새 경로만 더한 추가 항목이다(v1.6의 기존 경로와 동작은 바꾸지 않았다).
+> **상태: 완료(2026-11-02). 단계 0~7 구현과 시험을 마쳤고, 실제 `git-lfs` 3.8.1과 실제 `ssh`로 HTTP, 내장 SSH 서버, `tus` 이어올리기를 확인했다. 시스템 OpenSSH 중계는 실제 sshd 없이 sshd를 흉내 낸 스크립트와 Go 도우미로 확인했다.** 계획과 결정 이유는 [git-lfs-plan.md](git-lfs-plan.md)와 [decisions.md](../decisions.md) D-79에 있다. v1.6에는 LFS 서버가 없어 새 경로만 더한 추가 항목이다(v1.6의 기존 경로와 동작은 바꾸지 않았다).
 
 ## 1. 구성
 
@@ -19,6 +19,7 @@ updated: 2026-11-02
 | `LfsTokens` | `domain/lfs/LfsTokens.kt` | SSH용 짧은 수명 서명 토큰(`yona_lfs_…`, 10분) |
 | `LfsPointer` | `domain/lfs/LfsPointer.kt` | 포인터 파일 판별 |
 | `LfsController`, `LfsLockController`, `LfsRequestSupport` | `web/lfs` | batch, 객체 전송, verify, 잠금 API와 공통 인증, 응답 |
+| `LfsTusController` | `web/lfs` | `tus` 이어올리기(`POST`, `HEAD`, `PATCH`) |
 | `LfsSshHandler` | `ssh/LfsSshHandler.kt` | SSH `git-lfs-authenticate` |
 | `LfsDownloadController` | `web/lfs` | 코드 보기의 내려받기 링크(웹 세션) |
 | `ProjectLfsController`, `SiteLfsController` | `web/project`, `web/site` | 프로젝트 설정의 LFS 화면(사용량, 잠금 목록, 강제 풀기), 사이트 설정 |
@@ -37,7 +38,7 @@ git-lfs 클라이언트는 저장소 주소 뒤에 `.git/info/lfs`를 붙인다(
 | `…/info/lfs/locks/{id}/unlock` | POST | 쓰기(`force`는 프로젝트 관리자) |
 | `/{소유자}/{프로젝트}/lfs/{oid}` | GET | 코드를 읽을 수 있는 웹 세션(코드 보기의 링크) |
 
-- 전송은 `basic`만 지원한다. batch의 `transfers`에 `basic`이 없으면 422(`tus`는 단계 7).
+- 전송은 `basic`과 `tus`를 지원한다. batch의 `transfers`에 둘 다 없으면 422이다. 올리기에서 클라이언트가 `tus`를 알렸으면 `tus`를 고르고(아래 `tus`), 그 밖에는 `basic`이다. 내려받기는 항상 `basic`이다.
 - 응답의 미디어 타입은 `application/vnd.git-lfs+json`이고 오류는 `{"message": …}`이다. 객체별 오류는 `error: {code, message}`(404, 413, 422).
 
 ## 3. 인증과 권한
@@ -45,6 +46,10 @@ git-lfs 클라이언트는 저장소 주소 뒤에 `.git/info/lfs`를 붙인다(
 - **git HTTP와 똑같다**: 개인용 토큰만 받고 비밀번호는 거부한다(D-70). 토큰 범위는 읽기 `repo`나 `read:repo`, 쓰기 `repo`(공개 프로젝트는 `public_repo`)이다. 프로젝트 권한은 코드 읽기와 푸시 권한이고 `isCodeAccessibleMemberOnly` 규칙도 같다. 공개 프로젝트는 익명도 내려받는다. OAuth 토큰은 받지 않는다.
 - 인증이 없으면 401과 `WWW-Authenticate: Basic realm="Yobi"`, 로그인했는데 권한이 없으면 403이다. 없는 프로젝트, LFS를 지원하지 않는 저장소(Subversion), 사이트 설정이 꺼진 경우는 404이다. 주소 인증 실패 제한과 지표(`vcs=git_lfs`)는 git HTTP와 같은 것을 쓴다.
 - **SSH**: 클라이언트가 SSH로 `git-lfs-authenticate '<경로>' <download|upload>`를 보내면 서버가 `{"href": …/info/lfs, "header": {"Authorization": "Bearer yona_lfs_…"}, "expires_in": 600}`를 돌려준다. **객체 전송은 HTTP로 한다.** 토큰은 사용자, 프로젝트, 동작(내려받기 또는 올리기), 만료에 묶인 HMAC-SHA256 서명 값(키는 사이트 비밀 키 `application.secret`)이고 LFS 경로에서만 유효하며 프로젝트 권한 검사는 그대로 한다. 내장 sshd와 Go 도우미 중계 모두 같은 명령 처리기를 거친다.
+
+### 3.1 `tus`(이어올리기)
+
+`lfs.tustransfers`를 켠 클라이언트가 batch에 `tus`를 알리면(`"transfers":["basic","tus",…]`, 실제 클라이언트는 `basic`을 앞에 두고 `tus`를 덧붙인다) 서버는 올리기에 `tus`를 고르고 동작 주소를 `…/info/lfs/tus/{oid}`로 준다. **batch가 올릴 객체마다 업로드를 미리 만든다**: 실제 클라이언트는 따로 만들지 않고 곧바로 `HEAD`로 위치를 묻기 때문이다. 그 뒤 `HEAD`(받은 위치 `Upload-Offset`, 전체 `Upload-Length`)와 `PATCH`(`application/offset+octet-stream`, 위치부터 이어 받기)를 쓰며, 위치가 틀리면 409, 길이를 넘으면 413, 다 받았는데 해시가 다르면 422(받은 조각을 버림)이다. 받는 중인 조각은 `repo/lfs/<소유자>/<이름>/tus/<oid>.part`에 있다. `POST`(만들기, tus 1.0.0 `creation`)도 규격대로 받는다. **`OPTIONS`는 지원하지 않는다**(이 경로에 매핑해도 스프링이 정적 자원 처리기로 넘겨 404였고 실제 클라이언트가 쓰지 않는다). 한도와 권한은 기본 전송의 올리기와 같다.
 
 ## 4. 한도와 설정
 
@@ -68,7 +73,7 @@ git-lfs 클라이언트는 저장소 주소 뒤에 `.git/info/lfs`를 붙인다(
 
 ## 8. 검증
 
-시험: `LfsStorageTest`, `LfsApiTest`(batch, 전송, 권한, 한도), `LfsLockServiceTest`, `LfsLockApiTest`, `LfsLifecycleTest`(개명, 이전, 삭제, 포크), `LfsSshTest`(명령, 토큰, 토큰 사용), `LfsPointerTest`, `LfsCodeBrowserTest`, `LfsProjectSettingTest`, `SiteLfsTest`. **실제 클라이언트 확인(단계 0)**: 공식 `git-lfs` 3.8.1을 격리된 폴더에 내려받아 실제 jar에 대해 실행했다. HTTP: 주소 탐색(`.git/info/lfs`), 개인용 토큰 인증, 6 MiB 업로드와 내려받기(해시 일치), 이미 있는 객체 건너뛰기, `lock`, `locks`, `locks --verify`, `unlock`, `Range` 206, 토큰 없는 비공개 복제 거부. 내장 SSH 서버(실제 `ssh` 클라이언트): `git-lfs-authenticate`, 업로드, 복제와 내려받기, 잠금과 해제. **이 확인에서 규격을 기억에 의존해 틀렸던 두 곳을 고쳤다**(아래 9절). 시스템 OpenSSH 중계(Go 도우미) 경로는 같은 명령 처리기를 거치지만 실제 sshd로는 LFS를 확인하지 않았다.
+시험: `LfsStorageTest`, `LfsApiTest`(batch, 전송, 권한, 한도), `LfsLockServiceTest`, `LfsLockApiTest`, `LfsLifecycleTest`(개명, 이전, 삭제, 포크), `LfsSshTest`(명령, 토큰, 토큰 사용), `LfsPointerTest`, `LfsCodeBrowserTest`, `LfsProjectSettingTest`, `SiteLfsTest`. **실제 클라이언트 확인(단계 0)**: 공식 `git-lfs` 3.8.1을 격리된 폴더에 내려받아 실제 jar에 대해 실행했다. HTTP: 주소 탐색(`.git/info/lfs`), 개인용 토큰 인증, 6 MiB 업로드와 내려받기(해시 일치), 이미 있는 객체 건너뛰기, `lock`, `locks`, `locks --verify`, `unlock`, `Range` 206, 토큰 없는 비공개 복제 거부. 내장 SSH 서버(실제 `ssh` 클라이언트): `git-lfs-authenticate`, 업로드, 복제와 내려받기, 잠금과 해제. **이 확인에서 규격을 기억에 의존해 틀렸던 두 곳을 고쳤다**(아래 9절). `tus` 이어올리기(실제 클라이언트가 2 MiB까지 올라가 있던 6 MiB 객체를 그 위치부터 이어 올려 해시 일치). 시스템 OpenSSH 중계는 실제 sshd 없이, sshd가 하는 일을 흉내 내는 스크립트와 셸 훅, Go 도우미(`yona-ssh`)로 `git-lfs-authenticate`를 확인했다(`SshRelayServerTest`, `SshRelayGoHelperTest`). 중계는 거부 사유를 종료 코드로 알릴 수 없어, `git-lfs-authenticate`의 거부는 pkt-line 접두어 없이 글로 쓴다.
 
 ## 9. 실제 클라이언트가 알려 준 것
 
@@ -77,6 +82,8 @@ git-lfs 클라이언트는 저장소 주소 뒤에 `.git/info/lfs`를 붙인다(
 3. **git-lfs 3.x는 SSH에서 순수 SSH 전송(`git-lfs-transfer`)을 먼저 시도한다.** 서버가 모르는 명령이면 "Invalid command" 오류를 받고 `git-lfs-authenticate`로 내려간다. 동작에는 문제가 없고 클라이언트의 추적 로그에 실패 메시지가 한 번 남는다. 순수 SSH 전송 지원은 추가 논의 항목이다.
 4. 복제할 때 LFS 객체를 받으려면 사용자 쪽에 `git lfs install`(전역 또는 저장소)이 되어 있어야 한다(서버와 무관한 클라이언트 설정).
 
+5. **`basic`을 앞에 두고 `tus`를 덧붙이는 클라이언트의 목록에서 앞에서부터 고르면 `tus`가 영영 선택되지 않는다.** 올리기에서는 `tus`가 있으면 우선한다.
+
 ## 10. 남은 일
 
-단계 7(`tus`, basic 전송이 끝난 뒤), 시스템 OpenSSH 중계 경로에서의 LFS 확인, 그리고 LFS 구현이 모두 끝난 뒤 화면 문구 일괄 정리(선생님 지시 2026-11-02: "1 objects" 같은 영어 단수형 등). 추가 논의 항목: 순수 SSH 전송(`git-lfs-transfer`), 쓰이지 않는 객체 정리, Mercurial 주소 규칙, 잠금 목록 고도화([decisions.md](../decisions.md) "재결정 대기" 절).
+- 추가 논의 항목: 순수 SSH 전송(`git-lfs-transfer`), 쓰이지 않는 객체와 끊긴 `tus` 조각의 정리(지금은 프로젝트를 지울 때만 지운다), Mercurial 주소 규칙(X-7에서 실제 `hg`로 확인), 잠금 목록 고도화([decisions.md](../decisions.md) "재결정 대기" 절).

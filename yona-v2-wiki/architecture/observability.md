@@ -78,7 +78,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 
 | 지표 | 태그 | 설명 |
 |---|---|---|
-| `yona.vcs.request` | `vcs`, `service`, `target`(code, wiki, lfs), `result` | 저장소 서비스 요청의 시간과 횟수. Git LFS는 `vcs=git_lfs`, `service`는 `batch`, `upload`, `download`, `verify`, `lock_create`, `lock_list`, `lock_verify`, `lock_unlock`(X-8) |
+| `yona.vcs.request` | `vcs`, `service`, `target`(code, wiki, lfs), `result` | 저장소 서비스 요청의 시간과 횟수. Git LFS는 `vcs=git_lfs`, `service`는 `batch`, `upload`, `download`, `verify`, `lock_create`, `lock_list`, `lock_verify`, `lock_unlock`, `tus_create`, `tus_head`, `tus_patch`(X-8) |
 | `yona.vcs.request.active` | `vcs`, `service`, `target` | 진행 중인 요청 수. **긴 git 요청이 스레드를 점유해 풀이 고갈되는 것의 선행 지표** |
 | `yona.vcs.transfer` | `vcs`, `target`, `direction`(in, out) | 전송한 바이트 |
 | `yona.vcs.pushes` | `vcs`, `kind`(branch, tag, other), `result`(ok, rejected), `reason` | 푸시한 ref 수. 거부 이유는 `ruleset_deletion`, `ruleset_update`, `ruleset_force`, `ruleset_pull_request`, `reserved` |
