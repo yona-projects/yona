@@ -6,8 +6,8 @@ import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Component
 
 /**
- * MCP 쓰기 도구이다(추가 개발 항목 X-6, `decisions.md` D-72 4번). 되돌리기 쉬운 쓰기만 둔다: 이슈 만들기, 댓글, 닫기와 다시 열기, 풀 리퀘스트 댓글, 위키 만들기와 수정.
- * 풀 리퀘스트 만들기, 리뷰 판정, 병합, 삭제는 두지 않는다(로드맵 X-41). 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
+ * MCP 쓰기 도구이다(추가 개발 항목 X-6, `decisions.md` D-72 4번, X-41의 D-74). 되돌리기 쉬운 쓰기만 둔다: 이슈 만들기, 댓글, 닫기와 다시 열기, 풀 리퀘스트 만들기와 댓글과
+ * 리뷰 판정과 닫기와 다시 열기, 위키 만들기와 수정. 풀 리퀘스트 병합과 삭제 도구는 두지 않는다(D-74). 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
  * 모든 호출은 감사 기록(`mcp.tool_called`)을 남긴다.
  */
 @Component
@@ -58,4 +58,36 @@ class McpWriteTools(private val bridge: McpRestBridge) {
     ): Any? = bridge.call(
         "update_wiki_page", "PATCH", "${project(owner, project)}/wiki/pages/${seg(name)}", body = mapOf("title" to title, "content" to content, "message" to message).filterValues { it != null }, target = "$owner/$project"
     )
+
+    @Tool(
+        name = "create_pull_request",
+        description = "Create a pull request between two branches of the same project (pull requests from forks are not supported here). Requires the repo scope. / 같은 프로젝트의 두 브랜치 사이에 풀 리퀘스트를 만든다(포크에서 보내는 것은 지원하지 않는다). repo 범위가 필요하다."
+    )
+    fun createPullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Title / 제목") title: String, @ToolParam(description = "Body in Markdown / 본문(마크다운)", required = false) body: String?,
+        @ToolParam(description = "Branch with the changes, e.g. feature / 변경이 있는 브랜치") fromBranch: String, @ToolParam(description = "Target branch, e.g. master / 합칠 대상 브랜치") toBranch: String
+    ): Any? = bridge.call(
+        "create_pull_request", "POST", "${project(owner, project)}/pullrequests",
+        body = mapOf("title" to title, "body" to body.orEmpty(), "fromBranch" to fromBranch, "toBranch" to toBranch), target = "$owner/$project"
+    )
+
+    @Tool(
+        name = "review_pull_request",
+        description = "Review a pull request with a verdict: APPROVED, CHANGES_REQUESTED or COMMENTED. You cannot approve or request changes on your own pull request. Requires the repo scope. / 풀 리퀘스트를 리뷰한다. 판정은 APPROVED(승인), CHANGES_REQUESTED(변경 요청), COMMENTED(댓글만). 자기 풀 리퀘스트는 승인하거나 변경을 요청할 수 없다. repo 범위가 필요하다."
+    )
+    fun reviewPullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long,
+        @ToolParam(description = "APPROVED, CHANGES_REQUESTED or COMMENTED / 판정") verdict: String, @ToolParam(description = "Review comment (required for CHANGES_REQUESTED and COMMENTED) / 리뷰 내용", required = false) body: String?
+    ): Any? = bridge.call("review_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/reviews", body = mapOf("verdict" to verdict, "body" to body).filterValues { it != null }, target = "$owner/$project")
+
+    @Tool(name = "close_pull_request", description = "Close a pull request without merging. Requires the repo scope. / 풀 리퀘스트를 병합하지 않고 닫는다. repo 범위가 필요하다.")
+    fun closePullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long
+    ): Any? = bridge.call("close_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/close", target = "$owner/$project")
+
+    @Tool(name = "reopen_pull_request", description = "Reopen a closed pull request. Requires the repo scope. / 닫힌 풀 리퀘스트를 다시 연다. repo 범위가 필요하다.")
+    fun reopenPullRequest(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Pull request number / 풀 리퀘스트 번호") number: Long
+    ): Any? = bridge.call("reopen_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/reopen", target = "$owner/$project")
 }

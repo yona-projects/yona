@@ -47,11 +47,11 @@ AI 에이전트(Claude Code, Codex, Antigravity 등)가 MCP(Model Context Protoc
 |---|---|---|
 | 프로젝트 | `list_projects`, `get_project` | 없음 |
 | 이슈 | `list_issues`, `get_issue`, `list_issue_comments` | `create_issue`, `comment_issue`, `close_issue`, `reopen_issue` |
-| 풀 리퀘스트 | `list_pull_requests`, `get_pull_request`, `get_pull_request_diff` | `comment_pull_request` |
+| 풀 리퀘스트 | `list_pull_requests`, `get_pull_request`, `get_pull_request_diff` | `create_pull_request`, `comment_pull_request`, `review_pull_request`, `close_pull_request`, `reopen_pull_request` |
 | 위키 | `list_wiki_pages`, `get_wiki_page` | `create_wiki_page`, `update_wiki_page` |
 | 검색 | `search_project` | 없음 |
 
-풀 리퀘스트 만들기, 리뷰 판정, 병합, 삭제 도구는 없다(로드맵 X-41).
+풀 리퀘스트 병합과 삭제 도구는 없다(로드맵 X-41, D-74). 풀 리퀘스트 만들기는 같은 프로젝트의 브랜치 사이만 지원한다.
 
 - **쪽 크기**: 목록은 기본 30, 최대 100이다(`McpRestBridge.pageSize`). 결과 글이 20만 자를 넘으면 앞부분만 보내고 `truncated: true`로 알린다.
 - **오류**: 2xx가 아니면 MCP 도구 오류(`isError`)로 상태와 이유를 알린다. 예외 내용은 노출하지 않는다.
