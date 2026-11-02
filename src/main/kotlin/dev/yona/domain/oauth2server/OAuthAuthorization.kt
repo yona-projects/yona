@@ -146,6 +146,8 @@ interface OAuthConsentRepository : JpaRepository<OAuthConsent, Long> {
 
     fun findByClientRowIdAndUserId(clientRowId: Long, userId: Long): OAuthConsent?
 
+    fun countByClientRowId(clientRowId: Long): Long
+
     fun findByUserIdOrderByCreatedDateDescIdDesc(userId: Long): List<OAuthConsent>
 
     @Modifying

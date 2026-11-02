@@ -23,6 +23,7 @@ class SiteSecurityController(private val settings: SiteSettingService) {
 
     @GetMapping("/sites/security")
     fun security(): ModelAndView = ModelAndView("site/security").addObject("title", "site.sidebar.security").addObject("enforcement", settings.twoFactorEnforcement().name)
+        .addObject("oauthCimd", settings.oauthCimdEnabled()).addObject("oauthUserApps", settings.oauthUserAppsEnabled())
 
     /** 강제 방식을 바꾸고 보안 설정 화면으로 돌아간다. 알 수 없는 값은 400이다. */
     @PostMapping("/sites/security")

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-1(decisions.md D-71): 사이트 관리의 OAuth 앱 목록. 사용자가 만든 앱과 CIMD 문서에서 가져온 앱을 보고 지운다
+  모델: title, rows(Row 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::oauthAppsPage})}">
+<th:block th:fragment="oauthAppsPage">
+<div class="two-factor-page">
+<h3 th:text="#{site.oauthApps.title}"></h3>
+<p class="text-body-secondary" th:text="#{site.oauthApps.description}"></p>
+<div id="all-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(rows)}" th:text="#{site.oauthApps.empty}"></div>
+<table id="all-apps" class="table table-striped" th:if="${!#lists.isEmpty(rows)}">
+    <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.clientId}"></th><th th:text="#{site.oauthApps.owner}"></th><th th:text="#{site.oauthApps.registration}"></th><th th:text="#{site.oauthApps.users}"></th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="r : ${rows}" class="app-row">
+        <td th:text="${r.name}"></td>
+        <td><code th:text="${r.clientId}"></code></td>
+        <td th:text="${r.owner}"></td>
+        <td th:text="#{'site.oauthApps.registration.' + ${r.registration}}"></td>
+        <td th:text="${r.users}"></td>
+        <td class="text-end">
+            <form method="post" th:action="@{/sites/oauth-apps/{id}/delete(id=${r.id})}" th:attr="onsubmit='return confirm(\'' + #{site.oauthApps.delete.confirm} + '\');'">
+                <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.delete}"></button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</div>
+</th:block>
+</html>

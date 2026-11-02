@@ -25,5 +25,21 @@
         <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
     </div>
 </form>
+
+<form id="oauth-settings-form" class="security-settings mt-4" method="post" th:action="@{/sites/security/oauth}">
+    <h4 th:text="#{site.security.oauth}"></h4>
+    <p class="text-body-secondary" th:text="#{site.security.oauth.description}"></p>
+    <label class="option" for="oauth-cimd">
+        <input class="form-check-input" type="checkbox" name="cimd" id="oauth-cimd" value="true" th:checked="${oauthCimd}">
+        <span class="option-text"><strong th:text="#{site.security.oauth.cimd}"></strong><small th:text="#{site.security.oauth.cimd.help}"></small></span>
+    </label>
+    <label class="option" for="oauth-user-apps">
+        <input class="form-check-input" type="checkbox" name="userApps" id="oauth-user-apps" value="true" th:checked="${oauthUserApps}">
+        <span class="option-text"><strong th:text="#{site.security.oauth.userApps}"></strong><small th:text="#{site.security.oauth.userApps.help}"></small></span>
+    </label>
+    <div class="tf-actions">
+        <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
+    </div>
+</form>
 </th:block>
 </html>
