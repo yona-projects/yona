@@ -59,6 +59,7 @@ server:
 | `oauth.refresh_reuse_detected` | 거부 | 이미 쓴 갱신 토큰이 다시 와서 그 인가 전체를 취소했다(탈취 의심) | `YonaOAuth2AuthorizationService` |
 | `site.oauth_cimd_changed`, `site.oauth_user_apps_changed` | 성공 | 관리자가 CIMD 클라이언트 허용과 사용자의 앱 만들기 허용을 바꿨다(`details.from`, `to`) | `SiteSettingService` |
 | `site.mcp_enabled_changed`, `site.mcp_write_changed` | 성공 | 관리자가 MCP 서버 사용과 쓰기 도구 허용을 바꿨다(`details.from`, `to`, X-6) | `SiteSettingService` |
+| `mcp.tool_called` | 성공, 실패 | MCP 쓰기 도구를 불렀다(`details.tool`, 실패면 `details.error`, `targetLabel`은 `소유자/프로젝트`). 읽기 도구는 남기지 않고 지표로 센다. 도구가 부른 REST의 변경 기록은 따로 남는다(X-6) | `McpRestBridge` |
 | `auth.token_blocked` | 거부 | 인증 실패가 쌓여 주소가 막힘(같은 주소는 1분에 한 번만) | 인증 필터, `BasicAuthResolver` |
 | `access.denied` | 거부 | 응답이 403인 모든 요청(대상은 `메서드 경로`, 질의 문자열 제외) | `AccessDeniedAuditFilter`(인증 필터 뒤) |
 | `access.api_scope_denied` | 거부 | 토큰 범위가 모자란 외부 API 요청. `access.denied`로 또 남기지 않는다 | `ApiScopeInterceptor` |

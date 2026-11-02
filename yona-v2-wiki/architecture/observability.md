@@ -96,6 +96,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 |---|---|---|
 | `yona.signature.verifications` | `target`, `reason`, `format` | 서명 검증 판정(X-4, D-65, SSH 서명은 D-68). `format`은 서명 형식 `gpg`, `ssh`이다. `target`은 `commit`, `tag`이고 `reason`은 `valid`, `unsigned`, `unknown_key`, `expired_key`, `not_signing_key`, `malformed_signature`, `invalid`, `no_user`, `bad_email`, `unverified_email`. 로그인 ID, 키 ID, 이메일은 태그에 넣지 않는다. `unknown_key`나 `invalid`의 급증은 키 등록 누락이나 위조 시도의 신호이다 |
 | `yona.oauth.tokens` | `grant`, `client_type` | OAuth 토큰 발급 수(X-1, D-71). `grant`는 `authorization_code`, `refresh_token`이고 `client_type`은 `public`, `confidential`이다. 앱 이름과 사용자는 태그에 넣지 않는다. 갱신 토큰 재사용 탐지는 감사 기록 `oauth.refresh_reuse_detected`로 본다 |
+| `yona.mcp.tool_calls` | `tool`, `result` | MCP 도구 호출 수(X-6, D-72). `tool`은 도구 이름(`create_issue` 등), `result`는 `ok`, `error`이다. 사용자와 프로젝트는 태그에 넣지 않는다. 쓰기 도구는 감사 기록 `mcp.tool_called`도 남긴다 |
 | `yona.security.events` | `event`, `channel`, `via`, `denied` | 인증과 접근 거부. `event`는 `login_success`, `login_failure`, `logout`, `token_failure`, `basic_failure`, `blocked`, `access_denied`, `api_scope_denied`. 감사 경계 이벤트와 같은 지점에서 센다. **감사 기록은 같은 주소의 차단을 1분에 한 번만 남기지만 지표는 매번 센다.** 급증은 공격 신호이다 |
 | `yona.entities.created` | `entity`(project, user, issue, issue_comment, post, post_comment, pull_request, review_comment, attachment) | **커밋된 삽입**을 하이버네이트 이벤트로 한 곳에서 센다(화면, API, 가져오기 모두 포함, 롤백은 제외). DB를 세는 gauge가 아니라 카운터라 DB 부하가 없다 |
 | `yona.pull_requests.merge` | `result`(merged, conflict, method_not_allowed, not_reviewed, updates_restricted) | 병합 시도 결과 |
