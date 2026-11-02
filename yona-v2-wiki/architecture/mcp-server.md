@@ -46,15 +46,15 @@ AI 에이전트(Claude Code, Codex, Antigravity 등)가 MCP(Model Context Protoc
 | 영역 | 읽기 도구 | 쓰기 도구 |
 |---|---|---|
 | 프로젝트 | `list_projects`, `get_project` | 없음 |
-| 이슈 | `list_issues`, `get_issue`, `list_issue_comments` | `create_issue`, `comment_issue`, `close_issue`, `reopen_issue` |
+| 이슈 | `list_issues`, `get_issue`, `list_issue_comments` | `create_issue`, `comment_issue`, `close_issue`, `reopen_issue`, `delete_issue`, `delete_issue_comment` |
 | 풀 리퀘스트 | `list_pull_requests`, `get_pull_request`, `get_pull_request_diff` | `create_pull_request`, `comment_pull_request`, `review_pull_request`, `close_pull_request`, `reopen_pull_request`, `merge_pull_request` |
 | 위키 | `list_wiki_pages`, `get_wiki_page` | `create_wiki_page`, `update_wiki_page` |
 | 검색 | `search_project` | 없음 |
 
-삭제 도구는 없다(로드맵 X-41). 병합(`merge_pull_request`, D-75)은 REST와 같은 권한과 브랜치 보호 규칙을 거치며 조건을 채우지 못하면 409로 알린다. 풀 리퀘스트 만들기는 같은 프로젝트의 브랜치 사이만 지원한다.
+삭제 도구는 이슈와 이슈 댓글만 있다(D-76, 웹 화면과 같은 규칙: 작성자나 프로젝트 관리자, 작성자가 아닌 사람의 댓글이 있는 이슈는 누구도 지울 수 없다). 위키와 보내는 브랜치 삭제는 없다. 병합(`merge_pull_request`, D-75)은 REST와 같은 권한과 브랜치 보호 규칙을 거치며 조건을 채우지 못하면 409로 알린다. 풀 리퀘스트 만들기는 같은 프로젝트의 브랜치 사이만 지원한다.
 
 - **쪽 크기**: 목록은 기본 30, 최대 100이다(`McpRestBridge.pageSize`). 결과 글이 20만 자를 넘으면 앞부분만 보내고 `truncated: true`로 알린다.
-- **오류**: 2xx가 아니면 MCP 도구 오류(`isError`)로 상태와 이유를 알린다. 예외 내용은 노출하지 않는다.
+- **오류**: 2xx가 아니면 MCP 도구 오류(`isError`)로 상태와 이유를 알린다. 예외 내용은 노출하지 않는다. REST가 오류를 화면(`ErrorViews`)으로 돌려주는 경로는 가상 요청에서 화면을 그리지 못하므로 다리가 상태만 알아내 "찾을 수 없습니다 (404)" 같은 문장으로 알린다.
 - **쓰기 스위치**: 관리자가 "MCP 쓰기 도구 허용"(`security.mcp-write-enabled`)을 끄면 쓰기 도구는 호출할 때 거부된다. 계획은 "도구 목록에서 숨긴다"였으나 스타터가 시작할 때 목록을 한 번 정하므로 **호출 거부**로 구현했다(A-330).
 - 위키 페이지 이름에는 `/`를 쓸 수 없다(Yona의 규칙). 하위 경로는 없다.
 

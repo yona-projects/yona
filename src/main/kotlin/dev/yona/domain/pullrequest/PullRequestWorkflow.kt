@@ -70,9 +70,6 @@ class PullRequestWorkflow(
         // 받는 브랜치의 규칙이 선형 이력을 요구하면 병합 커밋은 빠진다(X-33, D-45)
         val chosen = method ?: pullRequest.defaultMergeMethodOrFirst()
         if (chosen !in pullRequest.allowedMergeMethods()) return AcceptResult.METHOD_NOT_ALLOWED
-        // v1.6처럼 병합 중 표시를 먼저 저장한다. 조건에 막혀 돌아가는 경로에서도 표시가 남는 것은 v1.6의 결함을 같게 재현한 것이다(`refactoring-backlog.md` R-76, 선생님 결정 2026-10-26)
-        pullRequest.isMerging = true
-        pullRequests.save(pullRequest)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`canBypass`)
         // 추가 항목(X-32, D-42): 받는 브랜치에 보호 규칙이 있을 때만 승인 수와 변경 요청으로 막는다
         // 추가 항목(X-34, D-46): 규칙 묶음이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다. 막고 있는 규칙 묶음을 모두 우회할 수 있는 사용자만 통과한다
@@ -80,7 +77,18 @@ class PullRequestWorkflow(
         val blocking = pullRequest.blockingRulesets(openConversations, signatureCheck.unverifiedCount(pullRequest))
         if (blocking.isNotEmpty() && !canBypass(blocking)) return if (blocking.any { it.restrictUpdates == true }) AcceptResult.UPDATES_RESTRICTED else AcceptResult.NOT_REVIEWED
 
-        val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
+        // 병합 조건을 모두 확인한 뒤에 병합 중 표시를 먼저 저장한다(v1.6처럼 병합하는 동안 표시가 보이게 한다). v1.6은 표시를 먼저 저장해 조건에 막혀 돌아가거나 병합 중 예외가 나면 표시가 남아
+        // 요청이 병합 중으로 굳었다. 선생님이 개선을 승인했다(`refactoring-backlog.md` R-76, 2026-11-02): 조건에 막힌 경로는 표시를 저장하지 않고, 병합기가 예외를 던지면 표시를 거둔다
+        pullRequest.isMerging = true
+        pullRequests.save(pullRequest)
+
+        val result = try {
+            merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
+        } catch (e: Exception) {
+            pullRequest.isMerging = false
+            pullRequests.save(pullRequest)
+            throw e
+        }
         pullRequest.isMerging = false
         if (result == null) {
             pullRequests.save(pullRequest)

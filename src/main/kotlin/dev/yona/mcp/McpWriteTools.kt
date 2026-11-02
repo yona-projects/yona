@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 /**
  * MCP 쓰기 도구이다(추가 개발 항목 X-6, `decisions.md` D-72 4번, X-41의 D-74). 되돌리기 쉬운 쓰기만 둔다: 이슈 만들기, 댓글, 닫기와 다시 열기, 풀 리퀘스트 만들기와 댓글과
- * 리뷰 판정과 닫기와 다시 열기, 위키 만들기와 수정. 병합(`merge_pull_request`)은 D-75로 더했다. 삭제 도구는 두지 않는다. 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
+ * 리뷰 판정과 닫기와 다시 열기, 위키 만들기와 수정. 병합(`merge_pull_request`)은 D-75, 이슈와 이슈 댓글 삭제는 D-76으로 더했다. 그 밖의 삭제 도구는 두지 않는다. 쓰기는 `repo` 범위와 사용자의 실제 쓰기 권한이 필요하며, 관리자가 "MCP 쓰기 도구 허용"을 끄면 거부한다.
  * 모든 호출은 감사 기록(`mcp.tool_called`)을 남긴다.
  */
 @Component
@@ -106,4 +106,24 @@ class McpWriteTools(private val bridge: McpRestBridge) {
         "merge_pull_request", "POST", "${project(owner, project)}/pullrequests/$number/merge",
         body = mapOf("method" to method, "commitTitle" to commitTitle, "commitMessage" to commitMessage).filterValues { it != null }, target = "$owner/$project"
     )
+
+    @Tool(
+        name = "delete_issue",
+        description = "Permanently delete an issue. Only the issue's author or a project manager can, and an issue that has comments written by someone other than its author cannot be deleted by anyone (same rule as the web page). " +
+            "This cannot be undone; use it only when the user explicitly asked to delete. Requires the repo scope. / 이슈를 완전히 지운다. 이슈 작성자나 프로젝트 관리자만 할 수 있고, 이슈 작성자가 아닌 사람의 댓글이 있으면 누구도 지울 수 없다(웹 화면과 같은 규칙). " +
+            "되돌릴 수 없으므로 사용자가 삭제를 분명히 요청했을 때만 쓴다. repo 범위가 필요하다."
+    )
+    fun deleteIssue(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String, @ToolParam(description = "Issue number / 이슈 번호") number: Long
+    ): Any? = bridge.call("delete_issue", "DELETE", "${project(owner, project)}/issues/$number", target = "$owner/$project")
+
+    @Tool(
+        name = "delete_issue_comment",
+        description = "Permanently delete an issue comment. Only the comment's author or a project manager can. This cannot be undone; use it only when the user explicitly asked to delete. Requires the repo scope. / " +
+            "이슈 댓글을 완전히 지운다. 댓글 작성자나 프로젝트 관리자만 할 수 있다. 되돌릴 수 없으므로 사용자가 삭제를 분명히 요청했을 때만 쓴다. repo 범위가 필요하다. 댓글 번호는 list_issue_comments로 알 수 있다."
+    )
+    fun deleteIssueComment(
+        @ToolParam(description = "Owner / 소유자") owner: String, @ToolParam(description = "Project name / 프로젝트 이름") project: String,
+        @ToolParam(description = "Issue number / 이슈 번호") number: Long, @ToolParam(description = "Comment ID from list_issue_comments / 댓글 번호") commentId: Long
+    ): Any? = bridge.call("delete_issue_comment", "DELETE", "${project(owner, project)}/issues/$number/comments/$commentId", target = "$owner/$project")
 }

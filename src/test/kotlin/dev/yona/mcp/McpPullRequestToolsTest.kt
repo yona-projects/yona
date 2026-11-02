@@ -16,7 +16,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * MCP의 풀 리퀘스트 쓰기 도구(X-41, `decisions.md` D-74)를 검증한다: 만들기, 리뷰 판정, 닫기와 다시 열기. 병합과 삭제 도구는 없다. 도구는 REST와 같은 길로 부르므로
+ * MCP의 풀 리퀘스트 쓰기 도구(X-41, `decisions.md` D-74)를 검증한다: 만들기, 리뷰 판정, 닫기와 다시 열기. 병합과 이슈와 이슈 댓글 말고는 삭제 도구가 없다. 도구는 REST와 같은 길로 부르므로
  * 리뷰 판정의 권한 규칙(자기 풀 리퀘스트는 승인할 수 없다)도 REST와 같다.
  */
 @AutoConfigureMockMvc
@@ -46,10 +46,10 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
         support.call(mockMvc, token, "create_pull_request", args(f) + mapOf("title" to title, "body" to "본문", "fromBranch" to "feature", "toBranch" to "master"))
 
     @Test
-    fun `풀 리퀘스트 쓰기 도구가 등록되어 있고 삭제 도구는 없다`() {
+    fun `풀 리퀘스트 쓰기 도구가 등록되어 있고 이슈와 이슈 댓글 말고는 삭제 도구가 없다`() {
         val names = support.toolNames(mockMvc, support.token(support.user(), "repo"))
         assertTrue(names.containsAll(setOf("create_pull_request", "review_pull_request", "close_pull_request", "reopen_pull_request", "merge_pull_request")), "등록된 도구: $names")
-        assertTrue(names.none { it.contains("delete") }, "등록된 도구: $names")
+        assertTrue(names.none { it.contains("delete") && it !in setOf("delete_issue", "delete_issue_comment") }, "등록된 도구: $names")
     }
 
     @Test
@@ -165,7 +165,7 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `필요한 승인 수를 채우지 못하면 병합은 409로 막히고 풀 리퀘스트는 열려 있다`() {
+    fun `필요한 승인 수를 채우지 못하면 병합은 409로 막히고 승인한 뒤에는 병합된다`() {
         val f = withBranch(support.project())
         rulesets.save(dev.yona.domain.project.Ruleset(project = f.project, name = "master", pattern = "master", requiredApprovals = 1, createdDate = java.util.Date()))
         em.flush(); em.refresh(f.project) // 같은 트랜잭션에서 이미 읽은 프로젝트의 규칙 묶음 목록을 새로 읽는다
@@ -174,5 +174,9 @@ class McpPullRequestToolsTest : AbstractIntegrationTest() {
         val blocked = support.call(mockMvc, author, "merge_pull_request", args(f) + mapOf("number" to numberOf(f)))
         assertTrue(blocked.error && blocked.text.contains("409") && blocked.text.contains("approvals"), blocked.text)
         assertEquals(dev.yona.domain.enumeration.State.OPEN, pullRequests.findAll().single { it.toProject?.id == f.project.id }.state)
+        // 조건에 막힌 병합이 병합 중 표시를 남기지 않으므로(R-76 개선) 승인한 뒤에는 병합된다
+        assertFalse(support.call(mockMvc, support.token(f.manager, "repo"), "review_pull_request", args(f) + mapOf("number" to numberOf(f), "verdict" to "APPROVED", "body" to "ok")).error)
+        val merged = support.call(mockMvc, author, "merge_pull_request", args(f) + mapOf("number" to numberOf(f)))
+        assertFalse(merged.error, merged.text)
     }
 }

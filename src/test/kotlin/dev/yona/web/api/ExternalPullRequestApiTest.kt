@@ -62,6 +62,8 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var pullRequests: PullRequestRepository
+    @Autowired private lateinit var rulesetRepository: dev.yona.domain.project.RulesetRepository
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean private lateinit var mergerSpy: dev.yona.domain.pullrequest.PullRequestMerger
     @Autowired private lateinit var tokens: ApiTokenService
     @Autowired private lateinit var attachmentService: dev.yona.domain.misc.AttachmentService
     @Autowired private lateinit var attachmentRepository: dev.yona.domain.misc.AttachmentRepository
@@ -303,6 +305,35 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.mergeMethods.squash.allowed").value(false))
             .andExpect(jsonPath("$.mergeMethods.rebase.allowed").value(true)).andExpect(jsonPath("$.mergeMethods.rebase.available").value(false)).andExpect(jsonPath("$.mergeMethods.rebase.reason").value("merge-commits"))
             .andExpect(jsonPath("$.mergeMethod").isEmpty)
+    }
+
+    @Test
+    fun `규칙 묶음이 막은 병합은 병합 중 표시를 남기지 않아 승인한 뒤 다시 병합할 수 있다`() {
+        val s = setup()
+        rulesetRepository.save(dev.yona.domain.project.Ruleset(project = s.origin, name = "master", pattern = "master", requiredApprovals = 1, createdDate = java.util.Date()))
+        em.flush(); em.refresh(s.origin)
+        call(post("${s.api}/${s.pr.number}/merge"), token(s.member)).andExpect(status().isConflict).andExpect(jsonPath("$.message").value("not enough review approvals"))
+        em.flush(); em.refresh(s.pr)
+        kotlin.test.assertNotEquals(true, s.pr.isMerging, "막힌 병합이 병합 중 표시를 남기면 승인한 뒤에도 병합할 수 없다")
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), token(s.manager)).andExpect(status().isCreated)
+        call(post("${s.api}/${s.pr.number}/merge"), token(s.member)).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `병합기가 예외를 던져도 병합 중 표시를 남기지 않는다`() {
+        val s = setup()
+        // 코틀린의 널 불가 인자에는 Mockito 매처가 돌려주는 null을 그대로 넘길 수 없어 형 소거를 이용한 도우미를 쓴다
+        @Suppress("UNCHECKED_CAST") fun <T> anything(): T { org.mockito.ArgumentMatchers.any<Any>(); return null as T }
+        org.mockito.Mockito.doThrow(IllegalStateException("저장소를 읽지 못했다")).`when`(mergerSpy).merge(anything(), anything(), anything(), anything(), anything())
+        try {
+            call(post("${s.api}/${s.pr.number}/merge"), token(s.manager))
+        } catch (expected: Exception) {
+            // 예외는 요청 밖으로 나가도 된다. 중요한 것은 표시가 남지 않는 것이다
+        }
+        em.flush(); em.refresh(s.pr)
+        kotlin.test.assertEquals(dev.yona.domain.enumeration.State.OPEN, s.pr.state, "병합기가 예외를 던졌으므로 병합되지 않아야 한다(스텁이 적용되었는지 확인한다)")
+        kotlin.test.assertNotEquals(true, s.pr.isMerging, "병합기 예외 뒤에도 병합 중 표시가 남으면 요청이 굳는다")
+        org.mockito.Mockito.reset(mergerSpy)
     }
 
     @Test

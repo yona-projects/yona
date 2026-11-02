@@ -58,6 +58,9 @@ class McpToolsSupport(
         return Fixture(project, manager, member)
     }
 
+    /** 프로젝트에 구성원을 한 명 더한다. */
+    fun extraMember(f: Fixture): User = user().also { projectUsers.save(ProjectUser(user = it, project = f.project, role = roles.findById(RoleType.MEMBER.id).get())) }
+
     fun issue(f: Fixture, title: String, author: User): Issue {
         val number = (issues.findAll().filter { it.project?.id == f.project.id }.maxOfOrNull { it.number ?: 0 } ?: 0) + 1
         return issues.save(

@@ -79,6 +79,9 @@ class McpRestBridge(
         try {
             dispatcher.service(virtual, response)
         } catch (e: Exception) {
+            // 일부 REST 경로는 오류를 화면(`ErrorViews`)으로 돌려준다. 디스패처는 화면을 그리기 전에 상태를 먼저 정하므로, 화면을 가상 요청에서 그리지 못해도 상태는 알 수 있다.
+            // 오류 상태가 정해져 있으면 그 상태를 알리고, 아니면 처리하지 못한 것이다
+            if (response.getStatus() >= 400) return Outcome(response.getStatus(), response.contentType, "")
             throw McpToolException("요청을 처리하지 못했습니다: ${(e.cause ?: e).message ?: e.javaClass.simpleName}")
         }
         return Outcome(response.getStatus(), response.contentType, response.text())
