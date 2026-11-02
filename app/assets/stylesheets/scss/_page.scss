@@ -7986,6 +7986,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
+    // 코드 입력란은 밑줄 모양(옛 로그인 폼)을 그대로 두고 글자만 가운데 정렬한다
+    input.text { width:100%; box-sizing:border-box; text-align:center; letter-spacing:2px; }
     .tf-remember { display:flex; align-items:center; gap:8px; margin:0 0 16px; font-size:0.8125rem; font-weight:normal; cursor:pointer; }
     .tf-remember input.form-check-input {
         appearance:none; -webkit-appearance:none; flex:none; width:18px !important; height:18px !important; margin:0; padding:0; cursor:pointer;
