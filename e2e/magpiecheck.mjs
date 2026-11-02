@@ -8,15 +8,18 @@ import { ADMIN, ROOT, startServer } from './lib/server.mjs';
 import { Session } from './lib/http.mjs';
 
 const CLI_DIR = process.env.YONA_CLI_DIR || join(ROOT, '..', '..', 'yona-cli');
-const DOC = join(ROOT, '..', 'docs', 'magpie', 'tools-yona', 'operations.md');
+const DOC_DIR = join(ROOT, '..', 'docs', 'magpie', 'tools-yona');
 const state = join(ROOT, '.state', 'magpie'); rmSync(state, { recursive: true, force: true });
 const bin = mkdtempSync(join(tmpdir(), 'yona-cli-')); execFileSync('go', ['build', '-o', join(bin, 'yona'), '.'], { cwd: CLI_DIR, stdio: 'inherit' });
 const B = await startServer({ port: 19420, dataDir: state });
 const results = []; const check = (name, ok, detail = '') => { results.push([name, ok]); console.log(ok ? 'OK  ' : 'FAIL', name, ok ? '' : detail); };
 
 // --- 조리법 꺼내기와 실행 ---
-const doc = readFileSync(DOC, 'utf8');
-const recipes = {}; for (const m of doc.matchAll(/<!-- recipe:(\w+) -->\n```bash\n([\s\S]*?)\n```/g)) recipes[m[1]] = m[2];
+const recipes = {};
+for (const file of ['operations.md', 'status-rollup.md', 'labels.md', 'issue-template.md']) {
+  let doc = ''; try { doc = readFileSync(join(DOC_DIR, file), 'utf8'); } catch { continue; }
+  for (const m of doc.matchAll(/<!-- recipe:(\w+) -->\n```bash\n([\s\S]*?)\n```/g)) recipes[m[1]] = m[2];
+}
 const day = 24 * 3600 * 1000; const date = (offsetDays) => new Date(Date.now() + offsetDays * day).toISOString().slice(0, 10);
 const UPSTREAM = 'admin/magpie-demo'; const [OWNER, PROJECT] = UPSTREAM.split('/');
 let token = '';
@@ -118,6 +121,84 @@ try {
   check('list_reviews_given(사람 생략)', reviewsAll.total >= 1 && reviewsAll.items.every((x) => x.reviewer === 'admin'), JSON.stringify(reviewsAll));
   const reviews = json('list_reviews_given', { login: 'admin' });
   check('list_reviews_given', reviews.total >= 1 && reviews.items.every((x) => typeof x.change_id === 'string' && x.reviewer === 'admin' && isIsoZ(x.first_review_at) && typeof x.body_length === 'number' && typeof x.inline_comment_count === 'number'), JSON.stringify(reviews));
+
+  // --- 쓰기: 이슈, 마일스톤, 라벨, 풀 리퀘스트, 사람 (GitHub 어댑터와 같은 범위) ---
+  const wf = (name, text) => { const p = join(work, name); writeFileSync(p, text); return p; };
+  const w = { 'title-file': '', 'body-file': '' };
+  const API = `/owners/${OWNER}/projects/${PROJECT}`;
+  check('collaborators', run('collaborators').split('\n').sort().join() === 'admin', run('collaborators'));
+  run('label_create', { label: 'needs triage', category: 'lifecycle', color: '#ff0000' }); run('label_create', { label: 'pr created', category: 'lifecycle', color: '#00ff00' });
+  check('label_list', run('label_list').split('\n').includes('needs triage'), run('label_list'));
+  // 셸이 풀어 버리면 안 되는 제목: 따옴표와 명령 치환이다. 실행되면 pwned 파일이 생긴다
+  const hostile = `x' ; touch ${work}/pwned ; echo '$(touch ${work}/pwned2)`;
+  const nNew = Number(run('issue_create', { ...w, 'title-file': wf('t1.txt', hostile + '\n'), 'body-file': wf('b1.txt', '### 필드\n값\n\n`code` $(touch ' + work + '/pwned3)\n') }));
+  check('issue_create: 번호', nNew > n3, String(nNew));
+  const view = json('issue_view', { N: nNew });
+  check('issue_view: 제목은 원문 그대로', view.title === hostile && view.state.toLowerCase() === 'open' && view.body.includes('### 필드'), JSON.stringify(view));
+  check('issue_create: 셸이 제목을 실행하지 않았다', ![ 'pwned', 'pwned2', 'pwned3' ].some((f) => { try { readFileSync(join(work, f)); return true; } catch { return false; } }));
+  const labelsAfterAdd = run('issue_edit_labels', { N: nNew, 'add-labels': 'needs triage,pr created', 'remove-labels': '' });
+  check('issue_edit_labels: 추가', labelsAfterAdd.split(',').sort().join() === 'needs triage,pr created', labelsAfterAdd);
+  const labelsAfterRemove = run('issue_edit_labels', { N: nNew, 'add-labels': '', 'remove-labels': 'pr created' });
+  check('issue_edit_labels: 제거', labelsAfterRemove === 'needs triage', labelsAfterRemove);
+  check('issue_edit_labels: 모르는 라벨은 아무것도 바꾸지 않는다', run('issue_edit_labels', { N: nNew, 'add-labels': 'no such label', 'remove-labels': '' }, { fail: true }) === null && json('issue_view', { N: nNew }).labels.length === 1);
+  check('issue_assign', run('issue_assign', { N: nNew, assignee: 'dev1' }) === 'dev1');
+  check('issue_unassign', run('issue_unassign', { N: nNew }) === '');
+  run('issue_edit_body', { N: nNew, 'body-file': wf('b2.txt', '### 필드\n새 값\n') });
+  check('issue_edit_body', json('issue_view', { N: nNew }).body.includes('새 값'));
+  run('issue_comment', { N: nNew, 'body-file': wf('c1.txt', '댓글 `x` $(touch ' + work + '/pwned4)\n') });
+  const cs = await admin.api('GET', `${API}/issues/${nNew}/comments`);
+  check('issue_comment', JSON.stringify(cs).includes('댓글') && !(() => { try { readFileSync(join(work, 'pwned4')); return true; } catch { return false; } })(), JSON.stringify(cs).slice(0, 300));
+  run('issue_close', { N: nNew });
+  check('issue_close', json('issue_view', { N: nNew }).state.toLowerCase() === 'closed');
+  run('issue_reopen', { N: nNew });
+  check('issue_reopen', json('issue_view', { N: nNew }).state.toLowerCase() === 'open');
+  const ms = json('milestone_create', { target: 'v1.0', description: '첫 배포' });
+  check('milestone_create', ms && ms.title === 'v1.0' && typeof ms.id === 'number', JSON.stringify(ms));
+  const msList = json('milestone_list', { target: 'v1.0' });
+  check('milestone_list', msList && msList.id === ms.id && msList.state === 'open', JSON.stringify(msList));
+  check('milestone_assign', run('milestone_assign', { N: nNew, 'milestone-id': ms.id }) === 'v1.0');
+  await admin.api('PATCH', `${API}/milestones/${ms.id}`, { state: 'closed' });
+  check('milestone_list: 닫힌 것도 찾는다', json('milestone_list', { target: 'v1.0' }).state === 'closed');
+  check('milestone_assign: 닫힌 마일스톤에도 지정한다', run('milestone_assign', { N: n1, 'milestone-id': ms.id }) === 'v1.0');
+  const dup = json('milestone_create', { target: 'v1.0', description: '' });
+  check('milestone_create: 같은 제목은 만들지 않는다', dup && dup.message, JSON.stringify(dup));
+  branchPush('topic-c', 'd.txt');
+  const prNew = Number(run('pr_create', { ...w, 'title-file': wf('t2.txt', '기능 C ' + hostile + '\n'), 'body-file': wf('b3.txt', '본문 $(touch ' + work + '/pwned5)\n'), 'from-owner': 'dev1', 'from-project': PROJECT, 'from-branch': 'topic-c', 'to-branch': 'master' }));
+  check('pr_create', prNew > 0 && json('get', { N: prNew }).title.startsWith('기능 C x'), String(prNew));
+  check('pr_create: 같은 브랜치 쌍은 다시 만들지 못한다', run('pr_create', { ...w, 'title-file': wf('t3.txt', '또\n'), 'body-file': wf('b4.txt', '또\n'), 'from-owner': 'dev1', 'from-project': PROJECT, 'from-branch': 'topic-c', 'to-branch': 'master' }, { fail: true }) === null);
+  run('pr_edit_labels', { N: prNew, label: 'needs triage' });
+  check('pr_edit_labels', JSON.stringify(await admin.api('GET', `${API}/pullrequests/${prNew}`)).includes('needs triage'));
+  const prof = json('get_profile', { login: 'admin' });
+  check('get_profile: 프로젝트 구성원', prof && prof.exists === true && typeof prof.display_name === 'string' && prof.linked_accounts.length === 0 && prof.website === null, JSON.stringify(prof));
+  check('get_profile: 구성원이 아닌 계정은 NotApplicable', run('get_profile', { login: 'dev1' }) === '"NotApplicable"' && run('get_profile', { login: 'nobody' }) === '"NotApplicable"');
+  const repoToken = token; token = await admin.deviceToken('repo read:org write:org admin:org', 'yona-e2e-org');
+  await admin.api('POST', '/orgs', { name: 'acme', description: '회사' });
+  check('add_team_member', run('add_team_member', { org: 'acme', login: 'dev1' }) === 'dev1');
+  check('add_team_member: 이미 구성원이면 실패', run('add_team_member', { org: 'acme', login: 'dev1' }, { fail: true }) === null);
+  token = repoToken;
+
+  // --- 라벨 분류, 본문 필드, 상태 요약 댓글 ---
+  const missing = run('labels_missing').split('\n');
+  check('labels_missing', !missing.includes('needs triage') && !missing.includes('pr created') && missing.includes('announced') && missing.includes('wontfix'), missing.join(','));
+  const nField = Number(run('issue_create', { ...w, 'title-file': wf('t5.txt', '필드 시험\n'), 'body-file': wf('b5.txt', '### 하나\n첫 값\n\n### 둘\n둘째 값\n') }));
+  check('body_field_get', run('body_field_get', { N: nField, field: '둘' }) === '둘째 값' && run('body_field_get', { N: nField, field: '없음' }) === '');
+  run('body_field_set', { N: nField, field: '하나', 'value-file': wf('v1.txt', '바뀐 값\n여러 줄\n') });
+  check('body_field_set: 한 필드만 바뀐다', run('body_field_get', { N: nField, field: '하나' }) === '바뀐 값\n여러 줄' && run('body_field_get', { N: nField, field: '둘' }) === '둘째 값');
+  run('body_field_set', { N: nField, field: '셋', 'value-file': wf('v2.txt', '새 필드\n') });
+  check('body_field_set: 없는 제목은 끝에 더한다', run('body_field_get', { N: nField, field: '셋' }) === '새 필드' && run('body_field_get', { N: nField, field: '하나' }) === '바뀐 값\n여러 줄');
+  check('rollup_find: 없으면 null', run('rollup_find', { N: nField }) === 'null');
+  const rid = run('rollup_append', { N: nField, action: 'Import', 'entry-file': wf('e1.md', '**Imported.**\n\n**Next:** triage\n') });
+  run('rollup_append', { N: nField, action: 'Sync (pr created)', 'entry-file': wf('e2.md', '**Sync.**\n') });
+  const roll = json('rollup_find', { N: nField });
+  check('rollup_append: 하나의 댓글에 항목이 쌓인다', roll && String(roll.id) === rid && roll.body.startsWith('<!-- apache-magpie: status-rollup v1 -->\n<details><summary>') && (roll.body.match(/<details><summary>/g) || []).length === 2 && roll.body.includes('\n\n---\n\n') && /· @admin · Import<\/summary>\n\n\*\*Imported/.test(roll.body) && roll.body.indexOf('Import') < roll.body.indexOf('Sync (pr created)'), JSON.stringify(roll));
+  const comments = await admin.api('GET', `${API}/issues/${nField}/comments`);
+  check('rollup_append: 댓글은 하나뿐', comments.result.filter((c) => c.body.startsWith('<!-- apache-magpie: status-rollup')).length === 1);
+  await admin.api('POST', `${API}/issues/${nField}/comments`, { comment: '**Sync 2026-01-01 — old**' });
+  const legacy = (await admin.api('GET', `${API}/issues/${nField}/comments`)).result.find((c) => c.body.startsWith('**Sync 2026'));
+  run('rollup_delete_legacy', { N: nField, 'comment-id': legacy.id });
+  check('rollup_delete_legacy', !(await admin.api('GET', `${API}/issues/${nField}/comments`)).result.some((c) => c.body.startsWith('**Sync 2026')));
+  await admin.api('POST', `${API}/issues/${nField}/comments`, { comment: '<!-- apache-magpie: status-rollup v1 -->\n<details><summary>x</summary>\n\ny\n\n</details>' });
+  check('rollup_find: 둘이면 멈춘다', run('rollup_find', { N: nField }, { fail: true }) === null);
 } catch (e) {
   console.log('오류:', String(e.stack || e).slice(0, 1500)); results.push(['실행 중 오류', false]);
 } finally {

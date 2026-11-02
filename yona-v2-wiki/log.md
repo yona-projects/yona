@@ -1078,3 +1078,5 @@ PR 목록에 `state=merged`와 `all`, 만든 기간과 병합 기간과 오래�
 ## [2026-11-03] X-23 빈 곳 채움
 선생님이 Magpie가 요구하는 것이 빠짐없이 구현되었는지 물으셔서 점검해 세 곳을 더 채웠다. `list_authored_commits`(`GET $P/activity/commits`: 대표와 인증한 추가 이메일로 기본 브랜치의 커밋), `list_reviews_given`의 사람 생략 형태(`reviewer` 생략과 `membersOnly`), `list_triaged`의 분류 이벤트(상태, 담당자, 라벨, 마일스톤 변경). 어댑터 확인은 28건으로 늘었고 모두 통과했다.
 
+## [2026-11-03] X-23 GitHub 어댑터 범위 맞춤
+선생님이 Magpie의 GitHub 어댑터와 조리법 개수와 구조가 같은지 물으셔서 대조했고, 계약 밖의 쓰기 동작과 문서 네 개가 빠진 것을 확인했다. 선생님이 2안(서버 변경 없이 어댑터 문서만)을 고르셔서 `operations.md`에 쓰기 조리법 19개, `labels.md`, `issue-template.md`, `status-rollup.md`를 더했다. 실제 확인(`e2e/magpiecheck.mjs`)은 조리법 40개 64건이 모두 통과했다. 따옴표와 명령 치환이 든 제목이 셸에서 실행되지 않음도 실제로 확인했다. 확인 중 문서가 서버 응답 모양(이슈 라벨에 번호가 없음, PR 만들기 응답이 `result`로 감싸지 않음)과 어긋난 곳을 고쳤다. 기록은 A-345.

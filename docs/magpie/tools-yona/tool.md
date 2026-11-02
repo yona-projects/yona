@@ -11,7 +11,10 @@ A project opts into this tool by naming it in its manifest under *Tools enabled*
 
 | Capability | File | What it covers |
 |---|---|---|
-| CLI / API operations | [`operations.md`](operations.md) | `yona` CLI recipes for every verb of `contract:tracker` and `contract:change-request`, the read-only contributor-activity verbs, and the authentication pre-flight |
+| CLI / API operations | [`operations.md`](operations.md) | `yona` CLI and `yona api` recipes: every verb of `contract:tracker` and `contract:change-request`, the contributor-activity verbs, the people verbs, issue / milestone / label / pull-request writes, and the authentication pre-flight |
+| Issue-body schema | [`issue-template.md`](issue-template.md) | The `### <field>` body convention and the recipes that read and replace one field |
+| Lifecycle labels | [`labels.md`](labels.md) | Generic lifecycle-label taxonomy and a check for the labels a project lacks |
+| Status rollup | [`status-rollup.md`](status-rollup.md) | The single status comment per tracker: find, append, delete a folded legacy comment |
 | Source control (VCS) | [`source-control.md`](source-control.md) | Git recipes on a local checkout; Yona repositories are plain Git remotes |
 
 ## When to replace this tool with another
