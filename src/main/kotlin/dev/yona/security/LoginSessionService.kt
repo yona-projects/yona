@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * 잠긴 사용자는 로그인시키지 않는다.
  */
 @Component
-class LoginSessionService(private val sessionUsers: SessionUserCache, private val twoFactor: dev.yona.domain.twofactor.TwoFactorService) {
+class LoginSessionService(private val sessionUsers: SessionUserCache, private val gate: TwoFactorGate) {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
 
@@ -26,7 +26,7 @@ class LoginSessionService(private val sessionUsers: SessionUserCache, private va
      */
     fun start(request: HttpServletRequest, response: HttpServletResponse, user: User, twoFactorVerified: Boolean = false) {
         if (user.state.isLockedOut()) return
-        check(twoFactorVerified || !twoFactor.isEnabled(user)) { "2단계 인증을 켠 사용자를 2단계 없이 로그인시킬 수 없다" }
+        check(twoFactorVerified || gate.passes(user, request)) { "2단계 인증을 켠 사용자를 2단계 없이 로그인시킬 수 없다" }
         if (request.getSession(false) != null) request.changeSessionId()
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = YonaAuthentication.of(user)

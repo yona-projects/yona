@@ -35,7 +35,7 @@ class TwoFactorLoginController(private val twoFactorLogin: TwoFactorLogin) {
     fun submit(request: HttpServletRequest, response: HttpServletResponse): Any {
         noCache(response)
         val json = HttpPreference.isJsonPreferred(request.getHeader(HttpHeaders.ACCEPT))
-        val result = twoFactorLogin.submit(request, response, request.getParameter("code").orEmpty())
+        val result = twoFactorLogin.submit(request, response, request.getParameter("code").orEmpty(), request.getParameter("rememberDevice")?.lowercase() in setOf("true", "on", "yes", "1"))
         return if (json) jsonResult(result) else formResult(request, response, result)
     }
 

@@ -67,14 +67,16 @@ sealed interface TwoFactorSubmission {
 @Component
 class TwoFactorLogin(
     private val twoFactor: TwoFactorService,
+    private val gate: TwoFactorGate,
+    private val devices: dev.yona.domain.twofactor.KnownDeviceService,
     private val users: UserRepository,
     private val completion: LoginCompletion,
     private val attempts: TwoFactorAttempts,
     private val audit: AuditBoundary
 ) {
 
-    /** [user]가 이 요청에서 2단계를 거쳐야 하면 `true`이다. */
-    fun required(user: User, request: HttpServletRequest): Boolean = twoFactor.isEnabled(user)
+    /** [user]가 이 요청에서 2단계를 거쳐야 하면 `true`이다(켜지 않았거나 알려진 기기이면 `false`). */
+    fun required(user: User, request: HttpServletRequest): Boolean = !gate.passes(user, request)
 
     /** 진행 중인 로그인을 세션에 둔다. 세션 식별자를 바꾸어 세션 고정을 막는다. */
     fun begin(request: HttpServletRequest, user: User, source: String, rememberMe: Boolean, redirectUrl: String?, flash: Map<String, String> = emptyMap()) {
@@ -91,7 +93,7 @@ class TwoFactorLogin(
     }
 
     /** [code]를 확인한다. 맞으면 로그인을 끝내고 진행 중인 로그인을 지운다. */
-    fun submit(request: HttpServletRequest, response: HttpServletResponse, code: String): TwoFactorSubmission {
+    fun submit(request: HttpServletRequest, response: HttpServletResponse, code: String, rememberDevice: Boolean = false): TwoFactorSubmission {
         val pending = pending(request) ?: return TwoFactorSubmission.Expired
         val user = users.findById(pending.userId).orElse(null)
         if (user == null || user.state.isLockedOut()) { forget(request); return TwoFactorSubmission.Expired }
@@ -109,9 +111,23 @@ class TwoFactorLogin(
         }
         attempts.clear(userId)
         forget(request)
+        if (rememberDevice) {
+            val token = devices.issue(user, deviceName(request), request.remoteAddr.orEmpty())
+            response.addCookie(Cookie(dev.yona.domain.twofactor.KnownDeviceService.COOKIE, token).apply {
+                maxAge = (dev.yona.domain.twofactor.KnownDeviceService.VALID.seconds).toInt(); path = "/"; isHttpOnly = true; secure = request.isSecure
+            })
+        }
         completion.complete(request, response, user, pending.rememberMe || pending.source == "social", twoFactorVerified = true)
         audit.loginSuccess(user, "${pending.source}+two_factor")
         return TwoFactorSubmission.Success(pending.redirectUrl, pending.flash)
+    }
+
+    /** 기기를 알아보는 이름이다: 브라우저 신원 문자열에서 브라우저와 운영체제를 추려 쓴다. */
+    private fun deviceName(request: HttpServletRequest): String {
+        val agent = request.getHeader("User-Agent").orEmpty()
+        val browser = listOf("Edg" to "Edge", "OPR" to "Opera", "Firefox" to "Firefox", "Chrome" to "Chrome", "Safari" to "Safari").firstOrNull { agent.contains(it.first) }?.second ?: "Browser"
+        val system = listOf("Windows", "Android", "iPhone" to "iOS", "iPad" to "iOS", "Mac OS" to "macOS", "Linux").map { if (it is Pair<*, *>) it else (it to it) }.firstOrNull { agent.contains(it.first as String) }?.second ?: "Unknown"
+        return "$browser on $system"
     }
 
     /** 진행 중인 로그인을 지운다. */

@@ -182,4 +182,34 @@ class TwoFactorLoginTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", plain.loginId!!).param("password", "1234")).andExpect(redirectedUrl("/"))
         assertTrue(loggedIn(session))
     }
+
+    @Test
+    fun `이 기기에서 묻지 않기를 고르면 기기 쿠키가 생기고 다음 로그인은 2단계를 건너뛴다`() {
+        val e = enrolled(); val first = MockHttpSession(); passwordLogin(e, first)
+        val done = submit(currentCode(e), first, rememberDevice = true).andReturn()
+        val device = assertNotNull(done.response.getCookie(dev.yona.domain.twofactor.KnownDeviceService.COOKIE))
+        assertTrue(device.isHttpOnly && device.maxAge == 30 * 24 * 60 * 60)
+        val second = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(second).cookie(device).param("loginIdOrEmail", e.user.loginId!!).param("password", "1234")).andExpect(redirectedUrl("/"))
+        assertTrue(loggedIn(second), "알려진 기기에서는 코드를 묻지 않는다")
+        val other = enrolled(); val third = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(third).cookie(device).param("loginIdOrEmail", other.user.loginId!!).param("password", "1234")).andExpect(redirectedUrl("/users/login/2fa"))
+    }
+
+    @Test
+    fun `고르지 않으면 기기 쿠키를 만들지 않는다`() {
+        val e = enrolled(); val session = MockHttpSession(); passwordLogin(e, session)
+        assertNull(submit(currentCode(e), session).andReturn().response.getCookie(dev.yona.domain.twofactor.KnownDeviceService.COOKIE))
+    }
+
+    @Test
+    fun `로그인 유지 쿠키는 2단계 인증 사용자에게 알려진 기기 쿠키와 함께일 때만 통한다`() {
+        val e = enrolled()
+        val remember = jakarta.servlet.http.Cookie(dev.yona.security.YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${e.user.loginId}:${e.user.password}")
+        val bare = mockMvc.perform(get("/user/editform").cookie(remember)).andReturn().response
+        assertTrue(bare.status != 200, "기기 쿠키 없이는 로그인 유지 쿠키만으로 들어갈 수 없다")
+        val session = MockHttpSession(); passwordLogin(e, session)
+        val device = submit(currentCode(e), session, rememberDevice = true).andReturn().response.getCookie(dev.yona.domain.twofactor.KnownDeviceService.COOKIE)!!
+        assertEquals(200, mockMvc.perform(get("/user/editform").cookie(remember, device)).andReturn().response.status)
+    }
 }

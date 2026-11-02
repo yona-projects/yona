@@ -29,7 +29,8 @@ class YonaAuthenticationFilter(
     private val sessionUsers: SessionUserCache,
     private val apiTokens: ApiTokenService,
     private val failures: TokenFailureLimiter,
-    private val audit: dev.yona.domain.audit.AuditBoundary
+    private val audit: dev.yona.domain.audit.AuditBoundary,
+    private val gate: TwoFactorGate
 ) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -99,6 +100,8 @@ class YonaAuthenticationFilter(
             discardRememberMeCookie(response)
             return false
         }
+        // 2단계 인증을 켠 사용자는 알려진 기기 쿠키가 함께 있을 때만 이 쿠키로 인정한다(X-2, D-69). 쿠키는 지우지 않고 익명으로 둔다
+        if (!gate.passes(user, request)) return false
         val authentication = YonaAuthentication.of(user, viaCookie = true)
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = authentication
