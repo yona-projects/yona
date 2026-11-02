@@ -30,7 +30,9 @@ class LfsRequestSupport(
     private val accessControl: AccessControl,
     private val basicAuth: BasicAuthResolver,
     private val lfs: LfsService,
-    private val metrics: dev.yona.observability.VcsMetrics
+    private val metrics: dev.yona.observability.VcsMetrics,
+    private val tokens: dev.yona.domain.lfs.LfsTokens,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     /** 요청이 가리키는 프로젝트와 신원이다. 실패하면 [failure]에 응답이 있다. */
@@ -41,12 +43,24 @@ class LfsRequestSupport(
      * 주소 끝의 `.git`은 뗀다.
      */
     fun resolve(owner: String, rawProject: String, request: HttpServletRequest, response: HttpServletResponse, write: Boolean): Context {
+        // SSH의 git-lfs-authenticate가 준 짧은 수명 토큰(`Bearer yona_lfs_…`)이다. 그 프로젝트와 동작에만 통하고, 사용자의 프로젝트 권한 검사는 그대로 한다
+        request.getHeader(HttpHeaders.AUTHORIZATION)?.takeIf { it.startsWith("Bearer ${dev.yona.domain.lfs.LfsTokens.PREFIX}") }?.let { return resolveBearer(owner, rawProject, it.removePrefix("Bearer "), write) }
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return Context(null, BasicIdentity(null), error(HttpStatus.BAD_REQUEST, "Malformed credentials"))
         val identity = metrics.span("vcs.authenticate", "vcs" to "git_lfs") { basicAuth.identify(request, response, credentials) }
         if (identity.blocked) return Context(null, identity, error(HttpStatus.TOO_MANY_REQUESTS, "Too many failed authentication attempts"))
         val project = projectService.findByOwnerAndProjectName(owner, rawProject.removeSuffix(".git"))?.takeIf { lfs.available(it) }
             ?: return Context(null, identity, error(HttpStatus.NOT_FOUND, "Repository or object not found"))
+        return Context(project, identity, authorize(identity, project, write))
+    }
+
+    private fun resolveBearer(owner: String, rawProject: String, token: String, write: Boolean): Context {
+        val claims = tokens.verify(token) ?: return Context(null, BasicIdentity(null), error(HttpStatus.UNAUTHORIZED, "Invalid or expired LFS token", "WWW-Authenticate" to "Basic realm=\"Yobi\""))
+        val project = projectService.findByOwnerAndProjectName(owner, rawProject.removeSuffix(".git"))?.takeIf { lfs.available(it) }
+            ?: return Context(null, BasicIdentity(null), error(HttpStatus.NOT_FOUND, "Repository or object not found"))
+        val user = users.findById(claims.userId).orElse(null)
+        if (project.id != claims.projectId || user == null || (write && !claims.write)) return Context(null, BasicIdentity(user), error(HttpStatus.FORBIDDEN, "The LFS token does not allow this request"))
+        val identity = BasicIdentity(user)
         return Context(project, identity, authorize(identity, project, write))
     }
 
