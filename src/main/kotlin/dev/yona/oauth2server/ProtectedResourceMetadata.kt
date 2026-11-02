@@ -34,6 +34,25 @@ class ProtectedResourceMetadataController {
 }
 
 /**
+ * MCP 서버(`/mcp`)의 보호 자원 메타데이터(RFC 9728)이다(X-6, D-72). `resource`는 MCP 서버 주소이고 OAuth 앱에 주지 않는 범위는 알리지 않는다.
+ */
+@Controller
+class McpProtectedResourceMetadataController {
+
+    @GetMapping("/.well-known/oauth-protected-resource/mcp", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun metadata(request: HttpServletRequest): ResponseEntity<Map<String, Any>> {
+        val origin = WebAuthnContexts.of(request).origin + request.contextPath.orEmpty()
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
+            linkedMapOf(
+                "resource" to "$origin/mcp", "authorization_servers" to listOf(origin), "scopes_supported" to OAuthScopes.grantable(), "bearer_methods_supported" to listOf("header"),
+                "resource_name" to "Yona MCP"
+            )
+        )
+    }
+}
+
+/**
  * 외부 API(`/-_-api`)의 401 응답에 `WWW-Authenticate: Bearer resource_metadata="..."`를 더한다(RFC 9728). OAuth 클라이언트가 이 머리글로 보호 자원 메타데이터를 찾는다.
  * 컨트롤러가 이미 `WWW-Authenticate`를 정했으면 건드리지 않는다.
  */

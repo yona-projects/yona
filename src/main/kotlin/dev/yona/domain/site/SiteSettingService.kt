@@ -48,7 +48,33 @@ class SiteSettingService(private val settings: SiteSettingRepository, private va
         if (before != value) audit.record(AuditEvent("site.oauth_user_apps_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
     }
 
+    /** MCP 서버(`/mcp`)를 쓰는지이다(추가 개발 항목 X-6, `decisions.md` D-72). 끄면 `/mcp`는 404이다. 기본은 켠다. */
+    @Transactional(readOnly = true)
+    fun mcpEnabled(): Boolean = settings.findById(MCP_ENABLED).orElse(null)?.value?.let { it == "true" } ?: true
+
+    /** MCP 서버 사용 여부를 바꾼다. 바뀐 값이 있을 때만 감사 기록을 남긴다. */
+    @Transactional
+    fun setMcpEnabled(value: Boolean) {
+        val before = mcpEnabled()
+        settings.save(SiteSetting(MCP_ENABLED, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.mcp_enabled_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
+    }
+
+    /** MCP 쓰기 도구(이슈 만들기 등)를 허용하는지이다. 끄면 읽기 도구만 보인다. 기본은 켠다. */
+    @Transactional(readOnly = true)
+    fun mcpWriteEnabled(): Boolean = settings.findById(MCP_WRITE_ENABLED).orElse(null)?.value?.let { it == "true" } ?: true
+
+    /** MCP 쓰기 도구 허용 여부를 바꾼다. 바뀐 값이 있을 때만 감사 기록을 남긴다. */
+    @Transactional
+    fun setMcpWriteEnabled(value: Boolean) {
+        val before = mcpWriteEnabled()
+        settings.save(SiteSetting(MCP_WRITE_ENABLED, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.mcp_write_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
+    }
+
     companion object {
+        const val MCP_ENABLED = "security.mcp-enabled"
+        const val MCP_WRITE_ENABLED = "security.mcp-write-enabled"
         const val OAUTH_USER_APPS_ENABLED = "security.oauth-user-apps-enabled"
         const val OAUTH_CIMD_ENABLED = "security.oauth-cimd-enabled"
         const val TWO_FACTOR_ENFORCEMENT = "security.two-factor-enforcement"

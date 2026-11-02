@@ -40,6 +40,9 @@ class YonaAuthenticationFilter(
         if (isApiPath(request)) {
             // 외부 API(`/-_-api/v1`)는 토큰 전용이다. 세션과 쿠키는 무시하고 토큰만 본다(추가 개발 항목 X-5, `decisions.md` D-36)
             if (!authenticateApi(request, response)) return
+        } else if (dev.yona.mcp.McpAccessFilter.isMcpPath(request)) {
+            // MCP 서버(`/mcp`)는 OAuth 토큰 전용이고 인증은 McpAccessFilter가 맡는다. 세션과 쿠키는 보지 않는다(X-6, D-72)
+            SecurityContextHolder.clearContext()
         } else if (!hasValidSession()) {
             // 그 밖의 경로는 세션 전용이다. 토큰 헤더는 인정하지 않는다(Git, SVN의 HTTP 접근은 Basic 해결기가 따로 처리한다)
             authenticateByRememberMeCookie(request, response)

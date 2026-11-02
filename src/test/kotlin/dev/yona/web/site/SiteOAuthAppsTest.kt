@@ -103,4 +103,17 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
         assertTrue(settings.oauthCimdEnabled()); assertFalse(settings.oauthUserAppsEnabled())
         mockMvc.perform(post("/sites/security/oauth").session(login(user())).param("cimd", "true")).andExpect(status().isForbidden)
     }
+
+    @Test
+    fun `보안 화면에서 MCP 서버 사용과 쓰기 도구 허용을 바꾼다`() {
+        val s = login(user(admin = true))
+        val doc = Jsoup.parse(mockMvc.perform(get("/sites/security").session(s)).andReturn().response.contentAsString)
+        val form = doc.selectFirst("form#mcp-settings-form")!!
+        assertTrue(form.selectFirst("input[name=enabled]")!!.hasAttr("checked") && form.selectFirst("input[name=write]")!!.hasAttr("checked"), "기본은 둘 다 켬")
+        mockMvc.perform(post("/sites/security/mcp").session(s)).andExpect(status().is3xxRedirection)
+        assertFalse(settings.mcpEnabled()); assertFalse(settings.mcpWriteEnabled())
+        mockMvc.perform(post("/sites/security/mcp").session(s).param("enabled", "true")).andExpect(status().is3xxRedirection)
+        assertTrue(settings.mcpEnabled()); assertFalse(settings.mcpWriteEnabled())
+        mockMvc.perform(post("/sites/security/mcp").session(login(user())).param("enabled", "true")).andExpect(status().isForbidden)
+    }
 }

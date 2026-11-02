@@ -56,6 +56,14 @@ class SiteOAuthAppsController(
         return RedirectSupport.see(request, response, "/sites/security", mapOf(RedirectSupport.SUCCESS to "site.security.saved"))
     }
 
+    /** MCP 서버 사용과 쓰기 도구 허용을 저장하고 보안 설정 화면으로 돌아간다(X-6, D-72). 체크하지 않은 항목은 끈다. */
+    @PostMapping("/sites/security/mcp")
+    fun saveMcpSettings(request: HttpServletRequest, response: HttpServletResponse): Any {
+        settings.setMcpEnabled(request.getParameter("enabled") == "true")
+        settings.setMcpWriteEnabled(request.getParameter("write") == "true")
+        return RedirectSupport.see(request, response, "/sites/security", mapOf(RedirectSupport.SUCCESS to "site.security.saved"))
+    }
+
     private fun row(c: OAuthClient): Row {
         val owner = if (c.registration == OAuthClient.CIMD) runCatching { java.net.URI(c.clientId.orEmpty()).host }.getOrNull().orEmpty() else c.ownerId?.let { users.findById(it).orElse(null)?.loginId }.orEmpty()
         return Row(requireNotNull(c.id), c.name.orEmpty(), c.clientId.orEmpty(), owner, c.registration.orEmpty(), consents.countByClientRowId(requireNotNull(c.id)), helper.dateString(c.createdDate), c.confidential == true)

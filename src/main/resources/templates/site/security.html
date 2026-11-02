@@ -41,5 +41,21 @@
         <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
     </div>
 </form>
+
+<form id="mcp-settings-form" class="security-settings mt-4" method="post" th:action="@{/sites/security/mcp}">
+    <h4 th:text="#{site.security.mcp}"></h4>
+    <p class="text-body-secondary" th:text="#{site.security.mcp.description}"></p>
+    <label class="option" for="mcp-enabled">
+        <input class="form-check-input" type="checkbox" name="enabled" id="mcp-enabled" value="true" th:checked="${mcpEnabled}">
+        <span class="option-text"><strong th:text="#{site.security.mcp.enabled}"></strong><small th:text="#{site.security.mcp.enabled.help}"></small></span>
+    </label>
+    <label class="option" for="mcp-write">
+        <input class="form-check-input" type="checkbox" name="write" id="mcp-write" value="true" th:checked="${mcpWrite}">
+        <span class="option-text"><strong th:text="#{site.security.mcp.write}"></strong><small th:text="#{site.security.mcp.write.help}"></small></span>
+    </label>
+    <div class="tf-actions">
+        <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
+    </div>
+</form>
 </th:block>
 </html>
