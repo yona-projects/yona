@@ -41,6 +41,18 @@ import kotlin.test.assertTrue
 @RecordApplicationEvents
 class EmailSettingsTest : AbstractIntegrationTest() {
 
+    @Autowired private lateinit var twoFactorService: dev.yona.domain.twofactor.TwoFactorService
+
+    /** 2단계 인증을 켜고 비밀 값을 돌려준다(X-2). */
+    private fun enableTwoFactor(user: dev.yona.domain.user.User): ByteArray {
+        val secret = dev.yona.domain.twofactor.Base32.decode(twoFactorService.beginTotp(user, "Yona", user.loginId!!)!!.secret)
+        val past = java.time.Instant.now().minusSeconds(300)
+        twoFactorService.confirmTotp(user, dev.yona.domain.twofactor.Totp.code(secret, past.epochSecond / 30), past)
+        return secret
+    }
+
+    private fun nowCode(secret: ByteArray) = dev.yona.domain.twofactor.Totp.code(secret, java.time.Instant.now().epochSecond / 30)
+
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var sessionUsers: dev.yona.security.SessionUserCache
     @Autowired private lateinit var users: UserRepository
@@ -233,6 +245,20 @@ class EmailSettingsTest : AbstractIntegrationTest() {
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/user/editform"))
         emails.flush()
         assertEquals(true, emails.findById(email.id!!).get().valid)
+        mockMvc.perform(get("/user/editform").session(session)).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `인증 링크를 연 사용자가 2단계 인증을 켰으면 코드를 확인한 뒤에 로그인된다 (X-2)`() {
+        val user = newUser()
+        val secret = enableTwoFactor(user)
+        val email = sub(user, "tfconfirm@example.com", false, token = "12345")
+        val session = MockHttpSession()
+        mockMvc.perform(get("/user/email/confirm/${email.id}/12345").session(session)).andExpect(status().isSeeOther).andExpect(header().string("Location", "/users/login/2fa"))
+        emails.flush()
+        assertEquals(true, emails.findById(email.id!!).get().valid, "이메일 확인 자체는 끝난다")
+        mockMvc.perform(get("/user/editform").session(session)).andExpect(status().is3xxRedirection)
+        mockMvc.perform(post("/users/login/2fa").session(session).param("code", nowCode(secret))).andExpect(header().string("Location", "/user/editform"))
         mockMvc.perform(get("/user/editform").session(session)).andExpect(status().isOk)
     }
 

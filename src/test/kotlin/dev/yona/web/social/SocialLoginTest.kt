@@ -39,6 +39,18 @@ import kotlin.test.assertTrue
 @Transactional
 class SocialLoginTest : AbstractIntegrationTest() {
 
+    @Autowired private lateinit var twoFactorService: dev.yona.domain.twofactor.TwoFactorService
+
+    /** 2단계 인증을 켜고 비밀 값을 돌려준다(X-2). */
+    private fun enableTwoFactor(user: dev.yona.domain.user.User): ByteArray {
+        val secret = dev.yona.domain.twofactor.Base32.decode(twoFactorService.beginTotp(user, "Yona", user.loginId!!)!!.secret)
+        val past = java.time.Instant.now().minusSeconds(300)
+        twoFactorService.confirmTotp(user, dev.yona.domain.twofactor.Totp.code(secret, past.epochSecond / 30), past)
+        return secret
+    }
+
+    private fun nowCode(secret: ByteArray) = dev.yona.domain.twofactor.Totp.code(secret, java.time.Instant.now().epochSecond / 30)
+
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
 
@@ -144,6 +156,21 @@ class SocialLoginTest : AbstractIntegrationTest() {
         signIn("github", session).andExpect(header().string("Location", "/"))
         assertTrue(isLoggedIn(session))
         assertEquals(1, users.findAll().count { it.email == "again$sequence@example.com" })
+    }
+
+    @Test
+    fun `2단계 인증을 켠 사용자는 소셜 로그인 뒤에 코드를 확인해야 하고 그 뒤에 로그인 유지 쿠키가 생긴다 (X-2)`() {
+        githubUser = """{"id":${300 + ++sequence},"login":"tfa$sequence","name":"이단계","email":"tfa$sequence@example.com"}"""
+        signIn()
+        val user = assertNotNull(users.findByLoginId("tfa$sequence"))
+        val secret = enableTwoFactor(user)
+        val session = MockHttpSession()
+        val first = signIn("github", session).andExpect(status().isSeeOther).andExpect(header().string("Location", "/users/login/2fa")).andReturn()
+        assertEquals(null, first.response.getCookie("yobi.token"), "코드를 확인하기 전에는 쿠키가 없다")
+        assertTrue(!isLoggedIn(session))
+        val done = mockMvc.perform(post("/users/login/2fa").session(session).param("code", nowCode(secret))).andExpect(status().isSeeOther).andReturn()
+        assertNotNull(done.response.getCookie("yobi.token"))
+        assertTrue(isLoggedIn(session))
     }
 
     @Test
@@ -303,6 +330,19 @@ class SocialLoginTest : AbstractIntegrationTest() {
         // 로컬 세션만 사라진 상황: 소셜 세션 속성만 남긴다.
         val social = MockHttpSession().also { s -> listOf("pa.p.id", "pa.u.id", "pa.u.exp").forEach { s.setAttribute(it, session.getAttribute(it)) } }
         mockMvc.perform(get("/users/loginform").session(social).param("redirectUrl", "/after")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/after"))
+        assertTrue(isLoggedIn(social))
+    }
+
+    @Test
+    fun `소셜 세션을 이어받을 때도 2단계 인증을 켠 사용자는 코드를 확인한다 (X-2)`() {
+        githubUser = """{"id":${900 + ++sequence},"login":"tfr$sequence","name":"이어","email":"tfr$sequence@example.com"}"""
+        val session = MockHttpSession()
+        signIn("github", session)
+        val secret = enableTwoFactor(assertNotNull(users.findByLoginId("tfr$sequence")))
+        val social = MockHttpSession().also { s -> listOf("pa.p.id", "pa.u.id", "pa.u.exp").forEach { s.setAttribute(it, session.getAttribute(it)) } }
+        mockMvc.perform(get("/users/loginform").session(social).param("redirectUrl", "/after")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/users/login/2fa"))
+        assertTrue(!isLoggedIn(social))
+        mockMvc.perform(post("/users/login/2fa").session(social).param("code", nowCode(secret))).andExpect(header().string("Location", "/after"))
         assertTrue(isLoggedIn(social))
     }
 

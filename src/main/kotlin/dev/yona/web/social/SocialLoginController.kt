@@ -39,6 +39,7 @@ class SocialLoginController(
     private val social: SocialAccountService,
     private val socialSession: SocialSession,
     private val loginSession: LoginSessionService,
+    private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
     private val credentials: UserCredentialRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val audit: dev.yona.domain.audit.AuditBoundary
@@ -165,14 +166,22 @@ class SocialLoginController(
         } else {
             social.signIn(identity).also { socialSession.start(request, identity) }
         }
+        var challenge = false
         result.user?.let { user ->
-            response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
-                maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
-                path = "/"
-            })
-            loginSession.start(request, response, user)
-            audit.loginSuccess(user, "social")
+            if (twoFactorLogin.required(user, request)) {
+                // 2단계 인증을 켠 사용자는 소셜 로그인 뒤에도 코드를 확인해야 한다. 로그인 유지 쿠키는 2단계를 마친 뒤에 만든다(X-2, D-69)
+                twoFactorLogin.begin(request, user, "social", true, socialSession.popOriginalUrl(request) ?: "/", result.flash.mapValues { it.value.toString() })
+                challenge = true
+            } else {
+                response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
+                    maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
+                    path = "/"
+                })
+                loginSession.start(request, response, user)
+                audit.loginSuccess(user, "social")
+            }
         }
+        if (challenge) return RedirectSupport.see(request, response, dev.yona.security.TwoFactorLogin.CHALLENGE_PATH)
         if (result.forceLogout) socialSession.forceLogout(request)
         return RedirectSupport.see(request, response, socialSession.popOriginalUrl(request) ?: "/", result.flash)
     }

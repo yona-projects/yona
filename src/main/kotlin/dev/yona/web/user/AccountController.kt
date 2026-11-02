@@ -51,6 +51,7 @@ class AccountController(
     private val accessControl: AccessControl,
     private val avatars: AvatarService,
     private val loginSession: LoginSessionService,
+    private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
     private val flashTranslator: FlashMessageTranslator,
     private val projectNotifications: ProjectNotificationService,
     private val watches: WatchRepository,
@@ -204,7 +205,13 @@ class AccountController(
         val email = emails.findById(emailId).orElse(null) ?: return forbiddenNotFound()
         if (!account.confirmEmail(email, token)) return forbiddenNotFound()
         // 확인 링크를 연 사람은 그 이메일의 사용자로 로그인된다 (v1.6 `addUserInfoToSession`).
-        email.user?.let { loginSession.start(request, response, it) }
+        // 그 사용자가 2단계 인증을 켰을 때만 코드를 확인한 뒤에 로그인된다(X-2, D-69). 켜지 않았으면 v1.6 그대로이다
+        val user = email.user
+        if (user != null && twoFactorLogin.required(user, request)) {
+            twoFactorLogin.begin(request, user, "email_link", false, "/user/editform")
+            return RedirectSupport.see(request, response, dev.yona.security.TwoFactorLogin.CHALLENGE_PATH)
+        }
+        user?.let { loginSession.start(request, response, it) }
         return RedirectSupport.see(request, response, "/user/editform")
     }
 
