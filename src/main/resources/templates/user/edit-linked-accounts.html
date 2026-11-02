@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-16, decisions.md D-80 18번). 설정의 연결된 계정(SSO와 소셜 로그인)
+  모델: title, rows(LinkedAccountService.Row 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::linkedPage})}">
+<th:block th:fragment="linkedPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{linked.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('linked-accounts')}"></th:block>
+        <div class="two-factor-page">
+        <p class="text-body-secondary" th:text="#{linked.description}"></p>
+        <div th:if="${#lists.isEmpty(rows)}" id="linked-empty" class="tf-empty" th:text="#{linked.empty}"></div>
+        <table id="linked-list" class="table table-striped" th:unless="${#lists.isEmpty(rows)}">
+            <thead><tr><th th:text="#{linked.provider}"></th><th th:text="#{linked.identifier}"></th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="row : ${rows}" class="linked-row" th:attr="data-provider=${row.providerKey}">
+                <td th:switch="${row.providerKey}">
+                    <span th:case="'sso-oidc'" th:text="#{linked.provider.oidc}"></span>
+                    <span th:case="'sso-saml2'" th:text="#{linked.provider.saml2}"></span>
+                    <span th:case="*" th:text="${row.providerKey}"></span>
+                </td>
+                <td><code th:text="${row.subject}"></code></td>
+                <td class="text-end">
+                    <form method="post" th:action="@{/user/linked-accounts/{id}/unlink(id=${row.id})}" th:attr="onsubmit='return confirm(\'' + #{linked.unlink.confirm} + '\');'">
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{linked.unlink}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

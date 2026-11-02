@@ -57,11 +57,11 @@
         <input id="oidc-scopes" type="text" name="scopes" class="form-control" th:value="${oidc.scopes}">
     </div>
     <div class="row">
-        <div class="col-md-4 mb-3"><label for="oidc-email-claim" class="form-label" th:text="#{site.sso.claim.email}"></label>
+        <div class="col-lg-4 mb-3"><label for="oidc-email-claim" class="form-label" th:text="#{site.sso.claim.email}"></label>
             <input id="oidc-email-claim" type="text" name="emailClaim" class="form-control" th:value="${oidc.emailClaim}"></div>
-        <div class="col-md-4 mb-3"><label for="oidc-name-claim" class="form-label" th:text="#{site.sso.claim.name}"></label>
+        <div class="col-lg-4 mb-3"><label for="oidc-name-claim" class="form-label" th:text="#{site.sso.claim.name}"></label>
             <input id="oidc-name-claim" type="text" name="nameClaim" class="form-control" th:value="${oidc.nameClaim}"></div>
-        <div class="col-md-4 mb-3"><label for="oidc-loginid-claim" class="form-label" th:text="#{site.sso.claim.loginId}"></label>
+        <div class="col-lg-4 mb-3"><label for="oidc-loginid-claim" class="form-label" th:text="#{site.sso.claim.loginId}"></label>
             <input id="oidc-loginid-claim" type="text" name="loginIdClaim" class="form-control" th:value="${oidc.loginIdClaim}"></div>
     </div>
     <h5 th:text="#{site.sso.accounts.title}"></h5>
@@ -140,11 +140,11 @@
         </ul>
     </div>
     <div class="row">
-        <div class="col-md-4 mb-3"><label for="saml2-email-attr" class="form-label" th:text="#{site.sso.attr.email}"></label>
+        <div class="col-lg-4 mb-3"><label for="saml2-email-attr" class="form-label" th:text="#{site.sso.attr.email}"></label>
             <input id="saml2-email-attr" type="text" name="emailAttribute" class="form-control" th:value="${saml2.emailAttribute}"></div>
-        <div class="col-md-4 mb-3"><label for="saml2-name-attr" class="form-label" th:text="#{site.sso.attr.name}"></label>
+        <div class="col-lg-4 mb-3"><label for="saml2-name-attr" class="form-label" th:text="#{site.sso.attr.name}"></label>
             <input id="saml2-name-attr" type="text" name="nameAttribute" class="form-control" th:value="${saml2.nameAttribute}"></div>
-        <div class="col-md-4 mb-3"><label for="saml2-loginid-attr" class="form-label" th:text="#{site.sso.attr.loginId}"></label>
+        <div class="col-lg-4 mb-3"><label for="saml2-loginid-attr" class="form-label" th:text="#{site.sso.attr.loginId}"></label>
             <input id="saml2-loginid-attr" type="text" name="loginIdAttribute" class="form-control" th:value="${saml2.loginIdAttribute}"></div>
     </div>
     <div class="mb-3">

@@ -39,7 +39,9 @@ class SiteUserController(
     private val users: UserRepository,
     private val avatars: AvatarService,
     private val helper: TemplateHelper,
-    private val twoFactor: dev.yona.domain.twofactor.TwoFactorService
+    private val twoFactor: dev.yona.domain.twofactor.TwoFactorService,
+    private val linkedAccounts: dev.yona.domain.sso.LinkedAccountService,
+    private val currentUserProvider: dev.yona.security.CurrentUserProvider
 ) {
 
     /** 목록의 한 줄이다. */
@@ -47,7 +49,7 @@ class SiteUserController(
         val id: Long, val loginId: String, val name: String, val email: String, val avatarUrl: String, val createdText: String,
         val guest: Boolean, val state: String, val siteManager: Boolean, val lastStateModified: String,
         val guestUrl: String, val lockUrl: String, val siteAdminUrl: String, val resetPasswordUrl: String, val deleteUrl: String,
-        val twoFactorEnabled: Boolean = false, val twoFactorResetUrl: String = ""
+        val twoFactorEnabled: Boolean = false, val twoFactorResetUrl: String = "", val ssoLinked: Boolean = false, val ssoUnlinkUrl: String = ""
     ) {
         /** 기본 아바타이면 `true`이다. v1.6은 이때 `alt`, `width`, `height` 없이 그림만 낸다. */
         val defaultAvatar: Boolean get() = avatarUrl == dev.yona.security.AvatarService.DEFAULT_AVATAR_URL
@@ -111,6 +113,21 @@ class SiteUserController(
         return listView(0, query, userState)
     }
 
+    /** 사용자의 SSO 연결을 모두 해제한다(추가 개발 항목 X-16, `decisions.md` D-80 22번. 퇴사자 처리, 잘못 연결된 계정 정정). 소셜 로그인 연결은 두고, 목록을 다시 그린다. */
+    @PostMapping("/sites/unlinkSso")
+    @Transactional
+    fun unlinkSso(
+        @RequestParam loginId: String, @RequestParam(required = false) state: String?, @RequestParam(required = false) query: String?,
+        request: HttpServletRequest, response: HttpServletResponse
+    ): Any {
+        val userState = parseState(state) ?: return ErrorViews.badRequest()
+        val target = users.findByLoginIdIgnoreCase(loginId)
+            ?: return RedirectSupport.see(request, response, "/sites/userList?pageNum=0", mapOf(RedirectSupport.WARNING to "user.notExists.name"))
+        val admin = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
+        linkedAccounts.unlinkAllSso(target, admin)
+        return listView(0, query, userState)
+    }
+
     @PostMapping("/sites/toggleGuestMode")
     @Transactional
     fun toggleGuestMode(
@@ -158,7 +175,7 @@ class SiteUserController(
             guestUrl = toggle("/sites/toggleGuestMode"), lockUrl = toggle("/sites/toggleAccountLock"),
             siteAdminUrl = "/sites/toggleSiteAdminRole/$loginId", resetPasswordUrl = "/$loginId?action=resetPassword",
             deleteUrl = "/sites/user/delete${user.id}",
-            twoFactorEnabled = twoFactor.isEnabled(user), twoFactorResetUrl = toggle("/sites/resetTwoFactor")
+            twoFactorEnabled = twoFactor.isEnabled(user), twoFactorResetUrl = toggle("/sites/resetTwoFactor"), ssoLinked = linkedAccounts.hasSso(user), ssoUnlinkUrl = toggle("/sites/unlinkSso")
         )
     }
 
