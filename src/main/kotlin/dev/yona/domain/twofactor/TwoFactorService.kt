@@ -20,6 +20,11 @@ import java.util.Date
 class TwoFactorCrypto(properties: YonaProperties) {
     val cipher = SecretCipher(properties.secret)
     val backupCodes = BackupCodes(properties.secret)
+    private val handleKey = javax.crypto.spec.SecretKeySpec(Hkdf.derive(properties.secret, "yona.two-factor.webauthn-user-handle"), "HmacSHA256")
+
+    /** 보안 키에 담는 사용자 식별자(WebAuthn user handle)이다. 사용자 번호에서 만든 HMAC이라 번호가 드러나지 않고 같은 사용자에게는 늘 같다. */
+    fun userHandle(userId: Long): kotlin.ByteArray =
+        javax.crypto.Mac.getInstance("HmacSHA256").apply { init(handleKey) }.doFinal("user:$userId".toByteArray())
 }
 
 /** 인증 앱 등록을 시작한 결과이다. [secret]은 사용자가 직접 입력할 수 있는 base32 글이고 [otpauthUri]는 QR 코드의 내용이다. */
@@ -60,8 +65,39 @@ class TwoFactorService(
     @Transactional(readOnly = true)
     fun isEnabled(user: User): Boolean = credentials.existsByUserIdAndConfirmedTrue(requireNotNull(user.id))
 
+    /** 확인을 마친 인증 앱이 있으면 `true`이다. */
+    @Transactional(readOnly = true)
+    fun hasTotp(user: User): Boolean = credentials.existsByUserIdAndTypeAndConfirmedTrue(requireNotNull(user.id), TwoFactorCredential.TOTP)
+
+    /** 확인을 마친 수단 목록이다(인증 앱과 보안 키). 확인하지 않은 등록은 담지 않는다. */
+    @Transactional(readOnly = true)
+    fun methods(user: User): List<TwoFactorCredential> = credentials.findByUserIdOrderById(requireNotNull(user.id)).filter { it.confirmed == true }
+
     /**
-     * 인증 앱 등록을 시작한다. 새 비밀 값을 만들어 암호화해 저장하고(확인하지 않은 상태) 돌려준다. 이전에 확인하지 않은 등록은 지운다. 이미 켜져 있으면 `null`이다(먼저 끄고 다시 등록한다).
+     * 수단 하나를 지운다. 남의 수단이거나 없으면 `false`이다. **확인을 마친 수단이 하나도 남지 않으면** 2단계 인증이 꺼진 것이므로 백업 코드와 알려진 기기도 함께 지운다.
+     */
+    @Transactional
+    fun removeCredential(user: User, credentialId: Long): Boolean {
+        val credential = credentials.findById(credentialId).orElse(null) ?: return false
+        if (credential.user?.id != user.id) return false
+        credentials.delete(credential)
+        credentials.flush()
+        audit.record(auditUser("two_factor.method_removed", user, mapOf("method" to credential.type.orEmpty().lowercase())))
+        if (!isEnabled(user)) {
+            val id = requireNotNull(user.id)
+            backupCodeRows.deleteByUserId(id); devices.deleteByUserId(id)
+            audit.record(auditUser("two_factor.disabled", user, mapOf("by" to "user")))
+        }
+        return true
+    }
+
+    /** 백업 코드가 하나도 없으면 새로 만들어 돌려준다(보안 키로 2단계 인증을 처음 켤 때). 이미 있으면 `null`이다. */
+    @Transactional
+    fun ensureBackupCodes(user: User): List<String>? =
+        if (backupCodeRows.countByUserId(requireNotNull(user.id)) > 0) null else replaceBackupCodes(user)
+
+    /**
+     * 인증 앱 등록을 시작한다. 새 비밀 값을 만들어 암호화해 저장하고(확인하지 않은 상태) 돌려준다. 이전에 확인하지 않은 등록은 지운다. 이미 인증 앱이 있으면 `null`이다(먼저 지우고 다시 등록한다).
      *
      * @param issuer 인증 앱에 보일 발급자(사이트 이름)
      * @param account 인증 앱에 보일 계정 이름
@@ -69,18 +105,18 @@ class TwoFactorService(
     @Transactional
     fun beginTotp(user: User, issuer: String, account: String, now: Date = Date()): TotpEnrollment? {
         val userId = requireNotNull(user.id)
-        if (isEnabled(user)) return null
+        if (hasTotp(user)) return null
         credentials.findByUserIdOrderById(userId).filter { it.confirmed != true }.forEach { credentials.delete(it) }
         credentials.flush()
         val secret = Totp.newSecret()
-        credentials.save(TwoFactorCredential(user = user, name = "TOTP", secretEncrypted = crypto.cipher.encrypt(secret), confirmed = false, createdDate = now))
+        credentials.save(TwoFactorCredential(user = user, type = TwoFactorCredential.TOTP, name = "TOTP", secretEncrypted = crypto.cipher.encrypt(secret), confirmed = false, createdDate = now))
         return TotpEnrollment(Base32.encode(secret), Totp.otpauthUri(secret, issuer, account))
     }
 
     /** 시작했지만 아직 확인하지 않은 등록이다. 틀린 코드를 입력했을 때 같은 비밀 값으로 설정 화면을 다시 보이는 데 쓴다. 없으면 `null`이다. */
     @Transactional(readOnly = true)
     fun pending(user: User, issuer: String, account: String): TotpEnrollment? {
-        val credential = credentials.findByUserIdOrderById(requireNotNull(user.id)).firstOrNull { it.confirmed != true } ?: return null
+        val credential = credentials.findByUserIdOrderById(requireNotNull(user.id)).firstOrNull { it.confirmed != true && it.type == TwoFactorCredential.TOTP } ?: return null
         val secret = secretOf(credential) ?: return null
         return TotpEnrollment(Base32.encode(secret), Totp.otpauthUri(secret, issuer, account))
     }
@@ -88,7 +124,7 @@ class TwoFactorService(
     /** 시작한 등록을 사용자가 입력한 코드로 확인한다. 맞으면 2단계 인증이 켜지고 백업 코드를 만든다. */
     @Transactional
     fun confirmTotp(user: User, code: String, now: Instant = Instant.now()): TotpConfirmation {
-        val credential = credentials.findByUserIdOrderById(requireNotNull(user.id)).firstOrNull { it.confirmed != true } ?: return TotpConfirmation.NotStarted
+        val credential = credentials.findByUserIdOrderById(requireNotNull(user.id)).firstOrNull { it.confirmed != true && it.type == TwoFactorCredential.TOTP } ?: return TotpConfirmation.NotStarted
         val secret = secretOf(credential) ?: return TotpConfirmation.InvalidCode
         val step = Totp.verify(secret, code, now.epochSecond, lastUsedStep = null) ?: return TotpConfirmation.InvalidCode
         credential.confirmed = true

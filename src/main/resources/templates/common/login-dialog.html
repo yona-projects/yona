@@ -23,6 +23,10 @@
         <div class="btns-row nm">
           <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{user.twoFactor.submit}"></button>
         </div>
+        <div class="btns-row nm security-key-step" style="display: none;">
+          <button type="button" class="ybtn fullsize security-key-use" th:text="#{twoFactor.securityKey.use}"
+                  th:attr="data-options-uri=@{/users/login/2fa/webauthn/options},data-submit-uri=@{/users/login/2fa/webauthn}"></button>
+        </div>
       </div>
       <div class="login-step">
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
@@ -75,5 +79,6 @@
   </div>
 </div></div></div>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.webauthn.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.LoginDialog.js}"></script>
 </th:block>

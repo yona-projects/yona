@@ -40,7 +40,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals(11, DataTables.find("N4USER")!!.columns.size)
         // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
         assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
-        assertEquals(31, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
+        assertEquals(32, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
     @Test

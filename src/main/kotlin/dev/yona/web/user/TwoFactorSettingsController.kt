@@ -39,6 +39,9 @@ class TwoFactorSettingsController(
     private val helper: TemplateHelper
 ) {
 
+    /** 등록한 수단 목록의 한 줄이다. [type]은 `TOTP`나 `WEBAUTHN`이다. */
+    data class MethodRow(val id: Long, val type: String, val name: String, val createdText: String, val lastUsedText: String)
+
     /** 알려진 기기 목록의 한 줄이다. */
     data class DeviceRow(val id: Long, val name: String, val ip: String, val lastUsedText: String, val expiresText: String)
 
@@ -82,12 +85,14 @@ class TwoFactorSettingsController(
         return noCache(codesView(codes, "twoFactor.backup.regenerated"), response)
     }
 
-    /** 2단계 인증을 끈다(인증 앱, 백업 코드, 알려진 기기를 모두 지운다). */
-    @PostMapping("/user/two-factor/disable")
+    /**
+     * 수단 하나(인증 앱이나 보안 키)를 지운다. 남은 수단이 없으면 2단계 인증이 꺼지고 백업 코드와 알려진 기기도 지워진다. 남의 수단이나 없는 수단은 404이다.
+     */
+    @PostMapping("/user/two-factor/credentials/{id}/delete")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
-    fun disable(request: HttpServletRequest, response: HttpServletResponse): Any {
-        twoFactor.disable(currentUser())
+    fun removeMethod(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
+        if (!twoFactor.removeCredential(currentUser(), id)) return ErrorViews.notFound()
         return RedirectSupport.see(request, response, LIST)
     }
 
@@ -102,7 +107,8 @@ class TwoFactorSettingsController(
 
     private fun currentUser(): User = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
 
-    private fun listView(user: User): ModelAndView = base("user/edit-two-factor").addObject("enabled", twoFactor.isEnabled(user))
+    private fun listView(user: User): ModelAndView = base("user/edit-two-factor").addObject("enabled", twoFactor.isEnabled(user)).addObject("hasTotp", twoFactor.hasTotp(user))
+        .addObject("methods", twoFactor.methods(user).map(::methodRow))
         .addObject("backupRemaining", twoFactor.backupCodesRemaining(user)).addObject("devices", knownDevices.list(user).map(::rowOf))
 
     private fun setupView(enrollment: TotpEnrollment, error: String?): ModelAndView =
@@ -118,6 +124,9 @@ class TwoFactorSettingsController(
         response.setHeader(HttpHeaders.PRAGMA, "no-cache")
         response.setHeader(HttpHeaders.EXPIRES, "0")
     }
+
+    private fun methodRow(c: dev.yona.domain.twofactor.TwoFactorCredential) =
+        MethodRow(requireNotNull(c.id), c.type.orEmpty(), c.name.orEmpty(), helper.dateString(c.createdDate), helper.dateString(c.lastUsedDate))
 
     private fun rowOf(d: KnownDevice) = DeviceRow(requireNotNull(d.id), d.name.orEmpty(), d.ip.orEmpty(), helper.dateString(d.lastUsedDate), helper.dateString(d.expiresDate))
 

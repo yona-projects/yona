@@ -44,6 +44,7 @@ $(function(){
         htElement.welInputRememberMe = htElement.welDialog.find("input[name='rememberMe']");
         htElement.welLoginStep = htElement.welDialog.find(".login-step");
         htElement.welTwoFactorStep = htElement.welDialog.find(".two-factor-step");
+        htElement.welSecurityKeyStep = htElement.welDialog.find(".security-key-step");
         htElement.welInputCode = htElement.welDialog.find("input[name='code']");
         htElement.welInputRememberDevice = htElement.welDialog.find("input[name='rememberDevice']");
         htElement.welLoginError = htElement.welDialog.find(".error");
@@ -53,6 +54,7 @@ $(function(){
     function _attachEvent(){
         $(document.body).on('click', '[data-login="required"]', _showDialog);
         htElement.welForm.on('submit', _onSubmitForm);
+        htElement.welDialog.on('click', '.security-key-use', _useSecurityKey);
     }
 
     function _showDialog(weEvt){
@@ -84,7 +86,31 @@ $(function(){
         htElement.welInputCode.val("");
     }
 
-    function _showTwoFactorStep(){
+    // Security key (WebAuthn) as the second step. It uses the same attempt counter as the code input.
+    function _useSecurityKey(){
+        var welButton = htElement.welSecurityKeyStep.find(".security-key-use");
+        htElement.welLoginError.hide();
+        $.post(welButton.data("options-uri"), null, null, "text").then(function(sOptions){
+            return YonaWebAuthn.authenticate(sOptions);
+        }).then(function(sCredential){
+            return $.post(welButton.data("submit-uri"), {
+                "credential": sCredential,
+                "rememberDevice": htElement.welInputRememberDevice.is(":checked")
+            }, null, "json");
+        }).then(function(){
+            document.location.reload();
+        }).fail(function(htResult){
+            var sKey = htResult && htResult.responseJSON && htResult.responseJSON.message;
+            _showDialogError(Messages(sKey || "user.twoFactor.invalid"));
+        });
+    }
+
+    function _showTwoFactorStep(bSecurityKey){
+        if(bSecurityKey && window.YonaWebAuthn && YonaWebAuthn.supported()){
+            htElement.welSecurityKeyStep.show();
+        } else {
+            htElement.welSecurityKeyStep.hide();
+        }
         htElement.welLoginError.hide();
         htElement.welLoginStep.hide();
         htElement.welTwoFactorStep.show();
@@ -106,7 +132,7 @@ $(function(){
             }
         }).done(function(htResult){
             if(htResult && htResult.twoFactor){
-                _showTwoFactorStep();
+                _showTwoFactorStep(htResult.securityKey);
                 return;
             }
             document.location.reload();

@@ -200,7 +200,10 @@ object DataTables {
             DataColumn("confirmed", BOOLEAN),
             DataColumn("last_used_step", LONG, nullableLong = true),
             DataColumn("created_date", TIMESTAMP),
-            DataColumn("last_used_date", TIMESTAMP)
+            DataColumn("last_used_date", TIMESTAMP),
+            DataColumn("credential_id", STRING),
+            DataColumn("public_key", STRING),
+            DataColumn("sign_count", LONG, nullableLong = true)
         ),
         DataTable(
             "TWO_FACTOR_BACKUP_CODE", true,

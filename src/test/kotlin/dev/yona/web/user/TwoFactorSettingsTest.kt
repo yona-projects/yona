@@ -68,7 +68,7 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `로그인해야 쓸 수 있다`() {
         mockMvc.perform(get("/user/editform/two-factor")).andExpect(status().is3xxRedirection)
-        for (path in listOf("begin", "totp", "disable", "backup-codes", "devices/1/delete")) mockMvc.perform(post("/user/two-factor/$path")).andExpect(status().is3xxRedirection)
+        for (path in listOf("begin", "totp", "credentials/1/delete", "backup-codes", "devices/1/delete", "webauthn/options", "webauthn/register")) mockMvc.perform(post("/user/two-factor/$path")).andExpect(status().is3xxRedirection)
     }
 
     @Test
@@ -112,7 +112,7 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
         val codes = done.select("#backup-codes li").map { it.text().trim() }
         assertEquals(10, codes.size); assertTrue(codes.all { Regex("[a-z2-9]{5}-[a-z2-9]{5}").matches(it) })
         val list = page(s)
-        assertNull(list.selectFirst("p#two-factor-off")); assertNotNull(list.selectFirst("form[action$=/user/two-factor/disable]"))
+        assertNull(list.selectFirst("p#two-factor-off")); assertEquals(1, list.select("table#two-factor-list tr.method-row").size)
         assertTrue(list.selectFirst("#backup-remaining")!!.text().contains("10"))
         assertTrue(list.select("#backup-codes li").isEmpty(), "백업 코드는 다시 보이지 않는다")
     }
@@ -134,9 +134,17 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `끄면 목록은 다시 꺼진 상태이다`() {
         val u = user(); val s = login(u); enable(u, s)
-        mockMvc.perform(post("/user/two-factor/disable").session(s)).andExpect(status().is3xxRedirection)
+        val id = doc(mockMvc.perform(get("/user/editform/two-factor").session(s)).andReturn().response.contentAsString).selectFirst("tr.method-row form")!!.attr("action").substringAfter("/credentials/").substringBefore("/delete")
+        mockMvc.perform(post("/user/two-factor/credentials/$id/delete").session(s)).andExpect(status().is3xxRedirection)
         assertNotNull(page(s).selectFirst("p#two-factor-off"))
         assertFalse(service.isEnabled(users.findById(u.id!!).get()))
+    }
+
+    @Test
+    fun `남의 수단을 지우려 하면 404이다`() {
+        val a = user(); val sa = login(a); enable(a, sa); val b = user(); val sb = login(b)
+        val id = doc(mockMvc.perform(get("/user/editform/two-factor").session(sa)).andReturn().response.contentAsString).selectFirst("tr.method-row form")!!.attr("action").substringAfter("/credentials/").substringBefore("/delete")
+        mockMvc.perform(post("/user/two-factor/credentials/$id/delete").session(sb)).andExpect(status().isNotFound)
     }
 
     @Test

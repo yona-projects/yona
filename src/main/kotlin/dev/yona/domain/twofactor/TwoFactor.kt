@@ -17,9 +17,12 @@ import java.util.Date
  * @property secretEncrypted 암호화한 TOTP 비밀 값([SecretCipher]). 평문은 저장하지 않는다
  * @property confirmed 등록할 때 첫 코드를 확인했으면 `true`이다. 확인하지 않은 수단은 로그인에 쓰이지 않는다
  * @property lastUsedStep 마지막으로 인증에 쓴 TOTP 구간 번호. 같은 코드를 다시 쓰지 못하게 한다
+ * @property credentialId 보안 키(`WEBAUTHN`)의 자격 증명 번호(base64url). 보안 키가 아니면 `null`이다
+ * @property publicKey 보안 키의 공개키(COSE, base64url)
+ * @property signCount 보안 키가 알려 준 서명 횟수. 줄어들면 복제된 키를 의심해 거부한다
  */
 @Entity
-@Table(name = "two_factor_credential", indexes = [Index(name = "ix_two_factor_credential_user", columnList = "user_id")])
+@Table(name = "two_factor_credential", indexes = [Index(name = "ix_two_factor_credential_user", columnList = "user_id"), Index(name = "ix_two_factor_credential_cid", columnList = "credential_id")])
 class TwoFactorCredential(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -37,10 +40,17 @@ class TwoFactorCredential(
     @Column(name = "created_date")
     var createdDate: Date? = null,
     @Column(name = "last_used_date")
-    var lastUsedDate: Date? = null
+    var lastUsedDate: Date? = null,
+    @Column(name = "credential_id", length = 1000)
+    var credentialId: String? = null,
+    @Column(name = "public_key", length = 1000)
+    var publicKey: String? = null,
+    @Column(name = "sign_count")
+    var signCount: Long? = null
 ) {
     companion object {
         const val TOTP = "TOTP"
+        const val WEBAUTHN = "WEBAUTHN"
     }
 }
 
@@ -51,6 +61,10 @@ interface TwoFactorCredentialRepository : JpaRepository<TwoFactorCredential, Lon
 
     fun findByUserIdOrderById(userId: Long): List<TwoFactorCredential>
 
+    fun findByCredentialId(credentialId: String): List<TwoFactorCredential>
+
+    fun existsByUserIdAndTypeAndConfirmedTrue(userId: Long, type: String): Boolean
+
     fun existsByUserIdAndConfirmedTrue(userId: Long): Boolean
 
     fun deleteByUserId(userId: Long)
@@ -59,6 +73,10 @@ interface TwoFactorCredentialRepository : JpaRepository<TwoFactorCredential, Lon
      * 인증에 쓴 구간 번호를 더 큰 값으로 올린다. 이미 같거나 더 큰 값이 기록되어 있으면(같은 코드의 동시 사용이나 재사용) 아무것도 바꾸지 않고 0을 돌려준다.
      * 조건을 데이터베이스에서 한 번에 확인해 두 요청이 같은 코드로 동시에 통과하지 못하게 한다.
      */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update TwoFactorCredential c set c.signCount = :count, c.lastUsedDate = :now where c.id = :id")
+    fun updateSignCount(@Param("id") id: Long, @Param("count") count: Long, @Param("now") now: Date): Int
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update TwoFactorCredential c set c.lastUsedStep = :step, c.lastUsedDate = :now where c.id = :id and (c.lastUsedStep is null or c.lastUsedStep < :step)")
     fun advance(@Param("id") id: Long, @Param("step") step: Long, @Param("now") now: Date): Int
@@ -92,6 +110,8 @@ interface TwoFactorBackupCodeRepository : JpaRepository<TwoFactorBackupCode, Lon
     fun findByUserIdAndCodeHashAndUsedDateIsNull(userId: Long, codeHash: String): TwoFactorBackupCode?
 
     fun countByUserIdAndUsedDateIsNull(userId: Long): Long
+
+    fun countByUserId(userId: Long): Long
 
     fun deleteByUserId(userId: Long)
 

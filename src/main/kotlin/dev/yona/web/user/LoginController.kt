@@ -42,7 +42,8 @@ class LoginController(
     private val home: dev.yona.web.home.HomeController,
     private val audit: dev.yona.domain.audit.AuditBoundary,
     private val completion: dev.yona.security.LoginCompletion,
-    private val twoFactorLogin: dev.yona.security.TwoFactorLogin
+    private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
+    private val webAuthn: dev.yona.domain.twofactor.WebAuthnService
 ) {
 
 
@@ -140,7 +141,7 @@ class LoginController(
                 if (twoFactorLogin.required(result.user, request)) {
                     // 팝업이 코드 입력 단계로 바뀌도록 알린다(X-2, D-69). 로그인은 코드를 확인한 뒤에 끝난다
                     twoFactorLogin.begin(request, result.user, "password", wantsRememberMe(request), null)
-                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("twoFactor" to true))
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("twoFactor" to true, "securityKey" to webAuthn.hasSecurityKey(result.user)))
                 }
                 completeLogin(request, response, result)
                 // v1.6의 `ok("{}")`는 문자열이라 Content-Type이 text/plain이다.

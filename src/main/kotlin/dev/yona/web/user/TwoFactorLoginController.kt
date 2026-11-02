@@ -21,13 +21,37 @@ import org.springframework.web.servlet.ModelAndView
  * 웹 폼은 화면과 이동으로, AJAX 로그인 팝업은 JSON으로 같은 판정을 따른다(`Accept` 헤더로 구분한다). 진행 중인 로그인이 없으면 로그인 화면으로 보낸다.
  */
 @Controller
-class TwoFactorLoginController(private val twoFactorLogin: TwoFactorLogin) {
+class TwoFactorLoginController(private val twoFactorLogin: TwoFactorLogin, private val users: dev.yona.domain.user.UserRepository, private val webAuthn: dev.yona.domain.twofactor.WebAuthnService) {
 
     @GetMapping(TwoFactorLogin.CHALLENGE_PATH)
     fun challenge(request: HttpServletRequest, response: HttpServletResponse): Any {
         noCache(response)
-        if (twoFactorLogin.pending(request) == null) return RedirectSupport.see(request, response, LOGIN_FORM)
-        return ModelAndView("user/login-two-factor").addObject("title", "title.twoFactor")
+        val pending = twoFactorLogin.pending(request) ?: return RedirectSupport.see(request, response, LOGIN_FORM)
+        val securityKey = users.findById(pending.userId).orElse(null)?.let { webAuthn.hasSecurityKey(it) } ?: false
+        return ModelAndView("user/login-two-factor").addObject("title", "title.twoFactor").addObject("securityKey", securityKey)
+    }
+
+    /** 보안 키 인증 요청(`navigator.credentials.get`의 입력 JSON)을 만든다. 진행 중인 로그인이 없거나 보안 키가 없으면 403이다. */
+    @PostMapping("/users/login/2fa/webauthn/options", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun securityKeyOptions(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<*> {
+        noCache(response)
+        val options = twoFactorLogin.startSecurityKey(request, WebAuthnContexts.of(request)) ?: return message("user.twoFactor.expired")
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(options)
+    }
+
+    /** 보안 키의 인증 응답을 확인한다. 결과는 JSON이다: 성공은 `{"redirect": 이동할 주소}`이다. */
+    @PostMapping("/users/login/2fa/webauthn", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun securityKeySubmit(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<*> {
+        noCache(response)
+        val rememberDevice = request.getParameter("rememberDevice")?.lowercase() in setOf("true", "on", "yes", "1")
+        return when (val result = twoFactorLogin.submitSecurityKey(request, response, request.getParameter("credential").orEmpty(), WebAuthnContexts.of(request), rememberDevice)) {
+            is TwoFactorSubmission.Success -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("redirect" to (result.redirectUrl ?: "/")))
+            TwoFactorSubmission.Invalid -> message("user.twoFactor.invalid")
+            TwoFactorSubmission.Locked -> message("user.twoFactor.locked")
+            TwoFactorSubmission.Expired -> message("user.twoFactor.expired")
+        }
     }
 
     @PostMapping(TwoFactorLogin.CHALLENGE_PATH)

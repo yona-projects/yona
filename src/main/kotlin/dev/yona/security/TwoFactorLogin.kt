@@ -2,6 +2,7 @@ package dev.yona.security
 
 import dev.yona.domain.audit.AuditBoundary
 import dev.yona.domain.twofactor.TwoFactorResult
+import dev.yona.domain.twofactor.WebAuthnContext
 import dev.yona.domain.twofactor.TwoFactorService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -69,6 +70,7 @@ class TwoFactorLogin(
     private val twoFactor: TwoFactorService,
     private val gate: TwoFactorGate,
     private val devices: dev.yona.domain.twofactor.KnownDeviceService,
+    private val webAuthn: dev.yona.domain.twofactor.WebAuthnService,
     private val users: UserRepository,
     private val completion: LoginCompletion,
     private val attempts: TwoFactorAttempts,
@@ -93,7 +95,30 @@ class TwoFactorLogin(
     }
 
     /** [code]를 확인한다. 맞으면 로그인을 끝내고 진행 중인 로그인을 지운다. */
-    fun submit(request: HttpServletRequest, response: HttpServletResponse, code: String, rememberDevice: Boolean = false): TwoFactorSubmission {
+    fun submit(request: HttpServletRequest, response: HttpServletResponse, code: String, rememberDevice: Boolean = false): TwoFactorSubmission =
+        attempt(request, response, rememberDevice) { user -> twoFactor.verify(user, code) != TwoFactorResult.INVALID }
+
+    /**
+     * 진행 중인 로그인의 사용자에게 보안 키 인증 요청을 만들어 돌려주고 세션에 둔다(WebAuthn). 진행 중인 로그인이 없거나 보안 키가 없으면 `null`이다.
+     */
+    fun startSecurityKey(request: HttpServletRequest, context: WebAuthnContext): String? {
+        val pending = pending(request) ?: return null
+        val user = users.findById(pending.userId).orElse(null) ?: return null
+        val options = webAuthn.startAssertionOrNull(user, context) ?: return null
+        request.getSession(true).setAttribute(ASSERTION, options.server)
+        return options.browser
+    }
+
+    /** 보안 키 인증 응답 [responseJson]을 확인한다. 세션에 둔 요청은 한 번만 쓴다. 나머지는 [submit]과 같다. */
+    fun submitSecurityKey(request: HttpServletRequest, response: HttpServletResponse, responseJson: String, context: WebAuthnContext, rememberDevice: Boolean = false): TwoFactorSubmission {
+        val session = request.getSession(false)
+        val assertion = session?.getAttribute(ASSERTION) as? String
+        session?.removeAttribute(ASSERTION)
+        return attempt(request, response, rememberDevice) { user -> assertion != null && webAuthn.finishAssertion(user, assertion, responseJson, context) }
+    }
+
+    /** 진행 중인 로그인의 사용자가 [check]를 통과하면 로그인을 끝낸다. 실패는 세고(5번이면 잠근다) 기록한다. */
+    private fun attempt(request: HttpServletRequest, response: HttpServletResponse, rememberDevice: Boolean, check: (User) -> Boolean): TwoFactorSubmission {
         val pending = pending(request) ?: return TwoFactorSubmission.Expired
         val user = users.findById(pending.userId).orElse(null)
         if (user == null || user.state.isLockedOut()) { forget(request); return TwoFactorSubmission.Expired }
@@ -103,7 +128,7 @@ class TwoFactorLogin(
             audit.loginFailure(user.loginId, "two_factor_locked", denied = true)
             return TwoFactorSubmission.Locked
         }
-        if (twoFactor.verify(user, code) == TwoFactorResult.INVALID) {
+        if (!check(user)) {
             val locked = attempts.recordFailure(userId)
             audit.loginFailure(user.loginId, if (locked) "two_factor_locked" else "two_factor_invalid", denied = locked)
             if (locked) { forget(request); return TwoFactorSubmission.Locked }
@@ -131,11 +156,12 @@ class TwoFactorLogin(
     }
 
     /** 진행 중인 로그인을 지운다. */
-    fun forget(request: HttpServletRequest) { request.getSession(false)?.removeAttribute(PENDING) }
+    fun forget(request: HttpServletRequest) { request.getSession(false)?.run { removeAttribute(PENDING); removeAttribute(ASSERTION) } }
 
     companion object {
         /** 2단계 화면의 주소이다. */
         const val CHALLENGE_PATH = "/users/login/2fa"
         private const val PENDING = "dev.yona.security.PendingLogin"
+        private const val ASSERTION = "dev.yona.security.PendingAssertion"
     }
 }

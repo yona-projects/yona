@@ -127,6 +127,8 @@ dependencies {
 	implementation("org.apache.sshd:sshd-core:2.15.0")
 	// 2단계 인증(X-2, D-69)의 QR 코드를 만든다. 화면에는 인라인 SVG로 내보내므로 핵심 라이브러리만 쓴다
 	implementation("com.google.zxing:core:3.5.3")
+	// 2단계 인증의 보안 키(WebAuthn, 패스키) 검증이다. 두 번째 단계로만 쓴다(X-2, D-69)
+	implementation("com.yubico:webauthn-server-core:2.10.1")
 
 	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)

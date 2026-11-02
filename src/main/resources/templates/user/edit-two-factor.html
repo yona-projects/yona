@@ -21,18 +21,15 @@
         <p class="text-body-secondary" th:text="#{twoFactor.description}"></p>
 
         <p th:if="${!enabled}" id="two-factor-off" class="empty" th:text="#{twoFactor.list.empty}"></p>
-        <form th:if="${!enabled}" method="post" th:action="@{/user/two-factor/begin}">
-            <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
-        </form>
 
-        <th:block th:if="${enabled}">
-        <table id="two-factor-list" class="table table-striped">
-            <thead><tr><th th:text="#{twoFactor.method}"></th><th></th></tr></thead>
+        <table id="two-factor-list" class="table table-striped" th:if="${enabled}">
+            <thead><tr><th th:text="#{twoFactor.method}"></th><th th:text="#{twoFactor.devices.name}"></th><th th:text="#{sshKey.createdDate}"></th><th th:text="#{twoFactor.devices.lastUsed}"></th><th></th></tr></thead>
             <tbody>
-            <tr>
-                <td th:text="#{twoFactor.method.totp}"></td>
+            <tr th:each="m : ${methods}" class="method-row" th:attr="data-type=${m.type}">
+                <td th:text="${m.type == 'TOTP'} ? #{twoFactor.method.totp} : #{twoFactor.method.securityKey}"></td>
+                <td th:text="${m.name}"></td><td th:text="${m.createdText}"></td><td th:text="${m.lastUsedText}"></td>
                 <td>
-                    <form method="post" th:action="@{/user/two-factor/disable}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.delete.confirm} + '\');'">
+                    <form method="post" th:action="@{/user/two-factor/credentials/{id}/delete(id=${m.id})}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{twoFactor.delete}"></button>
                     </form>
                 </td>
@@ -40,6 +37,18 @@
             </tbody>
         </table>
 
+        <div class="d-flex flex-wrap gap-4 align-items-start mb-3">
+            <form th:if="${!hasTotp}" method="post" th:action="@{/user/two-factor/begin}">
+                <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
+            </form>
+            <form id="security-key-form" class="d-flex gap-2" style="display: none;" onsubmit="return false;">
+                <input id="security-key-name" type="text" class="form-control" style="max-width: 220px;" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
+                <button id="security-key-add" type="button" class="btn btn-success" th:text="#{twoFactor.securityKey.add}"></button>
+            </form>
+        </div>
+        <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
+
+        <th:block th:if="${enabled}">
         <h4 class="mt-4" th:text="#{twoFactor.backup.title}"></h4>
         <p id="backup-remaining" th:text="#{twoFactor.backup.remaining(${backupRemaining})}"></p>
         <form method="post" th:action="@{/user/two-factor/backup-codes}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.backup.regenerate.confirm} + '\');'">
@@ -65,5 +74,26 @@
         </th:block>
     </div>
 </div>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.webauthn.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function () {
+        var form = $("#security-key-form");
+        if (!window.YonaWebAuthn || !YonaWebAuthn.supported()) { form.hide(); return; }
+        form.css("display", "flex");
+        function showError(key) { $("#security-key-error").text(Messages(key)).show(); }
+        $("#security-key-add").on("click", function () {
+            $("#security-key-error").hide();
+            $.post(/*[[@{/user/two-factor/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
+                return YonaWebAuthn.register(options);
+            }).then(function (credential) {
+                return $.post(/*[[@{/user/two-factor/webauthn/register}]]*/ "", { name: $("#security-key-name").val(), credential: credential }, null, "json");
+            }).then(function () {
+                location.href = /*[[@{/user/two-factor/webauthn/done}]]*/ "";
+            }).catch(function (e) {
+                showError(e && e.responseJSON && e.responseJSON.message ? e.responseJSON.message : "twoFactor.securityKey.rejected");
+            });
+        });
+    });
+</script>
 </th:block>
 </html>
