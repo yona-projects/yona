@@ -16,6 +16,7 @@ import java.util.Date
  * @property userId 승인한 사용자 번호(소유자 이름의 숫자 값)
  * @property attributes 인가 요청의 속성(JSON). PKCE 값과 요청 내용이 든다
  * @property state 요청의 `state`
+ * @property previousRefreshTokenHash 바로 앞에 쓰던 갱신 토큰의 해시이다. 갱신 토큰은 쓸 때마다 바뀌므로, 이 값이 다시 오면 이미 쓴 토큰이 재사용된 것(탈취 의심)이라 인가 전체를 취소한다
  */
 @Entity
 @Table(
@@ -25,7 +26,8 @@ import java.util.Date
         Index(name = "ix_oauth_authorization_user", columnList = "user_id"),
         Index(name = "ix_oauth_authorization_code", columnList = "code_hash"),
         Index(name = "ix_oauth_authorization_access", columnList = "access_token_hash"),
-        Index(name = "ix_oauth_authorization_refresh", columnList = "refresh_token_hash")
+        Index(name = "ix_oauth_authorization_refresh", columnList = "refresh_token_hash"),
+        Index(name = "ix_oauth_authorization_prev_refresh", columnList = "previous_refresh_token_hash")
     ]
 )
 class OAuthAuthorization(
@@ -69,6 +71,8 @@ class OAuthAuthorization(
     var refreshTokenExpiresDate: Date? = null,
     @Column(name = "refresh_token_metadata", length = dev.yona.domain.LONG_TEXT)
     var refreshTokenMetadata: String? = null,
+    @Column(name = "previous_refresh_token_hash", length = 64)
+    var previousRefreshTokenHash: String? = null,
     @Column(name = "created_date")
     var createdDate: Date? = null
 )
@@ -83,6 +87,18 @@ interface OAuthAuthorizationRepository : JpaRepository<OAuthAuthorization, Strin
     fun findByAccessTokenHash(hash: String): OAuthAuthorization?
 
     fun findByRefreshTokenHash(hash: String): OAuthAuthorization?
+
+    fun findByPreviousRefreshTokenHash(hash: String): OAuthAuthorization?
+
+    /** 토큰이 없고 [before]보다 오래된 인가(승인 도중에 끝난 요청)를 지운다. */
+    @Modifying
+    @Query("delete from OAuthAuthorization a where a.accessTokenHash is null and a.refreshTokenHash is null and a.createdDate < :before")
+    fun deletePendingBefore(@Param("before") before: Date): Int
+
+    /** 액세스 토큰과 갱신 토큰이 모두 [before]보다 전에 만료된 인가를 지운다. */
+    @Modifying
+    @Query("delete from OAuthAuthorization a where a.accessTokenExpiresDate < :before and (a.refreshTokenExpiresDate is null or a.refreshTokenExpiresDate < :before)")
+    fun deleteExpiredBefore(@Param("before") before: Date): Int
 
     fun findByUserIdOrderByCreatedDateDescIdDesc(userId: Long): List<OAuthAuthorization>
 

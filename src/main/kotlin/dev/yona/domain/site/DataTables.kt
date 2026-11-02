@@ -415,6 +415,7 @@ object DataTables {
             DataColumn("refresh_token_issued_date", TIMESTAMP),
             DataColumn("refresh_token_expires_date", TIMESTAMP),
             DataColumn("refresh_token_metadata", STRING),
+            DataColumn("previous_refresh_token_hash", STRING),
             DataColumn("created_date", TIMESTAMP)
         ),
         // 추가 개발 항목 X-1(D-71)의 OAuth 앱이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다. 비밀 값은 해시이다

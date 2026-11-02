@@ -47,7 +47,8 @@ object OAuthScopes {
 class OAuthClientService(
     private val clients: OAuthClientRepository,
     private val authorizations: OAuthAuthorizationRepository,
-    private val consents: OAuthConsentRepository
+    private val consents: OAuthConsentRepository,
+    private val audit: dev.yona.domain.audit.AuditRecorder
 ) {
 
     private val random = SecureRandom()
@@ -67,6 +68,7 @@ class OAuthClientService(
                 allowedScopes = ApiScopes.format(scopes), registration = OAuthClient.USER, ownerType = OAuthClient.USER, ownerId = ownerId, createdDate = now
             )
         )
+        audit.record(clientEvent("oauth.client_created", client, owner, mapOf("confidential" to confidential, "scopes" to scopes.sorted())))
         return ClientCreation.Created(client, secret)
     }
 
@@ -85,6 +87,7 @@ class OAuthClientService(
         invalid(name, description, homeUrl, redirectUris, scopes)?.let { return ClientEdit.Rejected(it) }
         client.name = name.trim(); client.description = description.trim(); client.homeUrl = homeUrl.trim()
         client.redirectUris = RedirectUris.format(RedirectUris.parse(redirectUris)); client.allowedScopes = ApiScopes.format(scopes); client.updatedDate = now
+        audit.record(clientEvent("oauth.client_updated", client, owner, mapOf("scopes" to scopes.sorted())))
         return ClientEdit.Done(clients.save(client))
     }
 
@@ -95,6 +98,7 @@ class OAuthClientService(
         val secret = SECRET_PREFIX + randomString(SECRET_LENGTH)
         client.secretHash = TokenHasher.sha256Hex(secret); client.updatedDate = now
         clients.save(client)
+        audit.record(clientEvent("oauth.client_secret_regenerated", client, owner))
         return secret
     }
 
@@ -102,6 +106,7 @@ class OAuthClientService(
     @Transactional
     fun delete(owner: User, id: Long): Boolean {
         val client = owned(owner, id) ?: return false
+        audit.record(clientEvent("oauth.client_deleted", client, owner, mapOf("by" to "owner")))
         removeClient(client)
         return true
     }
@@ -121,6 +126,7 @@ class OAuthClientService(
     @Transactional
     fun deleteAsAdmin(id: Long): Boolean {
         val client = clients.findById(id).orElse(null) ?: return false
+        audit.record(clientEvent("oauth.client_deleted", client, null, mapOf("by" to "admin", "owner_id" to client.ownerId)))
         removeClient(client)
         return true
     }
@@ -137,6 +143,12 @@ class OAuthClientService(
         authorizations.deleteByClient(rowId); consents.deleteByClient(rowId)
         clients.delete(client)
     }
+
+    /** 앱 변경의 감사 이벤트이다. 비밀 값은 담지 않는다. [actor]가 없으면 요청의 행위자(관리자)를 쓴다. */
+    private fun clientEvent(action: String, client: OAuthClient, actor: User?, details: Map<String, Any?> = emptyMap()) = dev.yona.domain.audit.AuditEvent(
+        action, targetType = "oauth_client", targetId = client.id?.toString(), targetLabel = client.clientId, details = details + mapOf("name" to client.name),
+        actor = actor?.let { dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, it.id, it.loginId) }
+    )
 
     private fun owned(owner: User, id: Long): OAuthClient? =
         clients.findById(id).orElse(null)?.takeIf { it.ownerType == OAuthClient.USER && it.ownerId == owner.id }

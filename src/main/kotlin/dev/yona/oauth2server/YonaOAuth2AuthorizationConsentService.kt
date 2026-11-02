@@ -13,7 +13,12 @@ import java.util.Date
  * 소유자 이름은 사용자 번호의 글이고 앱 식별자는 앱의 행 번호의 글이다.
  */
 @Component
-class YonaOAuth2AuthorizationConsentService(private val consents: OAuthConsentRepository) : OAuth2AuthorizationConsentService {
+class YonaOAuth2AuthorizationConsentService(
+    private val consents: OAuthConsentRepository,
+    private val users: dev.yona.domain.user.UserRepository,
+    private val clients: dev.yona.domain.oauth2server.OAuthClientRepository,
+    private val audit: dev.yona.domain.audit.AuditRecorder
+) : OAuth2AuthorizationConsentService {
 
     @Transactional
     override fun save(authorizationConsent: OAuth2AuthorizationConsent) {
@@ -21,6 +26,14 @@ class YonaOAuth2AuthorizationConsentService(private val consents: OAuthConsentRe
         val entity = consents.findByClientRowIdAndUserId(clientRowId, userId) ?: OAuthConsent(clientRowId = clientRowId, userId = userId, createdDate = Date())
         entity.scopes = authorizationConsent.scopes.joinToString(",")
         consents.save(entity)
+        val user = users.findById(userId).orElse(null)
+        audit.record(
+            dev.yona.domain.audit.AuditEvent(
+                "oauth.authorized", targetType = "oauth_client", targetId = clientRowId.toString(), targetLabel = clients.findById(clientRowId).orElse(null)?.clientId,
+                details = mapOf("scopes" to authorizationConsent.scopes.toList().sorted()),
+                actor = user?.let { dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, it.id, it.loginId) }
+            )
+        )
     }
 
     @Transactional

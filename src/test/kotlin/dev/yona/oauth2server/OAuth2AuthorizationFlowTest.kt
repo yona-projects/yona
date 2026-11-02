@@ -43,6 +43,9 @@ class OAuth2AuthorizationFlowTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var clientService: OAuthClientService
     @Autowired private lateinit var authorizations: OAuthAuthorizationRepository
+    @Autowired private lateinit var logs: dev.yona.domain.audit.AuditLogRepository
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
+    @Autowired private lateinit var purger: dev.yona.oauth2server.OAuthAuthorizationPurger
 
     private val json = JsonMapper()
     private var n = 0
@@ -229,5 +232,50 @@ class OAuth2AuthorizationFlowTest : AbstractIntegrationTest() {
         assertEquals(0, authorizations.count())
         val refresh = mockMvc.perform(post("/oauth2/token").param("grant_type", "refresh_token").param("refresh_token", token["refresh_token"] as String).param("client_id", client.clientId!!)).andReturn()
         assertEquals(401, refresh.response.status, "지운 앱은 인증하지 못한다")
+    }
+
+    private fun events(action: String) = logs.findAll().filter { it.action == action }
+
+    @Test
+    fun `승인과 토큰 발급은 감사 기록과 지표를 남기고 토큰 값은 남기지 않는다`() {
+        val owner = user(); val (client) = app(owner); val s = login(owner)
+        val before = meters.find("yona.oauth.tokens").tag("grant", "authorization_code").counters().sumOf { it.count() }
+        val token = body(exchange(client, approve(s, client)))
+        assertEquals(1, events("oauth.authorized").size)
+        val issued = events("oauth.token_issued").single()
+        assertEquals(client.clientId, issued.targetLabel); assertTrue(issued.details!!.contains("authorization_code") && issued.details!!.contains("read:user"))
+        assertTrue(logs.findAll().none { (it.details.orEmpty() + it.targetLabel.orEmpty()).contains(token["access_token"] as String) || (it.details.orEmpty()).contains(token["refresh_token"] as String) }, "토큰 값은 감사 기록에 없다")
+        assertEquals(before + 1, meters.find("yona.oauth.tokens").tag("grant", "authorization_code").counters().sumOf { it.count() })
+        mockMvc.perform(post("/oauth2/token").param("grant_type", "refresh_token").param("refresh_token", token["refresh_token"] as String).param("client_id", client.clientId!!)).andExpect(status().isOk)
+        assertEquals(2, events("oauth.token_issued").size); assertTrue(events("oauth.token_issued").any { it.details!!.contains("refresh_token") })
+    }
+
+    @Test
+    fun `이미 쓴 갱신 토큰이 다시 오면 그 인가 전체를 취소하고 기록한다`() {
+        val owner = user(); val (client) = app(owner); val s = login(owner)
+        val first = body(exchange(client, approve(s, client)))
+        fun refresh(value: String) = mockMvc.perform(post("/oauth2/token").param("grant_type", "refresh_token").param("refresh_token", value).param("client_id", client.clientId!!)).andReturn()
+        val second = body(refresh(first["refresh_token"] as String))
+        assertEquals(400, refresh(first["refresh_token"] as String).response.status, "이미 쓴 토큰")
+        assertEquals(0, authorizations.count(), "인가 전체를 지운다")
+        assertEquals(400, refresh(second["refresh_token"] as String).response.status, "새로 받은 갱신 토큰도 쓸 수 없다")
+        assertEquals(1, events("oauth.refresh_reuse_detected").size)
+    }
+
+    @Test
+    fun `정리 작업은 만료된 인가와 오래된 미완료 인가를 지우고 살아 있는 것은 남긴다`() {
+        val owner = user(); val (client) = app(owner); val s = login(owner)
+        val keep = body(exchange(client, approve(s, client)))
+        val old = body(exchange(client, approve(s, client)))
+        val all = authorizations.findAll()
+        val oldRow = all.first { it.accessTokenHash == dev.yona.domain.apitoken.TokenHasher.sha256Hex(old["access_token"] as String) }
+        val past = java.util.Date.from(java.time.Instant.now().minus(java.time.Duration.ofDays(40)))
+        oldRow.accessTokenExpiresDate = past; oldRow.refreshTokenExpiresDate = past; oldRow.createdDate = past; authorizations.save(oldRow)
+        val pending = authorizations.save(dev.yona.domain.oauth2server.OAuthAuthorization(id = "pending-1", clientRowId = client.id, userId = owner.id, grantType = "authorization_code", attributes = "{}", createdDate = java.util.Date.from(java.time.Instant.now().minus(java.time.Duration.ofHours(3)))))
+        val fresh = authorizations.save(dev.yona.domain.oauth2server.OAuthAuthorization(id = "pending-2", clientRowId = client.id, userId = owner.id, grantType = "authorization_code", attributes = "{}", createdDate = java.util.Date()))
+        val removed = purger.purge()
+        assertEquals(2, removed)
+        val left = authorizations.findAll().map { it.id }
+        assertTrue(fresh.id in left && keep["access_token"] != null && left.size == 2 && oldRow.id !in left && pending.id !in left)
     }
 }

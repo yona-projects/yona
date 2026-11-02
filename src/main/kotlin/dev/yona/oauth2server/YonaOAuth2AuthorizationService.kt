@@ -33,7 +33,10 @@ import java.util.Date
 @Component
 class YonaOAuth2AuthorizationService(
     private val authorizations: OAuthAuthorizationRepository,
-    private val registeredClients: RegisteredClientRepository
+    private val registeredClients: RegisteredClientRepository,
+    private val users: dev.yona.domain.user.UserRepository,
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val meters: io.micrometer.core.instrument.MeterRegistry
 ) : OAuth2AuthorizationService {
 
     private val mapper: JsonMapper = JsonMapper.builder().addModules(SecurityJacksonModules.getModules(YonaOAuth2AuthorizationService::class.java.classLoader)).addModule(OAuth2AuthorizationServerJacksonModule()).build()
@@ -41,7 +44,27 @@ class YonaOAuth2AuthorizationService(
 
     @Transactional
     override fun save(authorization: OAuth2Authorization) {
-        authorizations.save(toEntity(authorization))
+        val before = authorizations.findById(authorization.id).orElse(null)
+        val oldAccess = before?.accessTokenHash; val oldRefresh = before?.refreshTokenHash
+        val entity = toEntity(authorization)
+        // 갱신 토큰이 바뀌면 바로 앞 토큰의 해시를 남긴다. 이 값이 다시 오면 이미 쓴 토큰의 재사용이다
+        if (oldRefresh != null && entity.refreshTokenHash != oldRefresh) entity.previousRefreshTokenHash = oldRefresh
+        authorizations.save(entity)
+        if (entity.accessTokenHash != null && entity.accessTokenHash != oldAccess) recordIssued(entity, grant = if (oldAccess == null) "authorization_code" else "refresh_token")
+    }
+
+    /** 토큰을 새로 발급했음을 감사 기록과 지표에 남긴다. 토큰 값은 남기지 않는다. */
+    private fun recordIssued(entity: OAuthAuthorization, grant: String) {
+        val user = entity.userId?.let { users.findById(it).orElse(null) }
+        val client = registeredClients.findById(entity.clientRowId.toString())
+        audit.record(
+            dev.yona.domain.audit.AuditEvent(
+                "oauth.token_issued", targetType = "oauth_client", targetId = entity.clientRowId?.toString(), targetLabel = client?.clientId,
+                details = mapOf("grant" to grant, "scopes" to entity.accessTokenScopes.orEmpty().split(',').filter { it.isNotEmpty() }, "refresh_token" to (entity.refreshTokenHash != null)),
+                actor = user?.let { dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, it.id, it.loginId) }
+            )
+        )
+        meters.counter("yona.oauth.tokens", "grant", grant, "client_type", if (client?.clientAuthenticationMethods?.any { it.value == "none" } == true) "public" else "confidential").increment()
     }
 
     @Transactional
@@ -52,9 +75,17 @@ class YonaOAuth2AuthorizationService(
     @Transactional(readOnly = true)
     override fun findById(id: String): OAuth2Authorization? = authorizations.findById(id).orElse(null)?.let(::toObject)
 
-    @Transactional(readOnly = true)
+    @Transactional
     override fun findByToken(token: String, tokenType: OAuth2TokenType?): OAuth2Authorization? {
         val hash = TokenHasher.sha256Hex(token)
+        if (tokenType?.value == OAuth2ParameterNames.REFRESH_TOKEN || tokenType == null) {
+            // 이미 쓴(바뀐) 갱신 토큰이 다시 오면 탈취를 의심해 그 인가 전체를 취소한다
+            authorizations.findByPreviousRefreshTokenHash(hash)?.let { reused ->
+                recordReuse(reused)
+                authorizations.delete(reused)
+                return null
+            }
+        }
         val found = when (tokenType?.value) {
             OAuth2ParameterNames.STATE -> authorizations.findByState(token)
             OAuth2ParameterNames.CODE -> authorizations.findByCodeHash(hash)
@@ -64,6 +95,17 @@ class YonaOAuth2AuthorizationService(
             else -> null
         }
         return found?.let { toObject(it, token) }
+    }
+
+    private fun recordReuse(entity: OAuthAuthorization) {
+        val user = entity.userId?.let { users.findById(it).orElse(null) }
+        audit.record(
+            dev.yona.domain.audit.AuditEvent(
+                "oauth.refresh_reuse_detected", dev.yona.domain.audit.AuditOutcome.DENIED, targetType = "oauth_client", targetId = entity.clientRowId?.toString(),
+                targetLabel = registeredClients.findById(entity.clientRowId.toString())?.clientId, details = mapOf("revoked" to "authorization"),
+                actor = user?.let { dev.yona.domain.audit.AuditActor(dev.yona.domain.audit.AuditActorType.USER, it.id, it.loginId) }
+            )
+        )
     }
 
     private fun toEntity(source: OAuth2Authorization): OAuthAuthorization {
