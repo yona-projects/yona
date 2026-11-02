@@ -5,7 +5,7 @@
   https://yona.io
 
   추가 개발 항목 X-1(decisions.md D-71): OAuth 승인(동의) 화면. 외부 앱이 계정 접근을 요청할 때 사용자가 허용 또는 거부한다
-  모델: title, clientName, clientId, homeUrl, ownerLoginId, redirectHost, loopback, state, scopes(범위 문자열 목록)
+  모델: title, clientName, clientId, cimdHost(CIMD 문서에서 가져온 앱이면 클라이언트 ID의 호스트), homeUrl, ownerLoginId, redirectHost, loopback, state, scopes(범위 문자열 목록)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::consentPage})}">
@@ -17,6 +17,7 @@
   </div>
   <div class="login-form-wrap frm-wrap oauth-consent tf-challenge">
     <div id="loopback-warning" class="alert alert-warning" th:if="${loopback}" th:text="#{oauth.consent.loopback}"></div>
+    <p id="cimd-note" class="text-body-secondary" th:if="${cimdHost != null}" th:text="#{oauth.consent.cimd(${cimdHost})}"></p>
     <p th:text="#{oauth.consent.requests}"></p>
     <ul id="oauth-scopes" class="list-unstyled">
       <li th:each="s : ${scopes}" class="mb-2"><code th:text="${s}"></code> <span class="text-body-secondary" th:text="#{'apiToken.scope.' + ${s}}"></span></li>

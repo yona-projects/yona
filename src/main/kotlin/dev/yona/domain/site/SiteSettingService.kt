@@ -24,7 +24,20 @@ class SiteSettingService(private val settings: SiteSettingRepository, private va
         if (before != value) audit.record(AuditEvent("site.two_factor_enforcement_changed", targetType = "site", details = mapOf("from" to before.name, "to" to value.name)))
     }
 
+    /** OAuth 앱의 클라이언트 ID 메타데이터 문서(CIMD)를 받는지이다(추가 개발 항목 X-1). 기본은 받는다. */
+    @Transactional(readOnly = true)
+    fun oauthCimdEnabled(): Boolean = settings.findById(OAUTH_CIMD_ENABLED).orElse(null)?.value?.let { it == "true" } ?: true
+
+    /** CIMD 허용 여부를 바꾼다. 바뀐 값이 있을 때만 감사 기록을 남긴다. */
+    @Transactional
+    fun setOauthCimdEnabled(value: Boolean) {
+        val before = oauthCimdEnabled()
+        settings.save(SiteSetting(OAUTH_CIMD_ENABLED, value.toString()))
+        if (before != value) audit.record(AuditEvent("site.oauth_cimd_changed", targetType = "site", details = mapOf("from" to before, "to" to value)))
+    }
+
     companion object {
+        const val OAUTH_CIMD_ENABLED = "security.oauth-cimd-enabled"
         const val TWO_FACTOR_ENFORCEMENT = "security.two-factor-enforcement"
     }
 }

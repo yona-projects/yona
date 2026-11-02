@@ -51,6 +51,7 @@ class OAuthConsentController(
             .addObject("ownerLoginId", owner?.loginId).addObject("redirectHost", host)
             .addObject("loopback", host in setOf("localhost", "127.0.0.1", "[::1]", "::1"))
             .addObject("state", state)
+            .addObject("cimdHost", if (client.registration == dev.yona.domain.oauth2server.OAuthClient.CIMD) runCatching { URI(client.clientId.orEmpty()).host }.getOrNull() else null)
             .addObject("scopes", scope.orEmpty().split(' ').filter { it.isNotBlank() })
     }
 }

@@ -125,6 +125,7 @@ data class YonaProperties(
     val ldap: Ldap = Ldap(),
     val ssh: Ssh = Ssh(),
     val twoFactor: TwoFactor = TwoFactor(),
+    val oauth2: OAuth2 = OAuth2(),
     val protocol: String = "ldap",
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
@@ -203,6 +204,14 @@ data class YonaProperties(
         val ssl: Boolean = true,
         val folder: String = "Inbox"
     )
+
+    /**
+     * OAuth2 인가 서버 설정이다(추가 개발 항목 X-1, `decisions.md` D-71).
+     *
+     * @property cimdAllowPrivateHosts 클라이언트 ID 메타데이터 문서를 가져올 때 공인 주소가 아닌 곳(루프백, 사설 주소)도 허용한다(`yona.oauth2.cimd-allow-private-hosts`, 기본 꺼짐).
+     *   **개발과 시험에서만** 켠다. 운영에서 켜면 서버가 내부 자원을 대신 읽게 하는 공격(SSRF)에 열린다
+     */
+    data class OAuth2(val cimdAllowPrivateHosts: Boolean = false)
 
     /**
      * 2단계 인증 설정이다(추가 개발 항목 X-2, `decisions.md` D-69).

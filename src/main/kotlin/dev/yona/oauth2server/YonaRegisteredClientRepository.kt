@@ -20,15 +20,16 @@ import java.time.Duration
  * 동적 클라이언트 등록은 하지 않으므로 [save]는 지원하지 않는다. 모든 앱에 PKCE와 승인 화면을 요구하고, 액세스 토큰은 불투명(reference) 토큰이다.
  */
 @Component
-class YonaRegisteredClientRepository(private val clients: OAuthClientRepository) : RegisteredClientRepository {
+class YonaRegisteredClientRepository(private val clients: OAuthClientRepository, private val cimd: dev.yona.oauth2server.cimd.CimdClientResolver) : RegisteredClientRepository {
 
     override fun save(registeredClient: RegisteredClient) = throw UnsupportedOperationException("OAuth 앱은 설정 화면에서만 등록한다")
 
     @Transactional(readOnly = true)
     override fun findById(id: String): RegisteredClient? = id.toLongOrNull()?.let { clients.findById(it).orElse(null) }?.let(::toRegistered)
 
-    @Transactional(readOnly = true)
-    override fun findByClientId(clientId: String): RegisteredClient? = clients.findByClientId(clientId)?.let(::toRegistered)
+    /** 직접 등록한 앱은 저장소에서, `https://` 주소 클라이언트 ID는 CIMD 문서로 찾는다([dev.yona.oauth2server.cimd.CimdClientResolver]). */
+    override fun findByClientId(clientId: String): RegisteredClient? =
+        (if (dev.yona.oauth2server.cimd.CimdDocument.isClientIdUrl(clientId)) cimd.resolve(clientId) else clients.findByClientId(clientId)?.takeIf { it.registration == OAuthClient.USER })?.let(::toRegistered)
 
     private fun toRegistered(client: OAuthClient): RegisteredClient {
         val builder = RegisteredClient.withId(requireNotNull(client.id).toString())
