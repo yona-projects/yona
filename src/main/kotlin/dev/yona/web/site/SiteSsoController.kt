@@ -36,6 +36,7 @@ import java.time.Instant
 class SiteSsoController(
     private val settings: SsoSettingsService,
     private val siteSettings: dev.yona.domain.site.SiteSettingService,
+    private val ldapSettings: dev.yona.domain.ldap.LdapSettingsService,
     private val siteUrls: SiteUrls,
     private val fetcher: Saml2MetadataFetcher,
     private val currentUserProvider: CurrentUserProvider,
@@ -47,7 +48,8 @@ class SiteSsoController(
         val oidc = settings.oidc(); val saml2 = settings.saml2()
         val origin = siteUrls.origin()
         return ModelAndView("site/sso").addObject("title", "site.sidebar.sso").addObject("tab", tab?.takeIf { it in TABS } ?: "general").addObject("oidc", oidc).addObject("saml2", saml2)
-            .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
+            .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("ldap", ldapSettings.effective()).addObject("ldapProtocol", ldapSettings.protocol()).addObject("ldapSaved", ldapSettings.isSaved())
+            .addObject("ldapEnabled", ldapSettings.enabled()).addObject("oidcEnabled", oidc.enabled == true).addObject("saml2Enabled", saml2.enabled == true).addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
             .addObject("redirectUri", origin + siteUrls.path("/sso/oidc/callback/oidc")).addObject("initiateUrl", origin + siteUrls.path("/sso/oidc/initiate"))
             .addObject("acsUrl", origin + siteUrls.path("/sso/saml2/acs")).addObject("entityId", saml2.spEntityId?.takeIf { it.isNotBlank() } ?: (origin + siteUrls.path("/sso/saml2/metadata/saml2")))
             .addObject("metadataUrl", origin + siteUrls.path("/sso/saml2/metadata/saml2"))
@@ -61,6 +63,26 @@ class SiteSsoController(
     fun saveMode(request: HttpServletRequest, response: HttpServletResponse): Any =
         if (siteSettings.setSsoOnly(request.getParameter("ssoOnly") == "true")) RedirectSupport.see(request, response, "$PAGE?tab=general", mapOf(RedirectSupport.SUCCESS to "site.sso.saved"))
         else warn(request, response, "site.sso.only.needProvider", "general")
+
+    /** LDAP 설정을 저장한다(D-82). 켜는데 서버 주소, 포트, 기준 DN이 맞지 않으면 저장하지 않고 이유를 경고로 보인다. */
+    @PostMapping("/sites/sso/ldap")
+    fun saveLdap(request: HttpServletRequest, response: HttpServletResponse): Any {
+        fun text(name: String) = request.getParameter(name)?.trim().orEmpty()
+        val form = dev.yona.domain.ldap.LdapSettingsForm(
+            enabled = request.getParameter("enabled") == "true", protocol = text("protocol").ifEmpty { "ldap" }, host = text("host"), port = text("port"), baseDn = text("baseDn"),
+            distinguishedNamePostfix = text("distinguishedNamePostfix"), loginProperty = text("loginProperty"), displayNameProperty = text("displayNameProperty"), userNameProperty = text("userNameProperty"),
+            emailProperty = text("emailProperty"), useEmailBaseLogin = request.getParameter("useEmailBaseLogin") == "true", fallbackToLocalLogin = request.getParameter("fallbackToLocalLogin") == "true",
+            englishNameAttributeName = text("englishNameAttributeName")
+        )
+        return result(request, response, ldapSettings.save(form, actor()), "ldap")
+    }
+
+    /** 저장된 LDAP 서버에 연결할 수 있는지 확인하고 결과를 알린다. */
+    @PostMapping("/sites/sso/ldap/check")
+    fun checkLdap(request: HttpServletRequest, response: HttpServletResponse): Any {
+        val error = ldapSettings.check()
+        return RedirectSupport.see(request, response, "$PAGE?tab=ldap", mapOf((if (error == null) RedirectSupport.SUCCESS else RedirectSupport.WARNING) to (error?.messageKey ?: "site.sso.checked")))
+    }
 
     /** OIDC 설정을 저장한다. 사용을 켜는데 연결이나 값이 맞지 않으면 저장하지 않고 이유를 경고로 보인다. */
     @PostMapping("/sites/sso/oidc")
@@ -150,7 +172,7 @@ class SiteSsoController(
 
     private companion object {
         const val PAGE = "/sites/sso"
-        val TABS = setOf("general", "oidc", "saml2", "saml2-keys")
+        val TABS = setOf("general", "ldap", "oidc", "saml2", "saml2-keys")
         const val EXPIRY_WARNING_DAYS = 30L
     }
 }

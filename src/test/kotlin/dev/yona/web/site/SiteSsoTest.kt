@@ -42,6 +42,7 @@ class SiteSsoTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var admins: SiteAdminRepository
     @Autowired private lateinit var settings: SsoSettingsService
+    @Autowired private lateinit var ldap: dev.yona.domain.ldap.LdapSettingsService
 
     private val oidcIdp = FakeOidcIdp()
     private val samlIdp = FakeSamlIdp()
@@ -103,9 +104,9 @@ class SiteSsoTest : AbstractIntegrationTest() {
     fun `화면은 탭으로 나뉘고 저장한 뒤에는 같은 탭이 열린다`() {
         val s = admin()
         val doc = page(s)
-        assertEquals(listOf("sso-tab-general", "sso-tab-oidc", "sso-tab-saml2", "sso-tab-saml2-keys"), doc.select("#sso-tabs button").map { it.id() })
+        assertEquals(listOf("sso-tab-general", "sso-tab-ldap", "sso-tab-oidc", "sso-tab-saml2", "sso-tab-saml2-keys"), doc.select("#sso-tabs button").map { it.id() })
         assertEquals(listOf("sso-pane-general"), doc.select(".tab-pane.active").map { it.id() })
-        for (tab in listOf("oidc", "saml2", "saml2-keys")) {
+        for (tab in listOf("ldap", "oidc", "saml2", "saml2-keys")) {
             val active = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=$tab").session(s)).andReturn().response.contentAsString).select(".tab-pane.active").map { it.id() }
             assertEquals(listOf("sso-pane-$tab"), active)
         }
@@ -113,6 +114,46 @@ class SiteSsoTest : AbstractIntegrationTest() {
         assertEquals("/sites/sso?tab=oidc", flashed(s, "/sites/sso/oidc", *oidcParams()).getHeader("Location"))
         assertEquals("/sites/sso?tab=saml2", flashed(s, "/sites/sso/saml2", *samlParams()).getHeader("Location"))
         assertEquals("/sites/sso?tab=saml2-keys", flashed(s, "/sites/sso/saml2/keys/generate").getHeader("Location"))
+    }
+
+    private fun ldapParams(enabled: Boolean = true, host: String = "ldap.corp.example", port: String = "389", baseDn: String = "ou=people,dc=corp,dc=example") = arrayOf(
+        "enabled" to enabled.toString(), "protocol" to "ldap", "host" to host, "port" to port, "baseDn" to baseDn, "distinguishedNamePostfix" to "ou=people,dc=corp,dc=example", "loginProperty" to "uid",
+        "displayNameProperty" to "displayName", "userNameProperty" to "uid", "emailProperty" to "mail", "englishNameAttributeName" to "givenName", "fallbackToLocalLogin" to "true"
+    )
+
+    @Test
+    fun `LDAP 탭은 저장한 적이 없으면 설정 파일 값임을 알리고 저장하면 화면 값을 보인다`() {
+        val s = admin()
+        val before = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=ldap").session(s)).andReturn().response.contentAsString)
+        assertNotNull(before.selectFirst("#ldap-from-file")); assertEquals("ldap.forumsys.com", before.selectFirst("input[name=host]")!!.attr("value"))
+        val response = flashed(s, "/sites/sso/ldap", *ldapParams())
+        assertEquals("/sites/sso?tab=ldap", response.getHeader("Location")); assertTrue(ldap.enabled()); assertEquals("ldap.corp.example", ldap.effective().host)
+        val after = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=ldap").session(s)).andReturn().response.contentAsString)
+        assertNull(after.selectFirst("#ldap-from-file")); assertEquals("ldap.corp.example", after.selectFirst("input[name=host]")!!.attr("value")); assertNotNull(after.selectFirst("#ldap-form input[name=enabled][checked]"))
+    }
+
+    @Test
+    fun `잘못된 LDAP 설정은 저장하지 않는다`() {
+        val s = admin()
+        flashed(s, "/sites/sso/ldap", *ldapParams(host = "")); flashed(s, "/sites/sso/ldap", *ldapParams(port = "x")); flashed(s, "/sites/sso/ldap", *ldapParams(baseDn = ""))
+        assertFalse(ldap.isSaved())
+    }
+
+    @Test
+    fun `LDAP 연결 확인은 결과를 알린다`() {
+        val s = admin()
+        java.net.ServerSocket(0).use { open ->
+            flashed(s, "/sites/sso/ldap", *ldapParams(host = "127.0.0.1", port = open.localPort.toString()))
+            assertEquals("/sites/sso?tab=ldap", flashed(s, "/sites/sso/ldap/check").getHeader("Location"))
+        }
+    }
+
+    @Test
+    fun `일반 탭은 켜진 사내 로그인 방식을 요약해 보인다`() {
+        val s = admin()
+        flashed(s, "/sites/sso/ldap", *ldapParams())
+        val doc = page(s)
+        assertEquals("on", doc.selectFirst("#sso-summary-ldap")!!.attr("data-state")); assertEquals("off", doc.selectFirst("#sso-summary-oidc")!!.attr("data-state")); assertEquals("off", doc.selectFirst("#sso-summary-saml2")!!.attr("data-state"))
     }
 
     @Test

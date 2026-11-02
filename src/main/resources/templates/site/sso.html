@@ -14,12 +14,20 @@
 
 <ul class="nav nav-tabs mb-3" id="sso-tabs" role="tablist">
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'general'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-general" id="sso-tab-general" th:text="#{site.sso.tab.general}"></button></li>
+    <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'ldap'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-ldap" id="sso-tab-ldap" th:text="#{site.sso.tab.ldap}"></button></li>
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'oidc'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-oidc" id="sso-tab-oidc" th:text="#{site.sso.tab.oidc}"></button></li>
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2" id="sso-tab-saml2" th:text="#{site.sso.tab.saml2}"></button></li>
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2-keys'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2-keys" id="sso-tab-saml2-keys" th:text="#{site.sso.tab.saml2Keys}"></button></li>
 </ul>
 <div class="tab-content">
 <div class="tab-pane fade" th:classappend="${tab == 'general'} ? 'show active'" id="sso-pane-general" role="tabpanel">
+<h4 th:text="#{site.sso.summary.title}"></h4>
+<ul class="list-unstyled sso-summary">
+    <li id="sso-summary-ldap" th:attr="data-state=${ldapEnabled} ? 'on' : 'off'"><strong>LDAP</strong>: <span th:text="${ldapEnabled} ? #{site.sso.summary.on} : #{site.sso.summary.off}"></span></li>
+    <li id="sso-summary-oidc" th:attr="data-state=${oidcEnabled} ? 'on' : 'off'"><strong>OpenID Connect</strong>: <span th:text="${oidcEnabled} ? #{site.sso.summary.on} : #{site.sso.summary.off}"></span></li>
+    <li id="sso-summary-saml2" th:attr="data-state=${saml2Enabled} ? 'on' : 'off'"><strong>SAML 2.0</strong>: <span th:text="${saml2Enabled} ? #{site.sso.summary.on} : #{site.sso.summary.off}"></span></li>
+</ul>
+<p class="text-body-secondary" th:text="#{site.sso.summary.help}"></p>
 <form id="sso-mode-form" class="security-settings" method="post" th:action="@{/sites/sso/mode}">
     <label class="option" for="sso-only">
         <input class="form-check-input" type="checkbox" name="ssoOnly" id="sso-only" value="true" th:checked="${ssoOnly}">
@@ -28,6 +36,49 @@
     <button type="submit" class="btn btn-success mt-2" th:text="#{site.sso.save}"></button>
 </form>
 
+</div>
+<div class="tab-pane fade" th:classappend="${tab == 'ldap'} ? 'show active'" id="sso-pane-ldap" role="tabpanel">
+<h4 th:text="#{site.sso.ldap.title}"></h4>
+<p class="text-body-secondary" th:text="#{site.sso.ldap.help}"></p>
+<div th:unless="${ldapSaved}" id="ldap-from-file" class="alert alert-info" th:text="#{site.sso.ldap.fromFile}"></div>
+<form id="ldap-form" class="security-settings" method="post" th:action="@{/sites/sso/ldap}">
+    <label class="option" for="ldap-enabled">
+        <input class="form-check-input" type="checkbox" name="enabled" id="ldap-enabled" value="true" th:checked="${ldap.enabled}">
+        <span class="option-text"><strong th:text="#{site.sso.enabled}"></strong><small th:text="#{site.sso.ldap.enabled.help}"></small></span>
+    </label>
+    <div class="row mt-3">
+        <div class="col-lg-2 mb-3"><label for="ldap-protocol" class="form-label" th:text="#{site.sso.ldap.protocol}"></label>
+            <select id="ldap-protocol" name="protocol" class="form-select"><option value="ldap" th:selected="${ldapProtocol == 'ldap'}">ldap</option><option value="ldaps" th:selected="${ldapProtocol == 'ldaps'}">ldaps</option></select></div>
+        <div class="col-lg-7 mb-3"><label for="ldap-host" class="form-label" th:text="#{site.sso.ldap.host}"></label>
+            <input id="ldap-host" type="text" name="host" class="form-control" th:value="${ldap.host}"></div>
+        <div class="col-lg-3 mb-3"><label for="ldap-port" class="form-label" th:text="#{site.sso.ldap.port}"></label>
+            <input id="ldap-port" type="text" name="port" class="form-control" th:value="${ldap.port}"></div>
+    </div>
+    <div class="mb-3"><label for="ldap-base-dn" class="form-label" th:text="#{site.sso.ldap.baseDn}"></label>
+        <input id="ldap-base-dn" type="text" name="baseDn" class="form-control" th:value="${ldap.baseDn}"><div class="form-text" th:text="#{site.sso.ldap.baseDn.help}"></div></div>
+    <div class="mb-3"><label for="ldap-postfix" class="form-label" th:text="#{site.sso.ldap.postfix}"></label>
+        <input id="ldap-postfix" type="text" name="distinguishedNamePostfix" class="form-control" th:value="${ldap.distinguishedNamePostfix}"><div class="form-text" th:text="#{site.sso.ldap.postfix.help}"></div></div>
+    <div class="row">
+        <div class="col-lg-4 mb-3"><label for="ldap-login-prop" class="form-label" th:text="#{site.sso.ldap.loginProperty}"></label>
+            <input id="ldap-login-prop" type="text" name="loginProperty" class="form-control" th:value="${ldap.loginProperty}"></div>
+        <div class="col-lg-4 mb-3"><label for="ldap-user-prop" class="form-label" th:text="#{site.sso.ldap.userNameProperty}"></label>
+            <input id="ldap-user-prop" type="text" name="userNameProperty" class="form-control" th:value="${ldap.userNameProperty}"></div>
+        <div class="col-lg-4 mb-3"><label for="ldap-email-prop" class="form-label" th:text="#{site.sso.ldap.emailProperty}"></label>
+            <input id="ldap-email-prop" type="text" name="emailProperty" class="form-control" th:value="${ldap.emailProperty}"></div>
+        <div class="col-lg-4 mb-3"><label for="ldap-display-prop" class="form-label" th:text="#{site.sso.ldap.displayNameProperty}"></label>
+            <input id="ldap-display-prop" type="text" name="displayNameProperty" class="form-control" th:value="${ldap.displayNameProperty}"></div>
+        <div class="col-lg-4 mb-3"><label for="ldap-english-prop" class="form-label" th:text="#{site.sso.ldap.englishNameAttributeName}"></label>
+            <input id="ldap-english-prop" type="text" name="englishNameAttributeName" class="form-control" th:value="${ldap.englishNameAttributeName}"></div>
+    </div>
+    <label class="option" for="ldap-email-login"><input class="form-check-input" type="checkbox" name="useEmailBaseLogin" id="ldap-email-login" value="true" th:checked="${ldap.useEmailBaseLogin}">
+        <span class="option-text"><strong th:text="#{site.sso.ldap.useEmailBaseLogin}"></strong><small th:text="#{site.sso.ldap.useEmailBaseLogin.help}"></small></span></label>
+    <label class="option" for="ldap-fallback"><input class="form-check-input" type="checkbox" name="fallbackToLocalLogin" id="ldap-fallback" value="true" th:checked="${ldap.fallbackToLocalLogin}">
+        <span class="option-text"><strong th:text="#{site.sso.ldap.fallback}"></strong><small th:text="#{site.sso.ldap.fallback.help}"></small></span></label>
+    <button type="submit" class="btn btn-success mt-3" th:text="#{site.sso.save}"></button>
+</form>
+<form method="post" th:action="@{/sites/sso/ldap/check}" class="mt-2">
+    <button id="ldap-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.ldap.check}"></button>
+</form>
 </div>
 <div class="tab-pane fade" th:classappend="${tab == 'oidc'} ? 'show active'" id="sso-pane-oidc" role="tabpanel">
 <!-- OIDC -->

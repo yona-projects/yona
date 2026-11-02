@@ -38,11 +38,12 @@ class LdapAuthService(
     private val users: UserRepository,
     private val lookup: UserLookup,
     private val signup: SignupService,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val settings: LdapSettingsService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val config get() = properties.ldap
+    private val config get() = settings.effective()
 
     /** LDAP으로 로그인할 수 있도록 설정되어 있으면 `true`이다 (v1.6 `LdapService.useLdap`). */
     val enabled: Boolean get() = config.enabled

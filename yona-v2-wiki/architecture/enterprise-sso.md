@@ -21,7 +21,7 @@ updated: 2026-11-02
 | 성공과 실패 처리, 계정 맞추기로 잇기 | `sso/SsoLoginHandlers`(`SsoSignInCompleter`) |
 | 계정 규칙(안정 식별자, 이메일 연결, 자동 생성) | `domain/sso/SsoAccountService` |
 | 설정 저장과 SP 키 관리 | `domain/sso/SsoSettingsService`, `Saml2Certificates` |
-| 사이트 관리 화면(탭: 일반, OpenID Connect, SAML 2.0, SAML SP 키. 저장하면 같은 탭이 열린다, `?tab=`) | `web/site/SiteSsoController`, `templates/site/sso.html` |
+| 사이트 관리 화면 "사내 로그인"(탭: 일반, LDAP, OpenID Connect, SAML 2.0, SAML SP 키. 저장하면 같은 탭이 열린다, `?tab=`) | `web/site/SiteSsoController`, `templates/site/sso.html` |
 | 로그인 화면 단추와 SSO 전용 모드 | `sso/SsoLoginOptions`, `templates/user/login.html`, `common/login-dialog.html` |
 | 연결된 계정(사용자 설정과 관리자) | `domain/sso/LinkedAccountService`, `web/user/LinkedAccountsController` |
 | 지표 | `observability/SsoMetrics`(`yona.sso.logins{protocol, result, initiated}`) |
@@ -49,6 +49,7 @@ updated: 2026-11-02
 - **SAML 2**: 로그인 시작이 AuthnRequest를 만들고 응답은 요청 ID로 짝을 짓는다. 응답 또는 어설션에 서명이 있어야 하고 발급자, Audience, Destination, Recipient, 유효 시간을 검증한다. 같은 응답을 다시 보내면 거절한다.
 - **계정**: `발급자|subject`(SAML은 `발급자|NameID`)를 `linked_account`(`sso-oidc`, `sso-saml2`)에 안정 식별자로 저장한다. 처음 보는 신원은 같은 이메일의 로컬 계정에 연결하되 **IdP가 이메일을 확인했다고 알린 경우에만**(OIDC `email_verified`, SAML은 관리자가 신뢰하기로 한 IdP의 속성) 연결한다. 없으면 자동으로 만든다(설정으로 끈다).
 - **2단계 인증**: SSO 로그인은 Yona의 2단계 인증을 거치지 않는다(IdP가 MFA를 맡는다, D-80 11번). 로그인 유지 쿠키는 만들지 않는다.
+- **LDAP**(D-82): 같은 "사내 로그인" 화면의 LDAP 탭에서 켜고 설정한다(`domain/ldap/LdapSettings`). 저장하지 않았으면 설정 파일 값을 쓰고 저장하면 화면 값이 이긴다. LDAP, OIDC, SAML은 서로 독립이라 동시에 켤 수 있다([ldap.md](../web/ldap.md)).
 - **소셜 로그인 차단**(D-81): LDAP, 사내 OIDC, 사내 SAML 2 가운데 하나라도 쓰면 소셜 로그인 단추를 숨기고 `/authenticate/{제공자}`의 시작과 돌아옴을 막는다(`SocialProviders.blockedByEnterpriseLogin`). 모두 끄면 돌아온다.
 - **SSO 전용 모드**(사이트 관리, 기본 끔): 로컬 비밀번호 로그인, LDAP, 소셜 로그인을 막고 SSO 단추만 보인다. **사이트 관리자만 로컬 로그인을 쓸 수 있다**(비상 경로, `/users/loginform?local=true`). 켜려면 켠 SSO가 하나 이상 있어야 한다.
 - **IdP 시작 로그인**(프로토콜마다 관리자 설정, 기본 끔): SAML은 요청 없는 응답을 받되 요청 ID가 없어야 하고 어설션 ID 재사용을 [SsoReplayCache]로 막으며 RelayState는 같은 사이트의 경로만 받는다. OIDC는 `iss`가 설정과 같아야 한다.

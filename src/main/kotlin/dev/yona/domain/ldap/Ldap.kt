@@ -104,11 +104,18 @@ class JndiLdapDirectory(private val config: YonaProperties.Ldap, private val pro
     }
 }
 
+/**
+ * 인증할 때마다 지금 적용되는 LDAP 설정([LdapSettingsService])으로 [JndiLdapDirectory]를 만들어 쓴다. 관리자가 화면에서 설정을 바꾸면 재시작 없이 반영된다.
+ */
+class DynamicLdapDirectory(private val settings: LdapSettingsService) : LdapDirectory {
+    override fun authenticate(username: String, password: String): LdapUser? = JndiLdapDirectory(settings.effective(), settings.protocol()).authenticate(username, password)
+}
+
 /** [LdapDirectory]를 설정에서 만든다. */
 @Configuration
 class LdapConfiguration {
 
     @Bean
-    fun ldapDirectory(properties: YonaProperties, registry: io.micrometer.core.instrument.MeterRegistry): LdapDirectory =
-        dev.yona.observability.MeteredLdapDirectory(JndiLdapDirectory(properties.ldap, properties.protocol), registry)
+    fun ldapDirectory(settings: LdapSettingsService, registry: io.micrometer.core.instrument.MeterRegistry): LdapDirectory =
+        dev.yona.observability.MeteredLdapDirectory(DynamicLdapDirectory(settings), registry)
 }

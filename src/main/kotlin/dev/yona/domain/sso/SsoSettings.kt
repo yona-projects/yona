@@ -66,7 +66,12 @@ enum class SsoSaveError(val messageKey: String) {
     INVALID_CERTIFICATE("sso.admin.error.invalidCertificate"),
     INVALID_KEY("sso.admin.error.invalidKey"),
     KEY_MISMATCH("sso.admin.error.keyMismatch"),
-    SP_KEY_REQUIRED("sso.admin.error.spKeyRequired")
+    SP_KEY_REQUIRED("sso.admin.error.spKeyRequired"),
+    LDAP_HOST_REQUIRED("sso.admin.error.ldapHost"),
+    LDAP_PORT_INVALID("sso.admin.error.ldapPort"),
+    LDAP_BASE_DN_REQUIRED("sso.admin.error.ldapBaseDn"),
+    LDAP_PROTOCOL_INVALID("sso.admin.error.ldapProtocol"),
+    LDAP_UNREACHABLE("sso.admin.error.ldapUnreachable")
 }
 
 /** [SsoSettingsService.saveOidc]의 결과이다. */

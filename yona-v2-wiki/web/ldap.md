@@ -9,7 +9,11 @@ updated: 2026-10-25
 
 코드: `domain/ldap/Ldap.kt`(`LdapUser`, `LdapDirectory`, `LdapQueries`, `JndiLdapDirectory`), `LdapAuthService`(로컬 사용자와 맞추기), `security/LocalAuthenticator`(로그인 판정에 연결), `web/user/LoginController`. 결정은 D-24(JNDI), A-96, 결함은 R-60. Spring LDAP 전환은 리팩터링 후보 T-2이다.
 
-## 설정 (`yona.ldap.*`)
+## 설정
+
+**관리자 화면이 우선한다(D-82, 2026-11-03).** 사이트 관리의 "사내 로그인" 화면의 LDAP 탭에서 설정하고(테이블 `ldap_settings`, 한 행), 화면에서 한 번도 저장하지 않았으면 아래 설정 파일 값을 그대로 쓴다(v1.6에서 올라온 사이트가 끊기지 않게). 저장하면 그 뒤로는 화면 값이 이기고 파일 값은 쓰이지 않는다. 연결 확인(서버 주소와 포트로 접속)과 감사 기록(`site.sso_changed`, `details.protocol`이 `ldap`)이 있다. 바인드 비밀번호는 저장하지 않는다(로그인하는 사용자의 비밀번호로 바인드한다). 이 변경은 v1.6의 설정 파일 계약을 바꾸는 것이므로 [differences-from-v16.md](../architecture/differences-from-v16.md)에 적었다.
+
+### 설정 파일 (`yona.ldap.*`, 화면에서 저장하기 전의 값)
 | 키 | v1.6 | 기본 |
 |---|---|---|
 | `enabled` | `application.use.ldap.login.supoort`(오타가 실제 키) | `false` |
