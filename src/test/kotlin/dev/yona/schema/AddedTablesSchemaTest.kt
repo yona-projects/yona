@@ -1,5 +1,6 @@
 package dev.yona.schema
 
+import dev.yona.support.TestDatabase
 import dev.yona.schema.SchemaMetadata.schemaOrNull
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.Test
@@ -58,19 +59,24 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
         assertEquals(setOf("id"), SchemaMetadata.actualAutoIncrement(dataSource)["pull_request_review"])
     }
 
+    /** Cubrid는 불리언을 `smallint`로 저장한다(`YonaCubridDialect`). */
+    private fun assertBoolean(type: ColumnType) {
+        if (TestDatabase.current == TestDatabase.CUBRID) assertEquals(ColumnType.SmallInt, type) else assertEquals(ColumnType.Boolean, type)
+    }
+
     @Test
     fun `프로젝트의 리뷰 해제 설정 컬럼은 기본 켬이다 (X-12, D-35 5번)`() {
         val column = SchemaMetadata.actualColumns(dataSource).getValue("project").getValue("is_dismissing_stale_approvals")
-        assertEquals(ColumnType.Boolean, column.type)
+        assertBoolean(column.type)
         assertEquals(true, SchemaMetadata.actualDefaults(dataSource).getValue("project")["is_dismissing_stale_approvals"]?.lowercase()?.let { it == "true" || it == "1" || it == "b'1'" })
     }
 
     @Test
     fun `프로젝트의 병합 방식 컬럼은 기존 행을 병합 커밋만 허용으로 채운다 (X-28, D-41)`() {
         val columns = SchemaMetadata.actualColumns(dataSource).getValue("project")
-        assertEquals(ColumnType.Boolean, columns.getValue("allow_merge_commit").type)
-        assertEquals(ColumnType.Boolean, columns.getValue("allow_squash_merge").type)
-        assertEquals(ColumnType.Boolean, columns.getValue("allow_rebase_merge").type)
+        assertBoolean(columns.getValue("allow_merge_commit").type)
+        assertBoolean(columns.getValue("allow_squash_merge").type)
+        assertBoolean(columns.getValue("allow_rebase_merge").type)
         val defaults = SchemaMetadata.actualDefaults(dataSource).getValue("project")
         fun truthy(v: String?) = v?.lowercase()?.let { it == "true" || it == "1" || it == "b'1'" }
         assertEquals(true, truthy(defaults["allow_merge_commit"]))

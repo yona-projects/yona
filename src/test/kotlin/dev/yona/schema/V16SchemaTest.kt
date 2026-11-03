@@ -70,17 +70,19 @@ class V16SchemaTest : AbstractIntegrationTest() {
 
     @Test
     fun `인덱스의 이름과 컬럼 순서와 유니크 여부가 v1_6과 같다`() {
-        // MariaDB 10.7 이하는 DESC 인덱스 문법을 받아도 무시하고 오름차순으로 만든다. v1.6의 MariaDB도 같으므로 방향은 H2와 PostgreSQL에서만 비교한다.
-        val directional = dataSource.connection.use { !it.metaData.databaseProductName.contains("MariaDB", ignoreCase = true) && !it.metaData.databaseProductName.contains("MySQL", ignoreCase = true) }
+        // Cubrid 드라이버는 인덱스 방향을 알려 주지 않는다. MariaDB 10.7 이하는 DESC 인덱스 문법을 받아도 무시하고 오름차순으로 만든다. v1.6의 MariaDB도 같으므로 방향은 H2와 PostgreSQL에서만 비교한다.
+        val directional = dataSource.connection.use { !it.metaData.databaseProductName.contains("MariaDB", ignoreCase = true) && !it.metaData.databaseProductName.contains("MySQL", ignoreCase = true) && !it.metaData.databaseProductName.contains("CUBRID", ignoreCase = true) }
         fun Map<String, Map<String, IndexInfo>>.normalized() = if (directional) this else mapValues { (_, v) -> v.mapValues { (_, i) -> i.copy(descending = emptySet()) } }
         val actual = SchemaMetadata.actualIndexes(dataSource).normalized()
         val expected = SchemaMetadata.v16Indexes().normalized()
         // MSSQL은 자기 참조 `on delete set null` 외래 키를 만들 수 없어 트리거로 대신한다(X-46). 이 네 외래 키의 누락은 의도한 차이이다.
         val triggered = if (TestDatabase.current == TestDatabase.MSSQL) SqlServerSelfReferenceTrigger.TARGETS.toSet() else emptySet()
+        // Cubrid는 열 하나가 `NULL`인 짝도 같은 값으로 보므로 `CubridDdlAdjuster`가 `recent_issue`의 유니크 키 둘을 뺀다(X-46). 같은 열 구성의 일반 인덱스가 조회를 받친다.
+        val merged = if (TestDatabase.current == TestDatabase.CUBRID) setOf("recent_issue" to "uq_recent_issue_user_id_issue_id_1", "recent_issue" to "uq_recent_issue_user_id_posting_id_1") else emptySet()
         val problems = ((expected.keys + actual.keys) - SchemaMetadata.INTENDED_ADDITIONS).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()
-            (e.keys - a.keys).filterNot { (table to it) in triggered }.map { "$table.$it 누락 ${e[it]}" } +
+            (e.keys - a.keys).filterNot { (table to it) in merged }.map { "$table.$it 누락 ${e[it]}" } +
                 (a.keys - e.keys).map { "$table.$it 추가됨 ${a[it]}" } +
                 e.filter { (n, v) -> a[n]?.let { it != v } == true }
                     .map { (n, v) -> "$table.$n 기대=$v 실제=${a[n]}" }
@@ -148,8 +150,10 @@ class V16SchemaTest : AbstractIntegrationTest() {
     @Test
     fun `외래 키의 갱신 규칙이 v1_6과 같다`() {
         val actual = SchemaMetadata.actualUpdateRules(dataSource)
+        // Cubrid는 갱신 규칙으로 `no action`, `restrict`, `set null`만 받아 `CubridDdlAdjuster`가 `on update cascade`를 뺀다(X-46). 기본 키를 바꾸는 코드가 없어 동작은 같다.
+        val removed = if (TestDatabase.current == TestDatabase.CUBRID) setOf("issue" to "assignee_id", "issue" to "project_id", "project_visitation" to "project_id", "recent_project" to "project_id") else emptySet()
         val problems = SchemaMetadata.v16UpdateRules().flatMap { (table, columns) ->
-            columns.mapNotNull { (c, expected) -> actual[table]?.get(c)?.takeIf { it != expected }?.let { "$table.$c 기대=$expected 실제=$it" } }
+            columns.filterKeys { (table to it) !in removed }.mapNotNull { (c, expected) -> actual[table]?.get(c)?.takeIf { it != expected }?.let { "$table.$c 기대=$expected 실제=$it" } }
         }
         assertTrue(problems.isEmpty(), "갱신 규칙 불일치 ${problems.size}건:\n" + problems.sorted().joinToString("\n"))
     }

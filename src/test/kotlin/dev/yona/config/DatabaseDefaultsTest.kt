@@ -25,6 +25,7 @@ class DatabaseDefaultsTest {
         assertEquals("cubrid.jdbc.driver.CUBRIDDriver", env.getProperty("spring.datasource.driver-class-name"))
         assertEquals("dev.yona.config.YonaCubridDialect", env.getProperty("spring.jpa.database-platform"))
         assertEquals("true", env.getProperty("spring.jpa.properties.hibernate.auto_quote_keyword"))
+        assertEquals("select 1 from db_root", env.getProperty("spring.datasource.hikari.connection-test-query"))
     }
 
     @Test

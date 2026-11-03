@@ -146,8 +146,11 @@ object SchemaMetadata {
             it[2].lowercase() to ForeignKeyInfo(it[3].lowercase(), it[5])
         }).mapValues { it.value.toMap() }
 
-    /** Cubrid 드라이버는 `getSchema()`를 지원하지 않아 예외를 던지므로, 그 경우 스키마를 지정하지 않는다. */
-    internal fun Connection.schemaOrNull(): String? = try { schema } catch (_: java.sql.SQLException) { null }
+    /**
+     * 현재 스키마이다. Cubrid 드라이버는 `getSchema()`를 지원하지 않아 예외를 던진다. Cubrid는 사용자가 곧 스키마이고 시험은 컨텍스트마다 사용자를 만드므로,
+     * 스키마를 지정하지 않으면 다른 컨텍스트의 테이블까지 모두 훑어(수천 개) 매우 느려지고 결과도 섞인다. 그래서 접속 사용자 이름을 쓴다.
+     */
+    internal fun Connection.schemaOrNull(): String? = try { schema } catch (_: java.sql.SQLException) { metaData.userName?.lowercase() }
 
     /** MSSQL의 `master` 데이터베이스에 있는 시스템 테이블이다. 시험 대상이 아니다. */
     private val SYSTEM_TABLES = Regex("msreplication_options|spt_.*")
@@ -257,9 +260,13 @@ object SchemaMetadata {
     fun v16UpdateRules(): Map<String, Map<String, String>> =
         resource("v16-foreign-keys.tsv").groupBy({ it[0].lowercase() }, { it[2].lowercase() to it[6] }).mapValues { it.value.toMap() }
 
+    /** Cubrid 드라이버의 `getColumns`는 `COLUMN_DEF`와 `IS_AUTOINCREMENT` 열이 없어 시스템 카탈로그(`db_attribute`, `db_serial`)로 읽는다. */
+    private fun Connection.isCubrid() = metaData.databaseProductName.contains("CUBRID", ignoreCase = true)
+
     /** 실제 DB 컬럼의 기본값(자동 증가 컬럼 제외)을 읽는다. */
     fun actualDefaults(dataSource: DataSource): Map<String, Map<String, String?>> =
         dataSource.connection.use { c ->
+            if (c.isCubrid()) return@use cubridDefaults(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -272,9 +279,35 @@ object SchemaMetadata {
             }
         }
 
+    private fun cubridDefaults(c: Connection): Map<String, Map<String, String?>> {
+        val autoIncrement = cubridAutoIncrement(c)
+        val result = HashMap<String, MutableMap<String, String?>>()
+        c.prepareStatement("select class_name, attr_name, default_value from db_attribute where owner_name = upper(?) and attr_type = 'INSTANCE'").use { ps ->
+            ps.setString(1, c.metaData.userName)
+            ps.executeQuery().use { rs ->
+                while (rs.next()) {
+                    val table = rs.getString(1).lowercase(); val column = rs.getString(2).lowercase()
+                    if (autoIncrement[table]?.contains(column) == true) continue
+                    result.getOrPut(table) { HashMap() }[column] = normalizeDefault(rs.getString(3))
+                }
+            }
+        }
+        return result
+    }
+
+    private fun cubridAutoIncrement(c: Connection): Map<String, Set<String>> {
+        val result = HashMap<String, MutableSet<String>>()
+        c.prepareStatement("select class_name, attr_name from db_serial where class_name is not null and unique_name like ?").use { ps ->
+            ps.setString(1, c.metaData.userName.lowercase() + ".%")
+            ps.executeQuery().use { rs -> while (rs.next()) result.getOrPut(rs.getString(1).lowercase()) { HashSet() } += rs.getString(2).lowercase() }
+        }
+        return result
+    }
+
     /** 실제 DB의 자동 증가 컬럼을 읽는다. */
     fun actualAutoIncrement(dataSource: DataSource): Map<String, Set<String>> =
         dataSource.connection.use { c ->
+            if (c.isCubrid()) return@use cubridAutoIncrement(c)
             c.tables { table ->
                 buildSet {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->

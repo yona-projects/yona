@@ -46,16 +46,20 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     private fun import(json: String) = service.import(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
 
+    /** Cubrid의 예약어(`role`, `size`)는 직접 쓴 SQL에서 대괄호로 감싸야 한다. 엔티티로 만든 SQL은 `auto_quote_keyword`가 감싼다. */
+    private fun q(name: String) = TestDatabase.q(name)
+
     /**
      * 식별 열 `id`에 값을 직접 넣는다. MSSQL은 `IDENTITY_INSERT`를 켠 같은 배치 안에서만 허용하므로 문장을 켜기와 끄기로 감싼다(식별 열이 아닌 `id`는 그대로 넣는다).
      * 가져오기 시험이 가져오기 전의 행을 번호를 정해 미리 넣어 두는 데 쓴다.
      */
     private fun insertWithId(sql: String, vararg args: Any?) {
-        val table = Regex("insert into (\\w+)", RegexOption.IGNORE_CASE).find(sql)!!.groupValues[1]
+        val table = Regex("insert into \\[?(\\w+)", RegexOption.IGNORE_CASE).find(sql)!!.groupValues[1]
         val identity = TestDatabase.current == TestDatabase.MSSQL &&
             jdbc.queryForObject("select count(*) from sys.identity_columns where object_id = object_id(?)", Int::class.java, table)!! > 0
         val wrapped = if (identity) "SET IDENTITY_INSERT $table ON; $sql; SET IDENTITY_INSERT $table OFF" else sql
-        jdbc.update(wrapped, *args)
+        // Cubrid의 불리언 열은 smallint라서 불리언 값을 숫자로 넘겨야 한다.
+        jdbc.update(wrapped, *args.map { if (it is Boolean && TestDatabase.current == TestDatabase.CUBRID) (if (it) 1 else 0).toShort() else it }.toTypedArray())
     }
 
     private fun count(table: String): Int = jdbc.queryForObject("select count(*) from $table", Int::class.java)!!
@@ -82,7 +86,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `시각은 에폭 밀리초이고 NULL은 null이며 불린의 NULL은 false이다`() {
         jdbc.update("insert into organization(name, descr, created) values ('dx-org', null, ?)", Timestamp(1_700_000_000_000L))
-        insertWithId("insert into role(id, name, active) values (900, 'dx-role', null)")
+        insertWithId("insert into ${q("role")}(id, name, active) values (900, 'dx-role', null)")
         val tree = exported()
         val organization = tree["ORGANIZATION"].first { it["name"].asString() == "dx-org" }
         assertEquals(1_700_000_000_000L, organization["created"].asLong())
@@ -92,7 +96,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `첨부는 컨테이너 종류를 content_type 키로 쓰고 컨테이너 번호는 문자열이다`() {
-        jdbc.update("insert into attachment(name, hash, container_type, mime_type, size, container_id, created_date) values ('a.txt', 'h1', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
+        jdbc.update("insert into attachment(name, hash, container_type, mime_type, ${q("size")}, container_id, created_date) values ('a.txt', 'h1', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
         val row = exported()["ATTACHMENT"].first { it["name"].asString() == "a.txt" }
         assertEquals("ISSUE_POST", row["content_type"].asString())
         assertTrue(row["container_id"].isString)
@@ -136,6 +140,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `내보내기는 임시 저장 리뷰의 임시 댓글과 임시 스레드를 담지 않는다 (X-26)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
         fun thread(id: Int, commit: String) = """{"dtype": "ranged", "id": $id, "project_id": 99999, "author_id": null, "author_login_id": null, "author_name": null, "state": "OPEN", "commit_id": "$commit", "path": "x",
             "start_side": null, "start_line": null, "start_column": null, "end_side": null, "end_line": null, "end_column": null, "pull_request_id": null, "created_date": null, "prev_commit_id": null}"""
         fun comment(id: Int, text: String, thread: Int) = """{"id": $id, "contents": "$text", "created_date": null, "author_id": null, "author_login_id": null, "author_name": null, "thread_id": $thread}"""
@@ -178,6 +183,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `v1_6 파일의 프로젝트 행에는 리뷰 해제 설정 키가 없어도 가져오고 켬으로 채운다 (X-12)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
         val table = DataTables.find("PROJECT")!!
         val row = table.columns.filter { it.name !in setOf("is_dismissing_stale_approvals", "allow_merge_commit", "allow_squash_merge", "allow_rebase_merge", "default_merge_method") }.joinToString(", ") { c ->
             val value = when (c.type) {
@@ -211,6 +217,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `이슈 댓글은 v1_6 파일처럼 project_id 키가 없어도 이슈의 프로젝트로 채워 가져온다 (R-130)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
         val issue = """{"id": 880001, "title": "t", "body": "b", "created_date": 1700000000000, "num_of_comments": 1, "milestone_id": null, "author_id": 1, "author_login_id": "a", "author_name": "A",
             "state": 1, "project_id": 880002, "assignee_id": null, "number": 1, "updated_date": 1700000000000, "due_date": null}"""
         val comment = """{"id": 880003, "created_date": 1700000000000, "author_id": 1, "author_login_id": "a", "author_name": "A", "issue_id": 880001, "contents": "hello"}"""
@@ -229,6 +236,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `프로젝트 메뉴 설정은 v1_6 파일처럼 wiki 키가 없어도 꺼짐으로 가져온다 (D-61)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
         val project = """{"id": 880010, "name": "wk", "owner": "a", "overview": "", "vcs": "GIT", "is_public": true, "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0}"""
         val menu = """{"id": 880011, "project_id": 880010, "code": true, "issue": true, "pull_request": true, "review": true, "milestone": true, "board": true}"""
         val result = import("""{"PROJECT": [$project], "PROJECT_MENU_SETTING": [$menu]}""")
@@ -417,7 +425,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
         insertWithId("insert into organization(id, name, descr, created) values (?, ?, null, current_timestamp)", 881513L, "orgrt")
         insertWithId("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 881514L, "yona_app_lfsrt", "앱", "https://a.example/cb", true, "h", "read:user", "USER", "USER", 881511L)
         insertWithId("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, ref_name, locked_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 61L, 881512L, "a/b.psd", "hash-rt-1", 881511L, "refs/heads/master")
-        jdbc.update("insert into organization_oauth_policy(organization_id, restricted, updated_date, updated_by) values (?, ?, current_timestamp, ?)", 881513L, true, 881511L)
+        insertWithId("insert into organization_oauth_policy(organization_id, restricted, updated_date, updated_by) values (?, ?, current_timestamp, ?)", 881513L, true, 881511L)
         insertWithId("insert into organization_oauth_approval(id, organization_id, client_row_id, state, decided_by, decided_date) values (?, ?, ?, ?, ?, current_timestamp)", 62L, 881513L, 881514L, "APPROVED", 881511L)
         val bytes = exportBytes()
         jdbc.update("delete from lfs_lock"); jdbc.update("delete from organization_oauth_policy"); jdbc.update("delete from organization_oauth_approval")
@@ -452,6 +460,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `JSON null은 정수 컬럼에서 허용 여부에 따라 NULL이나 0이 된다`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
         import("""{"MENTION": [{"id": 1, "resource_type": "ISSUE_POST", "resource_id": null, "user_id": null}],
                     "ASSIGNEE": [{"id": 1, "user_id": null, "project_id": null}]}""")
         assertNull(jdbc.queryForObject("select user_id from mention", Long::class.javaObjectType))
@@ -466,7 +475,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
                     "ROLE": [{"id": 905, "name": "r", "active": null}]}""")
         assertNull(jdbc.queryForObject("select created from organization", Timestamp::class.java))
         assertNull(jdbc.queryForObject("select name from organization", String::class.java))
-        assertEquals(false, jdbc.queryForObject("select active from role where id = 905", Boolean::class.java))
+        assertEquals(false, jdbc.queryForObject("select active from ${q("role")} where id = 905", Boolean::class.java))
     }
 
     @Test
@@ -498,7 +507,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     fun `내보낸 파일을 가져오면 모든 테이블이 그대로 돌아온다`() {
         jdbc.update("insert into organization(name, descr, created) values ('rt-org', ?, ?)", "설명", Timestamp(1_700_000_000_000L))
         jdbc.update("insert into label(name, category) values ('rt-label', 'cat')")
-        jdbc.update("insert into attachment(name, hash, container_type, mime_type, size, container_id, created_date) values ('rt.txt', 'h2', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
+        jdbc.update("insert into attachment(name, hash, container_type, mime_type, ${q("size")}, container_id, created_date) values ('rt.txt', 'h2', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
         val before = exportBytes()
         jdbc.update("delete from organization"); jdbc.update("delete from label"); jdbc.update("delete from attachment")
         assertEquals(0, count("label"))

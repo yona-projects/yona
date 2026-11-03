@@ -1,5 +1,6 @@
 package dev.yona.domain.audit
 
+import dev.yona.support.TestDatabase
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.project.OrganizationService
 import dev.yona.domain.user.SiteAdmin
@@ -127,7 +128,7 @@ class AuditViewTest : AbstractIntegrationTest() {
         assertTrue(ok.contains("\"ok\":true"), ok)
         val broken = logs.findAll().first { it.action == "$p.a" }.id
         entityManager.flush()
-        jdbc.update("update audit_log set action = 'forged' where id = ?", broken)
+        jdbc.update("update audit_log set ${TestDatabase.q("action")} = 'forged' where id = ?", broken)
         // 시험 트랜잭션의 영속성 컨텍스트가 옛 값을 쥐고 있으므로 비워서 DB의 값을 다시 읽게 한다
         entityManager.clear()
         val bad = mockMvc.perform(get("/sites/audit/verify").session(session)).andExpect(status().isOk).andReturn().response.contentAsString

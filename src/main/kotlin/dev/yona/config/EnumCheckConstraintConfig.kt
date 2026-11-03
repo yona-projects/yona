@@ -79,8 +79,22 @@ class CubridDdlAdjuster : Integrator {
             table.foreignKeyCollection.forEach { key ->
                 key.keyDefinition?.let { key.keyDefinition = it.replace(UPDATE_CASCADE, "").trim() }
             }
+            removeNullablePairUniqueKeys(table)
             removeIndexesDuplicatingUniqueKeys(table)
         }
+    }
+
+    /**
+     * 한쪽 열이 비어 있을 수 있는 짝(`recent_issue`의 `user_id`와 `issue_id`, `user_id`와 `posting_id`)의 유니크 키를 지운다. MySQL과 MariaDB, PostgreSQL, H2는 열 하나라도
+     * `NULL`이면 유니크 검사를 하지 않지만 Cubrid는 `{2, NULL}`을 값으로 보고 같은 사용자의 두 번째 글(`issue_id`가 `NULL`) 기록을 막는다.
+     * 이 테이블은 기록 전에 같은 대상을 지우므로(`RecentIssueService`) 유니크 키가 없어도 중복되지 않는다. 같은 열 구성의 일반 인덱스는 그대로 둔다.
+     */
+    private fun removeNullablePairUniqueKeys(table: org.hibernate.mapping.Table) {
+        if (table.name != "recent_issue") return
+        val field = org.hibernate.mapping.Table::class.java.getDeclaredField("uniqueKeys")
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        (field.get(table) as MutableMap<String, org.hibernate.mapping.UniqueKey>).keys.removeIf { it.startsWith("uq_recent_issue_") }
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.yona.domain.audit
 
+import dev.yona.support.TestDatabase
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -110,7 +111,7 @@ class AuditRedactionTest : AbstractIntegrationTest() {
     fun `비운 행의 내용 해시를 고치면 검증이 잡는다`() {
         rec("git.push", 100); rec("project.created", 1)
         retention.redactExpired(now)
-        jdbc.update("update audit_log set content_hash = ? where action = 'git.push'", "a".repeat(64))
+        jdbc.update("update audit_log set content_hash = ? where ${TestDatabase.q("action")} = 'git.push'", "a".repeat(64))
         val result = verifier.verify()
         assertFalse(result.ok); assertEquals("hash", result.reason)
     }

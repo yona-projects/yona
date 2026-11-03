@@ -1,5 +1,6 @@
 package dev.yona.bootstrap
 
+import dev.yona.support.TestDatabase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import dev.yona.security.LocalAuthenticator
@@ -27,8 +28,8 @@ class InitialDataLoaderTest : AbstractIntegrationTest() {
 
     @Test
     fun `역할 7개가 v1_6과 같은 id와 이름으로 적재된다`() {
-        val roles = jdbc.queryForList("select id, name, active from role order by id")
-            .map { Triple((it["ID"] as Number).toLong(), it["NAME"], it["ACTIVE"]) }
+        val roles = jdbc.queryForList("select id, name, active from ${TestDatabase.q("role")} order by id")
+            .map { Triple((it["ID"] as Number).toLong(), it["NAME"], it["ACTIVE"].let { v -> if (v is Number) v.toInt() != 0 else v }) }
         assertEquals(
             listOf(
                 Triple(1L, "manager", true), Triple(2L, "member", true), Triple(3L, "sitemanager", true),
@@ -62,6 +63,6 @@ class InitialDataLoaderTest : AbstractIntegrationTest() {
     fun `이미 사용자가 있으면 다시 적재하지 않는다`() {
         loader.load()
         assertEquals(1, jdbc.queryForObject("select count(*) from n4user", Int::class.java))
-        assertEquals(7, jdbc.queryForObject("select count(*) from role", Int::class.java))
+        assertEquals(7, jdbc.queryForObject("select count(*) from ${TestDatabase.q("role")}", Int::class.java))
     }
 }

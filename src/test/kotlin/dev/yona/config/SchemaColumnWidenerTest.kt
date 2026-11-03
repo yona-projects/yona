@@ -29,7 +29,11 @@ class SchemaColumnWidenerTest : AbstractIntegrationTest() {
         val product = dataSource.connection.use { it.metaData.databaseProductName }
         // MSSQL의 문자열 열은 nvarchar이다(X-46). varchar로 좁히면 같은 컨텍스트를 쓰는 뒤의 시험이 열을 읽지 못한다.
         val text = if (product.contains("SQL Server")) "nvarchar" else "varchar"
-        val narrow = if (product == "PostgreSQL") "alter table api_token alter column scopes type varchar(255)" else "alter table api_token alter column scopes $text(255)"
+        val narrow = when {
+            product == "PostgreSQL" -> "alter table api_token alter column scopes type varchar(255)"
+            product.contains("CUBRID", ignoreCase = true) -> "alter table api_token modify scopes varchar(255)"
+            else -> "alter table api_token alter column scopes $text(255)"
+        }
         jdbc.execute(narrow)
         assertEquals(255, size("api_token", "scopes"))
         widener.widen()

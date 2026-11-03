@@ -1,5 +1,6 @@
 package dev.yona.domain.audit
 
+import dev.yona.support.TestDatabase
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -175,7 +176,7 @@ class AuditRecorderTest : AbstractIntegrationTest() {
     @Test
     fun `기록의 내용을 고치면 그 기록에서 검증이 깨진다`() {
         repeat(4) { record("test.e$it") }
-        jdbc.update("update audit_log set action = 'forged.action' where id = 2")
+        jdbc.update("update audit_log set ${TestDatabase.q("action")} = 'forged.action' where id = 2")
         val result = verifier.verify()
         assertFalse(result.ok); assertEquals(2L, result.brokenId)
     }

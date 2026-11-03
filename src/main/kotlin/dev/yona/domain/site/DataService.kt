@@ -131,7 +131,7 @@ class DataService(
             }
             dataSource.connection.use { connection ->
                 val product = connection.metaData.databaseProductName
-                suspendReferentialIntegrity(connection, product)
+                val detachedKeys = suspendReferentialIntegrity(connection, product)
                 val ids = Identifiers(connection, product)
                 try {
                     connection.autoCommit = false
@@ -149,7 +149,7 @@ class DataService(
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
                     connection.autoCommit = true
-                    restoreReferentialIntegrity(connection, product)
+                    restoreReferentialIntegrity(connection, product, detachedKeys)
                 }
             }
         }
@@ -410,7 +410,7 @@ class DataService(
                 val row = parser.readValueAsTree<JsonNode>()
                 if (failure != null) continue
                 try {
-                    bind(statement!!, table, row)
+                    bind(statement!!, table, row, ids)
                     statement.addBatch()
                     if (++pending >= maxOf(1, properties.dataBatchSize)) { statement.executeBatch(); pending = 0 }
                 } catch (e: Exception) {
@@ -445,24 +445,26 @@ class DataService(
         return "(select ${ids.column(source, derived.column)} from ${ids.table(source)} where ${ids.column(source, "id")} = ?)"
     }
 
-    private fun bind(ps: PreparedStatement, table: DataTable, row: JsonNode) {
+    /** Cubrid는 `smallint` 열에 `int`나 `boolean` 값을 넣지 못하므로(`Cannot coerce host var to type short`) 그 열에는 `setShort`로 넣는다. */
+    private fun bind(ps: PreparedStatement, table: DataTable, row: JsonNode, ids: Identifiers) {
         table.columns.forEachIndexed { index, column ->
             val position = index + 1
+            val smallintBooleans = ids.isSmallint(table, column.name)
             column.derivedFrom?.let { derived ->
                 val node = requireNotNull(row.get(derived.via)) { "${table.name}의 행에 ${derived.via} 값이 없습니다." }
                 ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
                 return@forEachIndexed
             }
             val found = row.get(column.key)
-            if (found == null && column.absentBoolean != null) { ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
+            if (found == null && column.absentBoolean != null) { if (smallintBooleans) ps.setShort(position, if (column.absentBoolean) 1 else 0) else ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
             if (found == null && column.absentNull) { ps.setNull(position, Types.VARCHAR); return@forEachIndexed }
             if (found == null && column.absentString != null) { ps.setString(position, column.absentString); return@forEachIndexed }
             val node = requireNotNull(found) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
             when (column.type) {
                 DataType.LONG -> if (node.isNull && column.nullableLong) ps.setNull(position, Types.BIGINT) else ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
-                DataType.INT -> ps.setInt(position, if (node.isNumber) node.intValue() else 0)
+                DataType.INT -> (if (node.isNumber) node.intValue() else 0).let { if (smallintBooleans) ps.setShort(position, it.toShort()) else ps.setInt(position, it) }
                 DataType.STRING, DataType.CLOB -> if (node.isString) ps.setString(position, node.asString()) else ps.setNull(position, Types.VARCHAR)
-                DataType.BOOLEAN -> ps.setBoolean(position, node.isBoolean && node.booleanValue())
+                DataType.BOOLEAN -> (node.isBoolean && node.booleanValue()).let { if (smallintBooleans) ps.setShort(position, if (it) 1 else 0) else ps.setBoolean(position, it) }
                 DataType.TIMESTAMP -> timeOf(node).let { if (it == 0L) ps.setNull(position, Types.TIMESTAMP) else ps.setTimestamp(position, Timestamp(it)) }
                 DataType.DATE -> timeOf(node).let { if (it == 0L) ps.setNull(position, Types.DATE) else ps.setDate(position, java.sql.Date(it)) }
                 DataType.STRING_LONG -> {
@@ -481,7 +483,7 @@ class DataService(
         try {
             connection.createStatement().use { statement ->
                 when {
-                    isMySql(product) -> statement.execute("alter table ${ids.table(table)} auto_increment = $value")
+                    isMySql(product) || ids.isCubrid -> statement.execute("alter table ${ids.table(table)} auto_increment = $value")
                     product == "PostgreSQL" -> statement.execute("select setval(pg_get_serial_sequence('${table.sqlName}', 'id'), $value, false)")
                     product == "H2" -> statement.execute("alter table ${ids.table(table)} alter column ${ids.column(table, "id")} restart with $value")
                     ids.isSqlServer -> reseedSqlServer(statement, ids, table, value)
@@ -504,7 +506,49 @@ class DataService(
         statement.execute("DBCC CHECKIDENT ('${ids.table(table)}', RESEED, ${if (used) value - 1 else value})")
     }
 
-    private fun suspendReferentialIntegrity(connection: Connection, product: String) {
+    /** Cubrid에서 가져오기 동안 떼어 둔 외래 키의 정의이다. [deleteRule]은 JDBC `DELETE_RULE` 값이다. */
+    private data class DetachedKey(val name: String, val table: String, val columns: List<String>, val parentTable: String, val parentColumns: List<String>, val deleteRule: Int)
+
+    /**
+     * 외래 키 검사를 멈춘다. H2, PostgreSQL, MySQL/MariaDB, MSSQL은 검사를 끄는 방법이 있다. Cubrid는 없어서 외래 키를 모두 떼어 두고 정의를 돌려준다([restoreReferentialIntegrity]가 다시 붙인다).
+     */
+    private fun suspendReferentialIntegrity(connection: Connection, product: String): List<DetachedKey> {
+        if (!product.contains("CUBRID", ignoreCase = true)) { suspendByFlag(connection, product); return emptyList() }
+        val dropped = mutableListOf<DetachedKey>()
+        connection.createStatement().use { st ->
+            for (key in readForeignKeys(connection)) {
+                try { st.execute("alter table [${key.table}] drop foreign key [${key.name}]"); dropped += key }
+                catch (e: Exception) { log.warn("Could not detach the foreign key {} on {}; the import continues with it in place", key.name, key.table, e) }
+            }
+        }
+        return dropped
+    }
+
+    private fun readForeignKeys(connection: Connection): List<DetachedKey> {
+        val tables = mutableListOf<String>()
+        val schema = connection.metaData.userName?.lowercase()
+        connection.metaData.getTables(connection.catalog, schema, "%", arrayOf("TABLE")).use { rs -> while (rs.next()) tables += rs.getString("TABLE_NAME") }
+        class Row(val seq: Int, val column: String, val parentColumn: String)
+        val result = mutableListOf<DetachedKey>()
+        for (table in tables) {
+            val rows = linkedMapOf<String, MutableList<Row>>()
+            val meta = HashMap<String, Pair<String, Int>>()
+            connection.metaData.getImportedKeys(connection.catalog, schema, table).use { rs ->
+                while (rs.next()) {
+                    val name = rs.getString("FK_NAME")
+                    rows.getOrPut(name) { mutableListOf() } += Row(rs.getInt("KEY_SEQ"), rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"))
+                    meta[name] = rs.getString("PKTABLE_NAME") to rs.getInt("DELETE_RULE")
+                }
+            }
+            rows.forEach { (name, list) ->
+                val sorted = list.sortedBy { it.seq }
+                result += DetachedKey(name, table, sorted.map { it.column }, meta.getValue(name).first, sorted.map { it.parentColumn }, meta.getValue(name).second)
+            }
+        }
+        return result
+    }
+
+    private fun suspendByFlag(connection: Connection, product: String) {
         if (isSqlServer(product)) { forEachSqlServerTable(connection) { "alter table $it nocheck constraint all" }; return }
         connection.createStatement().use { statement ->
             when {
@@ -515,7 +559,39 @@ class DataService(
         }
     }
 
-    private fun restoreReferentialIntegrity(connection: Connection, product: String) {
+    /**
+     * 외래 키 검사를 되살린다. Cubrid는 떼어 둔 외래 키를 다시 붙인다. 가져온 행 중 부모가 없는 행(고아 행)이 있으면 붙이지 못하므로, 그 행의 참조를 없애거나(`set null` 규칙)
+     * 행을 지운 뒤 다시 붙이고 개수를 경고로 남긴다. v1.6은 검사를 끈 채 고아 행을 그대로 두지만 Cubrid에서는 외래 키가 없는 채로 두는 것보다 낫다고 판단했다.
+     */
+    private fun restoreReferentialIntegrity(connection: Connection, product: String, detached: List<DetachedKey>) {
+        if (detached.isNotEmpty()) { reattach(connection, detached); return }
+        restoreByFlag(connection, product)
+    }
+
+    private fun reattach(connection: Connection, keys: List<DetachedKey>) {
+        for (key in keys) {
+            val add = "alter table [${key.table}] add constraint [${key.name}] foreign key (${key.columns.joinToString { "[$it]" }}) references [${key.parentTable}] (${key.parentColumns.joinToString { "[$it]" }})" +
+                when (key.deleteRule) { java.sql.DatabaseMetaData.importedKeyCascade -> " on delete cascade"; java.sql.DatabaseMetaData.importedKeySetNull -> " on delete set null"; else -> " on delete restrict" }
+            try {
+                connection.createStatement().use { it.execute(add) }
+            } catch (first: Exception) {
+                val orphan = key.columns.zip(key.parentColumns).joinToString(" and ") { (c, p) -> "[$c] is not null and [$c] not in (select [$p] from [${key.parentTable}])" }
+                val fixed = try {
+                    connection.createStatement().use { st ->
+                        val count = if (key.deleteRule == java.sql.DatabaseMetaData.importedKeySetNull) st.executeUpdate("update [${key.table}] set ${key.columns.joinToString { "[$it] = null" }} where $orphan")
+                        else st.executeUpdate("delete from [${key.table}] where $orphan")
+                        log.warn("Cleaned {} orphan rows of {}.{} so the foreign key {} can be restored", count, key.table, key.columns, key.name)
+                        st.execute(add)
+                    }
+                    true
+                } catch (second: Exception) { false }
+                if (!fixed) log.error("Failed to restore the foreign key {} on {}", key.name, key.table, first)
+            }
+        }
+        if (!connection.autoCommit) connection.commit()
+    }
+
+    private fun restoreByFlag(connection: Connection, product: String) {
         if (isSqlServer(product)) { forEachSqlServerTable(connection) { "alter table $it check constraint all" }; return }
         connection.createStatement().use { statement ->
             when {
@@ -538,11 +614,20 @@ class DataService(
         /** MSSQL인지 여부이다. */
         val isSqlServer = isSqlServer(product)
 
+        /** Cubrid인지 여부이다. */
+        val isCubrid = product.contains("CUBRID", ignoreCase = true)
+
+        private val smallintColumns = HashSet<String>()
+
+        /** Cubrid에서만 `smallint` 열을 구분한다. 그 밖의 데이터베이스는 `int`와 `boolean`을 그대로 넣어도 된다. */
+        fun isSmallint(table: DataTable, column: String): Boolean = isCubrid && "${table.sqlName}.${column.lowercase()}" in smallintColumns
+
         init {
             connection.metaData.getColumns(connection.catalog, try { connection.schema } catch (e: java.sql.SQLException) { null }, null, null).use { rs ->
                 while (rs.next()) {
                     val table = rs.getString("TABLE_NAME")
-                    if (rs.getString("IS_AUTOINCREMENT") == "YES") identityTables += table.lowercase()
+                    if (isSqlServer && rs.getString("IS_AUTOINCREMENT") == "YES") identityTables += table.lowercase()
+                    if (isCubrid && rs.getInt("DATA_TYPE") == Types.SMALLINT) smallintColumns += table.lowercase() + "." + rs.getString("COLUMN_NAME").lowercase()
                     tables.putIfAbsent(table.lowercase(), table)
                     columns.getOrPut(table.lowercase()) { HashMap() }[rs.getString("COLUMN_NAME").lowercase()] = rs.getString("COLUMN_NAME")
                 }
