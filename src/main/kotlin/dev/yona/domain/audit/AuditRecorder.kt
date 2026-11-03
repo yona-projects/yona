@@ -103,18 +103,27 @@ class AuditRecorder(
         }
     }
 
-    /** 사슬의 끝 행을 잠가 읽는다. 없으면 별도 트랜잭션에서 만든 뒤 다시 잠근다(동시에 만들려는 쪽이 있어도 하나만 남는다). */
+    /**
+     * 사슬의 끝 행을 잠가 읽는다. 행이 없으면 먼저 별도 트랜잭션에서 만든다(동시에 만들려는 쪽이 있어도 하나만 남는다).
+     *
+     * 행이 없는 테이블을 이 트랜잭션에서 잠가 읽으면 MariaDB(간격 잠금)와 MSSQL(범위 잠금)이 그 자리를 잠가, 새 트랜잭션의 생성이 그 잠금에 막혀
+     * 서로 영원히 기다린다. 그래서 잠가 읽기 전에 별도 트랜잭션에서 행이 있는지 보고 없으면 만든다. 이 트랜잭션에서는 일반 조회를 하지 않는다
+     * (MariaDB의 반복 읽기가 그 시점의 스냅샷에 고정되어, 뒤이어 다른 트랜잭션이 확정한 기록이 이 트랜잭션에서 보이지 않게 되기 때문이다).
+     */
     private fun lockedHead(): AuditChainHead {
         markHeld()
-        heads.lockHead()?.let { return it }
+        ensureHead()
+        return heads.lockHead() ?: error("감사 사슬의 끝을 만들지 못했습니다")
+    }
+
+    private fun ensureHead() {
         try {
             TransactionTemplate(transactionManager).apply { propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW }.executeWithoutResult {
-                if (heads.lockHead() == null) entityManager.persist(AuditChainHead())
+                if (heads.count() == 0L) entityManager.persist(AuditChainHead())
             }
         } catch (e: Exception) {
             log.debug("감사 사슬의 끝은 다른 쪽이 먼저 만들었다", e)
         }
-        return heads.lockHead() ?: error("감사 사슬의 끝을 만들지 못했습니다")
     }
 
     /** 이 트랜잭션이 사슬의 끝을 잠갔음을 표시한다. 트랜잭션이 끝나면 표시도 지운다. */

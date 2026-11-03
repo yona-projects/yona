@@ -2,6 +2,8 @@ package dev.yona.config
 
 import org.hibernate.boot.Metadata
 import org.hibernate.boot.spi.BootstrapContext
+import org.hibernate.community.dialect.CUBRIDDialect
+import org.hibernate.dialect.Dialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.integrator.spi.Integrator
 import org.hibernate.jpa.boot.spi.IntegratorProvider
@@ -36,12 +38,78 @@ class EnumCheckConstraintRemover : Integrator {
     }
 }
 
-/** [EnumCheckConstraintRemover]를 Hibernate에 등록한다. */
+/**
+ * 열 기본값의 불리언 리터럴(`true`, `false`)을 데이터베이스가 쓰는 표기로 바꾼다(X-46, D-85).
+ *
+ * 엔티티는 `@ColumnDefault("false")`처럼 불리언 기본값을 쓰는데, MSSQL과 Cubrid에는 불리언 리터럴이 없어 이 문장으로 `create table`이 실패한다.
+ * 방언의 `toBooleanValueString`이 알려 주는 표기(`0`, `1` 또는 `true`, `false`)로 바꾸므로 기존 데이터베이스의 DDL은 달라지지 않는다.
+ */
+object BooleanDefaultTranslator {
+
+    /** [value]가 `true` 또는 `false`(대소문자 무시)이면 [dialect]의 표기로 바꾸고, 그 밖의 값은 그대로 돌려준다. */
+    fun translate(value: String?, dialect: Dialect): String? = when (value?.lowercase()) {
+        "true" -> dialect.toBooleanValueString(true)
+        "false" -> dialect.toBooleanValueString(false)
+        else -> value
+    }
+}
+
+/** 스키마 생성 직전에 모든 열의 불리언 기본값을 [BooleanDefaultTranslator]로 바꾼다. */
+class BooleanDefaultIntegrator : Integrator {
+
+    override fun integrate(metadata: Metadata, bootstrapContext: BootstrapContext, sessionFactory: SessionFactoryImplementor) {
+        val dialect = sessionFactory.jdbcServices.dialect
+        metadata.collectTableMappings().forEach { table ->
+            table.columns.forEach { column -> column.defaultValue = BooleanDefaultTranslator.translate(column.defaultValue, dialect) }
+        }
+    }
+}
+
+/**
+ * Cubrid가 받지 않는 DDL을 다듬는다. 외래 키의 `on update cascade`를 지우고 열 구성이 중복되는 인덱스를 지운다(X-46, D-85).
+ *
+ * v1.6의 일부 외래 키는 `on update cascade`를 갖지만 Cubrid는 갱신 규칙으로 `no action`, `restrict`, `set null`만 받는다.
+ * 기본 키 값을 바꾸는 코드가 없으므로 지워도 동작은 같다. Cubrid가 아닌 데이터베이스에는 아무것도 하지 않는다.
+ */
+class CubridDdlAdjuster : Integrator {
+
+    override fun integrate(metadata: Metadata, bootstrapContext: BootstrapContext, sessionFactory: SessionFactoryImplementor) {
+        if (sessionFactory.jdbcServices.dialect !is CUBRIDDialect) return
+        metadata.collectTableMappings().forEach { table ->
+            table.foreignKeyCollection.forEach { key ->
+                key.keyDefinition?.let { key.keyDefinition = it.replace(UPDATE_CASCADE, "").trim() }
+            }
+            removeIndexesDuplicatingUniqueKeys(table)
+        }
+    }
+
+    /**
+     * 유니크 키와 열 구성이 같은 일반 인덱스를 지운다. v1.6은 `(user_id, issue_id)` 같은 열에 인덱스와 유니크 키를 따로 두었지만
+     * Cubrid는 열 구성이 같은 인덱스를 둘 만들면 `already defined` 오류를 낸다. 유니크 키가 같은 조회를 받쳐 주므로 동작은 같다.
+     */
+    private fun removeIndexesDuplicatingUniqueKeys(table: org.hibernate.mapping.Table) {
+        val uniqueColumns = table.uniqueKeys.values.map { key -> key.columns.map { it.name } }.toSet()
+        val duplicated = table.indexes.values.filter { index -> index.columns.map { it.name } in uniqueColumns }
+        if (duplicated.isEmpty()) return
+        // Hibernate는 인덱스 맵을 수정할 수 없는 맵으로 노출하므로 맵을 담은 필드를 직접 고친다.
+        val field = org.hibernate.mapping.Table::class.java.getDeclaredField("indexes")
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val indexes = field.get(table) as MutableMap<String, org.hibernate.mapping.Index>
+        duplicated.forEach { indexes.remove(it.name) }
+    }
+
+    private companion object {
+        val UPDATE_CASCADE = Regex("\\s+on update cascade", RegexOption.IGNORE_CASE)
+    }
+}
+
+/** [EnumCheckConstraintRemover]와 [BooleanDefaultIntegrator]를 Hibernate에 등록한다. */
 @Configuration(proxyBeanMethods = false)
 class EnumCheckConstraintConfig {
 
     @Bean
     fun enumCheckConstraintCustomizer(): HibernatePropertiesCustomizer = HibernatePropertiesCustomizer { properties ->
-        properties["hibernate.integrator_provider"] = IntegratorProvider { listOf(EnumCheckConstraintRemover()) }
+        properties["hibernate.integrator_provider"] = IntegratorProvider { listOf(EnumCheckConstraintRemover(), BooleanDefaultIntegrator(), CubridDdlAdjuster()) }
     }
 }

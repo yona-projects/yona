@@ -146,12 +146,18 @@ object SchemaMetadata {
             it[2].lowercase() to ForeignKeyInfo(it[3].lowercase(), it[5])
         }).mapValues { it.value.toMap() }
 
+    /** Cubrid 드라이버는 `getSchema()`를 지원하지 않아 예외를 던지므로, 그 경우 스키마를 지정하지 않는다. */
+    internal fun Connection.schemaOrNull(): String? = try { schema } catch (_: java.sql.SQLException) { null }
+
+    /** MSSQL의 `master` 데이터베이스에 있는 시스템 테이블이다. 시험 대상이 아니다. */
+    private val SYSTEM_TABLES = Regex("msreplication_options|spt_.*")
+
     private fun <T> Connection.tables(read: (String) -> T): Map<String, T> {
         val names = mutableListOf<String>()
-        metaData.getTables(catalog, schema, "%", arrayOf("TABLE")).use { rs ->
+        metaData.getTables(catalog, schemaOrNull(), "%", arrayOf("TABLE")).use { rs ->
             while (rs.next()) names += rs.getString("TABLE_NAME")
         }
-        return names.associate { it.lowercase() to read(it) }
+        return names.filterNot { SYSTEM_TABLES.matches(it.lowercase()) }.associate { it.lowercase() to read(it) }
     }
 
     /** 실제 DB의 컬럼 구조를 읽는다. */
@@ -159,7 +165,7 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 buildMap {
-                    c.metaData.getColumns(c.catalog, c.schema, table, "%").use { rs ->
+                    c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
                         while (rs.next()) {
                             put(
                                 rs.getString("COLUMN_NAME").lowercase(),
@@ -179,12 +185,12 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 val primaryKey = buildList {
-                    c.metaData.getPrimaryKeys(c.catalog, c.schema, table).use { rs ->
+                    c.metaData.getPrimaryKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
                         while (rs.next()) add(rs.getString("COLUMN_NAME").lowercase())
                     }
                 }
                 val byName = linkedMapOf<String, MutableList<Pair<Triple<Int, String, Boolean>, Boolean>>>()
-                c.metaData.getIndexInfo(c.catalog, c.schema, table, false, false).use { rs ->
+                c.metaData.getIndexInfo(c.catalog, c.schemaOrNull(), table, false, false).use { rs ->
                     while (rs.next()) {
                         val column = rs.getString("COLUMN_NAME") ?: continue
                         byName.getOrPut(rs.getString("INDEX_NAME").lowercase()) { mutableListOf() }
@@ -207,7 +213,7 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 buildMap {
-                    c.metaData.getImportedKeys(c.catalog, c.schema, table).use { rs ->
+                    c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
                         while (rs.next()) {
                             put(
                                 rs.getString("FKCOLUMN_NAME").lowercase(),
@@ -229,7 +235,7 @@ object SchemaMetadata {
     // --- 기본값, 자동 증가, 외래 키 갱신 규칙 ---
 
     /** 기본값 문자열을 DB와 상관없이 비교할 수 있게 바꾼다. 불린은 `0`과 `1`로, 없음은 `null`로 본다. */
-    private fun normalizeDefault(value: String?): String? = when (value?.lowercase()?.removeSurrounding("'")) {
+    private fun normalizeDefault(value: String?): String? = when (value?.lowercase()?.let { v -> v.trim().let { t -> if (t.startsWith("((") && t.endsWith("))")) t.removeSurrounding("((", "))") else t } }?.removeSurrounding("'")) {
         null, "null", "<null>" -> null
         "false", "b'0'", "0" -> "0"
         "true", "b'1'", "1" -> "1"
@@ -256,7 +262,7 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 buildMap {
-                    c.metaData.getColumns(c.catalog, c.schema, table, "%").use { rs ->
+                    c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
                         while (rs.next()) {
                             if (rs.getString("IS_AUTOINCREMENT") == "YES") continue
                             put(rs.getString("COLUMN_NAME").lowercase(), normalizeDefault(rs.getString("COLUMN_DEF")))
@@ -271,7 +277,7 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 buildSet {
-                    c.metaData.getColumns(c.catalog, c.schema, table, "%").use { rs ->
+                    c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
                         while (rs.next()) if (rs.getString("IS_AUTOINCREMENT") == "YES") add(rs.getString("COLUMN_NAME").lowercase())
                     }
                 }
@@ -286,7 +292,7 @@ object SchemaMetadata {
         dataSource.connection.use { c ->
             c.tables { table ->
                 buildMap {
-                    c.metaData.getImportedKeys(c.catalog, c.schema, table).use { rs ->
+                    c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
                         while (rs.next()) {
                             put(
                                 rs.getString("FKCOLUMN_NAME").lowercase(),

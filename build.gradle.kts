@@ -179,6 +179,10 @@ dependencies {
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
+	// Cubrid 11.4와 MSSQL 지원(X-46, D-85). Cubrid 방언은 커뮤니티 방언 모듈에 있다. 공개된 최신 Cubrid 드라이버는 11.3.x이다.
+	runtimeOnly("com.microsoft.sqlserver:mssql-jdbc:12.10.0.jre11")
+	runtimeOnly("org.cubrid:cubrid-jdbc:11.3.2.0053")
+	implementation("org.hibernate.orm:hibernate-community-dialects")
 
 	testImplementation("com.unboundid:unboundid-ldapsdk:7.0.3")
 	// 받은 메일(IMAP) 테스트용 인메모리 메일 서버
@@ -199,6 +203,8 @@ dependencies {
 	testImplementation("org.testcontainers:testcontainers:2.0.5")
 	testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
 	testImplementation("org.testcontainers:testcontainers-mariadb:2.0.5")
+	testImplementation("org.testcontainers:testcontainers-mssqlserver:2.0.5")
+	testImplementation("org.cubrid:testcontainers-cubrid:0.1.0")
 }
 
 kotlin {
@@ -218,7 +224,7 @@ tasks.withType<Test> {
 	// 통합 테스트는 설정이 다른 스프링 컨텍스트를 테스트 클래스마다 따로 캐시한다. 컨텍스트가 30개를 넘으면서 기본 힙(512MB)이 모자라
 	// 컨텍스트 로딩이 연쇄 실패했으므로 힙을 넉넉히 잡는다.
 	maxHeapSize = "3g"
-	// 통합 테스트가 사용할 DB를 `-Dyona.it.db=h2|postgres|mariadb`로 고른다(기본값 h2).
+	// 통합 테스트가 사용할 DB를 `-Dyona.it.db=h2|postgres|mariadb|mssql|cubrid`로 고른다(기본값 h2).
 	systemProperty("yona.it.db", System.getProperty("yona.it.db") ?: "h2")
 	testLogging {
 		events("failed")

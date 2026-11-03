@@ -1,5 +1,6 @@
 package dev.yona.schema
 
+import dev.yona.schema.SchemaMetadata.schemaOrNull
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,10 +29,10 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
     /** 테이블의 기본 키 컬럼이다. DB마다 테이블 이름의 대소문자가 달라 찾아서 쓴다. */
     private fun primaryKey(table: String): Set<String> = dataSource.connection.use { c ->
         val names = mutableListOf<String>()
-        c.metaData.getTables(c.catalog, c.schema, "%", arrayOf("TABLE")).use { rs -> while (rs.next()) names += rs.getString("TABLE_NAME") }
+        c.metaData.getTables(c.catalog, c.schemaOrNull(), "%", arrayOf("TABLE")).use { rs -> while (rs.next()) names += rs.getString("TABLE_NAME") }
         val actual = names.first { it.equals(table, ignoreCase = true) }
         val columns = mutableSetOf<String>()
-        c.metaData.getPrimaryKeys(c.catalog, c.schema, actual).use { rs -> while (rs.next()) columns += rs.getString("COLUMN_NAME").lowercase() }
+        c.metaData.getPrimaryKeys(c.catalog, c.schemaOrNull(), actual).use { rs -> while (rs.next()) columns += rs.getString("COLUMN_NAME").lowercase() }
         columns
     }
 

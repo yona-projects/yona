@@ -119,6 +119,7 @@
 - [엔터프라이즈 SSO 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [엔터프라이즈 SSO](architecture/enterprise-sso.md): X-16 구현 결과(OIDC, SAML 2, SP 키, SSO 전용 모드, 연결된 계정, Keycloak 확인)
 - [Apache Magpie 연동](architecture/magpie-integration-plan.md): X-23 계획, 결정, 구현 결과. 어댑터 문서는 저장소의 `docs/magpie/tools-yona/`에 있다
+- [Cubrid·MSSQL 지원](architecture/cubrid-mssql-support.md): X-46 데이터베이스별 차이와 처리, 시험 결과
 - [조직 팀 기능 계획](architecture/team-plan.md): X-44 팀(공개·비밀, 중첩), 프로젝트 권한 5단계, 팀 멘션과 리뷰 요청, 규칙 묶음 대상. 계획 작성 완료, v2.1.0에서 구현(D-84)
 - [엔터프라이즈 SSO 구현 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [OAuth2 인증 서버 구현 계획](architecture/oauth2-server-plan.md): 불투명 토큰, 클래식 범위, 인가 서버 엔드포인트, 승인 화면, 동적 등록, 단계 0~8 (X-1, D-71 답변 대기, 계획만)
