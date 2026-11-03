@@ -226,6 +226,8 @@ tasks.withType<Test> {
 	maxHeapSize = "3g"
 	// 통합 테스트가 사용할 DB를 `-Dyona.it.db=h2|postgres|mariadb|mssql|cubrid`로 고른다(기본값 h2).
 	systemProperty("yona.it.db", System.getProperty("yona.it.db") ?: "h2")
+	// Cubrid는 스프링 컨텍스트 하나(테이블 약 170개)가 공간을 많이 쓰므로 캐시하는 컨텍스트 수를 줄인다(X-46). 다른 데이터베이스는 기본값(32)을 쓴다.
+	if (System.getProperty("yona.it.db") == "cubrid") systemProperty("spring.test.context.cache.maxSize", "8")
 	testLogging {
 		events("failed")
 		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT

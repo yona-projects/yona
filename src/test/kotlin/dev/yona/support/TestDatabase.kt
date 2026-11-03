@@ -111,6 +111,10 @@ enum class TestDatabase {
             CubridContainer("cubrid/cubrid:11.4")
                 // 데이터베이스를 UTF-8로 만든다(이미지의 기본값 `en_US`는 ISO-8859-1이라 한글이 깨진다)
                 .withEnv("CUBRID_LOCALE", "en_US.utf8")
+                // 데이터베이스 페이지를 4KB로, 볼륨을 64MB로 만든다. Cubrid는 테이블과 인덱스마다 64페이지 단위로 공간을 잡는데 기본 페이지(16KB)면 1MB씩이라,
+                // 컨텍스트 하나(테이블 약 170개)가 수백 MB를 쓰고 컨텍스트를 수십 개 캐시하는 시험이 데이터베이스를 25GB까지 키웠다. 이미지에 페이지 크기 변수가 없어서
+                // 볼륨 크기 변수 뒤에 옵션을 이어 붙인다(이미지가 이 값을 따옴표 없이 `createdb` 명령에 넣는다).
+                .withEnv("CUBRID_VOLUME_SIZE", "64M --db-page-size=4096 --log-volume-size=64M")
                 .withDatabaseName("yona_v2_it").withUsername("yona").withPassword("yona")
                 .withReuse(true).also { it.start(); raiseBrokerLimit(it); dropLeftoverUsers(it) }
         }
@@ -118,11 +122,14 @@ enum class TestDatabase {
         /**
          * 브로커의 동시 연결 한도(`MAX_NUM_APPL_SERVER`, 이미지 기본값 40)를 올린다. 시험은 스프링 컨텍스트를 수십 개 캐시하고 컨텍스트마다 연결 풀을 두므로
          * 기본값으로는 연결이 거부되어 컨텍스트 로딩이 연쇄로 실패한다. 이미 올렸으면 아무것도 하지 않는다. 운영에서도 사용자 수에 맞춰 올려야 한다.
+         * (유휴 연결 제한 `SESSION_TIMEOUT`, `TIME_TO_KILL`을 늘려 보았으나 전체 실행의 간헐적 연결 오류는 나아지지 않아 되돌렸다.)
          */
         private fun raiseBrokerLimit(c: CubridContainer) {
             val conf = "/home/cubrid/CUBRID/conf/cubrid_broker.conf"
             val result = c.execInContainer("bash", "-c",
-                "grep -q 'MAX_NUM_APPL_SERVER *=300' $conf || (gosu cubrid sed -i 's/^MAX_NUM_APPL_SERVER .*/MAX_NUM_APPL_SERVER     =300/' $conf && " +
+                "grep -q 'MAX_NUM_APPL_SERVER *=300' $conf || (gosu cubrid sed -i " +
+                    "-e 's/^MAX_NUM_APPL_SERVER .*/MAX_NUM_APPL_SERVER     =300/' " +
+                    "$conf && " +
                     "gosu cubrid /home/cubrid/CUBRID/bin/cubrid broker restart > /dev/null 2>&1 < /dev/null)")
             check(result.exitCode == 0) { "Cubrid 브로커 설정을 바꾸지 못했습니다: ${result.stderr}" }
         }
