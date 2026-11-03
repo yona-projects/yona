@@ -28,7 +28,7 @@ class SchemaColumnWidener(private val dataSource: DataSource, @Suppress("unused"
                 TARGETS.forEach { (table, column) ->
                     val size = currentSize(connection.metaData, table, column) ?: return@forEach
                     if (size >= SCOPES_LENGTH) return@forEach
-                    connection.createStatement().use { it.executeUpdate(alter(product, table, column)) }
+                    connection.createStatement().use { it.executeUpdate(alter(product, table, column, nationalized(connection.metaData, table, column))) }
                     if (!connection.autoCommit) connection.commit()
                     log.info("Widened {}.{} from {} to {}", table, column, size, SCOPES_LENGTH)
                 }
@@ -43,10 +43,16 @@ class SchemaColumnWidener(private val dataSource: DataSource, @Suppress("unused"
             metaData.getColumns(null, null, t, c).use { rs -> if (rs.next()) rs.getInt("COLUMN_SIZE") else null }
         }
 
-    private fun alter(product: String, table: String, column: String): String = when {
+    /** 열이 유니코드 문자열(`nvarchar`)인지 본다. MSSQL에서 `varchar`로 바꾸면 한글이 깨지고 Hibernate가 읽지 못한다(X-46). */
+    private fun nationalized(metaData: java.sql.DatabaseMetaData, table: String, column: String): Boolean =
+        listOf(table to column, table.uppercase() to column.uppercase()).firstNotNullOfOrNull { (t, c) ->
+            metaData.getColumns(null, null, t, c).use { rs -> if (rs.next()) rs.getString("TYPE_NAME") else null }
+        }?.startsWith("n", ignoreCase = true) == true
+
+    private fun alter(product: String, table: String, column: String, nationalized: Boolean = false): String = when {
         product == "PostgreSQL" -> "alter table $table alter column $column type varchar($SCOPES_LENGTH)"
         product.startsWith("MySQL") || product.startsWith("MariaDB") || product.contains("CUBRID", ignoreCase = true) -> "alter table $table modify $column varchar($SCOPES_LENGTH)"
-        else -> "alter table $table alter column $column varchar($SCOPES_LENGTH)"
+        else -> "alter table $table alter column $column ${if (nationalized) "nvarchar" else "varchar"}($SCOPES_LENGTH)"
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package dev.yona.web.site
 
+import dev.yona.support.TestDatabase
 import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.UserState
@@ -120,6 +121,7 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `올리기는 성공하면 처음 화면으로 이동한다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         upload(admin(), """{"LABEL": [{"id": 1, "name": "uploaded", "category": "c"}], "LABEL_SEQ": 10}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
         assertEquals(listOf("uploaded"), labelNames())
     }
@@ -146,6 +148,7 @@ class SiteDataTest : AbstractIntegrationTest() {
     // v1.6은 테이블을 TRUNCATE로 비운다. TRUNCATE는 DDL이라 즉시 확정되므로, 행을 넣다 실패해 되돌려도 테이블은 빈 채로 남는다.
     @Test
     fun `파일이 도중에 잘리면 그 테이블의 행 넣기를 되돌리고 처음 화면으로 이동한다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         // v1.6 DefaultExchanger는 테이블마다 트랜잭션을 잡고 예외를 삼킨다. 실패한 테이블만 되돌리고 302 /이다.
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
@@ -157,6 +160,7 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `파일 중간의 구문 오류도 그 테이블의 행 넣기를 되돌리고 처음 화면으로 이동한다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": ##}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
         assertEquals(emptyList(), labelNames())
@@ -164,6 +168,7 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `행에 필수 값이 없거나 기본 키가 겹치면 그 테이블은 빈 채로 남는다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(redirectedUrl("/"))
         assertEquals(emptyList(), labelNames())
@@ -174,6 +179,7 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `테이블 이름의 값이 배열이 아니면 테이블만 비워진다 (v1_6 TRUNCATE)`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         upload(admin(), """{"LABEL": 5}""").andExpect(redirectedUrl("/"))
         assertEquals(emptyList(), labelNames())
@@ -181,6 +187,7 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `앞서 끝낸 테이블은 남고 뒤에서 깨진 테이블은 빈 채로 남는다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         upload(admin(), """{"MENTION": [{"id": 9001, "resource_type": "SD_TEST", "resource_id": "sd-new", "user_id": null}], "LABEL": [{"id": 1, "name": "x", "category": "c"}, {"id": 2, "name": """").andExpect(redirectedUrl("/"))
         assertEquals(listOf("sd-new"), mentionResources())

@@ -379,6 +379,17 @@ class DataService(
      * 파서 자체가 깨지면 되돌리고 [TableOutcome.ABORTED]를 돌려준다.
      */
     private fun importTable(connection: Connection, ids: Identifiers, table: DataTable, parser: tools.jackson.core.JsonParser): TableOutcome {
+        // MSSQL은 식별 열에 값을 직접 넣으려면 테이블마다 `IDENTITY_INSERT`를 켜야 하고, 한 세션에서 한 테이블만 켤 수 있다.
+        val identityInsert = ids.isSqlServer && ids.hasIdentity(table)
+        if (identityInsert) connection.createStatement().use { it.execute("SET IDENTITY_INSERT ${ids.table(table)} ON") }
+        try {
+            return importRows(connection, ids, table, parser)
+        } finally {
+            if (identityInsert) try { connection.createStatement().use { it.execute("SET IDENTITY_INSERT ${ids.table(table)} OFF") } } catch (e: Exception) { log.warn("Failed to turn IDENTITY_INSERT off for {}", table.name, e) }
+        }
+    }
+
+    private fun importRows(connection: Connection, ids: Identifiers, table: DataTable, parser: tools.jackson.core.JsonParser): TableOutcome {
         var failure: Exception? = null
         var statement: PreparedStatement? = null
         try {
@@ -473,6 +484,7 @@ class DataService(
                     isMySql(product) -> statement.execute("alter table ${ids.table(table)} auto_increment = $value")
                     product == "PostgreSQL" -> statement.execute("select setval(pg_get_serial_sequence('${table.sqlName}', 'id'), $value, false)")
                     product == "H2" -> statement.execute("alter table ${ids.table(table)} alter column ${ids.column(table, "id")} restart with $value")
+                    ids.isSqlServer -> reseedSqlServer(statement, ids, table, value)
                     else -> log.warn("This database does not restore sequences: {}", product)
                 }
             }
@@ -483,7 +495,17 @@ class DataService(
         }
     }
 
+    /**
+     * MSSQL의 다음 식별 값을 [value]로 맞춘다. `RESEED`는 행이 한 번이라도 들어간 테이블에서는 지정한 값의 다음 번호를, 한 번도 들어가지 않은 테이블에서는
+     * 지정한 값 자체를 다음 번호로 쓴다. 테이블에 식별 값이 마지막으로 쓰인 적이 있는지(`IDENT_CURRENT`로 알 수 없다)는 가져오기 직후의 행 수로 판단한다.
+     */
+    private fun reseedSqlServer(statement: java.sql.Statement, ids: Identifiers, table: DataTable, value: Long) {
+        val used = statement.executeQuery("select count(*) from ${ids.table(table)}").use { rs -> rs.next(); rs.getLong(1) > 0 }
+        statement.execute("DBCC CHECKIDENT ('${ids.table(table)}', RESEED, ${if (used) value - 1 else value})")
+    }
+
     private fun suspendReferentialIntegrity(connection: Connection, product: String) {
+        if (isSqlServer(product)) { forEachSqlServerTable(connection) { "alter table $it nocheck constraint all" }; return }
         connection.createStatement().use { statement ->
             when {
                 product == "H2" -> statement.execute("SET REFERENTIAL_INTEGRITY FALSE")
@@ -494,6 +516,7 @@ class DataService(
     }
 
     private fun restoreReferentialIntegrity(connection: Connection, product: String) {
+        if (isSqlServer(product)) { forEachSqlServerTable(connection) { "alter table $it check constraint all" }; return }
         connection.createStatement().use { statement ->
             when {
                 product == "H2" -> statement.execute("SET REFERENTIAL_INTEGRITY TRUE")
@@ -510,16 +533,24 @@ class DataService(
     private inner class Identifiers(connection: Connection, private val product: String) {
         private val tables = HashMap<String, String>()
         private val columns = HashMap<String, MutableMap<String, String>>()
+        private val identityTables = HashSet<String>()
+
+        /** MSSQL인지 여부이다. */
+        val isSqlServer = isSqlServer(product)
 
         init {
-            connection.metaData.getColumns(connection.catalog, connection.schema, null, null).use { rs ->
+            connection.metaData.getColumns(connection.catalog, try { connection.schema } catch (e: java.sql.SQLException) { null }, null, null).use { rs ->
                 while (rs.next()) {
                     val table = rs.getString("TABLE_NAME")
+                    if (rs.getString("IS_AUTOINCREMENT") == "YES") identityTables += table.lowercase()
                     tables.putIfAbsent(table.lowercase(), table)
                     columns.getOrPut(table.lowercase()) { HashMap() }[rs.getString("COLUMN_NAME").lowercase()] = rs.getString("COLUMN_NAME")
                 }
             }
         }
+
+        /** 식별(자동 증가) 열이 있는 테이블인지 여부이다. */
+        fun hasIdentity(table: DataTable): Boolean = table.sqlName in identityTables
 
         private fun quote(name: String): String = if (isMySql(product)) "`$name`" else "\"$name\""
 
@@ -529,6 +560,14 @@ class DataService(
         /** 인용한 컬럼 이름이다. */
         fun column(table: DataTable, name: String): String = quote(columns[table.sqlName]?.get(name.lowercase()) ?: name)
     }
+
+    /** MSSQL은 전체 외래 키를 한 번에 끄는 설정이 없어 테이블마다 제약을 끄고 켠다. 켤 때 기존 행을 다시 검사하지는 않는다. */
+    private fun forEachSqlServerTable(connection: Connection, sql: (String) -> String) {
+        val names = connection.createStatement().use { st -> st.executeQuery("select name from sys.tables").use { rs -> generateSequence { if (rs.next()) rs.getString(1) else null }.toList() } }
+        connection.createStatement().use { st -> names.forEach { st.execute(sql("[${it.replace("]", "]]")}]")) } }
+    }
+
+    private fun isSqlServer(product: String) = product.contains("SQL Server", ignoreCase = true)
 
     private fun isMySql(product: String) = product.equals("MySQL", ignoreCase = true) || product.equals("MariaDB", ignoreCase = true)
 

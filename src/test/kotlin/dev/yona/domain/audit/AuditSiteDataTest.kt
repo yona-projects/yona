@@ -1,5 +1,6 @@
 package dev.yona.domain.audit
 
+import dev.yona.support.TestDatabase
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.SiteAdmin
 import dev.yona.domain.user.SiteAdminRepository
@@ -56,6 +57,7 @@ class AuditSiteDataTest : AbstractIntegrationTest() {
 
     @Test
     fun `웹 올리기는 결과를 남긴다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         val (user, session) = admin()
         mockMvc.perform(multipart("/sites/import").file(MockMultipartFile("data", "d.json", "application/json", "{}".toByteArray())).session(session)).andExpect(status().isSeeOther)
         val e = eventsOf("site.data_imported").single()

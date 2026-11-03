@@ -1,1 +1,2 @@
-org.springframework.boot.EnvironmentPostProcessor=dev.yona.observability.ObservabilityActivation
+org.springframework.boot.EnvironmentPostProcessor=dev.yona.observability.ObservabilityActivation,\
+dev.yona.config.DatabaseDefaults

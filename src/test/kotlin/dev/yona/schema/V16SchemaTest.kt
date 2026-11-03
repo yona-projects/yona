@@ -1,6 +1,8 @@
 package dev.yona.schema
 
+import dev.yona.config.SqlServerSelfReferenceTrigger
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.TestDatabase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
@@ -73,10 +75,12 @@ class V16SchemaTest : AbstractIntegrationTest() {
         fun Map<String, Map<String, IndexInfo>>.normalized() = if (directional) this else mapValues { (_, v) -> v.mapValues { (_, i) -> i.copy(descending = emptySet()) } }
         val actual = SchemaMetadata.actualIndexes(dataSource).normalized()
         val expected = SchemaMetadata.v16Indexes().normalized()
+        // MSSQL은 자기 참조 `on delete set null` 외래 키를 만들 수 없어 트리거로 대신한다(X-46). 이 네 외래 키의 누락은 의도한 차이이다.
+        val triggered = if (TestDatabase.current == TestDatabase.MSSQL) SqlServerSelfReferenceTrigger.TARGETS.toSet() else emptySet()
         val problems = ((expected.keys + actual.keys) - SchemaMetadata.INTENDED_ADDITIONS).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()
-            (e.keys - a.keys).map { "$table.$it 누락 ${e[it]}" } +
+            (e.keys - a.keys).filterNot { (table to it) in triggered }.map { "$table.$it 누락 ${e[it]}" } +
                 (a.keys - e.keys).map { "$table.$it 추가됨 ${a[it]}" } +
                 e.filter { (n, v) -> a[n]?.let { it != v } == true }
                     .map { (n, v) -> "$table.$n 기대=$v 실제=${a[n]}" }
@@ -88,10 +92,12 @@ class V16SchemaTest : AbstractIntegrationTest() {
     fun `외래 키의 대상과 삭제 규칙이 v1_6과 같다`() {
         val actual = SchemaMetadata.actualForeignKeys(dataSource)
         val expected = SchemaMetadata.v16ForeignKeys()
+        // MSSQL은 자기 참조 `on delete set null` 외래 키를 만들 수 없어 트리거로 대신한다(X-46). 이 네 외래 키의 누락은 의도한 차이이다.
+        val triggered = if (TestDatabase.current == TestDatabase.MSSQL) SqlServerSelfReferenceTrigger.TARGETS.toSet() else emptySet()
         val problems = ((expected.keys + actual.keys) - SchemaMetadata.INTENDED_ADDITIONS).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()
-            (e.keys - a.keys).map { "$table.$it 누락 ${e[it]}" } +
+            (e.keys - a.keys).filterNot { (table to it) in triggered }.map { "$table.$it 누락 ${e[it]}" } +
                 (a.keys - e.keys).map { "$table.$it 추가됨 ${a[it]}" } +
                 e.filter { (c, v) -> a[c]?.let { it != v } == true }
                     .map { (c, v) -> "$table.$c 기대=$v 실제=${a[c]}" }

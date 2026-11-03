@@ -1,5 +1,6 @@
 package dev.yona.web.api
 
+import dev.yona.support.TestDatabase
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.SiteAdmin
 import dev.yona.domain.user.SiteAdminRepository
@@ -76,6 +77,7 @@ class ExternalSiteBackupApiTest : AbstractIntegrationTest() {
 
     @Test
     fun `올리기는 DB를 교체하고 가져온 테이블과 실패한 테이블을 JSON으로 알려준다`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         val (_, token) = newUser(siteAdmin = true)
         upload(token, """{"LABEL": [{"id": 1, "name": "uploaded", "category": "c"}], "LABEL_SEQ": 10}""").andExpect(status().isOk)
             .andExpect(jsonPath("$.imported").isArray).andExpect(jsonPath("$.failed.length()").value(0))

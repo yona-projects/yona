@@ -1,5 +1,6 @@
 package dev.yona.domain.site
 
+import dev.yona.support.TestDatabase
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -45,6 +46,18 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     private fun import(json: String) = service.import(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
 
+    /**
+     * 식별 열 `id`에 값을 직접 넣는다. MSSQL은 `IDENTITY_INSERT`를 켠 같은 배치 안에서만 허용하므로 문장을 켜기와 끄기로 감싼다(식별 열이 아닌 `id`는 그대로 넣는다).
+     * 가져오기 시험이 가져오기 전의 행을 번호를 정해 미리 넣어 두는 데 쓴다.
+     */
+    private fun insertWithId(sql: String, vararg args: Any?) {
+        val table = Regex("insert into (\\w+)", RegexOption.IGNORE_CASE).find(sql)!!.groupValues[1]
+        val identity = TestDatabase.current == TestDatabase.MSSQL &&
+            jdbc.queryForObject("select count(*) from sys.identity_columns where object_id = object_id(?)", Int::class.java, table)!! > 0
+        val wrapped = if (identity) "SET IDENTITY_INSERT $table ON; $sql; SET IDENTITY_INSERT $table OFF" else sql
+        jdbc.update(wrapped, *args)
+    }
+
     private fun count(table: String): Int = jdbc.queryForObject("select count(*) from $table", Int::class.java)!!
 
     // --- 내보내기 ---
@@ -69,7 +82,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `시각은 에폭 밀리초이고 NULL은 null이며 불린의 NULL은 false이다`() {
         jdbc.update("insert into organization(name, descr, created) values ('dx-org', null, ?)", Timestamp(1_700_000_000_000L))
-        jdbc.update("insert into role(id, name, active) values (900, 'dx-role', null)")
+        insertWithId("insert into role(id, name, active) values (900, 'dx-role', null)")
         val tree = exported()
         val organization = tree["ORGANIZATION"].first { it["name"].asString() == "dx-org" }
         assertEquals(1_700_000_000_000L, organization["created"].asLong())
@@ -157,8 +170,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `풀 리퀘스트는 있고 리뷰 테이블이 없는 옛 파일을 가져오면 남아 있던 리뷰는 비운다 (X-12)`() {
         // 옛 파일의 풀 리퀘스트 번호는 바뀔 수 있어 남은 리뷰가 엉뚱한 요청에 붙으면 안 된다. 리뷰는 승인 집합에서 다시 만든다(D-35 13번)
-        jdbc.update("insert into pull_request(id, title) values (?, ?)", 777001L, "옛")
-        jdbc.update("insert into pull_request_review(id, pull_request_id, author_id, author_login_id, verdict, created_date) values (?, ?, ?, ?, ?, current_timestamp)", 1L, 777001L, 1L, "x", "APPROVED")
+        insertWithId("insert into pull_request(id, title) values (?, ?)", 777001L, "옛")
+        insertWithId("insert into pull_request_review(id, pull_request_id, author_id, author_login_id, verdict, created_date) values (?, ?, ?, ?, ?, current_timestamp)", 1L, 777001L, 1L, "x", "APPROVED")
         import("""{"PULL_REQUEST": [{"id": 777001, "title": "옛"}]}""")
         assertEquals(0, count("pull_request_review"))
     }
@@ -187,8 +200,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `가져온 뒤 승인 집합에서 리뷰를 다시 만든다 (X-12, D-35 13번)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881101L, "bfimp", "보정")
-        jdbc.update("insert into pull_request(id, title, number, created) values (?, ?, ?, current_timestamp)", 881102L, "옛", 1L)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881101L, "bfimp", "보정")
+        insertWithId("insert into pull_request(id, title, number, created) values (?, ?, ?, current_timestamp)", 881102L, "옛", 1L)
         jdbc.update("insert into pull_request_reviewers(pull_request_id, user_id) values (?, ?)", 881102L, 881101L)
         import("{}")
         assertEquals(1, jdbc.queryForObject("select count(*) from pull_request_review where pull_request_id = 881102 and author_id = 881101 and verdict = 'APPROVED'", Int::class.java))
@@ -244,8 +257,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
     fun `사용자는 있고 토큰 테이블이 없는 옛 파일을 가져오면 남아 있던 토큰은 비운다 (X-5)`() {
         // v1.6의 사용자 내보내기에는 `token` 열이 없으므로(옛 파일로 가져오면 토큰을 잃는 것은 v1.6과 같다) 이관할 값도 없다.
         // 옛 파일의 사용자 번호가 바뀔 수 있어 남은 토큰이 엉뚱한 사용자에 붙지 않게 비운다
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881201L, "tkold", "옛")
-        jdbc.update("insert into api_token(id, user_id, name, token_hash, token_prefix, scopes, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881201L, "남은", "h", "p", "repo", false)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881201L, "tkold", "옛")
+        insertWithId("insert into api_token(id, user_id, name, token_hash, token_prefix, scopes, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881201L, "남은", "h", "p", "repo", false)
         val row = DataTables.find("N4USER")!!.columns.joinToString(", ") { c ->
             val value = when (c.name) {
                 "id" -> "881201"
@@ -277,8 +290,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `사용자는 있고 GPG 키 테이블이 없는 옛 파일을 가져오면 남아 있던 키는 비운다 (X-4)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881301L, "gkold", "옛")
-        jdbc.update("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881301L, "남은", "FP1", "KID1", "k", true)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881301L, "gkold", "옛")
+        insertWithId("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881301L, "남은", "FP1", "KID1", "k", true)
         val row = DataTables.find("N4USER")!!.columns.joinToString(", ") { c ->
             val value = when (c.name) {
                 "id" -> "881301"
@@ -298,9 +311,9 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `하위 키가 있는 GPG 키 행을 내보내고 다시 가져온다 (X-4)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881302L, "gkrt", "왕복")
-        jdbc.update("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, emails, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 11L, 881302L, "주", "FPA", "KIDA", "armored", "a@example.com", true)
-        jdbc.update("insert into gpg_key(id, user_id, parent_id, fingerprint, key_id, can_sign, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 12L, 881302L, 11L, "FPB", "KIDB", true)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881302L, "gkrt", "왕복")
+        insertWithId("insert into gpg_key(id, user_id, name, fingerprint, key_id, public_key, emails, can_sign, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 11L, 881302L, "주", "FPA", "KIDA", "armored", "a@example.com", true)
+        insertWithId("insert into gpg_key(id, user_id, parent_id, fingerprint, key_id, can_sign, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 12L, 881302L, 11L, "FPB", "KIDB", true)
         val bytes = exportBytes()
         jdbc.update("delete from gpg_key where parent_id is not null"); jdbc.update("delete from gpg_key")
         service.import(ByteArrayInputStream(bytes))
@@ -317,10 +330,10 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `SSH 키와 배포 키를 내보내고 다시 가져온다 (X-3)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881303L, "skrt", "왕복")
-        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881304L, "skrt-project", "skrt")
-        jdbc.update("insert into ssh_key(id, user_id, name, fingerprint, key_type, public_key, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 21L, 881303L, "노트북", "SHA256:RT1", "ssh-ed25519", "ssh-ed25519 AAAA")
-        jdbc.update("insert into deploy_key(id, project_id, name, fingerprint, key_type, public_key, read_only, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 22L, 881304L, "배포", "SHA256:RT2", "ssh-ed25519", "ssh-ed25519 BBBB", false)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881303L, "skrt", "왕복")
+        insertWithId("insert into project(id, name, owner) values (?, ?, ?)", 881304L, "skrt-project", "skrt")
+        insertWithId("insert into ssh_key(id, user_id, name, fingerprint, key_type, public_key, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 21L, 881303L, "노트북", "SHA256:RT1", "ssh-ed25519", "ssh-ed25519 AAAA")
+        insertWithId("insert into deploy_key(id, project_id, name, fingerprint, key_type, public_key, read_only, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 22L, 881304L, "배포", "SHA256:RT2", "ssh-ed25519", "ssh-ed25519 BBBB", false)
         val bytes = exportBytes()
         jdbc.update("delete from ssh_key"); jdbc.update("delete from deploy_key")
         service.import(ByteArrayInputStream(bytes))
@@ -338,10 +351,10 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `2단계 인증 데이터를 내보내고 다시 가져온다 (X-2)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881311L, "tfrt", "왕복")
-        jdbc.update("insert into two_factor_credential(id, user_id, type, name, secret_encrypted, confirmed, last_used_step, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 31L, 881311L, "TOTP", "TOTP", "v1.iv.ct", true, 55L)
-        jdbc.update("insert into two_factor_backup_code(id, user_id, code_hash, created_date) values (?, ?, ?, current_timestamp)", 32L, 881311L, "hash1")
-        jdbc.update("insert into known_device(id, user_id, token_hash, name, ip, created_date, expires_date) values (?, ?, ?, ?, ?, current_timestamp, current_timestamp)", 33L, 881311L, "tok1", "Firefox", "10.0.0.1")
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881311L, "tfrt", "왕복")
+        insertWithId("insert into two_factor_credential(id, user_id, type, name, secret_encrypted, confirmed, last_used_step, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 31L, 881311L, "TOTP", "TOTP", "v1.iv.ct", true, 55L)
+        insertWithId("insert into two_factor_backup_code(id, user_id, code_hash, created_date) values (?, ?, ?, current_timestamp)", 32L, 881311L, "hash1")
+        insertWithId("insert into known_device(id, user_id, token_hash, name, ip, created_date, expires_date) values (?, ?, ?, ?, ?, current_timestamp, current_timestamp)", 33L, 881311L, "tok1", "Firefox", "10.0.0.1")
         val bytes = exportBytes()
         jdbc.update("delete from known_device"); jdbc.update("delete from two_factor_backup_code"); jdbc.update("delete from two_factor_credential")
         service.import(ByteArrayInputStream(bytes))
@@ -358,8 +371,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `OAuth 앱을 내보내고 다시 가져온다 (X-1)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881411L, "oarnd", "왕복")
-        jdbc.update("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 41L, "yona_app_rt", "왕복 앱", "https://a.example/cb", true, "hash-rt", "read:user", "USER", "USER", 881411L)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881411L, "oarnd", "왕복")
+        insertWithId("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 41L, "yona_app_rt", "왕복 앱", "https://a.example/cb", true, "hash-rt", "read:user", "USER", "USER", 881411L)
         val bytes = exportBytes()
         jdbc.update("delete from oauth_client")
         service.import(ByteArrayInputStream(bytes))
@@ -370,10 +383,10 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `사내 로그인 설정(LDAP, OIDC, SAML 2)을 내보내고 다시 가져온다 (X-16, D-82)`() {
         jdbc.update("delete from ldap_settings"); jdbc.update("delete from oidc_sso_settings"); jdbc.update("delete from saml2_sso_settings")
-        jdbc.update("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, login_property, use_email_base_login, fallback_to_local_login, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", true, "ldaps", "ldap.rt.example", "636", "ou=rt,dc=example", "uid", false, true)
-        jdbc.update("insert into oidc_sso_settings(id, enabled, display_name, issuer_uri, client_id, client_secret, scopes, auto_create, link_by_email, clock_skew_seconds, discovery_json, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
+        insertWithId("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, login_property, use_email_base_login, fallback_to_local_login, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", true, "ldaps", "ldap.rt.example", "636", "ou=rt,dc=example", "uid", false, true)
+        insertWithId("insert into oidc_sso_settings(id, enabled, display_name, issuer_uri, client_id, client_secret, scopes, auto_create, link_by_email, clock_skew_seconds, discovery_json, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
             true, "왕복 OIDC", "https://idp.rt.example", "rt-client", "v1.iv.secret", "openid email", true, true, 90, "{\"issuer\":\"https://idp.rt.example\"}")
-        jdbc.update("insert into saml2_sso_settings(id, enabled, display_name, idp_entity_id, idp_sso_url, idp_certificates, sp_private_key, sp_certificate, initiate_enabled, sign_requests, clock_skew_seconds, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
+        insertWithId("insert into saml2_sso_settings(id, enabled, display_name, idp_entity_id, idp_sso_url, idp_certificates, sp_private_key, sp_certificate, initiate_enabled, sign_requests, clock_skew_seconds, updated_date) values (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)",
             true, "왕복 SAML", "https://idp.rt.example/metadata", "https://idp.rt.example/sso", "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----", "v1.iv.key", "-----BEGIN CERTIFICATE-----\nBBB\n-----END CERTIFICATE-----", true, false, 45)
         val bytes = exportBytes()
         jdbc.update("delete from ldap_settings"); jdbc.update("delete from oidc_sso_settings"); jdbc.update("delete from saml2_sso_settings")
@@ -391,7 +404,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `사내 로그인 설정 테이블이 없는 옛 파일을 가져와도 지금 설정은 그대로이다 (X-16)`() {
         jdbc.update("delete from ldap_settings")
-        jdbc.update("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, updated_date) values (1, ?, ?, ?, ?, ?, current_timestamp)", true, "ldap", "keep.example", "389", "dc=keep")
+        insertWithId("insert into ldap_settings(id, enabled, protocol, host, port, base_dn, updated_date) values (1, ?, ?, ?, ?, ?, current_timestamp)", true, "ldap", "keep.example", "389", "dc=keep")
         import("""{"label": [{"id": 73, "name": "old", "category": null}]}""")
         assertEquals("keep.example", jdbc.queryForObject("select host from ldap_settings where id = 1", String::class.java))
         jdbc.update("delete from ldap_settings")
@@ -399,13 +412,13 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `LFS 잠금과 조직 OAuth 정책과 승인을 내보내고 다시 가져온다 (X-8, X-39)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881511L, "lfsrt", "잠금")
-        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881512L, "lfsrt", "lfsrt")
-        jdbc.update("insert into organization(id, name, descr, created) values (?, ?, null, current_timestamp)", 881513L, "orgrt")
-        jdbc.update("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 881514L, "yona_app_lfsrt", "앱", "https://a.example/cb", true, "h", "read:user", "USER", "USER", 881511L)
-        jdbc.update("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, ref_name, locked_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 61L, 881512L, "a/b.psd", "hash-rt-1", 881511L, "refs/heads/master")
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881511L, "lfsrt", "잠금")
+        insertWithId("insert into project(id, name, owner) values (?, ?, ?)", 881512L, "lfsrt", "lfsrt")
+        insertWithId("insert into organization(id, name, descr, created) values (?, ?, null, current_timestamp)", 881513L, "orgrt")
+        insertWithId("insert into oauth_client(id, client_id, name, redirect_uris, confidential, secret_hash, allowed_scopes, registration, owner_type, owner_id, created_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)", 881514L, "yona_app_lfsrt", "앱", "https://a.example/cb", true, "h", "read:user", "USER", "USER", 881511L)
+        insertWithId("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, ref_name, locked_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 61L, 881512L, "a/b.psd", "hash-rt-1", 881511L, "refs/heads/master")
         jdbc.update("insert into organization_oauth_policy(organization_id, restricted, updated_date, updated_by) values (?, ?, current_timestamp, ?)", 881513L, true, 881511L)
-        jdbc.update("insert into organization_oauth_approval(id, organization_id, client_row_id, state, decided_by, decided_date) values (?, ?, ?, ?, ?, current_timestamp)", 62L, 881513L, 881514L, "APPROVED", 881511L)
+        insertWithId("insert into organization_oauth_approval(id, organization_id, client_row_id, state, decided_by, decided_date) values (?, ?, ?, ?, ?, current_timestamp)", 62L, 881513L, 881514L, "APPROVED", 881511L)
         val bytes = exportBytes()
         jdbc.update("delete from lfs_lock"); jdbc.update("delete from organization_oauth_policy"); jdbc.update("delete from organization_oauth_approval")
         service.import(ByteArrayInputStream(bytes))
@@ -424,9 +437,9 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `사용자와 조직이 있는 옛 파일을 가져오면 남아 있던 LFS 잠금과 조직 OAuth 행은 비운다 (X-8, X-39)`() {
-        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881611L, "oldlfs", "옛")
-        jdbc.update("insert into project(id, name, owner) values (?, ?, ?)", 881612L, "oldlfs", "oldlfs")
-        jdbc.update("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, locked_date) values (?, ?, ?, ?, ?, current_timestamp)", 63L, 881612L, "z", "hash-old", 881611L)
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881611L, "oldlfs", "옛")
+        insertWithId("insert into project(id, name, owner) values (?, ?, ?)", 881612L, "oldlfs", "oldlfs")
+        insertWithId("insert into lfs_lock(id, project_id, path, path_hash, owner_user_id, locked_date) values (?, ?, ?, ?, ?, current_timestamp)", 63L, 881612L, "z", "hash-old", 881611L)
         import("""{"N4USER": [{"id": 881611, "login_id": "oldlfs", "name": "옛"}], "PROJECT": [], "ORGANIZATION": []}""")
         assertEquals(0, count("lfs_lock"))
     }
@@ -483,7 +496,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
 
     @Test
     fun `내보낸 파일을 가져오면 모든 테이블이 그대로 돌아온다`() {
-        jdbc.update("insert into organization(name, descr, created) values ('rt-org', '설명', ?)", Timestamp(1_700_000_000_000L))
+        jdbc.update("insert into organization(name, descr, created) values ('rt-org', ?, ?)", "설명", Timestamp(1_700_000_000_000L))
         jdbc.update("insert into label(name, category) values ('rt-label', 'cat')")
         jdbc.update("insert into attachment(name, hash, container_type, mime_type, size, container_id, created_date) values ('rt.txt', 'h2', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
         val before = exportBytes()
