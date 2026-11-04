@@ -38,6 +38,7 @@
 <th:block th:replace="~{common/login-dialog :: loginDialog}"></th:block>
 </th:block>
 
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Csrf.js}"></script>
 <script type="text/javascript" th:src="@{/messages.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/yona-common.js}"></script>
 <!--/* Bootstrap 5 번들(Popper 2 포함). jQuery가 먼저 있으면 `$().modal()` 같은 jQuery 인터페이스도 함께 등록된다(X-38d). */-->

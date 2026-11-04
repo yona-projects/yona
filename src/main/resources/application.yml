@@ -105,6 +105,12 @@ server:
   tomcat:
     mbeanregistry:
       enabled: true
+  # 세션 쿠키는 스크립트가 읽지 못하게 하고, 다른 사이트에서 시작한 POST에는 보내지 않는다(R-02). 외부 사이트에서 링크로 들어오는 GET에는 보낸다
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
 
 # SpringDoc이 기동마다 "운영에서는 이 엔드포인트를 끄라"는 안내를 WARN으로 남긴다. 로그 대시보드(Loki)의 WARN 이상 패널이 이 안내로만 채워져 진짜 경고가 묻히므로
 # 안내 로그의 수준만 올린다(엔드포인트는 그대로 켜 둔다. v1.6 동작이 아니라 추가 항목의 OpenAPI 문서 X-31이다).

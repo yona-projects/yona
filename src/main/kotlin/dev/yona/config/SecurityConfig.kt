@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.firewall.HttpFirewall
 import org.springframework.security.web.firewall.StrictHttpFirewall
 import org.springframework.security.web.context.SecurityContextHolderFilter
@@ -53,7 +55,12 @@ class SecurityConfig {
         rememberMe: dev.yona.security.RememberMeCookies
     ): SecurityFilterChain =
         http
-            .csrf { it.disable() }
+            .csrf { csrf ->
+                // 상태를 바꾸는 요청에는 쿠키(XSRF-TOKEN)와 같은 값을 헤더(X-XSRF-TOKEN)나 인자(_csrf)로 보내야 한다. v1.6은 요청 위조 방지가 없었다(R-02)
+                if (!properties.csrfProtection) csrf.disable()
+                else csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                    .requireCsrfProtectionMatcher(dev.yona.security.YonaCsrfMatcher)
+            }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
@@ -67,6 +74,7 @@ class SecurityConfig {
                 headers.cacheControl { it.disable() }
             }
             .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(dev.yona.security.CsrfCookieFilter(), org.springframework.security.web.csrf.CsrfFilter::class.java)
             .addFilterAfter(dev.yona.mcp.McpAccessFilter(siteSettings, oauthTokens, tokenFailures, audit), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.oauth2server.ProtectedResourceChallengeFilter(), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.security.AccessDeniedAuditFilter(audit), YonaAuthenticationFilter::class.java)
