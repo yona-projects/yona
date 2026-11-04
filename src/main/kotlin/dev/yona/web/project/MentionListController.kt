@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam
  * 편집기의 `@` 멘션 후보이다. v1.6 `ProjectApp.mentionList`(`app/controllers/ProjectApp.java:383-497`)에 해당한다.
  *
  * `mentionType=user`이면 사용자 후보, `issue`이면 이슈 후보를 `{"result": [...]}`로 돌려준다. 그 밖의 종류는 빈 객체이다.
- * v1.6은 읽기 권한을 확인하지 않아 비공개 프로젝트의 구성원 목록이 누구에게나 보였다. 편집기는 프로젝트를 읽을 수 있어야
- * 쓰는 화면이므로 읽기 권한을 요구한다([decisions.md] A-35).
+ * v1.6은 읽기 권한을 확인하지 않아 비공개 프로젝트의 구성원 목록과 이슈 제목이 누구에게나 보였다. 편집기는 프로젝트를 읽을 수 있어야
+ * 쓰는 화면이므로 읽기 권한을 요구한다([decisions.md] A-35, R-125). 없는 프로젝트는 다른 읽기 전용 화면처럼 접근 거절 응답이다.
  */
 @Controller
 @AnonymousCheck
@@ -41,6 +41,7 @@ class MentionListController(
 ) {
 
     @GetMapping("/{user}/{project}/mentionList")
+    @IsAllowed(Operation.READ)
     fun mentionList(
         @PathVariable("user") owner: String,
         @PathVariable("project") name: String,
@@ -49,11 +50,8 @@ class MentionListController(
         @RequestParam(name = "query", defaultValue = "") query: String,
         @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
     ): Any {
-        // v1.6 `mentionList`에는 읽기 권한 검사가 없다(`@AnonymousCheck`뿐). 익명도 비공개 프로젝트의 후보를 받고, 없는 프로젝트는 `mentionType`이
-        // 비어 있으면 `{}`(200)이며 `user`나 `issue`이면 `NullPointerException`으로 500이다(공식 v1.16.0으로 확인, R-125).
-        val project = projectService.findByOwnerAndProjectName(owner, name)
-            ?: return if (mentionType.equals("user", ignoreCase = true) || mentionType.equals("issue", ignoreCase = true)) throw NullPointerException("project")
-            else ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT).contentType(MediaType.APPLICATION_JSON).body(linkedMapOf<String, Any>())
+        // v1.6 `mentionList`에는 읽기 권한 검사가 없어 익명도 비공개 프로젝트의 후보를 받았다(R-125). 지금은 `@IsAllowed`가 프로젝트를 찾고 읽기 권한을 확인한다.
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val result = linkedMapOf<String, List<Map<String, String>>>()
 
         if (mentionType.equals("user", ignoreCase = true)) {

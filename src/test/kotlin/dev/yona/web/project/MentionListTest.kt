@@ -261,16 +261,19 @@ class MentionListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `읽기 권한 검사가 없어 익명도 비공개 프로젝트의 후보를 받는다 (v1_6 mentionList)`() {
+    fun `익명은 비공개 프로젝트의 멘션 후보를 받지 못한다 (R-125, v1_6은 읽기 권한 검사가 없었다)`() {
         val project = newProject(ProjectScope.PRIVATE)
-        mockMvc.perform(get("/${project.owner}/${project.name}/mentionList")).andExpect(status().isOk).andExpect(content().json("{}", true))
-        mockMvc.perform(get("/${project.owner}/${project.name}/mentionList").param("mentionType", "user")).andExpect(status().isOk).andExpect(jsonPath("$.result").isArray)
+        for (type in listOf("user", "issue")) {
+            val body = mockMvc.perform(get("/${project.owner}/${project.name}/mentionList").param("mentionType", type)).andReturn().response
+            org.junit.jupiter.api.Assertions.assertNotEquals(200, body.status, "type=$type")
+            org.junit.jupiter.api.Assertions.assertFalse(body.contentAsString.contains("\"result\""), body.contentAsString)
+        }
     }
 
     @Test
-    fun `없는 프로젝트는 종류가 없으면 빈 객체이고 user나 issue이면 500이다 (v1_6 널 참조)`() {
-        mockMvc.perform(get("/nobody/nothing/mentionList")).andExpect(status().isOk).andExpect(content().json("{}", true))
-        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "user")).andExpect(status().isInternalServerError)
-        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "issue")).andExpect(status().isInternalServerError)
+    fun `없는 프로젝트는 종류와 상관없이 접근 거절 응답이다 (v1_6은 빈 객체 또는 널 참조 500)`() {
+        mockMvc.perform(get("/nobody/nothing/mentionList")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "user")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "issue")).andExpect(status().isForbidden)
     }
 }
