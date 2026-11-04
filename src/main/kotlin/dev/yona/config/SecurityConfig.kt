@@ -49,7 +49,8 @@ class SecurityConfig {
         http: HttpSecurity, users: UserRepository, sessionUsers: dev.yona.security.SessionUserCache,
         apiTokens: dev.yona.domain.apitoken.ApiTokenService, tokenFailures: dev.yona.security.TokenFailureLimiter,
         audit: dev.yona.domain.audit.AuditBoundary, properties: YonaProperties, gate: dev.yona.security.TwoFactorGate,
-        oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService, siteSettings: dev.yona.domain.site.SiteSettingService
+        oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService, siteSettings: dev.yona.domain.site.SiteSettingService,
+        rememberMe: dev.yona.security.RememberMeCookies
     ): SecurityFilterChain =
         http
             .csrf { it.disable() }
@@ -65,7 +66,7 @@ class SecurityConfig {
                 }
                 headers.cacheControl { it.disable() }
             }
-            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
             .addFilterAfter(dev.yona.mcp.McpAccessFilter(siteSettings, oauthTokens, tokenFailures, audit), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.oauth2server.ProtectedResourceChallengeFilter(), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.security.AccessDeniedAuditFilter(audit), YonaAuthenticationFilter::class.java)

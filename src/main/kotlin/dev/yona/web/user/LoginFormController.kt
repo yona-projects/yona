@@ -46,7 +46,7 @@ class LoginFormController(
         socialSession.current(request)?.takeIf { !socialProviders.blockedByEnterpriseLogin() }?.let { current ->
             val resumed = social.resume(dev.yona.domain.social.SocialIdentity(current.provider, current.providerUserId, null, null)).user
             if (resumed != null && twoFactorLogin.required(resumed, request)) {
-                twoFactorLogin.begin(request, resumed, "social", true, if (redirectUrl.isNullOrEmpty()) "/" else redirectUrl)
+                twoFactorLogin.begin(request, resumed, "social", false, if (redirectUrl.isNullOrEmpty()) "/" else redirectUrl)
                 return RedirectSupport.see(request, response, dev.yona.security.TwoFactorLogin.CHALLENGE_PATH)
             }
             resumed?.let { loginSession.start(request, response, it) }

@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * v1.6 `UserApp.login`, `UserApp.logout`과 현재 사용자 식별(세션, remember-me 쿠키, API 토큰)을 검증한다.
@@ -199,15 +200,17 @@ class LoginControllerTest : AbstractIntegrationTest() {
         val user = newUser("gina")
         mockMvc.perform(
             post("/users/login").param("loginIdOrEmail", "gina").param("password", "1234").param("rememberMe", "true")
-        ).andExpect(cookie().value("yobi.token", "gina:${user.password}"))
-            .andExpect(cookie().maxAge("yobi.token", 30 * 24 * 60 * 60))
+        ).andExpect(cookie().maxAge("yobi.token", 30 * 24 * 60 * 60)).andExpect(cookie().httpOnly("yobi.token", true)).andReturn().response.getCookie("yobi.token")!!.also {
+            // v1.6은 값이 `로그인ID:해시된 비밀번호`라 쿠키가 새면 해시가 그대로 드러났다(R-05)
+            assertTrue(it.value.startsWith("gina:") && !it.value.contains(user.password!!), it.value)
+        }
     }
 
     @Test
     fun `체크박스가 보내는 on도 로그인 유지로 읽는다 (Play 폼 바인딩)`() {
-        val user = newUser("gina2")
+        newUser("gina2")
         mockMvc.perform(post("/users/login").param("loginIdOrEmail", "gina2").param("password", "1234").param("rememberMe", "on"))
-            .andExpect(cookie().value("yobi.token", "gina2:${user.password}"))
+            .andExpect(cookie().exists("yobi.token"))
     }
 
     @Test
@@ -219,31 +222,54 @@ class LoginControllerTest : AbstractIntegrationTest() {
 
     @Test
     fun `yobi_token 쿠키로 사용자가 복원된다`() {
-        val user = newUser("ivan")
-        assertEquals("ivan", whoAmI(null, Cookie("yobi.token", "ivan:${user.password}")))
+        newUser("ivan")
+        assertEquals("ivan", whoAmI(null, issued("ivan")))
+    }
+
+    /** 로그인 유지를 골라 로그인하고 받은 쿠키를 돌려준다. */
+    private fun issued(loginId: String): Cookie =
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", loginId).param("password", "1234").param("rememberMe", "true")).andReturn().response.getCookie("yobi.token")!!
+
+    @Test
+    fun `옛 형식이나 바뀐 쿠키는 통하지 않고 지워진다 (R-05)`() {
+        val user = newUser("olga")
+        // v1.6 형식(로그인ID:해시된 비밀번호)과 값을 바꾼 쿠키
+        for (bad in listOf(Cookie("yobi.token", "olga:${user.password}"), Cookie("yobi.token", issued("olga").value.dropLast(3) + "abc"))) {
+            val result = mockMvc.perform(get("/__test/whoami").cookie(bad)).andReturn()
+            assertEquals("anonymous", result.response.contentAsString)
+            assertEquals(0, result.response.getCookie("yobi.token")?.maxAge)
+        }
     }
 
     @Test
-    fun `로그인 동안 사이트 관리자가 되어도 이미 판정한 화면에는 반영되지 않고 다시 로그인하면 반영된다 (v1_6 User_siteManager 기억)`() {
+    fun `비밀번호를 바꾸면 이전 쿠키는 통하지 않는다 (R-05)`() {
+        val user = newUser("pam")
+        val cookie = issued("pam")
+        assertEquals("pam", whoAmI(null, cookie))
+        val salt = dev.yona.security.LegacyPasswordHasher.generateSalt()
+        user.passwordSalt = salt; user.password = dev.yona.security.LegacyPasswordHasher.hash("new-password", salt); users.save(user)
+        assertEquals("anonymous", whoAmI(null, cookie))
+    }
+
+    @Test
+    fun `로그인 동안 사이트 관리자가 되면 바로 반영된다 (R-106, v1_6은 처음 판정한 값을 기억했다)`() {
         val user = newUser("sam")
         val session = MockHttpSession()
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "sam").param("password", "1234"))
         fun hasAdminLink() = mockMvc.perform(get("/projects").session(session)).andReturn().response.contentAsString.contains("/sites/userList")
         assertEquals(false, hasAdminLink())
         siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = user))
-        assertEquals(false, hasAdminLink(), "v1.6은 처음 계산한 사이트 관리자 여부를 로그인 동안 기억한다")
-        mockMvc.perform(post("/users/login").session(MockHttpSession().also { it.clearAttributes() }).param("loginIdOrEmail", "sam").param("password", "1234"))
-        assertEquals(true, hasAdminLink(), "다시 로그인하면 서버 캐시 항목이 새로 만들어져 반영된다")
+        assertEquals(true, hasAdminLink(), "권한이 바뀌면 다시 로그인하지 않아도 바로 반영된다")
     }
 
     @Test
-    fun `서버 캐시에서 사라진 사용자의 세션은 무효이다 (v1_6 getUserFromSession의 캐시 미스)`() {
+    fun `서버 캐시에서 밀려난 사용자의 세션도 계정이 정상이면 유효하다 (R-106, v1_6은 무효가 되어 다시 로그인해야 했다)`() {
         val user = newUser("cora")
         val session = MockHttpSession()
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "cora").param("password", "1234"))
         assertEquals("cora", whoAmI(session))
         sessionUsers.invalidate(requireNotNull(user.id))
-        assertEquals("anonymous", whoAmI(session))
+        assertEquals("cora", whoAmI(session))
     }
 
     @Test
@@ -259,37 +285,43 @@ class LoginControllerTest : AbstractIntegrationTest() {
     @Test
     fun `로그인 유지 쿠키로 복원되면 서버 캐시에도 기억된다 (v1_6 initTokenUser의 addUserInfoToSession)`() {
         val user = newUser("cora3")
-        whoAmI(null, Cookie("yobi.token", "cora3:${user.password}"))
+        whoAmI(null, issued("cora3"))
         assertEquals(true, sessionUsers.contains(requireNotNull(user.id)))
     }
 
     @Test
-    fun `잠기거나 지워진 계정도 yobi_token 쿠키로는 계속 로그인 상태이다 (v1_6 Global 초기화가 만든 요청 캐시)`() {
-        // v1.6은 요청마다 Global이 쿠키 사용자를 TOKEN_USER에 넣고 getUserFromContext가 그 캐시를 잠금 검사 없이 돌려준다
-        val locked = newUser("lara", state = UserState.LOCKED)
-        val deleted = newUser("dora", state = UserState.DELETED)
-        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yobi.token", "lara:${locked.password}"))).andReturn()
-        assertEquals("lara", result.response.contentAsString)
-        assertEquals(null, result.response.getCookie("yobi.token"), "유효한 쿠키는 지우지 않는다")
-        assertEquals("dora", whoAmI(null, Cookie("yobi.token", "dora:${deleted.password}")))
+    fun `잠기거나 지워진 계정은 yobi_token 쿠키로 로그인되지 않고 쿠키가 지워진다 (R-107)`() {
+        // v1.6은 요청마다 쿠키 사용자를 캐시에 넣고 잠금 검사 없이 돌려주어, 잠기거나 지워진 계정이 쿠키로 계속 로그인 상태였다
+        val locked = newUser("lara"); val deleted = newUser("dora")
+        val lockedCookie = issued("lara"); val deletedCookie = issued("dora")
+        locked.state = UserState.LOCKED; users.save(locked)
+        deleted.state = UserState.DELETED; users.save(deleted)
+        for (cookie in listOf(lockedCookie, deletedCookie)) {
+            val result = mockMvc.perform(get("/__test/whoami").cookie(cookie)).andReturn()
+            assertEquals("anonymous", result.response.contentAsString)
+            assertEquals(0, result.response.getCookie("yobi.token")?.maxAge)
+        }
     }
 
     @Test
     fun `잠긴 계정의 쿠키 로그인은 세션에 기록되지 않는다 (v1_6 addUserInfoToSession은 잠긴 계정을 건너뛴다)`() {
-        val locked = newUser("lena", state = UserState.LOCKED)
-        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yobi.token", "lena:${locked.password}"))).andReturn()
-        assertEquals("lena", result.response.contentAsString)
-        // 쿠키 없이 같은 세션으로 다시 요청하면 익명이다
+        val locked = newUser("lena")
+        val cookie = issued("lena")
+        locked.state = UserState.LOCKED; users.save(locked)
+        // 잠긴 계정은 쿠키로 로그인되지 않는다(R-107). v1.6은 요청에서는 로그인 상태로 보았다
+        val result = mockMvc.perform(get("/__test/whoami").cookie(cookie)).andReturn()
+        assertEquals("anonymous", result.response.contentAsString)
         assertEquals("anonymous", whoAmI(result.request.getSession(false) as MockHttpSession?))
     }
 
     @Test
-    fun `잠긴 사용자의 세션은 무효이지만 쿠키가 있으면 쿠키로 다시 식별된다`() {
+    fun `잠긴 사용자의 세션은 무효이고 쿠키로도 다시 식별되지 않는다 (R-107)`() {
         val user = newUser("sara")
         val session = MockHttpSession()
-        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "sara").param("password", "1234"))
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "sara").param("password", "1234").param("rememberMe", "true"))
+        val cookie = issued("sara")
         user.state = UserState.LOCKED; users.save(user)
-        assertEquals("sara", whoAmI(session, Cookie("yobi.token", "sara:${user.password}")))
+        assertEquals("anonymous", whoAmI(session, cookie))
     }
 
     @Test

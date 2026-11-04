@@ -143,8 +143,8 @@ class SocialLoginTest : AbstractIntegrationTest() {
         val user = assertNotNull(users.findByLoginId("octo$sequence"))
         assertEquals("옥토$sequence", user.name)
         assertEquals(UserState.ACTIVE, user.state)
-        val cookie = assertNotNull(result.response.getCookie("yobi.token"))
-        assertEquals("octo$sequence:${user.password}", cookie.value)
+        // 소셜 로그인은 로그인 유지를 고르는 화면이 없으므로 로그인 유지 쿠키를 남기지 않는다. v1.6은 항상 남겼다(R-59-4)
+        assertNull(result.response.getCookie("yobi.token"))
         assertTrue(isLoggedIn(session))
     }
 
@@ -159,7 +159,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `2단계 인증을 켠 사용자는 소셜 로그인 뒤에 코드를 확인해야 하고 그 뒤에 로그인 유지 쿠키가 생긴다 (X-2)`() {
+    fun `2단계 인증을 켠 사용자는 소셜 로그인 뒤에 코드를 확인해야 하고 쿠키는 만들지 않는다 (X-2, R-59-4)`() {
         githubUser = """{"id":${300 + ++sequence},"login":"tfa$sequence","name":"이단계","email":"tfa$sequence@example.com"}"""
         signIn()
         val user = assertNotNull(users.findByLoginId("tfa$sequence"))
@@ -169,7 +169,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
         assertEquals(null, first.response.getCookie("yobi.token"), "코드를 확인하기 전에는 쿠키가 없다")
         assertTrue(!isLoggedIn(session))
         val done = mockMvc.perform(post("/users/login/2fa").session(session).param("code", nowCode(secret))).andExpect(status().isSeeOther).andReturn()
-        assertNotNull(done.response.getCookie("yobi.token"))
+        assertNull(done.response.getCookie("yobi.token"))
         assertTrue(isLoggedIn(session))
     }
 

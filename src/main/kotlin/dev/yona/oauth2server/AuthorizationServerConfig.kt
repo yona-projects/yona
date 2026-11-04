@@ -56,7 +56,7 @@ class AuthorizationServerConfig {
     fun authorizationServerSecurityFilterChain(
         http: HttpSecurity, users: UserRepository, sessionUsers: SessionUserCache, apiTokens: ApiTokenService, tokenFailures: TokenFailureLimiter, audit: AuditBoundary, gate: TwoFactorGate, oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
         registeredClients: YonaRegisteredClientRepository, authorizations: YonaOAuth2AuthorizationService, consents: YonaOAuth2AuthorizationConsentService,
-        siteSettings: dev.yona.domain.site.SiteSettingService, idTokenGenerator: org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.server.authorization.token.JwtGenerator>
+        siteSettings: dev.yona.domain.site.SiteSettingService, rememberMe: dev.yona.security.RememberMeCookies, idTokenGenerator: org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.server.authorization.token.JwtGenerator>
     ): SecurityFilterChain {
         val configurer = OAuth2AuthorizationServerConfigurer()
         http.securityMatcher(configurer.endpointsMatcher)
@@ -77,7 +77,7 @@ class AuthorizationServerConfig {
                 val entryPoints = linkedMapOf<RequestMatcher, AuthenticationEntryPoint>(PathPatternRequestMatcher.withDefaults().matcher("/oauth2/authorize") to OAuthLoginEntryPoint())
                 exceptions.authenticationEntryPoint(DelegatingAuthenticationEntryPoint(entryPoints).also { it.setDefaultEntryPoint(Http403ForbiddenEntryPoint()) })
             }
-            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
         return http.build()
     }
 

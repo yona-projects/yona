@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component
  * 사이트 관리자, 프로젝트 매니저, 조직 역할 판정의 단일 진입점이다. v1.6 `User.isSiteManager`, `isManagerOf(Project)`,
  * `isMemberOf(Organization, RoleType)`, `isAdminOf`에 해당한다.
  *
- * v1.6은 이 세 판정을 세션 사용자 객체에 처음 계산한 값으로 기억한다([SessionUserCache]). 따라서 현재 요청의 **세션 사용자**에 대한
- * 질문은 기억된 값이 있으면 DB를 다시 보지 않고 그 값을 돌려준다. 승격이나 해임이 로그인 동안 반영되지 않는 것은 v1.6의 동작이다
- * (refactoring-backlog.md R-106).
+ * v1.6은 이 세 판정을 세션 사용자 객체에 처음 계산한 값으로 기억해 승격이나 해임이 로그인 동안 반영되지 않았다(R-106). 지금은 요청 하나 안에서만
+ * 기억하므로 현재 요청의 **세션 사용자**에 대한 반복 질문은 DB를 한 번만 보고, 다음 요청에는 바뀐 권한이 바로 반영된다.
  *
  * 다음은 기억하지 않고 매번 DB에서 조회한다. v1.6도 새로 읽은 인스턴스나 정적 메서드를 쓰는 경우이다.
  * - API 토큰 헤더로 식별한 사용자: 요청마다 DB에서 새로 읽는다(`User.findUserIfTokenExist`).
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class SessionPermissions(
-    private val sessionUsers: SessionUserCache,
     private val siteAdmins: SiteAdminRepository,
     private val projectUsers: ProjectUserRepository,
     private val organizationUsers: OrganizationUserRepository
@@ -62,6 +60,10 @@ class SessionPermissions(
     private fun memoOf(userId: Long): SessionUserMemo? {
         val authentication = SecurityContextHolder.getContext().authentication as? YonaAuthentication ?: return null
         if (authentication.viaToken || authentication.principal.userId != userId) return null
-        return sessionUsers.memoOf(userId)
+        // 판정은 요청 하나 안에서만 기억한다. v1.6은 로그인 동안 기억해 승격과 해임이 반영되지 않았다(R-106)
+        val attributes = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() ?: return null
+        val key = "dev.yona.security.requestMemo.$userId"
+        return attributes.getAttribute(key, org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST) as? SessionUserMemo
+            ?: SessionUserMemo().also { attributes.setAttribute(key, it, org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST) }
     }
 }

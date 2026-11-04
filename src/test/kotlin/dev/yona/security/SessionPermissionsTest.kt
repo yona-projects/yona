@@ -47,6 +47,11 @@ class SessionPermissionsTest : AbstractIntegrationTest() {
     @AfterEach
     fun clearContext() = SecurityContextHolder.clearContext()
 
+    /** 다음 요청이 시작된 것처럼 요청 범위 기억을 비운다. 시험 환경은 시험 하나를 요청 하나로 두기 때문이다. */
+    private fun nextRequest() = org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+        org.springframework.web.context.request.ServletRequestAttributes(org.springframework.mock.web.MockHttpServletRequest())
+    )
+
     private fun newUser(): User =
         users.save(User(loginId = "sp${++sequence}", name = "sp$sequence", email = "sp$sequence@example.com", state = UserState.ACTIVE))
 
@@ -60,14 +65,14 @@ class SessionPermissionsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이트 관리자 여부는 처음 계산한 값이 로그인 동안 유지된다`() {
+    fun `사이트 관리자 여부는 바로 반영된다 (R-106, v1_6은 처음 계산한 값이 로그인 동안 유지되었다)`() {
         val user = newUser()
         asSessionUser(user)
         assertEquals(false, permissions.siteManager(user.id))
         siteAdmins.save(SiteAdmin(admin = user))
-        assertEquals(false, permissions.siteManager(user.id), "v1.6은 기억한 판정을 그대로 돌려준다")
-        sessionUsers.remember(user.id!!)
-        assertEquals(true, permissions.siteManager(user.id), "항목이 교체되면 새로 계산한다")
+        assertEquals(false, permissions.siteManager(user.id), "같은 요청 안에서는 처음 계산한 값을 쓴다")
+        nextRequest()
+        assertEquals(true, permissions.siteManager(user.id), "다음 요청에는 권한이 바뀐 것이 바로 반영된다")
     }
 
     @Test
@@ -104,7 +109,8 @@ class SessionPermissionsTest : AbstractIntegrationTest() {
         assertEquals(false, permissions.projectManager(user.id, project.id))
         assertEquals(false, permissions.projectMember(user.id, project.id))
         projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
-        assertEquals(false, permissions.projectManager(user.id, project.id), "기억한 판정이 유지된다")
+        nextRequest()
+        assertEquals(true, permissions.projectManager(user.id, project.id), "다음 요청에는 권한이 바뀐 것이 바로 반영된다")
         assertEquals(true, permissions.projectMember(user.id, project.id), "프로젝트 멤버 여부는 매번 조회한다")
         projectUsers.save(ProjectUser(user = user, project = other, role = roles.findById(RoleType.MANAGER.id).get()))
         assertEquals(true, permissions.projectManager(user.id, other.id), "다른 프로젝트는 처음 계산한다")
@@ -117,9 +123,8 @@ class SessionPermissionsTest : AbstractIntegrationTest() {
         asSessionUser(user)
         assertEquals(false, permissions.organizationRole(user.id, org.id, RoleType.ORG_ADMIN))
         organizationUsers.save(OrganizationUser(user = user, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))
-        assertEquals(false, permissions.organizationRole(user.id, org.id, RoleType.ORG_ADMIN))
-        assertEquals(false, permissions.organizationRole(user.id, org.id, RoleType.ORG_MEMBER), "역할이 다르면 처음 계산한 값이다")
-        sessionUsers.remember(user.id!!)
-        assertEquals(true, permissions.organizationRole(user.id, org.id, RoleType.ORG_ADMIN))
+        nextRequest()
+        assertEquals(true, permissions.organizationRole(user.id, org.id, RoleType.ORG_ADMIN), "다음 요청에는 권한이 바뀐 것이 바로 반영된다")
+        assertEquals(false, permissions.organizationRole(user.id, org.id, RoleType.ORG_MEMBER))
     }
 }

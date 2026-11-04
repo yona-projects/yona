@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * 3. remember-me 쿠키 `yobi.token`(`로그인ID:해시된패스워드`). 성공하면 세션에도 기록한다.
  *    값이 잘못되었으면 쿠키를 지운다. 잠기거나 지워진 계정은 v1.6처럼 쿠키가 유효한 동안 로그인 상태로 두되 세션에는 기록하지 않는다.
  *
- * 쿠키에 해시된 패스워드가 그대로 들어가는 것은 v1.6의 설계이며 그대로 따른다([refactoring-backlog.md] R-05).
+ * 쿠키는 서명한 값이며 비밀번호 해시를 담지 않는다([RememberMeCookies]). v1.6은 해시된 비밀번호를 그대로 담았다(R-05).
  */
 class YonaAuthenticationFilter(
     private val users: UserRepository,
@@ -31,7 +31,8 @@ class YonaAuthenticationFilter(
     private val failures: TokenFailureLimiter,
     private val audit: dev.yona.domain.audit.AuditBoundary,
     private val gate: TwoFactorGate,
-    private val oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService
+    private val oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
+    private val rememberMe: RememberMeCookies
 ) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -105,18 +106,21 @@ class YonaAuthenticationFilter(
     private fun hasValidSession(): Boolean {
         val authentication = SecurityContextHolder.getContext().authentication as? YonaAuthentication ?: return false
         val user = users.findById(authentication.principal.userId).orElse(null)
-        if (user == null || user.state.isLockedOut() || !sessionUsers.contains(authentication.principal.userId)) {
+        if (user == null || user.state.isLockedOut()) {
             SecurityContextHolder.clearContext()
             return false
         }
+        // 서버 캐시에서 밀려난 사용자의 세션도 계정이 정상이면 유효하다. v1.6은 최대 2000명을 넘으면 세션이 무효가 되어 다시 로그인해야 했다(R-106)
+        if (!sessionUsers.contains(authentication.principal.userId)) sessionUsers.remember(authentication.principal.userId)
         return true
     }
 
     private fun authenticateByRememberMeCookie(request: HttpServletRequest, response: HttpServletResponse): Boolean {
         val cookie = request.cookies?.firstOrNull { it.name == REMEMBER_ME_COOKIE } ?: return false
-        val parts = cookie.value.split(TOKEN_SEPARATOR).filter { it.isNotEmpty() }
-        val user = if (parts.size == TOKEN_LENGTH) users.findByLoginId(parts[0]) else null
-        if (user == null || user.password != parts[1]) {
+        val user = RememberMeCookies.loginIdOf(cookie.value)?.let { users.findByLoginId(it) }
+        // 서명이 맞지 않거나 기간이 지났거나 비밀번호가 바뀌었거나 옛 형식이면 쿠키를 지운다. 잠기거나 지워진 계정도 쿠키로 로그인되지 않는다.
+        // v1.6은 쿠키의 해시가 비밀번호와 같기만 하면 잠기거나 지워진 계정도 로그인 상태로 보았다(R-05, R-107)
+        if (user == null || user.state.isLockedOut() || !rememberMe.verify(cookie.value, user)) {
             discardRememberMeCookie(response)
             return false
         }
@@ -126,11 +130,9 @@ class YonaAuthenticationFilter(
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = authentication
         SecurityContextHolder.setContext(context)
-        if (!user.state.isLockedOut()) {
-            securityContextRepository.saveContext(context, request, response)
-            // v1.6 initTokenUser: 세션이 비어 있는 쿠키 사용자는 addUserInfoToSession으로 서버 캐시에도 들어간다
-            sessionUsers.remember(requireNotNull(user.id))
-        }
+        securityContextRepository.saveContext(context, request, response)
+        // v1.6 initTokenUser: 세션이 비어 있는 쿠키 사용자는 addUserInfoToSession으로 서버 캐시에도 들어간다
+        sessionUsers.remember(requireNotNull(user.id))
         return true
     }
 
@@ -140,7 +142,6 @@ class YonaAuthenticationFilter(
 
         /** 쿠키 값의 구분자이다 (v1.6 `TOKEN_SEPARATOR`). */
         const val TOKEN_SEPARATOR = ":"
-        private const val TOKEN_LENGTH = 2
 
         /** remember-me 쿠키의 유효 기간(초)이다. 30일이다 (v1.6 `MAX_AGE`). */
         const val REMEMBER_ME_MAX_AGE = 30 * 24 * 60 * 60

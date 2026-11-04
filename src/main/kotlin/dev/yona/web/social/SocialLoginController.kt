@@ -176,13 +176,10 @@ class SocialLoginController(
         result.user?.let { user ->
             if (twoFactorLogin.required(user, request)) {
                 // 2단계 인증을 켠 사용자는 소셜 로그인 뒤에도 코드를 확인해야 한다. 로그인 유지 쿠키는 2단계를 마친 뒤에 만든다(X-2, D-69)
-                twoFactorLogin.begin(request, user, "social", true, socialSession.popOriginalUrl(request) ?: "/", result.flash.mapValues { it.value.toString() })
+                twoFactorLogin.begin(request, user, "social", false, socialSession.popOriginalUrl(request) ?: "/", result.flash.mapValues { it.value.toString() })
                 challenge = true
             } else {
-                response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
-                    maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
-                    path = "/"
-                })
+                // 소셜 로그인에는 로그인 유지를 고르는 곳이 없으므로 로그인 유지 쿠키를 남기지 않는다. v1.6은 항상 남겼다(R-59-4)
                 loginSession.start(request, response, user)
                 audit.loginSuccess(user, "social")
             }

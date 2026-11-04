@@ -41,6 +41,7 @@ class TwoFactorLoginTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var rememberMeCookies: dev.yona.security.RememberMeCookies
     @Autowired private lateinit var twoFactor: TwoFactorService
     @Autowired private lateinit var attempts: dev.yona.security.TwoFactorAttempts
 
@@ -205,7 +206,7 @@ class TwoFactorLoginTest : AbstractIntegrationTest() {
     @Test
     fun `로그인 유지 쿠키는 2단계 인증 사용자에게 알려진 기기 쿠키와 함께일 때만 통한다`() {
         val e = enrolled()
-        val remember = jakarta.servlet.http.Cookie(dev.yona.security.YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${e.user.loginId}:${e.user.password}")
+        val remember = rememberMeCookies.create(e.user, secure = false)
         val bare = mockMvc.perform(get("/user/editform").cookie(remember)).andReturn().response
         assertTrue(bare.status != 200, "기기 쿠키 없이는 로그인 유지 쿠키만으로 들어갈 수 없다")
         val session = MockHttpSession(); passwordLogin(e, session)
