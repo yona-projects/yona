@@ -62,8 +62,8 @@ class SiteSecret(
     fun configure(name: String?, email: String?, password: String) {
         // v1.6은 admin 사용자가 없으면 NPE였다(C034). 없으면 계정은 건너뛰고 비밀 키만 정한다
         users.findByLoginIdIgnoreCase(DEFAULT_ADMIN_LOGIN_ID)?.let { admin ->
-            // v1.6 SiteAdmin.updateDefaultSiteAdmin: 솔트를 16바이트 난수의 Arrays.toString 문자열("[12, -3, ...]")로 만든다. 일반 가입은 Base64이다
-            val salt = java.util.Arrays.toString(ByteArray(16).also { java.security.SecureRandom().nextBytes(it) })
+            // 솔트는 일반 가입과 같은 방식(Base64)으로 만든다. v1.6은 16바이트 난수의 Arrays.toString 문자열("[12, -3, ...]")로 만들었다(R-100)
+            val salt = LegacyPasswordHasher.generateSalt()
             admin.name = name
             admin.email = email
             admin.passwordSalt = salt

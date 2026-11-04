@@ -205,8 +205,9 @@ class SiteSecretTest : AbstractIntegrationTest() {
         assertEquals("새 관리자", admin.name)
         assertEquals("new-admin@example.com", admin.email)
         assertEquals(LegacyPasswordHasher.hash("secret-pass", admin.passwordSalt!!), admin.password)
-        // v1.6 updateDefaultSiteAdmin: 솔트는 16바이트의 Arrays.toString 형식이다
-        assertTrue(Regex("""\[-?\d+(, -?\d+){15}]""").matches(admin.passwordSalt!!), admin.passwordSalt)
+        // 솔트는 일반 가입과 같은 Base64이다. v1.6 updateDefaultSiteAdmin은 16바이트의 Arrays.toString 형식("[12, -3, ...]")으로 저장했다(R-100)
+        assertFalse(admin.passwordSalt!!.startsWith("["), admin.passwordSalt)
+        assertEquals(24, admin.passwordSalt!!.length)
         val written = configFile().readText()
         assertTrue(Regex("yona\\.secret=[0-9a-v]{20,}").containsMatchIn(written), written)
         assertNotEquals(dev.yona.config.YonaProperties.DEFAULT_SECRET, written.substringAfter("yona.secret=").trim())
