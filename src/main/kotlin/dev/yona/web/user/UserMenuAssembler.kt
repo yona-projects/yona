@@ -54,7 +54,8 @@ class UserMenuAssembler(
                 val url = recent.url.orEmpty()
                 val paths = url.split("/")
                 // v1.6 `RecentIssue.getNumber`: 주소의 프로젝트 이름과 번호를 `프로젝트 #번호`로 줄인다. 짧은 주소는 그대로이다.
-                val label = if (paths.size < 5) url else "${paths[2]} #${paths[4]}"
+                // v1.6은 주소를 앞에서부터 위치로 잘라 컨텍스트 경로가 붙으면 이름표가 어긋났다(R-104). 끝에서부터 `프로젝트/종류/번호`를 읽는다
+                val label = if (paths.size < 5) url else "${paths[paths.size - 3]} #${paths[paths.size - 1]}"
                 MenuRecentIssue(recent.title, url, URLDecoder.decode(label, Charsets.UTF_8))
             }
         )

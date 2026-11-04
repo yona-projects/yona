@@ -231,16 +231,19 @@ class BoardListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `라벨을 여럿 고르면 정렬 링크의 labelIds는 번호를 구분 없이 이어 붙인다 (v1_6 Twirl 배열 출력)`() {
+    fun `라벨을 여럿 고르면 정렬 링크의 labelIds는 라벨마다 따로 붙는다 (R-103, v1_6은 번호를 구분 없이 이어 붙였다)`() {
         val project = newProject()
         val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
         val x = labels.save(IssueLabel(project = project, category = category, name = "x", color = "#fff"))
         val y = labels.save(IssueLabel(project = project, category = category, name = "y", color = "#fff"))
-        val one = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}")).andReturn().response.contentAsString)
-        assertTrue(one.select(".filters a.filter").all { it.attr("href").contains("labelIds=${x.id}&") })
-        val both = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}&labelIds=${y.id}")).andReturn().response.contentAsString)
-        // 배열을 그대로 출력하면 원소가 구분자 없이 붙는다: 두 라벨이 한 값이 된다
-        assertTrue(both.select(".filters a.filter").all { it.attr("href").contains("labelIds=${x.id}${y.id}&") }, both.select(".filters a.filter").map { it.attr("href") }.toString())
+        // 정렬 링크는 글이 둘 이상일 때만 그려진다
+        post(project, "첫째", 1, postLabels = setOf(x, y)); post(project, "둘째", 2, postLabels = setOf(x, y))
+        fun sortLinks(doc: org.jsoup.nodes.Document) = doc.select(".filter-wrap .filters a.filter").map { it.attr("href") }
+        val one = sortLinks(Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}")).andReturn().response.contentAsString))
+        assertEquals(3, one.size, one.toString()); assertTrue(one.all { it.contains("labelIds=${x.id}&orderBy=") }, one.toString())
+        val both = sortLinks(Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}&labelIds=${y.id}")).andReturn().response.contentAsString))
+        // v1.6은 배열을 그대로 출력해 두 라벨이 한 값(`xy`)이 되었다
+        assertEquals(3, both.size, both.toString()); assertTrue(both.all { it.contains("labelIds=${x.id}&labelIds=${y.id}&orderBy=") }, both.toString())
     }
 
     @Test

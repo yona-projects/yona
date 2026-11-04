@@ -248,6 +248,15 @@ class UserMenuTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `컨텍스트 경로가 붙은 주소여도 최근 본 이슈의 이름표는 프로젝트 이름과 번호이다 (R-104)`() {
+        val me = newUser()
+        // v1.6은 주소를 위치로 잘라 컨텍스트 경로가 붙으면 `o #issue`처럼 어긋났다
+        recentIssues.save(RecentIssue(user = me, title = "컨텍스트", url = "/yona/o/p/issue/3", createdDate = Date()))
+        val item = fragment(login(me)).select("#myRecentIssueList #recentlyVisitedIssues li.user-li").single()
+        assertEquals("p #3", item.selectFirst("[data-bs-toggle=popover]")!!.attr("data-bs-content"))
+    }
+
+    @Test
     fun `최근 본 이슈와 글은 최근 순서로 제목과 주소가 있다`() {
         val me = newUser()
         recentIssues.save(RecentIssue(user = me, title = "첫째", url = "/o/p/issue/3", createdDate = Date()))

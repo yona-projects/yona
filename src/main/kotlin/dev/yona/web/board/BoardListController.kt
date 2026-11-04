@@ -79,7 +79,8 @@ class BoardListController(
         // 검색어도 인코딩하지 않고 그대로 출력한다
         val listUrl = if (pageNum == 1) base else "$base?pageNum=$pageNum"
         val filter = condition.filter
-        val labels = "labelIds=" + condition.labelIds.joinToString("")
+        // v1.6은 배열을 그대로 출력해 라벨 번호가 구분자 없이 붙었다(R-103). 라벨이 없으면 빈 `labelIds=`를 남긴다
+        val labels = if (condition.labelIds.isEmpty()) "labelIds=" else condition.labelIds.joinToString("&") { "labelIds=$it" }
         val descending = !condition.orderDir.equals("asc", ignoreCase = true)
         return listOf("updatedDate" to "common.order.updatedDate", "createdDate" to "common.order.date", "numOfComments" to "common.order.comments").map { (field, key) ->
             val current = condition.effectiveOrderBy == field
