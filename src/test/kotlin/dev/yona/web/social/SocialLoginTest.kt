@@ -196,10 +196,12 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이름이 없는 GitHub 사용자의 이름은 문자열 null이 된다`() {
+    fun `이름이 없는 GitHub 사용자의 이름은 문자열 null이 아니다 (R-59-11)`() {
         githubUser = """{"id":${1300 + ++sequence},"login":"nonamer$sequence","name":null,"email":"nonamer$sequence@example.com"}"""
         signIn()
-        assertEquals("null", users.findByLoginId("nonamer$sequence")?.name)
+        val created = users.findByLoginId("nonamer$sequence")
+        assertNotNull(created)
+        assertTrue(created.name != "null", "이름이 문자열 null이다: [${created.name}]")
     }
 
     @Test

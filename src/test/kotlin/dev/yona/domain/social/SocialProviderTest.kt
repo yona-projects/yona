@@ -95,12 +95,12 @@ class SocialProviderTest {
     }
 
     @Test
-    fun `JSON null은 문자열 null이 되고 필드가 없으면 null이다`() {
-        // v1.6 play-authenticate: n.has(f) ? n.get(f).asText() — JSON null의 asText()는 "null"이다.
+    fun `JSON null이거나 필드가 없으면 없음(null)으로 읽는다 (R-59-11)`() {
+        // v1.6 play-authenticate는 JSON null의 asText()가 문자열 "null"이라 이름이 "null"이 되었다. 없음으로 읽는다
         userBody = """{"id":7,"login":"nameless","name":null,"email":null}"""
         val identity = OAuth2SocialProvider.github(config()).identityOf("c", "r")
-        assertEquals("null", identity.name)
-        assertEquals("null", identity.email)
+        assertNull(identity.name)
+        assertNull(identity.email)
         userBody = """{"id":8,"login":"bare"}"""
         val bare = OAuth2SocialProvider.github(config()).identityOf("c", "r")
         assertNull(bare.name)

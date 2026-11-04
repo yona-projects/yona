@@ -96,10 +96,10 @@ class OAuth2SocialProvider(
 
     companion object {
         /**
-         * v1.6 play-authenticate의 `n.has(field) ? n.get(field).asText()`와 같다. 필드가 없으면 `null`이고 JSON `null`이면 문자열 `"null"`이다
-         * (그래서 v1.6은 이메일이 `"null"`인 경우를 따로 거른다. 이름이 없는 GitHub 사용자는 이름이 `"null"`이 된다, R-59).
+         * 응답의 [field]를 문자열로 읽는다. 필드가 없거나 JSON `null`이면 `null`이다.
+         * v1.6 play-authenticate는 `n.has(field) ? n.get(field).asText()`라 JSON `null`을 문자열 `"null"`로 읽어, 이름이 없는 GitHub 사용자의 이름이 `"null"`이 되었다(R-59-11).
          */
-        private fun text(node: JsonNode, field: String): String? = node.get(field)?.let { if (it.isNull) "null" else it.asString() }
+        private fun text(node: JsonNode, field: String): String? = node.get(field)?.takeUnless { it.isNull }?.asString()
 
         /** GitHub 제공자이다. */
         fun github(config: YonaProperties.OAuthProvider): OAuth2SocialProvider = OAuth2SocialProvider("github", config) { user ->
