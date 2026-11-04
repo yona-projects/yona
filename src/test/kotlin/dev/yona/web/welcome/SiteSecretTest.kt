@@ -129,14 +129,14 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `ID 오류는 폼 바인딩 오류와 hasError 오류가 v1_6처럼 모두 쌓인다`() {
-        // 값 -> 보이는 오류 문구(순서 포함). 값이 ""이면 필수 오류 하나에 "admin이 아님" 계열 둘, 형식이 틀리면 형식 오류에 "admin이 아님" 하나가 더해진다
+    fun `ID 오류는 폼 바인딩 오류와 hasError 오류가 쌓이되 같은 문구는 한 번만 보인다 (R-57-1)`() {
+        // 값 -> 보이는 오류 문구(순서 포함). v1.6은 같은 오류를 거듭 쌓아 같은 문구가 두세 번 나왔다. 같은 문구는 한 번만 보인다
         val valid = "Enter Valid ID"
         mapOf(
-            "" to listOf("This field is required", valid, valid),
-            " " to listOf(valid, valid, valid),
-            "root!" to listOf(valid, valid),
-            "admin " to listOf(valid, valid),
+            "" to listOf("This field is required", valid),
+            " " to listOf(valid),
+            "root!" to listOf(valid),
+            "admin " to listOf(valid),
             "sites" to listOf("This is a reserved system word.", valid),
             "root" to listOf(valid),
             "ADMIN" to listOf(valid)

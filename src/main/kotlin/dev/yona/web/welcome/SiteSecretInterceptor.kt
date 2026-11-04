@@ -51,7 +51,8 @@ class SiteSecretInterceptor(
     /** 입력을 검사한다. 항목마다 오류 메시지 키를 모은다 (v1.6 `hasError`). */
     private fun validate(request: HttpServletRequest): Map<String, List<String>> {
         val errors = LinkedHashMap<String, MutableList<String>>()
-        fun reject(field: String, key: String) { errors.getOrPut(field) { mutableListOf() } += key }
+        // v1.6은 같은 오류를 거듭 쌓아 같은 문구가 여러 번 보였다(R-57-1). 같은 항목에 같은 키가 이미 있으면 더하지 않는다
+        fun reject(field: String, key: String) { errors.getOrPut(field) { mutableListOf() }.let { if (key !in it) it += key } }
         // v1.6 `hasError`는 값을 읽어 곧바로 `.equals(...)`를 부르므로 항목이 아예 없으면 NPE로 500이 난다(loginId, password). 값이 비어 있는 것과는 다르다.
         val loginId = request.getParameter("loginId") ?: throw NullPointerException("loginId")
         // 폼 바인딩 단계(`User.loginId`의 @Required, @Pattern, @ValidateWith)의 오류가 먼저 쌓이고, 이어서 `hasError`가 거절한 오류가 쌓인다.
