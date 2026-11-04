@@ -112,9 +112,10 @@
         }
 
         function _onValidInputPasswordCheck() {
-          clearTimeout(htVar.oDelay);
+          // v1.6은 두 칸이 타이머 하나를 나눠 써서 번갈아 입력하면 앞선 검사가 취소되었다(C025). 확인 칸은 자기 타이머를 쓴다
+          clearTimeout(htVar.oDelayConfirm);
 
-          htVar.oDelay = setTimeout(checkPasswordConfirm, 200);
+          htVar.oDelayConfirm = setTimeout(checkPasswordConfirm, 200);
         }
 
         function checkPasswordConfirm() {

@@ -162,7 +162,9 @@
             var sURL = $(this).attr("data-href");
 
             // DELETE 메소드로 AJAX 호출
-            $("#deleteBtn").click(function(){
+            // v1.6은 삭제 링크를 누를 때마다 핸들러를 더해, 취소한 뒤 다른 구성원을 지우면 이전 구성원의 주소로도 DELETE가 나갔다(C024, C174, C113-3).
+            // 같은 이름 공간의 핸들러를 떼고 다시 달아 마지막에 고른 구성원 하나만 지운다
+            $("#deleteBtn").off("click.deleteMember").on("click.deleteMember", function(){
                 $.ajax(sURL, {
                     "method"  : "delete",
                     "dataType": "html",
