@@ -31,17 +31,19 @@ class MarkdownRenderer(private val cache: RenderedMarkdownCache, private val mar
      * 변환한 HTML에 [postProcess]를 적용하고 정화한 결과를 캐시에 보관한다.
      *
      * v1.6의 캐시 동작을 그대로 따른다. 이미 보관된 결과가 있으면 **그 결과를 돌려주되**, 같은 원문을 다시 변환해
-     * 캐시를 새 결과로 바꾼다. 따라서 원문이 같으면 변환 결과가 바뀌어도 한 번 늦게 반영된다. 또한 프로젝트 문맥이 없는
-     * [render]와 같은 캐시를 같은 키로 쓴다([refactoring-backlog.md] R-16).
+     * 캐시를 새 결과로 바꾼다. 따라서 원문이 같으면 변환 결과가 바뀌어도 한 번 늦게 반영된다. 보관 키에는 [scope](프로젝트와 보는 사람)를
+     * 넣어 권한에 따라 달라지는 결과가 다른 사람에게 돌아가지 않게 한다([refactoring-backlog.md] R-16).
      */
-    fun renderWithPipeline(source: String, postProcess: (String) -> String): String {
+    fun renderWithPipeline(source: String, scope: String = "", postProcess: (String) -> String): String {
         val render = { sanitize(postProcess(toHtml(source))) }
-        val cached = cache.getIfPresent(source)
+        // 결과는 프로젝트와 보는 사람의 권한에 따라 달라지므로 범위를 키에 넣는다. v1.6은 원문만 키로 써서 권한 있는 사람이 먼저 본 결과가 다른 사람에게도 돌아갔다(R-16)
+        val key = if (scope.isEmpty()) source else "$scope\u0000$source"
+        val cached = cache.getIfPresent(key)
         if (cached != null) {
-            cache.put(source, render())
+            cache.put(key, render())
             return cached
         }
-        return render().also { cache.put(source, it) }
+        return render().also { cache.put(key, it) }
     }
 
     /** 이미 HTML인 [source]를 v1.6과 같은 정책으로 정화한다. */

@@ -22,7 +22,8 @@ class ProjectMarkdownRenderer(
     private val issueLinks: IssueLinkTransformer,
     private val autoLinks: AutoLinkRenderer,
     private val repositories: RepositoryService,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val currentUserProvider: dev.yona.security.CurrentUserProvider
 ) {
 
     /**
@@ -30,17 +31,19 @@ class ProjectMarkdownRenderer(
      *
      * @param lang 자동 링크의 사용자 이름을 고를 언어. 없으면 현재 사용자의 언어를 쓴다
      */
-    fun render(source: String, project: Project, lang: String? = null): String = autoLinks.render(highlight(source), project, lang)
+    fun render(source: String, project: Project, lang: String? = null): String = autoLinks.render(highlight(source, project), project, lang)
 
     /** 프로젝트 홈에 보여 줄 README를 렌더링한다. 상대 경로 이미지와 링크를 저장소 주소로 바꾼다. */
     fun renderFileInReadme(source: String, project: Project): String =
-        autoLinks.render(highlight(rewriter(project).forReadme(source)), project, null)
+        autoLinks.render(highlight(rewriter(project).forReadme(source), project), project, null)
 
     /** 코드 브라우저에서 `.md` 파일을 렌더링한다. 상대 경로 이미지를 저장소 주소로 바꾼다. */
     fun renderFileInCodeBrowser(source: String, project: Project): String =
-        autoLinks.render(highlight(rewriter(project).forCodeBrowser(source)), project, null)
+        autoLinks.render(highlight(rewriter(project).forCodeBrowser(source), project), project, null)
 
-    private fun highlight(source: String): String = renderer.renderWithPipeline(source) { html ->
+    /** 이슈 링크 변환은 보는 사람의 읽기 권한에 따라 달라지므로 프로젝트와 보는 사람을 보관 키에 넣는다(R-16). */
+    private fun highlight(source: String, project: Project): String =
+        renderer.renderWithPipeline(source, "p${project.id}:u${currentUserProvider.get().user?.id ?: 0}") { html ->
         issueLinks.transform(links.checkReferrer(links.removeJavascriptInHref(html)))
     }
 

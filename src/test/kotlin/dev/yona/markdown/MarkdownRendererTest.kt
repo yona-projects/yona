@@ -38,6 +38,17 @@ class MarkdownRendererTest {
     }
 
     @Test
+    fun `보는 사람이나 프로젝트 범위가 다르면 같은 원문도 결과를 따로 보관한다 (R-16)`() {
+        // v1.6은 원문만 키로 써서, 권한이 있는 사람이 먼저 본 결과(읽을 수 없는 이슈의 제목이 든 링크)가 권한이 없는 사람에게도 돌아갔다
+        val member = renderer.renderWithPipeline("본문", "p1:u1") { "$it 제목이 보인다" }
+        val outsider = renderer.renderWithPipeline("본문", "p1:u0") { "$it 제목이 없다" }
+        assertEquals(true, member.contains("제목이 보인다"), member)
+        assertEquals(true, outsider.contains("제목이 없다"), outsider)
+        // 프로젝트 문맥이 없는 render()와도 같은 키를 쓰지 않는다
+        assertEquals(false, renderer.render("본문").contains("제목"))
+    }
+
+    @Test
     fun `같은 원문의 렌더링 결과를 캐시에서 재사용한다`() {
         val first = renderer.render("# 캐시")
         cache.cleanUp()

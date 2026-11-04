@@ -133,13 +133,13 @@ class ProjectMarkdownRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 없는 렌더링과 캐시를 함께 쓴다 (v1 6 결함 재현)`() {
+    fun `프로젝트 없는 렌더링과 캐시를 나누어 쓴다 (R-16, v1 6은 같은 키를 함께 썼다)`() {
         val project = project()
         issue(project, 3, "공유")
         val source = "[보기](/${project.owner}/${project.name}/issue/3)"
-        // 프로젝트 문맥이 없는 렌더링이 먼저 같은 원문을 저장하면, 문맥 있는 렌더링의 첫 결과가 그 값이 된다 (R-16).
+        // 프로젝트 문맥이 없는 렌더링이 먼저 같은 원문을 저장해도 문맥 있는 렌더링의 첫 결과가 바르다. v1.6은 그 값을 그대로 돌려주었다
         plain.render(source)
-        assertTrue(!text(renderer.render(source, project)).contains("#3.공유"))
+        assertTrue(text(renderer.render(source, project)).contains("#3.공유"))
         assertTrue(text(renderer.render(source, project)).contains("#3.공유"))
     }
 }
