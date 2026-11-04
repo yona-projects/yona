@@ -87,6 +87,16 @@ class SocialAccountServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `기존 사용자에 붙는 신원은 바로 자격 증명에 사용자를 연결해 둔다 (R-59-8)`() {
+        val existing = localUser("link-now@example.com", loginId = "linknowlocal")
+        social.signIn(identity(email = "link-now@example.com"))
+        // v1.6은 다음 로그인까지 자격 증명에 사용자가 연결되지 않았다
+        val credential = credentials.findAll().first { it.email == "link-now@example.com" }
+        assertEquals("linknowlocal", credential.loginId)
+        assertEquals(existing.id, credential.user?.id)
+    }
+
+    @Test
     fun `같은 이메일의 사용자가 잠겨 있으면 로그인시키지 않는다`() {
         localUser("locked@example.com", loginId = "lockedlocal", state = UserState.LOCKED)
         val result = social.signIn(identity(email = "locked@example.com"))

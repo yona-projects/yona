@@ -124,6 +124,12 @@ class SocialAccountService(
         linkedAccounts.save(LinkedAccount(userCredential = credential, providerKey = identity.provider, providerUserId = identity.providerUserId))
         val flash = linkedMapOf<String, String>()
         val existing = lookup.findByEmail(credential.email)
+        // 같은 이메일의 기존 사용자에 붙으면 바로 자격 증명에 연결해 둔다. v1.6은 다음 로그인까지 비워 두었다(R-59-8)
+        if (existing != null) {
+            credential.loginId = existing.loginId
+            credential.user = existing
+            credentials.save(credential)
+        }
         val user = existing ?: createLocalUser(credential, flash)
         val forceLogout = existing == null && user == null
         return SocialLoginResult(user?.takeIf { it.state == UserState.ACTIVE }, flash, forceLogout)
