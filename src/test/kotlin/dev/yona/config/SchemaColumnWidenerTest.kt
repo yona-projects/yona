@@ -1,6 +1,8 @@
 package dev.yona.config
 
+import dev.yona.schema.SchemaMetadata.schemaOrNull
 import dev.yona.support.AbstractIntegrationTest
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
@@ -20,7 +22,26 @@ class SchemaColumnWidenerTest : AbstractIntegrationTest() {
 
     private fun size(table: String, column: String): Int = dataSource.connection.use { c ->
         listOf(table, table.uppercase()).firstNotNullOf { name ->
-            c.metaData.getColumns(null, null, name, column.let { if (name == table) it else it.uppercase() }).use { rs -> if (rs.next()) rs.getInt("COLUMN_SIZE") else null }
+            c.metaData.getColumns(null, c.schemaOrNull(), name, column.let { if (name == table) it else it.uppercase() }).use { rs -> if (rs.next()) rs.getInt("COLUMN_SIZE") else null }
+        }
+    }
+
+    @Test
+    fun `다른 스키마에 같은 이름의 넓은 열이 있어도 현재 스키마의 좁은 열을 넓힌다`() {
+        val product = dataSource.connection.use { it.metaData.databaseProductName }
+        assumeTrue(product == "PostgreSQL" || product.startsWith("H2"), "스키마를 만들 수 있는 데이터베이스에서만 확인한다")
+        val other = "other_widen"
+        jdbc.execute("drop schema if exists $other cascade")
+        jdbc.execute("create schema $other")
+        try {
+            // 이름 순서가 현재 스키마보다 앞서므로, 스키마를 지정하지 않으면 이 테이블의 크기를 먼저 읽는다
+            jdbc.execute("create table $other.api_token (scopes varchar(2000))")
+            jdbc.execute(if (product == "PostgreSQL") "alter table api_token alter column scopes type varchar(255)" else "alter table api_token alter column scopes varchar(255)")
+            assertEquals(255, size("api_token", "scopes"))
+            widener.widen()
+            assertEquals(SchemaColumnWidener.SCOPES_LENGTH, size("api_token", "scopes"))
+        } finally {
+            jdbc.execute("drop schema $other cascade")
         }
     }
 

@@ -25,10 +25,11 @@ class SchemaColumnWidener(private val dataSource: DataSource, @Suppress("unused"
         try {
             dataSource.connection.use { connection ->
                 val product = connection.metaData.databaseProductName
+                val schema = currentSchema(connection)
                 TARGETS.forEach { (table, column) ->
-                    val size = currentSize(connection.metaData, table, column) ?: return@forEach
+                    val size = currentSize(connection.metaData, schema, table, column) ?: return@forEach
                     if (size >= SCOPES_LENGTH) return@forEach
-                    connection.createStatement().use { it.executeUpdate(alter(product, table, column, nationalized(connection.metaData, table, column))) }
+                    connection.createStatement().use { it.executeUpdate(alter(product, table, column, nationalized(connection.metaData, schema, table, column))) }
                     if (!connection.autoCommit) connection.commit()
                     log.info("Widened {}.{} from {} to {}", table, column, size, SCOPES_LENGTH)
                 }
@@ -38,15 +39,22 @@ class SchemaColumnWidener(private val dataSource: DataSource, @Suppress("unused"
         }
     }
 
-    private fun currentSize(metaData: java.sql.DatabaseMetaData, table: String, column: String): Int? =
+    /**
+     * 연결의 현재 스키마이다. 스키마를 지정하지 않고 메타데이터를 읽으면 같은 이름의 테이블이 있는 다른 스키마의 열이 먼저 나와, 다른 스키마의 크기를 보고
+     * 현재 스키마의 좁은 열을 넓히지 않을 수 있다. Cubrid 드라이버는 `getSchema()`를 지원하지 않아 접속 사용자 이름(곧 스키마)으로 대신한다.
+     */
+    private fun currentSchema(connection: java.sql.Connection): String? =
+        try { connection.schema } catch (_: java.sql.SQLException) { connection.metaData.userName?.lowercase() }
+
+    private fun currentSize(metaData: java.sql.DatabaseMetaData, schema: String?, table: String, column: String): Int? =
         listOf(table to column, table.uppercase() to column.uppercase()).firstNotNullOfOrNull { (t, c) ->
-            metaData.getColumns(null, null, t, c).use { rs -> if (rs.next()) rs.getInt("COLUMN_SIZE") else null }
+            metaData.getColumns(null, schema, t, c).use { rs -> if (rs.next()) rs.getInt("COLUMN_SIZE") else null }
         }
 
     /** 열이 유니코드 문자열(`nvarchar`)인지 본다. MSSQL에서 `varchar`로 바꾸면 한글이 깨지고 Hibernate가 읽지 못한다(X-46). */
-    private fun nationalized(metaData: java.sql.DatabaseMetaData, table: String, column: String): Boolean =
+    private fun nationalized(metaData: java.sql.DatabaseMetaData, schema: String?, table: String, column: String): Boolean =
         listOf(table to column, table.uppercase() to column.uppercase()).firstNotNullOfOrNull { (t, c) ->
-            metaData.getColumns(null, null, t, c).use { rs -> if (rs.next()) rs.getString("TYPE_NAME") else null }
+            metaData.getColumns(null, schema, t, c).use { rs -> if (rs.next()) rs.getString("TYPE_NAME") else null }
         }?.startsWith("n", ignoreCase = true) == true
 
     private fun alter(product: String, table: String, column: String, nationalized: Boolean = false): String = when {

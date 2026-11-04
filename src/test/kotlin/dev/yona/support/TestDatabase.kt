@@ -28,11 +28,28 @@ enum class TestDatabase {
         private val container by lazy {
             PostgreSQLContainer("postgres:16")
                 .withDatabaseName("yona_v2_it").withUsername("yona").withPassword("yona")
-                .withReuse(true).also { it.start() }
+                .withReuse(true).also { it.start(); dropLeftoverSchemas(it) }
         }
 
+        private fun <T> execute(c: PostgreSQLContainer, block: (java.sql.Statement) -> T): T =
+            java.sql.DriverManager.getConnection(c.jdbcUrl, c.username, c.password).use { conn -> conn.createStatement().use(block) }
+
+        /** 이전 실행이 남긴 시험용 스키마(`it_`로 시작)를 지운다. 컨테이너를 재사용하므로 지우지 않으면 스키마가 계속 쌓인다. */
+        private fun dropLeftoverSchemas(c: PostgreSQLContainer) = execute(c) { st ->
+            val names = st.executeQuery("select schema_name from information_schema.schemata where schema_name like 'it\\_%'").use { rs ->
+                generateSequence { if (rs.next()) rs.getString(1) else null }.toList()
+            }
+            names.forEach { st.execute("drop schema \"$it\" cascade") }
+        }
+
+        /**
+         * 컨텍스트마다 새 스키마를 만든다. 모든 컨텍스트가 `public` 스키마를 나누면, 캐시에서 밀려나 닫히는 컨텍스트의 `create-drop`이 다른 컨텍스트의 테이블까지 지워
+         * `relation "project" does not exist`로 시험이 깨진다(H2의 컨텍스트별 인메모리 DB, MSSQL의 컨텍스트별 데이터베이스, Cubrid의 컨텍스트별 사용자와 같은 이유).
+         */
         override fun register(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { container.jdbcUrl }
+            val schema = "it_" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
+            execute(container) { st -> st.execute("create schema \"$schema\"") }
+            registry.add("spring.datasource.url") { container.jdbcUrl + (if ('?' in container.jdbcUrl) "&" else "?") + "currentSchema=$schema" }
             registry.add("spring.datasource.username") { container.username }
             registry.add("spring.datasource.password") { container.password }
         }
