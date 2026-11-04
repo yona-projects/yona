@@ -205,10 +205,10 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `내가 쓴 이슈와 내가 담당한 이슈는 권한을 잃은 프로젝트에서도 찾는다`() {
+    fun `권한을 잃은 프로젝트의 내 글과 내가 담당한 이슈는 찾지 않는다 (R-50-5, v1_6은 계속 찾았다)`() {
         val owner = newUser(); val me = newUser(); val priv = project(owner, "lost", ProjectScope.PRIVATE)
         issue(priv, "ownneedle 내가 씀", me); issue(priv, "ownneedle 내가 담당", owner, assignee = me); issue(priv, "ownneedle 남의 것", owner)
-        assertEquals(setOf("ownneedle 내가 씀", "ownneedle 내가 담당"), titles(all(login(me), "issue", "ownneedle")).toSet())
+        assertEquals(emptyList(), titles(all(login(me), "issue", "ownneedle")))
     }
 
     @Test
@@ -256,9 +256,15 @@ class SearchTest : AbstractIntegrationTest() {
     @Test
     fun `사용자는 활성 사용자만 이름 순으로 이름이나 로그인 ID로 찾는다`() {
         newUser("Zed usersearch"); newUser("Amy usersearch"); newUser("Locked usersearch", UserState.LOCKED)
-        val doc = all(null, "user", "usersearch")
+        val doc = all(login(newUser()), "user", "usersearch")
         assertEquals(listOf("Amy usersearch", "Zed usersearch"), doc.select("a.title.user-link").map { it.text().substringBefore(" (@") })
         assertTrue(doc.select(".infos").first()!!.text().contains("Member since"))
+    }
+
+    @Test
+    fun `익명은 전체 범위의 사용자 검색에서 아무도 찾지 못한다 (R-50-6, v1_6은 모든 활성 사용자를 열거할 수 있었다)`() {
+        newUser("Anon usersearch2")
+        assertEquals(emptyList(), all(null, "user", "usersearch2").select("a.title.user-link").map { it.text() })
     }
 
     @Test

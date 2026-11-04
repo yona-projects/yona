@@ -175,19 +175,16 @@ class SearchService(
         private fun itemCondition(): String {
             val projectPath = requireNotNull(spec.projectPath)
             scope.project?.let { params["scopeProject"] = it.id; return "$projectPath.id = :scopeProject and ${keywordMatches()}" }
-            val parts = mutableListOf("(${visibleProjects(projectPath)} and ${keywordMatches()})")
-            me()?.let { id ->
-                params["me"] = id
-                spec.authorPath?.let { parts += "($it = :me and ${keywordMatches()})" }
-                if (spec.assignee) parts += "(${spec.alias}.assignee.id in (select a.id from Assignee a where a.user.id = :me) and ${keywordMatches()})"
-            }
-            val any = parts.joinToString(" or ", "(", ")")
+            // v1.6은 볼 수 있는 프로젝트의 항목에 더해 내가 쓴 글과 내가 담당한 이슈는 권한을 잃은 프로젝트에서도 찾았다(R-50-5). 볼 수 있는 프로젝트의 항목만 찾는다
+            val any = "(${visibleProjects(projectPath)} and ${keywordMatches()})"
             return scope.organization?.let { params["scopeOrg"] = it.id; "$projectPath.organization.id = :scopeOrg and $any" } ?: any
         }
 
         /** 볼 수 있는 프로젝트의 조건이다. 전체 범위와 조직 범위의 기준이 다르다. */
         private fun visibleProjects(projectPath: String): String {
-            val id = me() ?: return "$projectPath.projectScope = :publicScope".also { params["publicScope"] = ProjectScope.PUBLIC }
+            // 사이트가 프로젝트 목록을 숨기면 공개 프로젝트도 구성원에게만 보인다. v1.6은 프로젝트 검색만 따르고 이슈와 글 검색은 우회할 수 있었다(R-50-4)
+            val hide = properties.hideProjectListing
+            val id = me() ?: return (if (hide) "1 = 0" else "$projectPath.projectScope = :publicScope").also { params["publicScope"] = ProjectScope.PUBLIC }
             params["me"] = id
             params["publicScope"] = ProjectScope.PUBLIC
             val member = "exists (select 1 from ProjectUser pu where pu.project.id = $projectPath.id and pu.user.id = :me)"
@@ -195,22 +192,25 @@ class SearchService(
             if (organization != null) {
                 val organizationMember = isOrganizationMember(requireNotNull(organization.id), id)
                 return if (organizationMember) {
-                    params["publicScopes"] = listOf(ProjectScope.PUBLIC, ProjectScope.PROTECTED)
+                    params["publicScopes"] = if (hide) listOf(ProjectScope.PROTECTED) else listOf(ProjectScope.PUBLIC, ProjectScope.PROTECTED)
                     "($member or $projectPath.projectScope in :publicScopes)"
                 } else {
-                    "($member or $projectPath.projectScope = :publicScope)"
+                    if (hide) "($member)" else "($member or $projectPath.projectScope = :publicScope)"
                 }
             }
             val organizations = myOrganizationIds(id)
-            if (organizations.isEmpty()) return "($projectPath.projectScope = :publicScope or $member)"
+            val publicPart = if (hide) "" else "$projectPath.projectScope = :publicScope or "
+            if (organizations.isEmpty()) return "($publicPart$member)"
             params["myOrganizations"] = organizations
             params["privateScope"] = ProjectScope.PRIVATE
-            return "($projectPath.projectScope = :publicScope or $member or ($projectPath.organization.id in :myOrganizations and $projectPath.projectScope <> :privateScope))"
+            return "($publicPart$member or ($projectPath.organization.id in :myOrganizations and $projectPath.projectScope <> :privateScope))"
         }
 
         private fun userCondition(): String {
             params["active"] = UserState.ACTIVE
             val base = "${spec.alias}.state = :active and ${keywordMatches()}"
+            // 전체 범위는 로그인하지 않으면 사용자를 찾을 수 없다. v1.6은 익명도 모든 활성 사용자의 이름과 로그인 ID를 열거할 수 있었다(R-50-6)
+            if (viewer == null && scope.project == null && scope.organization == null) return "1 = 0"
             scope.project?.let { params["scopeProject"] = it.id; return "$base and exists (select 1 from ProjectUser pu where pu.project.id = :scopeProject and pu.user.id = i.id)" }
             scope.organization?.let { params["scopeOrg"] = it.id; return "$base and exists (select 1 from OrganizationUser ou where ou.organization.id = :scopeOrg and ou.user.id = i.id)" }
             return base
