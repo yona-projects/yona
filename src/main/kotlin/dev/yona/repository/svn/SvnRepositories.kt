@@ -179,12 +179,12 @@ class SvnRepositories(private val dataDirectory: DataDirectory) {
     /**
      * 최신 리비전부터 거슬러 오르며 [limit]개 단위의 [page]쪽 이력이다. [path]로 좁힐 수 있다.
      *
-     * v1.6처럼 시작과 끝 리비전을 모두 포함해서 한 쪽에 `limit + 1`개가 나오고, 다음 쪽의 첫 리비전과 겹친다(R-62).
+     * 한 쪽은 [limit]개이다. v1.6은 시작과 끝 리비전을 모두 포함해서 한 쪽에 `limit + 1`개가 나오고 다음 쪽의 첫 리비전과 겹쳤다(R-62-1).
      */
     fun history(owner: String, name: String, page: Int, limit: Int, path: String?): List<SvnCommit> = session(owner, name) { repository ->
         val paths = arrayOf(if (path != null) "/$path" else "/")
         val start = repository.latestRevision - page.toLong() * limit
-        var end = start - limit
+        var end = start - limit + 1
         if (end < 1) end = 1
         if (start < end) return emptyList()
         repository.log(paths, null, start, end, false, false).map { SvnCommit.of(it as SVNLogEntry) }

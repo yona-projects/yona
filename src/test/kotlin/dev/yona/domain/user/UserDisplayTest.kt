@@ -37,9 +37,10 @@ class UserDisplayTest {
     }
 
     @Test
-    fun `부서 구분자가 둘 다 있으면 나중에 찾은 괄호 기준이 이긴다`() {
-        // 이름 "홍길동 [팀] (개발)": "["부터 자르면 "[팀] (개발)", 이어서 "("부터 자르면 "(개발)"이 된다.
-        assertEquals("(개발)", UserDisplay.departmentPart("홍길동 [팀] (개발)"))
+    fun `부서 구분자가 둘 다 있으면 먼저 나오는 구분자부터 자른다 (C140)`() {
+        // v1.6은 "["를 찾은 뒤 "("를 다시 찾아 "(개발)"만 남겨, 어느 쪽이 앞서든 나머지 부분이 버려졌다
+        assertEquals("[팀] (개발)", UserDisplay.departmentPart("홍길동 [팀] (개발)"))
+        assertEquals("(개발) [팀]", UserDisplay.departmentPart("홍길동 (개발) [팀]"))
     }
 
     @Test

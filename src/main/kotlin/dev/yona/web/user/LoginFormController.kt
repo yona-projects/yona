@@ -36,7 +36,8 @@ class LoginFormController(
 
         var redirectUrl = request.getParameter("redirectUrl")
         val referer = request.getHeader(HttpHeaders.REFERER)
-        if (redirectUrl.isNullOrEmpty() && referer != LOGIN_FORM_PATH) {
+        // v1.6은 절대 주소인 Referer를 경로 문자열과 비교해 항상 달랐고, 로그인 화면 자신이 이동 대상이 되었다(C142). 주소의 경로로 비교한다
+        if (redirectUrl.isNullOrEmpty() && pathOf(referer) != LOGIN_FORM_PATH) {
             redirectUrl = referer
         }
         // 소셜 로그인은 마쳤지만 로컬 세션이 없는 상태이면 연결된 사용자를 이어받는다(v1.6 `linkWithExistedOrCreateLocalUser`).
@@ -52,6 +53,9 @@ class LoginFormController(
         }
         return loginPage(redirectUrl)
     }
+
+    /** 절대 주소나 경로에서 경로 부분을 뽑는다. 주소로 읽을 수 없으면 값 그대로이다. */
+    private fun pathOf(location: String?): String? = location?.let { runCatching { java.net.URI(it).path }.getOrNull() ?: it }
 
     private fun noCache(response: HttpServletResponse) {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")

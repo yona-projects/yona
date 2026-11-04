@@ -77,7 +77,7 @@ class SvnCodeBrowser(
         }
         val user = file.author?.let { users.findByLoginId(it) }
         return linkedMapOf(
-            "type" to "file", "revisionNo" to file.revision, "author" to file.author, "avatar" to avatar(user), "userName" to userName(user),
+            "type" to "file", "revisionNo" to file.revision, "commitId" to file.revision, "author" to file.author, "avatar" to avatar(user), "userName" to userName(user),
             "userLoginId" to user?.loginId.orEmpty(), "createdDate" to file.date, "commitMessage" to file.message, "commiter" to file.author,
             "size" to file.size, "isBinary" to binary, "mimeType" to mimeType, "data" to data
         )

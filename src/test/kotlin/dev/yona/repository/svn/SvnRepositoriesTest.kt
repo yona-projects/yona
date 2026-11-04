@@ -101,13 +101,13 @@ class SvnRepositoriesTest {
     // --- 이력 ---
 
     @Test
-    fun `이력은 최신부터 쪽 단위로 돌려주며 쪽 경계의 리비전이 겹친다`() {
+    fun `이력은 최신부터 쪽 단위로 돌려주며 쪽 경계의 리비전이 겹치지 않는다 (R-62-1)`() {
         svn.create("own", "proj")
         (1..5).forEach { commit("메시지 $it\n두 번째 줄", mapOf("f$it.txt" to "x"), author = "u$it") }
         val first = svn.history("own", "proj", page = 0, limit = 2, path = null)
-        // v1.6은 시작과 끝 리비전을 모두 포함해 한 쪽에 limit + 1개가 나오고 다음 쪽의 첫 리비전과 겹친다(R-62).
-        assertEquals(listOf("5", "4", "3"), first.map { it.id })
-        assertEquals(listOf("3", "2", "1"), svn.history("own", "proj", 1, 2, null).map { it.id })
+        // v1.6은 시작과 끝 리비전을 모두 포함해 한 쪽에 limit + 1개가 나오고 다음 쪽의 첫 리비전과 겹쳤다(R-62-1). 한 쪽은 limit개이다
+        assertEquals(listOf("5", "4"), first.map { it.id })
+        assertEquals(listOf("3", "2"), svn.history("own", "proj", 1, 2, null).map { it.id })
         assertEquals(listOf("1"), svn.history("own", "proj", 2, 2, null).map { it.id })
         assertEquals(emptyList(), svn.history("own", "proj", 3, 2, null))
         val top = first.first()

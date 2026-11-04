@@ -110,6 +110,8 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
         val text = assertNotNull(service.metaData(p, null, "a.txt"))
         assertEquals("file", text["type"])
         assertEquals("1", text["revisionNo"])
+        // v1.6의 파일 정보에는 `commitId`가 없어 파일 보기의 코멘트 수가 항상 0이었다(R-62-7). 폴더 항목처럼 커밋 번호를 담는다
+        assertEquals(text["revisionNo"], text["commitId"])
         assertEquals("안녕\n", text["data"])
         assertEquals(false, text["isBinary"])
         assertEquals(7L, text["size"])

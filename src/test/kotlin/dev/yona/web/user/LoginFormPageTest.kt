@@ -112,6 +112,13 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         assertEquals("", doc.selectFirst("input[name=redirectUrl]")?.attr("value"))
     }
 
+    @Test
+    fun `브라우저가 보내는 절대 주소 Referer도 로그인 폼 자신이면 이동 대상을 비운다 (C142)`() {
+        // v1.6은 절대 주소 Referer를 경로 문자열과 비교해 항상 달랐고, 로그인 화면 자신이 이동 대상이 되었다
+        val doc = page(referer = "http://localhost/users/loginform")
+        assertEquals("", doc.selectFirst("input[name=redirectUrl]")?.attr("value"))
+    }
+
     // --- 공통 영역 ---
 
     @Test

@@ -26,15 +26,12 @@ object UserDisplay {
     }
 
     /**
-     * 이름에서 부서 부분을 뽑는다. `[`, `(` 순서로 차례로 찾고 둘 다 있으면 나중에 찾은 `(` 기준이 이긴다
-     * (v1.6 구현이 그렇게 동작한다).
+     * 이름에서 부서 부분을 뽑는다. `[`와 `(` 중 먼저 나오는 구분자부터 끝까지이다.
+     * v1.6은 `[`를 찾은 뒤 `(`를 다시 찾아 둘 다 있으면 `(` 부분만 남기고, `(`가 앞서도 `[` 부분만 남겨 나머지가 버려졌다(C140).
      */
     fun departmentPart(name: String): String {
-        var result = name
-        for (splitter in listOf("[", "(")) {
-            if (result.contains(splitter)) result = name.substring(name.indexOf(splitter))
-        }
-        return result
+        val first = listOf("[", "(").map { name.indexOf(it) }.filter { it >= 0 }.minOrNull() ?: return name
+        return name.substring(first)
     }
 
     /**

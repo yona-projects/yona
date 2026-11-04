@@ -99,14 +99,14 @@ class SvnHistoryWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `한 쪽은 25개에 경계 리비전이 겹쳐 26개이고 이전과 다음 쪽으로 이어진다`() {
+    fun `한 쪽은 25개이고 쪽 경계 리비전이 겹치지 않으며 이전과 다음 쪽으로 이어진다 (R-62-1)`() {
         val p = project()
         (1..30).forEach { commit(p, "hdev", "커밋 $it", mapOf("f$it.txt" to "x")) }
         val first = page("/${p.owner}/${p.name}/commits")
-        assertEquals((30 downTo 5).map { it.toString() }, first.select("td.commit-id a").map { it.text().trim() })
+        assertEquals((30 downTo 6).map { it.toString() }, first.select("td.commit-id a").map { it.text().trim() })
         assertEquals("/${p.owner}/${p.name}/commits?page=1", first.select("div.actrow a").single { it.text() == "Older" }.attr("href"))
         val second = page("/${p.owner}/${p.name}/commits?page=1")
-        assertEquals((5 downTo 1).map { it.toString() }, second.select("td.commit-id a").map { it.text().trim() })
+        assertEquals((5 downTo 1).map { it.toString() }, second.select("td.commit-id a").map { it.text().trim() }, "다음 쪽은 앞 쪽과 겹치지 않고 5번부터이다")
         assertTrue(second.select("div.actrow a").none { it.text() == "Older" })
         assertTrue(second.select("div.actrow a").any { it.text() == "Newer" })
     }
