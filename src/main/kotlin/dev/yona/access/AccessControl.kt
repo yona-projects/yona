@@ -187,6 +187,8 @@ class AccessControl(
 
         // 이슈, 게시글, 댓글의 삭제는 작성자와 관리자만 한다(추가 개발 항목 X-36, `decisions.md` D-48). 담당자나 일반 구성원은 지우지 못한다. 수정(`UPDATE`)은
         // GitHub처럼 구성원에게 그대로 열어 둔다(이슈 본문 변경 이력이 남는다).
+        // 코드(저장소)는 매니저도 지울 수 없다. v1.6은 매니저 판정이 이 규칙보다 먼저 평가되어 매니저는 코드도 지울 수 있었다(R-09)
+        if (resource.type == ResourceType.CODE && operation == Operation.DELETE) return false
         val privileged = isProjectManager(user, project) || isAllowedIfAuthor(user, resource)
         if (resource.type in CONTENT_TYPES && operation == Operation.DELETE) return privileged
         if (privileged || isAllowedIfAssignee(user, resource)) {

@@ -281,13 +281,13 @@ class AccessControlTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 매니저는 코드 삭제까지 허용된다`() {
-        // v1.6의 결함: 매니저 판정이 "코드는 삭제할 수 없다" 규칙보다 먼저 평가된다.
+    fun `프로젝트 매니저도 코드는 삭제할 수 없다 (R-09)`() {
+        // v1.6은 매니저 판정이 "코드는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 지울 수 있었다
         val project = project(ProjectScope.PUBLIC, user())
         val manager = user().also { join(it, project, ProjectRole.MANAGER) }
         val member = user().also { join(it, project, ProjectRole.MEMBER) }
         val code = projectResource(project, ResourceType.CODE)
-        assertTrue(allowed(manager, code, Operation.DELETE))
+        assertFalse(allowed(manager, code, Operation.DELETE), "매니저도 코드를 지우지 못한다")
         assertFalse(allowed(member, code, Operation.DELETE), "일반 멤버는 코드를 지우지 못한다")
     }
 
