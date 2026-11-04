@@ -113,7 +113,10 @@
                     form.attr('method', 'POST');
                     form.attr('action', mailto);
                     form.attr('enctype', 'text/plain');
+                    // v1.6은 문서에 붙이지 않은 폼을 제출해 최신 브라우저에서 메일 창이 열리지 않았다(C026)
+                    form.hide().appendTo(document.body);
                     form.submit();
+                    form.remove();
                     _setLoading(htElement.welBtnWriteEmail, false);
                 }
             });

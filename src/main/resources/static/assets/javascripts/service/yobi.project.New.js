@@ -50,6 +50,10 @@
             htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
             htElement.welReviewerCountDisable = $('#reviewerCountDisable')
             htElement.welMenuSettingReview = $("#menuSettingReview");
+            // v1.6은 코드/PR 메뉴를 끌 때 쓰는 아래 요소를 준비하지 않아 TypeError가 났다(C032, R-78). 이 화면에 없으면 빈 집합이라 아무 일도 하지 않는다
+            htElement.welReviewerCountSettingPanel = $("#reviewerCountSettingPanel");
+            htElement.welDefaultBranceSettingPanel = $("#defaultBranceSettingPanel");
+            htElement.welSubMenuProjectChangeVCS = $("#subMenuProjectChangeVCS");
         }
 
         /**
