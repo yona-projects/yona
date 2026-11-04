@@ -360,11 +360,12 @@ class ProjectMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `역할 번호가 없으면 500이다 (v1_6 널 참조)`() {
+    fun `역할 번호가 없거나 숫자가 아니면 500이 아니라 400이고 역할은 그대로이다 (R-120)`() {
         val project = newProject()
         val manager = join(newUser(), project, RoleType.MANAGER)
         val member = join(newUser(), project, RoleType.MEMBER)
-        editMember(project, login(manager), member.id, null).andExpect(status().isInternalServerError)
+        editMember(project, login(manager), member.id, null).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/${project.owner}/${project.name}/member/${member.id}/edit").session(login(manager)).param("id", "abc")).andExpect(status().isBadRequest)
         assertEquals(RoleType.MEMBER.id, roleOf(member, project))
     }
 

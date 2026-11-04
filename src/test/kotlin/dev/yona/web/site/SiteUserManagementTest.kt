@@ -223,6 +223,12 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     // --- 삭제 ---
 
     @Test
+    fun `없는 사용자 번호로 삭제하면 500이 아니라 404이다 (R-52-1)`() {
+        val me = admin()
+        mockMvc.perform(delete("/sites/user/delete987654321").session(login(me))).andExpect(status().isNotFound)
+    }
+
+    @Test
     fun `사용자를 삭제하면 상태와 개인 정보가 지워지고 프로젝트와 담당에서 빠진다`() {
         val me = admin(); val target = newUser("지울 사람"); val owner = newUser()
         val p = project(owner, "keep"); join(owner, p, RoleType.MANAGER); join(target, p, RoleType.MEMBER)

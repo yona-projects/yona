@@ -73,7 +73,8 @@ class SiteUserController(
             RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "site.userList.deleteAlert"))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
         }
-        val user = users.findById(userId).orElseThrow { NullPointerException("사용자가 없습니다: $userId") }
+        // v1.6은 없는 번호이면 널 참조로 500이었다(R-52-1)
+        val user = users.findById(userId).orElse(null) ?: return ErrorViews.notFound()
         service.deleteUser(user)
         return RedirectSupport.see(request, response, "/sites/userList")
     }

@@ -52,9 +52,11 @@ class LdapEmailLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이메일이 없으면 로그인 ID를 만들 수 없어 예외이다`() {
+    fun `이메일이 없으면 로그인 ID를 만들 수 없어 500이 아니라 로그인 실패이다 (R-60-5)`() {
         Mockito.`when`(directory.authenticate("nomail", "pw")).thenReturn(LdapUser("무메일", "", "nomail", "", ""))
-        kotlin.test.assertFailsWith<IllegalStateException> { ldap.authenticate("nomail", "pw") }
+        val result = ldap.authenticate("nomail", "pw")
+        kotlin.test.assertNull(result.user)
+        kotlin.test.assertEquals(mapOf("warning" to "user.login.invalid"), result.flash)
     }
 
     @Test

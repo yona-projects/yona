@@ -324,6 +324,13 @@ class AccessControlTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `없는 이슈 번호의 리소스는 담당자 권한이 없고 500이 아니다 (C151, R-10)`() {
+        val project = project(ProjectScope.PRIVATE, user())
+        // v1.6은 없는 이슈에서 담당자를 읽다가 널 참조로 500이었다
+        assertFalse(allowed(user(), projectResource(project, ResourceType.ISSUE_POST, "987654321"), Operation.UPDATE))
+    }
+
+    @Test
     fun `담당자가 없는 이슈는 담당자 권한이 없다`() {
         val project = project(ProjectScope.PRIVATE, user())
         val issue = issues.save(Issue(project = project, number = 1, state = State.OPEN))

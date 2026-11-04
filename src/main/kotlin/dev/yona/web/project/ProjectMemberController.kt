@@ -122,9 +122,9 @@ class ProjectMemberController(
         if (project.isOwner(findUser(userId))) {
             return ErrorViews.forbidden("project.member.ownerMustBeAManager", views.of(project)).also { it.status = HttpStatus.BAD_REQUEST }
         }
-        // v1.6는 `form(Role.class).bindFromRequest().get().id`를 그대로 쓴다. 번호가 없거나 숫자가 아니면 널 참조로 500이다.
+        // v1.6는 `form(Role.class).bindFromRequest().get().id`를 그대로 쓴다. 번호가 없거나 숫자가 아니면 널 참조로 500이었다(R-120). 잘못된 요청이므로 400이다.
         // 없는 역할 번호이면 구성원의 역할이 비게 되고(204), 존재하는 역할이면 종류를 가리지 않고 받는다([decisions.md] A-24 철회, R-120).
-        val roleId = request.getParameter("id")?.takeIf { it.isNotBlank() }?.toLongOrNull() ?: throw NullPointerException("role id")
+        val roleId = request.getParameter("id")?.takeIf { it.isNotBlank() }?.toLongOrNull() ?: return ResponseEntity.badRequest().build<Void>()
         memberService.changeRole(project, userId, roleId)
         return ResponseEntity.noContent().build<Void>()
     }

@@ -104,6 +104,12 @@ class ProjectWatchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `알 수 없는 알림 종류는 500이 아니라 400이다 (C096)`() {
+        val u = user(); val p = project()
+        mockMvc.perform(post("/noti/toggle/${p.id}/NO_SUCH_TYPE").session(login(u))).andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun `구독하지 않은 프로젝트의 알림 종류는 바꿀 수 없다`() {
         val u = user(); val p = project()
         mockMvc.perform(post("/noti/toggle/${p.id}/NEW_ISSUE").session(login(u))).andExpect(status().isBadRequest)

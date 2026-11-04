@@ -45,19 +45,19 @@ class ProjectResourceLocator(
      * @param segments 요청 경로를 `/`로 나눈 구간(빈 구간 제외)
      * @return 찾은 리소스. 대상이 없으면 `null`
      * @throws UnsupportedOperationException 이 종류는 경로로 식별할 수 없을 때(v1.6의 `IllegalAccessError`)
-     * @throws NumberFormatException 식별자 구간이 숫자가 아닐 때 (v1.6도 `NumberFormatException`)
+     * 식별자 구간이 숫자가 아니면 대상이 없는 것으로 본다(v1.6은 `NumberFormatException`으로 500이었다, R-12).
      */
     fun locate(segments: List<String>, project: Project, type: ResourceType): Resource? {
         val projectId = requireNotNull(project.id)
         return when (type) {
             ResourceType.PROJECT -> project.asResource()
-            ResourceType.MILESTONE -> milestones.findById(segments[3].toLong()).orElse(null)?.asResource()
-            ResourceType.BOARD_POST -> postings.findByProjectIdAndNumber(projectId, segments[3].toLong())?.asResource()
-            ResourceType.ISSUE_POST -> issues.findByProjectIdAndNumber(projectId, segments[3].toLong())?.asResource()
-            ResourceType.ISSUE_LABEL -> labels.findById(segments[4].toLong()).orElse(null)?.asResource()
-            ResourceType.PULL_REQUEST -> pullRequests.findByToProjectIdAndNumber(projectId, segments[3].toLong())?.asResource()
-            ResourceType.COMMIT_COMMENT -> commitComments.findById(segments[5].toLong()).orElse(null)?.asResource()
-            ResourceType.ISSUE_LABEL_CATEGORY -> categories.findById(segments[5].toLong()).orElse(null)?.asResource()
+            ResourceType.MILESTONE -> milestones.findById(segments[3].toLongOrNull() ?: return null).orElse(null)?.asResource()
+            ResourceType.BOARD_POST -> postings.findByProjectIdAndNumber(projectId, segments[3].toLongOrNull() ?: return null)?.asResource()
+            ResourceType.ISSUE_POST -> issues.findByProjectIdAndNumber(projectId, segments[3].toLongOrNull() ?: return null)?.asResource()
+            ResourceType.ISSUE_LABEL -> labels.findById(segments[4].toLongOrNull() ?: return null).orElse(null)?.asResource()
+            ResourceType.PULL_REQUEST -> pullRequests.findByToProjectIdAndNumber(projectId, segments[3].toLongOrNull() ?: return null)?.asResource()
+            ResourceType.COMMIT_COMMENT -> commitComments.findById(segments[5].toLongOrNull() ?: return null).orElse(null)?.asResource()
+            ResourceType.ISSUE_LABEL_CATEGORY -> categories.findById(segments[5].toLongOrNull() ?: return null).orElse(null)?.asResource()
             else -> throw UnsupportedOperationException("경로로 식별할 수 없는 리소스 종류입니다: $type")
         }
     }

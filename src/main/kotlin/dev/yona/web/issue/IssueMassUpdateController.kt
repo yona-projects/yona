@@ -81,8 +81,8 @@ class IssueMassUpdateController(
         val delete = request.getParameter("delete") == "true"
         val viewer = currentUserProvider.get().user
 
-        // v1.6는 폼이 만든 이슈 객체를 `issue.refresh()`하는데 없는 번호이면 예외로 500이다
-        val targets = ids.map { issues.findById(it).orElseThrow { NoSuchElementException("issue $it") } }
+        // v1.6는 폼이 만든 이슈 객체를 `issue.refresh()`하는데 없는 번호이면 예외로 500이었다(R-127). 아무것도 바꾸기 전에 404로 알린다
+        val targets = ids.map { issues.findById(it).orElse(null) ?: return ErrorViews.notFound() }
         var updated = 0
         var rejected = 0
         for (issue in targets) {

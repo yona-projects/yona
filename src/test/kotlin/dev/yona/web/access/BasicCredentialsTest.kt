@@ -73,7 +73,8 @@ class BasicCredentialsTest {
     }
 
     @Test
-    fun `여섯 글자보다 짧은 헤더는 문자열 범위 오류이다 (v1_6은 500)`() {
-        kotlin.test.assertFailsWith<StringIndexOutOfBoundsException> { parseHeader("Basic") }
+    fun `여섯 글자보다 짧은 헤더는 500이 아니라 형식이 틀린 자격이다 (R-119, v1_6은 문자열 범위 오류)`() {
+        assertSame(BasicCredentials.MALFORMED, parseHeader("Basic"))
+        assertSame(BasicCredentials.MALFORMED, parseHeader(""))
     }
 }

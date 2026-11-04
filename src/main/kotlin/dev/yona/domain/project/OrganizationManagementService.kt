@@ -111,10 +111,11 @@ class OrganizationManagementService(
         if (!organizationUsers.existsByOrganizationIdAndUserId(orgId, userId)) return "organization.member.isNotAMember"
         if (!accessControl.isAllowed(actor, organization.asResource(), Operation.UPDATE)) return "organization.member.needManagerRole"
         if (isLastAdmin(orgId, userId)) {
-            if (roleId == null) throw NullPointerException("role id")
+            if (roleId == null) return "organization.member.unknownRole"
             if (roleId == RoleType.ORG_MEMBER.id) return "organization.member.atLeastOneAdmin"
         }
-        if (roleId == null) throw NullPointerException("role id")
+        // v1.6는 번호가 없으면 널 참조로 500이었다(R-120). 숫자가 아닌 값과 같이 알 수 없는 역할로 안내한다
+        if (roleId == null) return "organization.member.unknownRole"
         // v1.6 `OrganizationUser.assignRole`은 없는 역할 번호이면 아무것도 바꾸지 않고 넘어간다(그래도 204). 존재하는 역할이면 종류를 가리지 않고 받는다
         val before = organizationUsers.findFirstByOrganizationIdAndUserId(orgId, userId)?.role?.id
         roles.findById(roleId).orElse(null)?.let {

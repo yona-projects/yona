@@ -248,7 +248,8 @@ class AccessControl(
     /** 이슈의 담당자이면 `true`이다. */
     private fun isAllowedIfAssignee(user: User?, resource: Resource): Boolean {
         if (resource.type != ResourceType.ISSUE_POST) return false
-        val assignee = issues.findById(resource.id.toLong()).orElseThrow().assignee
+        // v1.6은 없는 이슈 번호이면 널 참조로 500이었다(C151, R-10). 이슈가 없으면 담당자도 없다
+        val assignee = issues.findById(resource.id.toLong()).orElse(null)?.assignee
         return assignee?.user?.id != null && assignee.user?.id == user?.id
     }
 

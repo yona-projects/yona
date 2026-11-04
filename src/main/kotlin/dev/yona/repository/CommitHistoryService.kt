@@ -60,7 +60,12 @@ class CommitHistoryService(
 
     private fun gitHistory(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? = repositories.openRepository(project).use { repository ->
         val startId = (if (revision == null) repository.resolve(Constants.HEAD) else repository.resolve(revision)) ?: return null
-        val start = RevWalk(repository).use { it.parseCommit(startId) }
+        // 트리나 블롭을 가리키는 태그이면 v1.6은 예외로 500이었다(R-128). 커밋이 아니면 이력이 없는 것으로 본다
+        val start = try {
+            RevWalk(repository).use { it.parseCommit(startId) }
+        } catch (e: org.eclipse.jgit.errors.IncorrectObjectTypeException) {
+            return null
+        }
         val log = Git(repository).log().add(start)
         if (!path.isNullOrEmpty()) log.addPath(path)
         val recent = ArrayDeque<RevCommit>()

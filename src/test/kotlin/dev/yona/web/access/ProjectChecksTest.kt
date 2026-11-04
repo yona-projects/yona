@@ -43,6 +43,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -370,5 +371,19 @@ class ProjectChecksTest : AbstractIntegrationTest() {
     fun `게스트가 아니면 통과한다`() {
         assertEquals(200, call("/__t/guest-prohibit", login(newUser())).response.status)
         assertEquals(200, call("/__t/guest-prohibit").response.status, "익명도 게스트가 아니다")
+    }
+
+    @Autowired private lateinit var locator: dev.yona.web.access.ProjectResourceLocator
+
+    @Test
+    fun `경로의 번호 구간이 숫자가 아니면 500이 아니라 대상 없음이다 (R-12)`() {
+        val owner = users.save(dev.yona.domain.user.User(loginId = "locowner", name = "locowner", email = "locowner@example.com", state = dev.yona.domain.enumeration.UserState.ACTIVE))
+        val p = projects.save(dev.yona.domain.project.Project(owner = owner.loginId, name = "locp", vcs = "GIT", projectScope = dev.yona.domain.enumeration.ProjectScope.PUBLIC, createdDate = java.util.Date()))
+        val segments = listOf("locowner", "locp", "x", "abc", "abc", "abc")
+        for (type in listOf(
+            dev.yona.domain.enumeration.ResourceType.MILESTONE, dev.yona.domain.enumeration.ResourceType.BOARD_POST, dev.yona.domain.enumeration.ResourceType.ISSUE_POST,
+            dev.yona.domain.enumeration.ResourceType.ISSUE_LABEL, dev.yona.domain.enumeration.ResourceType.PULL_REQUEST,
+            dev.yona.domain.enumeration.ResourceType.COMMIT_COMMENT, dev.yona.domain.enumeration.ResourceType.ISSUE_LABEL_CATEGORY
+        )) assertNull(locator.locate(segments, p, type), "$type")
     }
 }

@@ -71,7 +71,8 @@ class WatchProjectController(
     @PostMapping("/noti/toggle/{projectId}/{notificationType}")
     @Transactional
     fun toggle(@PathVariable projectId: Long, @PathVariable notificationType: String): Any {
-        val type = EventType.valueOf(notificationType)
+        // v1.6는 알 수 없는 종류이면 예외로 500이었다(C096). 잘못된 요청이므로 400이다
+        val type = EventType.entries.firstOrNull { it.name == notificationType } ?: return ResponseEntity.badRequest().build<Void>()
         val project = projects.findById(projectId).orElse(null) ?: return ErrorViews.notFound("error.notfound.project")
         val user = currentUserProvider.get().user
         if (user == null || !accessControl.isAllowed(user, project.asResource(), Operation.READ)) {

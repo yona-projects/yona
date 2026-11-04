@@ -51,12 +51,16 @@ class LdapAuthService(
     /**
      * @param loginIdOrEmail 사용자가 입력한 로그인 ID 또는 이메일
      * @param password 입력한 평문 비밀번호
-     * @throws IllegalStateException 인증은 됐지만 LDAP에서 사용자를 찾지 못했거나, 이메일로 로그인 ID를 만들어야 하는데 이메일이 없을 때
-     *   (v1.6은 같은 조건에서 NPE나 문자열 범위 오류로 HTTP 500이다, R-60)
+     * 인증은 됐지만 LDAP에서 사용자를 찾지 못했거나, 로그인 ID를 만들어야 하는데 이메일도 없으면 로그인 실패(`user.login.invalid` 안내)로 답한다.
+     * v1.6은 같은 조건에서 NPE나 문자열 범위 오류로 HTTP 500이었다(C001, R-60-4, R-60-5).
      */
     fun authenticate(loginIdOrEmail: String, password: String): LdapAuthResult {
         try {
-            val ldapUser = directory.authenticate(guessedUser(loginIdOrEmail), password) ?: error("LDAP 서버에서 사용자를 찾지 못했습니다: $loginIdOrEmail")
+            val ldapUser = directory.authenticate(guessedUser(loginIdOrEmail), password)
+            if (ldapUser == null) {
+                log.warn("LDAP 서버에서 사용자를 찾지 못했습니다: {}", loginIdOrEmail)
+                return fallback(loginIdOrEmail, password, mapOf("warning" to "user.login.invalid"))
+            }
             return synchronize(ldapUser, password)
         } catch (e: CommunicationException) {
             log.error("Cannot connect to ldap server: {}", e.message)
@@ -97,10 +101,14 @@ class LdapAuthService(
     /** 새 로컬 사용자를 만든다. 가입 승인제 등으로 잠기면 안내만 남기고 로그인시키지 않는다. */
     private fun create(ldapUser: LdapUser, password: String): LdapAuthResult {
         val loginId = if (ldapUser.loginId.isBlank() || config.useEmailBaseLogin) {
-            check(ldapUser.email.contains('@')) { "이메일이 없어 로그인 ID를 만들 수 없습니다: ${ldapUser.loginId}" }
+            if (!ldapUser.email.contains('@')) {
+                log.warn("이메일이 없어 로그인 ID를 만들 수 없습니다: {}", ldapUser.loginId)
+                return LdapAuthResult(null, mapOf("warning" to "user.login.invalid"))
+            }
             signup.generateLoginId(ldapUser.email.substringBefore('@'))
         } else {
-            ldapUser.loginId
+            // 다른 로컬 사용자가 같은 로그인 ID를 쓰고 있으면 v1.6은 유일 제약 위반으로 500이었다(R-60-9). 겹치지 않는 ID로 만든다
+            signup.generateLoginId(ldapUser.loginId)
         }
         val created = signup.create(SignupForm(loginId, ldapUser.displayNameWithDepartment, ldapUser.email, password))
         // v1.6 createNewUser: 게스트 여부는 사용자를 만들 때 함께 저장한다. 잠긴 사용자(가입 승인 대기)도 마찬가지이다

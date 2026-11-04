@@ -1,5 +1,6 @@
 package dev.yona.web.site
 
+import dev.yona.web.error.ErrorViews
 import dev.yona.domain.site.SiteMailService
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.SiteManagerOnly
@@ -33,10 +34,15 @@ class SiteMailController(private val service: SiteMailService) {
 
     @PostMapping("/sites/mail")
     fun sendMail(request: HttpServletRequest): ModelAndView {
-        service.send(
-            from = request.getParameter("from").orEmpty(), to = request.getParameter("to").orEmpty(),
-            subject = request.getParameter("subject").orEmpty(), body = request.getParameter("body").orEmpty()
-        )
+        // v1.6은 본문이 비었거나 주소가 올바르지 않으면 메일 라이브러리의 예외로 500이었다(R-54-1). 잘못된 요청이므로 400이다
+        try {
+            service.send(
+                from = request.getParameter("from").orEmpty(), to = request.getParameter("to").orEmpty(),
+                subject = request.getParameter("subject").orEmpty(), body = request.getParameter("body").orEmpty()
+            )
+        } catch (e: IllegalArgumentException) {
+            return ErrorViews.badRequest()
+        }
         return mailView(null, true)
     }
 
@@ -55,7 +61,12 @@ class SiteMailController(private val service: SiteMailService) {
             form.isEmpty() -> emptyList()
             "all" in form -> if (form["all"]?.firstOrNull() == "true") service.allEmails() else emptyList()
             // v1.6는 폼 본문을 `HashMap`에 담아 `values()`로 훑으므로 프로젝트 순서는 파라미터 이름의 해시 순서이다
-            else -> service.projectEmails(HashMap<String, Array<String>>().also { map -> form.forEach { (k, v) -> map[k] = v } }.values.mapNotNull { it.firstOrNull() })
+            // v1.6은 없는 프로젝트나 `/` 없는 이름이면 배열 범위 오류와 널 참조로 500이었다(R-54-4). 잘못된 요청이므로 400이다
+            else -> try {
+                service.projectEmails(HashMap<String, Array<String>>().also { map -> form.forEach { (k, v) -> map[k] = v } }.values.mapNotNull { it.firstOrNull() })
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().build()
+            }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(emails.toList())
     }

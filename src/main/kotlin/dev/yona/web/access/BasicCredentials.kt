@@ -23,6 +23,8 @@ class BasicCredentials(val loginId: String, val password: String) {
          */
         fun parse(request: HttpServletRequest): BasicCredentials? {
             val header = request.getHeader("Authorization") ?: return null
+            // v1.6는 여섯 글자보다 짧으면 문자열 범위 오류로 500이었다(R-119). 형식이 틀린 자격으로 본다
+            if (header.length < 6) return MALFORMED
             val decoded = String(lenientDecode(header.substring(6)), Charsets.ISO_8859_1)
             val colon = decoded.indexOf(':')
             if (colon < 0) return MALFORMED

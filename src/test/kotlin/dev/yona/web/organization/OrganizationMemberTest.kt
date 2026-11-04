@@ -258,11 +258,11 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `역할 번호가 없으면 500이다 (v1_6 널 참조)`() {
+    fun `역할 번호가 없으면 500이 아니라 알 수 없는 역할 안내이고 역할은 그대로이다 (R-120)`() {
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
-        editMember(org, login(admin), member.id, null).andExpect(status().isInternalServerError)
+        editMember(org, login(admin), member.id, null).andExpect(flash().attribute("warning", "organization.member.unknownRole"))
         assertEquals(RoleType.ORG_MEMBER.id, roleOf(org, member))
     }
 

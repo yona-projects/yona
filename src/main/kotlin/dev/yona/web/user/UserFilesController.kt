@@ -40,7 +40,8 @@ class UserFilesController(
     @GetMapping("/user/files")
     @Transactional(readOnly = true)
     fun files(@RequestParam(required = false) pageNum: String?, @RequestParam(required = false) filter: String?): ModelAndView {
-        val number = if (pageNum.isNullOrEmpty()) 1 else pageNum.toInt()
+        // v1.6은 숫자가 아니거나 0 이하이면 500이었다(R-48-6). 읽을 수 없는 값은 첫 쪽으로 본다
+        val number = pageNum?.toIntOrNull()?.takeIf { it >= 1 } ?: 1
         val loginId = currentUserProvider.get().user?.loginId ?: ANONYMOUS_LOGIN_ID
         val page = attachments.findByUser(loginId, filter.orEmpty(), PageRequest.of(number - 1, PAGE_SIZE))
         val rows = page.content.map { rowOf(it) }

@@ -113,9 +113,19 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `찾은 사용자가 없으면 예외이다`() {
+    fun `바인드는 됐지만 찾은 사용자가 없으면 500이 아니라 로그인 실패이다 (C001, R-60-4)`() {
         Mockito.`when`(directory.authenticate("ghost", "pw")).thenReturn(null)
-        assertFailsWith<IllegalStateException> { ldap.authenticate("ghost", "pw") }
+        val result = ldap.authenticate("ghost", "pw")
+        assertNull(result.user)
+        assertEquals(mapOf("warning" to "user.login.invalid"), result.flash)
+    }
+
+    @Test
+    fun `로그인 ID도 이메일도 없는 LDAP 사용자는 500이 아니라 로그인 실패이다 (R-60-5)`() {
+        Mockito.`when`(directory.authenticate("blank", "pw")).thenReturn(ldapUser(login = "", email = ""))
+        val result = ldap.authenticate("blank", "pw")
+        assertNull(result.user)
+        assertEquals(mapOf("warning" to "user.login.invalid"), result.flash)
     }
 
     @Test
@@ -127,10 +137,13 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `로그인 ID를 로컬 사용자가 이미 쓰고 있으면 사용자를 만들 수 없다`() {
-        local("other-mail@corp.test", "taken")
+    fun `로그인 ID를 다른 로컬 사용자가 이미 쓰고 있으면 500이 아니라 겹치지 않는 로그인 ID로 만든다 (R-60-9)`() {
+        val existing = local("other-mail@corp.test", "taken")
         Mockito.`when`(directory.authenticate("taken", "pw")).thenReturn(ldapUser(login = "taken", email = "taken@corp.test"))
-        assertFailsWith<Exception> { ldap.authenticate("taken", "pw"); users.flush() }
+        val created = assertNotNull(ldap.authenticate("taken", "pw").user)
+        users.flush()
+        assertEquals("taken-yona", created.loginId)
+        assertEquals("taken", existing.loginId)
     }
 
     @Test

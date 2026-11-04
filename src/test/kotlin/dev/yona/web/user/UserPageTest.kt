@@ -155,6 +155,16 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `숫자가 아니거나 너무 큰 daysAgo 쿠키는 오류 대신 기본 14일로 본다 (R-48-5)`() {
+        val u = newUser()
+        for (bad in listOf("abc", "99999999999", "1.5")) {
+            val result = mockMvc.perform(get("/${u.loginId}").cookie(jakarta.servlet.http.Cookie("daysAgo", bad))).andExpect(status().isOk).andReturn()
+            assertEquals("14", Jsoup.parse(result.response.contentAsString).selectFirst("#daysAgoBtn")!!.attr("value"), "쿠키 $bad")
+            assertEquals("14", result.response.getCookie("daysAgo")!!.value, "쿠키 $bad")
+        }
+    }
+
+    @Test
     fun `daysAgo를 주면 그 값을 쓰고 쿠키에 저장한다`() {
         val u = newUser()
         val result = mockMvc.perform(get("/${u.loginId}").param("daysAgo", "30")).andReturn()

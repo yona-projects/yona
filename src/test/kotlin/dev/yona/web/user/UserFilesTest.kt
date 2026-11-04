@@ -131,6 +131,16 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `숫자가 아니거나 0 이하인 pageNum은 오류 대신 첫 쪽이다 (R-48-6)`() {
+        val me = newUser()
+        (1..3).forEach { attach(me, "f$it.txt", 1_700_000_000_000 + it) }
+        val session = login(me)
+        for (bad in listOf("abc", "0", "-3", "99999999999")) {
+            assertEquals(3, page(session, "pageNum" to bad).select(".attachment-file-detail").size, "pageNum=$bad")
+        }
+    }
+
+    @Test
     fun `익명 사용자에게는 빈 목록이 보인다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/user/files")).andExpect(status().isOk).andReturn().response.contentAsString)
         assertTrue(doc.select(".attachment-file-detail").isEmpty())

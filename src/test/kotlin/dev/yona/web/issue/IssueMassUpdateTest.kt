@@ -265,9 +265,9 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `없는 이슈 번호가 있으면 500이다 (v1_6 issue refresh)`() {
+    fun `없는 이슈 번호가 있으면 500이 아니라 404이고 아무것도 바꾸지 않는다 (R-127)`() {
         val project = newProject(); val member = join(newUser(), project)
-        post(project, login(member), "issues[0].id" to "999999", "state" to "CLOSED").andExpect(status().isInternalServerError)
+        post(project, login(member), "issues[0].id" to "999999", "state" to "CLOSED").andExpect(status().isNotFound)
     }
 
     @Test

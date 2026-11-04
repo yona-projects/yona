@@ -118,10 +118,10 @@ class SiteMailTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `본문이 비었거나 주소가 올바르지 않으면 오류이다`() {
+    fun `본문이 비었거나 주소가 올바르지 않으면 500이 아니라 400이다 (R-54-1)`() {
         val session = admin()
-        mockMvc.perform(post("/sites/mail").session(session).param("from", "a@example.com").param("to", "b@example.com").param("subject", "s").param("body", "")).andExpect(status().isInternalServerError)
-        mockMvc.perform(post("/sites/mail").session(session).param("from", "not an address").param("to", "b@example.com").param("body", "x")).andExpect(status().isInternalServerError)
+        mockMvc.perform(post("/sites/mail").session(session).param("from", "a@example.com").param("to", "b@example.com").param("subject", "s").param("body", "")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/sites/mail").session(session).param("from", "not an address").param("to", "b@example.com").param("body", "x")).andExpect(status().isBadRequest)
         Mockito.verifyNoInteractions(mailSender)
     }
 
@@ -202,8 +202,8 @@ class SiteMailTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `없는 프로젝트나 모양이 다른 이름이면 오류이다`() {
-        mailList(admin(), "application/json", "0" to "nobody/nothing").andExpect(status().isInternalServerError)
-        mailList(admin(), "application/json", "0" to "noslash").andExpect(status().isInternalServerError)
+    fun `없는 프로젝트나 모양이 다른 이름이면 500이 아니라 400이다 (R-54-4)`() {
+        mailList(admin(), "application/json", "0" to "nobody/nothing").andExpect(status().isBadRequest)
+        mailList(admin(), "application/json", "0" to "noslash").andExpect(status().isBadRequest)
     }
 }

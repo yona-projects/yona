@@ -64,7 +64,8 @@ class UserPageController(
     private fun resolveDaysAgo(daysAgo: Int, request: HttpServletRequest, response: HttpServletResponse): Int {
         if (daysAgo == UNDEFINED) {
             val cookie = request.cookies?.firstOrNull { it.name == COOKIE }?.value
-            if (!cookie.isNullOrEmpty()) return cookie.toInt()
+            // v1.6은 쿠키 값을 그대로 정수로 바꿔 숫자가 아니면 500이었다(R-48-5). 읽을 수 없는 값은 쿠키가 없는 것으로 본다
+            cookie?.toIntOrNull()?.let { return it }
             saveCookie(response, DEFAULT_DAYS_AGO)
             return DEFAULT_DAYS_AGO
         }
