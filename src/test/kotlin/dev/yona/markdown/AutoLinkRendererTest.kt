@@ -102,6 +102,17 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `읽을 수 없는 프로젝트의 이슈 번호는 제목 없이 글자 그대로 둔다 (C091)`() {
+        val p = project()
+        p.projectScope = ProjectScope.PRIVATE; projects.save(p)
+        issue(p, 7, "비공개 제목")
+        // 비로그인은 비공개 프로젝트를 읽을 수 없다. v1.6은 읽기 권한을 보지 않고 제목과 상태를 링크로 그렸다
+        val html = render("참조 #7", p)
+        assertTrue(!html.contains("비공개 제목"), html)
+        assertTrue(html.contains("#7"), html)
+    }
+
+    @Test
     fun `없는 이슈 번호는 그대로 둔다`() {
         val project = project()
         assertEquals("<p>#99</p>", render("<p>#99</p>", project))

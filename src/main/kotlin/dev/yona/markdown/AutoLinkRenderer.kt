@@ -1,5 +1,6 @@
 package dev.yona.markdown
 
+import dev.yona.access.asResource
 import dev.yona.util.LegacyText
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.OrganizationRepository
@@ -48,7 +49,8 @@ class AutoLinkRenderer(
     private val repositories: RepositoryService,
     private val avatars: AvatarService,
     private val currentUserProvider: CurrentUserProvider,
-    private val messages: MessageSource
+    private val messages: MessageSource,
+    private val accessControl: dev.yona.access.AccessControl
 ) {
 
     private data class Link(val href: String?, val className: String?, val displayName: String?) {
@@ -126,6 +128,8 @@ class AutoLinkRenderer(
         // 번호가 Long 범위를 넘으면 링크로 바꾸지 않는다. v1.6은 변환 예외가 올라가 그 글을 보는 요청이 500이었다(R-15-4)
         val number = issueNumber.toLongOrNull() ?: return null
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return null
+        // 읽을 수 없는 이슈의 번호와 제목, 상태를 링크로 그리지 않는다. v1.6은 읽기 권한을 보지 않아 비로그인도 비공개 이슈의 제목을 볼 수 있었다(C091)
+        if (!accessControl.isAllowed(currentUserProvider.get().user, issue.asResource(), dev.yona.domain.enumeration.Operation.READ)) return null
         var linkText = "#$issueNumber.${issue.title}"
         // v1.6는 접두어가 있을 때 링크 문구에 접두어와 문구를 한 번 더 붙여 문구가 두 번 나왔다(R-15-1). 접두어는 반환할 때 한 번만 붙인다
         val state = issue.state
