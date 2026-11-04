@@ -184,6 +184,16 @@ class SocialAccountServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이어받을 때 삭제된 사용자도 로그인시키지 않는다 (R-59-9)`() {
+        val id = identity(email = "resume-deleted@example.com")
+        val created = social.signIn(id).user!!
+        created.state = UserState.DELETED
+        users.save(created)
+        // v1.6은 잠긴 사용자만 걸러 삭제된 사용자는 소셜 세션만 남아 있으면 로그인되었다
+        assertNull(social.resume(id).user)
+    }
+
+    @Test
     fun `이어받을 때 연결된 사용자가 지워졌으면 새로 만들지만 로그인은 다음 방문에서 한다`() {
         val id = identity(email = "resume-gone@example.com")
         val created = social.signIn(id).user!!

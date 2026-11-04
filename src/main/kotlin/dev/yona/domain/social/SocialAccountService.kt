@@ -189,6 +189,7 @@ class SocialAccountService(
             credential.user = user
             credentials.save(credential)
         }
-        return SocialLoginResult(user.takeIf { it.state != UserState.LOCKED })
+        // 삭제된 사용자도 로그인시키지 않는다. v1.6은 잠긴 사용자만 걸러냈다(R-59-9)
+        return SocialLoginResult(user.takeIf { it.state != UserState.LOCKED && it.state != UserState.DELETED })
     }
 }
