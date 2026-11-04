@@ -127,6 +127,17 @@ class ImportTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `실패해서 다시 그릴 때는 고른 메뉴만 켜져 있다 (R-46-4)`() {
+        val me = user(); val session = login(me)
+        // 코드와 이슈만 고르고 주소를 비워 실패시킨다
+        val html = mockMvc.perform(send(session, me.loginId!!, "menusonly", "  ")).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        val doc = org.jsoup.Jsoup.parse(html)
+        fun checked(id: String) = doc.selectFirst("input#$id")!!.hasAttr("checked")
+        assertTrue(checked("menuSettingCode") && checked("menuSettingIssue"))
+        assertEquals(listOf(false, false, false, false), listOf("menuSettingPullRequest", "menuSettingReview", "menuSettingMilestone", "menuSettingBoard").map { checked(it) })
+    }
+
+    @Test
     fun `같은 이름이 있거나 주소가 비었거나 이름 규칙을 어기면 400이고 이름 안내가 더해진다`() {
         val me = user(); val session = login(me)
         mockMvc.perform(send(session, me.loginId!!, "taken", source())).andExpect(status().isSeeOther)
