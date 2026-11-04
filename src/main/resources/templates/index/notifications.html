@@ -76,14 +76,16 @@
 
             $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
                 var $this = $(this);
-                $this.find(".more").toggle();
                 var sTargetId = $this.data('target'),
                     welMessage = $('#'+sTargetId),
                     nHeight;
 
+                // v1.6은 더 보기를 먼저 토글한 뒤에 링크와 이미지 클릭을 걸러, 링크를 눌러도 토글되었다(C077)
                 if(event.target.localName =='a' || event.target.localName =='img') {
                     return ;
                 }
+
+                $this.find(".more").toggle();
 
                 welMessage.toggleClass('nowrap');
 

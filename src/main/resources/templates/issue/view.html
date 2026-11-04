@@ -360,6 +360,8 @@
         });
 
         $('#translate').one('click', function (e) {
+            // v1.6은 성공 콜백의 `$(this)`가 버튼이 아니라 요청 설정 객체여서 버튼이 비활성화되지 않았다(C064). 버튼을 미리 잡아 둔다
+            var $button = $(this);
             var data = {
                 owner: /*[[${project.owner}]]*/ "",
                 projectName: /*[[${project.name}]]*/ "",
@@ -374,11 +376,12 @@
                 contentType: "application/json"
             }).done(function (data) {
                 $(".markdown-wrap").first().html(data.translated);
-                $(this).attr("disabled", true);
+                $button.attr("disabled", true);
             });
         });
 
         $('.comment-translate').one('click', function (e) {
+            var $button = $(this);
             var payload = {
                 owner: /*[[${project.owner}]]*/ "",
                 projectName: /*[[${project.name}]]*/ "",
@@ -393,7 +396,7 @@
                 contentType: "application/json"
             }).done(function (data) {
                 $("#comment-body-" + payload.number).find(".markdown-wrap").html(data.translated)
-                $(this).attr("disabled", true);
+                $button.attr("disabled", true);
             });
         });
 

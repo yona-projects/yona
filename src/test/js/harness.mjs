@@ -47,3 +47,17 @@ export async function pageWith({ html = '', scripts = [], stubs = true } = {}) {
   for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? { path: path.join(JS, s) } : s);
   return page;
 }
+
+/**
+ * Thymeleaf 템플릿의 인라인 스크립트 조각을 [from]부터 [to] 직전까지 잘라 돌려준다.
+ * `/*[[...]]*\/ ""` 꼴의 인라인 표현은 주석과 빈 문자열이라 그대로 실행해도 문법이 맞는다.
+ */
+import fs from 'node:fs';
+export function templateSnippet(relativePath, from, to) {
+  const text = fs.readFileSync(path.join(ROOT, 'src/main/resources/templates', relativePath), 'utf8');
+  const start = text.indexOf(from);
+  if (start < 0) throw new Error(`시작 표지를 찾지 못했다: ${from}`);
+  const end = to ? text.indexOf(to, start) : text.length;
+  if (end < 0) throw new Error(`끝 표지를 찾지 못했다: ${to}`);
+  return text.slice(start, end);
+}
