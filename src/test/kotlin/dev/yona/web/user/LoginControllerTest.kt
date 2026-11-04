@@ -98,6 +98,16 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `redirectUrl이 외부 주소이면 첫 화면으로 보낸다 (R-06)`() {
+        // v1.6은 redirectUrl을 검사하지 않아 `//example.com`으로 이동했다
+        newUser("bobx")
+        for (bad in listOf("//example.com/x", "https://example.com/x", "/\\example.com")) {
+            mockMvc.perform(post("/users/login").param("loginIdOrEmail", "bobx").param("password", "1234").param("redirectUrl", bad))
+                .andExpect(status().isSeeOther).andExpect(header().string("Location", "/"))
+        }
+    }
+
+    @Test
     fun `redirectUrl 끝의 슬래시는 버린다 (v1_6 encodedPath의 Java split)`() {
         newUser("bob2")
         mockMvc.perform(post("/users/login").param("loginIdOrEmail", "bob2").param("password", "1234").param("redirectUrl", "/bob/p/"))

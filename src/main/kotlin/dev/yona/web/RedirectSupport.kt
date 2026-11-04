@@ -17,6 +17,27 @@ import org.springframework.web.servlet.support.RequestContextUtils
  */
 object RedirectSupport {
 
+    /**
+     * 로그인 뒤 이동할 주소가 이 사이트 안의 경로일 때만 돌려주고 아니면 `null`이다. `//호스트`, `\\호스트`, 다른 호스트의 절대 주소, 스킴이 있는 값, 줄바꿈이
+     * 든 값은 거절한다. 이 서버의 절대 주소(Referer)는 경로와 쿼리로 바꿔 돌려준다. v1.6은 값을 검사하지 않아 `//example.com`으로 이동할 수 있었다(R-06, C013, R-59-10).
+     */
+    fun localTarget(target: String?, request: HttpServletRequest): String? {
+        if (target.isNullOrEmpty() || target.any { it.code < 0x20 || it == '\\' }) return null
+        if (target.startsWith("/")) return target.takeUnless { it.startsWith("//") }
+        val uri = runCatching { java.net.URI(target) }.getOrNull() ?: return null
+        if (uri.scheme == null || uri.host == null || uri.scheme.lowercase() !in listOf("http", "https")) return null
+        val authority = uri.rawAuthority.orEmpty()
+        val defaultPort = if (request.scheme == "https") 443 else 80
+        val host = request.getHeader(HttpHeaders.HOST) ?: (request.serverName + if (request.serverPort == defaultPort) "" else ":${request.serverPort}")
+        if (!authority.equals(host, ignoreCase = true)) return null
+        val path = uri.rawPath.orEmpty().ifEmpty { "/" }
+        return path + (uri.rawQuery?.let { "?$it" } ?: "")
+    }
+
+    /** 기본 로그인 페이지처럼 앞의 슬래시를 뺀 상대 경로로 저장하는 값이 안전한지 본다. 스킴, 앞 슬래시, 역슬래시, 제어 문자가 있으면 거절한다. */
+    fun isSafeRelativePath(path: String?): Boolean =
+        !path.isNullOrEmpty() && !path.startsWith("/") && path.none { it.code < 0x20 || it == '\\' } && !path.substringBefore('/').contains(':')
+
     /** 일회성 메시지의 키이다 (v1.6 `utils.Constants`). */
     const val WARNING = "warning"
     const val INFO = "info"

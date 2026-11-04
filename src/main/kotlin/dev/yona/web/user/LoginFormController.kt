@@ -34,11 +34,12 @@ class LoginFormController(
             return RedirectSupport.see(request, response, "/")
         }
 
-        var redirectUrl = request.getParameter("redirectUrl")
+        // 이동 대상은 이 사이트 안의 경로만 쓴다. v1.6은 값을 검사하지 않아 외부 주소로 보낼 수 있었다(R-59-10)
+        var redirectUrl = RedirectSupport.localTarget(request.getParameter("redirectUrl"), request)
         val referer = request.getHeader(HttpHeaders.REFERER)
         // v1.6은 절대 주소인 Referer를 경로 문자열과 비교해 항상 달랐고, 로그인 화면 자신이 이동 대상이 되었다(C142). 주소의 경로로 비교한다
         if (redirectUrl.isNullOrEmpty() && pathOf(referer) != LOGIN_FORM_PATH) {
-            redirectUrl = referer
+            redirectUrl = RedirectSupport.localTarget(referer, request)
         }
         // 소셜 로그인은 마쳤지만 로컬 세션이 없는 상태이면 연결된 사용자를 이어받는다(v1.6 `linkWithExistedOrCreateLocalUser`).
         // 이동할 주소가 없으면 v1.6은 오류가 난다. 홈으로 보낸다([refactoring-backlog.md] R-59).

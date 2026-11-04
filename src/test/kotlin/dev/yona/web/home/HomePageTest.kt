@@ -202,6 +202,15 @@ class HomePageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `외부로 가는 기본 로그인 페이지는 저장하지 않는다 (C013)`() {
+        val (session, user) = login("home7c")
+        for (bad in listOf("//evil.example.com", "https://evil.example.com", "/abs")) {
+            mockMvc.perform(post("/user/defultLoginPage").session(session).queryParam("path", bad)).andExpect(status().isBadRequest)
+        }
+        assertNull(settings.findByUserId(user.id!!)?.loginDefaultPage)
+    }
+
+    @Test
     fun `폼 본문의 path는 무시한다 (v1_6은 쿼리 문자열만 읽는다)`() {
         val (session, user) = login("home7b")
         mockMvc.perform(post("/user/defultLoginPage").session(session).param("path", "user/issues"))

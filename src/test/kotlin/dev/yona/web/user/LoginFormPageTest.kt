@@ -103,7 +103,9 @@ class LoginFormPageTest : AbstractIntegrationTest() {
     @Test
     fun `redirectUrl이 없으면 Referer를 이동 대상으로 쓴다`() {
         val doc = page(referer = "http://localhost/yona/projects")
-        assertEquals("http://localhost/yona/projects", doc.selectFirst("input[name=redirectUrl]")?.attr("value"))
+        // 이 서버의 절대 주소는 경로로 바꿔 쓰고, 다른 서버의 주소는 쓰지 않는다(R-59-10)
+        assertEquals("/yona/projects", doc.selectFirst("input[name=redirectUrl]")?.attr("value"))
+        assertEquals("", page(referer = "http://evil.example.com/x").selectFirst("input[name=redirectUrl]")?.attr("value"))
     }
 
     @Test

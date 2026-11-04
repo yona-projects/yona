@@ -107,7 +107,8 @@ class SocialSession {
     fun rememberOriginalUrl(): String {
         val request = (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.request ?: return ""
         if (hasKeys(request)) return ""
-        val redirect = request.getParameter("redirectUrl")
+        // 이 사이트 안의 경로만 기억한다. v1.6은 값을 검사하지 않아 인증 뒤 외부 사이트로 보낼 수 있었다(R-59-10)
+        val redirect = dev.yona.web.RedirectSupport.localTarget(request.getParameter("redirectUrl"), request) ?: ""
         val session = request.getSession(true)
         if (!redirect.isNullOrEmpty()) {
             session.setAttribute(ORIGINAL_URL, redirect)

@@ -99,7 +99,8 @@ class LoginController(
         return when (val result = authenticate(loginKey, password, request)) {
             is LoginResult.Success -> {
                 val redirectUrl = request.getParameter("redirectUrl")
-                val target = if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl)
+                // 이 사이트 안의 경로가 아니면 첫 화면으로 보낸다. v1.6은 `//example.com`으로도 이동했다(R-06)
+                val target = RedirectSupport.localTarget(redirectUrl, request)?.let { encodedPath(it) } ?: "/"
                 if (twoFactorLogin.required(result.user, request)) {
                     // 2단계 인증을 켠 사용자는 비밀번호만으로 로그인되지 않는다(X-2, D-69). 2단계 화면에서 코드를 확인한 뒤에 로그인을 끝낸다
                     twoFactorLogin.begin(request, result.user, "password", wantsRememberMe(request), target, result.flash.mapValues { it.value.toString() })

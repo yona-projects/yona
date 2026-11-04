@@ -57,9 +57,11 @@ class HomeController(
      */
     @PostMapping("/user/defultLoginPage")
     @ResponseBody
-    fun setDefaultLoginPage(request: jakarta.servlet.http.HttpServletRequest): Map<String, String?> {
+    fun setDefaultLoginPage(request: jakarta.servlet.http.HttpServletRequest, response: jakarta.servlet.http.HttpServletResponse): Map<String, String?> {
         // v1.6은 `request().getQueryString("path")`라 쿼리 문자열만 본다(폼 본문의 `path`는 무시한다)
         val path = dev.yona.web.QueryLinks.queryValue(request, "path")
+        // 외부로 가는 값은 저장하지 않는다. v1.6은 검사하지 않아 홈 접속 때 외부 사이트로 이동시킬 수 있었다(C013)
+        if (path != null && !RedirectSupport.isSafeRelativePath(path)) { response.status = 400; return mapOf("defaultLoginPage" to null) }
         val user = currentUserProvider.get().user ?: return mapOf("defaultLoginPage" to path)
         val setting = userSettings.findByUserId(requireNotNull(user.id)) ?: UserSetting(user = user)
         setting.loginDefaultPage = path
