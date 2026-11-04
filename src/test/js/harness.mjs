@@ -61,3 +61,13 @@ export function templateSnippet(relativePath, from, to) {
   if (end < 0) throw new Error(`끝 표지를 찾지 못했다: ${to}`);
   return text.slice(start, end);
 }
+
+/** JS 소스 파일에서 [from]부터 [to] 직전까지 잘라 돌려준다. 모듈 안쪽 비공개 함수를 따로 시험할 때 쓴다. */
+export function sourceSnippet(relativePath, from, to) {
+  const text = fs.readFileSync(path.join(JS, relativePath), 'utf8');
+  const start = text.indexOf(from);
+  if (start < 0) throw new Error(`시작 표지를 찾지 못했다: ${from}`);
+  const end = to ? text.indexOf(to, start) : text.length;
+  if (end < 0) throw new Error(`끝 표지를 찾지 못했다: ${to}`);
+  return text.slice(start, end);
+}

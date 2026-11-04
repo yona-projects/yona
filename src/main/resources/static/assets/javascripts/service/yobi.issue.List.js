@@ -264,7 +264,10 @@
             _listHoverEffect();
             _initTwoColumnMode();  // yona.twoColumnMode.js
             _initShowChildList();
-            _initShowSubtasks(); // yona.showSubtask.js
+            // v1.6은 이 스크립트(yona.showSubtask.js)를 읽지 않는 화면에서 ReferenceError가 났다(R-69). 있을 때만 부른다
+            if (typeof _initShowSubtasks === "function") {
+                _initShowSubtasks(); // yona.showSubtask.js
+            }
         }
 
         function _listHoverEffect(){

@@ -120,14 +120,11 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         var calledCheckKey = vm.source.full_name + "/" + vm.destination.full_name;
         if(!vm.delegateAttachmentsMigrationCalled[calledCheckKey]){
             vm.delegateAttachmentsMigrationCalled[calledCheckKey] = true;
-            migrationService.delegateAttachmentsMigration(vm.source, vm.destination).then(function(response){
-                $log.log(response);
-            });
+            // v1.6은 값을 돌려주지 않는 서비스 함수에 `.then`을 걸어 TypeError가 났다(C101). 서비스는 아직 지원하지 않으므로 결과를 기다리지 않는다
+            migrationService.delegateAttachmentsMigration(vm.source, vm.destination);
         }
         if(force === true){
-            migrationService.delegateAttachmentsMigration(vm.source, vm.destination).then(function(response){
-                $log.log(response);
-            });
+            migrationService.delegateAttachmentsMigration(vm.source, vm.destination);
         }
     }
 
@@ -486,7 +483,8 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
                 loadingBar.end();
             } else {
                 if(counter < 20){
-                    endLoadingBar(counter++);
+                    // v1.6은 후위 증가라 counter가 늘지 않아 시간 초과에 닿지 못했다(C102)
+                    endLoadingBar(++counter);
                 } else {
                     loadingBar.end();
                     throw "Timeout!";

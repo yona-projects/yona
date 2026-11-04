@@ -656,7 +656,12 @@
 
         function _setReviewListHeight() {
             var nMaxHeight;
-            
+
+            // v1.6은 리뷰 스레드가 하나도 없으면 그려지지 않는 요소의 `position().top`을 읽어 TypeError가 났다(R-70)
+            if (htElement.welReviewList.length === 0) {
+                return;
+            }
+
             if(_isReviewContainerStuck()) {
                 var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
                 var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
