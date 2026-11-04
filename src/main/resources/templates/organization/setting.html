@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/organization/setting.scala.html
-  모델: title, orgView(OrganizationViewContext), nameWarning(이름 입력란 아래 안내. 번역 끝남)
+  모델: title, orgView(OrganizationViewContext), nameWarning(이름 입력란 아래 안내. 번역 끝남), submittedName/submittedDescr(검증에 실패해 다시 그릴 때 제출한 값)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::settingPage})}">
@@ -42,7 +42,7 @@
                             <label for="project-name" th:text="#{organization.name.placeholder}"></label>
                         </dt>
                         <dd>
-                            <input class="form-control" id="project-name" type="text" name="name" maxlength="250" th:value="${org.name}">
+                            <input class="form-control" id="project-name" type="text" name="name" maxlength="250" th:value="${submittedName != null ? submittedName : org.name}">
                             <div class="orange-txt">
                                 <span th:if="${nameWarning != null}" class="warning" th:text="${nameWarning}"></span>
                                 <span class="msg wrongName" style="display: none;"></span>
@@ -52,7 +52,7 @@
                             <label for="project-desc" th:text="#{organization.description.placeholder}"></label>
                         </dt>
                         <dd>
-                            <textarea id="project-desc" name="descr" maxlength="250" class="textarea form-control" th:text="${org.descr}"></textarea>
+                            <textarea id="project-desc" name="descr" maxlength="250" class="textarea form-control" th:text="${submittedDescr != null ? submittedDescr : org.descr}"></textarea>
                         </dd>
                     </dl>
                 </div>

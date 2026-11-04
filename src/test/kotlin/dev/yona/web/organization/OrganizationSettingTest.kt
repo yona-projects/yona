@@ -208,6 +208,17 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름이 중복되어 거부되면 폼은 DB 값이 아니라 제출한 값을 다시 보인다 (C171)`() {
+        val org = newOrg()
+        val other = newOrg()
+        val byOrg = save(org, login(admin(org)), "name" to other.name!!, "descr" to "제출한 설명")
+        assertEquals(400, byOrg.response.status)
+        val doc = Jsoup.parse(byOrg.response.contentAsString)
+        assertEquals(other.name, doc.selectFirst("input[name=name]")!!.attr("value"))
+        assertEquals("제출한 설명", doc.selectFirst("textarea[name=descr]")!!.text())
+    }
+
+    @Test
     fun `이미 있는 사용자나 조직 이름으로 바꾸면 거부한다`() {
         val org = newOrg()
         val other = newOrg()

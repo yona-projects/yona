@@ -76,7 +76,7 @@ class OrganizationSettingController(
         }
 
         if (management.isDuplicateName(organization, name)) {
-            return settingView(organization, "organization.name.duplicate", null).also { it.status = HttpStatus.BAD_REQUEST }
+            return settingView(organization, "organization.name.duplicate", null, submittedName = name, submittedDescr = descr).also { it.status = HttpStatus.BAD_REQUEST }
         }
 
         var logoWarning: String? = null
@@ -126,11 +126,14 @@ class OrganizationSettingController(
             ?: ErrorViews.notFound("organization.member.unknownOrganization")
 
     /** 설정 화면이다. [nameWarning]은 이름 입력란 아래에만 보이고, [flashKey]는 알림으로 같은 응답에서 보여 준다. */
-    private fun settingView(organization: Organization, nameWarning: String?, flashKey: String?): ModelAndView {
+    private fun settingView(organization: Organization, nameWarning: String?, flashKey: String?, submittedName: String? = null, submittedDescr: String? = null): ModelAndView {
         val view = ModelAndView("organization/setting")
             .addObject("title", organization.name)
             .addObject("orgView", orgViews.of(organization))
         // v1.6는 이름 중복이면 폼 오류만 만들고 flash는 만들지 않아 이름 아래 문구만 보인다 (OrganizationApp.java:404-407)
+        // 검증에 실패해 다시 그릴 때는 제출한 값을 보인다. v1.6은 DB의 값을 다시 보였다(C171)
+        submittedName?.let { view.addObject("submittedName", it) }
+        submittedDescr?.let { view.addObject("submittedDescr", it) }
         nameWarning?.let { view.addObject("nameWarning", messages.getMessage(it, null, it, LocaleContextHolder.getLocale())) }
         flashKey?.let { view.addObject("flashMessages", warning(it)) }
         return view
