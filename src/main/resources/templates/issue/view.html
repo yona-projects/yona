@@ -103,8 +103,8 @@
                         <th:block th:if="${!issue.voters.isEmpty()}"><th:block th:replace="~{issue/partial-voters :: voters(3, 5)}"></th:block></th:block>
                     </div>
 
-                    <!--/* v1.6은 추천자 표시를 그린 뒤 같은 집합에서 현재 사용자를 뺀 채로 대화상자를 그린다([refactoring-backlog.md] R-25). */-->
-                    <th:block th:if="${!issue.votersExceptMe.isEmpty()}"><th:block th:replace="~{issue/partial-voter-list :: voterList('voters', ${issue.votersExceptMe})}"></th:block></th:block>
+                    <!--/* 대화상자에는 나를 포함한 전체 추천자를 넘긴다. v1.6은 같은 집합에서 현재 사용자를 빼서 나만 추천했으면 대화상자가 없었다(R-25). */-->
+                    <th:block th:if="${!issue.voters.isEmpty()}"><th:block th:replace="~{issue/partial-voter-list :: voterList('voters', ${issue.voters})}"></th:block></th:block>
 
                     <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 

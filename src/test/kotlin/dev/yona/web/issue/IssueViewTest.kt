@@ -696,17 +696,18 @@ class IssueViewTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `추천자 대화상자는 현재 사용자를 뺀 목록이고 나만 추천했으면 없다 (v1_6 동작)`() {
+    fun `추천자 대화상자는 나를 포함한 전체 추천자 목록이고 나만 추천했어도 있다 (R-25)`() {
         val project = newProject()
         val me = join(newUser("나"), project)
         val other = newUser("다른사람")
         val i = issue(project)
         i.voters.addAll(listOf(me, other)); issues.save(i); entityManager.flush()
         val doc = view(project, session = login(me))
-        assertEquals(listOf("다른사람"), doc.select("#voters .modal-body li .name").map { it.text() })
+        // v1.6은 대화상자 목록에서 현재 사용자를 뺐다
+        assertEquals(setOf("나", "다른사람"), doc.select("#voters .modal-body li .name").map { it.text() }.toSet())
         i.voters.remove(other); issues.save(i); entityManager.flush(); entityManager.clear()
         val onlyMe = view(project, session = login(me))
-        assertTrue(onlyMe.select("#voters").isEmpty())
+        assertEquals(listOf("나"), onlyMe.select("#voters .modal-body li .name").map { it.text() })
         assertTrue(onlyMe.select("#vote.voter-exists .voter-list li").isNotEmpty())
     }
 }
