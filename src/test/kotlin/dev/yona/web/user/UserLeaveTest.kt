@@ -26,7 +26,7 @@ import java.util.Date
 import kotlin.test.assertEquals
 
 /**
- * 프로젝트 탈퇴(`GET /info/leave/:user/:project`)를 검증한다.
+ * 프로젝트 탈퇴(`POST /info/leave/:user/:project`)를 검증한다. v1.6은 GET이라 링크나 이미지 태그만으로 로그인한 사용자를 탈퇴시킬 수 있었다(R-48-2).
  *
  * 원본: `app/controllers/UserApp.java:992-996`(`leave`), `app/controllers/ProjectApp.java:1004-1030`(`deleteMember`).
  */
@@ -62,10 +62,18 @@ class UserLeaveTest : AbstractIntegrationTest() {
         projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(user.id!!, project.id!!, RoleType.SITEMANAGER.id) != null
 
     @Test
+    fun `GET으로는 탈퇴되지 않는다 (R-48-2)`() {
+        val owner = newUser(); val me = newUser(); val p = project(owner)
+        join(me, p)
+        mockMvc.perform(get("/info/leave/${owner.loginId}/proj").session(login(me))).andExpect(status().isNotFound)
+        assertEquals(true, isMember(me, p))
+    }
+
+    @Test
     fun `구성원이 탈퇴하면 구성원에서 빠지고 내 프로젝트 탭으로 이동한다`() {
         val owner = newUser(); val me = newUser(); val p = project(owner)
         join(me, p)
-        mockMvc.perform(get("/info/leave/${owner.loginId}/proj").session(login(me)))
+        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(me)))
             .andExpect(status().isSeeOther).andExpect(redirectedUrl("/${me.loginId}?daysAgo=14&selected=projects"))
         assertEquals(false, isMember(me, p))
     }
@@ -74,7 +82,7 @@ class UserLeaveTest : AbstractIntegrationTest() {
     fun `소유자는 탈퇴되지 않지만 같은 곳으로 이동한다`() {
         val owner = newUser(); val p = project(owner)
         join(owner, p, RoleType.MANAGER)
-        mockMvc.perform(get("/info/leave/${owner.loginId}/proj").session(login(owner)))
+        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(owner)))
             .andExpect(status().isSeeOther).andExpect(redirectedUrl("/${owner.loginId}?daysAgo=14&selected=projects"))
         assertEquals(true, isMember(owner, p))
     }
@@ -83,7 +91,7 @@ class UserLeaveTest : AbstractIntegrationTest() {
     fun `구성원이 아니어도 같은 곳으로 이동하고 다른 구성원은 그대로이다`() {
         val owner = newUser(); val member = newUser(); val stranger = newUser(); val p = project(owner)
         join(member, p)
-        mockMvc.perform(get("/info/leave/${owner.loginId}/proj").session(login(stranger)))
+        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(stranger)))
             .andExpect(status().isSeeOther).andExpect(redirectedUrl("/${stranger.loginId}?daysAgo=14&selected=projects"))
         assertEquals(true, isMember(member, p))
     }

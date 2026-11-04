@@ -107,11 +107,17 @@
         function _onClickBtnLeaveProject(weEvt){
             var sProjectName = $(this).attr("data-projectName");
 
+            weEvt.preventDefault();
+            weEvt.stopPropagation();
+
             if(confirm(Messages("userinfo.leaveProject.confirm", sProjectName)) === false){
-                weEvt.preventDefault();
-                weEvt.stopPropagation();
                 return false;
             }
+
+            // 탈퇴는 상태를 바꾸므로 링크 이동(GET)이 아니라 폼 제출(POST)로 보낸다(R-48-2)
+            var welForm = $('<form method="post" style="display:none"></form>').attr("action", $(this).attr("data-leave-url"));
+            welForm.appendTo(document.body).submit();
+            return false;
         }
 
         /**

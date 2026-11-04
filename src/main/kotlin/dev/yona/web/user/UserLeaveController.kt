@@ -10,11 +10,11 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PathVariable
 
 /**
- * 사용자 페이지의 프로젝트 목록에서 누르는 프로젝트 탈퇴이다. v1.6 `UserApp.leave`(`app/controllers/UserApp.java:992-996`)에 해당한다.
+ * 사용자 페이지의 프로젝트 목록에서 누르는 프로젝트 탈퇴이다(POST). v1.6 `UserApp.leave`(`app/controllers/UserApp.java:992-996`)에 해당한다.
  *
  * v1.6은 `ProjectApp.deleteMember`를 불러 현재 사용자를 구성원에서 빼고, 그 결과(소유자라서 거부됨 등)는 보지 않은 채
  * 항상 내 사용자 페이지의 프로젝트 탭(`/<로그인 ID>?daysAgo=14&selected=projects`)으로 보낸다. 같은 동작이다.
@@ -27,7 +27,8 @@ class UserLeaveController(
     private val currentUserProvider: CurrentUserProvider
 ) {
 
-    @GetMapping("/info/leave/{user}/{project}")
+    // v1.6은 GET이라 링크나 이미지 태그만으로 로그인한 사용자를 프로젝트에서 탈퇴시킬 수 있었다. POST로 받는다(R-48-2)
+    @PostMapping("/info/leave/{user}/{project}")
     @Transactional
     fun leave(
         @PathVariable("user") ownerId: String,

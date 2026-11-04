@@ -290,7 +290,7 @@ class UserPageTest : AbstractIntegrationTest() {
         val joined = project(other, "joined"); val own = project(me, "own")
         join(me, joined); join(me, own, RoleType.MANAGER)
         val doc = page("/${me.loginId}", login(me), "selected" to "projects")
-        assertEquals(listOf("/info/leave/${other.loginId}/joined"), doc.select("#projects a.leaveProject").map { it.attr("href") })
+        assertEquals(listOf("/info/leave/${other.loginId}/joined"), doc.select("#projects a.leaveProject").map { it.attr("data-leave-url") })
         assertTrue(page("/${me.loginId}", null, "selected" to "projects").select("a.leaveProject").isEmpty())
     }
 

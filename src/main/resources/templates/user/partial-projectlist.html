@@ -45,7 +45,7 @@
                 </a>
             </th:block>
 
-            <a th:if="${project.canLeave}" th:href="@{${'/info/leave' + #paths.project(project.owner, project.name)}}" th:attr="data-projectName=${project.name}" class="nbtn black medium last leaveProject">
+            <a th:if="${project.canLeave}" href="#" th:attr="data-projectName=${project.name}, data-leave-url=@{${'/info/leave' + #paths.project(project.owner, project.name)}}" class="nbtn black medium last leaveProject">
                 <i class="yobicon-trash"></i> <th:block th:text="#{userinfo.leaveProject}"></th:block>
             </a>
         </div>
