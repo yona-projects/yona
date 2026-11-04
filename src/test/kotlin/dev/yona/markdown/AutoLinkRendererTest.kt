@@ -95,6 +95,13 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `Long 범위를 넘는 이슈 번호는 오류 없이 그대로 둔다 (R-15-4)`() {
+        val p = project()
+        val body = "참조 #99999999999999999999999 입니다"
+        assertTrue(render(body, p).contains("#99999999999999999999999"))
+    }
+
+    @Test
     fun `없는 이슈 번호는 그대로 둔다`() {
         val project = project()
         assertEquals("<p>#99</p>", render("<p>#99</p>", project))

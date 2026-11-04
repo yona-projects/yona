@@ -190,9 +190,11 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `제공자가 돌려준 거절 외의 오류는 문구를 본문으로 한 500이다`() {
-        mockMvc.perform(get("/authenticate/github").param("error", "redirect_uri_mismatch")).andExpect(status().isInternalServerError)
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("redirect_uri_mismatch"))
+    fun `제공자가 돌려준 거절 외의 오류는 오류 문구와 함께 로그인 화면으로 보낸다 (R-59-12)`() {
+        // v1.6은 문구만 담은 500이었다
+        val result = mockMvc.perform(get("/authenticate/github").param("error", "redirect_uri_mismatch")).andExpect(status().isSeeOther).andReturn()
+        assertEquals("/users/loginform", result.response.getHeader("Location"))
+        assertEquals("redirect_uri_mismatch", result.flashMap["warning"])
     }
 
     @Test
@@ -216,17 +218,19 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `제공자와의 통신이 실패하면 오류 문구를 본문으로 한 500이다`() {
+    fun `제공자와의 통신이 실패하면 오류 문구와 함께 로그인 화면으로 보낸다 (R-59-12)`() {
         githubTokenBody = """{"error":"bad_verification_code"}"""
         try {
-            signIn().andExpect(status().isInternalServerError).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("bad_verification_code"))
+            val result = signIn().andExpect(status().isSeeOther).andReturn()
+            assertEquals("/users/loginform", result.response.getHeader("Location"))
+            assertEquals("bad_verification_code", result.flashMap["warning"])
         } finally {
             githubTokenBody = """{"access_token":"tok","token_type":"bearer"}"""
         }
     }
 
     @Test
-    fun `사용자 정보를 읽지 못하면 예외라 오류 화면 500이다`() {
+    fun `사용자 정보를 읽지 못하면 예외라 오류 화면 500이고 error 항목이 있으면 로그인 화면으로 보낸다`() {
         // error 항목이 있는 JSON만 문구 본문이고, 깨진 본문이나 id가 없는 응답은 v1.6에서 예외(Global.onError의 500 화면)이다
         val ok = githubUser
         try {
@@ -236,7 +240,8 @@ class SocialLoginTest : AbstractIntegrationTest() {
                 assertTrue(html.contains("Server error occurred"), "$body -> ${html.take(120)}")
             }
             githubUser = """{"error":"bad_creds"}"""
-            signIn().andExpect(status().isInternalServerError).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("bad_creds"))
+            val result = signIn().andExpect(status().isSeeOther).andReturn()
+            assertEquals("bad_creds", result.flashMap["warning"])
         } finally {
             githubUser = ok
         }

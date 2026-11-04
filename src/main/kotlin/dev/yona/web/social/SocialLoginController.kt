@@ -60,7 +60,7 @@ class SocialLoginController(
         val found = providers.find(provider) ?: return providerNotFound(provider, response)
         // v1.6: 거절은 안내 화면으로, 그 밖의 오류는 오류 문구를 본문으로 한 500이다.
         if (error == "access_denied") return RedirectSupport.see(request, response, "/authenticate/$provider/denied")
-        if (error != null) return plainError(error)
+        if (error != null) return providerError(request, response, error)
         val redirectUri = providers.redirectUri(provider, request.getHeader(HttpHeaders.HOST) ?: hostOf(request), request.contextPath)
         fun toProvider(): Any {
             noStore(response)
@@ -77,7 +77,7 @@ class SocialLoginController(
         val identity = try {
             found.identityOf(code.orEmpty(), redirectUri)
         } catch (e: SocialLoginException) {
-            return plainError(e.message)
+            return providerError(request, response, e.message)
         }
         return finish(identity, request, response)
     }
@@ -88,9 +88,13 @@ class SocialLoginController(
         return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("Provider $provider could not be found!")
     }
 
-    /** Play의 `internalServerError(message)`처럼 문구만 본문에 담은 500이다. */
-    private fun plainError(message: String?): ResponseEntity<String> =
-        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(message.orEmpty())
+    /**
+     * 제공자가 알려 준 오류는 오류 문구를 안내로 달아 로그인 화면으로 보낸다. v1.6은 Play의 `internalServerError(message)`처럼 문구만 본문에 담은 500이었다(R-59-12).
+     */
+    private fun providerError(request: HttpServletRequest, response: HttpServletResponse, message: String?): Any {
+        noStore(response)
+        return RedirectSupport.see(request, response, "/users/loginform", mapOf(RedirectSupport.WARNING to message.orEmpty()))
+    }
 
     /** 사용자가 제공자의 인증 화면에서 거절했다. v1.6의 안내 문구를 그대로 쓴다. */
     @GetMapping("/authenticate/{provider}/denied")

@@ -123,7 +123,9 @@ class AutoLinkRenderer(
 
     private fun issueLink(prefix: String, project: Project?, issueNumber: String): Link? {
         project ?: return null
-        val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), issueNumber.toLong()) ?: return null
+        // 번호가 Long 범위를 넘으면 링크로 바꾸지 않는다. v1.6은 변환 예외가 올라가 그 글을 보는 요청이 500이었다(R-15-4)
+        val number = issueNumber.toLongOrNull() ?: return null
+        val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return null
         var linkText = "#$issueNumber.${issue.title}"
         // v1.6는 접두어가 있을 때 링크 문구에 접두어와 문구를 한 번 더 붙여 문구가 두 번 나왔다(R-15-1). 접두어는 반환할 때 한 번만 붙인다
         val state = issue.state

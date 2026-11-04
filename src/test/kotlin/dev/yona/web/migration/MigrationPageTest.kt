@@ -46,11 +46,12 @@ class MigrationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `원본 프로젝트 목록은 사라진 옛 서버로 가는 링크를 두지 않는다 (R-58-3)`() {
+    fun `원본 프로젝트 목록의 링크는 사라진 옛 서버가 아니라 yona 사이트를 가리킨다 (R-58-3)`() {
         val (_, session) = login()
         val html = mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
         // v1.6은 `yobi.navercorp.com`으로 고정된 링크를 두었다
         assertTrue(!html.contains("yobi.navercorp.com"), "옛 서버 링크가 남아 있다")
+        assertTrue(html.contains("https://yona.dev/{{repo.full_name}}"), "yona 사이트 링크가 없다")
     }
 
     @Test
