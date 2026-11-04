@@ -50,6 +50,13 @@ import kotlin.test.assertTrue
 @Transactional
 class WebhookDispatchTest : AbstractIntegrationTest() {
 
+    @Autowired private lateinit var sender: WebhookSender
+
+    @Test
+    fun `인증 머리글 값의 끝에는 공백이 없다 (R-45-3)`() {
+        assertEquals("token abc", sender.authorizationValue("abc"))
+    }
+
     private class Received(val headers: Map<String, List<String>>, val body: String)
 
     @Autowired private lateinit var publisher: ApplicationEventPublisher

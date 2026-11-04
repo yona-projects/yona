@@ -137,7 +137,8 @@ class NotificationMessages(
             val hunks = file.hunks() ?: return message.append(contents).toString()
             message.append("```diff\n")
             for (hunk in hunks) {
-                message.append("> @@ -${hunk.beginA + 1}, ${hunk.endA - hunk.beginA} +${hunk.beginB + 1}, ${hunk.endB - hunk.beginB} @@\n")
+                // 쉼표 뒤에 공백이 없는 통합 diff 머리줄이다. v1.6은 쉼표 뒤에 공백을 넣었다(R-44-2)
+                message.append("> @@ -${hunk.beginA + 1},${hunk.endA - hunk.beginA} +${hunk.beginB + 1},${hunk.endB - hunk.beginB} @@\n")
                 for (line in hunk.lines) {
                     message.append("> ").append(
                         when (line.kind) {

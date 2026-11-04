@@ -40,6 +40,9 @@ class WebhookSender(
     private val transaction = TransactionTemplate(transactionManager)
     private val mapper = JsonMapper.builder().build()
 
+    /** `Authorization` 머리글 값이다. v1.6은 끝에 공백이 붙어 서버가 잘라 내야 했다(R-45-3). */
+    internal fun authorizationValue(secret: String): String = "token $secret"
+
     /** [webhook]에 [payload]를 보낸다. [target]이 있으면 응답에서 스레드를 저장한다. */
     fun send(webhook: Webhook, payload: String, target: ThreadTarget? = null) {
         log.info(payload)
@@ -48,7 +51,7 @@ class WebhookSender(
         try {
             val builder = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
                 .header("Content-Type", "application/json; charset=utf-8").header("User-Agent", "Yobi-Hookshot").POST(HttpRequest.BodyPublishers.ofString(payload))
-            if (!webhook.secret.isNullOrBlank()) builder.header("Authorization", "token ${webhook.secret} ")
+            if (!webhook.secret.isNullOrBlank()) builder.header("Authorization", authorizationValue(webhook.secret.orEmpty()))
             val request = builder.build()
             if (properties.backgroundAsync) {
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete { response, error ->

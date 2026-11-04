@@ -211,7 +211,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "여기 확인", range() + ("endLine" to "1"))).andExpect(status().isSeeOther)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         val message = notificationMessages.message(note, LANG)!!
-        assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "a.txt") + "\n```diff\n> @@ -1, 3 +1, 3 @@\n>  line1\n> -line2\n> +CHANGED\n```\n\n여기 확인\n\n```diff\n>  line3\n```\n"), message)
+        assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "a.txt") + "\n```diff\n> @@ -1,3 +1,3 @@\n>  line1\n> -line2\n> +CHANGED\n```\n\n여기 확인\n\n```diff\n>  line3\n```\n"), message)
     }
 
     @Test
