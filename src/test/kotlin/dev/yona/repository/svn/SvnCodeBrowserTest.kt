@@ -123,12 +123,13 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `보여 줄 수 있는 크기를 넘는 파일은 바이너리로 본다`() {
+    fun `보여 줄 수 있는 크기를 넘는 텍스트 파일은 바이너리가 아니라 내용 없이 너무 크다고 안내한다 (R-62-8)`() {
         val p = project()
         commit(p, "dev", "처음", mapOf("big.txt" to "x".repeat(200)))
         val big = service.metaData(p, null, "big.txt")!!
-        assertEquals(true, big["isBinary"])
-        assertEquals("application/octet-stream", big["mimeType"])
+        // v1.6은 크기 초과를 바이너리로 표시했다. Git처럼 내용만 비우고 텍스트로 둔다
+        assertEquals(false, big["isBinary"])
+        assertTrue((big["mimeType"] as String).startsWith("text/"), big["mimeType"].toString())
         assertNull(big["data"])
         assertEquals(200L, big["size"])
     }

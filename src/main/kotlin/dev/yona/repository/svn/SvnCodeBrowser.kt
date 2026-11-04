@@ -64,17 +64,11 @@ class SvnCodeBrowser(
 
     private fun file(owner: String, name: String, path: String): Map<String, Any?>? {
         val file = svn.file(owner, name, path) ?: return null
-        val binary: Boolean
-        val mimeType: String
+        // v1.6은 크기를 넘는 파일을 바이너리로 표시했다(R-62-8). Git처럼 바이너리 판정은 그대로 하고, 크기를 넘으면 내용만 비워 "너무 크다" 안내가 나오게 한다
+        val binary = dev.yona.io.RawTextBinary.isBinary(file.bytes)
         var data: String? = null
-        if (file.size > properties.codeBrowserMaxFileSize) {
-            binary = true
-            mimeType = "application/octet-stream"
-        } else {
-            binary = dev.yona.io.RawTextBinary.isBinary(file.bytes)
-            if (!binary) data = String(file.bytes, charset(CharsetDetection.detect(file.bytes)))
-            mimeType = MediaTypes.detectRaw(file.bytes, path)
-        }
+        if (!binary && file.size <= properties.codeBrowserMaxFileSize) data = String(file.bytes, charset(CharsetDetection.detect(file.bytes)))
+        val mimeType = MediaTypes.detectRaw(file.bytes, path)
         val user = file.author?.let { users.findByLoginId(it) }
         return linkedMapOf(
             "type" to "file", "revisionNo" to file.revision, "commitId" to file.revision, "author" to file.author, "avatar" to avatar(user), "userName" to userName(user),
