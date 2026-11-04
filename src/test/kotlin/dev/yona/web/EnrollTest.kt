@@ -178,6 +178,18 @@ class EnrollTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이미 구성원이 되었어도 남아 있는 신청 기록은 취소할 수 있다 (C097)`() {
+        val org = newOrg()
+        val applicant = newUser()
+        val session = login(applicant)
+        post("/organizations/${org.name}/enroll", session)
+        // 신청이 받아들여져 구성원이 되었지만 신청 기록이 남은 상태이다. v1.6은 구성원이면 취소 요청을 400으로 막아 기록을 지울 수 없었다
+        organizationUsers.save(OrganizationUser(user = applicant, organization = org, role = roles.findById(RoleType.ORG_MEMBER.id).get()))
+        post("/organizations/${org.name}/cancel/enroll", session).andExpect(status().isAccepted)
+        assertFalse(users.hasEnrolledOrganization(applicant.id!!, org.id!!))
+    }
+
+    @Test
     fun `조직 구성원이거나 익명이거나 없는 조직이면 400이다`() {
         val org = newOrg()
         val member = newUser()

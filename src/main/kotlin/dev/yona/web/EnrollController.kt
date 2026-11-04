@@ -105,10 +105,11 @@ class EnrollController(
     fun cancelOrganizationEnroll(@PathVariable organizationName: String, request: HttpServletRequest): Any {
         val organization = organizationService.findByName(organizationName) ?: return ResponseEntity.badRequest().build<Void>()
         val user = currentUserProvider.get().user
-        if (!isOrganizationGuest(organization.id, user?.id)) return ResponseEntity.badRequest().build<Void>()
-
+        // 남아 있는 신청 기록이 있으면 구성원이어도 취소할 수 있다. v1.6는 구성원이 아닐 때만 받아 이미 구성원이 된 사용자는 기록을 지울 수 없었다(C097)
         val orgId = requireNotNull(organization.id)
-        if (users.hasEnrolledOrganization(requireNotNull(user?.id), orgId)) {
+        val hasRecord = user?.id?.let { users.hasEnrolledOrganization(it, orgId) } == true
+        if (!hasRecord && !isOrganizationGuest(organization.id, user?.id)) return ResponseEntity.badRequest().build<Void>()
+        if (hasRecord) {
             val managed = users.findById(user!!.id!!).get()
             managed.enrolledOrganizations.removeIf { it.id == orgId }
             users.save(managed)
