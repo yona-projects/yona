@@ -59,7 +59,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
     companion object {
         @Volatile var githubUser = """{"id":1,"login":"octo","name":"옥토","email":"octo@example.com"}"""
         @Volatile var githubTokenBody = """{"access_token":"tok","token_type":"bearer"}"""
-        @Volatile var googleUser = """{"id":"g1","email":"gu@example.com","name":"구글"}"""
+        @Volatile var googleUser = """{"id":"g1","email":"gu@example.com","verified_email":true,"name":"구글"}"""
         @Volatile var googleTokenBody = """{"access_token":"gtok","expires_in":3600}"""
 
         private val server: HttpServer = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).also { s ->
@@ -308,7 +308,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
         githubUser = """{"id":${700 + ++sequence},"login":"linker$sequence","name":"연결","email":"linker$sequence@example.com"}"""
         val session = MockHttpSession()
         signIn("github", session)
-        googleUser = """{"id":"g${sequence}","email":"other$sequence@example.com","name":"다른 이름"}"""
+        googleUser = """{"id":"g${sequence}","email":"other$sequence@example.com","verified_email":true,"name":"다른 이름"}"""
         signIn("google", session).andExpect(status().isSeeOther)
         assertNull(users.findByLoginId("other$sequence"))
         val fresh = MockHttpSession()
@@ -437,7 +437,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
 
     @Test
     fun `구글 세션은 토큰 만료 시각을 보인다`() {
-        googleUser = """{"id":"gx${++sequence}","email":"gx$sequence@example.com","name":"구글$sequence"}"""
+        googleUser = """{"id":"gx${++sequence}","email":"gx$sequence@example.com","verified_email":true,"name":"구글$sequence"}"""
         val session = MockHttpSession()
         signIn("google", session)
         val body = Jsoup.parse(mockMvc.perform(get("/restricted").session(session)).andExpect(status().isOk).andReturn().response.contentAsString).body().text()

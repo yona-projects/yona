@@ -108,7 +108,9 @@ class OAuth2SocialProvider(
 
         /** Google 제공자이다. */
         fun google(config: YonaProperties.OAuthProvider): OAuth2SocialProvider = OAuth2SocialProvider("google", config) { user ->
-            text(user, "id")?.let { SocialIdentity("google", it, text(user, "email"), text(user, "name")) }
+            // 제공자가 확인하지 않은 이메일은 쓰지 않는다. v1.6은 확인 여부를 보지 않고 확인된 것으로 보아 같은 이메일의 기존 계정으로 로그인시켰다(R-59-3).
+            // GitHub의 공개 이메일은 GitHub가 확인한 주소만 고를 수 있어 그대로 쓴다.
+            text(user, "id")?.let { SocialIdentity("google", it, text(user, "email")?.takeIf { user.path("verified_email").asBoolean(false) }, text(user, "name")) }
         }
     }
 }

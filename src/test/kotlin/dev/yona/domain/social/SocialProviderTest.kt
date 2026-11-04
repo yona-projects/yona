@@ -133,6 +133,15 @@ class SocialProviderTest {
         assertEquals(SocialIdentity("google", "1098", "g@example.com", "구글 사용자"), identity)
     }
 
+    @Test
+    fun `Google이 확인하지 않은 이메일은 쓰지 않는다 (R-59-3)`() {
+        // v1.6은 제공자가 확인했는지 보지 않고 이메일을 확인된 것으로 보아 같은 이메일의 기존 계정으로 로그인시켰다
+        for (body in listOf("""{"id":"1","email":"g@example.com","verified_email":false,"name":"x"}""", """{"id":"2","email":"g@example.com","name":"x"}""")) {
+            userBody = body
+            assertNull(OAuth2SocialProvider.google(config("profile email")).identityOf("c", "r").email, body)
+        }
+    }
+
     // --- 오류 ---
 
     @Test
