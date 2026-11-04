@@ -61,6 +61,8 @@ class RouteParityTest : AbstractIntegrationTest() {
          */
         private val INTENTIONAL = listOf(
             "GET /assets/{}",
+            // R-48-2: 프로젝트 탈퇴는 링크 한 번(GET)으로 상태가 바뀌어 요청 위조에 약해 POST로 옮겼다(의도해서 바꾼 v1.6 주소)
+            "GET /info/leave/{}/{}",
             "GET /svn/{}", "POST /svn/{}", "PUT /svn/{}", "DELETE /svn/{}", "HEAD /svn/{}", "OPTIONS /svn/{}",
             "POST /{}/{}/pullRequest/{}/review", "POST /{}/{}/pullRequest/{}/unreview",
             // X-5(D-36): 비밀번호로 토큰과 세션 쿠키를 발급하던 주소를 삭제했다
