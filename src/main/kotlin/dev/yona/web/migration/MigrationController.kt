@@ -38,11 +38,22 @@ class MigrationController(
 
     @GetMapping("/migration")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    fun home(@RequestParam(required = false) code: String?): Any {
+    fun home(@RequestParam(required = false) code: String?, @RequestParam(required = false) state: String?, request: HttpServletRequest): Any {
         if (!properties.github.allowMigration) return ErrorViews.forbidden("error.forbidden.or.not.allowed")
+        val session = request.getSession(true)
+        // 돌아온 요청(code)은 인증을 시작할 때 이 세션에 둔 state와 같아야 한다. v1.6은 state가 없어 공격자가 만든 code가 든 주소를 열게 하면
+        // 공격자의 GitHub 토큰이 이 사용자의 이전 화면에 묶였다(R-58-2). state는 한 번만 쓴다
+        val expected = session.getAttribute(STATE_ATTRIBUTE) as? String
+        if (!code.isNullOrBlank()) {
+            if (expected == null || state != expected) return ErrorViews.forbidden("error.forbidden.or.not.allowed")
+            session.removeAttribute(STATE_ATTRIBUTE)
+        }
         val token = if (code.isNullOrBlank()) null else tokens.exchange(code)
         val user = currentUserProvider.get().user
+        val newState = java.util.UUID.randomUUID().toString().replace("-", "") + java.util.UUID.randomUUID().toString().replace("-", "")
+        session.setAttribute(STATE_ATTRIBUTE, newState)
         return ModelAndView("migration/home")
+            .addObject("oauthState", newState)
             .addObject("title", "Migration")
             .addObject("token", token.orEmpty())
             .addObject("loginId", user?.loginId.orEmpty())
@@ -96,4 +107,9 @@ class MigrationController(
     }
 
     private fun json(body: Any): ResponseEntity<Any> = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)
+
+    private companion object {
+        /** 인증을 시작할 때 세션에 두는 state의 이름이다(R-58-2). */
+        const val STATE_ATTRIBUTE = "migration.oauth.state"
+    }
 }

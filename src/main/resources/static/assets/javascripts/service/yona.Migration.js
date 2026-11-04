@@ -85,7 +85,9 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
 
     vm.redirect = function () {
         window.location = "https://github.com/login/oauth/authorize?client_id=" + CONFIG.CLIENT_ID
-            + "&scope=user,repo,admin:org";
+            + "&scope=user,repo,admin:org"
+            // 요청 위조를 막으려고 서버가 내려 준 state를 싣는다(R-58-2)
+            + "&state=" + encodeURIComponent(document.querySelector("[ng-app]").getAttribute("data-oauth-state") || "");
     };
     vm.getSourceProject = getProject;
     vm.getSourceProjects = getSourceProjects;

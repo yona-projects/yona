@@ -92,7 +92,8 @@ class MigrationPageTest : AbstractIntegrationTest() {
     fun `코드가 있으면 토큰으로 바꿔 화면에 넘긴다`() {
         Mockito.`when`(tokens.exchange("abc")).thenReturn("tok123")
         val (_, session) = login()
-        val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session).param("code", "abc")).andExpect(status().isOk).andReturn().response.contentAsString)
+        session.setAttribute("migration.oauth.state", "st1")
+        val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session).param("code", "abc").param("state", "st1")).andExpect(status().isOk).andReturn().response.contentAsString)
         assertTrue(doc.selectFirst("div[ng-app]")!!.attr("ng-init").startsWith("vm.setUserToken('tok123');"))
         assertEquals("'tok123'", doc.selectFirst(".header-pannel")!!.attr("ng-if"))
         assertEquals("vm.getDestinationProjects();vm.getCurrentGithubUser()", doc.selectFirst(".destination-project")!!.attr("ng-init"))
@@ -103,6 +104,23 @@ class MigrationPageTest : AbstractIntegrationTest() {
         val (_, session) = login()
         mockMvc.perform(get("/migration").session(session).param("code", "  ")).andExpect(status().isOk)
         Mockito.verifyNoInteractions(tokens)
+    }
+
+    @Test
+    fun `화면은 인증 요청에 실을 state를 내려 주고 돌아올 때 같은 값이어야 한다 (R-58-2)`() {
+        val (_, session) = login()
+        val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        val state = doc.selectFirst("div[ng-app]")!!.attr("data-oauth-state")
+        assertTrue(state.length >= 16, state)
+        assertEquals(state, session.getAttribute("migration.oauth.state"))
+        // v1.6은 state가 없어, 공격자가 만든 code가 든 주소를 열면 공격자의 GitHub 토큰이 이 사용자의 이전 화면에 묶였다
+        mockMvc.perform(get("/migration").session(session).param("code", "attacker")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/migration").session(session).param("code", "attacker").param("state", "other")).andExpect(status().isForbidden)
+        Mockito.verifyNoInteractions(tokens)
+        // 한 번 쓴 state는 다시 쓸 수 없다
+        Mockito.`when`(tokens.exchange("good")).thenReturn("tok")
+        mockMvc.perform(get("/migration").session(session).param("code", "good").param("state", state)).andExpect(status().isOk)
+        mockMvc.perform(get("/migration").session(session).param("code", "good").param("state", state)).andExpect(status().isForbidden)
     }
 
     @Test

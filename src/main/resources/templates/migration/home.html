@@ -11,7 +11,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/migration-layout :: migrationLayout(${site.siteName}, ~{::migrationPage})}">
 <th:block th:fragment="migrationPage">
-    <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" th:attr="ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${loginId}';vm.yobiUserEmail = '${email}'|">
+    <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" th:attr="data-oauth-state=${oauthState}, ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${loginId}';vm.yobiUserEmail = '${email}'|">
         <div class="header-pannel" th:attr="ng-if=|'${token}'|">
             <div class="comeback-text float-end">Yona to Github<span class="midium-font"></span></div>
             <div class="title-text-bg">
