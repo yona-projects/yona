@@ -36,8 +36,8 @@ v1.6 위키 5차 재검증(2026-10-26)에서 모인 결함 후보 189건을 항�
 | C135 | 내 이슈 목록에서 assigneeId=-1이면 프로젝트 가시성 필터 없이 전체 프로젝트의 미배정 이슈가 나옴 | SearchCondition.java:202-206,229-253, IssueApp.java:75-83 | 실제 | BK R-49(1)이 "내 이슈 검색은 읽기 권한을 따지지 않는다"로 포괄(-1 사례 명시는 없음) | 재현 | IssueSearchService.kt:217 `i.assignee is null`에 프로젝트 제한 없음(project==null), MyIssuesController.kt:60 | 희귀(직접 쿼리) |
 | C145 | editIssue가 이슈 이동을 UPDATE 권한 검사(editPosting)보다 먼저 반영 | IssueApp.java:761-838 | 실제 | BK R-73, DC:306, HC:53(P-07) | 해결 | R-73 본문(v2는 권한을 먼저 확인) | 희귀(권한 없는 사용자의 직접 요청) |
 | C147★ | newIssueFormByComment가 댓글의 프로젝트 읽기 권한을 검사하지 않아 다른(비공개) 프로젝트 댓글 본문이 폼에 실림 | IssueApp.java:374-387 | 실제 | 없음(HC I-08은 없는 id만, BK R-80은 다른 경로) | 재현 | IssueCreateController.kt:181-190 권한 검사 없음 | 희귀(타 프로젝트 댓글 id를 직접 지정) |
-| C155 | deleteComment가 commitId/경로 프로젝트와 댓글의 일치를 검사하지 않음(번호만으로 조회). 후보가 말한 "없는 id면 NPE"는 결함 아님: IsAllowedAction이 null이면 404를 돌려줌 | CodeHistoryApp.java:250-260, Resource.java:240-241, IsAllowedAction.java:53-60 | 일치 미검사는 실제, NPE는 아님 | BK R-12 | 재현(일치 미검사)/없는 id는 404로 v1.6과 같음 | ReviewCommentController.kt:101-114 | 희귀 |
-| C169 | `GET /user/editform/token_reset`이 토큰을 재생성하고 CSRF 방어가 없음 | UserApp.java:897-904, conf/routes:136 | 실제 | R-79(`refactoring-backlog.md:86`), R-02 | 재현 | `AccountController.kt:77,86-87` (GET과 POST 모두 `recreate`) | 정상(화면의 다시 만들기 링크) |
+| C155 | deleteComment가 commitId/경로 프로젝트와 댓글의 일치를 검사하지 않음(번호만으로 조회). 후보가 말한 "없는 id면 NPE"는 결함 아님: IsAllowedAction이 null이면 404를 돌려줌 | CodeHistoryApp.java:250-260, Resource.java:240-241, IsAllowedAction.java:53-60 | 일치 미검사는 실제, NPE는 아님 | BK R-12 | 재현(권한 우회 아님) | 삭제 권한은 댓글 자신의 프로젝트로 판정한다(`ResourceLookup.kt:61`). 경로와 어긋나도 권한 없는 삭제는 되지 않는다 (2026-11-04 확인) | 희귀 |
+| C169 | `GET /user/editform/token_reset`이 토큰을 재생성하고 CSRF 방어가 없음 | UserApp.java:897-904, conf/routes:136 | 실제 | R-79(`refactoring-backlog.md:86`), R-02 | 해당 없음 | `token_reset` 경로가 v2 코드에 없다(X-5로 개인 토큰 재설계, 2026-11-04 확인) | 정상(화면의 다시 만들기 링크) |
 | C173 | `searchInAGroup`의 `!isMemberOf \ | \ | !isAdminOf`라 `HIDE_PROJECT_LISTING`이 켜지면 사실상 항상 400 | SearchApp.java:127-131 | 실제 | R-83(`refactoring-backlog.md:90`) | 재현 |
 
 ## 데이터 (12건)
