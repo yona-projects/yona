@@ -40,9 +40,8 @@ class RelativeLinkRewriterTest {
     }
 
     @Test
-    fun `문서 맨 앞의 일반 링크는 바뀌지 않는다 (v1 6 결함 재현)`() {
-        // v1.6 정규식은 링크 앞에 `!`가 아닌 문자가 하나 있어야 해서 맨 앞 링크를 놓친다 (refactoring-backlog R-14).
-        assertEquals("[문서](./docs/a.md)", rewriter.forReadme("[문서](./docs/a.md)"))
+    fun `문서 맨 앞의 일반 링크도 바꾼다 (R-14, v1_6 정규식은 앞 문자 하나를 요구해 놓쳤다)`() {
+        assertEquals("[문서](/alice/demo/code/main/docs/a.md)", rewriter.forReadme("[문서](./docs/a.md)"))
     }
 
     @Test
@@ -54,10 +53,10 @@ class RelativeLinkRewriterTest {
     }
 
     @Test
-    fun `컨텍스트 경로가 있으면 소유자 앞에 슬래시 없이 붙는다 (v1 6 결함 재현)`() {
-        // v1.6은 "/" + "/yona" + 소유자로 이어 붙여서 소유자 앞 구분자가 빠진다 (refactoring-backlog R-14).
+    fun `컨텍스트 경로가 있으면 경로와 소유자 사이에 슬래시가 있다 (R-14, v1_6은 구분자가 빠졌다)`() {
         val withContext = RelativeLinkRewriter("alice", "demo", "refs/heads/main", "yona")
-        assertEquals("![x](//yonaalice/demo/files/main/a.png)", withContext.forCodeBrowser("![x](./a.png)"))
+        assertEquals("![x](/yona/alice/demo/files/main/a.png)", withContext.forCodeBrowser("![x](./a.png)"))
+        assertEquals("[d](/yona/alice/demo/code/main/b.md)", withContext.forReadme("[d](./b.md)"))
     }
 
     @Test

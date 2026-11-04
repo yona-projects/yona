@@ -40,6 +40,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirec
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -153,6 +154,20 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertEquals("git checkout master", help.select("code")[0].text())
         assertTrue(help.select("code")[1].text().startsWith("git remote add upstream http"))
         assertEquals("git push -f origin master", help.select("code").last()!!.text())
+    }
+
+    @Test
+    fun `받는 프로젝트의 구성원인 보낸 사람에게는 저장소 주소에 로그인 ID가 들어간다 (C122, R-43-1)`() {
+        val s = setup()
+        GitTestSupport.appendCommits(repositories, s.origin, TestCommit("원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n".toByteArray())))
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n".toByteArray())))
+        val pr = open(s)
+        val outsider = page(url(s, pr), login(s.contributor)).selectFirst(".howto-resolve-conflict")!!.select("code")[1].text()
+        assertFalse(outsider.contains("${s.contributor.loginId}@"), "구성원이 아니면 로그인 ID를 넣지 않는다: $outsider")
+        projectUsers.save(ProjectUser(user = s.contributor, project = s.origin, role = roles.findById(RoleType.MEMBER.id).get()))
+        // v1.6은 구성원 여부를 (프로젝트 번호, 사용자 번호)로 거꾸로 물어 구성원이어도 로그인 ID가 들어가지 않았다
+        val member = page(url(s, pr), login(s.contributor)).selectFirst(".howto-resolve-conflict")!!.select("code")[1].text()
+        assertTrue(member.contains("${s.contributor.loginId}@"), "구성원이면 로그인 ID를 넣는다: $member")
     }
 
     @Test

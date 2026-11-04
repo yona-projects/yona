@@ -24,20 +24,21 @@ class RelativeLinkRewriter(
 
     /** 코드 브라우저에서 `.md` 파일을 볼 때 쓴다. 이미지 경로만 바꾼다 (v1.6 `replaceImageLinkPath`). */
     fun forCodeBrowser(source: String): String = IMAGE_LINK.replace(source) { match ->
-        "![${match.groupValues[1]}](/$context$owner/$name/files/$branch/${match.groupValues[2]})"
+        "![${match.groupValues[1]}]($context/$owner/$name/files/$branch/${match.groupValues[2]})"
     }
 
     /** 프로젝트 홈의 README에 쓴다. 이미지는 `files`, 일반 링크는 `code` 주소로 바꾼다 (v1.6 `replaceContentsLinkToCodeBrowerPath`). */
     fun forReadme(source: String): String {
         val imagesFixed = forCodeBrowser(source)
         return NORMAL_LINK.replace(imagesFixed) { match ->
-            "${match.groupValues[1]}[${match.groupValues[2]}](/$context$owner/$name/code/$branch/${match.groupValues[3]})"
+            "${match.groupValues[1]}[${match.groupValues[2]}]($context/$owner/$name/code/$branch/${match.groupValues[3]})"
         }
     }
 
     private companion object {
         private const val NOT_ABSOLUTE = "/?(?!https:|http:|ftp:|file:)[.][/]"
         val IMAGE_LINK = Regex("!\\[([^]]*)]\\($NOT_ABSOLUTE(.*)\\)")
-        val NORMAL_LINK = Regex("([^!])\\[([^]]*)]\\($NOT_ABSOLUTE(.*)\\)")
+        // 앞 문자가 `!`가 아니어야 한다. v1.6은 문자 하나를 꼭 요구해 문서 맨 앞의 링크를 놓쳤으므로(R-14) 문서 시작도 허용한다
+        val NORMAL_LINK = Regex("(^|[^!])\\[([^]]*)]\\($NOT_ABSOLUTE(.*)\\)")
     }
 }

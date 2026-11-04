@@ -213,8 +213,8 @@ class PullRequestPageAssembler(
         if (pullRequest.closed) return PullRequestStateView("none", null, null, null, null)
         if (pullRequest.isConflict == false) return PullRequestStateView("safe", null, null, null, null)
         val help = if (isContributor) {
-            // v1.6는 인수를 거꾸로 넘겨 (프로젝트 번호, 사용자 번호) 구성원 여부를 보므로 대개 로그인 ID가 주소에 들어가지 않는다 (R-43).
-            val member = viewer?.id?.let { projectUsers.existsByUserIdAndProjectId(requireNotNull(to.id), it) } == true
+            // v1.6는 인수를 거꾸로 넘겨 (프로젝트 번호, 사용자 번호) 구성원 여부를 봐 구성원이어도 로그인 ID가 주소에 들어가지 않았다(C122, R-43-1)
+            val member = viewer?.id?.let { projectUsers.existsByUserIdAndProjectId(it, requireNotNull(to.id)) } == true
             ConflictHelp(
                 CodePageAssembler.branchItemName(pullRequest.fromBranch.orEmpty()), CodePageAssembler.branchItemName(pullRequest.toBranch.orEmpty()),
                 repositoryUrls.urlFor(to, request, if (member) viewer?.loginId else null).orEmpty(), base

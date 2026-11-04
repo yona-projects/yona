@@ -47,7 +47,7 @@ class CommitHistoryService(
      * [revision](없으면 `HEAD`)부터 거슬러 오르는 이력의 [page]번째 쪽(0부터)이다. [path]를 주면 그 경로를 바꾼 커밋만 모은다.
      * 리비전을 풀 수 없으면 `null`이다. 저장소에 커밋이 하나도 없어 `HEAD`를 풀 수 없을 때도 `null`이다(v1.6 `getHistory`가 null을 돌려주고 `NoHeadException` 분기는 도달하지 않는다).
      *
-     * v1.6처럼 `page * size + size`개를 읽어 마지막 [size]개를 남긴다.
+     * 앞 쪽만큼 건너뛰고 [size]개를 읽는다(v1.6은 `page * size + size`개를 읽어 마지막 [size]개를 남겨 마지막 쪽이 앞 쪽과 겹쳤다, R-40).
      */
     fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? =
         metrics.operation(project.vcs, "history") { historyImpl(project, page, size, revision, path) }
@@ -68,12 +68,8 @@ class CommitHistoryService(
         }
         val log = Git(repository).log().add(start)
         if (!path.isNullOrEmpty()) log.addPath(path)
-        val recent = ArrayDeque<RevCommit>()
-        for (commit in log.setMaxCount(page * size + size).call()) {
-            if (recent.size >= size) recent.removeFirst()
-            recent.addLast(commit)
-        }
-        recent.map { info(it) }
+        // v1.6는 `쪽 * 크기 + 크기`개를 읽어 마지막 `크기`개를 남겨, 전체가 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹쳤다(R-40). 앞 쪽만큼 건너뛰고 한 쪽만 읽는다
+        log.setSkip(page * size).setMaxCount(size).call().map { info(it) }
     }
 
     /** [revision]의 커밋이다. 없으면 `null`이다(풀 수 없거나 커밋이 아닌 객체 포함). */

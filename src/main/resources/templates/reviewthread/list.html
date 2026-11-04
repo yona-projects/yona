@@ -58,12 +58,12 @@
             </div>
             <ul class="nav nav-tabs nm mb-3">
                 <li class="nav-item">
-                    <a href="#" data-type="state" data-value="OPEN" data-toggle="filter" class="nav-link" th:classappend="${cond.state == 'OPEN'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
+                    <a href="#" data-type="state" data-value="OPEN" data-toggle="filter" class="nav-link" th:classappend="${#strings.equalsIgnoreCase(cond.state, 'OPEN')} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                         <span class="num-badge" th:text="${openCount}"></span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter" class="nav-link" th:classappend="${cond.state == 'CLOSED'} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block>
+                    <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter" class="nav-link" th:classappend="${#strings.equalsIgnoreCase(cond.state, 'CLOSED')} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block>
                         <span class="num-badge" th:text="${closedCount}"></span>
                     </a>
                 </li>

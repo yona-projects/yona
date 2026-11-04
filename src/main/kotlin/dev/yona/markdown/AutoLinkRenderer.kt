@@ -125,8 +125,7 @@ class AutoLinkRenderer(
         project ?: return null
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), issueNumber.toLong()) ?: return null
         var linkText = "#$issueNumber.${issue.title}"
-        // v1.6는 접두어가 있을 때 링크 문구에 접두어와 문구를 한 번 더 붙인다.
-        if (prefix.isNotEmpty()) linkText += prefix + linkText
+        // v1.6는 접두어가 있을 때 링크 문구에 접두어와 문구를 한 번 더 붙여 문구가 두 번 나왔다(R-15-1). 접두어는 반환할 때 한 번만 붙인다
         val state = issue.state
         val label = state?.let { messages.getMessage("issue.state.${it.state}", null, "issue.state.${it.state}", LocaleContextHolder.getLocale()) }
         linkText += "<span class='issue-state ${state?.state?.lowercase()}'>$label</span>"

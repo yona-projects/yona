@@ -180,6 +180,8 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val d = Jsoup.parse("<ul>$html</ul>")
         assertEquals(3, d.select("li.event").size, "커밋, 담당자, 라벨 이벤트")
         assertTrue(d.text().contains("assigned") && d.text().contains("bug"), d.text())
+        // 날짜 링크는 같은 줄의 id를 가리켜야 한다(C123). v1.6은 li의 id는 `comment-N`인데 링크는 `#event-N`이었다
+        d.select("li.event").forEach { li -> assertEquals("#" + li.id(), li.selectFirst(".date a")!!.attr("href"), li.id()) }
     }
 
     // --- 보기 화면 ---

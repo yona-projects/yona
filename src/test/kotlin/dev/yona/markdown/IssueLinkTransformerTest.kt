@@ -85,7 +85,7 @@ class IssueLinkTransformerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `읽을 수 없는 이슈는 문구를 바꾸지 않고 이후 링크도 처리하지 않는다`() {
+    fun `읽을 수 없는 이슈는 문구를 바꾸지 않고 이후 링크는 계속 처리한다 (R-15-3)`() {
         val hidden = project(ProjectScope.PRIVATE)
         issue(hidden, 1, "비밀")
         val open = project()
@@ -96,8 +96,8 @@ class IssueLinkTransformerTest : AbstractIntegrationTest() {
         )
         val links = body.select("a")
         assertEquals("비밀 링크", links[0].text())
-        // v1.6는 권한이 없는 링크를 만나면 반복을 멈춘다 (refactoring-backlog R-15).
-        assertEquals("공개 링크", links[1].text())
+        // v1.6는 권한이 없는 링크를 만나면 반복을 멈춰 이후 링크를 바꾸지 못했다(R-15-3, C090)
+        assertEquals("#2.공개", links[1].ownText())
     }
 
     @Test

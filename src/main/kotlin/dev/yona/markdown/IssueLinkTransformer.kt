@@ -46,7 +46,8 @@ class IssueLinkTransformer(
                 val uri = URI(href)
                 if (href.startsWith("/") || (uri.host != null && uri.host.startsWith(host) && linkText == href)) {
                     element.attr("rel", element.attr("rel") + " noreferrer")
-                    if (extractIssueLink(element, uri)) break
+                    // v1.6는 읽을 수 없는 이슈를 만나면 반복을 멈춰 이후 링크를 바꾸지 못했다(R-15-3). 그 링크만 건너뛰고 계속한다
+                    extractIssueLink(element, uri)
                 }
             } catch (e: URISyntaxException) {
                 // 잘못된 링크는 건너뛴다.

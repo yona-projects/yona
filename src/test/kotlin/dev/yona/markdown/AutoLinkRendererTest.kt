@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.util.Locale
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -108,13 +109,14 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `다른 프로젝트의 이슈는 소유자 이름 샵 번호로 참조한다 (접두어가 중복되는 v1 6 결함 재현)`() {
+    fun `다른 프로젝트의 이슈는 소유자 이름 샵 번호로 참조하고 접두어는 한 번만 붙는다 (R-15-1)`() {
         val project = project()
         val other = project("bob${++sequence}", "tools")
         issue(other, 2, "다른 곳")
         val html = render("<p>${other.owner}/tools#2</p>", project)
-        // v1.6은 링크 문구에 접두어를 두 번 붙인다 (refactoring-backlog R-15).
-        assertTrue(html.contains(">${other.owner}/tools#2.다른 곳${other.owner}/tools#2.다른 곳<"), html)
+        // v1.6은 링크 문구에 접두어를 두 번 붙였다(R-15-1, C088)
+        assertTrue(html.contains(">${other.owner}/tools#2.다른 곳<"), html)
+        assertFalse(html.contains("다른 곳${other.owner}/tools#2"), html)
         assertTrue(html.contains("href=\"/${other.owner}/tools/issue/2\"") || html.contains("href='/${other.owner}/tools/issue/2'"), html)
     }
 

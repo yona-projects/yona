@@ -101,8 +101,8 @@ class CommitHistoryTest : AbstractIntegrationTest() {
         assertEquals(listOf("Older"), first.select(".actrow a").map { it.text() })
         assertEquals("/${p.owner}/${p.name}/commits?page=1", first.selectFirst(".actrow a")!!.attr("href"))
         val second = page("/${p.owner}/${p.name}/commits?page=1")
-        // v1.6는 `page * size + size`개를 읽어 마지막 size개를 남기므로 마지막 쪽은 가장 오래된 25개이다(앞 쪽과 겹친다, R-40).
-        assertEquals((25 downTo 1).map { "커밋 $it" }, second.select("td.messages a.commitMsg.short").map { it.text() })
+        // v1.6는 `page * size + size`개를 읽어 마지막 size개를 남겨 마지막 쪽이 가장 오래된 25개였다(앞 쪽과 겹쳤다, R-40). 남은 5개만 보인다
+        assertEquals((5 downTo 1).map { "커밋 $it" }, second.select("td.messages a.commitMsg.short").map { it.text() })
         assertEquals(listOf("Newer"), second.select(".actrow a").map { it.text() })
     }
 

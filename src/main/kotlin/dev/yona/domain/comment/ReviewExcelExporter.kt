@@ -45,7 +45,8 @@ class ReviewExcelExporter {
         var row = 0
         for (thread in threads) {
             val comments = thread.reviewComments.sortedWith(compareBy({ it.createdDate }, { it.id }))
-            val first = comments.firstOrNull()?.contents.orEmpty()
+            val firstComment = comments.firstOrNull()
+            val first = firstComment?.contents.orEmpty()
             val commitId = when (thread) {
                 is NonRangedCodeCommentThread -> thread.commitId
                 is CodeCommentThread -> thread.commitId
@@ -53,7 +54,8 @@ class ReviewExcelExporter {
             }.orEmpty()
             for (comment in comments) {
                 var column = 0
-                val response = if (first == comment.contents) "" else comment.contents.orEmpty()
+                // v1.6은 첫 댓글과 내용이 같은 응답도 제목 줄로 써서 응답이 빠졌다(R-65-3). 제목 줄은 첫 댓글 하나뿐이다
+                val response = if (comment === firstComment) "" else comment.contents.orEmpty()
                 fun text(value: String?) { sheet.addCell(Label(column++, row + 1, value.orEmpty(), body)) }
                 text((row + 1).toString())
                 text(commitId.take(COMMIT_LENGTH))

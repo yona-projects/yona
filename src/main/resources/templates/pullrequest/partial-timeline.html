@@ -10,7 +10,7 @@
 <li th:each="e : ${timeline}" class="event" th:id="'comment-' + ${e.id}">
     <span th:class="'state ' + ${e.stateClass}" th:text="#{${e.stateKey}}"></span>
     <th:block th:utext="${e.messageHtml}"></th:block>
-    <span class="date"><a th:href="'#event-' + ${e.id}" th:title="${e.agoTitle}" th:text="${e.ago}"></a></span>
+    <span class="date"><a th:href="'#comment-' + ${e.id}" th:title="${e.agoTitle}" th:text="${e.ago}"></a></span>
     <a th:if="${e.compareUrl != null}" th:href="${e.compareUrl}" class="ybtn ybtn-mini" th:text="#{pullRequest.additional.changes}"></a>
     <div th:if="${e.bodyHtml != null}" class="comment-body markdown-wrap review-body" th:utext="${e.bodyHtml}"></div>
     <ul class="commit-list" th:if="${!#lists.isEmpty(e.commits)}">

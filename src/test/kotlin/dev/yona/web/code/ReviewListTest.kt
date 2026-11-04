@@ -152,6 +152,15 @@ class ReviewListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `state를 소문자로 줘도 해당 탭이 활성이다 (R-65-2)`() {
+        val p = project(); val me = user()
+        thread(p, "열림"); thread(p, "닫힘", state = ThreadState.CLOSED)
+        // 컨트롤러는 대소문자를 구별하지 않고 받는데 v1.6 템플릿은 `OPEN`, `CLOSED`와 구별해 비교해 어느 탭도 활성이 아니었다
+        assertEquals("OPEN", page(url(p, "?state=open"), login(me)).selectFirst(".col-lg-10 > ul.nav-tabs a.nav-link.active")!!.attr("data-value"))
+        assertEquals("CLOSED", page(url(p, "?state=closed"), login(me)).selectFirst(".col-lg-10 > ul.nav-tabs a.nav-link.active")!!.attr("data-value"))
+    }
+
+    @Test
     fun `authorId와 participantId는 받은 값으로 거른다`() {
         val p = project(); val me = user(); val a = user(); val b = user()
         thread(p, "A가 만듦", author = a); thread(p, "B가 만들고 A가 답", author = b, replies = listOf(a to "답")); thread(p, "B만", author = b)
@@ -238,6 +247,7 @@ class ReviewListTest : AbstractIntegrationTest() {
         assertEquals(4, sheet.rows)
         assertEquals(listOf("1", "1234567", "", "제목 글", me.name, "", "", "OPEN", "false"), (0..8).map { sheet.getCell(it, 1).contents }.mapIndexed { i, v -> if (i == 2) "" else v })
         assertEquals(listOf("", "", "응답 글", other.name), listOf(3, 4, 5, 6).map { sheet.getCell(it, 2).contents })
-        assertEquals(listOf("제목 글", me.name, "", ""), listOf(3, 4, 5, 6).map { sheet.getCell(it, 3).contents })
+        // 첫 댓글과 글이 같은 응답도 응답 줄이다. v1.6은 내용이 같으면 제목 줄로 써서 응답이 빠졌다(R-65-3)
+        assertEquals(listOf("", "", "제목 글", me.name), listOf(3, 4, 5, 6).map { sheet.getCell(it, 3).contents })
     }
 }
