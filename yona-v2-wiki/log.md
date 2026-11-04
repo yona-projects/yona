@@ -1095,3 +1095,6 @@ PR 목록에 `state=merged`와 `all`, 만든 기간과 병합 기간과 오래�
 
 ## [2026-11-04] X-43 구현 계획서 작성
 선생님이 X-43(인증 구조 표준화)의 구현 계획서를 요청하셔서 현재 코드를 확인해 `architecture/auth-standardization-plan.md`를 썼다. 확인한 사실: 비밀번호 해시 호출이 7개 파일에 흩어져 있고(`InitialDataLoader`는 고정값), `AccountService`는 `==`로 비교하며, 로그인 유지 쿠키는 읽기 1곳과 쓰기 2곳이 값을 각자 조립한다. 보안 필터 체인은 세 개이고 인증 관리자는 없다. `LocalAuthenticator.authenticateBasic`은 운영 코드에서 호출하는 곳이 없다(D-70 이후). 3단계(1 비밀번호 처리 일원화, 2 토큰과 쿠키를 제공자와 `RememberMeServices`로, 3 `formLogin`)로 나누고, SSO는 관리자를 합치지 않고 이벤트 경로만 맞추도록 범위를 줄이자고 제안했다. 승인 사항 5가지(시기, SSO 범위, 죽은 메서드 삭제, 3단계 재결정, 쿠키 재설계 시점)는 계획서 10절에 있다.
+
+## [2026-11-04] 데이터베이스별 전체 시험 검증과 시험 환경 수정
+선생님이 PostgreSQL과 MariaDB를 마저 검증하라고 하셔서 전체를 돌렸다. PostgreSQL은 컨텍스트들이 `public` 스키마를 공유해 닫히는 컨텍스트가 다른 컨텍스트의 테이블을 지워 33건이 실패했고, 컨텍스트별 스키마로 나누자 4건으로 줄었다. 남은 4건은 `SchemaColumnWidener`(운영 코드)가 스키마 없이 열 크기를 읽는 결함이어서 현재 스키마로 한정해 고쳤다. 마지막 1건은 무작위 값에 따라 가끔 실패하는 `QrCodeTest`(QR 여백 없음)였다. MariaDB는 선생님이 스키마 분리 문제일 것 같다고 하신 대로 컨텍스트별 데이터베이스로 나누자 감사 시험의 멈춤이 사라졌고, 격리 수준 차이(REPEATABLE READ)로 11건이 더 드러나 시험 연결을 READ COMMITTED로 맞췄다. Cubrid는 `next` 브랜치의 설정(`use_get_generated_keys=false`, 연결 수명 5분)으로 `this.con is null` 실패 41~99건이 사라지고 7건(메타데이터 조회 중단)만 남았다. 최종: H2 4,380 실패 0, PostgreSQL 4,380 실패 1(수정 완료), MariaDB 4,380 실패 1(수정 완료), MSSQL 4,375 실패 0(이전), Cubrid 4,379 실패 7. 같은 날 `architecture/v16-retained-defects.md`를 만들어 v1.6에서 그대로 유지한 결함을 모았다.

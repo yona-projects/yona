@@ -52,7 +52,7 @@ class SchemaColumnWidenerTest : AbstractIntegrationTest() {
         val text = if (product.contains("SQL Server")) "nvarchar" else "varchar"
         val narrow = when {
             product == "PostgreSQL" -> "alter table api_token alter column scopes type varchar(255)"
-            product.contains("CUBRID", ignoreCase = true) -> "alter table api_token modify scopes varchar(255)"
+            product.contains("CUBRID", ignoreCase = true) || product.startsWith("MySQL") || product.startsWith("MariaDB") -> "alter table api_token modify scopes varchar(255)"
             else -> "alter table api_token alter column scopes $text(255)"
         }
         jdbc.execute(narrow)

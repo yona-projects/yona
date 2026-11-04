@@ -122,6 +122,7 @@
 - [Cubrid·MSSQL 지원](architecture/cubrid-mssql-support.md): X-46 데이터베이스별 차이와 처리, 시험 결과
 - [조직 팀 기능 계획](architecture/team-plan.md): X-44 팀(공개·비밀, 중첩), 프로젝트 권한 5단계, 팀 멘션과 리뷰 요청, 규칙 묶음 대상. 계획 작성 완료, v2.1.0에서 구현(D-84)
 - [인증 구조 표준화 계획](architecture/auth-standardization-plan.md): X-43 비밀번호 처리를 한 곳으로(1단계), 토큰과 쿠키를 제공자와 `RememberMeServices`로(2단계), `formLogin`(3단계). 데이터 형식은 바꾸지 않는다. 계획 작성 완료, 착수 전(승인 사항 5가지)
+- [v1.6에서 그대로 유지한 결함 목록](architecture/v16-retained-defects.md): 재현 목록(R)과 결함 카탈로그(C)에서 v2가 v1.6과 같게 재현하는 결함만 모은 생성 페이지(재현 103건과 88건, 일부 재현 8건)
 - [엔터프라이즈 SSO 구현 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [OAuth2 인증 서버 구현 계획](architecture/oauth2-server-plan.md): 불투명 토큰, 클래식 범위, 인가 서버 엔드포인트, 승인 화면, 동적 등록, 단계 0~8 (X-1, D-71 답변 대기, 계획만)
 - [GPG 커밋 서명 검증 설계](architecture/gpg-signing.md): 공개키 등록(목록, 추가 두 화면), BouncyCastle 검증, Verified 표시, REST, 서명 커밋 필수 규칙(X-4, D-65, 구현 완료)
