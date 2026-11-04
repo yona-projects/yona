@@ -503,11 +503,10 @@ class AccessControlTest : AbstractIntegrationTest() {
      * `UnsupportedOperationException`을 던진다([refactoring-backlog.md] R-08).
      */
     @Test
-    fun `프로젝트가 아닌 전역 컨테이너 아래의 생성은 v1_6처럼 예외이다`() {
+    fun `프로젝트가 아닌 전역 컨테이너 아래의 생성은 예외 없이 전역 규칙으로 판단한다 (R-08, v1_6은 예외로 실패했다)`() {
         val container = GlobalResource("1", ResourceType.USER)
-        assertFailsWith<UnsupportedOperationException> {
-            accessControl.isResourceCreatable(user(), container, ResourceType.ATTACHMENT)
-        }
+        val user = user()
+        assertEquals(accessControl.isGlobalResourceCreatable(user), accessControl.isResourceCreatable(user, container, ResourceType.ATTACHMENT))
     }
 
     // --- 이슈, 게시글, 댓글의 삭제는 작성자와 관리자만, 수정은 GitHub처럼 구성원에게 허용 (X-36, D-48) ---

@@ -84,8 +84,11 @@ class AccessControl(
             return true
         }
 
+        // 전역 리소스(사용자 등)는 프로젝트가 없다. v1.6은 `getProject()`의 예외로 실패했다(R-08)
         val project = if (container.type == ResourceType.PROJECT) {
             projects.findById(container.id.toLong()).orElse(null)
+        } else if (container is GlobalResource) {
+            null
         } else {
             container.project
         }
