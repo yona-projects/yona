@@ -447,6 +447,19 @@ class IssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `권한이 없으면 충돌 응답으로 댓글 원문을 알려 주지 않고 403이다 (C093, C056)`() {
+        val project = newProject(ProjectScope.PRIVATE)
+        val member = join(newUser(), project)
+        val i = issue(project, author = member)
+        val c = comments.save(IssueComment(contents = "비밀 댓글", createdDate = Date(), authorId = member.id, authorLoginId = member.loginId, authorName = member.name, issue = i, projectId = project.id!!))
+        val url = "/${project.owner}/${project.name}/issue/1/comments/${c.id}"
+        // v1.6은 충돌 검사를 권한 검사보다 먼저 해서, 틀린 original을 보내면 구성원이 아니어도 409와 함께 원문(storedContent)을 돌려받았다
+        val response = json(patch(url), login(newUser()), """{"content":"x","original":"틀림"}""").andReturn().response
+        assertEquals(403, response.status, response.contentAsString)
+        assertTrue(!response.contentAsString.contains("비밀 댓글"), response.contentAsString)
+    }
+
+    @Test
     fun `댓글 갱신의 충돌과 권한`() {
         val project = newProject()
         val member = join(newUser(), project); val other = join(newUser(), project)
