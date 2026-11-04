@@ -58,13 +58,35 @@ enum class TestDatabase {
         private val container by lazy {
             MariaDBContainer("mariadb:10.11")
                 .withDatabaseName("yona_v2_it").withUsername("yona").withPassword("yona")
-                .withReuse(true).also { it.start() }
+                .withReuse(true).also { it.start(); dropLeftoverDatabases(it) }
         }
 
+        /** 데이터베이스를 만들고 지우려고 root로 접속한다(Testcontainers는 root의 비밀번호를 사용자 비밀번호와 같게 둔다). */
+        private fun <T> asRoot(c: MariaDBContainer, block: (java.sql.Statement) -> T): T =
+            java.sql.DriverManager.getConnection("jdbc:mariadb://${c.host}:${c.getMappedPort(3306)}/", "root", c.password).use { conn -> conn.createStatement().use(block) }
+
+        /** 이전 실행이 남긴 시험용 데이터베이스(`it_`로 시작)를 지운다. 컨테이너를 재사용하므로 지우지 않으면 계속 쌓인다. */
+        private fun dropLeftoverDatabases(c: MariaDBContainer) = asRoot(c) { st ->
+            val names = st.executeQuery("show databases like 'it\\_%'").use { rs -> generateSequence { if (rs.next()) rs.getString(1) else null }.toList() }
+            names.forEach { st.execute("drop database `$it`") }
+        }
+
+        /**
+         * 컨텍스트마다 새 데이터베이스를 만든다. MariaDB에서는 스키마가 곧 데이터베이스이다. 모든 컨텍스트가 하나를 나누면, 닫히는 컨텍스트의 `create-drop`이 다른 컨텍스트의 테이블까지 지우거나
+         * 다른 컨텍스트가 잡은 메타데이터 잠금을 기다려 멈출 수 있다(H2의 컨텍스트별 인메모리 DB, MSSQL과 PostgreSQL의 컨텍스트별 데이터베이스와 스키마와 같은 이유).
+         */
         override fun register(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { container.jdbcUrl }
+            val database = "it_" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
+            asRoot(container) { st ->
+                st.execute("create database `$database`")
+                st.execute("grant all privileges on `$database`.* to '${container.username}'@'%'")
+            }
+            registry.add("spring.datasource.url") { container.jdbcUrl.replace("/${container.databaseName}", "/$database") }
             registry.add("spring.datasource.username") { container.username }
             registry.add("spring.datasource.password") { container.password }
+            // 시험은 `@Transactional`로 바깥 트랜잭션을 열어 둔 채 별도 트랜잭션이 커밋한 행(경계 감사 기록 등)을 읽는다. MariaDB의 기본 REPEATABLE READ는 먼저 시작한 트랜잭션의
+            // 스냅샷에 그 행이 없어 `List is empty`가 된다. H2와 PostgreSQL의 기본인 READ COMMITTED로 맞춘다(MSSQL은 `READ_COMMITTED_SNAPSHOT`으로 맞췄다).
+            registry.add("spring.datasource.hikari.transaction-isolation") { "TRANSACTION_READ_COMMITTED" }
         }
     },
     MSSQL {
