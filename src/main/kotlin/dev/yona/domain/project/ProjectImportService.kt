@@ -62,7 +62,8 @@ class ProjectImportService(
     private val roles: RoleRepository,
     private val repositories: RepositoryService,
     private val messages: org.springframework.context.MessageSource,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val properties: dev.yona.config.YonaProperties
 ) {
 
     @Transactional
@@ -86,6 +87,7 @@ class ProjectImportService(
         }
         if (owner != null && name != null && projects.existsByOwnerIgnoreCaseAndNameIgnoreCase(owner, name)) errors.reject("name", "project.name.duplicate")
         if (LegacyText.isBlank(form.url)) errors.reject("url", "project.import.error.empty.url")
+        else if (!isAllowedSource(form.url.orEmpty())) errors.reject("url", "project.import.error.wrong.url")
         if (errors.hasErrors()) {
             // v1.6은 어떤 오류가 있어도 이름 규칙 안내를 더 붙였다(R-46-5). 이름 규칙을 어긴 경우에만 붙인다
             if (ProjectNameRules.violations(name).isNotEmpty()) errors.reject("name", "project.name.alert")
@@ -118,6 +120,27 @@ class ProjectImportService(
         }
         repositories.deleteRepository(project)
         return ImportResult.Rejected(errors)
+    }
+
+    /**
+     * 가져올 주소가 허용하는 원격 저장소인지 본다. `http`, `https`, `ssh`, `git`과 `사용자@호스트:경로` 형식만 받고 `file:`, 경로, 서버 안의 주소(루프백, 링크 로컬, 사설망)는
+     * 거절한다. v1.6은 주소를 그대로 JGit에 넘겨 로그인한 누구나 서버 안의 다른 저장소(비공개 포함)를 복제해 읽을 수 있었다(R-46-3).
+     */
+    private fun isAllowedSource(url: String): Boolean {
+        if (properties.importAllowLocalSources) return true
+        val text = url.trim()
+        val scp = Regex("^[\\w.-]+@([\\w.-]+):.+").matchEntire(text)
+        val host = if (scp != null) scp.groupValues[1] else {
+            val uri = runCatching { java.net.URI(text) }.getOrNull() ?: return false
+            if (uri.scheme?.lowercase() !in setOf("http", "https", "ssh", "git")) return false
+            uri.host ?: return false
+        }
+        return !isInternalHost(host)
+    }
+
+    private fun isInternalHost(host: String): Boolean {
+        val addresses = runCatching { java.net.InetAddress.getAllByName(host).toList() }.getOrNull() ?: return false
+        return addresses.any { it.isLoopbackAddress || it.isLinkLocalAddress || it.isSiteLocalAddress || it.isAnyLocalAddress }
     }
 
     /** 전송 오류를 응답 코드에 맞는 안내로 바꾼다 (v1.6 `addDetailedTransportErrorMessage`). */

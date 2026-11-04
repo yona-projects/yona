@@ -45,7 +45,7 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-code-browser"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-code-browser", "yona.import-allow-local-sources=true"])
 class ImportTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
