@@ -25,7 +25,7 @@ import java.util.Date
  * 5. 충돌이 새로 생기거나 풀리면 병합 상태 알림과 타임라인 이벤트를 쌓는다.
  * 6. 병합 중 표시를 끈다.
  *
- * 처리 중 예외가 나면 v1.6처럼 로그만 남기고 병합 중 표시를 그대로 둔다([refactoring-backlog.md] R-42).
+ * 처리 중 예외가 나면 로그를 남기고 병합 중 표시를 끈다(v1.6은 표시를 그대로 두어 화면이 계속 "병합 중"이었다, R-42-2).
  */
 @Service
 class PullRequestMergeProcessor(
@@ -59,6 +59,9 @@ class PullRequestMergeProcessor(
             handle(pullRequest, sender, newPullRequest)
         } catch (e: Exception) {
             log.error("Failed to check merging from {}", pullRequest.id, e)
+            // 병합 중 표시를 꺼서 화면이 계속 "병합 중"으로 남지 않게 한다. v1.6은 그대로 두었다(R-42-2)
+            pullRequest.isMerging = false
+            pullRequests.save(pullRequest)
         }
     }
 
