@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 /**
  * 서버가 시작된 뒤 일정 간격으로 새 버전을 확인한다. v1.6 `YobiUpdate.onStart`(`app/models/YobiUpdate.java:52-71`)에 해당한다.
  *
- * 간격이 0 이하이면 시작하지 않는다. `application.update.check.use`와 관계없이 돌고(v1.6도 같다), 실패하면 경고만 남긴다.
+ * 간격이 0 이하이거나 `application.update.check.use`가 꺼져 있으면 시작하지 않는다(v1.6은 이 설정과 관계없이 돌았다, R-55-1). 실패하면 경고만 남긴다.
  */
 @Component
 class UpdateCheckScheduler(
@@ -25,11 +25,15 @@ class UpdateCheckScheduler(
     private val log = LoggerFactory.getLogger(javaClass)
     private var executor: ScheduledExecutorService? = null
 
+    /** 백그라운드 확인이 돌고 있으면 `true`이다. */
+    val running: Boolean get() = executor != null
+
     @PostConstruct
     fun start() {
         val interval = properties.update.interval.toMillis()
         // 비밀 키를 정하기 전에는 시작하지 않는다 (v1.6 `Global.onStart`).
-        if (interval <= 0 || secret.invalid) return
+        // `check`가 꺼져 있으면 시작하지 않는다. v1.6은 이 설정과 관계없이 돌았다(R-55-1)
+        if (interval <= 0 || secret.invalid || !properties.update.check) return
         executor = Executors.newSingleThreadScheduledExecutor { runnable -> Thread(runnable, "update-check").apply { isDaemon = true } }.also {
             it.scheduleWithFixedDelay({
                 try {

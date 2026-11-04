@@ -17,9 +17,14 @@ fun interface RemoteTags {
 
 /** JGit의 `ls-remote`로 태그를 읽는다 (v1.6 `YobiUpdate.fetchVersionToUpdate`). 브랜치는 읽지 않는다. */
 @Component
-class JGitRemoteTags : RemoteTags {
+class JGitRemoteTags(private val timeoutSeconds: Int = DEFAULT_TIMEOUT_SECONDS) : RemoteTags {
+    // 저장소가 응답하지 않아도 화면이 오래 기다리지 않도록 제한 시간을 둔다. v1.6은 시간 제한이 없었다(R-55-3)
     override fun list(repositoryUrl: String): List<String> =
-        Git.lsRemoteRepository().setRemote(repositoryUrl).setHeads(false).setTags(true).call().map { it.name }
+        Git.lsRemoteRepository().setRemote(repositoryUrl).setHeads(false).setTags(true).setTimeout(timeoutSeconds).call().map { it.name }
+
+    private companion object {
+        const val DEFAULT_TIMEOUT_SECONDS = 10
+    }
 }
 
 /**

@@ -67,4 +67,17 @@ class UpdateCheckServiceTest {
         val service = service(emptyList())
         assertEquals("https://github.com/yona-projects/yona/releases/tag/v1.17.0", service.releaseUrl("1.17.0"))
     }
+
+    @Test
+    fun `응답하지 않는 저장소는 제한 시간 안에 실패한다 (R-55-3)`() {
+        // v1.6은 시간 제한이 없어 저장소가 느리면 화면이 늦게 열렸다
+        java.net.ServerSocket(0).use { server ->
+            val accepted = java.util.concurrent.CopyOnWriteArrayList<java.net.Socket>()
+            val acceptor = Thread { while (!server.isClosed) { try { accepted += server.accept() } catch (e: Exception) { break } } }.apply { isDaemon = true; start() }
+            org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(15)) {
+                assertFailsWith<Exception> { JGitRemoteTags(timeoutSeconds = 1).list("http://127.0.0.1:${server.localPort}/never.git") }
+            }
+            accepted.forEach { it.close() }; acceptor.interrupt()
+        }
+    }
 }
