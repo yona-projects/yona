@@ -279,11 +279,12 @@ yobi.Attachments = function(htOptions) {
         var oRes = htData.oRes;
         var nSubmitId = htData.nSubmitId;
 
-        _addUploadFileIdToListAndForm(htData.oRes.id);
         // Validate server response
+        // v1.6은 검증 전에 아이디를 등록했고, 오류 처리기에 인자를 둘로 나눠 넘겨 `htData.oRes`를 읽다 TypeError가 났다(C006, C074, C181)
         if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
-            return _onErrorUpload(nSubmitId, oRes);
+            return _onErrorUpload({"nSubmitId": nSubmitId, "oRes": oRes || {}});
         }
+        _addUploadFileIdToListAndForm(oRes.id);
 
         if(_updateFileItem(nSubmitId, oRes) !== false){
             _setProgressBar(nSubmitId, 100);
@@ -347,7 +348,8 @@ yobi.Attachments = function(htOptions) {
         }
 
         $yobi.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
-        _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId + ".png"));
+        // v1.6은 `.png`를 붙여 지워서 삽입한 임시 주석(접미 없음)이 남았다(C005)
+        _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId));
     }
 
     /**
