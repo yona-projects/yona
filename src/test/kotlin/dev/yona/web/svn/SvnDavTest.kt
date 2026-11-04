@@ -378,7 +378,8 @@ class SvnDavTest {
         val path = "/svn/${publicProject.owner}/${publicProject.name}"
         assertEquals(401, raw("PROPFIND", path).statusCode())
         assertEquals(403, raw("PROPFIND", path, outsider).statusCode())
-        assertEquals(207, raw("PROPFIND", path, member).statusCode())
+        assertEquals(0L, client(publicProject, member).latestRevision)
+        assertFailsWith<SVNException> { client(publicProject, outsider).latestRevision }
     }
 
     // --- 주소 ---
