@@ -142,7 +142,9 @@ class NotificationMailSender(
         } else {
             wrap(lang, renderMarkdown(joined, base, lang), urlToView, base, acceptsReply)
         }
-        helper.setText(plainText.joinToString(SEPARATOR) + PLAIN_FOOTER, html)
+        // 일반 텍스트 꼬리 안내는 수신자 언어로 쓰고 회신이 안 되는 메일에는 회신 안내를 넣지 않는다. v1.6은 한국어 문장이 고정이었다(R-33)
+        val footerKey = if (acceptsReply) "notification.plainFooter.replyOrView" else "notification.plainFooter.view"
+        helper.setText(plainText.joinToString(SEPARATOR) + "\n\n " + messageSource.getMessage(footerKey, null, Locale.forLanguageTag(lang)), html)
         main.created?.let { helper.setSentDate(it) }
         references(resource)?.let { message.addHeader("References", it) }
         return message
@@ -199,6 +201,5 @@ class NotificationMailSender(
 
     private companion object {
         const val SEPARATOR = "\n\n---\n\n"
-        const val PLAIN_FOOTER = "\n\n Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다."
     }
 }

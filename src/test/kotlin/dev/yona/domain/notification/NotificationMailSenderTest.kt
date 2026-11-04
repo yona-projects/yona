@@ -137,6 +137,17 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일반 텍스트 본문의 안내는 수신자 언어로 쓰고 회신이 안 되는 메일에는 회신 안내를 넣지 않는다 (R-33)`() {
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        val text = bodyParts(sent().single()).first { !it.contains("<") }
+        // v1.6는 한국어 문장이 고정이고 회신이 되지 않아도 "직접 회신" 안내가 붙었다
+        assertTrue(!text.contains("직접 회신"), text)
+        assertTrue(text.contains("Yona"), text)
+        assertTrue(!text.contains("reply directly"), text)
+    }
+
+    @Test
     fun `메일 본문은 마크다운을 렌더링하고 보기 링크와 구독 해제 링크를 덧붙인다`() {
         val author = user(); val receiver = user(); val i = issue(author)
         sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "**굵게** 본문", receiver)))

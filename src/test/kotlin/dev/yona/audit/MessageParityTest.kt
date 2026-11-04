@@ -55,7 +55,7 @@ class MessageParityTest {
      * v1.6 번들에 빠져 있어 화면에 키 이름이 그대로 나오던 키를 고치려고 더한 키이다(`architecture/v16-safe-fix-candidates.md`).
      * `common.comment.created`는 한국어 번들에만 v1.6에 있었으므로 그 번들에서는 더한 키로 세지 않는다.
      */
-    private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission")
+    private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view")
 
     @Test
     fun `언어별 번들의 키는 v1_6과 같고 추가한 키만 더 있다`() {
