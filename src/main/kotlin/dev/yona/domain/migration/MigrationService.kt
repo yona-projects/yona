@@ -186,11 +186,12 @@ class MigrationService(
     private fun body(text: String?, authorLoginId: String?, authorName: String?, type: String, link: String, container: ResourceType, id: Long, wiki: Boolean): String {
         val converted = if (wiki) relativeLinksToWikiCommitPath(text.orEmpty()) else relativeLinksToAbsolutePath(text.orEmpty())
         val sb = StringBuilder(String.format("@%s (%s) 님이 작성한 [%s](%s)입니다. \n\\---\n\n%s", authorLoginId, authorName, type, link, converted))
-        // 읽을 수 없는 첨부가 하나라도 있으면 목록 전체를 붙이지 않는다(v1.6은 예외를 삼킨다).
-        val files = attachments.fileList(container, id)?.get("attachments").orEmpty()
+        // v1.6은 읽을 수 없는 첨부가 하나라도 있으면 목록 전체를 붙이지 않았다(R-58-6). 읽을 수 없는 첨부만 "읽을 수 없음"으로 표시하고 나머지는 붙인다
+        val files = attachments.fileListMarkingUnreadable(container, id)
         if (files.isNotEmpty()) {
             sb.append("\n\n--- attachments ---")
             files.forEach { file ->
+                if (file["unreadable"] == "true") { sb.append("\n(읽을 수 없는 첨부)"); return@forEach }
                 if (wiki) sb.append(String.format("\n[%s](../wiki/files/%s/%s)", file["name"], file["id"], file["name"]!!.replace("#", "%23")))
                 // v1.6은 `/` + `/files/번호`를 이어 붙여 `//files/번호`(프로토콜 상대 주소)가 되었다(R-58-7). 첨부 주소는 이미 `/files/번호`이다
                 else sb.append(String.format("\n[%s](%s)", file["name"], file["url"]))

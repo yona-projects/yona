@@ -38,6 +38,17 @@ class AttachmentListing(
         return HashMap<String, List<Map<String, String>>>().also { it["attachments"] = items }
     }
 
+    /**
+     * 컨테이너의 첨부를 번호 순으로 모두 돌려주되, 읽을 수 없는 첨부는 이름과 주소를 숨기고 `unreadable=true`만 담는다.
+     * [fileList]는 읽을 수 없는 첨부가 하나라도 있으면 목록 전체가 `null`이라 이전(migration)처럼 읽을 수 있는 첨부까지 빠졌다(R-58-6).
+     */
+    fun fileListMarkingUnreadable(containerType: ResourceType, containerId: Long): List<Map<String, String>> {
+        val viewer = currentUserProvider.get().user
+        return attachments.findByContainer(containerType, containerId).map { attachment ->
+            if (accessControl.isAllowed(viewer, resources.attachmentResource(attachment), Operation.READ)) info(attachment) else mapOf("unreadable" to "true")
+        }
+    }
+
     /** 컨테이너 번호를 문자열로 받는다. v1.6은 문자열로 조회하므로 숫자가 아니면 붙은 첨부가 없다. */
     fun fileList(containerType: ResourceType, containerId: String): Map<String, List<Map<String, String>>>? {
         val id = containerId.toLongOrNull() ?: return HashMap<String, List<Map<String, String>>>().also { it["attachments"] = emptyList() }
