@@ -44,9 +44,10 @@
             this._htData = this._getRequestOptions(welTarget, htOptions || {});
             this._htHandlers = {};
 
+            // v1.6은 선언하지 않은 `el`을 읽어 GET 링크에서 ReferenceError가 났다(C003)
             // if target element is anchor and request method is GET
             // plain HTML will works enough.
-            if(this._htData.sMethod === "get" && el.tagName.toLowerCase() === "a"){
+            if(this._htData.sMethod === "get" && welTarget[0].tagName.toLowerCase() === "a"){
                 return;
             }
 

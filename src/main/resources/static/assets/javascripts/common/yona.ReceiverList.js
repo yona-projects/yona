@@ -30,7 +30,8 @@ function findNotiReceiversHandler($textarea, url) {
         .done(function (data) {
             NProgress.done();
             var receivers = "";
-            if (!data && !data.receivers) {
+            // v1.6는 `&&`라 응답이 비어 있으면 오히려 오류가 났다(C009)
+            if (!data || !data.receivers) {
                 return;
             }
 
