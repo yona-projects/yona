@@ -248,6 +248,16 @@ class ProjectCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `권한이 없다는 안내는 요청의 언어로 번역된다 (C062)`() {
+        val user = newUser()
+        val org = newOrganization(member = user)
+        val request = post("/projects").param("owner", org.name!!).param("name", "denied-ko").session(login(user)).locale(java.util.Locale.KOREA)
+        val text = doc(mockMvc.perform(request).andReturn()).selectFirst(".error-wrap p")?.text()
+        // v1.6는 영어 문장을 메시지 키 자리에 넘겨 번역되지 않았다
+        assertEquals("'${user.name}'님은 권한이 없습니다.", text)
+    }
+
+    @Test
     fun `로그인하지 않으면 403이다`() {
         val result = submit(null, "someone", "anon-proj")
         assertEquals(403, result.response.status)

@@ -70,7 +70,7 @@ class ImportController(
         return when (val result = importService.import(form, requireNotNull(creator))) {
             is ImportResult.Created -> RedirectSupport.see(request, response, dev.yona.util.UrlPaths.projectPath(result.project.owner, result.project.name))
             is ImportResult.Rejected -> formView(form, result.errors).also { it.status = HttpStatus.BAD_REQUEST }
-            ImportResult.Forbidden -> ErrorViews.forbidden("'${creator.name}' has no permission")
+            ImportResult.Forbidden -> ErrorViews.forbidden(messages.getMessage("project.error.noPermission", arrayOf(creator.name.orEmpty()), LocaleContextHolder.getLocale()))
         }
     }
 

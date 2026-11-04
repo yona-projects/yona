@@ -65,7 +65,8 @@ class ProjectCreateController(
 
         when (createService.checkPermission(creator, form.owner)) {
             null -> Unit
-            else -> return ErrorViews.forbidden("'${displayNameOf(creator)}' has no permission")
+            // v1.6는 영어 문장을 메시지 키 자리에 넘겨 번역되지 않았다(C062). 요청의 언어로 번역한 문장을 넘긴다
+            else -> return ErrorViews.forbidden(messages.getMessage("project.error.noPermission", arrayOf(displayNameOf(creator)), org.springframework.context.i18n.LocaleContextHolder.getLocale()))
         }
 
         val errors = createService.validate(form, creator)
