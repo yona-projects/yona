@@ -223,7 +223,8 @@ yobi.Files = (function(){
     function _onSuccessSubmit(nSubmitId, oRes, sNamespace){
         // Validate server response
         if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
-            return _onErrorSubmit(nSubmitId, oRes);
+            // v1.6은 이름 공간을 빠뜨려 이름 공간에 붙인 오류 처리기가 불리지 않았다(C004)
+            return _onErrorSubmit(nSubmitId, oRes, sNamespace);
         }
 
         // clear inputFile
@@ -533,7 +534,7 @@ yobi.Files = (function(){
         if( hasBothTextAndImage(oClipboardData.items)){
             _fireEvent("pasteMarkdownTable", {
                 "nSubmitId": _getSubmitId(),
-                "markdownTableText": getPlainText(oClipboardData.items)
+                "markdownTableText": getPlainText(oClipboardData.items, weEvt)
             }, sNamespace);
             return weEvt.preventDefault();
         }
@@ -575,7 +576,8 @@ yobi.Files = (function(){
             return hasStringData && hasImageData;
         }
 
-        function getPlainText(data) {
+        // v1.6은 인자 대신 전역 `window.event`를 읽었다(C010). 받은 이벤트를 쓴다
+        function getPlainText(data, weEvt) {
             var text;
 
             if (data && data.length > 1) {
@@ -585,11 +587,11 @@ yobi.Files = (function(){
 
                         // The rest of this block codes are derived from
                         // https://github.com/jonmagic/copy-excel-paste-markdown/blob/master/script.js
-                        var clipboard = event.clipboardData
+                        var clipboard = weEvt.originalEvent.clipboardData
                         var data = clipboard.getData('text/plain').trim()
 
                         if(looksLikeTable(data)) {
-                            event.preventDefault()
+                            weEvt.preventDefault()
                         }else{
                             return
                         }
