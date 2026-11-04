@@ -56,6 +56,8 @@ import kotlin.test.assertTrue
 @Transactional
 class MyIssuesTest : AbstractIntegrationTest() {
 
+    @Autowired private lateinit var projectUsers: dev.yona.domain.project.ProjectUserRepository
+    @Autowired private lateinit var roles: dev.yona.domain.user.RoleRepository
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
@@ -107,9 +109,20 @@ class MyIssuesTest : AbstractIntegrationTest() {
     @Test
     fun `조건이 없으면 내게 할당된 열린 이슈를 모든 프로젝트에서 갱신 최근 순으로 보인다`() {
         val me = newUser(); val other = newUser(); val a = project(other, "a"); val b = project(other, "b", ProjectScope.PRIVATE)
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = me, project = b, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
         issue(a, "첫째", other, assignee = me); issue(b, "비공개 프로젝트의 둘째", other, assignee = me); issue(a, "남의 것", other, assignee = other)
         issue(a, "닫힌 것", other, assignee = me, state = State.CLOSED)
         assertEquals(listOf("비공개 프로젝트의 둘째", "첫째"), titles(page(login(me))))
+    }
+
+    @Test
+    fun `읽을 수 없게 된 프로젝트의 내 이슈는 보이지 않는다 (C135, R-49-1)`() {
+        val me = newUser(); val other = newUser(); val priv = project(other, "gone", ProjectScope.PRIVATE)
+        issue(priv, "빠진 뒤의 내 담당", other, assignee = me); issue(priv, "빠진 뒤의 내 글", me); issue(priv, "담당 없는 비공개", other)
+        // v1.6은 읽기 권한을 따지지 않아 담당자 없음(assigneeId=-1) 검색으로 모든 프로젝트의 담당 없는 이슈 제목이 보였다
+        assertEquals(emptyList(), titles(page(login(me))))
+        assertEquals(emptyList(), titles(page(login(me), "assigneeId" to "-1")))
+        assertEquals(emptyList(), titles(page(login(me), "authorId" to "${me.id}")))
     }
 
     @Test

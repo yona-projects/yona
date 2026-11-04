@@ -1,5 +1,6 @@
 package dev.yona.domain.issue
 
+import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.project.Project
@@ -207,6 +208,13 @@ class IssueSearchService(private val entityManager: EntityManager) {
                 if (projectIds.isEmpty()) clauses += "1 = 0" else { clauses += "i.project.id in :projectIds"; params["projectIds"] = projectIds }
             }
             val viewerId = viewer?.id ?: IssueSearchCondition.NO_VALUE
+            // 프로젝트를 가리지 않는 검색은 보는 사람이 읽을 수 있는 프로젝트의 이슈만 찾는다. v1.6은 읽기 권한을 따지지 않아 프로젝트에서 빠진 뒤에도 내 이슈가 보였고,
+            // 담당자 없음(assigneeId=-1) 검색으로 모든 프로젝트의 담당 없는 이슈 제목이 보였다(C135, R-49-1)
+            if (project == null && projectIds == null) {
+                params["vPublic"] = ProjectScope.PUBLIC; params["vPrivate"] = ProjectScope.PRIVATE; params["vUser"] = viewerId
+                clauses += "(i.project.projectScope = :vPublic or exists (select 1 from ProjectUser pu where pu.project.id = i.project.id and pu.user.id = :vUser) or " +
+                    "(i.project.organization.id in (select ou.organization.id from OrganizationUser ou where ou.user.id = :vUser) and i.project.projectScope <> :vPrivate))"
+            }
             if (condition.filter.isNotBlank()) {
                 clauses += "(lower(i.title) like :filter escape '\\' or lower(cast(i.body as string)) like :filter escape '\\' or exists " +
                     "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '\\'))"
