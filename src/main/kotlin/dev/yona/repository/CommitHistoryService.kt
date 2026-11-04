@@ -104,7 +104,8 @@ class CommitHistoryService(
     /** 커밋의 첫 부모이다. 첫 커밋이면 `null`이다. Subversion은 바로 앞 리비전이다 (v1.6 `getParentCommitOf`). */
     fun parentOf(project: Project, revision: String): CommitInfo? {
         // Subversion의 부모는 바로 앞 리비전이다 (v1.6 `SVNRepository.getParentCommitOf`).
-        if (isSvn(project)) return revision.toLongOrNull()?.let { svn.commit(project.owner.orEmpty(), project.name.orEmpty(), it - 1) }?.let { info(it) }
+        // v1.6은 첫 리비전에서도 리비전 0을 읽으려 했다(R-62-9). 첫 리비전은 부모가 없다
+        if (isSvn(project)) return revision.toLongOrNull()?.takeIf { it > 1 }?.let { svn.commit(project.owner.orEmpty(), project.name.orEmpty(), it - 1) }?.let { info(it) }
         return gitParentOf(project, revision)
     }
 

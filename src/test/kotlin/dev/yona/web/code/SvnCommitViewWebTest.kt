@@ -64,6 +64,8 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var svn: SvnRepositories
     @Autowired private lateinit var commitComments: CommitCommentRepository
+    @Autowired private lateinit var helper: dev.yona.web.TemplateHelper
+    @Autowired private lateinit var history: dev.yona.repository.CommitHistoryService
     @Autowired private lateinit var events: NotificationEventRepository
     @Autowired private lateinit var watches: WatchRepository
 
@@ -98,6 +100,26 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     private fun comment(p: Project, commitId: String, author: User, contents: String, path: String? = null, line: Int? = null) = commitComments.save(
         CommitComment(project = p, commitId = commitId, contents = contents, createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name, path = path, line = line)
     )
+
+    @Test
+    fun `코멘트의 시각 풍선 도움말은 커밋이 아니라 그 코멘트의 작성 시각이다 (R-62-10)`() {
+        val p = project()
+        val writer = member(p, loginId = "sctime")
+        commit(p, "dev", "msg", mapOf("a.txt" to "x\n"))
+        val created = java.util.Date(1_600_000_000_000L)
+        commitComments.save(CommitComment(project = p, commitId = "1", contents = "시각", createdDate = created, authorId = writer.id, authorLoginId = writer.loginId, authorName = writer.name, path = "/a.txt", line = 1))
+        val title = page("/${p.owner}/${p.name}/commit/1", login(writer)).selectFirst("ul.comments li.comment .ago a")!!.attr("title")
+        assertEquals(helper.dateString(created), title)
+    }
+
+    @Test
+    fun `첫 리비전은 부모가 없다 (R-62-9)`() {
+        val p = project()
+        commit(p, "dev", "첫째", mapOf("a.txt" to "x\n")); commit(p, "dev", "둘째", mapOf("b.txt" to "y\n"))
+        // v1.6은 리비전 0(빈 저장소 상태)을 부모로 읽으려 했다
+        assertNull(history.parentOf(p, "1"))
+        assertEquals("1", history.parentOf(p, "2")?.id)
+    }
 
     // --- 커밋 보기 ---
 

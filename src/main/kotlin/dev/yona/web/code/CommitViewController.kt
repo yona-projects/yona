@@ -38,7 +38,7 @@ import org.springframework.web.util.HtmlUtils
 data class ReviewCard(val id: Long, val state: String, val content: String, val commentCount: Int, val avatarUrl: String, val ago: String, val agoTitle: String, val authorName: String? = null)
 
 /**
- * Subversion 커밋 보기의 코멘트 한 건의 화면 값이다. [agoTitle]은 v1.6처럼 코멘트가 아니라 커밋의 시각이다.
+ * Subversion 커밋 보기의 코멘트 한 건의 화면 값이다. [agoTitle]은 코멘트의 작성 시각이다(v1.6은 커밋의 시각을 보여 주었다, R-62-10).
  *
  * @property side 코멘트를 단 쪽(`A`, `B`). 없으면 빈 값
  * @property viaEmail 메일로 만든 코멘트이면 `true`
@@ -161,7 +161,7 @@ class CommitViewController(
             SvnCommentView(
                 id = commentId, path = c.path.orEmpty(), side = c.side?.name.orEmpty(), line = c.line?.toString().orEmpty(), authorLoginId = c.authorLoginId.orEmpty(), authorName = c.authorName.orEmpty(),
                 authorHref = "/${c.authorLoginId}", avatarUrl = writer?.let { avatars.avatarUrl(it) }.orEmpty(), ago = helper.agoOrDateString(c.createdDate),
-                agoTitle = helper.dateString(commit.authorDate), bodyHtml = markdown.render(c.contents.orEmpty(), project),
+                agoTitle = helper.dateString(c.createdDate), bodyHtml = markdown.render(c.contents.orEmpty(), project),
                 viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.COMMIT_COMMENT, commentId.toString()).isNotEmpty(),
                 attachmentsJson = json.writeValueAsString(attachmentListing.fileList(ResourceType.COMMIT_COMMENT, commentId)),
                 deletable = accessControl.isAllowed(viewer, dev.yona.access.ProjectResource(commentId.toString(), ResourceType.COMMIT_COMMENT, project, container = resource, authorId = c.authorId), Operation.DELETE),
