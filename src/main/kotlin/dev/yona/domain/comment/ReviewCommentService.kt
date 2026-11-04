@@ -162,7 +162,19 @@ class ReviewCommentService(
         }
     }
 
-    /** 커밋 코멘트(Subversion 프로젝트의 커밋 댓글)를 지운다. */
+    /**
+     * 커밋 코멘트(Subversion 프로젝트의 커밋 댓글)를 지운다. 코멘트가 [project]의 [commitId]에 달린 것일 때만 지우고 지웠으면 `true`이다.
+     * v1.6은 경로의 프로젝트와 커밋을 보지 않고 코멘트 번호만으로 지웠다(C155).
+     */
+    @Transactional
+    fun deleteCommitCommentIn(project: dev.yona.domain.project.Project, commitId: String, id: Long): Boolean {
+        val comment = commitComments.findById(id).orElse(null) ?: return false
+        if (comment.project?.id != project.id || comment.commitId != commitId) return false
+        commitComments.delete(comment)
+        return true
+    }
+
+    /** 커밋 코멘트를 번호로 지운다(코멘트 종류와 번호만 받는 공용 삭제 주소가 쓴다). */
     @Transactional
     fun deleteCommitComment(id: Long) {
         commitComments.deleteById(id)

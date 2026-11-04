@@ -110,7 +110,8 @@ class ReviewCommentController(
     fun deleteCommitComment(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable commitId: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        service.deleteCommitComment(id)
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        if (!service.deleteCommitCommentIn(project, commitId, id)) return ErrorViews.notFound()
         return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/commit/$commitId")
     }
 

@@ -278,6 +278,17 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `경로의 커밋이 아닌 다른 커밋의 코멘트는 지우지 않고 404이다 (C155)`() {
+        val p = project()
+        val writer = member(p, loginId = "scwriter3")
+        commit(p, "dev", "msg", mapOf("a.txt" to "x\n")); commit(p, "dev", "msg2", mapOf("b.txt" to "y\n"))
+        val saved = comment(p, "1", writer, "다른 커밋의 코멘트")
+        // v1.6은 경로의 프로젝트와 커밋을 보지 않고 코멘트 번호만으로 지웠다
+        mockMvc.perform(delete("/${p.owner}/${p.name}/commit/2/comments/${saved.id}/delete").session(login(writer))).andExpect(status().isNotFound)
+        assertTrue(commitComments.findById(saved.id!!).isPresent)
+    }
+
+    @Test
     fun `남의 코멘트는 다른 구성원에게 삭제 단추가 없고 지울 수도 없다 (D-48 확장, GitHub 방식)`() {
         val p = project()
         val writer = member(p, loginId = "scwriter2"); val peer = member(p, loginId = "scpeer")
