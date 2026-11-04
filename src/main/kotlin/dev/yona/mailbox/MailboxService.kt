@@ -243,13 +243,14 @@ class MailboxService(
     }
 
     /**
-     * 수신 상태를 점검한다 (v1.6 `MailboxService.start`가 등록하는 진단). 시작하지 않았으면 점검하지 않는다. 폴링으로 받는 경우에도
-     * 수신 대기 스레드가 없어 "초기화되지 않았다"고 알린다(v1.6과 같다, R-61).
+     * 수신 상태를 점검한다 (v1.6 `MailboxService.start`가 등록하는 진단). 시작하지 않았으면 점검하지 않는다. 폴링으로 받는 경우에는
+     * 수신 대기 스레드가 없어도 정상으로 본다(v1.6은 "초기화되지 않았다"고 알렸다, R-55-5, R-61-6).
      */
     fun diagnose(): List<String> {
         if (!running) return emptyList()
         val thread = idleThread
         return when {
+            thread == null && polling != null -> emptyList()
             thread == null -> listOf("The Email Receiver is not initialized")
             !thread.isAlive -> listOf("The Email Receiver is not running")
             else -> emptyList()
