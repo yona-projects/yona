@@ -174,7 +174,8 @@
                 welProject.remove();
             };
 
-            var welProject = $('<span class="badge bg-info">' + sName + " </span>")
+            // 입력값을 HTML로 해석하지 않고 글자로 넣는다. v1.6은 이스케이프 없이 이어 붙였다(C027)
+            var welProject = $('<span class="badge bg-info"></span>').text(sName + " ")
                 .css('margin-right','5px')
                 .append($('<a href="javascript:void(0)">x</a>')
                 .click(fOnClickUnselect));

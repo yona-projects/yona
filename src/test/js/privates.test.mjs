@@ -26,3 +26,20 @@ export const tests = [
     assert.equal(out, 'ok', out);
   } },
 ];
+
+export const labelTests = [
+  { name: '프로젝트 라벨은 입력값을 글자로 넣고 HTML로 해석하지 않는다 (C027)', async run() {
+    const code = sourceSnippet('service/yobi.site.MassMail.js', 'function _createProjectLabel(sName) {', '/**\n         * Append the given projects');
+    const page = await pageWith({ html: '<div id="out"></div>' });
+    const out = await page.evaluate((src) => {
+      var make = new Function('$', src + '; return _createProjectLabel;')(window.$);
+      var el = make('<img src=x onerror="window.__xss=1">');
+      $('#out').append(el);
+      return { xss: window.__xss === 1, imgs: $('#out img').length, firstText: el[0].childNodes[0].nodeValue.trim() };
+    }, code);
+    await page.close();
+    assert.equal(out.xss, false); assert.equal(out.imgs, 0);
+    assert.equal(out.firstText, '<img src=x onerror="window.__xss=1">');
+  } },
+];
+tests.push(...labelTests);
