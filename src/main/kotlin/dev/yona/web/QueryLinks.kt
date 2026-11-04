@@ -71,17 +71,11 @@ object QueryLinks {
 
     /**
      * 엑셀 링크이다. [requestUri]는 쿼리를 포함한 원래의 요청 URI(컨텍스트 경로 포함)이다.
-     * v1.6은 주소가 잘못되면(`%` 단독, `|` 등) 500이 되지만 v2는 오류 없이 쿼리를 그대로 두고 `pageNum` 쌍만 문자열로 걸러 낸다.
+     * 쿼리를 다시 조립하지 않고 원래 문자열 그대로 두고 `pageNum` 쌍(값이 없는 것 포함)과 빈 조각만 뺀 뒤 `format`을 덧붙인다.
+     * v1.6은 `URI.getQuery()`로 퍼센트 인코딩을 풀어 다시 조립해 `%2B`가 `+`로, `%26`이 `&`로 바뀌어 검색 조건이 달라졌고 `&&`가 남았으며,
+     * 잘못된 주소(`%` 단독, `|` 등)는 500이었다(R-94).
      */
-    fun excelLink(requestUri: String, excelExt: String = "xls"): String = try {
-        addQueryString(removeQueryString(requestUri, "pageNum"), "format=$excelExt")
-    } catch (e: URISyntaxException) {
-        fallback(requestUri, excelExt)
-    } catch (e: IllegalArgumentException) {
-        fallback(requestUri, excelExt)
-    }
-
-    private fun fallback(requestUri: String, excelExt: String): String {
+    fun excelLink(requestUri: String, excelExt: String = "xls"): String {
         val q = requestUri.indexOf('?')
         val path = if (q < 0) requestUri else requestUri.substring(0, q)
         val parts = if (q < 0) emptyList() else requestUri.substring(q + 1).split("&")

@@ -330,8 +330,8 @@ class IssueListTest : AbstractIntegrationTest() {
         val project = newProject()
         issue(project, 1)
         val href = page(project, "?state=open&pageNum=1&filter=이슈").selectFirst("a:has(.yobicon-file-excel)")!!.attr("href")
-        // v1.6는 URI.getQuery()로 퍼센트 인코딩을 풀어 다시 조립하므로 한글이 원문으로 나온다
-        assertEquals("${base(project)}/issues?state=open&filter=이슈&format=xls", href)
+        // 요청 주소를 다시 조립하지 않아 퍼센트 인코딩이 그대로 남는다(v1.6은 풀어서 다시 조립했다, R-94)
+        assertEquals("${base(project)}/issues?state=open&filter=%EC%9D%B4%EC%8A%88&format=xls", href)
     }
 
     // --- PJAX, JSON ---
