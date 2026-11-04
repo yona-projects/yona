@@ -101,6 +101,11 @@ class MailHandler(
         val startTime = System.currentTimeMillis()
         for (sender in senders) {
             val author = userLookup.findByEmail(sender.address) ?: continue
+            // 받는 서버가 인증하지 못한 보낸 사람은 처리하지 않는다. 회신하면 위조된 주소로 되돌려 보내게 되므로 조용히 건너뛴다(R-61-10)
+            if (properties.mailboxRequireSenderAuthentication && !SenderAuthentication.verified(message, sender.address)) {
+                log.warn("This email '{}' is ignored because its sender {} is not authenticated (Authentication-Results)", message, sender.address)
+                continue
+            }
             val errors = mutableListOf<String>()
             var failure: Exception? = null
             try {

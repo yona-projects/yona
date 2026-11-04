@@ -30,7 +30,7 @@ import kotlin.test.assertTrue
  * 한 메일을 프로젝트 여러 곳으로 보냈을 때의 결과이다. 원본 메일 기록의 메시지 ID에 유일 제약이 있어 두 번째 프로젝트부터는 이슈만 남고
  * 기록이 실패해 오류를 회신한다. v1.6과 같은 결과이다(R-61). 트랜잭션 없이 실제로 커밋하며 확인한다.
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona", "yona.imap.domain=mail.test"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.mailbox-require-sender-authentication=false", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona", "yona.imap.domain=mail.test"])
 class MailHandlerMultiProjectTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var handler: MailHandler

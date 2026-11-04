@@ -81,6 +81,8 @@ data class YonaProperties(
     val siteName: String = "Yona",
     val feedbackUrl: String = "https://github.com/yona-projects/yona/issues",
     val hideProjectListing: Boolean = false,
+    /** `true`이면 받은 메일의 보낸 사람이 `Authentication-Results`(DKIM, SPF, DMARC)로 인증된 경우에만 처리한다. 기본은 `true`이다(R-61-10). IMAP 서버가 위조를 막는 사이트만 끈다. */
+    val mailboxRequireSenderAuthentication: Boolean = true,
     /** `true`이면 프로젝트 가져오기가 `file:` 주소, 경로, 서버 안의 주소도 받는다. 기본은 `false`이며 시험이나 폐쇄망의 미러 저장소에서만 켠다(R-46-3). */
     val importAllowLocalSources: Boolean = false,
     val sendYonaUsage: Boolean = true,

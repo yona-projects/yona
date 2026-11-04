@@ -42,7 +42,7 @@ import kotlin.test.assertTrue
 /**
  * 받은 메일 한 통을 처리하는 흐름을 검증한다. 원본: `mailbox.EmailHandler.handleMessage`(`app/mailbox/EmailHandler.java`).
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona", "yona.imap.domain=mail.test"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.mailbox-require-sender-authentication=false", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona", "yona.imap.domain=mail.test"])
 @Transactional
 class MailHandlerTest : AbstractIntegrationTest() {
 

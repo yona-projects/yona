@@ -43,7 +43,7 @@ import kotlin.test.assertTrue
  * IMAP 서버에 연결해 새 메일을 가져와 처리하는 서비스를 인메모리 IMAP 서버(GreenMail)로 검증한다.
  * 원본: `mailbox.MailboxService`(`app/mailbox/MailboxService.java`). 트랜잭션 없이 실제로 커밋하며 확인한다.
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona@mail.test", "yona.imap.password=pw", "yona.imap.host=127.0.0.1", "yona.imap.use=true", "yona.imap.ssl=false"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.mailbox-require-sender-authentication=false", "yona.secret=test-secret", "yona.smtp.user=yona@mail.test", "yona.imap.user=yona@mail.test", "yona.imap.password=pw", "yona.imap.host=127.0.0.1", "yona.imap.use=true", "yona.imap.ssl=false"])
 class MailboxServiceTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var boot: MailboxService
