@@ -9,37 +9,67 @@ updated: 2026-11-04
 
 # v1.6에서 그대로 유지한 결함 목록
 
-`refactoring-backlog.md`(R-nn, 131건)와 [v16-defect-catalog.md](v16-defect-catalog.md)(C###, 189건)에서 **v2가 v1.6과 같게 재현하고 있는 결함**만 모았다. 두 원본은 일부가 겹친다(카탈로그의 "기록" 열이 R-nn을 가리킨다). 개선은 선생님의 승인을 받은 뒤에만 한다. 이 페이지는 두 원본에서 생성했으므로 원본이 바뀌면 다시 만든다.
+`refactoring-backlog.md`(R-nn)와 [v16-defect-catalog.md](v16-defect-catalog.md)(C###)에 적힌 결함 가운데 **v2가 v1.6과 같게 재현하고 있는 결함**만 모았다. 기존 기록의 "v2 처리" 열을 믿지 않고 항목마다 현재 코드(`next2`)를 다시 읽어 판정했다(2026-11-04). 두 원본은 일부가 겹친다. 개선은 선생님의 승인을 받은 뒤에만 한다. 이 페이지는 확인 결과로 다시 만든 것이며, 원본이 바뀌면 다시 만든다.
+
+**확인 방법**: JS 24건은 v1.6 브랜치의 같은 이름 파일과 해시를 대조한 뒤 결함 줄을 문자열로 확인했다. 그 밖의 158건은 6개 묶음으로 나눠 v2 코드와 템플릿을 읽고 파일과 줄 번호를 근거로 적었다. 보안 영향이 큰 항목은 임시 재현 시험(MockMvc, 커밋하지 않음)으로 실제 동작을 확인했고, 그렇게 확인한 항목은 0절에 따로 표시했다. 시험이나 브라우저로 실행하지 않고 코드만 읽어 판정한 항목은 "코드 판독"으로 구분한다.
 
 | 구분 | 건수 |
 |---|---|
-| 재현 목록(R) 중 그대로 재현 | 102 |
-| 재현 목록(R) 중 일부만 재현 | 8 |
-| 재현 목록(R) 중 고쳤거나 해당 없음 | 21 |
-| 카탈로그(C) 중 재현 | 88 |
-| 카탈로그(C) 중 해결·개선·일부 재현·기타 | 72 |
-| 카탈로그(C) 중 해당 없음 | 29 |
-| 보안 점검으로 재현을 확정한 시급 결함 | 6건(7개 번호), 중간 2건 |
+| 점검한 재현 후보 | 182건 (R 102건, C 80건) |
+| 판정 재현 | 157 |
+| 판정 일부만 재현 | 12 |
+| 판정 해결됨 | 11 |
+| 판정 해당 없음 | 1 |
+| 판정 불확실(결함 항목이 아님) | 1 |
+| 이 문서의 재현 목록(R) 행 | 97건 (보안 절에서 따로 확인한 R-02, R-05, R-06, R-125 포함) |
+| 이 문서의 카탈로그(C) 재현 행 | 76건과 2절 보안 표의 9건 |
 
 
-## 0. 보안 점검 결과 (코드와 재현 시험으로 확인, 2026-11-04)
+## 0. 보안 점검 결과 (2026-11-04)
 
-재현 목록과 카탈로그의 보안 후보를 v2 코드(`next2`)에서 읽고, 취약한 동작이 실제로 나타나는지 임시 재현 시험(MockMvc, 커밋하지 않음)으로 확인했다. 모두 v1.6에서 온 동작이며, 개선은 선생님의 승인을 받은 뒤에만 한다.
+재현 목록과 카탈로그의 보안 후보를 v2 코드에서 읽고, 영향이 큰 항목은 임시 재현 시험으로 취약한 동작이 실제로 나타나는지 확인했다. 모두 v1.6에서 온 동작이며, 개선은 선생님의 승인을 받은 뒤에만 한다. "시험 확인"은 재현 시험으로 동작을 본 것이고, "코드 판독"은 코드를 읽어서만 판정한 것이다.
 
-### 시급 (재현됨, 비공개 프로젝트의 내용이 권한 없이 읽힘)
+### 최우선: 로그인 없이 모든 저장소가 지워짐 (시험 확인)
+
+| 번호 | 요청 | 필요한 권한 | 재현 결과 | 영향 |
+|---|---|---|---|---|
+| R-66 | `GET /_init` | **로그인 불필요** | 303으로 홈에 이동하는 동안 기존 저장소 디렉터리에 둔 파일이 사라짐. `RepositoryInitController`가 모든 프로젝트에 `createRepository`를 부르고, 이 메서드는 먼저 `deleteRepository`로 디렉터리를 지운 뒤 빈 저장소를 만든다 | 모든 프로젝트의 저장소 내용 삭제(데이터 파괴). GET 한 번이면 되어 링크 미리보기나 크롤러가 불러도 일어난다 |
+
+이 항목은 선생님이 D-27(2026-10-25)에서 "(C) v1.6 그대로 재현"으로 결정하셨다. 당시 권장안은 "(A) 매핑하지 않는다(404)"였고 이유는 "운영 서버에서 방문자 한 명이 전체 저장소를 지울 수 있는 결함이고 화면이 부르는 곳도 없다"였다. 이번 시험으로 그 동작이 실제로 일어남을 확인했다. 권장: 결정을 다시 여쭙는다.
+
+### 시급: 비공개 프로젝트의 내용이 권한 없이 읽힘 (시험 확인)
 
 | 순위 | 번호 | 요청 | 필요한 권한 | 재현 결과 | 노출되는 것 | 권장 조치 |
 |---|---|---|---|---|---|---|
 | 1 | R-125 | `GET /{user}/{project}/mentionList?mentionType=user\|issue` | **로그인 불필요** | 비공개 프로젝트에 200. `issue`는 이슈 제목과 번호, `user`는 구성원 로그인 ID와 이름 | 이슈 제목 목록, 구성원 명단 | 프로젝트 읽기 권한이 없으면 거절(클래스 설명에 이미 A-35로 적혀 있으나 코드에는 없다) |
 | 2 | C091 | `POST /markdown/{user}/{project}` 본문 `#번호` | **로그인 불필요** | 비공개 프로젝트의 `#7`이 `#7.이슈 제목` 링크와 상태(Open)로 그려져 200 | 이슈 제목과 상태(번호를 바꿔 가며 훑을 수 있음) | 읽을 수 있는 사용자만 이슈 링크를 풀도록 보는 사람을 렌더러에 넘기거나 프로젝트 읽기 권한을 요구 |
-| 3 | C135 | `GET /user/issues?assigneeId=-1` | 로그인만 | 구성원이 아닌 사용자에게 비공개 프로젝트의 미배정 이슈 제목이 목록에 나옴 | 모든 프로젝트의 미배정 이슈 제목과 프로젝트(쪽수로 전체 열람) | 프로젝트를 가리지 않는 검색에도 보는 사람이 읽을 수 있는 프로젝트 제한을 건다 |
-| 4 | C092 | `POST /translation` (`issue`, `posting`, `issue-comment`, `post-comment`) | 로그인만, 번역 API를 설정했을 때 | 구성원이 아닌 사용자에게 200. 비공개 이슈의 제목과 본문이 번역 서비스로 전달되고 번역문이 응답으로 돌아옴 | 이슈와 글의 전문, 번호만으로 모든 프로젝트의 댓글 | 프로젝트 읽기 권한 검사, 댓글은 경로 프로젝트와 일치 확인 |
+| 3 | C135 (R-49 같은 뿌리) | `GET /user/issues?assigneeId=-1` | 로그인만 | 구성원이 아닌 사용자에게 비공개 프로젝트의 미배정 이슈 제목이 목록에 나옴 | 모든 프로젝트의 미배정 이슈 제목과 프로젝트(쪽수로 전체 열람) | `searchAll`에 보는 사람이 읽을 수 있는 프로젝트 제한을 건다(R-49의 "권한을 잃은 프로젝트의 이슈가 계속 보임"도 같은 원인) |
+| 4 | C092 (R-80) | `POST /translation` (`issue`, `posting`, `issue-comment`, `post-comment`) | 로그인만, 번역 API를 설정했을 때 | 구성원이 아닌 사용자에게 200. 비공개 이슈의 제목과 본문이 번역 서비스로 전달되고 번역문이 응답으로 돌아옴 | 이슈와 글의 전문, 번호만으로 모든 프로젝트의 댓글 | 프로젝트 읽기 권한 검사, 댓글은 경로 프로젝트와 일치 확인 |
 | 5 | C093, C056 | `PATCH\|PUT /{user}/{project}/issue/{n}/comments/{id}` 틀린 `original` | 로그인만 | 비공개 프로젝트의 댓글에 409와 `storedContent`로 원문 반환 | 댓글 원문(번호는 순차적) | 충돌 검사보다 먼저 UPDATE 권한을 확인 |
 | 6 | C147 | `GET /user/issues/new?commentId={id}` | 로그인과 최근 방문 프로젝트 | 다른 프로젝트의 비공개 댓글 본문과 작성자가 새 이슈 본문에 실림 | 댓글 원문과 작성자 | 댓글이 속한 프로젝트의 읽기 권한 확인 |
 
 C056은 C093과 같은 엔드포인트의 같은 결함이라 한 번에 고친다.
 
-### 중간 (재현됨, 피싱 등)
+### 코드 판독으로 확인한 추가 보안 항목 (시험 미실시)
+
+6개 묶음의 점검에서 새로 나온 항목이다. 아래 영향 평가는 코드를 읽은 판단이며 재현 시험을 거치지 않았다.
+
+| 번호 | 내용 | 근거 | 영향 평가 |
+|---|---|---|---|
+| R-62 | **Subversion HTTP가 "코드를 구성원에게만 연다" 설정(`isCodeAccessibleMemberOnly`)을 보지 않는다.** Git HTTP는 이 설정이면 작업을 더 엄격하게 바꾼다 | `web/git/GitHttpController.kt:188`은 검사하고, `web/svn/SvnDavService.kt:60-62`는 읽기 메서드면 READ로만 판정 | 이 설정을 켠 공개 SVN 프로젝트의 코드를 비구성원이 내려받을 수 있다. 시급 후보(시험으로 확인 권장) |
+| R-46 | 프로젝트 가져오기(`/_import`)가 주소를 검사하지 않고 JGit에 넘긴다. `file:` 주소로 서버 안의 다른 저장소를 읽을 수 있다 | `domain/project/ProjectImportService.kt:99`, `repository/GitRepositories.kt:114-121` | 로그인한 누구나 다른 프로젝트 저장소를 자기 프로젝트로 복제할 수 있다. 위험을 알고 v1.6 유지로 정한 사항(decisions.md 163-167) |
+| R-59(3) | 소셜 로그인이 제공자가 준 이메일을 확인된 것으로 믿고 같은 이메일의 기존 계정으로 바로 로그인시킨다 | `domain/social/SocialAccountService.kt:109-117` | 이메일을 확인하지 않는 제공자가 있으면 계정 가로채기. 제공자에 따라 다름 |
+| R-59(10) | 소셜 로그인 `redirectUrl`도 열린 리다이렉트이다 | `web/user/LoginFormController.kt`, `web/social/` | R-06과 같은 부류(중간) |
+| R-60(2) | LDAP 검색 필터에 로그인 입력을 이스케이프 없이 이어 붙인다 | `domain/ldap/Ldap.kt:77-79` `"(${attr}=$username)"` | 필터 삽입. 인증은 찾은 항목에 바인드해 비밀번호를 확인하므로 우회보다는 열거와 오류 유발 위험. LDAP을 켠 사이트만 해당 |
+| R-61(10) | 메일로 받는 글이 `From` 헤더를 그대로 믿는다 | `mailbox/MailHandler.kt` | 받는 메일 기능을 켠 사이트에서 다른 사용자 명의로 이슈나 댓글을 올릴 수 있다 |
+| R-48(2) | `GET /info/leave/:user/:project`가 상태를 바꾸는 GET이다 | `web/user/UserLeaveController.kt:30-43` | CSRF 보호가 없고(R-02) 링크 한 번으로 프로젝트에서 탈퇴시킬 수 있다. SameSite=Lax라도 최상위 이동 GET에는 쿠키가 실린다 |
+| R-58(2) | 마이그레이션의 GitHub OAuth에 `state`가 없다 | `domain/migration/GithubTokenClient.kt`, `web/migration/MigrationController.kt` | 요청 위조에 약함(낮음) |
+| R-21 외 | 아바타로 옮길 첨부의 소유자를 확인하지 않는다 | `domain/user/AccountService.kt:54-58` | 남의 임시 첨부를 자기 아바타로 옮길 수 있다(낮음, 별도 결함 후보) |
+| R-49, R-50 | 내 이슈와 검색이 권한을 잃은 프로젝트의 내용을 보인다. 익명이 사용자 이름과 로그인 ID를 검색할 수 있다 | `domain/issue/IssueSearchService.kt:121-127`, `domain/search/SearchService.kt:172-205` | 앞의 C135와 같은 뿌리(이슈). 사용자 검색은 공개 정보 수준(낮음) |
+| R-16 | 보는 사람의 권한이 반영된 마크다운 결과가 원문을 키로 한 전역 캐시에 들어가 다른 사용자에게 돌아간다 | `markdown/MarkdownRenderer.kt:48-55`, `RenderedMarkdownCache.kt:22` | 읽을 수 없는 이슈의 제목이 같은 원문을 그린 다른 사용자에게 보일 수 있다(C091과 함께 고친다) |
+| R-106, R-107 | 사이트 관리자, 매니저, 조직 역할 판정이 로그인 동안 유지된다. 잠기거나 지워진 계정도 로그인 유지 쿠키가 유효하면 로그인 상태이다 | `security/CurrentUserProvider.kt:35` | 해임된 사람이 세션이 살아 있는 동안 권한을 유지한다. 선생님이 v1.6 유지로 정한 사항(A-127, A-128) |
+
+### 중간 (시험 확인): 열린 리다이렉트
 
 | 번호 | 내용 | 재현 결과 | 권장 조치 |
 |---|---|---|---|
@@ -48,283 +78,268 @@ C056은 C093과 같은 엔드포인트의 같은 결함이라 한 번에 고친�
 
 ### 구조적 보강 (결함 하나가 아니라 설정)
 
-CSRF 보호가 꺼져 있고(R-02) 세션 쿠키에 `SameSite` 속성이 없다(코드와 설정 어디에도 지정하지 않음). 현재는 브라우저의 기본값(대부분 Lax)에 기대고 있다. `server.servlet.session.cookie.same-site=lax`를 지정하면 요청과 응답 계약은 그대로이면서 C013 같은 교차 사이트 요청을 막는다. 로그인 유지 쿠키(R-05)에는 해시된 비밀번호가 들어 있어 쿠키가 유출되면 비밀번호 없이 로그인된다(X-43 이후 해시 강화와 함께 재설계).
+CSRF 보호가 꺼져 있고(R-02) 세션 쿠키에 `SameSite` 속성이 없다. 현재는 브라우저의 기본값(대부분 Lax)에 기대고 있다. `server.servlet.session.cookie.same-site=lax`를 지정하면 요청과 응답 계약은 그대로이면서 C013 같은 교차 사이트 요청을 줄인다. 로그인 유지 쿠키(R-05)에는 해시된 비밀번호가 들어 있어 쿠키가 유출되면 비밀번호 없이 로그인된다(X-43 이후 해시 강화와 함께 재설계).
 
 ### 시급하지 않거나 해당 없음 (확인함)
 
 | 번호 | 판정 | 이유 |
 |---|---|---|
-| C155 | 권한 우회 아님 | 삭제 권한은 경로의 프로젝트가 아니라 **댓글 자신의 프로젝트**로 판정한다(`ResourceLookup`이 댓글에서 리소스를 만든다). 경로와 댓글이 어긋나도 권한 없는 삭제는 되지 않는다 |
-| C169, R-79 | v2에 없음 | `token_reset` 경로가 코드 어디에도 없다. 개인 토큰이 X-5로 새로 설계되어 사라졌고 문서만 남아 있었다 |
+| C155 | 권한 우회 아님 | 삭제 권한은 경로의 프로젝트가 아니라 **댓글 자신의 프로젝트**로 판정한다(`access/ResourceLookup.kt:61`). 경로와 댓글이 어긋나도 권한 없는 삭제는 되지 않는다 |
+| R-12 | 권한 우회로 보지 않음 | 경로의 번호만으로 마일스톤, 라벨, 커밋 코멘트를 찾지만(`web/access/ProjectResourceLocator.kt:54-60`) 권한은 찾은 자원의 프로젝트로 판정한다. 경로와 다른 프로젝트의 자원에 닿는 어긋남은 있으나 권한을 얻지는 못한다 |
+| C169, R-79 | v2에 없음 | `token_reset` 경로가 코드 어디에도 없다. 개인 토큰이 X-5로 새로 설계되어 사라졌다 |
 | C027 | 낮음 | 사이트 관리자가 메일 발송 화면(`yobi.site.MassMail.js`)에 넣은 자기 입력이 자기 화면에서만 실행되는 자기 입력 XSS |
+| R-04 | 해결됨 | 잠기거나 삭제된 사용자의 API 토큰을 거절한다(`domain/apitoken/ApiTokenService.kt:167`) |
 
-## 1. 재현 목록(R)에서 그대로 재현하는 결함
 
-| 번호 | 위치 | 결함 |
-|---|---|---|
-| R-01 | 로그인 | 솔트나 패스워드가 비어 있는 계정으로 로그인하면 예외가 발생해 HTTP 500이 된다 |
-| R-02 | 전역 | CSRF 보호가 없다. 폼과 JS가 토큰을 보내지 않는다 |
-| R-05 | remember-me | 쿠키 값이 `로그인ID:해시된 패스워드`라서 쿠키가 유출되면 패스워드 없이 로그인된다. 패스워드를 바꿔도 해시가 바뀌므로 쿠키는 무효가 된다 |
-| R-06 | 로그인 | `redirectUrl`을 검증하지 않아 `//example.com` 같은 값으로 외부 주소로 이동시킬 수 있다(열린 리다이렉트) |
-| R-08 | AccessControl | 컨테이너가 프로젝트가 아닌 전역 리소스(예: USER)이면 `isResourceCreatable`이 `container.getProject()`의 예외로 실패한다 |
-| R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 |
-| R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 |
-| R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 |
-| R-12 | 프로젝트 검사 | 마일스톤, 이슈 라벨, 라벨 분류, 커밋 코멘트를 번호만으로 찾아 경로의 프로젝트와 달라도 통과한다. 숫자가 아닌 식별자는 500이다 |
-| R-13 | 프로젝트 생성 | 이름 예약어(`.`, `..`, `.git`) 비교의 `ignoreCase` 분기가 거꾸로라 기본 설정에서 대소문자를 무시한다(`.GIT`도 거부) |
-| R-14 | README 상대 경로 변환 | 일반 링크 정규식이 앞 문자 하나를 요구해 문서 맨 앞 링크를 놓치고, 컨텍스트 경로를 쓰면 소유자 앞 `/`가 빠진다(`//yonaalice/...`) |
-| R-15 | 마크다운 자동 링크, 이슈 링크 변환 | (1) 다른 프로젝트의 이슈 참조는 링크 문구에 접두어와 문구가 두 번 붙는다 (2) 링크 문구를 치환 문자열로 쓰므로 제목에 `$`, `\`가 있으면 예외 또는 잘못된 문구 (3) 읽을 수 없는 이슈 링크를 만나면 나머지 링크 변환을 중단 (4) 이슈 번호가 Long… |
-| R-16 | 마크다운 결과 캐시 | 캐시 적중 시 이전 결과를 돌려주면서 새로 만들어 저장(변경이 한 번 늦게 반영), 프로젝트 문맥 유무와 무관하게 같은 키 공유, 보는 사람의 권한에 따른 결과가 전역 공유 |
-| R-17 | 첨부 파일 종류 감지 | 텍스트 파일의 문자셋을 Tika가 읽고 난 스트림 나머지로 감지해서 65536바이트 이하 파일은 항상 UTF-8 |
-| R-18 | 프로젝트 삭제 | (2026-10-27 재정정) 프로젝트 로고 같은 프로젝트 자체의 첨부는 지우지 않아 고아 데이터가 남는다. 프로젝트와 풀 리퀘스트의 구독 기록은 `ResourcePersistAdapter.postDelete`가 지우므로 v2도 지운다(이전 "구독 기록은 지우지 않는다… |
-| R-19 | 조직 탈퇴와 이름 변경 | (1) 탈퇴 검사 조건이 거꾸로라 관리자는 혼자여도 탈퇴하고 일반 구성원은 관리자가 혼자일 때 탈퇴 못 함 (2) 이름 변경 여부는 대소문자 구별, 중복 검사는 무시라 대소문자만 바꾸면 자기 자신과 겹침 |
-| R-20 | 임시 첨부 정리 | 정리 조건이 `createdDate >= (오늘 0시 - 보관 기간)`(2026-10-26 정정: 기준은 지금이 아니라 오늘 0시)이라 오래된 것이 아니라 최근 보관 기간 안에 올린 임시 첨부를 지운다 |
-| R-21 | 아바타 크기 검사 | 1MB를 넘는 이미지를 폼 오류로만 기록하고 실제로는 아바타로 옮긴다 |
-| R-22 | 라벨 색 글자색 | 3자리 16진수 색(`#abc`)을 6자리로 늘리려다 문자열 전체를 반복해(`"abc" * 2`) 길이가 맞지 않아 흰색으로 처리된다. 어두운 3자리 색에도 글자색이 `dimgray`가 된다 |
-| R-23 | 임시 첨부 옮기기 | `temporaryUploadFiles`를 멀티파트 본문에서만 읽는데 마일스톤 만들기 폼은 일반 폼이라 편집기에서 올린 첨부가 마일스톤으로 옮겨지지 않는다(다음에 수정할 때 사용자의 임시 첨부가 모두 딸려 온다) |
-| R-24 | 이슈 삭제 | 이슈를 지워도 멘션 기록(`mention`)이 남아 고아 행이 된다 |
-| R-25 | 이슈 보기의 추천자 대화상자 | 추천자 아바타를 그리면서 같은 집합에서 현재 사용자를 빼기 때문에, 대화상자 목록에서 내가 빠지고 나만 추천했으면 대화상자가 없다 |
-| R-26 | 이슈 댓글 삭제 | 댓글을 지워도 멘션 기록(`mention`)이 남아 고아 행이 된다 |
-| R-27 | 줄바꿈 변환 | `LineEnding.changeLineEnding(…, DOS)`가 `\n`을 `\n`으로 바꾸는 코드라 DOS 변환이 아무것도 하지 않는다. 저장소 파일 온라인 편집에서 CRLF 파일을 고쳐도 LF로 저장된다 |
-| R-28 | 게시판 목록의 정렬 링크 | 라벨을 고른 채 정렬 링크를 누르면 링크의 `labelIds`에 배열 원소가 구분자 없이 붙는다(Twirl `BaseScalaTemplate`이 배열을 `fill`로 출력, 바이트코드 확인). 라벨 하나는 정상이고 둘 이상(3과 5)이면 `35` 한 값이 되어 다른 라… |
-| R-29 | 게시판 라벨 변경 | 라벨을 바꿀 때마다 `posting.save()`가 불려 제목 머리말 개수(`TitleHead`)가 한 번씩 늘어난다 |
-| R-30 | 게시판 보기의 라벨 변경 | 라벨을 고르면 요청은 성공하지만 `$.ajax(...).done(...).error(...)`의 `.error`가 jQuery 3에 없어 브라우저 콘솔에 `TypeError`가 난다 |
-| R-31 | 사용자 메뉴의 즐겨찾기 탭 | 내 프로젝트도 조직도 없으면 즐겨찾기 프로젝트가 있어도 탭 전체가 "No results"이다(`etc-favorites`는 빈 `ul`이고 줄이 `ul` 바깥에 이어진다) |
-| R-32 | 알림 메일의 "마일스톤 없음" 문구 | 마일스톤 변경 알림에서 마일스톤이 없을 때의 문구를 받는 사람의 언어가 아니라 서버 기본 언어로 만든다 |
-| R-33 | 알림 메일의 일반 텍스트 본문 | 끝에 붙는 안내 문장("Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다.")이 한국어로 고정이고 메일에 답장이 되지 않아도 붙는다 |
-| R-34 | 프로젝트 이전 요청 메일 | 받는 사람(To)의 이름이 `Yobi`로 고정이고, 받는 사람이 사용자인지 조직인지에 따라 같은 메일에 Bcc만 달라진다 |
-| R-35 | 홈 알림 목록의 본문 언어 | 본문을 로그인한 사용자의 언어가 아니라 서버 기본 언어로 만든다 |
-| R-36 | 외부 API 프로젝트 만들기 | `projectCreatedDate`를 받아 두고도 `Project.create`가 만든 날짜를 지금으로 덮어써서 가져온 프로젝트의 날짜가 보존되지 않는다 |
-| R-37 | 외부 API 라벨 만들기 | 입력의 `isExclusive`를 읽기만 하고 쓰지 않아 분류가 항상 단일 선택이 아닌 상태로 만들어진다 |
-| R-38 | 코드 브라우저 폴더 목록 | 폴더 이동 주소에 `#cb-…` 앵커를 붙이려는 조건이 `" folder"`(앞 공백)와 비교해 항상 거짓이라 앵커가 붙지 않는다 |
-| R-39 | 코드 브라우저 이진 파일 안내 | 파일 크기를 문자열 값으로 읽는 도우미(`fieldText`)가 숫자 노드에는 비어 있어 크기가 표시되지 않는다 |
-| R-40 | 커밋 이력의 쪽 나누기 | `page * size + size`개를 읽어 마지막 `size`개를 남기므로, 전체 커밋이 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹친다(예: 30개일 때 1쪽은 가장 오래된 25개) |
-| R-41 | 파일 보기의 댓글 수 | `countOnCommit`에 경로를 `"/"+path`로 넘겨, 코드 범위 스레드는 경로가 항상 달라 세지 않고 파일 단위 스레드만 센다 |
-| R-42 | 풀 리퀘스트 병합 검사의 결함 | (1) 보낼 커밋이 없으면 상태를 `MERGED`로 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓는 조건을 걸어 병합 이벤트와 알림이 남지 않는다. (2) 검사 중 예외가 나면 병합 중 표시(`isMerging`)를 끄지 않아 화면이 계속 "병합 중"이다. (3… |
-| R-43 | 풀 리퀘스트 화면의 잘못된 인수 | (1) 상태 조각의 충돌 해결 안내에서 저장소 주소에 로그인 ID를 넣을지 정하려고 `ProjectUser.isMember(프로젝트 번호, 사용자 번호)`를 인수를 뒤바꿔 호출해 대개 로그인 ID가 들어가지 않는다. (2) 수정에서 브랜치를 바꿔 다른 열린 요청과 겹치… |
-| R-44 | 코드 리뷰 댓글의 결함 | (1) 새 코드 리뷰 댓글 알림 본문은 코드 범위 스레드의 첫 댓글에만 차이 조각을 넣고, 새로 추가하거나 지운 파일은 차이 조각이 없어 파일 이름 줄 뒤에 댓글만 나온다. (2) 차이 조각의 `> @@ -시작, 개수 +시작, 개수 @@` 머리줄은 쉼표 뒤에 공백이 들… |
-| R-45 | 웹훅의 결함 | (1) 풀 리퀘스트 새 커밋 웹훅은 받는 프로젝트를 요청 폼의 임시 값(`toProjectId`)으로 찾아 병합 검사에서는 값이 없어 어느 웹훅에도 보내지 않는다. 닫기와 다시 열기도 보내지 않는다. (2) 푸시 본문의 커밋 시각은 12시간제(`hh`)라 오전과 오후를… |
-| R-46 | 외부 저장소 가져오기의 결함 | (1) 조직 소유로 가져오면 만든 사람에게 매니저 역할을 주지 않는다(소유자가 사용자일 때만 준다). (2) 구독과 방문 기록을 남기지 않는다. (3) 가져올 주소를 그대로 JGit에 넘겨 `file:` 주소나 서버 내부 주소도 가져올 수 있다. 로그인한 누구나 서버… |
-| R-47 | 코드 리뷰 화면 스크립트의 오류 | `code.Diff` 모듈이 `a[href=#reviewcards-…]`(따옴표 없는 속성 값)로 리뷰 카드 탭을 찾는데 v1.6이 함께 싣는 jQuery 3.3.1은 이를 문법 오류로 본다. 주소에 `#thread-`나 `#comment-` 앵커가 있어 스레드를 찾아… |
-| R-48 | 사용자 페이지와 내 파일, 탈퇴의 결함 | (1) 사용자 페이지 이슈 조회는 초안(draft) 이슈를 거르지 않아 목록 건수(스트림 상자의 이슈 수)에 초안이 들어간다. 다만 이슈 탭은 `OPEN`과 `CLOSED`만 그리므로 초안의 제목은 어느 탭에도 보이지 않는다(2026-10-27 공식 v1.16.0 실행… |
-| R-49 | 내 이슈와 사용자 페이지 이슈 줄의 결함 | (1) 내 이슈 검색은 읽기 권한을 따지지 않는다. 프로젝트에서 빠졌거나 비공개로 바뀐 뒤에도 내가 담당하거나 쓴 이슈가 그대로 보인다. (2) 작성자, 담당자, 댓글 조건은 값(`authorId`, `assigneeId`, `commenterId`)을 보지 않고 현재… |
-| R-50 | 검색의 결함 | (1) 프로젝트 결과 조각에는 쪽 이동 요소가 없어 첫 20개만 보인다. (2) 게시글 댓글의 작성자 없음 문구 키 `posting.noAuthor`가 메시지 파일에 없어 키 이름이 그대로 보인다. (3) 키워드 강조는 클라이언트가 `innerHTML`을 정규식으로 바… |
-| R-51 | 도움말과 통계의 결함 | (1) 도움말 답변의 `/info` 링크는 전용 라우트가 없어 로그인 ID가 `info`인 사용자 페이지로 해석되어 404이다. (2) 도움말 본문은 언어와 관계없이 한국어이다. (3) 통계 화면은 데이터 없이 "Under Construction"만 보이고 제목 키 `… |
-| R-52 | 사이트 관리 사용자 관리의 결함 | (1) 없는 사용자 번호로 삭제하면 오류(500)이다. (2) 관리자 권한 부여와 해제에는 자기 보호가 없어 자신이나 기본 `admin`의 권한도 거둘 수 있다. (3) 잠금 전환은 삭제된 사용자도 활성으로 되돌리는데 지운 이름과 이메일은 복구되지 않는다. (4) 삭제… |
-| R-53 | 사이트 관리 목록과 프로젝트 삭제의 결함 | (1) 프로젝트 목록의 `pageNum`은 0부터인데 쪽 번호 위젯은 1부터 보내서 기본 화면이 첫 쪽이고 위젯의 1쪽이 실제로는 둘째 쪽이다. (2) 프로젝트 검색에는 정렬이 없다. (3) 프로젝트 삭제는 모델의 `delete()`만 불러 저장소 디렉터리와 첨부 파일… |
-| R-54 | 사이트 관리 메일의 결함 | (1) 메일 쓰기에서 본문이 비어 있으면 오류(500)이다. 화면은 본문을 필수로 하지 않는다. (2) 보내지 못해도(메일 서버 없음, 거절) 성공 안내가 나온다. 실패를 알리는 경로가 없다. (3) 설정 안내의 링크 `/admin/mailconf`는 문구에 자리표시자… |
-| R-55 | 업데이트 확인과 진단의 결함 | (1) 백그라운드 확인은 `check.use` 설정을 보지 않고 돈다. (2) 알림 끄기는 서버 전체에 적용되고 사용자별이 아니며 서버를 다시 시작하면 켜진다. (3) 화면의 확인은 요청 스레드에서 원격 저장소를 읽어 저장소가 느리면 화면이 늦게 열린다. 시간 제한이… |
-| R-56 | 데이터 내보내기와 가져오기의 결함 | (1) 컬럼 목록이 손으로 적혀 있어 엔티티의 일부 컬럼이 빠진다: 사용자의 게스트 여부, 영문 이름, 토큰, 이슈의 초안 여부와 가중치와 부모, 프로젝트의 일부 컬럼 등은 내보내지지 않고 가져오면 기본값이 된다. (2) 즐겨찾기, 웹훅, 소셜 로그인 정보, 사용자 설… |
-| R-57 | 최초 기동 화면의 결함 | (1) 로그인 ID가 비어 있으면 같은 오류가 두 번 쌓인다(화면에는 한 번씩만 보이게 묶었다). (2) 이름은 검사하지 않고 그대로 저장한다. (3) 기본 이메일을 그대로 두면 이미 쓰는 이메일이라는 오류가 난다. (4) 재시작 전에는 서버가 계속 안내 화면만 보이고… |
-| R-58 | 이전 화면의 결함 | (1) 토큰 교환 응답을 JSON이 아닌 폼 형식으로만 해석하는 정규식(`access_token=([^&]+)`)이고 상태 코드를 보지 않는다. (2) OAuth `state` 값을 쓰지 않아 요청 위조에 약하다. (3) 화면에 옛 서버(`yobi.navercorp.c… |
-| R-59 | 소셜 로그인의 결함 | (1) 소셜 세션만 있고 로컬 세션이 없는 채로 로그인 화면에 오면 이동할 주소가 없을 때 v1.6은 오류가 난다. v2는 홈으로 보낸다. (2) 인증 직후 로그아웃으로 보내는 경우(잠김, 이메일 없음)의 안내는 로그아웃 요청이 먼저 소비해서 화면에 보이지 않는다… |
-| R-60 | LDAP 인증의 결함 | (1) 프로토콜 설정은 `ldap.protocol`이 아니라 접두어 없는 최상위 `protocol` 키를 읽는다. 기본 설정 파일은 `ldap.protocol`로 적어 두었으므로 `ldaps`로 바꿔도 반영되지 않는다. v2도 최상위 `yona.protocol`을 읽는… |
-| R-61 | 메일 수신의 결함 | (1) v1.6은 첨부를 저장하는 `Attachment.save`가 HTTP 요청 문맥이 없는 메일 스레드에서 항상 실패한다. v2는 정상으로 저장한다(D-25). (2) 한 메일을 프로젝트 여러 곳으로 보내면 `original_email.message_id` 유일 제… |
-| R-62 | Subversion의 결함 | (1) 이력은 시작과 끝 리비전을 모두 포함해 한 쪽에 `limit + 1`개가 나오고 다음 쪽의 첫 리비전과 겹친다. (2) 폴더 목록과 파일 내용은 리비전을 알려 줘도 항상 최신(HEAD)에서 읽는다. (3) 코드 내려받기(zip)는 본문이 빈 `200` 응답이다… |
-| R-64 | 조직 이슈 목록과 풀 리퀘스트 목록 | (1) 이슈 줄의 라벨 링크는 `/소유자/프로젝트/issues?state=open&labelIds=ID`이다. 결함은 아니다(R-49 정정 참고). (2) 작성자, 담당자, 멘션 조건은 값이 아니라 현재 사용자를 쓴다. (3) 풀 리퀘스트는 보내는 쪽 프로젝트도 보이는… |
-| R-65 | 리뷰 목록 | (1) 상태나 정렬 방향이 잘못되면 500이고 정렬 기준은 검증 없이 질의에 붙는다. (2) 열림 탭의 활성 판정이 대소문자를 구별해 `state=open`처럼 소문자면 어느 탭도 활성이 아니다. (3) 엑셀은 첫 댓글과 같은 글을 단 응답도 제목 줄로 쓴다. (4)… |
-| R-66 | 저장소 초기화(`GET /_init`) | 로그인 없이 누구나 호출하면 모든 프로젝트의 저장소를 지우고 빈 저장소로 다시 만든다. 개발용 경로가 운영에 그대로 열려 있다. 한 프로젝트가 실패해도 나머지는 계속한다(오류는 로그에만 남는다) |
-| R-67 | 이슈 엑셀의 머리글 | 댓글 작성 시각 열의 메시지 키 `common.comment.created`가 번들에 없어 머리글에 키 이름이 그대로 나온다 |
-| R-69 | 조직 이슈 목록 화면의 스크립트 | `yobi.issue.List.js`가 로드 마지막에 `_initShowSubtasks()`(`yona.showSubtask.js`)를 호출하는데, 이 화면은 그 스크립트를 불러오지 않아 페이지를 열 때마다 `_initShowSubtasks is not defined`… |
-| R-70 | 변경 화면(`yobi.code.Diff.js`) | 리뷰 스레드가 하나도 없으면 `div.review-list`가 그려지지 않는데 `_setReviewListHeight`가 그 요소의 `position().top`을 읽어 화면을 열 때와 스크롤할 때마다 `Cannot read properties of undefined… |
-| R-71 | 변경 화면의 리뷰 카드 선택 | `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서 jQuery 3에서 `Syntax error, unrecognized expression` 오류가 나고, 해당 스레드가 있는 탭으로 전환되지 않는다. `yon… |
-| R-72 | 러시아어 번들의 `project.you.are.watching` | `conf/messages.ru-RU:649`가 `Вы смотрите {-} проект.`라서 `{-}`가 올바른 `MessageFormat` 패턴이 아니다. 프로젝트 머리말(`project/header`)이 이 메시지를 인자와 함께 부르므로 러시아어 화면(`Acc… |
-| R-74 | `ProjectApp.changeVCS` | v1.6은 `@Transactional`이 없어 저장소 생성이 실패하면 README 해제와 포크 분리는 이미 반영되고 저장소만 지워진 중간 상태로 남는다. v2도 서비스에 트랜잭션을 걸지 않아 같은 중간 상태가 남는다 |
-| R-75 | 번역(`IssueApi.translate`) | 번역 서비스 응답에 `translatedText`가 없으면 `String.join`이 문자열 `null`을 이어 붙여 번역문에 "null"이 섞인다 |
-| R-77 | 외부 이슈 API 수정, 상태, 라벨 | 저장할 때마다 `save()`가 제목 머리말 개수를 한 번 더 늘린다(R-29와 같은 원인) |
-| R-78 | 프로젝트 생성 화면(`yobi.project.New.js`) | 코드 체크를 해제하면 `welReviewerCountSettingPanel` 등이 초기화되지 않아 `undefined.hide()`로 TypeError가 난다. VCS를 바꾸면 두 분기 모두 풀 리퀘스트 체크를 checked로 강제한다. JS가 v1.6과 같아 v2 화… |
-| R-80 | `MarkdownApp.render`, 이슈 번역 | 마크다운 미리보기에 프로젝트 읽기 권한 검사가 없고, 번역은 댓글 id만으로 조회해 비공개 프로젝트 내용이 번역으로 노출된다 |
-| R-82 | REST 프로젝트 생성(`ProjectApi`) | SITEMANAGER 역할 행이 두 번 INSERT된다(`Project.create` 안과 밖). 웹 생성은 1행이다. v2도 REST 경로에서 2행을 넣는다(웹 경로는 1행) |
-| R-83 | 조직 검색의 `HIDE_PROJECT_LISTING` | 조건이 `!isMemberOf // !isAdminOf`라 한 사용자가 조직당 역할 행 하나뿐이어서 항상 400이다(`SearchApp.java:127-131`). v2도 같다 |
-| R-86 | 첨부 업로드의 파일 종류 감지 | `Attachment.save`가 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지해 파일 이름 힌트 없이 내용만으로 MIME을 정한다. 예를 들어 `.css` 파일도 내용이 평문이면 `text/plain`이다. v2도 같게 내용만으로 감지한… |
-| R-88 | 이슈, 게시글 방문 기록 | `User.visits(Issue)`, `visits(Posting)`이 `lastVisitedProjectId`에 이슈 또는 게시글의 `id`를 대입한다. 프로젝트 번호 자리에 다른 번호가 들어가서, 이슈를 본 뒤 같은 프로젝트를 다시 열면 "직전 방문과 같다"고 보… |
-| R-89 | `Config.getSystemEmailAddress`의 사이트 관리자… | SMTP 주소가 없을 때 `new SiteAdmin().admin`의 메일을 쓰려 하지만 새로 만든 객체의 `admin`은 항상 `null`이라 언제나 `yona@yona.io`이다. 사용처는 충돌 검사용 임시 병합 커밋의 작성자 한 곳이다. v2도 항상 `yona@y… |
-| R-91 | 온라인 커밋의 줄바꿈 판정 | `fileLineEnding`이 첫 항목만 보고 이후 줄의 줄바꿈을 보지 않는다 |
-| R-92 | 한글 UTF-8 텍스트의 종류 | Tika 1.2의 텍스트 판정이 비ASCII 비율 10% 이상이면 `application/octet-stream`이라 한글 텍스트 첨부를 열면 내려받기가 된다. SVG(선언 없음)는 `text/plain`, WebP는 octet-stream |
-| R-94 | 엑셀 내려받기 링크 | `URI.getQuery()`로 퍼센트 인코딩을 풀어 다시 조립해 `%2B`가 `+`로, `%26`이 `&`로 바뀌고 값 없는 `pageNum`이 빠지며 `&&`가 남는다. 잘못된 주소(`%`, `/`)는 500 |
-| R-96 | 검색어의 `%`, `_` | Ebean 3.3.4 `icontains`는 키워드를 이스케이프하지 않아 `%`, `_`가 와일드카드이다(`_`만 넣으면 모든 비어 있지 않은 값에 맞는다) |
-| R-98 | 외부 API 작성자 | 모르는 이메일의 작성자를 익명 사용자(-1)로 저장하고 사용자를 만들지 않는다(`findByEmail`이 `NullUser`를 돌려주어 생성 분기에 닿지 않는다) |
-| R-99 | 이메일 형식 | Play `@Constraints.Email`의 정규식은 `\b...\b`라서 로컬 부분이 단어 문자가 아닌 문자(`+`, `.`, `-`)로 시작하는 주소를 거부한다 |
-| R-100 | 최초 관리자 솔트 | 최초 관리자 설정의 솔트를 `Arrays.toString` 형식(`[12, -3, ...]`)으로 저장한다. 일반 가입은 Base64이다 |
-| R-101 | 구독 프로젝트 정렬 | 사이드바의 구독 프로젝트는 Ebean 메모리 정렬이라 대소문자를 구분한다(`Zeta`가 `alpha`보다 앞) |
-| R-102 | 하위 이슈의 댓글, 공감 링크 | 하위 이슈가 다른 프로젝트에 있으면 링크가 부모 프로젝트의 같은 번호 이슈를 가리킨다(`commentAndVoterPairDisplay(child, parent.project)`) |
-| R-103 | 게시판 정렬 링크의 라벨 | 라벨 둘 이상을 고르면 `labelIds`에 번호가 구분 없이 붙는다(R-28 정정) |
-| R-104 | 최근 본 이슈의 이름표 | 컨텍스트 경로로 배포하면 주소 앞에 경로가 붙어 `프로젝트 #번호` 이름표가 어긋난다(`RecentIssue.getNumber`가 위치로 자른다) |
-| R-106 | 세션 사용자의 권한 판정 기억 | 사이트 관리자, 프로젝트 매니저, 조직 역할 판정이 로그인 동안 유지되어 승격과 해임이 반영되지 않는다. 항목이 최대 2000명을 넘어 밀려나면 세션이 무효가 된다 |
-| R-107 | 잠긴 계정의 로그인 유지 쿠키 | 잠기거나 지워진 계정도 `yobi.token` 쿠키가 유효하면 로그인 상태이다 |
-| R-110 | `GET /user/isEmailExist` | `@BodyParser.Of(BodyParser.Json.class)`가 붙어 있다. 공식 v1.16.0을 실행해 보니 내용 형식이 없거나 JSON이 아니면 본문을 해석하지 않고 `{"isExist":...}`를 돌려주며, 내용 형식이 `application/json`… |
-| R-111 | 라벨 삭제, 추천 등 이슈를 `update()`로 저장하는 모든 경로 | `AbstractPosting.update()`가 저장 때마다 댓글 수 재계산과 멘션 행 맞춤을 한다. 라벨 삭제는 `issue.save()`라 제목 머리말 빈도도 올린다 |
-| R-112 | 이슈 수정의 제목 머리말 개수 | 새 제목을 먼저 더하고 옛 제목을 나중에 빼며, 빼는 쪽 프로젝트는 이미 바뀐 프로젝트라 옮겨도 옛 프로젝트의 개수가 줄지 않는다 |
-| R-113 | 초안 게시와 프로젝트 이동을 함께 할 때 | 새 이슈 알림(`afterNewIssue`)을 두 번 부른다. 알림 이벤트는 한 건으로 합쳐지지만 웹훅이 두 번 나간다 |
-| R-114 | 버전 문자열 파서와 humanize | `java-semver`의 관대한 접두 파싱, `humanize` 1.2.2의 `binaryPrefix` 표기 |
-| R-116 | 게시판 글의 댓글 수 | 글의 `comments` 목록이 댓글 저장 전에 읽혀 있어, 댓글을 달 때 저장하는 `numOfComments`가 실제보다 하나 적다(첫 댓글만 맞다). 글 목록의 숫자가 어긋나다가 댓글을 지우거나 글을 고치면 바로잡힌다. 이슈는 해당 없다(실제 서버에서 확인) |
-| R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 |
-| R-120 | 구성원 역할 바꾸기의 입력 | `POST /organizations/:name/member/:id/edit`와 `POST /:user/:project/member/:id/edit`: 역할 번호가 없으면 널 참조로 500, 숫자가 아니면 조직은 `unknownRole` 안내(200)이고 프로젝트는 5… |
-| R-125 | 멘션 목록에 권한 검사가 없음 | `GET /:user/:project/mentionList`는 `@AnonymousCheck`뿐이라 익명도 비공개·보호 프로젝트의 멤버와 이슈 후보를 받는다. 없는 프로젝트는 `mentionType`이 `user`나 `issue`이면 널 참조로 500이다 |
-| R-126 | 프로젝트 이름 캐시가 예전 이름을 남김 | `CacheStore.projectMap`은 이름을 바꿔도 예전 이름의 항목을 지우지 않아 한 번 연 이름은 프로젝트의 이름이 바뀐 뒤에도 같은 프로젝트를 연다. 같은 이름의 새 프로젝트를 만들면 `newProject`가 항목을 덮어쓴다. 서버를 다시 띄우면 사라진다 |
-| R-127 | 이슈 일괄 변경의 입력 | `POST /:user/:project/issues`는 `state`가 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 빈 값은 통과, 없는 이슈 번호는 `issue.refresh()` 예외로 500이다 |
-| R-128 | 커밋이 아닌 대상을 가리키는 태그 | 트리나 블롭을 가리키는 태그(`git tag t <tree>`)가 있으면 그 태그의 커밋 이력(`/commits/<태그>/`)이 500이고, 코드 화면은 v1.6이 500, v2가 404이다. 주석 태그와 태그의 태그는 정상(200)이다 |
+## 1. 재현 목록(R)에서 재현하는 결함
 
-## 2. 재현 목록(R)에서 일부만 재현하는 결함
+판정 열이 `일부`이면 설명 안의 일부 하위 항목만 재현된다. 어느 부분이 달라졌는지는 메모에 적었다.
 
-| 번호 | 위치 | 결함 | v2의 처리 |
-|---|---|---|---|
-| R-07 | 기본 로그인 페이지 | 로그인하지 않은 사용자가 `POST /-_-api/v1/user/defultLoginPage`를 호출해도 공식 v1.16.0은 오류가 아니라 받은 `path`를 담은 200 JSON을 돌려주고(익명 사용자 설정을 사용자 없이 저장하려 한다) 소스만 읽고 500이라 적었… | 200 JSON을 같게 돌려주되 사용자 없는 설정 행은 저장하지 않는다 (A-161) |
-| R-68 | 프로젝트 홈의 이력, 대시보드 탭 | (1) 대시보드의 담당자별, 라벨별 수는 하위 이슈를 포함하지만 비율의 분모는 하위 이슈를 뺀 열린 이슈 수라 100%를 넘을 수 있다. (2) 이력 항목의 주소는 프로젝트의 실제 소유자가 아니라 요청 주소에 쓴 소유자(대소문자 포함)를 쓴다. (3) 이슈 이력은 초안… | (1)~(3) 재현함, (4) 재현하지 않음(A-24) |
-| R-84 | 임시 업로드 정리, import, welcome 화면 | `import`에서 TRUNCATE 뒤 값이 배열이 아니면 테이블만 비워지고 행이 채워지지 않는다(결정 5로 v2도 같게 테이블만 비운다). 업데이트 확인과 IMAP 폴링은 `application.secret`이 기본값이 아닐 때만 등록된다(v2 비밀 키가 비어 있어도… | 일부 재현하지 않음(D3, A-92) |
-| R-87 | 5차 검증의 결함 후보 189건 | 항목별 v1.6 소스 줄, 기록 위치, v2 판정은 [v16-defect-catalog.md](architecture/v16-defect-catalog.md)에 있다. 기록이 없던 실제 결함(★ 105건)은 이 목록이 기록이며, v2는 같게 재현하거나(JS, 템플릿… | 재현함 / 일부 재현하지 않음(목록의 v2 판정 열) |
-| R-121 | 첨부 올리기의 잘못된 요청 | 멀티파트가 아닌 `POST /files`(본문 없음, 폼 인코딩)는 `request().body().asMultipartFormData()`가 `null`이라 `NullPointerException`으로 `500`이다. 로그인하지 않은 요청도 `authorEmail`로… | v2는 멀티파트가 아니면 `400`이다(R-118과 같은 부류). 명의 지정은 v1.6대로 허용한다 |
-| R-122 | 알림 둘 이상일 때의 표시 순서 | 알림이 둘 이상 남아 있을 때 표시 순서가 페이지 종류와 실행마다 다르다(`GET /nope`는 경고, 실패 순이고 403 화면과 라우트 없는 방식의 404 화면은 실패, 경고 순이다). 규칙을 찾지 못했다 | 넣은 순서로 둔다. (이전에 "HEAD 요청 차이"라고 적었던 항목은 잘못이었다. 같은 경로들이 익명 GET에서도 달랐고 아래 R-123과 A-172에서 고쳤다) |
-| R-123 | 사이드바 `hash` 누락 | `GET /user/sidebar`는 `hash` 질의가 없으면 `layout_framed`의 `request.getQueryString("hash").get`이 `NoSuchElementException`이라 500이다(`hash=` 빈 값은 정상). 익명의 즐겨찾기… | v2는 `hash` 누락과 익명 즐겨찾기 이슈 목록을 500으로 재현한다. 프로젝트, 조직 목록은 안정된 상태인 200(빈 목록)으로 둔다 |
-| R-124 | 메일로 받은 글의 결함 | (1) 제목이 빈 메일로 만든 이슈는 제목이 `null`(문자열이 아닌 널)이라 이슈 보기의 제목이 `null`로 나오고, 같은 프로젝트의 이슈 목록 화면은 500이다. (2) 제목이 255자를 넘는 메일은 저장에 실패하지만 이슈 번호를 두 개 쓴다(재시도). (3)… | (1) v2는 빈 제목으로 만들고 목록은 정상이다(재현하면 메일 한 통으로 이슈 목록 전체가 500이 되어 재현하지 않았다. 선생님 확인이 필요하다). (2)(3)(4)(5)는 재현하지 않는다… |
+| 번호 | 위치 | 결함 | v2 근거(코드 판독) | 판정 | 메모 |
+|---|---|---|---|---|---|
+| R-02 | 전역 | CSRF 보호가 없다 | `config/SecurityConfig.kt`에서 `csrf { it.disable() }` | 재현 | 세션 쿠키에 SameSite 지정 없음(0절 구조적 보강) |
+| R-05 | remember-me | 쿠키 값이 `로그인ID:해시된 패스워드` | `security/YonaAuthenticationFilter.kt` remember-me 쿠키 읽기와 `TwoFactorLogin.kt`, `SocialLoginController.kt` 쓰기 | 재현 | X-43과 해시 강화 때 재설계 |
+| R-06 | 로그인 | `redirectUrl`을 검증하지 않아 `//example.com`으로 이동 | `web/user/LoginController.kt:101-102` + 재현 시험(303 `Location: //evil.example.com/x`) | 재현 | 0절 중간 |
+| R-08 | AccessControl | 컨테이너가 프로젝트가 아닌 전역 리소스(예: USER)이면 `isResourceCreatable`이 `container.getProject()`의 예외로 실패한다 | src/main/kotlin/dev/yona/access/AccessControl.kt:90 `container.project`가 전역 리소스이면 K+access/Resource.kt:38-39의 `GlobalResource.project` getter가 `UnsupportedOperationException`을 던진다. 컨테이너 종류가 PROJECT이면 87-88에서 따로 조회해 피하지만 USER 등 다른 전역 컨테이너는 그… | 재현 | v1.6과 같은 예외 종류이다. 87-93의 `project == null` 분기(`isGlobalResourceCreatable`)는 getter가 던지므로 사실상 도달하지 않는다. |
+| R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 | src/main/kotlin/dev/yona/access/AccessControl.kt:190 `val privileged = isProjectManager(...) // isAllowedIfAuthor(...)` 이후 192의 `if (privileged // ...) return true`가 213의 `Operation.DELETE -> resource.type != ResourceType.CODE && ...`보다 먼저… | 재현 | 프로젝트 매니저가 코드 리소스 삭제 권한을 얻는 권한 규칙 우회이다. 다만 매니저는 원래 강한 권한이라 영향은 작다. |
+| R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | src/main/kotlin/dev/yona/access/AccessControl.kt:251 `issues.findById(resource.id.toLong()).orElseThrow().assignee`. 없는 이슈 번호면 `NoSuchElementException`이 난다(isResourceCreatable 83행과 isProjectResourceAllowed 192행에서 호출). | 재현 | 예외 종류만 NPE에서 NoSuchElementException으로 다르고 결과(500)는 같다. 사이트 관리자와 조직 관리자는 앞에서 먼저 반환하므로 거치지 않는다. |
+| R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 | src/main/kotlin/dev/yona/web/project/ProjectViewContext.kt:161 `val settingShortcutEnabled: Boolean get() = viewer?.loginId == "manager"`; 사용처 src/main/resources/templates/project/menu.html:90-91에서 `Q` 단축키를 이 값으로 켠다. | 재현 |  |
+| R-12 | 프로젝트 검사 | 마일스톤, 이슈 라벨, 라벨 분류, 커밋 코멘트를 번호만으로 찾아 경로의 프로젝트와 달라도 통과한다. 숫자가 아닌 식별자는 500이다 | src/main/kotlin/dev/yona/web/access/ProjectResourceLocator.kt:54,57,59,60 `milestones.findById(segments[3].toLong())`, `labels.findById(segments[4].toLong())`, `commitComments.findById(segments[5].toLong())`, `categories.findById(segments[5… | 재현 | 다른 프로젝트의 마일스톤, 라벨, 커밋 코멘트를 경로의 프로젝트 권한으로 검사하게 되어 교차 프로젝트 접근이 열릴 수 있다. 이슈, 게시글, 풀 리퀘스트는 프로젝트와 번호로 찾아 해당하지 않는다. |
+| R-13 | 프로젝트 생성 | 이름 예약어(`.`, `..`, `.git`) 비교의 `ignoreCase` 분기가 거꾸로라 기본 설정에서 대소문자를 무시한다(`.GIT`도 거부) | src/main/kotlin/dev/yona/domain/project/ProjectNameRules.kt:33 `RESERVED_NAMES.any { it.equals(name, ignoreCase = true) }`. 항상 대소문자를 무시하므로 `.GIT`도 거부한다. 기본 설정의 v1.6 동작과 결과가 같다. | 재현 | v1.6의 ignoreCase 분기 역전 자체는 옮기지 않고 결과(대소문자 무시)만 같게 만들었다. v1.6에서 설정으로 ignoreCase를 바꿀 수 있었다면 그 경로는 v2에 없다. 추가로 `.wiki` 접미사도 막는다(X-17). |
+| R-14 | README 상대 경로 변환 | 일반 링크 정규식이 앞 문자 하나를 요구해 문서 맨 앞 링크를 놓치고, 컨텍스트 경로를 쓰면 소유자 앞 `/`가 빠진다(`//yonaalice/...`) | src/main/kotlin/dev/yona/markdown/RelativeLinkRewriter.kt:36 NORMAL_LINK `([^!])\[...` 가 앞 문자 하나를 요구해 문서 맨 앞 링크를 놓치고, 21과 26의 `"(/$context$owner/..."`에서 context가 `/ctx`이면 `(//ctxowner/...)`가 된다(17행 `context = "/$contextPath"`). | 재현 |  |
+| R-15 | 마크다운 자동 링크, 이슈 링크 변환 | (1) 다른 프로젝트의 이슈 참조는 링크 문구에 접두어와 문구가 두 번 붙는다 (2) 링크 문구를 치환 문자열로 쓰므로 제목에 `$`, `\`가 있으면 예외 또는 잘못된 문구 (3) 읽을 수 없는 이슈 링크를 만나면 나머지 링크 변환을 중단 (4) 이슈 번호가 Long 범위를 넘으면 500 | (1) src/main/kotlin/dev/yona/markdown/AutoLinkRenderer.kt:129 `if (prefix.isNotEmpty()) linkText += prefix + linkText` 다음 반환(134행) `prefix + linkText`로 접두어와 문구가 두 번 붙는다: 재현. (3) src/main/kotlin/dev/yona/markdown/IssueLinkTransformer.kt:49,7… | 일부 | (2)만 해결되었다(R-105). 기존 v2 기록 `같게 재현한다`는 (2)에서 어긋난다. 주석(클래스 설명)에도 `$`, `\` 재현이라고 남아 있어 코드 주석과 실제가 다르다. |
+| R-16 | 마크다운 결과 캐시 | 캐시 적중 시 이전 결과를 돌려주면서 새로 만들어 저장(변경이 한 번 늦게 반영), 프로젝트 문맥 유무와 무관하게 같은 키 공유, 보는 사람의 권한에 따른 결과가 전역 공유 | src/main/kotlin/dev/yona/markdown/MarkdownRenderer.kt:48-55 `renderWithPipeline`이 캐시 적중 시 `cache.put(source, render())`로 다시 만들어 저장하고 이전 `cached`를 돌려준다. 키는 원문만 쓰고(RenderedMarkdownCache.kt:22 `digest(source)`) `render()`(MarkdownRenderer.kt:2… | 재현 | 보는 사람의 권한에 따라 달라진 결과(이슈 제목 노출 또는 비노출)가 다른 사용자에게 돌아가므로 읽을 수 없는 이슈의 번호와 제목이 노출될 수 있다. |
+| R-17 | 첨부 파일 종류 감지 | 텍스트 파일의 문자셋을 Tika가 읽고 난 스트림 나머지로 감지해서 65536바이트 이하 파일은 항상 UTF-8 | src/main/kotlin/dev/yona/io/MediaTypes.kt:41-43 `val rest = if (bytes.size > MAGIC_LENGTH) bytes.copyOfRange(MAGIC_LENGTH, bytes.size) else ByteArray(0)` 뒤 `CharsetDetection.detect(rest)`. 65536바이트 이하이면 빈 배열로 감지한다. | 재현 | 빈 입력의 감지 결과가 UTF-8이라는 점은 CharsetDetection을 읽어 확인하지 않았다(주석과 v1.6 동작 설명으로 판단). |
+| R-18 | 프로젝트 삭제 | (2026-10-27 재정정) 프로젝트 로고 같은 프로젝트 자체의 첨부는 지우지 않아 고아 데이터가 남는다. 프로젝트와 풀 리퀘스트의 구독 기록은 `ResourcePersistAdapter.postDelete`가 지우므로 v2도 지운다(이전 "구독 기록은 지우지 않는다"는 어댑터 경로를 놓친 오류). 이… | src/main/kotlin/dev/yona/domain/project/ProjectDeletionService.kt:38-97 `delete`에 `ResourceType.PROJECT` 첨부를 지우는 `attachments.deleteAll`이 없다(로고 첨부는 domain/project/ProjectSettingService.kt:160-161에서 교체할 때만 지운다). 구독 기록은 51행 `issueService.dele… | 재현 | `기존 v2 기록`의 `(로고, 구독 기록)` 중 구독 기록은 v2가 지우므로 코드와 어긋난다. 현재 결함 설명(로고만 고아)이 코드와 맞다. |
+| R-19 | 조직 탈퇴와 이름 변경 | (1) 탈퇴 검사 조건이 거꾸로라 관리자는 혼자여도 탈퇴하고 일반 구성원은 관리자가 혼자일 때 탈퇴 못 함 (2) 이름 변경 여부는 대소문자 구별, 중복 검사는 무시라 대소문자만 바꾸면 자기 자신과 겹침 | src/main/kotlin/dev/yona/(1) domain/project/OrganizationManagementService.kt:157-158 `!isAllowed(actor, org, LEAVE) && countByOrganizationIdAndRoleId(orgId, ORG_ADMIN) == 1L`이면 거부, 조건이 거꾸로이다(UI도 web/organization/OrganizationViewContext.kt:9… | 재현 |  |
+| R-20 | 임시 첨부 정리 | 정리 조건이 `createdDate >= (오늘 0시 - 보관 기간)`(2026-10-26 정정: 기준은 지금이 아니라 오늘 0시)이라 오래된 것이 아니라 최근 보관 기간 안에 올린 임시 첨부를 지운다 | src/main/kotlin/dev/yona/domain/misc/TemporaryFileCleaner.kt:48-50 `findByContainerTypeAndCreatedDateGreaterThanEqual(USER, Date(startOfDay(now) - keepUpTime))`로 최근 올린 임시 첨부를 지운다(AttachmentRepository.kt:22). | 재현 |  |
+| R-21 | 아바타 크기 검사 | 1MB를 넘는 이미지를 폼 오류로만 기록하고 실제로는 아바타로 옮긴다 | src/main/kotlin/dev/yona/domain/user/AccountService.kt:54-58 아바타는 이미지이기만 하면 크기를 보지 않고 `moveTo(attachment, USER_AVATAR, ...)`로 옮긴다. web/user/AccountController.kt:124에도 크기 검사나 폼 오류가 없다(주석 AccountService.kt:46-47에서 거부하지 않고 옮긴다고 밝힘). | 재현 | v1.6은 오류를 기록만 하고 보여 주지 않았는데 v2는 오류 기록 자체도 없다. 첨부 소유자를 확인하지 않아 남의 첨부를 아바타로 옮길 수 있는 점은 R-21과 별개의 결함 후보이다. |
+| R-22 | 라벨 색 글자색 | 3자리 16진수 색(`#abc`)을 6자리로 늘리려다 문자열 전체를 반복해(`"abc" * 2`) 길이가 맞지 않아 흰색으로 처리된다. 어두운 3자리 색에도 글자색이 `dimgray`가 된다 | src/main/kotlin/dev/yona/domain/issue/IssueLabelStyles.kt:61 `prefixed.substring(1).repeat(2) + prefixed.substring(2).repeat(2) + ...`로 길이가 7이 되지 않아 62행에서 WHITE(255,255,255)가 되고, 40행에서 밝기 255 > 192이므로 `dimgray`가 된다. | 재현 |  |
+| R-23 | 임시 첨부 옮기기 | `temporaryUploadFiles`를 멀티파트 본문에서만 읽는데 마일스톤 만들기 폼은 일반 폼이라 편집기에서 올린 첨부가 마일스톤으로 옮겨지지 않는다(다음에 수정할 때 사용자의 임시 첨부가 모두 딸려 온다) | src/main/kotlin/dev/yona/web/PostAttachments.kt:57-58 `request.contentType?.startsWith("multipart/") != true`이면 빈 목록. K+web/issue/MilestoneController.kt:136(만들기)이 이를 쓰고 폼은 src/main/resources/templates/milestone/create.html:19 `method="post"… | 재현 |  |
+| R-24 | 이슈 삭제 | 이슈를 지워도 멘션 기록(`mention`)이 남아 고아 행이 된다 | src/main/kotlin/dev/yona/domain/issue/IssueService.kt:187-214 `delete`는 `mentions`를 지우지 않는다(주석 184행). deleteResourceRelations(221)는 구독과 알림 이벤트만 지운다. mention 행은 문자열 리소스 참조라 외래 키로도 지워지지 않는다. | 재현 |  |
+| R-25 | 이슈 보기의 추천자 대화상자 | 추천자 아바타를 그리면서 같은 집합에서 현재 사용자를 빼기 때문에, 대화상자 목록에서 내가 빠지고 나만 추천했으면 대화상자가 없다 | src/main/resources/templates/issue/view.html:107 `issue/partial-voter-list :: voterList('voters', ${issue.votersExceptMe})`를 `!issue.votersExceptMe.isEmpty()`일 때만 그린다. K+web/issue/IssueViewAssembler.kt:101 `votersExceptMe = voters.filter {… | 재현 |  |
+| R-26 | 이슈 댓글 삭제 | 댓글을 지워도 멘션 기록(`mention`)이 남아 고아 행이 된다 | src/main/kotlin/dev/yona/domain/issue/IssueCommentService.kt:82-96 `delete`는 첨부와 알림 이벤트만 지우고 멘션 기록은 지우지 않는다(주석 80행). | 재현 |  |
+| R-27 | 줄바꿈 변환 | `LineEnding.changeLineEnding(…, DOS)`가 `\n`을 `\n`으로 바꾸는 코드라 DOS 변환이 아무것도 하지 않는다. 저장소 파일 온라인 편집에서 CRLF 파일을 고쳐도 LF로 저장된다 | src/main/kotlin/dev/yona/io/LineEnding.kt:32 `return contents.replace("\n", "\n")`. 사용처 repository/OnlineCommit.kt:46 `LineEnding.change(contents, fileLineEnding(...))`, web/board/BoardWriteController.kt:113. | 재현 | DOS 변환 함수는 아무것도 하지 않는다. 다만 실제로 LF로 저장되는지는 브라우저가 보낸 본문의 줄바꿈에 달려 있어, 파일 저장 결과는 요청으로 확인하지 못했다. |
+| R-29 | 게시판 라벨 변경 | 라벨을 바꿀 때마다 `posting.save()`가 불려 제목 머리말 개수(`TitleHead`)가 한 번씩 늘어난다 | src/main/kotlin/dev/yona/domain/board/PostingService.kt:105-111 `replaceLabels`가 110행 `titleHeads.save(requireNotNull(posting.project), posting.title)`로 머리말 개수를 늘린다. 호출은 web/api/BoardApiController.kt:66. 외부 REST용 `setLabels`(PostingService… | 재현 | 웹 화면 경로만 재현되고 X-29b 외부 REST 경로(setLabels)는 고쳐져 있다. |
+| R-30 | 게시판 보기의 라벨 변경 | 라벨을 고르면 요청은 성공하지만 `$.ajax(...).done(...).error(...)`의 `.error`가 jQuery 3에 없어 브라우저 콘솔에 `TypeError`가 난다 | src/main/resources/templates/board/view.html:197-199 `$.ajax({...}).done(function(response){ }).error(function(response){ });`. 레이아웃이 번들한 jQuery는 src/main/resources/static/assets/javascripts/yona-layout.js의 `3.3.1`이고 jqXHR의 `.error`는 3.0에서… | 재현 | jQuery 번들 버전은 minified 파일의 버전 문자열로 확인했고 브라우저로 실행하지는 않았다. |
+| R-31 | 사용자 메뉴의 즐겨찾기 탭 | 내 프로젝트도 조직도 없으면 즐겨찾기 프로젝트가 있어도 탭 전체가 "No results"이다(`etc-favorites`는 빈 `ul`이고 줄이 `ul` 바깥에 이어진다) | src/main/kotlin/dev/yona/web/user/UserMenuAssembler.kt:44 `noOrganizations = groups.isEmpty() && favored.isEmpty() && ownProjects.isEmpty()`가 etcFavorites를 보지 않는다. src/main/resources/templates/index/my-organization-list.html:15,52-54 `th:if… | 재현 |  |
+| R-32 | 알림 메일의 "마일스톤 없음" 문구 | 마일스톤 변경 알림에서 마일스톤이 없을 때의 문구를 받는 사람의 언어가 아니라 서버 기본 언어로 만든다 | src/main/kotlin/dev/yona/domain/notification/NotificationMessages.kt:62 `messages.getMessage("issue.noMilestone", null, Locale.getDefault())`로 받는 사람의 `locale`이 아니라 서버 JVM 기본 로캘을 쓴다. | 재현 |  |
+| R-33 | 알림 메일의 일반 텍스트 본문 | 끝에 붙는 안내 문장("Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다.")이 한국어로 고정이고 메일에 답장이 되지 않아도 붙는다 | src/main/kotlin/dev/yona/domain/notification/NotificationMailSender.kt:145 `helper.setText(plainText.joinToString(SEPARATOR) + PLAIN_FOOTER, html)`; 202행 `PLAIN_FOOTER = "\n\n Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다."`는 한국어 고정이고 137행 `acce… | 재현 | HTML 본문(wrap)은 lang과 acceptsReply를 쓰지만 일반 텍스트 본문은 쓰지 않는다. |
+| R-34 | 프로젝트 이전 요청 메일 | 받는 사람(To)의 이름이 `Yobi`로 고정이고, 받는 사람이 사용자인지 조직인지에 따라 같은 메일에 Bcc만 달라진다 | src/main/kotlin/dev/yona/domain/notification/SystemMails.kt:132 `helper.addTo(InternetAddress(from(), "Yobi", "UTF-8"))`; 사용자이면 users.findByLoginId, 조직이면 조직 관리자만 :113-117에서 Bcc 목록에 담는다 | 재현 | 코드를 읽어 확인했다. |
+| R-35 | 홈 알림 목록의 본문 언어 | 본문을 로그인한 사용자의 언어가 아니라 서버 기본 언어로 만든다 | src/main/kotlin/dev/yona/web/home/NotificationItems.kt:51 `messages.message(event, Locale.getDefault().toLanguageTag())` 로그인한 사용자의 언어(viewer.lang)를 쓰지 않는다 | 재현 |  |
+| R-36 | 외부 API 프로젝트 만들기 | `projectCreatedDate`를 받아 두고도 `Project.create`가 만든 날짜를 지금으로 덮어써서 가져온 프로젝트의 날짜가 보존되지 않는다 | src/main/kotlin/dev/yona/domain/project/ExternalProjectService.kt:54-56 `project.createdDate = Date()`; ExternalProjectApiController.kt:117-139 newProject는 `projectCreatedDate`를 아예 읽지 않는다 | 재현 | 결과(가져온 프로젝트의 날짜가 보존되지 않음)는 같다. v2는 값을 받아 두지도 않는다. |
+| R-37 | 외부 API 라벨 만들기 | 입력의 `isExclusive`를 읽기만 하고 쓰지 않아 분류가 항상 단일 선택이 아닌 상태로 만들어진다 | src/main/kotlin/dev/yona/web/api/ExternalProjectApiController.kt:172 `labelService.createLabel(project, name, color, categoryName, false)` 입력의 isExclusive를 읽지 않고 false를 고정으로 넘긴다 | 재현 |  |
+| R-38 | 코드 브라우저 폴더 목록 | 폴더 이동 주소에 `#cb-…` 앵커를 붙이려는 조건이 `" folder"`(앞 공백)와 비교해 항상 거짓이라 앵커가 붙지 않는다 | src/main/kotlin/dev/yona/web/code/CodePageAssembler.kt:90-92 폴더 항목의 `href = UrlPaths.join(filePath, fileName)`에 `#cb-` 앵커를 붙이지 않는다(:19-21 주석도 R-38로 인정) | 재현 | FolderEntry 문서(CodeViews.kt:34)는 앵커가 붙는다고 적혀 있어 문서와 동작이 어긋난다. |
+| R-39 | 코드 브라우저 이진 파일 안내 | 파일 크기를 문자열 값으로 읽는 도우미(`fieldText`)가 숫자 노드에는 비어 있어 크기가 표시되지 않는다 | src/main/resources/templates/code/view.html:127 `<span class="filesize"></span><br>` 이진 파일 안내의 크기 칸이 비어 있다 | 재현 | FileView에 size 값은 있으나(CodePageAssembler.kt:116) 이진 안내에서 쓰지 않는다. |
+| R-40 | 커밋 이력의 쪽 나누기 | `page * size + size`개를 읽어 마지막 `size`개를 남기므로, 전체 커밋이 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹친다(예: 30개일 때 1쪽은 가장 오래된 25개) | src/main/kotlin/dev/yona/repository/CommitHistoryService.kt:67-69 `log.setMaxCount(page * size + size)` 뒤 `if (recent.size >= size) recent.removeFirst()`로 마지막 size개만 남긴다 | 재현 | 30개 커밋이면 1쪽(page=1)은 가장 오래된 25개이다. |
+| R-41 | 파일 보기의 댓글 수 | `countOnCommit`에 경로를 `"/"+path`로 넘겨, 코드 범위 스레드는 경로가 항상 달라 세지 않고 파일 단위 스레드만 센다 | src/main/kotlin/dev/yona/web/code/CodePageAssembler.kt:123 `reviewThreads.countOnCommit(project, revId, "/$path")`; domain/comment/ReviewThreadService.kt:34-37에서 코드 스레드는 `it.path == path`로 비교 | 재현 | 스레드에 저장되는 경로가 슬래시 없는 경로라는 전제로 읽었다(저장 경로는 ReviewCommentService.kt:188의 range.path). 실제 값 확인 시험은 하지 않았다. |
+| R-42 | 풀 리퀘스트 병합 검사의 결함 | (1) 보낼 커밋이 없으면 상태를 `MERGED`로 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓는 조건을 걸어 병합 이벤트와 알림이 남지 않는다. (2) 검사 중 예외가 나면 병합 중 표시(`isMerging`)를 끄지 않아 화면이 계속 "병합 중"이다. (3) 풀 리퀘스트의 `updated`는… | (1) domain/pullrequest/PullRequestMergeProcessor.kt:96-100 가져올 커밋이 없으면 state=MERGED만 바꾸고 이벤트를 쌓지 않는다. (2) :53-58 process()가 예외를 로그만 남기고 삼키며 isMerging=false(:111)에 닿지 않는다. (3) PullRequest.updated는 어디서도 대입하지 않는다(grep 결과 PullRequest.kt:46 정의와… | 일부 | (5)는 해당하지 않는다. messages.properties:539-540과 messages_ja_JP.properties:285-286에 `notification.type.pullrequest.merged.conflict/resolved`가 있고, v1.6 conf/messages:507-508, conf/messages.ja-JP:285-286에도 이미 있다. 즉 v1.6에도 없던 결함… |
+| R-43 | 풀 리퀘스트 화면의 잘못된 인수 | (1) 상태 조각의 충돌 해결 안내에서 저장소 주소에 로그인 ID를 넣을지 정하려고 `ProjectUser.isMember(프로젝트 번호, 사용자 번호)`를 인수를 뒤바꿔 호출해 대개 로그인 ID가 들어가지 않는다. (2) 수정에서 브랜치를 바꿔 다른 열린 요청과 겹치면 수정 폼 주소를 받는 프로젝트가… | (1) web/pullrequest/PullRequestPageAssembler.kt:217 `projectUsers.existsByUserIdAndProjectId(requireNotNull(to.id), it)` 인수를 뒤바꿔 호출. (2) web/pullrequest/PullRequestActionController.kt:146-150 중복이면 `projectPath(from.owner, from.name)/pullReq… | 재현 |  |
+| R-44 | 코드 리뷰 댓글의 결함 | (1) 새 코드 리뷰 댓글 알림 본문은 코드 범위 스레드의 첫 댓글에만 차이 조각을 넣고, 새로 추가하거나 지운 파일은 차이 조각이 없어 파일 이름 줄 뒤에 댓글만 나온다. (2) 차이 조각의 `> @@ -시작, 개수 +시작, 개수 @@` 머리줄은 쉼표 뒤에 공백이 들어간다. (3) 커밋 댓글은 `pre… | (1) domain/notification/NotificationMessages.kt:125 첫 댓글이 아니면 contents만, :135 `file.hunks() ?: return message.append(contents)`. (2) :140 `"> @@ -${hunk.beginA + 1}, ${hunk.endA - hunk.beginA} +..."` 쉼표 뒤 공백. (3) domain/comment/ReviewCommen… | 재현 |  |
+| R-45 | 웹훅의 결함 | (1) 풀 리퀘스트 새 커밋 웹훅은 받는 프로젝트를 요청 폼의 임시 값(`toProjectId`)으로 찾아 병합 검사에서는 값이 없어 어느 웹훅에도 보내지 않는다. 닫기와 다시 열기도 보내지 않는다. (2) 푸시 본문의 커밋 시각은 12시간제(`hh`)라 오전과 오후를 구별하지 못하고 커밋 주소 끝에 공… | (1) domain/webhook/WebhookListener.kt:78-95 PULL_REQUEST_COMMIT_CHANGED와 닫기, 다시 열기는 웹훅을 보내지 않는다(병합, 담당자, 리뷰만). (2) WebhookPayloads.kt:195 `SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ")`, :197 커밋 주소 끝 `/commit/${commit.id} ` 공백. (3) WebhookSend… | 재현 | (1)의 임시 값(toProjectId) 경로는 v2에 없지만 결과(새 커밋 웹훅 미발송)는 같다. |
+| R-46 | 외부 저장소 가져오기의 결함 | (1) 조직 소유로 가져오면 만든 사람에게 매니저 역할을 주지 않는다(소유자가 사용자일 때만 준다). (2) 구독과 방문 기록을 남기지 않는다. (3) 가져올 주소를 그대로 JGit에 넘겨 `file:` 주소나 서버 내부 주소도 가져올 수 있다. 로그인한 누구나 서버 안의 다른 저장소(비공개 포함)를 읽… | (1)(2) domain/project/ProjectImportService.kt:107 `if (ownerIsUser) projectUsers.save(...MANAGER)`; 구독, 방문 기록 없음. (3) domain/project/ProjectImportService.kt:99 -> repository/GitRepositories.kt:114-121 `Git.cloneRepository().setURI(url)` 주소… | 재현 | (3) 로그인한 누구나 file: 주소로 서버 안의 다른 저장소(비공개 포함)를 읽을 수 있다(데이터 노출). 기존 v2 기록의 '선생님께 정책을 여쭙는다'는 오래되었다. yona-v2-wiki/decisions.md:163-167에서 선생님이 v1.6 그대로 두기로 결정했고 위험은 알고 받아들인 것으로 기록되어 있다. |
+| R-48 | 사용자 페이지와 내 파일, 탈퇴의 결함 | (1) 사용자 페이지 이슈 조회는 초안(draft) 이슈를 거르지 않아 목록 건수(스트림 상자의 이슈 수)에 초안이 들어간다. 다만 이슈 탭은 `OPEN`과 `CLOSED`만 그리므로 초안의 제목은 어느 탭에도 보이지 않는다(2026-10-27 공식 v1.16.0 실행 비교로 정정: 이전에는 제목이 보인… | (1) web/user/UserPageAssembler.kt:104 `issueItems.assemble(null, list, viewer, includeOthersDrafts = true)`, templates/user/view.html:61 `activity.issues.size()` 배지, :100,110 OPEN/CLOSED 탭만. (2) web/user/UserLeaveController.kt:30-43 GET으로 r… | 재현 | (2) 상태를 바꾸는 GET이라 링크나 이미지 태그만으로 탈퇴시킬 수 있다(CSRF). (5)(6)은 예외 처리 핸들러가 없어 500으로 이어진다고 읽었다(GlobalErrorHandler.kt:81 일반 Exception). |
+| R-49 | 내 이슈와 사용자 페이지 이슈 줄의 결함 | (1) 내 이슈 검색은 읽기 권한을 따지지 않는다. 프로젝트에서 빠졌거나 비공개로 바뀐 뒤에도 내가 담당하거나 쓴 이슈가 그대로 보인다. (2) 작성자, 담당자, 댓글 조건은 값(`authorId`, `assigneeId`, `commenterId`)을 보지 않고 현재 사용자를 쓴다. 빠른 검색 항목의… | (1) domain/issue/IssueSearchService.kt:121-127,206-253 searchAll의 조건절에 읽기 권한 조건이 없다. (2) :230-247 작성자, 담당자, 댓글 조건은 project==null이면 `viewerId`를 쓴다. (3) :259-263 라벨과 마일스톤은 project!=null일 때만 적용, templates/issue/my-partial-search.html:15 등에서 `c… | 재현 | (1) 프로젝트에서 빠졌거나 비공개로 바뀐 뒤에도 내가 담당하거나 쓴 이슈의 제목과 내용이 계속 보인다(데이터 노출). (4)는 결함이 아니라 정상 주소라고 설명 자체가 정정되어 있다. |
+| R-50 | 검색의 결함 | (1) 프로젝트 결과 조각에는 쪽 이동 요소가 없어 첫 20개만 보인다. (2) 게시글 댓글의 작성자 없음 문구 키 `posting.noAuthor`가 메시지 파일에 없어 키 이름이 그대로 보인다. (3) 키워드 강조는 클라이언트가 `innerHTML`을 정규식으로 바꿔 키워드가 `amp`, `lt` 같… | (1) templates/search/partial-projects.html:36-37 쪽 이동 요소 없음. (2) web/search/SearchRowAssembler.kt:87,115 `posting.noAuthor` 키, messages*.properties에 없음. (3) templates/search/partial-search.html:101-113 `$(this).html()`에 정규식 치환. (4) domain/s… | 재현 | (6) 익명도 모든 활성 사용자의 이름과 로그인 ID를 검색할 수 있고, (4)(5)는 숨기거나 권한을 잃은 프로젝트의 내용이 검색에 나오는 데이터 노출이다. (3)은 사용자가 자기 화면에서 입력한 키워드로만 깨져 위험은 낮다. |
+| R-51 | 도움말과 통계의 결함 | (1) 도움말 답변의 `/info` 링크는 전용 라우트가 없어 로그인 ID가 `info`인 사용자 페이지로 해석되어 404이다. (2) 도움말 본문은 언어와 관계없이 한국어이다. (3) 통계 화면은 데이터 없이 "Under Construction"만 보이고 제목 키 `statistics`가 메시지 파일에… | (1) templates/help/toc.html:76,89 `<a href="/info">`, kotlin 어디에도 `/info` 전용 매핑이 없다(grep: LFS 경로뿐). (2) toc.html 본문이 한국어로 고정(메시지 키 없음). (3) web/help/StatisticsController.kt:35 title="statistics"(메시지 파일에 키 없음), templates/project/statistics.h… | 재현 | (3)의 '프로젝트 메뉴도 없다'는 v1.6과 v2 모두 projectLayout을 쓰므로 같은 모양이라고 읽었으나 렌더 결과는 확인하지 않았다. |
+| R-52 | 사이트 관리 사용자 관리의 결함 | (1) 없는 사용자 번호로 삭제하면 오류(500)이다. (2) 관리자 권한 부여와 해제에는 자기 보호가 없어 자신이나 기본 `admin`의 권한도 거둘 수 있다. (3) 잠금 전환은 삭제된 사용자도 활성으로 되돌리는데 지운 이름과 이메일은 복구되지 않는다. (4) 삭제한 사용자의 `isLocked`가 참… | (1) web/site/SiteUserController.kt:65 `users.findById(userId).orElseThrow { NullPointerException(...) }`. (2) domain/site/SiteUserService.kt:112-120 toggleSiteAdmin에 자기 보호 없음. (3) SiteUserController.kt:93 `if (target.state == ACTIVE) LOCKED… | 재현 | (2)는 사이트 관리자만 가능한 동작이라 권한 우회는 아니다. 삭제 시 추가 항목(토큰, GPG, SSH, OAuth 등) 정리는 v2에서 더해진 것이다. |
+| R-53 | 사이트 관리 목록과 프로젝트 삭제의 결함 | (1) 프로젝트 목록의 `pageNum`은 0부터인데 쪽 번호 위젯은 1부터 보내서 기본 화면이 첫 쪽이고 위젯의 1쪽이 실제로는 둘째 쪽이다. (2) 프로젝트 검색에는 정렬이 없다. (3) 프로젝트 삭제는 모델의 `delete()`만 불러 저장소 디렉터리와 첨부 파일이 디스크에 남고 삭제자의 즐겨찾기도… | (1) web/site/SiteContentController.kt:65 `defaultValue = "0"`(프로젝트), :86,100 게시글, 이슈는 1부터. (3) :72-78 deleteProject는 `deletion.delete(project)`만 부르고 repositories.deleteRepository를 부르지 않는다(ProjectDeleteController.kt:68-69와 대비). (4) :101-104… | 일부 | (2) 부분 해결: SiteContentService.kt:25-30 이름 검색은 `order by p.id`로 순서를 정한다(v1.6은 정렬 없음). (3) 부분 해결: domain/project/ProjectDeletionService.kt:76,133-162가 favorite_project 행과 이슈, 게시글 첨부와 알림 이벤트를 지우므로 '즐겨찾기를 정리하지 않는다'와 '첨부가 남는다… |
+| R-54 | 사이트 관리 메일의 결함 | (1) 메일 쓰기에서 본문이 비어 있으면 오류(500)이다. 화면은 본문을 필수로 하지 않는다. (2) 보내지 못해도(메일 서버 없음, 거절) 성공 안내가 나온다. 실패를 알리는 경로가 없다. (3) 설정 안내의 링크 `/admin/mailconf`는 문구에 자리표시자가 없어 보이지 않고 라우트도 없다… | (1) domain/site/SiteMailService.kt:51 `require(body.isNotEmpty())`로 예외(500). (2) :56 `dispatcher.sendNow(...)` 결과를 버리고 web/site/SiteMailController.kt:37-38 `mailView(null, true)`. (3) templates/site/mail.html:24 `#{site.mail.notConfigured('… | 재현 | (4)의 라벨 이스케이프는 이식한 JS가 v1.6과 같다고 보고 확인하지 않았다. 사이트 관리자 본인 입력이라 위험은 낮다. |
+| R-55 | 업데이트 확인과 진단의 결함 | (1) 백그라운드 확인은 `check.use` 설정을 보지 않고 돈다. (2) 알림 끄기는 서버 전체에 적용되고 사용자별이 아니며 서버를 다시 시작하면 켜진다. (3) 화면의 확인은 요청 스레드에서 원격 저장소를 읽어 저장소가 느리면 화면이 늦게 열린다. 시간 제한이 없다. (4) `check.use`… | (1) domain/site/UpdateCheckScheduler.kt:29-40 properties.update.check를 보지 않고 interval만으로 시작. (2) domain/site/UpdateCheckService.kt:46-47,72-75 `watched`는 서버 전체의 메모리 값. (3) web/site/SiteMaintenanceController.kt:36-40 요청 스레드에서 updates.refresh… | 일부 | (4)는 해결됨이다. config/YonaProperties.kt:378,411 update.check 기본값이 true라 NPE가 나지 않는다(설명에 이미 적힘). (3)은 사이트 관리자 전용 화면이다. |
+| R-56 | 데이터 내보내기와 가져오기의 결함 | (1) 컬럼 목록이 손으로 적혀 있어 엔티티의 일부 컬럼이 빠진다: 사용자의 게스트 여부, 영문 이름, 토큰, 이슈의 초안 여부와 가중치와 부모, 프로젝트의 일부 컬럼 등은 내보내지지 않고 가져오면 기본값이 된다. (2) 즐겨찾기, 웹훅, 소셜 로그인 정보, 사용자 설정, 인증 요청, 최근 이슈와 방문… | (1) domain/site/DataTables.kt:82 `N4USER.is_guest`, `ISSUE.weight` 등은 내보내지 않는다고 명시. (2) DataTables의 테이블 목록(52개)에 FAVORITE_*, WEBHOOK, LINKED_ACCOUNT 등이 없다. (3)(4) web/site/SiteDataController.kt:70-83 교체 후 항상 `/`로 이동, 실패는 audit와 로그뿐이며 templa… | 재현 | 테이블 수와 빠진 컬럼 목록은 DataTables.kt 정의를 훑어 확인했다. 14개라는 정확한 수는 세지 않았다. |
+| R-57 | 최초 기동 화면의 결함 | (1) 로그인 ID가 비어 있으면 같은 오류가 두 번 쌓인다(화면에는 한 번씩만 보이게 묶었다). (2) 이름은 검사하지 않고 그대로 저장한다. (3) 기본 이메일을 그대로 두면 이미 쓰는 이메일이라는 오류가 난다. (4) 재시작 전에는 서버가 계속 안내 화면만 보이고 계정이 이미 바뀌어 있다. (5)… | (1) web/welcome/SiteSecretInterceptor.kt:57-65 빈 loginId에 error.required, isBlank로 wrongloginId.alert, `!= DEFAULT_ADMIN_LOGIN_ID`로 wrongloginId.alert가 또 쌓인다. (2) 이름 검사 없음(:76-79 이름을 보지 않는다), security/SiteSecret.kt:66 `admin.name = name`… | 재현 | (1)의 화면 쪽 묶기(중복 한 번만 표시)는 템플릿을 확인하지 않았다. |
+| R-58 | 이전 화면의 결함 | (1) 토큰 교환 응답을 JSON이 아닌 폼 형식으로만 해석하는 정규식(`access_token=([^&]+)`)이고 상태 코드를 보지 않는다. (2) OAuth `state` 값을 쓰지 않아 요청 위조에 약하다. (3) 화면에 옛 서버(`yobi.navercorp.com`) 링크가 고정되어 있다. (4… | (1) domain/migration/GithubTokenClient.kt:31 `Regex("access_token=([^&]+)")`, :25-30 `.onStatus({ true }, { _, _ -> })`로 상태 코드를 보지 않음. (2) 같은 파일 :27 본문에 state 없음, web/migration/MigrationController.kt에도 state 사용 없음. (3) templates/migration/h… | 재현 | (2) OAuth state가 없어 요청 위조(CSRF)에 약하다. 같은 코드베이스의 일반 소셜 로그인(web/social/SocialLoginController.kt)은 state를 쓴다. 토큰 교환 본문을 URL 인코딩 없이 이어 붙이는 점도 같은 곳에 있다. |
+| R-59 | 소셜 로그인의 결함 | (1) 소셜 세션만 있고 로컬 세션이 없는 채로 로그인 화면에 오면 이동할 주소가 없을 때 v1.6은 오류가 난다. v2는 홈으로 보낸다. (2) 인증 직후 로그아웃으로 보내는 경우(잠김, 이메일 없음)의 안내는 로그아웃 요청이 먼저 소비해서 화면에 보이지 않는다. (3) 제공자의 이메일을 항상 확인된… | 재현: (3) domain/social/SocialAccountService.kt:109-117 signUp이 `emailValidated = true` 자격 증명을 만들고 `lookup.findByEmail(credential.email)`의 기존 사용자로 바로 로그인시킨다. (4) web/social/SocialLoginController.kt:150-154 remember-me 쿠키(`loginId:password`)를… | 일부 | (1)은 해결됨이다. web/user/LoginFormController.kt:44-51 이동 주소가 없으면 홈으로 보낸다. 보안: (3) 제공자 이메일을 확인된 것으로 믿어 같은 이메일의 기존 계정을 가로챌 수 있다. (10) redirectUrl 열린 리다이렉트(R-06과 같은 계열). (4) 로그인 ID와 비밀번호 해시가 든 쿠키가 항상 남는다(비밀 정보 노출 위험). (2)는 flas… |
+| R-60 | LDAP 인증의 결함 | (1) 프로토콜 설정은 `ldap.protocol`이 아니라 접두어 없는 최상위 `protocol` 키를 읽는다. 기본 설정 파일은 `ldap.protocol`로 적어 두었으므로 `ldaps`로 바꿔도 반영되지 않는다. v2도 최상위 `yona.protocol`을 읽는다. (2) 검색 조건에 사용자 입력… | (1) domain/ldap/LdapSettings.kt:81 `?: properties.protocol`, config/YonaProperties.kt:129 최상위 `protocol`(yona.protocol)이고 yona.ldap.protocol은 읽지 않는다. (2) domain/ldap/Ldap.kt:77-79 `"(${attr}=$username)"` 이스케이프 없음. (4) domain/ldap/LdapAuthSe… | 일부 | (3)은 결함이 아니다. v1.6에서도 정상 동작하고 v2도 LdapAuthService.kt:116-120이 같은 판정을 한다(해결됨 성격). (1)은 설정 파일 경로만 재현되며, 사이트 설정 화면의 LDAP 행(LdapSettings.kt:31,92-93, 추가 항목 D-82)에서 protocol을 저장하면 그 값이 우선하므로 화면으로는 ldaps를 쓸 수 있다. 보안: (2) LDAP… |
+| R-61 | 메일 수신의 결함 | (1) v1.6은 첨부를 저장하는 `Attachment.save`가 HTTP 요청 문맥이 없는 메일 스레드에서 항상 실패한다. v2는 정상으로 저장한다(D-25). (2) 한 메일을 프로젝트 여러 곳으로 보내면 `original_email.message_id` 유일 제약으로 두 번째 프로젝트부터 원본 메… | (1) 해결됨: src/main/kotlin/dev/yona/mailbox/MailResourceCreator.kt:54 주석과 saveAttachments(:178)가 AttachmentService로 정상 저장. 재현: (2) src/main/kotlin/dev/yona/domain/notification/Notification.kt:117 `uq_original_email_message_id` 유일 제약과 src/main… | 일부 | (10) From 헤더 위조로 다른 사용자 명의의 이슈/댓글을 올릴 수 있어 권한 우회(위조된 발신자). 나머지 항목은 보안과 무관. (3)은 영어 번들에서만 확인했고 ko_KR는 {0}부터 쓰는 문구라 어긋나지 않는다(messages_ko_KR.properties:1149). 기존 기록은 "재현함"이지만 (1)은 해결됨이므로 일부로 판정. |
+| R-62 | Subversion의 결함 | (1) 이력은 시작과 끝 리비전을 모두 포함해 한 쪽에 `limit + 1`개가 나오고 다음 쪽의 첫 리비전과 겹친다. (2) 폴더 목록과 파일 내용은 리비전을 알려 줘도 항상 최신(HEAD)에서 읽는다. (3) 코드 내려받기(zip)는 본문이 빈 `200` 응답이다. (4) WebDAV의 `HEAD`… | (1) src/main/kotlin/dev/yona/repository/svn/SvnRepositories.kt:186-190 start=latest-page*limit, end=start-limit를 `repository.log(paths,null,start,end,...)`로 양끝 포함 -> limit+1개; (2) SvnRepositories.kt:136 `checkPath(path,-1)`/`getDir(path,-1… | 재현 | (5) "코드를 구성원에게만 연다" 설정을 Subversion HTTP 접근이 무시해 비구성원이 코드를 읽을 수 있음(데이터 노출). (10)은 템플릿을 읽지 않아 확인하지 못함. (3)은 CodeBrowserService.ancestors가 SVN에서 null을 돌려주면 200 대신 404일 수 있어 실제 상태는 요청으로 확인 필요. |
+| R-64 | 조직 이슈 목록과 풀 리퀘스트 목록 | (1) 이슈 줄의 라벨 링크는 `/소유자/프로젝트/issues?state=open&labelIds=ID`이다. 결함은 아니다(R-49 정정 참고). (2) 작성자, 담당자, 멘션 조건은 값이 아니라 현재 사용자를 쓴다. (3) 풀 리퀘스트는 보내는 쪽 프로젝트도 보이는 목록에 있어야 해서 보이지 않는 프… | (2) src/main/kotlin/dev/yona/domain/issue/IssueSearchService.kt:216-232 `if (project == null) viewerId`로 작성자/담당자/댓글/멘션에 현재 사용자 사용; (3) src/main/kotlin/dev/yona/domain/pullrequest/PullRequestSearch.kt:109-110 `toProject in ids` AND `fromProj… | 재현 |  |
+| R-65 | 리뷰 목록 | (1) 상태나 정렬 방향이 잘못되면 500이고 정렬 기준은 검증 없이 질의에 붙는다. (2) 열림 탭의 활성 판정이 대소문자를 구별해 `state=open`처럼 소문자면 어느 탭도 활성이 아니다. (3) 엑셀은 첫 댓글과 같은 글을 단 응답도 제목 줄로 쓴다. (4) 첫 리뷰 댓글의 작성자를 번호로 다시… | 해결됨: (1) src/main/kotlin/dev/yona/web/code/ReviewListController.kt:73 `threadState == null // !validDirection`이면 400, src/main/kotlin/dev/yona/domain/comment/ReviewSearchService.kt:78-80 ORDERABLE 화이트리스트(A-101). 재현: (2) src/main/resources/t… | 일부 | 기존 기록의 "(1)은 A-101"과 일치하며 (1)만 해결됨. |
+| R-66 | 저장소 초기화(`GET /_init`) | 로그인 없이 누구나 호출하면 모든 프로젝트의 저장소를 지우고 빈 저장소로 다시 만든다. 개발용 경로가 운영에 그대로 열려 있다. 한 프로젝트가 실패해도 나머지는 계속한다(오류는 로그에만 남는다) | src/main/kotlin/dev/yona/web/home/RepositoryInitController.kt:24-34 `@GetMapping("/_init")`가 `projects.findAll()` 전부에 `repositories.createRepository(project)`(RepositoryService.kt:22-23, deleteRepository 후 새로 만듦) 호출하고 예외는 log.warn만. src/mai… | 재현 | 비로그인 요청 한 번으로 모든 프로젝트의 Git/SVN 저장소를 삭제하고 빈 저장소로 교체함(데이터 파괴, 서비스 거부). 선생님 결정 D-27로 유지 중. 사이트 비밀 키 미설정 시의 환영 화면 인터셉터는 별개. |
+| R-67 | 이슈 엑셀의 머리글 | 댓글 작성 시각 열의 메시지 키 `common.comment.created`가 번들에 없어 머리글에 키 이름이 그대로 나온다 | src/main/kotlin/dev/yona/domain/issue/IssueExcelExporter.kt:47 `message("common.comment.created")`이고 src/main/kotlin/dev/yona/../resources/messages.properties, ja/ru/uz 번들에는 키가 없으며(grep 0건) messages_ko_KR.properties:175에만 `댓글 작성일`이 있음. mess… | 일부 | 영어, 일본어, 러시아어, 우즈베크어 화면에서는 머리글에 키 이름이 나오지만 한국어에서는 정상이다. v1.6도 conf/messages.ko-KR에만 있어 같다. "번들에 없어"는 한국어 번들 제외 기준. |
+| R-69 | 조직 이슈 목록 화면의 스크립트 | `yobi.issue.List.js`가 로드 마지막에 `_initShowSubtasks()`(`yona.showSubtask.js`)를 호출하는데, 이 화면은 그 스크립트를 불러오지 않아 페이지를 열 때마다 `_initShowSubtasks is not defined` 오류가 난다. 마지막 호출이라 다른… | src/main/resources/static/assets/javascripts/service/yobi.issue.List.js:267 `_initShowSubtasks();` 호출. src/main/resources/templates/organization/issue-list.html은 :144-148에서 yona.twoColumnMode.js와 issue.List만 불러오고 yona.showSubtask.js를 불러오지 않… | 재현 |  |
+| R-70 | 변경 화면(`yobi.code.Diff.js`) | 리뷰 스레드가 하나도 없으면 `div.review-list`가 그려지지 않는데 `_setReviewListHeight`가 그 요소의 `position().top`을 읽어 화면을 열 때와 스크롤할 때마다 `Cannot read properties of undefined (reading 'top')` 오류가… | src/main/resources/static/assets/javascripts/service/yobi.code.Diff.js:671-672 `htElement.welReviewList.position().top`(welReviewList는 :82 `find("div.review-list")`). 재현되는 곳: src/main/resources/templates/pullrequest/changes.html:106 `<div t… | 일부 | 풀 리퀘스트 변경 화면에서만 재현. 커밋 diff 화면은 해당 요소가 항상 있어 오류가 나지 않음. |
+| R-72 | 러시아어 번들의 `project.you.are.watching… | `conf/messages.ru-RU:649`가 `Вы смотрите {-} проект.`라서 `{-}`가 올바른 `MessageFormat` 패턴이 아니다. 프로젝트 머리말(`project/header`)이 이 메시지를 인자와 함께 부르므로 러시아어 화면(`Accept-Language: ru`)은… | src/main/resources/messages_ru_RU.properties:682 `Вы смотрите {-} проект.`; src/main/resources/templates/project/header.html:74 `view.watching ? #{project.you.are.watching(${view.project.name})} : ...`로 인자를 넘기면 src/main/kotlin/dev/yona/conf… | 재현 | 프로젝트를 지켜보는(watching) 로그인 사용자의 러시아어 화면에서만 터진다. 삼항식의 참 분기에서만 평가되므로 "프로젝트 화면마다"는 과장이다. 실제 500 여부는 요청으로 확인한 적은 없고 코드 판독. |
+| R-74 | `ProjectApp.changeVCS` | v1.6은 `@Transactional`이 없어 저장소 생성이 실패하면 README 해제와 포크 분리는 이미 반영되고 저장소만 지워진 중간 상태로 남는다. v2도 서비스에 트랜잭션을 걸지 않아 같은 중간 상태가 남는다 | src/main/kotlin/dev/yona/domain/project/ProjectVcsService.kt:28-50 change()에 @Transactional이 없고 README 해제(:32), 포크 분리(:35-38), deleteRepository(:41)가 각각 즉시 반영되며 createRepository 실패 시 vcs만 복원(:44-49). 컨트롤러 src/main/kotlin/dev/yona/web/projec… | 재현 |  |
+| R-75 | 번역(`IssueApi.translate`) | 번역 서비스 응답에 `translatedText`가 없으면 `String.join`이 문자열 `null`을 이어 붙여 번역문에 "null"이 섞인다 | src/main/kotlin/dev/yona/translation/TranslationClient.kt:39 `translate(it) ?: "null"`, :31에서 translatedText가 없으면 null 반환. 호출은 src/main/kotlin/dev/yona/web/api/TranslationApiController.kt:57 `client.translateLines(...)`. | 재현 |  |
+| R-77 | 외부 이슈 API 수정, 상태, 라벨 | 저장할 때마다 `save()`가 제목 머리말 개수를 한 번 더 늘린다(R-29와 같은 원인) | src/main/kotlin/dev/yona/domain/issue/ExternalIssueService.kt:150-155 saveLikeV16이 `issues.save` 뒤 `titleHeads.save(saved.project, saved.title)`로 빈도를 +1 하고, patch(:120-137), updateState(:140-144), replaceLabels(:192-197)가 모두 이를 호출. | 재현 |  |
+| R-78 | 프로젝트 생성 화면(`yobi.project.New.js`) | 코드 체크를 해제하면 `welReviewerCountSettingPanel` 등이 초기화되지 않아 `undefined.hide()`로 TypeError가 난다. VCS를 바꾸면 두 분기 모두 풀 리퀘스트 체크를 checked로 강제한다. JS가 v1.6과 같아 v2 화면에서도 재현된다(브라우저 확인 20… | src/main/resources/static/assets/javascripts/service/yobi.project.New.js:197 `htElement.welReviewerCountSettingPanel.hide()`, :198 welDefaultBranceSettingPanel, :199 welSubMenuProjectChangeVCS 모두 _initElement(:40-52)에서 정의되지 않음 -> 코드 체크 해제 시… | 재현 |  |
+| R-80 | `MarkdownApp.render`, 이슈 번역 | 마크다운 미리보기에 프로젝트 읽기 권한 검사가 없고, 번역은 댓글 id만으로 조회해 비공개 프로젝트 내용이 번역으로 노출된다 | src/main/kotlin/dev/yona/web/MarkdownController.kt:29-40 `/markdown/{user}/{project}`에 읽기 권한 검사가 없고 프로젝트가 있으면 projectRenderer로 렌더링; src/main/kotlin/dev/yona/web/api/TranslationApiController.kt:48-60은 로그인만 요구(@AnonymousCheck(requiresLogin=tr… | 재현 | 로그인한 아무 사용자가 비공개 프로젝트의 이슈, 글, 댓글 본문을 번역 API로 읽을 수 있음(데이터 노출). 번역 API가 설정된 사이트에서만 해당. 마크다운 미리보기는 입력 본문만 렌더링하므로 노출은 번역 쪽이 핵심. |
+| R-82 | REST 프로젝트 생성(`ProjectApi`) | SITEMANAGER 역할 행이 두 번 INSERT된다(`Project.create` 안과 밖). 웹 생성은 1행이다. v2도 REST 경로에서 2행을 넣는다(웹 경로는 1행) | src/main/kotlin/dev/yona/domain/project/ExternalProjectService.kt:52-60 create()가 ProjectCreateService.create(:116 assignRole SITEMANAGER)를 거친 뒤 :59 `projectUsers.save(... SITE_MANAGER_ID ... SITEMANAGER)`를 한 번 더 저장. REST는 src/main/kotlin/d… | 재현 | ExternalProjectService.create의 첫 줄(:53-58)은 전부 읽지 못해 정확한 호출 순서는 :57 주석에 의존. |
+| R-83 | 조직 검색의 `HIDE_PROJECT_LISTING` | 조건이 `!isMemberOf // !isAdminOf`라 한 사용자가 조직당 역할 행 하나뿐이어서 항상 400이다(`SearchApp.java:127-131`). v2도 같다 | src/main/kotlin/dev/yona/web/search/SearchController.kt:69-72 `hideProjectListing && organization != null`일 때 `!organizationRole(ORG_MEMBER) // !organizationRole(ORG_ADMIN)`이면 400. 한 사용자가 조직당 역할 행 하나라는 전제 하에 항상 400. | 재현 | hideProjectListing 설정이 켜진 사이트에서만 해당. REST 검색(ExternalSearchApiController.kt:96-97)은 구성원 여부만 보므로 이 결함이 없음. |
+| R-84 | 임시 업로드 정리, import, welcome 화면 | `import`에서 TRUNCATE 뒤 값이 배열이 아니면 테이블만 비워지고 행이 채워지지 않는다(결정 5로 v2도 같게 테이블만 비운다). 업데이트 확인과 IMAP 폴링은 `application.secret`이 기본값이 아닐 때만 등록된다(v2 비밀 키가 비어 있어도 같은 취급, `welcome.md:… | import: src/main/kotlin/dev/yona/domain/site/DataService.kt:349-350 `table != null -> { truncate(connection, ids, table); parser.skipChildren() }`(값이 배열이 아니면 비우기만). 비밀 키: src/main/kotlin/dev/yona/domain/site/UpdateCheckScheduler.kt:32 `secr… | 재현 | 기존 기록은 "일부 재현하지 않음(D3, A-92)"인데 이 항목에 적힌 두 가지는 모두 현재 코드에서 재현된다. 재현하지 않는 부분은 항목 밖의 다른 내용일 가능성이 있다. |
+| R-86 | 첨부 업로드의 파일 종류 감지 | `Attachment.save`가 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지해 파일 이름 힌트 없이 내용만으로 MIME을 정한다. 예를 들어 `.css` 파일도 내용이 평문이면 `text/plain`이다. v2도 같게 내용만으로 감지한다(2026-10-26 수정, `At… | src/main/kotlin/dev/yona/domain/misc/AttachmentService.kt:133 `detectMediaType(file, null)`, :171 `MediaTypes.detect(file.readBytes(), name)`에 이름이 null로 전달되어 내용만으로 MIME 결정. | 재현 |  |
+| R-88 | 이슈, 게시글 방문 기록 | `User.visits(Issue)`, `visits(Posting)`이 `lastVisitedProjectId`에 이슈 또는 게시글의 `id`를 대입한다. 프로젝트 번호 자리에 다른 번호가 들어가서, 이슈를 본 뒤 같은 프로젝트를 다시 열면 "직전 방문과 같다"고 보지 않고 최근 방문 프로젝트에 다시… | src/main/kotlin/dev/yona/domain/project/RecentVisitService.kt:36-45 markIssueOrPostingVisited가 `lastVisited.put(userId, id)`로 이슈/글 id를 프로젝트 번호 자리에 넣고, :27 visits의 `getIfPresent(userId) == projectId` 비교가 어긋나 다시 record함. 호출처: src/main/kotlin/… | 재현 |  |
+| R-89 | `Config.getSystemEmailAddress`의 사이… | SMTP 주소가 없을 때 `new SiteAdmin().admin`의 메일을 쓰려 하지만 새로 만든 객체의 `admin`은 항상 `null`이라 언제나 `yona@yona.io`이다. 사용처는 충돌 검사용 임시 병합 커밋의 작성자 한 곳이다. v2도 항상 `yona@yona.io`로 한다(`PullReq… | src/main/kotlin/dev/yona/domain/pullrequest/PullRequestIdentity.kt:25 `mailSender.fromAddress() ?: DEFAULT_EMAIL`("yona@yona.io", :29)이고 SiteAdmin.admin을 읽는 분기는 없음(:14 주석). SMTP 보내는 주소가 설정돼 있으면 그 주소를 쓰고 없을 때 항상 기본값. | 재현 | 결함 설명의 "항상"은 SMTP 주소가 없는 경우에 한한다. |
+| R-91 | 온라인 커밋의 줄바꿈 판정 | `fileLineEnding`이 첫 항목만 보고 이후 줄의 줄바꿈을 보지 않는다 | src/main/kotlin/dev/yona/repository/OnlineCommit.kt:163-174 `fileLineEnding`이 파일명을 무시(UNUSED)하고 HEAD 최상위 트리의 첫 엔트리 하나만 읽어 `LineEnding.find` 판정 | 재현 | 결함의 실제 형태는 설명의 '이후 줄'이 아니라 '요청한 파일이 아닌 최상위 트리 첫 엔트리 기준'이며 v2 KDoc(OnlineCommit.kt:154-162)도 그렇게 적음. 빈 트리의 500은 v2가 커밋 없이 계속(다름) |
+| R-92 | 한글 UTF-8 텍스트의 종류 | Tika 1.2의 텍스트 판정이 비ASCII 비율 10% 이상이면 `application/octet-stream`이라 한글 텍스트 첨부를 열면 내려받기가 된다. SVG(선언 없음)는 `text/plain`, WebP는 octet-stream | src/main/kotlin/dev/yona/io/V16MimeDetector.kt:25-60 Tika 1.2 규칙 재현(`statistics.isMostlyAscii` 아니면 매직 없는 text/plain을 octet-stream으로 되돌림). io/MediaTypes.kt:21에서 이 감지기를 실제 사용 | 재현 | SVG/WebP 개별 결과는 mime 표(tika-mimetypes-1.2.xml)에 달려 있어 코드만으로 확인하지 않음 |
+| R-94 | 엑셀 내려받기 링크 | `URI.getQuery()`로 퍼센트 인코딩을 풀어 다시 조립해 `%2B`가 `+`로, `%26`이 `&`로 바뀌고 값 없는 `pageNum`이 빠지며 `&&`가 남는다. 잘못된 주소(`%`, `/`)는 500 | src/main/kotlin/dev/yona/web/QueryLinks.kt:44-48,53-66 `URI.query`(디코딩) 후 5인자 URI 생성자로 재조립, 키 없는 pageNum 제거, 빈 조각 처리 모두 v1.6 그대로 -> %2B가 +, %26이 &로 변함. 단 QueryLinks.kt:94-105 `excelLink`가 URISyntaxException을 잡아 fallback | 일부 | 인코딩 변형은 재현, 잘못된 주소(`%`, `/`)의 500은 해결(오류 없이 처리). 기존 기록과 일치 |
+| R-96 | 검색어의 `%`, `_` | Ebean 3.3.4 `icontains`는 키워드를 이스케이프하지 않아 `%`, `_`가 와일드카드이다(`_`만 넣으면 모든 비어 있지 않은 값에 맞는다) | src/main/kotlin/dev/yona/domain/user/UserRepository.kt:22 등 `like lower(concat('%', :query, '%')) escape '\\'` 에 키워드를 이스케이프 없이 넘김 -> `%`,`_`는 와일드카드(백슬래시만 이스케이프 문자). 반례: web/api/ExternalSearchApiController.kt:145 `.replace("%", "\\%").replac… | 일부 | 일반 검색(이슈, 게시글, 사용자, 라벨 등 20여 곳)은 재현. 외부 API 풀 리퀘스트 검색(ExternalSearchApiController 138-146)과 감사 검색(AuditQueryService.kt:114)은 이스케이프함. 백슬래시는 escape 문자라 PostgreSQL에서 끝에 `\`가 오면 LIKE 오류 가능성(미확인) |
+| R-98 | 외부 API 작성자 | 모르는 이메일의 작성자를 익명 사용자(-1)로 저장하고 사용자를 만들지 않는다(`findByEmail`이 `NullUser`를 돌려주어 생성 분기에 닿지 않는다) | src/main/kotlin/dev/yona/web/api/ApiUsers.kt:55 `fun findAuthor(email) = lookup.findByEmail(email) ?: anonymous(email)` -> 번호 -1 익명 사용자, 새 사용자 저장 없음. 호출: ExternalIssueApiController.kt:137,282, ExternalBoardApiController.kt:125 | 재현 | ExternalBoardApiController.kt:121 / ExternalIssueApiController KDoc 일부는 '없으면 사용자를 만들고'라고 적혀 있어 코드와 어긋나는 주석(코드는 만들지 않음) |
+| R-99 | 이메일 형식 | Play `@Constraints.Email`의 정규식은 `\b...\b`라서 로컬 부분이 단어 문자가 아닌 문자(`+`, `.`, `-`)로 시작하는 주소를 거부한다 | src/main/kotlin/dev/yona/domain/user/SignupService.kt:149 `Regex("\\b[a-zA-Z0-9.!#$%&'*+/=?^_`{/}~-]+@...\\b")`, 146 `EMAIL_PATTERN.matches` -> 맨 앞 `\b`가 +, ., - 로 시작하는 주소를 거부. 사용처 AccountController.kt:162, AccountService.kt:46, SiteSecretI… | 재현 |  |
+| R-100 | 최초 관리자 솔트 | 최초 관리자 설정의 솔트를 `Arrays.toString` 형식(`[12, -3, ...]`)으로 저장한다. 일반 가입은 Base64이다 | src/main/kotlin/dev/yona/security/SiteSecret.kt:65 `java.util.Arrays.toString(ByteArray(16)...)` 를 passwordSalt로 저장(`[12, -3, ...]`), 일반 가입은 SignupService.kt:99 `LegacyPasswordHasher.generateSalt()` | 재현 |  |
+| R-101 | 구독 프로젝트 정렬 | 사이드바의 구독 프로젝트는 Ebean 메모리 정렬이라 대소문자를 구분한다(`Zeta`가 `alpha`보다 앞) | src/main/kotlin/dev/yona/domain/user/UserMenuService.kt:75 `.sortedBy { it.name.orEmpty() }` (String 자연 순서라 대소문자 구분, 대문자 먼저) | 재현 |  |
+| R-102 | 하위 이슈의 댓글, 공감 링크 | 하위 이슈가 다른 프로젝트에 있으면 링크가 부모 프로젝트의 같은 번호 이슈를 가리킨다(`commentAndVoterPairDisplay(child, parent.project)`) | src/main/resources/templates/issue/partial-subtasks.html:34-35 댓글/공감 링크가 `'/' + ${sub.parentOwner} + '/' + ${sub.parentProject} + '/issue/' + ${child.number}` (자식의 project가 아닌 부모 프로젝트) 사용. 같은 파일 31행의 제목 링크는 child.owner/child.project | 재현 |  |
+| R-103 | 게시판 정렬 링크의 라벨 | 라벨 둘 이상을 고르면 `labelIds`에 번호가 구분 없이 붙는다(R-28 정정) | src/main/kotlin/dev/yona/web/board/BoardListController.kt:84 `"labelIds=" + condition.labelIds.joinToString("")` -> 라벨 3, 5는 `labelIds=35`, 91행 정렬 링크에 사용 | 재현 | 조직 게시판(OrganizationBoardController.kt:51-54)의 정렬 링크는 v1.6대로 labelIds를 아예 붙이지 않음(해당 화면은 이 결함과 무관) |
+| R-104 | 최근 본 이슈의 이름표 | 컨텍스트 경로로 배포하면 주소 앞에 경로가 붙어 `프로젝트 #번호` 이름표가 어긋난다(`RecentIssue.getNumber`가 위치로 자른다) | src/main/kotlin/dev/yona/web/user/UserMenuAssembler.kt:53-55 `url.split("/")`, `paths.size < 5` 아니면 `"${paths[2]} #${paths[4]}"`; 저장 주소는 domain/issue/RecentIssueService.kt:25 `siteUrls.path(...)`가 컨텍스트 경로를 앞에 붙임 -> 인덱스가 어긋남 | 재현 | 컨텍스트 경로가 한 단계이면 라벨이 `소유자 #프로젝트` 꼴로 어긋남(코드로 확인, 실제 배포는 미확인) |
+| R-106 | 세션 사용자의 권한 판정 기억 | 사이트 관리자, 프로젝트 매니저, 조직 역할 판정이 로그인 동안 유지되어 승격과 해임이 반영되지 않는다. 항목이 최대 2000명을 넘어 밀려나면 세션이 무효가 된다 | src/main/kotlin/dev/yona/security/SessionUserCache.kt:57 `MAXIMUM_ENTRIES = 2000L` Caffeine 크기 제한, SessionUserMemo(75행~)가 siteManager/projectManager/orgMember 판정을 처음 값으로 기억; security/SessionPermissions.kt:36,43,56 `memoOf(userId)?.siteManag… | 재현 | 승격/해임이 로그인 동안 반영되지 않아, 해임된 사이트 관리자나 매니저가 세션 동안 권한을 유지함(권한 우회). 의도적 유지(A-127, P-10 결정 9). 기존 기록과 일치 |
+| R-107 | 잠긴 계정의 로그인 유지 쿠키 | 잠기거나 지워진 계정도 `yobi.token` 쿠키가 유효하면 로그인 상태이다 | src/main/kotlin/dev/yona/security/YonaAuthenticationFilter.kt:116-134 `authenticateByRememberMeCookie`: `user.password == 쿠키 해시`이면 잠김/삭제 여부와 무관하게 `context.authentication = ...` 설정(세션 저장만 건너뜀); security/CurrentUserProvider.kt:35 `if (user.st… | 재현 | 잠기거나 삭제된 계정이 쿠키로 계속 로그인 상태(계정 정지 우회). 의도적 유지(A-128). 기존 기록과 일치 |
+| R-110 | `GET /user/isEmailExist` | `@BodyParser.Of(BodyParser.Json.class)`가 붙어 있다. 공식 v1.16.0을 실행해 보니 내용 형식이 없거나 JSON이 아니면 본문을 해석하지 않고 `{"isExist":...}`를 돌려주며, 내용 형식이 `application/json`이나 `text/json`일 때만 본… | src/main/kotlin/dev/yona/web/user/SignupController.kt:92-98 `isEmailExist`: Content-Type이 application/json 또는 text/json일 때만 본문 JSON 검사(`BindFailureException`->400), 그 외는 본문 무시. `@RequestParam email` 필수라 인자 없으면 MissingServletRequestParameter… | 재현 |  |
+| R-111 | 라벨 삭제, 추천 등 이슈를 `update()`로 저장하는 모… | `AbstractPosting.update()`가 저장 때마다 댓글 수 재계산과 멘션 행 맞춤을 한다. 라벨 삭제는 `issue.save()`라 제목 머리말 빈도도 올린다 | src/main/kotlin/dev/yona/domain/issue/IssueService.kt:343-348 `resync`가 댓글 수 재계산 + `mentions.update`, 331-336 `deleteLabel`이 각 이슈에 `resync` 후 `titleHeads.save(...)`(머리말 빈도 +1); adjustWeight(164행) 등도 resync 사용 | 재현 |  |
+| R-112 | 이슈 수정의 제목 머리말 개수 | 새 제목을 먼저 더하고 옛 제목을 나중에 빼며, 빼는 쪽 프로젝트는 이미 바뀐 프로젝트라 옮겨도 옛 프로젝트의 개수가 줄지 않는다 | src/main/kotlin/dev/yona/domain/issue/IssueService.kt:306-307 `titleHeads.save(project, issue.title); titleHeads.delete(project, oldTitle)` 에서 `project`는 292행 `requireNotNull(issue.project)`(이동 후의 새 프로젝트) -> 옛 프로젝트의 개수가 줄지 않음 | 재현 |  |
+| R-116 | 게시판 글의 댓글 수 | 글의 `comments` 목록이 댓글 저장 전에 읽혀 있어, 댓글을 달 때 저장하는 `numOfComments`가 실제보다 하나 적다(첫 댓글만 맞다). 글 목록의 숫자가 어긋나다가 댓글을 지우거나 글을 고치면 바로잡힌다. 이슈는 해당 없다(실제 서버에서 확인) | src/main/kotlin/dev/yona/domain/board/PostingCommentService.kt:49 `posting.numOfComments = if (before == 0) 1 else before` (before는 저장 전에 센 수), 삭제/수정 경로(90행, PostingService.kt:92 등)는 실제 수로 재계산 | 재현 |  |
+| R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 | src/main/kotlin/dev/yona/web/access/BasicCredentials.kt:26 `lenientDecode(header.substring(6))` (방식 이름 미검사, 6자 미만이면 StringIndexOutOfBoundsException). 사용: web/git/GitHttpController.kt:57,82, web/svn/SvnDavService.kt:39, web/lfs/LfsRequestSup… | 재현 | LFS 경로(LfsRequestSupport.kt:48)도 같은 파서를 씀. 인증 우회는 아님(방식 혼동만). 짧은 헤더의 500 본문 모양이 경로마다 다른지는 코드로 확인하지 않음 |
+| R-120 | 구성원 역할 바꾸기의 입력 | `POST /organizations/:name/member/:id/edit`와 `POST /:user/:project/member/:id/edit`: 역할 번호가 없으면 널 참조로 500, 숫자가 아니면 조직은 `unknownRole` 안내(200)이고 프로젝트는 500, 없는 번호는 204(조직은 아… | src/main/kotlin/dev/yona/web/project/ProjectMemberController.kt:123 `...toLongOrNull() ?: throw NullPointerException("role id")` (없음/비숫자 500), 125행 204; domain/project/ProjectMemberService.kt:98 `roles.findById(roleId).orElse(null)` 로 없는 번호… | 재현 | 존재하는 역할이면 종류(예: 프로젝트 구성원에게 다른 범주 역할)를 가리지 않고 받음. 권한 검사는 UPDATE 권한자만 가능해 권한 상승은 아님. 조직 쪽 NPE 일부 분기는 마지막 관리자 여부에 따라 순서가 다름(코드상 동일 결과 500) |
+| R-125 | 멘션 목록 | `mentionList`에 권한 검사가 없어 익명도 비공개 프로젝트의 구성원과 이슈 제목을 받음 | `web/project/MentionListController.kt:43-70` + 재현 시험(비로그인 200, 이슈 제목 노출) | 재현 | 0절 시급 1순위. 클래스 설명의 A-35와 코드가 어긋남 |
+| R-126 | 프로젝트 이름 캐시가 예전 이름을 남김 | `CacheStore.projectMap`은 이름을 바꿔도 예전 이름의 항목을 지우지 않아 한 번 연 이름은 프로젝트의 이름이 바뀐 뒤에도 같은 프로젝트를 연다. 같은 이름의 새 프로젝트를 만들면 `newProject`가 항목을 덮어쓴다. 서버를 다시 띄우면 사라진다 | src/main/kotlin/dev/yona/domain/project/ProjectService.kt:43-51 projectMap 조회, 이름 변경 시 예전 키를 지우지 않음; 62행 `remember`가 새 프로젝트 생성 시 덮어씀; 66-72 `forget`(삭제 시에만 정리); 서버 재시작 시 맵이 비워짐(ConcurrentHashMap) | 재현 | 캐시가 가리키는 프로젝트가 DB에 없으면 버리고 다시 찾는 점(46-47행)만 v1.6과 다름. 이름 변경 후 옛 이름으로 열려도 권한 검사는 거치므로 노출은 아님 |
+| R-127 | 이슈 일괄 변경의 입력 | `POST /:user/:project/issues`는 `state`가 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 빈 값은 통과, 없는 이슈 번호는 `issue.refresh()` 예외로 500이다 | src/main/kotlin/dev/yona/web/issue/IssueMassUpdateController.kt:65-67 state가 비어 있지 않고 State 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 90행 `issues.findById(it).orElseThrow{NoSuchElementException}` -> GlobalErrorHandler 500 | 재현 | ids에 숫자가 아닌 값은 62행 `mapNotNull`로 조용히 버려짐(v1.6 동작은 미확인). 이슈별 권한 검사(UPDATE/DELETE)는 98-102행에 있음 |
+| R-128 | 커밋이 아닌 대상을 가리키는 태그 | 트리나 블롭을 가리키는 태그(`git tag t <tree>`)가 있으면 그 태그의 커밋 이력(`/commits/<태그>/`)이 500이고, 코드 화면은 v1.6이 500, v2가 404이다. 주석 태그와 태그의 태그는 정상(200)이다 | src/main/kotlin/dev/yona/repository/CommitHistoryService.kt:63 `RevWalk.parseCommit(startId)`가 트리/블롭이면 IncorrectObjectTypeException(잡지 않음) -> web/error/GlobalErrorHandler.kt:81 `@ExceptionHandler(Exception::class)` 500. 코드 화면: repository/Co… | 재현 | 주석 태그 정상 여부는 JGit parseCommit이 태그를 벗기므로 코드상 일치(실행 확인은 안 함). 태그 화면은 TagService.kt:34 `notCommit`로 표시 |
 
-## 3. 카탈로그(C)에서 재현하는 결함 (영역별)
-
+## 2. 카탈로그(C)에서 재현하는 결함 (영역별)
 
 ### 보안
 
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 | 보안 판정 |
+| 번호 | 결함 | v2 근거 | 판정 | 보안 판정 |
 |---|---|---|---|---|
-| C013★ | 기본 로그인 페이지의 `path`를 검증 없이 저장하고 `index()`가 그대로 `redirect`. 토큰이 없는 POST라 외부 요청으로 설정 가능(열린 리다이렉트) | UserApp.java:1373-1381, Application.java:49-50 | 희귀(화면은 현재 경로만 보냄. 직접 만든 요청이나 CSRF) | **재현됨(중간)** |
-| C027 | 프로젝트 라벨 `'<span ...>' + sName + ' </span>'`에 입력값 이스케이프가 없음(자기 입력 XSS) | yobi.site.MassMail.js:155 | 희귀(사이트 관리자 본인 입력) | 낮음(자기 입력) |
-| C056★ | 댓글 수정이 `isModifiedByOthers`를 권한 검사보다 먼저 해, 로그인만 하면 틀린 `original`로 409 응답에서 본문을 읽음 | IssueApi.java:615-621 | 희귀(직접 만든 요청) | **재현됨(시급, C093과 같음)** |
-| C091 | MarkdownApp.render가 본문/프로젝트 null 검사와 프로젝트 READ 권한 검사가 없음 | MarkdownApp.java:30-37 | 희귀(미리보기 요청을 직접 만들 때). 권한 부분은 정상 화면에서도 호출은 가능 | **재현됨(시급, 비로그인)** |
-| C092 | 번역 API가 댓글을 id만으로 조회해 비공개 프로젝트 내용이 노출 | api/IssueApi.java:1003-1008 | 희귀 | **재현됨(시급)** |
-| C093★ | `updateIssueComment`의 충돌 검사(원문 반환)가 UPDATE 권한 검사보다 먼저라 권한 없는 사용자도 원문을 받음 | api/IssueApi.java:615-621 | 희귀 | **재현됨(시급)** |
-| C135 | 내 이슈 목록에서 assigneeId=-1이면 프로젝트 가시성 필터 없이 전체 프로젝트의 미배정 이슈가 나옴 | SearchCondition.java:202-206,229-253, IssueApp.jav… | 희귀(직접 쿼리) | **재현됨(시급)** |
-| C147★ | newIssueFormByComment가 댓글의 프로젝트 읽기 권한을 검사하지 않아 다른(비공개) 프로젝트 댓글 본문이 폼에 실림 | IssueApp.java:374-387 | 희귀(타 프로젝트 댓글 id를 직접 지정) | **재현됨(시급)** |
-| C155 | deleteComment가 commitId/경로 프로젝트와 댓글의 일치를 검사하지 않음(번호만으로 조회). 후보가 말한 "없는 id면 NPE"는 결함 아님: IsAllowedAction이 null이면 404를 돌려줌 | CodeHistoryApp.java:250-260, Resource.java:240-241… | 희귀 | 권한 우회 아님 |
-| C169 | `GET /user/editform/token_reset`이 토큰을 재생성하고 CSRF 방어가 없음 | UserApp.java:897-904, conf/routes:136 | 정상(화면의 다시 만들기 링크) | v2에 없음 |
-
-### 데이터
-
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C079★ | `addEOL("")`이 `"\n"`을 붙여 빈 내용이 개행 한 줄 파일이 됨 | LineEnding.java:43-54 | 정상(온라인 편집에서 내용을 비울 때) |
-| C081★ | `PullRequest.save()`가 호출자의 number를 무시하고 최댓값+1을 매겨 동시 생성에 약함 | PullRequest.java:687-704 | 희귀(동시 생성) |
-| C082★ | `Comment.update()`는 부모를 재저장하지 않음(`save/delete`는 함) | Comment.java:77-99 | 정상(댓글 수는 수정으로 바뀌지 않아 영향 거의 없음) |
-| C130 | 외부 API 프로젝트 생성에서 SITEMANAGER 역할 행이 Project.create 안과 밖에서 2번 INSERT됨(findByIds가 SITEMANAGER 제외) | ProjectApi.java:152, Project.java:146-147, Project… | 희귀(외부 REST 프로젝트 생성) |
-| C162 | 임시 업로드 정리가 `ge("createdDate", 기준)`이라 오래된 것이 아니라 최근 USER 첨부를 지움 | Attachment.java:457-461 | 정상(주기 작업) |
+| C013 | 기본 로그인 페이지의 `path`를 검증 없이 저장하고 그대로 `redirect` | `web/home/HomeController.kt:57-65` 저장, `:40-42` 이동 + 재현 시험 | 재현 | 시험 확인(중간) |
+| C027 | 프로젝트 라벨 HTML에 입력값 이스케이프 없음 | `static/.../yobi.site.MassMail.js:155` | 재현 | 자기 입력 XSS(낮음) |
+| C056 | 댓글 수정이 `original` 충돌 검사를 권한 검사보다 먼저 한다 | `web/api/IssueApiController.kt:309-310` | 재현 | 시험 확인(C093과 같음) |
+| C091 | 마크다운 렌더에 프로젝트 읽기 권한 검사와 보는 사람 반영이 없음 | `web/markdown/MarkdownController.kt:29-38` + 재현 시험 | 재현 | 시험 확인(시급, 비로그인) |
+| C092 | 번역 API가 프로젝트 읽기 권한을 보지 않고 댓글을 번호로 조회 | `web/api/TranslationApiController.kt:56-57` + 재현 시험 | 재현 | 시험 확인(시급) |
+| C093 | 댓글 수정 충돌 응답이 UPDATE 권한 검사보다 먼저 원문을 반환 | `web/api/IssueApiController.kt:309-310` + 재현 시험 | 재현 | 시험 확인(시급) |
+| C135 | 내 이슈에서 `assigneeId=-1`이면 프로젝트 가시성 필터 없음 | `domain/issue/IssueSearchService.kt:217` + 재현 시험 | 재현 | 시험 확인(시급) |
+| C147 | 댓글 번호로 새 이슈 폼을 열면 다른 프로젝트 댓글 본문이 실림 | `web/issue/IssueCreateController.kt:181-190` + 재현 시험 | 재현 | 시험 확인(시급) |
+| C155 | `deleteComment`가 경로의 프로젝트와 댓글의 일치를 검사하지 않음 | `web/code/ReviewCommentController.kt:101-114`, 권한은 `access/ResourceLookup.kt:61` | 재현 | 권한 우회 아님 |
 
 ### 서버
 
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C001 | LDAP 바인드는 성공했지만 검색 결과가 없거나 둘 이상이면 `authenticate`가 null이고 `ldapUser.getEmail()`에서 NPE(500) | UserApp.java:1159-1162 | 희귀(LDAP 서버/디렉터리 이상) |
-| C016 | `UserApp.leave`가 `deleteMember`의 403을 버리고 항상 프로필로 redirect하며 직접 호출이라 `@With(DefaultProjectCheckAction)`도 적용 안 됨 | UserApp.java:993-996, ProjectApp.java:1006-1017 | 정상(소유자가 탈퇴 링크 클릭) |
-| C031★ | `findIndexes`가 빈 키워드에서 `index + 0`으로 무한 루프 | SearchResult.java:92-96 (`makeSnippets` :54-) | 희귀(빈 문자열은 차단됨. 공백만 있는 키워드는 비어 있지 않아 무한 루프가 아님) |
-| C034★ | `admin` 사용자가 없으면 `updateDefaultSiteAdmin`에서 NPE | Global.java:301 -> SiteAdmin.java:45-46 | 희귀(첫 기동 화면에서 admin 행이 없을 때만) |
-| C038 | `setMergedStateOfPullRequest`가 상태를 MERGED로 바꾼 직후 `state != MERGED`를 검사해 알림/이벤트가 안 쌓임 | PullRequestActor.java:49-54, PullRequestMergeResul… | 정상(푸시로 보낼 커밋이 모두 반영된 풀 리퀘스트) |
-| C046★ | 일괄 수정에서 삭제 성공이 `updatedItems`에 안 잡혀, 삭제만 성공하고 일부 거부면 403 | IssueApp.java:408-417, 440-442 | 정상(목록에서 여러 건 선택 삭제, 일부는 삭제 권한 없음) |
-| C047 | 조직/전역 검색의 author/assignee가 요청 값을 무시하고 현재 사용자 사용 | SearchCondition.java:184-188, 202-210 | 정상 |
-| C048★ | 멘션/공유/즐겨찾기 조건이 익명이면 조용히 무시되어 전체 반환 | SearchCondition.java:265,276,295 | 희귀(익명이 조직 이슈 목록에 이 쿼리를 직접 붙일 때) |
-| C049★ | 프로젝트 오버로드는 `mentionId`로 필터하지 않고 서브태스크 숨김 판정에만 사용 | SearchCondition.java:347-420 (415행) | 희귀(프로젝트 이슈 목록에 `mentionId`를 직접 붙일 때) |
-| C058 | `isExclusive = ...isBoolean()`을 계산해 놓고 쓰지 않으며, 응답은 새 카테고리 기본값 | ProjectApi.java:483,510 | 희귀(외부 API, 화면은 안 부름) |
-| C062★ | 오류 문구를 번역 키가 아니라 문장(`'이름' has no permission`)으로 만들어 번역되지 않음 | ProjectApi.java:137, ImportApp.java:192, ProjectAp… | 정상(조직 관리자가 아닌 사용자가 조직 소유로 만들 때) |
-| C072★ | 검증은 `trim`한 URL, 클론은 원문(공백 포함) URL을 씀 | ImportApp.java:75,88,201 | 정상(주소 뒤 공백을 붙여 넣을 때). 클론 성공 여부는 JGit 동작이라 미확인 |
-| C080 | SVN WebDAV `HEAD`가 읽기 목록에 없어 UPDATE 권한 요구 | SvnApp.java:188-197 | 정상(읽기 전용 사용자가 HEAD를 보낼 때) |
-| C088 | 이슈 링크 문구에 `linkText += prefix + linkText`와 `prefix + linkText`로 접두와 문구가 중복 | AutoLinkRenderer.java:253-261 | 정상(타 프로젝트 이슈 참조) |
-| C089 | `appendReplacement`에 제목이 든 문자열을 그대로 써 `$`, `\`가 있으면 예외 | AutoLinkRenderer.java:215 | 정상(제목에 `$`, `\`가 든 이슈 참조) |
-| C090 | `extractIssueLink`가 권한 거부 시 true를 돌려 호출부가 `break`로 이후 링크 변환을 중단 | Markdown.java:152,187-189 | 정상 |
-| C096★ | `EventType.valueOf(notificationType)`가 잘못된 값이면 IllegalArgumentException(500) | WatchProjectApp.java:49-50 | 희귀 |
-| C097 | 조직 신청 취소 검증이 `isGuest`만 봐서 이미 멤버인 사용자는 400 | EnrollOrganizationApp.java:96-107 | 정상 |
-| C128★ | 조직 검색의 일부 400이 본문 없는 `badRequest()` | SearchApp.java:118-122, 127-131 | 희귀(직접 만든 요청, 숨김 설정 켜면 정상 사용도 해당) |
-| C136 | 임시 첨부 정리 쿼리가 `ge`라 최근 보관 기간 안의 것을 지움 | Attachment.java:458-461 | 정상(스케줄러가 자동 실행) |
-| C137★ | `Authorization.split("token")[1]`이라 토큰 값 안에 "token" 문자열이 있으면 잘림(Base64 SHA-256 토큰이라 확률 약 4e-8) | UserApi.java:57,136,300,313 | 희귀 |
-| C140★ | extractDepartmentPart가 `[`, `(` 순으로 이미 잘린 문자열에서 다시 찾아, `(`가 `[`보다 앞서면 `(` 부분이 버려짐 | User.java:1166-1177 | 정상(이름에 둘 다 있을 때) |
-| C142★ | 로그인 폼이 절대 URL인 Referer를 경로 문자열 `/users/loginform`과 비교해 항상 다름. 로그인 화면 자신이 redirectUrl이 됨 | UserApp.java:138-143 | 정상(실패한 로그인 뒤 등) |
-| C150 | FileDiff.updateRange에서 lineA와 lineB가 같은 Edit에 맞으면 Edit이 두 번 추가됨 | playRepository/FileDiff.java:230-252 (후보의 경로 FileD… | 해당 없음(죽은 코드) |
-| C151 | 없는 이슈에서 담당자 검사 시 `byId(...).assignee` NPE | AccessControl.java:398-405(후보의 :401이 해당 줄) | 희귀 |
-| C154 | C136과 같은 항목(`ge`로 최근 파일 삭제) | Attachment.java:458-461 | 정상(스케줄러) |
-| C157 | validateForLeave 조건이 거꾸로(관리자는 혼자여도 탈퇴, 일반 구성원은 관리자 1명이면 탈퇴 불가) | OrganizationApp.java:297-311 | 정상 |
-| C167 | 가입 거절(REJECT) 이벤트의 title이 null이 되는 switch 누락 | NotificationEvent.java:1236-1250 | 닿지 않음 |
-| C183 | PR 재오픈이 리뷰어를 초기화하지 않고 병합 액터가 새 커밋을 찾을 때만 초기화 | PullRequest.java:667-670; PullRequestActor.java:39… | 정상 |
-| C187★ | multipart/related에서 `start`도 Content-ID도 없는 자식이 `StringUtils.equals(null,null)`로 모두 루트가 되어 병합됨 | CreationViaEmail.java:388-390 | 정상(Content-ID 없는 related 메일) |
-
-### 화면
-
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C053 | `fileType.eq(" folder")`(앞 공백, 참조 비교)로 항상 거짓이라 앵커가 안 붙음 | views/code/partial_view_folder.scala.html:31 | 정상 |
-| C148★ | Organization.getVisibleProjects는 대소문자 구분 정렬, getSortedByProjectName은 무시 정렬이라 불일치 | Organization.java:82-90,133-138, myOrganizationLis… | 정상(표시 순서) |
-| C152★ | `"error.fobidden"` 오타 키가 어느 messages 파일에도 없어 로그인 화면 제목에 키가 그대로 나옴(5개 번들 모두 0건) | ErrorViews.java:47 | 정상(로그아웃 상태로 없는/비공개 프로젝트 접근) |
-| C159★ | `-ms-sbox-izing` 접두 오타 | app/assets/stylesheets/less/_mixins.less:176 | 정상(무해, 브라우저가 무시) |
-| C160★ | `fonts/material-icon..ttf` 점 두 개 오타(woff2/woff가 먼저 선택돼 ttf 폴백만 영향) | app/assets/stylesheets/usermenu.less:25 (후보의 _user… | 정상(구형 브라우저 ttf 폴백만) |
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C001 | LDAP 바인드는 성공했지만 검색 결과가 없거나 둘 이상이면 `authenticate`가 null이고 `ldapUser.getEmail()`에서 NPE(500) | src/main/kotlin/dev/yona/domain/ldap/LdapAuthService.kt:59 `directory.authenticate(...) ?: error("LDAP 서버에서 사용자를 찾지 못했습니다...")`. IllegalStateException은 web/error/GlobalErrorHandler.kt:81 `@ExceptionHandler(Exception::class)`가 받아 500 화면 | 재현 | v1.6의 NPE가 IllegalStateException으로 바뀌었을 뿐 결과(500)는 같습니다. 줄 번호는 58에서 59로 밀렸고 KDoc에도 R-60으로 의도적 재현이라고 적혀 있습니다. 2026-10-26 지시와의 충돌 여부는 선생님 확인이 필요하다는 기존 기록이 유효합니다. |
+| C016 | `UserApp.leave`가 `deleteMember`의 403을 버리고 항상 프로필로 redirect하며 직접 호출이라 `@With(DefaultProjectCheckAction)`도 적용 안 됨 | src/main/kotlin/dev/yona/web/user/UserLeaveController.kt:40 `if (me?.id != null && !project.isOwner(me)) memberService.removeMember(...)` 뒤 :41 항상 `RedirectSupport.see(... "/${me?.loginId ...}?daysAgo=14&selected=projects")`. 컨트롤러에 DefaultP… | 재현 | 소유자는 제거 거부(403)를 버리고 같은 곳으로 이동하므로 결함 동작은 같습니다. 다만 프로젝트가 없으면 :37에서 404를 돌려주는 점은 v1.6과 다를 수 있습니다. |
+| C031 | `findIndexes`가 빈 키워드에서 `index + 0`으로 무한 루프 | src/main/kotlin/dev/yona/domain/search/SearchSnippets.kt:22-28 `indexOf(lowerKeyword)` 후 `indexOf(lowerKeyword, index + lowerKeyword.length)`로 빈 키워드이면 같은 위치를 계속 찾는 무한 루프. 호출처는 web/search/SearchRowAssembler.kt:62 하나뿐이고 SearchController.kt:49… | 재현 | 루프 코드는 그대로이나 빈 키워드는 입구에서 차단됩니다. 공백만 있는 키워드는 길이가 1 이상이라 루프가 아닙니다. 판정은 코드 기준 재현이고 실제 도달은 어렵습니다. |
+| C034 | `admin` 사용자가 없으면 `updateDefaultSiteAdmin`에서 NPE | src/main/kotlin/dev/yona/security/SiteSecret.kt:63 `requireNotNull(users.findByLoginIdIgnoreCase(DEFAULT_ADMIN_LOGIN_ID)) {...}`가 IllegalArgumentException을 던지고 GlobalErrorHandler가 500으로 처리 | 재현 | NPE가 IllegalArgumentException으로 바뀐 것 외에는 같습니다. |
+| C038 | `setMergedStateOfPullRequest`가 상태를 MERGED로 바꾼 직후 `state != MERGED`를 검사해 알림/이벤트가 안 쌓임 | src/main/kotlin/dev/yona/domain/pullrequest/PullRequestMergeProcessor.kt:98-100 `pullRequest.state = State.MERGED; pullRequest.receiver = sender`만 하고 주석 `v1.6은 ... 이 분기는 실행되지 않는다`. 이후 :103-109는 충돌 상태 변화만 publishMerge | 재현 | MERGED 전환 시 알림과 이벤트를 만들지 않는 동작이 v1.6과 같습니다. 줄 번호는 83-88에서 98-100으로 밀렸습니다. |
+| C046 | 일괄 수정에서 삭제 성공이 `updatedItems`에 안 잡혀, 삭제만 성공하고 일부 거부면 403 | src/main/kotlin/dev/yona/web/issue/IssueMassUpdateController.kt:92 `issueService.delete(...); continue`가 updated를 올리지 않고, :100 `if (updated == 0 && rejected > 0) return ErrorViews.forbidden(...)` | 재현 | 삭제만 성공하고 일부가 거부되면 403이 됩니다. 줄 번호는 84-94에서 90-100 부근으로 밀렸습니다. |
+| C047 | 조직/전역 검색의 author/assignee가 요청 값을 무시하고 현재 사용자 사용 | src/main/kotlin/dev/yona/domain/issue/IssueSearchService.kt:216-224 `if (project == null) viewerId else it`로 author, assignee, 댓글 작성자(commenter) 모두 프로젝트가 없으면 현재 사용자 값을 씀 | 재현 | commenter도 같은 방식입니다(:225-227, `params["commenter"] = viewerId`). 줄 번호가 211-220에서 216-228 부근으로 밀렸습니다. |
+| C048 | 멘션/공유/즐겨찾기 조건이 익명이면 조용히 무시되어 전체 반환 | src/main/kotlin/dev/yona/domain/issue/IssueSearchService.kt:229 `... && viewer != null`, :233, :237. 익명이면 조건절 자체를 추가하지 않아 필터가 무시됨 | 재현 | 익명이 볼 수 있는 이슈 범위 안에서만 반환되는지는 이 서비스 밖의 접근 제어에 달려 있어 보안 항목으로 보지 않았습니다. |
+| C049 | 프로젝트 오버로드는 `mentionId`로 필터하지 않고 서브태스크 숨김 판정에만 사용 | src/main/kotlin/dev/yona/domain/issue/IssueSearchService.kt:229 멘션 조건은 `project == null`일 때만 추가, :252-253 `condition.mentionId == null`이 최상위 이슈만 보이는 `i.parent is null` 판정에만 쓰임 | 재현 |  |
+| C058 | `isExclusive = ...isBoolean()`을 계산해 놓고 쓰지 않으며, 응답은 새 카테고리 기본값 | src/main/kotlin/dev/yona/web/api/ExternalProjectApiController.kt:172 `labelService.createLabel(project, name, color, categoryName, false)`로 요청의 isExclusive를 읽지도 않고 false 고정, :176 응답 `"isExclusive" to label.category?.isExclusive` | 재현 | 요청의 isExclusive 값을 무시하는 동작이 같습니다. |
+| C062 | 오류 문구를 번역 키가 아니라 문장(`'이름' has no permission`)으로 만들어 번역되지 않음 | src/main/kotlin/dev/yona/web/project/ProjectCreateController.kt:68 `ErrorViews.forbidden("'${displayNameOf(creator)}' has no permission")`, web/api/ExternalProjectApiController.kt:118 `"'${viewer.name}' has no permission"`, web/project/Impo… | 재현 | ErrorViews가 키를 번역하지 못하면 문장이 그대로 출력됩니다. 번역 조회의 기본값 처리까지는 읽지 않았습니다. |
+| C072 | 검증은 `trim`한 URL, 클론은 원문(공백 포함) URL을 씀 | src/main/kotlin/dev/yona/domain/project/ProjectImportService.kt:88 `LegacyText.isBlank(form.url)`로만 검사하고 :97 `repositories.importRepository(project, requireNotNull(form.url), ...)`에 원문을 넘기며 repository/GitRepositories.kt:117 `setURI(url)`도 t… | 재현 | v1.6은 검증에만 trim한 값을 씁니다(ImportApp.java:201 vs :75). 실제 클론이 공백 포함 URL에서 실패하는지는 JGit 동작이라 실행해 보지 않았습니다. |
+| C080 | SVN WebDAV `HEAD`가 읽기 목록에 없어 UPDATE 권한 요구 | src/main/kotlin/dev/yona/web/svn/SvnDavService.kt:97 `READ_METHODS = setOf(OPTIONS, PROPFIND, GET, REPORT)`에 HEAD가 없고 :60 `if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE` | 재현 | 읽기 전용 사용자가 HEAD를 보내면 UPDATE 권한이 요구되어 403입니다. 권한을 더 엄격히 요구하는 쪽의 오류입니다. |
+| C088 | 이슈 링크 문구에 `linkText += prefix + linkText`와 `prefix + linkText`로 접두와 문구가 중복 | src/main/kotlin/dev/yona/markdown/AutoLinkRenderer.kt:129 `if (prefix.isNotEmpty()) linkText += prefix + linkText`, :133 `prefix + linkText` | 재현 | 줄 번호가 128,132에서 129,133으로 밀렸습니다. |
+| C090 | `extractIssueLink`가 권한 거부 시 true를 돌려 호출부가 `break`로 이후 링크 변환을 중단 | src/main/kotlin/dev/yona/markdown/IssueLinkTransformer.kt:73 `if (!accessControl.isAllowed(...READ)) return true`, :49 `if (extractIssueLink(element, uri)) break` | 재현 |  |
+| C096 | `EventType.valueOf(notificationType)`가 잘못된 값이면 IllegalArgumentException(500) | src/main/kotlin/dev/yona/web/project/WatchProjectController.kt:74 `val type = EventType.valueOf(notificationType)`가 :75 프로젝트 조회와 :76 권한 검사보다 먼저 실행. 잘못된 값이면 IllegalArgumentException이 GlobalErrorHandler.kt:81에서 500 | 재현 | 인증하지 않은 요청도 이 예외를 먼저 만납니다. |
+| C097 | 조직 신청 취소 검증이 `isGuest`만 봐서 이미 멤버인 사용자는 400 | src/main/kotlin/dev/yona/web/EnrollController.kt:108 `if (!isOrganizationGuest(...)) return ResponseEntity.badRequest().build()` (취소 경로), :121-124 `isOrganizationGuest`는 구성원이 아니고 사이트 관리자도 아닐 때만 참 | 재현 | 이미 멤버인 사용자와 사이트 관리자의 취소 요청은 400입니다. |
+| C128 | 조직 검색의 일부 400이 본문 없는 `badRequest()` | src/main/kotlin/dev/yona/web/search/SearchController.kt:66, :72 `return ResponseEntity.badRequest().build<Void>()` (조직 검색). 프로젝트 검색(:99 등)은 ErrorViews.badRequest() | 재현 | 줄 번호가 63,68에서 66,72로 밀렸습니다. 숨김 설정은 `properties.hideProjectListing`입니다. |
+| C136 | 임시 첨부 정리 쿼리가 `ge`라 최근 보관 기간 안의 것을 지움 | src/main/kotlin/dev/yona/domain/misc/TemporaryFileCleaner.kt:48 `attachments.findByContainerTypeAndCreatedDateGreaterThanEqual(ResourceType.USER, Date(startOfDay(now) - keepUpTime))`, 클래스 KDoc이 R-20으로 최근 것을 지운다고 명시 | 재현 | 의도적으로 v1.6을 따른 재현입니다. 스케줄러가 매일 실행되면 오늘 올린 임시 첨부가 지워질 수 있습니다. |
+| C140 | extractDepartmentPart가 `[`, `(` 순으로 이미 잘린 문자열에서 다시 찾아, `(`가 `[`보다 앞서면 `(` 부분이 버려짐 | src/main/kotlin/dev/yona/domain/user/UserDisplay.kt:33-36 `for (splitter in listOf("[", "(")) if (result.contains(splitter)) result = name.substring(name.indexOf(splitter))` | 재현 | v1.6 User.java:1166-1177과 같은 구조입니다. 이름에 둘 다 있으면 나중에 찾은 `(` 기준이 이기므로 `[`가 먼저 있으면 `[` 부분이 버려지고, 반대로 `(`가 앞서면 `(` 뒤쪽만 남는 `[` 쪽이 이깁니다. 설명의 방향은 `(`가 `[`보다 앞설 때 `(` 부분이 버려진다는 것으로 코드와 일치합니다. |
+| C142 | 로그인 폼이 절대 URL인 Referer를 경로 문자열 `/users/loginform`과 비교해 항상 다름. 로그인 화면 자신이 redirectUrl이 됨 | src/main/kotlin/dev/yona/web/user/LoginFormController.kt:39 `if (redirectUrl.isNullOrEmpty() && referer != LOGIN_FORM_PATH) redirectUrl = referer`, :56 `LOGIN_FORM_PATH = "/users/loginform"` 상대 경로 상수. 브라우저의 Referer는 절대 URL이라 항상 다름 | 재현 |  |
+| C150 | FileDiff.updateRange에서 lineA와 lineB가 같은 Edit에 맞으면 Edit이 두 번 추가됨 | src/main/kotlin/dev/yona/repository/diff/FileDiff.kt:188-194 `if (lineA...) kept.add(edit); if (lineB...) kept.add(edit)`로 둘 다 맞으면 두 번 추가 | 재현 | 호출처가 없는 죽은 코드입니다(`updateRange` grep 결과가 정의 한 줄뿐). 코드 구조로는 재현이지만 도달 경로가 없습니다. |
+| C151 | 없는 이슈에서 담당자 검사 시 `byId(...).assignee` NPE | src/main/kotlin/dev/yona/access/AccessControl.kt:251 `issues.findById(resource.id.toLong()).orElseThrow().assignee`. 없는 이슈면 NoSuchElementException으로 GlobalErrorHandler에서 500 | 재현 | refactoring-backlog.md R-10에 같게 재현한다고 적혀 있습니다. NPE가 NoSuchElementException으로 바뀌었을 뿐입니다. |
+| C154 | C136과 같은 항목(`ge`로 최근 파일 삭제) | src/main/kotlin/dev/yona/domain/misc/TemporaryFileCleaner.kt:48 (C136과 같은 항목) | 재현 | C136과 중복 항목입니다. |
+| C157 | validateForLeave 조건이 거꾸로(관리자는 혼자여도 탈퇴, 일반 구성원은 관리자 1명이면 탈퇴 불가) | src/main/kotlin/dev/yona/domain/project/OrganizationManagementService.kt:157-160 `if (!accessControl.isAllowed(actor, org, Operation.LEAVE) && countByOrganizationIdAndRoleId(orgId, ORG_ADMIN) == 1L)`로 거부. KDoc에 R-19로 조건이 거꾸로라고 명시 | 재현 | 의도적 재현입니다. 이 함수 뒤쪽의 거부 처리는 읽지 않아 줄 번호 범위가 약간 다를 수 있습니다. |
+| C167 | 가입 거절(REJECT) 이벤트의 title이 null이 되는 switch 누락 | src/main/kotlin/dev/yona/domain/notification/NotificationListener.kt:380 REJECT도 수신자 처리, :387 `else -> Triple(requestType, null, null)`로 REJECT의 제목이 null | 재현 | 코드 모양은 같지만 RequestState.REJECT를 발행하는 곳이 v2에 없습니다(grep 결과 enum 정의와 이 줄뿐). 따라서 실제로는 닿지 않습니다. |
+| C183 | PR 재오픈이 리뷰어를 초기화하지 않고 병합 액터가 새 커밋을 찾을 때만 초기화 | src/main/kotlin/dev/yona/domain/pullrequest/PullRequestWorkflow.kt:123-134 `reopen`은 리뷰어를 건드리지 않고, domain/pullrequest/PullRequestMergeProcessor.kt:90-93 새 커밋이 있을 때만 `reviewers.clear()` | 재현 | v2는 추가 항목(X-12)으로 `isDismissingStaleApprovals`가 꺼진 프로젝트(`!= false` 조건)에서는 새 커밋에도 비우지 않습니다. 기본값에서는 v1.6과 같습니다. |
+| C187 | multipart/related에서 `start`도 Content-ID도 없는 자식이 `StringUtils.equals(null,null)`로 모두 루트가 되어 병합됨 | src/main/kotlin/dev/yona/mailbox/MailParsing.kt:146 `(rootId == null && index == 0) // part.contentID == rootId`, :140 `isRoot`이면 병합. start와 Content-ID가 모두 null이면 `null == null`로 참 | 재현 | start가 없고 Content-ID도 없는 자식은 모두 본문으로 병합됩니다. |
 
 ### JS
 
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C003★ | `requestAs`의 `get` 분기가 선언하지 않은 `el`을 읽어 ReferenceError | jquery.requestAs.js:49 | \ |
-| C004★ | `_onSuccessSubmit`이 응답 검증 실패 때 `_onErrorSubmit(nSubmitId, oRes)`로 네임스페이스를 빠뜨려 네임스페이스 핸들러가 `errorUpload`를 못 받음 | yobi.Files.js:225-227 (`_onErrorSubmit` 시그니처 :247) | 정상(업로드 응답에 name/url이 없을 때) |
-| C005★ | 업로드 실패 시 임시 주석을 `nSubmitId + ".png"`로 지우는데 삽입은 `nSubmitId`(접미 없음)라 주석이 남는다 | yobi.Attachments.js:350 vs :533 (`_getTempLinkText… | 정상(붙여넣기 업로드 실패) |
-| C006★ | `_onSuccessUpload`가 응답 검증 전에 `oRes.id`를 목록에 등록하고, `_onErrorUpload(nSubmitId, oRes)`로 호출하지만 함수는 `htData` 하나를 받아 `htData.nSubmitId`가 undefined | yobi.Attachments.js:282-285 (`_onErrorUpload` :341… | 정상(업로드 응답 이상 시) |
-| C007★ | 업로드마다 `.on("click", ".btn-delete", deleteAttachment)`를 다시 걸어 삭제 핸들러가 누적 | yona.CommentAttachmentsUpdate.js:136-137 | 정상(한 댓글 폼에서 두 번 이상 업로드 후 삭제) |
-| C008★ | `splitIds.includes(fileId)`가 문자열 배열과 숫자 id를 비교해 항상 거짓, 같은 id가 중복으로 붙을 수 있음 | yona.CommentAttachmentsUpdate.js:154 | 정상(같은 파일 id가 다시 오는 경우만 영향, 영향 작음) |
-| C009★ | `if (!data && !data.receivers)`가 `&&`라 data가 null이면 TypeError, data가 있고 receivers만 없으면 통과해 `sortByName(undefined)` | yona.ReceiverList.js:33 | 희귀(서버가 항상 객체를 돌려줌) |
-| C010★ | `getPlainText`가 인자 대신 전역 `window.event`를 씀 | yobi.Files.js:588 | 정상(표 붙여넣기. 전역 event가 있는 브라우저에서는 동작) |
-| C011★ | `htLabels.hasOwnProperty()`에 인자가 없어 항상 false, 라벨 버튼 비활성화 의도가 동작하지 않음 | yobi.issue.MassUpdate.js:190 | 정상(버튼이 항상 활성) |
-| C022★ | `_beautifyFileSize`가 `welShowfile`(소문자 f)을 읽어 TypeError. 요소는 `welShowFile` | yobi.code.Browser.js:359 (정의 :72) | 정상(이진 파일 보기) |
-| C024★ | 삭제 링크를 누를 때마다 `#deleteBtn` click 핸들러를 추가해 취소 후 다른 구성원을 지우면 이전 구성원 URL로도 DELETE | yobi.organization.Member.js:165-172 | 정상(삭제 확인 창을 닫고 다른 구성원 삭제. 의도하지 않은 구성원 삭제 가능) |
-| C025★ | 비밀번호/확인 keyup이 `htVar.oDelay` 하나를 공유해 한쪽이 다른 쪽 검사를 취소 | yobi.user.SignUp.js:99-117 | 정상(영향 작음) |
-| C026★ | 문서에 붙이지 않은 `$('<form>')`에 `submit()`을 호출해 최신 브라우저는 제출하지 않으므로 `mailto:` 메일 창이 안 열림 | yobi.site.MassMail.js:107-116 | 희귀(사이트 관리자 화면) |
-| C032 | 코드/PR 체크 해제 때 초기화되지 않은 `welReviewerCountSettingPanel`을 호출해 TypeError | yobi.project.New.js:198-200, 210 | 정상(프로젝트 생성/가져오기 화면) |
-| C042★ | `--`/`++`로 시작하는 줄(예: 내용이 `-`/`+`로 시작하는 삭제/추가 줄)을 파일 헤더 분기로 보내 `return`해 렌더링 안 되고 줄 번호도 어긋남 | yobi.code.SvnDiff.js:350-360 | 정상(Subversion 프로젝트 커밋/비교 화면) |
-| C043★ | 헝크 헤더 파싱 실패 시 경고만 하고 `aHunkRange[1]`로 TypeError | yobi.code.SvnDiff.js:383-395 | 희귀(형식이 어긋난 헝크 헤더) |
-| C064★ | 번역 `.done` 콜백의 `$(this)`가 버튼이 아니라 ajax 설정 객체여서 버튼이 비활성화되지 않음 | views/board/view.scala.html:271,290 (issue/view.sc… | 정상(번역 단추. `.one('click')`이라 재클릭은 막혀 해는 작음) |
-| C074★ | 검증 실패 분기가 `_onErrorUpload(nSubmitId, oRes)`로 호출하지만 수신 함수는 `htData` 하나라 `htData.oRes.status`에서 TypeError | yobi.Attachments.js:285,341 | 희귀(업로드가 200이지만 응답에 name/url이 없을 때) |
-| C077★ | 알림 `.more` 토글이 링크/이미지 클릭 판정보다 먼저 실행돼 링크를 눌러도 토글됨 | notifications.scala.html:82-91 | 정상 |
-| C101★ | 첨부 이전 위임 서비스 함수가 undefined를 반환하는데 `.then` 호출 -> TypeError | yona.Migration.js:123, 128, 685-687 | 정상(이전 화면 사용 중 해당 경로 진입) |
-| C102★ | `endLoadingBar(counter++)` 후위 증가라 counter가 늘지 않아 타임아웃 불가 | yona.Migration.js:489 | 정상(가져오기 수가 기대값과 어긋날 때) |
-| C113★ | (a) Browser.js:359 `welShowfile` 오타(정의는 `welShowFile`, :72) (b) MassUpdate.js:174 `htLabel` 전역 누출(:166 선언에 없음, :230에만 있음), :190 `hasOwnProperty()` 인자… | 열거한 파일:줄 | (a)(c) 정상, (b) 정상(일괄 수정 사용), (d) 희귀(형식 틀린 헝크 헤더) |
-| C174★ | `[data-action=delete]` 클릭마다 `#deleteBtn` click 핸들러를 새로 등록해 누적, 확인 한 번에 DELETE가 여러 번 나감 | yobi.organization.Member.js:161-175 | 정상 |
-| C181★ | `_onSuccessUpload`가 `_onErrorUpload(nSubmitId, oRes)`로 위치 인자를 넘기지만 함수는 객체 하나를 받아 `htData.nSubmitId`가 undefined, 진행 항목이 안 지워지고 오류 안내가 깨짐 | yobi.Attachments.js:285,341-342 | 희귀(서버 응답에 name/url이 없을 때) |
-
-### 화면(메시지)
-
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C184 | 영어/러시아어 `viaEmail.error.cannotCreate`가 `{1}~{3}`을 쓰지만 인자는 `{0}`부터 3개라 어긋남, `{3}` 미치환 | conf/messages:1105; messages.ru-RU:998; CreationVi… | 정상(메일 수신 권한 오류 회신) |
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C003 | `requestAs`의 `get` 분기가 선언하지 않은 `el`을 읽어 ReferenceError | src/main/resources/static/assets/javascripts/**/jquery.requestAs.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C004 | `_onSuccessSubmit`이 응답 검증 실패 때 `_onErrorSubmit(nSubmitId, oRes)`로 네임스페이스를 빠뜨려 네임스페이스 핸들러가 `errorUpload`를 못 받음 | src/main/resources/static/assets/javascripts/**/yobi.Files.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C005 | 업로드 실패 시 임시 주석을 `nSubmitId + ".png"`로 지우는데 삽입은 `nSubmitId`(접미 없음)라 주석이 남는다 | src/main/resources/static/assets/javascripts/**/yobi.Attachments.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C006 | `_onSuccessUpload`가 응답 검증 전에 `oRes.id`를 목록에 등록하고, `_onErrorUpload(nSubmitId, oRes)`로 호출하지만 함수는 `htData` 하나를 받아 `htData.nSubmitId`가 undefined | src/main/resources/static/assets/javascripts/**/yobi.Attachments.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C007 | 업로드마다 `.on("click", ".btn-delete", deleteAttachment)`를 다시 걸어 삭제 핸들러가 누적 | src/main/resources/static/assets/javascripts/**/yona.CommentAttachmentsUpdate.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C008 | `splitIds.includes(fileId)`가 문자열 배열과 숫자 id를 비교해 항상 거짓, 같은 id가 중복으로 붙을 수 있음 | src/main/resources/static/assets/javascripts/**/yona.CommentAttachmentsUpdate.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C009 | `if (!data && !data.receivers)`가 `&&`라 data가 null이면 TypeError, data가 있고 receivers만 없으면 통과해 `sortByName(undefined)` | src/main/resources/static/assets/javascripts/**/yona.ReceiverList.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C010 | `getPlainText`가 인자 대신 전역 `window.event`를 씀 | src/main/resources/static/assets/javascripts/**/yobi.Files.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C011 | `htLabels.hasOwnProperty()`에 인자가 없어 항상 false, 라벨 버튼 비활성화 의도가 동작하지 않음 | service/yobi.issue.MassUpdate.js:206 | 재현 | `htLabels.hasOwnProperty()` 인자 없음이 그대로 남음. 파일은 v1.6과 다름(고정 막대 `_markStuckWhileScrolling` 추가, A-301) |
+| C022 | `_beautifyFileSize`가 `welShowfile`(소문자 f)을 읽어 TypeError. 요소는 `welShowFile` | src/main/resources/static/assets/javascripts/**/yobi.code.Browser.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C024 | 삭제 링크를 누를 때마다 `#deleteBtn` click 핸들러를 추가해 취소 후 다른 구성원을 지우면 이전 구성원 URL로도 DELETE | service/yobi.organization.Member.js:165 | 재현 | `_onClickDelete`가 클릭마다 `$("#deleteBtn").click(...)` 핸들러를 새로 단다. 파일은 v1.6과 다름(모달 호출만 Bootstrap 5로 바뀜) |
+| C025 | 비밀번호/확인 keyup이 `htVar.oDelay` 하나를 공유해 한쪽이 다른 쪽 검사를 취소 | service/yobi.user.SignUp.js:99-117 | 재현 | 비밀번호 확인과 비밀번호 keyup이 `htVar.oDelay`를 공유해 서로의 `clearTimeout`을 호출. 파일은 v1.6과 다름(팝오버 호출만 바뀜) |
+| C026 | 문서에 붙이지 않은 `$('<form>')`에 `submit()`을 호출해 최신 브라우저는 제출하지 않으므로 `mailto:` 메일 창이 안 열림 | service/yobi.site.MassMail.js:107,116 | 재현 | 문서에 붙이지 않은 `$("<form>")`에 `form.submit()`. 파일은 v1.6과 다름(`.label`을 `.badge`로, 로딩 표시 함수 교체) |
+| C032 | 코드/PR 체크 해제 때 초기화되지 않은 `welReviewerCountSettingPanel`을 호출해 TypeError | service/yobi.project.New.js:197,209 | 재현 | `welReviewerCountSettingPanel`을 쓰지만 이 파일에서 값을 넣는 줄이 없어 TypeError(정의는 yobi.project.Setting.js:59에만 있음). 파일은 v1.6과 다름(팝오버 호출만 바뀜) |
+| C042 | `--`/`++`로 시작하는 줄(예: 내용이 `-`/`+`로 시작하는 삭제/추가 줄)을 파일 헤더 분기로 보내 `return`해 렌더링 안 되고 줄 번호도 어긋남 | src/main/resources/static/assets/javascripts/**/yobi.code.SvnDiff.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C043 | 헝크 헤더 파싱 실패 시 경고만 하고 `aHunkRange[1]`로 TypeError | src/main/resources/static/assets/javascripts/**/yobi.code.SvnDiff.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C064 | 번역 `.done` 콜백의 `$(this)`가 버튼이 아니라 ajax 설정 객체여서 버튼이 비활성화되지 않음 | templates/board/view.html:223 (issue/view.html도 같은 패턴) | 재현 | `.done` 콜백에서 `$(this).attr("disabled", true)`의 `this`가 버튼이 아니라 ajax 설정 객체 |
+| C074 | 검증 실패 분기가 `_onErrorUpload(nSubmitId, oRes)`로 호출하지만 수신 함수는 `htData` 하나라 `htData.oRes.status`에서 TypeError | src/main/resources/static/assets/javascripts/**/yobi.Attachments.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C077 | 알림 `.more` 토글이 링크/이미지 클릭 판정보다 먼저 실행돼 링크를 눌러도 토글됨 | templates/index/notifications.html:77-89 | 재현 | `$this.find(".more").toggle()`이 `a`, `img` 클릭 판정보다 먼저 실행되어 링크를 눌러도 토글됨 |
+| C101 | 첨부 이전 위임 서비스 함수가 undefined를 반환하는데 `.then` 호출 -> TypeError | src/main/resources/static/assets/javascripts/**/yona.Migration.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C102 | `endLoadingBar(counter++)` 후위 증가라 counter가 늘지 않아 타임아웃 불가 | src/main/resources/static/assets/javascripts/**/yona.Migration.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
+| C113 | (a) Browser.js:359 `welShowfile` 오타(정의는 `welShowFile`, :72) (b) MassUpdate.js:174 `htLabel` 전역 누출(:166 선언에 없음, :230에만 있음), :190 `hasOwnProperty()` 인자 없음 (c) Member.js:161… | service/yobi.code.Browser.js:359; service/yobi.issue.MassUpdate.js:190,206; service/yobi.organization.Member.js:165; service/yobi.code.SvnDiff.js:395 | 재현 | (a) `welShowfile` 오타(정의는 `welShowFile`, :72), (b) `htLabel`을 :246에서만 선언하고 :190에서 선언 없이 쓰며 :206 `hasOwnProperty()` 인자 없음, (c) 삭제 클릭마다 핸들러 누적, (d) `aHunkRange`가 null이면 경고만 하고 `aHunkRange[1]`을 읽어 TypeErr… |
+| C174 | `[data-action=delete]` 클릭마다 `#deleteBtn` click 핸들러를 새로 등록해 누적, 확인 한 번에 DELETE가 여러 번 나감 | service/yobi.organization.Member.js:165 | 재현 | C024와 같은 결함. 이전 기록의 "v1.6과 동일(diff 없음)"은 지금은 틀림(모달 호출 2줄이 다름), 결함 줄은 그대로 |
+| C181 | `_onSuccessUpload`가 `_onErrorUpload(nSubmitId, oRes)`로 위치 인자를 넘기지만 함수는 객체 하나를 받아 `htData.nSubmitId`가 undefined, 진행 항목이 안 지워지고 오류 안내가 깨짐 | src/main/resources/static/assets/javascripts/**/yobi.Attachments.js (v1.6 브랜치의 같은 이름 파일과 해시 동일) | 재현 | 파일이 v1.6과 바이트 단위로 같아 결함 줄이 그대로 있다 |
 
 ### 화면(템플릿)
 
-| 번호 | 결함 | v1.6 소스 | 닿는 경로 |
-|---|---|---|---|
-| C020★ | `urlToList(project, state)`가 `state` 인자를 무시하고 항상 `"open"`을 써서 닫힌 이슈/하위 이슈의 라벨 링크도 열림 목록으로 감 | my_partial_list.scala.html:42,74, partial_view_chi… | 정상(닫힌 이슈의 라벨 클릭) |
-| C021★ | 일반 목록이 비면 `else` 안에서만 그려지는 초안 목록이 안 그려져, 초안만 있는 프로젝트의 이슈 화면은 초안이 안 보임 | partial_list_wrap.scala.html:61-86 | 정상(열린 이슈 없이 초안만 있는 프로젝트) |
-| C028 | 게시글 댓글 검색 결과의 작성자 없음 문구 키 `posting.noAuthor`가 메시지 파일에 없음 | partial_post_comments.scala.html:45 (메시지는 `common… | 희귀(작성자 이름이 비어 있는 게시글 댓글) |
-| C086 | 상대 링크 치환에서 `application.context`가 있으면 `"/" + root + owner`가 `//ctxowner`가 됨 | Markdown.java:359-375 | 정상(컨텍스트 경로를 쓰는 배포) |
-| C087★ | 정규식 `(.*)\)`가 탐욕이라 한 줄에 상대 링크가 둘이면 합쳐짐 | Markdown.java:363,372-373 | 정상 |
-| C122 | `ProjectUser.isMember(userId, projectId)`에 인수 순서를 뒤바꿔 전달 | partial_state.scala.html:30, ProjectUser.java:122-… | 정상 |
-| C123★ | 이벤트 li는 `id="comment-N"`인데 날짜 링크는 `#event-N` | partial_pull_request_event.scala.html:56,60 | 정상 |
-| C124 | 프로젝트 검색 결과에 페이지 이동 요소가 없어 21건째부터 UI로 접근 불가 | search/partial_projects.scala.html (전체, 쪽 이동 없음) | 정상 |
-| C125 | `posting.noAuthor` 키가 메시지 파일에 없음 | search/partial_post_comments.scala.html:45 | 정상(작성자 없는 게시글 댓글) |
-| C168★ | 사용자 페이지의 닫힘 이슈 탭 빈 메시지 조건이 전체 `issues.isEmpty`라 닫힌 이슈만 없어도(또는 열림 탭에서 열린 이슈만 없어도) 메시지가 안 나옴. 파일은 `user/view.scala.html`(candidate의 view.scala.html:143) | user/view.scala.html:131-135,142-147 | 정상 |
-| C171★ | 조직 설정 폼이 검증 실패(이름 중복) 시 제출 값이 아니라 DB 값을 다시 표시. candidate의 setting.scala.html:58,68은 `organization/setting.scala.html`(project/setting도 같은 모양, 단 projec… | organization/setting.scala.html:58,68; Organizatio… | 정상 |
-| C179★ | `Q` 단축키가 로그인 ID `manager`일 때만 켜지고, 그때 출력되는 `"Q": …`는 앞 쉼표가 없어 단축키 맵이 문법 오류 | projectMenu.scala.html:148-151 (다른 항목은 `,"M"` 식으로… | 희귀(로그인 ID가 `manager`인 사용자) |
-| C180 | 폴더 판정 `eq(" folder")`(앞 공백)라 항상 거짓, 폴더 링크에 `#cb-` 앵커가 안 붙음 | partial_view_folder.scala.html:31 | 정상 |
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C020 | `urlToList(project, state)`가 `state` 인자를 무시하고 항상 `"open"`을 써서 닫힌 이슈/하위 이슈의 라벨 링크도 열림 목록으로 감 | src/main/resources/templates/issue/my-partial-list.html:40,59, issue/partial-subtasks.html:38, issue/partial-list.html:74,165 모두 `/issues?state=open&labelIds=...` | 재현 | state 인자와 무관하게 open 고정. 닫힌 이슈의 라벨 링크도 열림 목록으로 감. |
+| C021 | 일반 목록이 비면 `else` 안에서만 그려지는 초안 목록이 안 그려져, 초안만 있는 프로젝트의 이슈 화면은 초안이 안 보임 | src/main/resources/templates/issue/partial-list-wrap.html:35-41 `items.isEmpty()` 분기에는 초안 목록이 없고, :55-57 비어 있지 않은 분기(unless)에서만 `draftList`; src/main/kotlin/dev/yona/web/issue/IssueListController.kt:137 showDrafts | 재현 | v1.6와 같은 구조라 초안만 있고 일반 목록이 비면 초안이 안 보임. 줄 번호는 기록과 조금 다름. |
+| C028 | 게시글 댓글 검색 결과의 작성자 없음 문구 키 `posting.noAuthor`가 메시지 파일에 없음 | src/main/kotlin/dev/yona/web/search/SearchRowAssembler.kt:83 `if (noAuthorKey == "posting.noAuthor") noAuthorKey`, :111 postingComment가 `noAuthorKey = "posting.noAuthor"`; messages.properties에는 common.noAuthor(189), issue.noAuthor(333)만 있음 | 재현 | 작성자가 있으나 이름이 비어 있을 때만 키 문자열이 그대로 나옴. C125와 같은 결함. |
+| C029 | 후보 서술은 "`findByLoginId`가 NullUser를 돌려 noAuthor 분기 미도달"이지만, NullUser는 `name`이 비어 있지 않으므로(`user.notExists.name`) 존재하지 않는 ID는 "없는 사용자" 링크로 나오고, 이름이 비워진 삭제 사용자는 noAuthor 분기에… | src/main/kotlin/dev/yona/web/search/SearchRowAssembler.kt:70-73 `author()`: 로그인 ID가 DB에 없으면 `"" to user.notExists.name` 메시지(NullUser와 같은 표시), 사용자는 있으나 이름이 비면 `authorName=null`로 noAuthor 문구 | 재현 | 기존 v2 기록은 오래됨. 지금 코드는 DB에 없는 ID를 NullUser 이름으로 표시하고(A-117), 이름이 빈 사용자만 noAuthor 분기에 닿아 결함 설명대로 v1.6과 같음. 이 묶음에서는 검색 행만 읽었으며 게시판 목록, 사용자 페이지, 사이트 목록, REST JSON의 확대 적용은 확인하지 않음. |
+| C086 | 상대 링크 치환에서 `application.context`가 있으면 `"/" + root + owner`가 `//ctxowner`가 됨 | src/main/kotlin/dev/yona/markdown/RelativeLinkRewriter.kt:23 `context = "/$contextPath"`, :27,:34 `"/$context$owner/..."` | 재현 | contextPath가 `ctx`이면 `//ctxowner/...`가 되어 v1.6과 같음. |
+| C087 | 정규식 `(.*)\)`가 탐욕이라 한 줄에 상대 링크가 둘이면 합쳐짐 | src/main/kotlin/dev/yona/markdown/RelativeLinkRewriter.kt:40-41 `\\[...]\\($NOT_ABSOLUTE(.*)\\)` 탐욕 `(.*)` | 재현 | 한 줄에 상대 링크가 둘이면 첫 `(`부터 마지막 `)`까지 하나로 잡힘. |
+| C122 | `ProjectUser.isMember(userId, projectId)`에 인수 순서를 뒤바꿔 전달 | src/main/kotlin/dev/yona/web/pullrequest/PullRequestPageAssembler.kt:217 `projectUsers.existsByUserIdAndProjectId(requireNotNull(to.id), it)` (it=viewer.id) | 재현 | userId 자리에 프로젝트 번호, projectId 자리에 사용자 번호를 넣음. 줄 번호가 기록(141-142)과 다름. 코드 주석에 R-43. |
+| C123 | 이벤트 li는 `id="comment-N"`인데 날짜 링크는 `#event-N` | src/main/resources/templates/pullrequest/partial-timeline.html:10 `th:id="'comment-' + ${e.id}"`, :13 `th:href="'#event-' + ${e.id}"` | 재현 | id와 앵커가 어긋남. |
+| C124 | 프로젝트 검색 결과에 페이지 이동 요소가 없어 21건째부터 UI로 접근 불가 | src/main/resources/templates/search/partial-projects.html:1-50 쪽 이동 요소 없음(헤더 주석에 R-50); src/main/kotlin/dev/yona/web/search/SearchController.kt:100 `pageNum` 파라미터는 받음 | 재현 | 주소에 pageNum을 직접 쓰면 접근되지만 UI에는 이동 요소가 없음. v1.6과 같음. |
+| C125 | `posting.noAuthor` 키가 메시지 파일에 없음 | src/main/kotlin/dev/yona/web/search/SearchRowAssembler.kt:83,111 (C028과 같은 코드) | 재현 | C028과 동일 결함. |
+| C168 | 사용자 페이지의 닫힘 이슈 탭 빈 메시지 조건이 전체 `issues.isEmpty`라 닫힌 이슈만 없어도(또는 열림 탭에서 열린 이슈만 없어도) 메시지가 안 나옴. 파일은 `user/view.scala.html`(candidate의 view.scala.html:143) | src/main/resources/templates/user/view.html:96,106 두 탭 모두 `th:if="${activity.issues.isEmpty()}"` | 재현 | 전체 목록이 비었을 때만 빈 메시지가 나옴. 열림 또는 닫힘 한쪽만 비면 메시지가 안 나옴. |
+| C171 | 조직 설정 폼이 검증 실패(이름 중복) 시 제출 값이 아니라 DB 값을 다시 표시. candidate의 setting.scala.html:58,68은 `organization/setting.scala.html`(project/setting도 같은 모양, 단 project의 오류 재표시는 따로 확인 안 함… | src/main/kotlin/dev/yona/web/organization/OrganizationSettingController.kt:78-80 이름 중복이면 `settingView(organization, ...)` 반환; src/main/resources/templates/organization/setting.html:45,55 `th:value="${org.name}"`, `th:text="${org.descr}"` | 재현 | 제출한 값이 아니라 DB의 조직 값이 다시 표시됨. 프로젝트 설정은 확인하지 않음. |
+| C180 | 폴더 판정 `eq(" folder")`(앞 공백)라 항상 거짓, 폴더 링크에 `#cb-` 앵커가 안 붙음 | src/main/kotlin/dev/yona/web/code/CodePageAssembler.kt:18-19,92; src/main/resources/templates/code/view.html:60 `th:href="${e.href}"`에 `#cb-` 앵커 없음 | 재현 | C053과 동일 결함. |
 
-## 4. 고치거나 해당 없는 재현 목록(R) 항목
+### 화면
 
-| 번호 | 위치 | v2의 처리 |
-|---|---|---|
-| R-03 | 로그아웃 | 홈(`/`)으로 이동한다. v1.6의 오류까지 재현하지는 않는다. **선생님 승인(2026-10-22)** |
-| R-04 | API 토큰 | 같게 재현했으나 X-5(A-206)에서 잠기거나 삭제된 사용자의 토큰을 거절하도록 바꿨다(의도된 차이, differences-from-v16.md) |
-| R-63 | 라벨 붙이기(`POST /:user/:project/labels`) | 결함 아님(정정) |
-| R-73 | `IssueApp.editIssue`, `deleteIssue` | 재현하지 않음(선생님 승인 2026-10-26, P-07) |
-| R-76 | `PullRequestApp.accept` | v2도 병합 중 표시를 먼저 저장하고 트랜잭션을 걸지 않아 같은 상태가 남는다. **개선함(선생님 승인 2026-11-02)**: 병합 조건을 확인한 뒤에 표시를 저장하고, 병합기가 예외를 던지면… |
-| R-81 | `10.sql` USER/USER_AVATAR 백필 | 재현하지 않음(해당 없음) |
-| R-85 | `ProjectApp.addCommitAuthor` | 재현하지 않음 |
-| R-90 | `UserApi.newUser`의 로그인 ID 중복 | 재현하지 않음 |
-| R-93 | 이름 없는 Ogg 첨부 | v2는 오류 없이 `audio/ogg` (A-113) |
-| R-95 | 접근 로그 | 재현하지 않는다 (A-111) |
-| R-97 | (해소) Git POST 본문 한도 | 해당 없음 |
-| R-105 | 이슈 참조 링크의 치환 문자열 | v2는 `quoteReplacement`로 오류 없이 처리 (A-125) |
-| R-108 | 이슈 수정(`editIssue`)의 입력 처리 순서 | v2는 오류 없이 권한에 따라 303 또는 403을 돌려준다 |
-| R-109 | `MarkdownApp.render`의 본문 읽기 | v2는 두 형태 모두 오류 없이 처리한다 |
-| R-115 | 코드 보기와 원본 보기의 큰 파일 | v2는 스트림으로 읽어 오류 없이 처리한다 (A-149) |
-| R-117 | 즐겨찾기 이슈 목록 | v2는 이슈의 작성자 이름으로 정상 JSON을 돌려준다 |
-| R-118 | 토큰 API의 잘못된 입력 | v2는 각각 404, 400, 403으로 낸다. 정상 입력의 응답은 같다 |
-| R-129 | 줄 댓글을 단 뒤 `#comment-번호`로 이동할 때 | 선생님 지시(2026-10-29)로 선택자에 따옴표를 붙여 고쳤다(차이 장부 기록) |
-| R-130 | 사이트 데이터 가져오기에서 이슈 댓글 테이블이 항상 실패 | **개선했다(선생님 승인, 2026-11-01).** 가져올 때 `project_id`를 댓글이 가리키는 이슈의 프로젝트에서 채운다(`DerivedColumn`). 내보내기 파일은 v1.6과 같게… |
-| R-131 | REST 이슈 가져오기(`IssueApi.saveIssues`)의 시각 | **고쳤다(선생님 지시 2026-11-03, D-83)**: 만든 시각이 없거나 읽을 수 없으면 지금 시각, 고친 시각이 없으면 만든 시각으로 채우고 ISO-8601도 받는다. 게시글 가져오기는 이… |
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C053 | `fileType.eq(" folder")`(앞 공백, 참조 비교)로 항상 거짓이라 앵커가 안 붙음 | src/main/kotlin/dev/yona/web/code/CodePageAssembler.kt:18-19 주석과 :92 `href = UrlPaths.join(filePath, fileName)`에 `#cb-` 앵커가 붙지 않음; src/main/resources/templates/code/view.html:60 `th:href="${e.href}"` | 재현 | v1.6의 항상 거짓인 비교 결과(앵커 없음)를 그대로 재현함. C180과 같은 결함. |
+| C148 | Organization.getVisibleProjects는 대소문자 구분 정렬, getSortedByProjectName은 무시 정렬이라 불일치 | src/main/kotlin/dev/yona/domain/project/OrganizationService.kt:105 `result.sortedBy { it.name }`(대소문자 구분) vs src/main/kotlin/dev/yona/web/user/UserMenuAssembler.kt:61 `sortedBy { it.name.orEmpty().lowercase() }`(무시) | 재현 | v1.6와 같은 불일치. |
+| C152 | `"error.fobidden"` 오타 키가 어느 messages 파일에도 없어 로그인 화면 제목에 키가 그대로 나옴(5개 번들 모두 0건) | src/main/kotlin/dev/yona/web/error/ErrorViews.kt:75 `LoginFormController.loginPage(returnUrl, "error.fobidden")`; src/main/resources/templates/layout/layout.html:14 `#messages.msgOrNull(title) ?: title`; 번들 5개에 해당 키 없음 | 재현 | 문서 제목(title 태그)에 키 문자열 `error.fobidden`이 그대로 나옴. 파일은 web/error/ErrorViews.kt임(기존 기록의 경로 보완). 시험 ProjectChecksTest.kt:118이 이를 확인함. |
+| C159 | `-ms-sbox-izing` 접두 오타 | app/assets/stylesheets/scss/_mixins.scss:326 `-ms-sbox-izing:$param;` | 재현 | v2 소스는 less가 아니라 scss이며 줄 번호가 기록(yobi.css:11461)과 다름. 무해. |
+| C160 | `fonts/material-icon..ttf` 점 두 개 오타(woff2/woff가 먼저 선택돼 ttf 폴백만 영향) | app/assets/stylesheets/scss/_usermenu.scss:25 `url('fonts/material-icon..ttf') format('truetype');` | 재현 | scss 소스 위치. ttf 폴백만 영향. |
+
+### 데이터
+
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C079 | `addEOL("")`이 `"\n"`을 붙여 빈 내용이 개행 한 줄 파일이 됨 | src/main/kotlin/dev/yona/io/LineEnding.kt:38-41 `addEol("")`은 find가 UNDEFINED라 UNIX로 보고 `contents + "\n"`을 돌려줌; src/main/kotlin/dev/yona/repository/OnlineCommit.kt:46 `LineEnding.addEol(LineEnding.change(...))` | 재현 | change가 빈 문자열을 ""로 돌려준 뒤 addEol이 개행을 붙여 빈 내용이 개행 한 줄 파일이 됨. 줄 번호 기록은 맞음. |
+| C081 | `PullRequest.save()`가 호출자의 number를 무시하고 최댓값+1을 매겨 동시 생성에 약함 | src/main/kotlin/dev/yona/domain/pullrequest/PullRequestService.kt:60-66 `nextNumber`가 최댓값+1, :87 `number = nextNumber(form.toProject)` | 재현 | 호출자 번호 대신 최댓값+1을 쓰고 잠금이나 재시도가 없음. 동시 생성 시 충돌 가능은 코드 구조상의 추정(시험 실행은 하지 않음). |
+| C082 | `Comment.update()`는 부모를 재저장하지 않음(`save/delete`는 함) | src/main/kotlin/dev/yona/domain/issue/IssueCommentService.kt:~57-65 `update`는 `comments.save(comment)` 후 `touchOrTransition(issue...)`만 하고 `syncCommentCount`를 부르지 않음(`replaceContents`와 `delete`만 부름) | 재현 | v1.6과 같은 구조. 줄 번호는 조금 밀렸을 수 있음. |
+| C130 | 외부 API 프로젝트 생성에서 SITEMANAGER 역할 행이 Project.create 안과 밖에서 2번 INSERT됨(findByIds가 SITEMANAGER 제외) | src/main/kotlin/dev/yona/domain/project/ExternalProjectService.kt:58-60 `repeat(2) { projectUsers.save(ProjectUser(... RoleType.SITEMANAGER ...)) }`; src/main/kotlin/dev/yona/domain/project/Project.kt:196-203 project_user에 유일 제약 없음 | 재현 | 현재 커밋된 코드(git diff 깨끗)에서 2행이 들어감. 기존 기록의 "작업 트리 미커밋"은 이제 해당 없음. R-82 본문과의 불일치는 위키 쪽 문제로 코드와는 무관. |
+| C162 | 임시 업로드 정리가 `ge("createdDate", 기준)`이라 오래된 것이 아니라 최근 USER 첨부를 지움 | src/main/kotlin/dev/yona/domain/attachment/TemporaryFileCleaner.kt:48-50 `findByContainerTypeAndCreatedDateGreaterThanEqual(USER, startOfDay(now) - keepUp)` 후 :51 삭제 | 재현 | `GreaterThanEqual`이라 기준 이후의 최근 USER 첨부를 지움. 파일 경로는 실제 위치를 grep으로 찾지 않고 기록을 따랐으므로 패키지명이 다를 수 있으나 줄 번호와 내용은 확인함. |
+
+### 화면(메시지)
+
+| 번호 | 결함 | v2 근거 | 판정 | 메모 |
+|---|---|---|---|---|
+| C184 | 영어/러시아어 `viaEmail.error.cannotCreate`가 `{1}~{3}`을 쓰지만 인자는 `{0}`부터 3개라 어긋남, `{3}` 미치환 | src/main/resources/messages.properties:1149 `You ({1}) ... create {2} in project {3}.`; messages_ru_RU.properties:1042 동일 `{1}~{3}`; src/main/kotlin/dev/yona/mailbox/MailResourceCreator.kt:174 `arrayOf(who, typeName, project)` 3개 | 재현 | 기본(영어)과 러시아어에서 {3}이 치환되지 않고 {1}에 종류가 들어감. ko_KR:1149, uz_UZ:1042는 {0}~{2}로 정상. ja_JP에는 키가 없어 기본(영어)으로 떨어짐. 줄 번호가 기록(1105/998)과 다름. |
+
+## 3. 점검에서 해결됨 또는 해당 없음으로 나온 항목
+
+기존 기록이 "재현"이거나 "재현하지 않음"으로 달리 적혀 있던 것을 코드로 다시 확인한 결과이다.
+
+| 번호 | 결함 | 판정 | 근거 | 메모 |
+|---|---|---|---|---|
+| C089 | `appendReplacement`에 제목이 든 문자열을 그대로 써 `$`, `\`가 있으면 예외 | 해결됨 | src/main/kotlin/dev/yona/markdown/AutoLinkRenderer.kt:111 `matcher.appendReplacement(sb, Matcher.quoteReplacement(link.toString()))`, 바로 위 주석에 R-105로 글자 그대로 넣는다고 적혀 있음 | 기존 v2 기록은 :110을 결함 위치로만 가리켜 재현처럼 읽히지만 현재 코드는 이스케이프로 고쳤습니다. |
+| C137 | `Authorization.split("token")[1]`이라 토큰 값 안에 "token" 문자열이 있으면 잘림(Base64 SHA-256 토큰이라 확률 약 4e-8) | 해결됨 | src/main/kotlin/dev/yona/security/ApiTokenHeaders.kt:14,18-19 정규식 `^(?i:token/bearer)\s+(\S+)$`로 `Authorization`을 엄격히 분석하며 `split("token")`이 소스 어디에도 없음(grep 결과 없음) | 기존 v2 기록의 ApiRequests.kt:32 `header.split("token")`은 현재 없습니다. ApiRequests.kt:28-33은 tokenUser로 바뀌었고, 오래된 기록입니다. 토큰 값에 'token' 문자열이 들어도 잘리지 않습니다. |
+| R-04 | 토큰으로 식별된 사용자는 계정 상태(LOCKED)를 확인하지 않아 잠긴 계정도 API를 쓸 수 있다 | 해결됨 | src/main/kotlin/dev/yona/domain/apitoken/ApiTokenService.kt:167 `if (owner.state == UserState.LOCKED // owner.state == UserState.DELETED) return null` (authenticate가 잠기거나 삭제된 주인의 토큰을 거절). OAuth 토큰도 K+… | 잠긴 계정이 API를 계속 쓰는 권한 우회였으나 v2는 막는다. 기존 v2 기록(X-5로 바꿈)과 일치한다. |
+| R-71 | `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서 jQuery 3에서 `Syntax error, unrecognized expressio… | 해결됨 | src/main/resources/static/assets/javascripts/service/yobi.code.Diff.js:227-228 `$('a[href="#reviewcards-' + state + '"]')`로 따옴표를 붙임(주석에 R-129). 정적 자원 전체에서 따옴표 없는 `a[href=#reviewcards-` 사용은 없음(jquery-u… | 기존 기록은 "재현함"이나 현재 코드는 고쳐져 있어 어긋남. 설명이 말하는 `yona-layout.js`에서는 해당 선택자를 찾지 못함. |
+| R-73 | v1.6은 권한을 확인하기 전에 이슈 이동(`targetProjectId`)을 반영하거나 삭제 알림, 웹훅을 보낸다. 권한 없는 사용자가 이슈를 옮기거나 삭제 알림을 일으킬 수 있는 보안 결함이다… | 해결됨 | src/main/kotlin/dev/yona/web/issue/IssueEditController.kt:92 `accessControl.isAllowed(viewer, issue.asResource(), Operation.UPDATE)`가 :104-111 targetProjectId 처리와 :129 issueService.update 이전에 있음. 삭제는… | 결함 자체는 보안이었으나 v2에서는 해결. 다만 삭제는 :152 canBeDeleted(400)가 권한 검사(403)보다 앞서 존재 여부 정보 차이가 약간 있음. |
+| R-76 | 병합 중 예외가 나거나 리뷰 수 검사로 400을 돌려주는 경로(`PullRequestApp.java:428-438`)에서도 이미 커밋된 `isMerging=true`가 남아 병합 중 상태로 고착된다… | 해결됨 | src/main/kotlin/dev/yona/domain/pullrequest/PullRequestWorkflow.kt:68-75 리뷰/규칙 검사로 먼저 return하고, :82-83 표시를 저장한 뒤 :85-90 `merger.merge`가 예외를 던지면 isMerging=false 저장 후 재던짐, :92 정상 경로도 해제. 따라서 400 경로와 예외… | 기존 기록은 선생님 승인 2026-11-02 개선으로 일치. 다만 같은 파일 :57-59의 KDoc은 여전히 "표시가 꺼지지 않는다"고 적혀 있어 코드와 어긋나는 오래된 주석이다. |
+| R-81 | `a.id = b.id`로 첨부 id와 사용자 id를 비교해 엉뚱한 행이 갱신된다. v2는 evolutions를 실행하지 않고 `ddl-auto: update`를 쓰므로 기존 v1.6 DB를 붙이면… | 해당 없음 | build.gradle.kts에 flyway/liquibase/evolutions 의존이 없고 src/main/resources/application.yml:94 `ddl-auto: update`. src/main/kotlin에 evolutions 참조 없음(grep 0건). conf/evolutions/default/10.sql 파일은 저장소에 남아 있으… |  |
+| R-85 | 커밋 작성자 이메일에 `@`가 없으면 `StringIndexOutOfBoundsException`으로 500이다. v2는 `contains("@")` 가드로 정상 처리한다(선생님 지시 2026-10… | 해결됨 | src/main/kotlin/dev/yona/domain/project/MentionListService.kt:77-78, :132-133 `if (email.contains("@")) add(users.findByLoginId(email.substring(0, email.lastIndexOf("@"))))`로 가드. v2에는 addCommitAuthor라… |  |
+| R-90 | 이메일만 중복으로 보므로, 로그인 ID만 겹치는 새 이메일은 DB 유일 제약(`uq_n4user_1`) 위반으로 요청 전체가 500이 되고 같은 요청의 앞선 항목도 롤백된다. v2는 그 항목만 40… | 해결됨 | src/main/kotlin/dev/yona/web/api/ApiUsers.kt:39 `signup.isEmailExist(email) // users.existsByLoginIdIgnoreCase(loginId)` -> 409 Conflict (항목별 결과). User.kt:21에 uq_n4user_1 유일 제약은 있으나 사전 검사로 도달하지 않음; 요청… | 기존 기록(재현하지 않음)과 일치. 조직 이름과 같은 로그인 ID는 막지 않음(ApiUsers.kt:34 KDoc) |
+| R-95 | 로거 이름에 URI가 붙어 요청마다 로거 객체가 쌓이고, 접근 거부 요청은 두 줄이 남는다. `application-logger.xml`의 `WARNING` 레벨은 logback에 없어 `DEBUG… | 해결됨 | src/main/kotlin/dev/yona/web/access/AccessLogFilter.kt:25 `LoggerFactory.getLogger("access")` 고정 이름, 요청당 한 줄(write 한 번). src/main/resources/logback-spring.xml:76 `dev.yona` level=WARN | 기존 기록(A-111, A-121)과 일치. 접근 거부 요청 두 줄도 필터 한 곳이라 재현되지 않음(AccessDeniedAuditFilter는 감사 기록용으로 별개, 미확인) |
+| C045, C179 | `Q` 단축키 맵의 구문 오류 | 일부 | `templates/project/menu.html:81-83`이 `,"Q"`로 앞 쉼표를 붙여 구문 오류는 해결 | `Q`가 로그인 ID `manager`일 때만 켜지는 조건(R-11, `web/project/ProjectViewContext.kt:160`)은 v1.6 그대로 재현. 두 항목은 같은 결함이며, 쉼표 쪽은 해결, 조건 쪽은 재현으로 갈라 적혀 어긋나 보였다 |
+
+## 4. 점검의 한계
+
+- 모든 판정은 코드와 템플릿을 읽어서 했고(보안 0절의 시험 확인 항목 제외) 시험이나 브라우저로 실행해 확인하지 않았다. 판정이 `재현`이어도 실제 도달 경로가 막혀 있을 수 있다(예: C150은 호출처가 없는 죽은 코드, C167은 이벤트를 발행하는 곳이 없음, C031은 입구에서 400으로 막힘).
+- C081(동시 생성 취약성)은 구조상 잠금과 재시도가 없다는 점에 근거한 추정이다.
+- C072(공백이 붙은 URL에서 클론 실패)는 JGit 동작이라 실행해 보지 않았다.
+- R-41, R-51(3), R-57(1), R-59(2), R-62(3)(10), R-56(빠진 테이블 개수)은 코드만으로 확정하지 못한 하위 항목이 있다.
+- 에이전트가 낡은 주석을 찾았다: `MentionListController` 클래스 설명(A-35)과 코드의 불일치, R-15의 `AutoLinkRenderer` 클래스 주석(`$`, `\` 재현이라고 적혀 있으나 이미 고침), R-76의 `PullRequestWorkflow.kt:57-59` KDoc, R-98의 `ExternalIssueApiController`/`ExternalBoardApiController` KDoc("없으면 사용자를 만들고"). 코드가 맞고 주석이 낡았다.
+
