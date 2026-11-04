@@ -371,6 +371,16 @@ class SvnDavTest {
         assertEquals("You have no permission to access this repository.", response.body())
     }
 
+    @Test
+    fun `코드를 구성원에게만 여는 공개 프로젝트는 구성원이 아니면 읽을 수 없다 (R-62-5)`() {
+        // v1.6의 Subversion 접근은 이 설정을 보지 않아 읽기 권한만 있는 비구성원도 체크아웃할 수 있었다
+        publicProject.isCodeAccessibleMemberOnly = true; projects.save(publicProject)
+        val path = "/svn/${publicProject.owner}/${publicProject.name}"
+        assertEquals(401, raw("PROPFIND", path).statusCode())
+        assertEquals(403, raw("PROPFIND", path, outsider).statusCode())
+        assertEquals(207, raw("PROPFIND", path, member).statusCode())
+    }
+
     // --- 주소 ---
 
     @Test

@@ -57,7 +57,9 @@ class SvnDavService(
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
-        val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
+        var operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
+        // 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다(Git과 같다). v1.6의 Subversion은 이 설정을 보지 않았다(R-62-5)
+        if (project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user)) operation = Operation.UPDATE
         if (!basicAuth.allowsRepository(identity, project, write = operation == Operation.UPDATE)) return text(response, 403, "The token scope does not allow repository access")
         if (!metrics.span("vcs.authorize", "vcs" to "svn") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation) }) {
             if (user == null) {
