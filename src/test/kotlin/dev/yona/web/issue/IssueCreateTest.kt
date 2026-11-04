@@ -226,6 +226,22 @@ class IssueCreateTest : AbstractIntegrationTest() {
         mockMvc.perform(get("/user/issues/new?commentId=999999").session(session)).andExpect(status().isNotFound)
     }
 
+    @Test
+    fun `읽을 수 없는 프로젝트의 댓글 번호로는 본문을 채우지 않는다 (C147)`() {
+        val project = newProject()
+        val user = join(newUser(), project)
+        val session = login(user)
+        mockMvc.perform(get("${base(project)}/issues").session(session)).andExpect(status().isOk)
+        val secret = newProject(ProjectScope.PRIVATE)
+        val issue = issues.save(Issue(project = secret, number = 1, title = "비밀", state = State.OPEN, createdDate = Date(), updatedDate = Date()))
+        val comment = dev.yona.domain.comment.IssueComment(contents = "비밀 댓글 본문", createdDate = Date(), authorLoginId = "someone", issue = issue, projectId = secret.id!!)
+        entityManager.persist(comment); entityManager.flush()
+        // v1.6은 댓글 번호만으로 다른 프로젝트의 댓글 본문과 작성자를 새 이슈 본문에 실었다
+        val response = mockMvc.perform(get("/user/issues/new?commentId=${comment.id}").session(session)).andReturn().response
+        assertEquals(404, response.status)
+        assertTrue(!response.contentAsString.contains("비밀 댓글 본문"))
+    }
+
     // --- 등록 ---
 
     @Test

@@ -180,6 +180,9 @@ class IssueCreateController(
 
     private fun formByComment(project: Project, commentId: Long, request: HttpServletRequest): Any {
         val comment = comments.findById(commentId).orElse(null) ?: return ErrorViews.notFound()
+        // 읽을 수 없는 프로젝트의 댓글이면 없는 것처럼 404로 답한다. v1.6은 읽기 권한을 보지 않고 댓글 본문과 작성자를 본문에 실었다(C147)
+        val source = comment.issue?.project
+        if (source == null || !accessControl.isAllowed(currentUserProvider.get().user, source.asResource(), dev.yona.domain.enumeration.Operation.READ)) return ErrorViews.notFound()
         val scheme = properties.scheme.ifEmpty { "http" }
         val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
