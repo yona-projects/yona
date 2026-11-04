@@ -1,5 +1,6 @@
 package dev.yona.web.api
 
+import dev.yona.access.asResource
 import dev.yona.config.YonaProperties
 import dev.yona.domain.board.PostingCommentRepository
 import dev.yona.domain.board.PostingRepository
@@ -38,7 +39,8 @@ class TranslationApiController(
     private val issueComments: IssueCommentRepository,
     private val postingComments: PostingCommentRepository,
     private val markdown: ProjectMarkdownRenderer,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val accessControl: dev.yona.access.AccessControl
 ) {
     private val mapper = JsonMapper.builder().build()
 
@@ -48,13 +50,18 @@ class TranslationApiController(
         if (!properties.translationApiConfigured) return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body("Precondition Failed")
         val json = try { mapper.readTree(request.inputStream) } catch (e: Exception) { null } ?: return ResponseEntity.badRequest().build()
         val project = projectService.findByOwnerAndProjectName(json.path("owner").asString(""), json.path("projectName").asString("")) ?: return ResponseEntity.notFound().build()
+        // 읽을 수 없는 프로젝트의 글은 번역 서비스로 보내지 않는다. v1.6은 읽기 권한을 보지 않아 구성원이 아니어도 번역문으로 본문을 읽을 수 있었다(C092, R-80)
+        if (!accessControl.isAllowed(currentUserProvider.get().user, project.asResource(), dev.yona.domain.enumeration.Operation.READ)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
         val number = json.path("number").asLong(0)
         val nl = TranslationClient.NEWLINE
         val text = when (json.path("type").asString("")) {
             "issue" -> issues.findByProjectIdAndNumber(requireNotNull(project.id), number)?.let { "Title: ${it.title}$nl$nl${it.body}" }
             "posting" -> postings.findByProjectIdAndNumber(requireNotNull(project.id), number)?.let { "Title: ${it.title}$nl$nl${it.body}" }
-            "issue-comment" -> issueComments.findById(number).orElse(null)?.contents
-            "post-comment" -> postingComments.findById(number).orElse(null)?.contents
+            // 댓글은 번호만으로 찾으므로 경로의 프로젝트에 속한 것만 쓴다. v1.6은 다른 프로젝트의 댓글도 번역했다(C092)
+            "issue-comment" -> issueComments.findById(number).orElse(null)?.takeIf { it.projectId == project.id }?.contents
+            "post-comment" -> postingComments.findById(number).orElse(null)?.takeIf { it.posting?.project?.id == project.id }?.contents
             else -> ""
         } ?: return ResponseEntity.notFound().build()
         // v1.6 Java split은 끝의 빈 줄을 버린다

@@ -78,6 +78,7 @@ class TranslationApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var issues: IssueRepository
+    @Autowired private lateinit var entityManager: EntityManager
     @MockitoBean private lateinit var client: TranslationClient
 
     private var sequence = 0
@@ -111,6 +112,31 @@ class TranslationApiTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":1}"""))
             .andExpect(status().isOk)
         org.mockito.Mockito.verify(client).translateLines(listOf("Title: 제목", "", "본문"))
+    }
+
+    @Test
+    fun `읽을 수 없는 비공개 프로젝트의 이슈는 번역하지 않는다 (C092, R-80)`() {
+        val project = projects.save(Project(owner = "tro3", name = "trp3", vcs = "GIT", projectScope = ProjectScope.PRIVATE, lastIssueNumber = 1))
+        issues.save(Issue(project = project, number = 1, title = "비밀 제목", body = "비밀 본문", state = State.OPEN, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro3","projectName":"trp3","type":"issue","number":1}"""))
+            .andExpect(status().isForbidden)
+        // 번역 서비스에는 아무것도 보내지 않는다
+        org.mockito.Mockito.verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `댓글은 경로의 프로젝트에 속한 것만 번역한다 (C092)`() {
+        val open = projects.save(Project(owner = "tro4", name = "trp4", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
+        val secret = projects.save(Project(owner = "tro5", name = "trp5", vcs = "GIT", projectScope = ProjectScope.PRIVATE, lastIssueNumber = 1))
+        val issue = issues.save(Issue(project = secret, number = 1, title = "t", body = "b", state = State.OPEN, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
+        val comment = entityManager.let { em ->
+            val c = dev.yona.domain.comment.IssueComment(contents = "비밀 댓글", createdDate = Date(), issue = issue, projectId = secret.id!!)
+            em.persist(c); em.flush(); c
+        }
+        // 읽을 수 있는 공개 프로젝트 경로에 비공개 프로젝트의 댓글 번호를 넣어도 번역하지 않는다
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro4","projectName":"trp4","type":"issue-comment","number":${comment.id}}"""))
+            .andExpect(status().isNotFound)
+        org.mockito.Mockito.verifyNoInteractions(client)
     }
 
     @Test
