@@ -332,6 +332,7 @@
                 var nLastLineB=1;
                 var nCodeLineA;
                 var nCodeLineB;
+                var bInHunk = false;
 
                 if(aLine[0].indexOf('file marked as a binary type') !==-1) {
                     var sDiffIndex = aMatchDiff[nIndex].split('\n')[0];
@@ -347,7 +348,10 @@
 
                 } else {
                     aLine.forEach(function(sLine){
-                        switch(sLine.substr(0,2)) {
+                        // v1.6은 내용이 `--`나 `++`로 시작하는 줄을 파일 머리로 보내 그리지 않았고 줄 번호도 어긋났다(C042).
+                        // 첫 헝크가 시작된 뒤의 줄은 모두 내용 줄이다
+                        var sLineHead = bInHunk ? '' : sLine.substr(0,2);
+                        switch(sLineHead) {
                             case '--':
                             case '++':
                                 var aMatch = sLine.match(rxFileHeader);
@@ -388,9 +392,11 @@
                                     if (console instanceof Object) {
                                         console.warn("Failed to parse hunk header");
                                     }
-                                } else {
-                                    welDiffCodeTableBody.append(_makeCodeLine('...','...','range',sLine));
+                                    // v1.6은 경고만 하고 `aHunkRange[1]`을 읽어 TypeError가 났다(C043, C113-4)
+                                    break;
                                 }
+                                bInHunk = true;
+                                welDiffCodeTableBody.append(_makeCodeLine('...','...','range',sLine));
 
                                 nLineA = aHunkRange[1];
                                 if (isNaN(aHunkRange[2])) {
