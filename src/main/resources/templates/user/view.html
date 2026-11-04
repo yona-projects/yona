@@ -93,7 +93,7 @@
                         </ul>
                         <div class="tab-content">
                             <div id="openIssues" class="tab-pane active">
-                                <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
+                                <div th:if="${openIssueCount == 0}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
                                 <ul class="post-list-wrap my-issues">
@@ -103,7 +103,7 @@
                                 </ul>
                             </div>
                             <div id="closedIssues" class="tab-pane">
-                                <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
+                                <div th:if="${closedIssueCount == 0}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
                                 <ul class="post-list-wrap my-issues">

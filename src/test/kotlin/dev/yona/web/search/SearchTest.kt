@@ -268,7 +268,17 @@ class SearchTest : AbstractIntegrationTest() {
         val doc = all(null, "project", "projneedle")
         assertEquals(listOf("${owner.loginId}/aproj-projneedle", "${owner.loginId}/zproj"), doc.select("a.title.project-link").map { it.text().trim() })
         assertEquals("projneedle 설명", doc.select(".search-content-body").map { it.text().trim() }.first { it.isNotEmpty() })
-        assertTrue(doc.select("#pagination").isEmpty())
+        // v1.6는 프로젝트 결과에만 쪽 이동 요소가 없었다(R-50-1, C124). 다른 결과와 같이 쪽 이동 자리가 있다
+        assertEquals(1, doc.select("#pagination").size)
+    }
+
+    @Test
+    fun `프로젝트 결과도 20개씩 쪽으로 나뉘고 쪽 이동 요소가 있다 (R-50-1, C124)`() {
+        val owner = newUser()
+        (1..25).forEach { project(owner, "pjpaging-needle%02d".format(it)) }
+        val first = all(null, "project", "pjpaging-needle"); val second = all(null, "project", "pjpaging-needle", "pageNum" to "2")
+        assertEquals(20, first.select("a.title.project-link").size); assertEquals(5, second.select("a.title.project-link").size)
+        assertTrue(first.html().contains("yobi.Pagination.update(\$(\"#pagination\"), 2)"))
     }
 
     @Test

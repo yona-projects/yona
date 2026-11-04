@@ -34,9 +34,10 @@ class SiteContentService(private val entityManager: EntityManager) {
     fun postings(pageIndex: Int): ContentPage<Posting> =
         page("from Posting p order by p.createdDate desc, p.id desc", "select count(p) from Posting p", emptyMap(), PAGE_SIZE, pageIndex, Posting::class.java)
 
-    /** [state]인 이슈를 만든 최근 순으로 한 쪽(30개) 찾는다. */
+    /** [state]인 이슈를 만든 최근 순으로 한 쪽(30개) 찾는다. [State.ALL]이면 모든 상태의 이슈이다(v1.6은 상태가 `ALL`인 이슈를 찾아 항상 비었다, R-53-4). */
     fun issues(state: State, pageIndex: Int): ContentPage<Issue> =
-        page(
+        if (state == State.ALL) page("from Issue i order by i.createdDate desc, i.id desc", "select count(i) from Issue i", emptyMap(), PAGE_SIZE, pageIndex, Issue::class.java)
+        else page(
             "from Issue i where i.state = :state order by i.createdDate desc, i.id desc", "select count(i) from Issue i where i.state = :state",
             mapOf("state" to state), PAGE_SIZE, pageIndex, Issue::class.java
         )

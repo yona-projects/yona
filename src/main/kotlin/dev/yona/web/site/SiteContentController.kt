@@ -63,9 +63,10 @@ class SiteContentController(
 
     @GetMapping("/sites/projectList")
     @Transactional(readOnly = true)
-    fun projectList(@RequestParam(name = "filter", defaultValue = "") filter: String, @RequestParam(defaultValue = "0") pageNum: Int): Any {
+    fun projectList(@RequestParam(name = "filter", defaultValue = "") filter: String, @RequestParam(defaultValue = "1") pageNum: Int): Any {
         if (pageNum < 0) return ErrorViews.badRequest()
-        val page = service.projects(filter, pageNum)
+        // v1.6은 0부터 세는데 쪽 번호 위젯은 1부터 보내서 위젯의 1쪽이 둘째 쪽이었다(R-53-1). 다른 목록처럼 1부터 세고 0은 첫 쪽으로 본다
+        val page = service.projects(filter, maxOf(pageNum - 1, 0))
         return ModelAndView("site/project-list")
             .addObject("title", "title.projectList")
             .addObject("rows", page.items.map { projectRow(it) })

@@ -142,8 +142,10 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `없는 사용자는 404이다`() {
-        mockMvc.perform(get("/nobody-here")).andExpect(status().isNotFound)
+    fun `없는 사용자는 404이고 daysAgo 쿠키를 남기지 않는다 (R-48-4)`() {
+        val result = mockMvc.perform(get("/nobody-here")).andExpect(status().isNotFound).andReturn()
+        // v1.6은 사용자를 찾기 전에 기간 쿠키부터 저장해 404 응답에도 쿠키가 실렸다
+        assertNull(result.response.getCookie("daysAgo"))
     }
 
     @Test
@@ -207,6 +209,18 @@ class UserPageTest : AbstractIntegrationTest() {
         issue(p, "경계 직전", u, updated = Date.from(boundary.minusSeconds(60)))
         val doc = page("/${u.loginId}")
         assertEquals(listOf("경계 직후"), titles(doc, "#openIssues"))
+    }
+
+    @Test
+    fun `이슈 탭의 빈 메시지는 그 탭에 이슈가 없을 때 보인다 (C168)`() {
+        val u = newUser(); val p = project(newUser(), "tabs")
+        issue(p, "열린 이슈만", u)
+        val onlyOpen = page("/${u.loginId}")
+        // v1.6은 두 탭 모두 전체 이슈가 비었을 때만 메시지를 그려 닫힌 이슈만 없어도 안내가 없었다
+        assertTrue(onlyOpen.select("#openIssues .error-wrap").isEmpty()); assertEquals(1, onlyOpen.select("#closedIssues .error-wrap").size)
+        val v = newUser(); issue(p, "닫힌 이슈만", v, state = State.CLOSED)
+        val onlyClosed = page("/${v.loginId}")
+        assertEquals(1, onlyClosed.select("#openIssues .error-wrap").size); assertTrue(onlyClosed.select("#closedIssues .error-wrap").isEmpty())
     }
 
     @Test

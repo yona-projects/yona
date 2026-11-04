@@ -191,10 +191,18 @@ class UserMenuTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `내 프로젝트도 조직도 없으면 즐겨찾기 탭은 결과 없음이다`() {
+    fun `내 프로젝트도 조직도 없어도 즐겨찾기한 프로젝트가 있으면 결과 없음이 아니라 그 프로젝트가 보인다 (R-31)`() {
         val me = newUser(); val other = project("somebody", "tool")
         favoriteProjects.save(FavoriteProject(user = me, project = other, owner = "somebody", projectName = "tool"))
         val doc = fragment(login(me))
+        // v1.6은 즐겨찾기를 보지 않고 내 프로젝트와 조직만 봐서 즐겨찾기가 있어도 탭 전체가 "결과 없음"이었다
+        assertTrue(doc.select("#myOrganizationList #organizations.no-result").isEmpty())
+        assertEquals(listOf("tool"), doc.select("#myOrganizationList ul#organizations > li.user-li").map { it.selectFirst(".project-name")!!.text().trim() })
+    }
+
+    @Test
+    fun `즐겨찾기도 내 프로젝트도 조직도 없으면 즐겨찾기 탭은 결과 없음이다`() {
+        val doc = fragment(login(newUser()))
         assertEquals("No results", doc.selectFirst("#myOrganizationList #organizations.no-result")!!.text())
         assertTrue(doc.select("#myOrganizationList li.user-li").isEmpty())
     }

@@ -89,13 +89,13 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `인증 오류이면 안내를 남기고 로컬 비밀번호로 다시 시도한다`() {
+    fun `인증 오류이면 로컬 비밀번호로 다시 시도하고 성공하면 실패 안내를 남기지 않는다 (R-60-6)`() {
         local("fb2@corp.test", "fallbackuser2", password = "local-pw")
         Mockito.`when`(directory.authenticate("fallbackuser2", "local-pw")).thenThrow(AuthenticationException("bad"))
         val ok = ldap.authenticate("fallbackuser2", "local-pw")
         assertEquals("fallbackuser2", ok.user?.loginId)
-        // v1.6는 폴백이 성공해도 인증 실패 안내를 남긴다.
-        assertEquals("user.login.invalid", ok.flash["warning"])
+        // v1.6는 폴백이 성공해도 인증 실패 안내를 남겼다. 로그인이 되었는데 실패 안내가 뜨는 것은 어색하다
+        assertEquals(emptyMap(), ok.flash)
     }
 
     @Test

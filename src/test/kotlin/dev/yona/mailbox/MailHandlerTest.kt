@@ -195,8 +195,9 @@ class MailHandlerTest : AbstractIntegrationTest() {
         val sender = user()
         handle(MailFixtures.mail("<h-err2@m>", sender.email!!, listOf(yona("nope/one"), yona("nope/two"), yona("justone")), "여러 오류"))
         val body = textOf(replies().single())
-        // 보낸 사람 헤더에 표시 이름이 없으면 인사말이 `Hello, null`이다(v1.6과 같다).
-        assertTrue(body.startsWith("Hello, null"), body)
+        // 보낸 사람 헤더에 표시 이름이 없으면 v1.6은 인사말이 `Hello, null`이었다(R-61-4). 보낸 주소로 인사한다
+        assertTrue(body.startsWith("Hello, ${sender.email}"), body)
+        assertFalse(body.startsWith("Hello, null"), body)
         assertTrue(body.contains("failed to process your email. The reasons are as follows:\n\n* "), body)
         assertEquals(3, Regex("\n\\* ").findAll(body).count(), body)
         assertTrue(body.contains("We could not understand the address <${yona("justone").replace("yona+", "yona+")}> in the recipient list."), body)

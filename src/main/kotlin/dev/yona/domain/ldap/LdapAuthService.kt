@@ -84,7 +84,8 @@ class LdapAuthService(
         log.warn("fallback to local login: {}", loginIdOrEmail)
         // v1.6 `authenticateWithPlainPassword`는 로그인 ID로만 찾고 계정 상태는 보지 않는다.
         val user = users.findByLoginId(loginIdOrEmail)?.takeIf { LegacyPasswordHasher.matches(password, it.passwordSalt.orEmpty(), it.password.orEmpty()) }
-        return LdapAuthResult(user, flash)
+        // v1.6는 폴백이 성공해도 인증 실패 안내를 남겼다(R-60-6). 로그인되었으면 안내를 남기지 않는다
+        return LdapAuthResult(user, if (user == null) flash else emptyMap())
     }
 
     private fun synchronize(ldapUser: LdapUser, password: String): LdapAuthResult {

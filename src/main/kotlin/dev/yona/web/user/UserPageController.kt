@@ -46,8 +46,9 @@ class UserPageController(
     ): Any {
         organizations.findByNameIgnoreCase(loginId)?.let { return RedirectSupport.see(request, response, dev.yona.util.UrlPaths.organizationPath(it.name)) }
 
-        val days = resolveDaysAgo(daysAgo, request, response)
+        // v1.6은 사용자를 찾기 전에 기간 쿠키부터 저장해 404 응답에도 쿠키가 실렸다(R-48-4). 사용자를 먼저 찾는다
         val user = users.findByLoginIdIgnoreCase(loginId) ?: return ErrorViews.notFound("user.notExists.name")
+        val days = resolveDaysAgo(daysAgo, request, response)
         val viewer = currentUserProvider.get().user
         val activity = assembler.activity(user, viewer, days, hidden = properties.hideProjectListing && viewer == null)
         return org.springframework.web.servlet.ModelAndView("user/view")

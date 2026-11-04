@@ -95,13 +95,17 @@ class SiteContentListsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 목록의 pageNum은 0부터 센다`() {
+    fun `프로젝트 목록의 pageNum은 쪽 번호 위젯과 같이 1부터 센다 (R-53-1)`() {
         val owner = newUser()
         (1..30).forEach { project(owner, "q$it") }
         val session = admin()
         val total = projects.count().toInt()
-        assertEquals(25, projectNames(page(session, "/sites/projectList", "pageNum" to "0")).size)
-        assertEquals(minOf(25, total - 25), projectNames(page(session, "/sites/projectList", "pageNum" to "1")).size)
+        // v1.6은 0부터 세는데 쪽 번호 위젯은 1부터 보내서 위젯의 1쪽이 실제로는 둘째 쪽이었다
+        val first = projectNames(page(session, "/sites/projectList", "pageNum" to "1"))
+        assertEquals(25, first.size)
+        assertEquals(first, projectNames(page(session, "/sites/projectList")), "pageNum을 주지 않으면 첫 쪽이다")
+        assertEquals(first, projectNames(page(session, "/sites/projectList", "pageNum" to "0")), "0도 첫 쪽으로 본다")
+        assertEquals(minOf(25, total - 25), projectNames(page(session, "/sites/projectList", "pageNum" to "2")).size)
     }
 
     @Test
@@ -186,7 +190,9 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         val owner = newUser(); val p = project(owner, "iss2"); issue(p, "열림", owner)
         val session = admin()
         assertTrue(page(session, "/sites/issueList", "state" to "OPEN").select("li.listitem a.post-title").isNotEmpty())
-        assertTrue(page(session, "/sites/issueList", "state" to "all").select("li.listitem").isEmpty())
+        // v1.6는 상태가 `ALL`인 이슈를 찾아 목록이 항상 비었다(R-53-4). 모든 상태의 이슈를 보인다
+        issue(p, "닫힘", owner, State.CLOSED)
+        assertEquals(setOf("열림", "닫힘"), page(session, "/sites/issueList", "state" to "all").select("li.listitem a.post-title").map { it.text().trim() }.toSet())
         mockMvc.perform(get("/sites/issueList").session(session).param("state", "nope")).andExpect(status().isBadRequest)
     }
 

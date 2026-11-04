@@ -37,13 +37,15 @@ class UserMenuAssembler(
         val ownProjects = menu.ownProjects(viewer)
         val groups = favored.mapIndexed { index, org -> organization(viewer, org, true, index == favored.lastIndex, favoredIds) } +
             others.filter { org -> favored.none { it.id == org.id } }.map { organization(viewer, it, false, false, favoredIds) }
+        // 소속 조직이 없고 소유자가 내가 아닌 즐겨찾기 프로젝트이다 (v1.6 `!project.hasGroup && !owner.equals(currentUser.loginId)`).
+        val etcFavorites = favoriteProjects.filter { it.organization == null && it.owner != login }.map { project(it, true) }
         return UserMenuModel(
             loginId = login,
             ownProjects = ownProjects.filter { readable(viewer, it) }.map { project(it, it.id in favoredIds) },
             organizations = groups,
-            noOrganizations = groups.isEmpty() && favored.isEmpty() && ownProjects.isEmpty(),
-            // 소속 조직이 없고 소유자가 내가 아닌 즐겨찾기 프로젝트이다 (v1.6 `!project.hasGroup && !owner.equals(currentUser.loginId)`).
-            etcFavorites = favoriteProjects.filter { it.organization == null && it.owner != login }.map { project(it, true) },
+            // v1.6은 이 즐겨찾기를 보지 않아 내 프로젝트와 조직이 없으면 즐겨찾기가 있어도 탭 전체가 "결과 없음"이었다(R-31)
+            noOrganizations = groups.isEmpty() && favored.isEmpty() && ownProjects.isEmpty() && etcFavorites.isEmpty(),
+            etcFavorites = etcFavorites,
             recentlyVisited = menu.visitedProjects(viewer).map { project(it, false) },
             watching = menu.watchingProjects(viewer).map { project(it, false) },
             createdByMe = menu.createdByMe(viewer).map { project(it, false) },

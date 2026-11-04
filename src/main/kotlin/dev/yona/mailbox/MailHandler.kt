@@ -113,7 +113,7 @@ class MailHandler(
                 log.warn("Failed to process an email: {}", describe(message), e)
                 errors += "Unexpected error occurs"
             }
-            if (errors.isNotEmpty()) reply(message, sender.personal, sender.address, helpMessage(locale(author), sender.personal, errors))
+            if (errors.isNotEmpty()) reply(message, sender.personal, sender.address, helpMessage(locale(author), sender.personal?.takeIf { it.isNotBlank() } ?: sender.address, errors))
             logRequest(message, startTime, failure)
             onProcessed()
         }
