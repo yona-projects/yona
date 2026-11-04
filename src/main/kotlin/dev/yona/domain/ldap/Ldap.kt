@@ -53,34 +53,62 @@ class LdapQueries(
     private val emailProperty: String
 ) {
     /** 바인드 주체이다. */
-    fun principalOf(username: String): String = if (username.contains("@")) username else "$userNameProperty=$username,$distinguishedNamePostfix"
+    fun principalOf(username: String): String = if (username.contains("@")) username else "$userNameProperty=${escapeDnValue(username)},$distinguishedNamePostfix"
 
     /** 검색에 쓸 속성 이름이다. */
     fun filterAttributeOf(username: String): String = if (username.contains("@")) emailProperty else loginProperty
+
+    /** 검색 조건이다. 사용자 입력의 특수 문자를 RFC 4515로 이스케이프한다. v1.6은 그대로 이어 붙여 검색 조건을 바꿀 수 있었다(R-60-2). */
+    fun filterOf(username: String): String = "(${filterAttributeOf(username)}=${escapeFilterValue(username)})"
+
+    companion object {
+        /** RFC 4515: `\`, `*`, `(`, `)`, NUL을 `\XX` 16진수로 바꾼다. */
+        fun escapeFilterValue(value: String): String = buildString {
+            for (c in value) when (c) {
+                '\\' -> append("\\5c"); '*' -> append("\\2a"); '(' -> append("\\28"); ')' -> append("\\29"); '\u0000' -> append("\\00")
+                else -> append(c)
+            }
+        }
+
+        /** RFC 4514: DN 값의 구분자(`,`, `+`, `"`, `\`, `<`, `>`, `;`, `=`)와 앞의 `#`, 앞뒤 공백을 `\`로 이스케이프한다. */
+        fun escapeDnValue(value: String): String = buildString {
+            value.forEachIndexed { i, c ->
+                if (c in ",+\"\\<>;=" || (i == 0 && (c == '#' || c == ' ')) || (i == value.length - 1 && c == ' ')) append('\\')
+                append(c)
+            }
+        }
+    }
 }
 
 /**
  * [LdapDirectory]의 JNDI 구현이다. v1.6 `utils.LdapService.authenticate`(`app/utils/LdapService.java:41-130`)에 해당한다.
  *
- * 연결 제한 시간은 5초이다. 검색 조건은 이스케이프 없이 이어 붙인다(v1.6과 같다, R-60).
+ * 연결, 읽기, 검색 제한 시간은 각각 5초이다. 검색 조건과 바인드 주체의 사용자 입력은 이스케이프한다(v1.6은 이스케이프 없이 이어 붙이고 연결 제한 시간만 있었다, R-60-2, R-60-10).
  */
 class JndiLdapDirectory(private val config: YonaProperties.Ldap, private val protocol: String) : LdapDirectory {
 
     private val queries = LdapQueries(config.userNameProperty, config.distinguishedNamePostfix, config.loginProperty, config.emailProperty)
 
+    /** 검색 제한 시간(밀리초)이다. v1.6은 연결 제한 시간만 있어 응답하지 않는 서버가 로그인 요청 스레드를 붙잡았다(R-60-10). */
+    val searchTimeLimitMillis: Int get() = TIMEOUT
+
+    /** 접속 환경이다. 연결과 읽기 제한 시간을 둔다. */
+    fun environmentFor(username: String, password: String): Hashtable<String, String> = Hashtable<String, String>().apply {
+        put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
+        put("com.sun.jndi.ldap.connect.timeout", TIMEOUT.toString())
+        put("com.sun.jndi.ldap.read.timeout", TIMEOUT.toString())
+        put(Context.PROVIDER_URL, "$protocol://${config.host}:${config.port}")
+        put(Context.SECURITY_AUTHENTICATION, "simple")
+        put(Context.SECURITY_PRINCIPAL, queries.principalOf(username))
+        put(Context.SECURITY_CREDENTIALS, password)
+    }
+
     override fun authenticate(username: String, password: String): LdapUser? {
-        val env = Hashtable<String, String>().apply {
-            put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
-            put("com.sun.jndi.ldap.connect.timeout", TIMEOUT.toString())
-            put(Context.PROVIDER_URL, "$protocol://${config.host}:${config.port}")
-            put(Context.SECURITY_AUTHENTICATION, "simple")
-            put(Context.SECURITY_PRINCIPAL, queries.principalOf(username))
-            put(Context.SECURITY_CREDENTIALS, password)
-        }
+        val env = environmentFor(username, password)
         val context = InitialDirContext(env)
         try {
-            val controls = SearchControls().apply { searchScope = SearchControls.SUBTREE_SCOPE }
-            val results = context.search(config.baseDn, "(${queries.filterAttributeOf(username)}=$username)", controls)
+            val controls = SearchControls().apply { searchScope = SearchControls.SUBTREE_SCOPE; timeLimit = TIMEOUT }
+            val results = context.search(config.baseDn, queries.filterOf(username), controls)
             if (!results.hasMoreElements()) return null
             val found = results.nextElement() as SearchResult
             // 일치하는 항목은 하나여야 한다.
