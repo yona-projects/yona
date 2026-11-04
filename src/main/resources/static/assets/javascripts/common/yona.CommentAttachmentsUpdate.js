@@ -133,7 +133,9 @@ $(function () {
         var attachmentFileListArea = $parentForm.find(".attachment-files");
 
         setTemporaryUploadFileIds($parentForm.find(".temporaryUploadFiles"), data.id);
+        // v1.6은 업로드마다 삭제 핸들러를 더해 삭제 요청이 거듭 나갔다(C007). 떼고 다시 단다
         attachmentFileListArea.append(getAttachmentCard(data))
+            .off("click", ".btn-delete", deleteAttachment)
             .on("click", ".btn-delete", deleteAttachment);
     }
 
@@ -151,7 +153,8 @@ $(function () {
             $attachmentFiles.val(fileId);
         } else {
             var splitIds = $attachmentFiles.val().split(",");
-            if (!splitIds.includes(fileId)) {
+            // v1.6은 문자열 배열에 숫자 아이디를 찾아 항상 거짓이었다(C008)
+            if (!splitIds.includes(String(fileId))) {
                 $attachmentFiles.val(splitIds.concat(fileId).join(","));
             }
         }
