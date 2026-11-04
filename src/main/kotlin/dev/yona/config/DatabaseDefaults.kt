@@ -10,7 +10,9 @@ import org.springframework.core.env.MapPropertySource
  *
  * - `jdbc:sqlserver:`: 방언 [YonaSqlServerDialect]와 `hibernate.use_nationalized_character_data=true`(한글이 깨지지 않게 `nvarchar`로 만든다).
  * - `jdbc:cubrid:`: JDBC 드라이버 클래스(Spring Boot가 주소만으로는 알지 못한다), 방언 [YonaCubridDialect], `hibernate.auto_quote_keyword=true`
- *   (예약어 `size` 같은 열 이름을 따옴표로 감싼다), 연결 검사 질의 `select 1 from db_root`(Cubrid 드라이버의 `isValid(0)`이 거짓을 돌려주어 건강 검사가 DOWN이 된다. 건강 검사는 이 질의를 쓴다).
+ *   (예약어 `size` 같은 열 이름을 따옴표로 감싼다), 연결 검사 질의 `select 1 from db_root`(Cubrid 드라이버의 `isValid(0)`이 거짓을 돌려주어 건강 검사가 DOWN이 된다. 건강 검사는 이 질의를 쓴다),
+ *   연결 수명 5분(브로커가 오래된 연결을 먼저 끊으면 풀이 이를 모르고 내주어 드라이버가 `this.con is null`로 실패한다), 생성 키 조회 끄기(`hibernate.jdbc.use_get_generated_keys=false`,
+ *   드라이버의 `getGeneratedKeys`가 같은 오류로 실패하는 일이 있어 Hibernate가 `db_serial`의 현재 값을 읽게 한다).
  *
  * 가장 낮은 우선순위로 더하므로 `application.yml`이나 환경 변수로 직접 정한 값이 우선한다. 다른 데이터베이스에는 아무것도 하지 않는다.
  */
@@ -27,7 +29,9 @@ class DatabaseDefaults : EnvironmentPostProcessor {
                 "spring.datasource.driver-class-name" to "cubrid.jdbc.driver.CUBRIDDriver",
                 "spring.jpa.database-platform" to "dev.yona.config.YonaCubridDialect",
                 "spring.jpa.properties.hibernate.auto_quote_keyword" to "true",
-                "spring.datasource.hikari.connection-test-query" to "select 1 from db_root"
+                "spring.datasource.hikari.connection-test-query" to "select 1 from db_root",
+                "spring.datasource.hikari.max-lifetime" to "300000",
+                "spring.jpa.properties.hibernate.jdbc.use_get_generated_keys" to "false"
             )
             else -> return
         }

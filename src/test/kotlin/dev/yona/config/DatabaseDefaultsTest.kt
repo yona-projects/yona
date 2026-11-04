@@ -29,6 +29,16 @@ class DatabaseDefaultsTest {
     }
 
     @Test
+    fun `Cubrid 주소면 생성 키 조회를 끄고 연결 수명을 브로커 제한보다 짧게 정한다`() {
+        val env = apply(MockEnvironment().withProperty("spring.datasource.url", "jdbc:cubrid:db:33000:yona:::"))
+        assertEquals("false", env.getProperty("spring.jpa.properties.hibernate.jdbc.use_get_generated_keys"))
+        assertEquals("300000", env.getProperty("spring.datasource.hikari.max-lifetime"))
+        val sqlServer = apply(MockEnvironment().withProperty("spring.datasource.url", "jdbc:sqlserver://db:1433"))
+        assertNull(sqlServer.getProperty("spring.jpa.properties.hibernate.jdbc.use_get_generated_keys"))
+        assertNull(sqlServer.getProperty("spring.datasource.hikari.max-lifetime"))
+    }
+
+    @Test
     fun `직접 정한 설정이 기본값보다 우선하고 다른 데이터베이스는 건드리지 않는다`() {
         val own = apply(MockEnvironment().withProperty("spring.datasource.url", "jdbc:sqlserver://db").withProperty("spring.jpa.database-platform", "my.Dialect"))
         assertEquals("my.Dialect", own.getProperty("spring.jpa.database-platform"))

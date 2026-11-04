@@ -1,6 +1,6 @@
 # Cubrid 11.4와 MSSQL 지원 (X-46)
 
-> **상태: MSSQL 완료(전체 시험 4,375건 통과). Cubrid는 클래스 단위 시험이 통과하나 전체를 연속으로 돌리면 간헐적 연결 오류가 있어 미해결(2026-11-03).** 결정은 [decisions.md](../decisions.md) D-85, 로드맵은 [roadmap.md](../roadmap.md) X-46이다.
+> **상태: MSSQL 완료(전체 시험 4,375건 통과). Cubrid는 전체 연속 실행 4,379건 중 7건만 실패하고(모두 스키마 메타데이터 조회), 그 클래스들은 단독으로 통과한다(2026-11-04). 이전의 `this.con is null` 실패는 해결했다.** 결정은 [decisions.md](../decisions.md) D-85, 로드맵은 [roadmap.md](../roadmap.md) X-46이다.
 
 ## 1. 범위와 환경
 
@@ -83,12 +83,12 @@ Cubrid는 스키마 생성까지만 확인했고 전체 시험은 아직 돌리�
 | 시험 구조 | 컨텍스트마다 별도 사용자(스키마)를 만든다. 사용자와 테이블은 다음 실행 시작 때 정리한다 |
 | 스키마 대조 시험 | 드라이버가 `COLUMN_DEF`, `IS_AUTOINCREMENT`, 인덱스 방향을 주지 않아 `db_attribute`, `db_serial` 카탈로그로 읽고 방향 비교는 건너뜀 |
 
-### Cubrid 전체 연속 실행: 미해결
+### Cubrid 전체 연속 실행 (2026-11-04)
 
-- 전체(약 4,375건, 33분 안팎)를 연속으로 돌리면 실행마다 **다른 클래스** 수십 건이 컨텍스트 로딩 단계에서 `NullPointerException: ... "this.con" is null`(`CUBRIDResultSet.findColumn`, 초기 데이터 적재의 `getGeneratedKeys` 읽기)로 실패한다. 실패한 클래스는 단독으로 돌리면 통과한다. 직전 두 번의 전체 실행에서 99건, 41건이 실패했다.
-- 처음 두 번은 브로커 연결 한도(`MAX_NUM_APPL_SERVER`)와 디스크 부족이 원인이었고 고쳤다. 남은 문제의 원인은 확정하지 못했다. 브로커의 유휴 연결 제한(`SESSION_TIMEOUT`, `TIME_TO_KILL`)을 늘리고 풀의 유휴 시간을 줄여 보았으나 나아지지 않아 되돌렸다.
-- 가설: Cubrid 드라이버가 연결이 닫힌 뒤에도 결과 집합을 읽을 때 예외 대신 NPE를 던지는 문제(드라이버 11.3.2는 Maven의 최신판이며 11.4 전용판이 없다)와 캐시된 컨텍스트 수(시험 중 8로 줄임)의 상호작용. 확인하려면 드라이버 로그나 브로커의 `SQL_LOG`로 끊긴 연결을 추적해야 한다.
-- 따라서 **Cubrid는 "지원하되 전체 시험의 안정성은 미확인"**으로 본다. 운영 사용에는 영향이 없을 수 있으나(시험의 컨텍스트 캐시 구조 때문일 가능성), 증거가 없으므로 단정하지 않는다.
+- **해결한 것**: 전체를 연속으로 돌리면 실행마다 다른 클래스 41~99건이 컨텍스트 로딩 단계에서 `NullPointerException: ... "this.con" is null`(`CUBRIDResultSet.findColumn`, 초기 데이터 적재의 `getGeneratedKeys` 읽기)로 실패하던 문제이다. `next` 브랜치의 Cubrid 설정이 같은 증상을 "대규모 시험에서 실측"했다고 적고 있어 그 대응을 따랐다: `hibernate.jdbc.use_get_generated_keys=false`(Hibernate가 `db_serial`의 현재 값을 읽는다)와 Hikari `max-lifetime=300000`(브로커가 먼저 끊은 오래된 연결을 풀이 내주지 않게 한다). `DatabaseDefaults`가 Cubrid 주소일 때 정하고, 시험은 속성을 직접 등록하므로 `TestDatabase`에도 같은 값을 넣었다. 적용 뒤 전체 실행(4,379건, 30분 46초)에서 이 오류는 0건이다.
+- **같은 때 더한 것**: 방언에 `TimeZoneSupport.NONE`(드라이버의 `setObject`가 `datetimetz`와 `OffsetDateTime` 바인딩을 거부한다)과, 제약 위반을 오류 코드로 분류하는 변환기(NOT NULL은 -631, 유니크는 -670)를 더했다. 드라이버가 SQLState를 주지 않아 기본 방언으로는 `GenericJDBCException`이 되어 다른 데이터베이스와 달리 `DataIntegrityViolationException`이 되지 않았다.
+- **남은 것**: 7건은 모두 `CUBRIDException: Has been interrupted`이고 `getSchemaInfo`(메타데이터 조회)에서 서버가 중단시킨 응답이다. `DataTablesTest` 1건, `AddedTablesSchemaTest` 4건, `V16SchemaTest` 2건이며 세 클래스는 단독으로 통과한다(53초). 실행이 길어질수록 컨텍스트마다 만든 사용자와 테이블이 쌓여 메타데이터 조회가 느려지는(한 시험이 62초) 부하 문제로 보이나 확정하지 못했다. `DataTablesTest`는 스키마를 지정하지 않고 모든 사용자의 테이블을 훑던 것을 현재 스키마로 좁혔다.
+- 따라서 **Cubrid는 "지원하며 전체 시험이 거의 통과한다(7건은 부하 때 메타데이터 조회 중단)"**로 본다. 컨텍스트가 닫힐 때 그 사용자를 지우면 줄어들 것으로 보이나, 종료 훅 경합을 겪은 영역이어서 별도 작업으로 둔다.
 
 ### 시험 환경 교훈
 

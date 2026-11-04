@@ -1,5 +1,6 @@
 package dev.yona.domain.site
 
+import dev.yona.schema.SchemaMetadata.schemaOrNull
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,9 +48,11 @@ class DataTablesTest : AbstractIntegrationTest() {
     fun `모든 테이블과 컬럼이 실제 스키마에 있다`() {
         dataSource.connection.use { connection ->
             val metadata = connection.metaData
+            // Cubrid는 스키마를 지정하지 않으면 다른 컨텍스트 사용자의 테이블까지 모두 훑다가 드라이버 예외가 난다. 현재 스키마로 좁힌다.
+            val schema = connection.schemaOrNull()
             for (table in DataTables.all) {
                 val columns = HashSet<String>()
-                metadata.getColumns(connection.catalog, null, null, null).use { rs ->
+                metadata.getColumns(connection.catalog, schema, null, null).use { rs ->
                     while (rs.next()) if (rs.getString("TABLE_NAME").equals(table.sqlName, ignoreCase = true)) columns += rs.getString("COLUMN_NAME").lowercase()
                 }
                 assertTrue(columns.isNotEmpty(), "테이블이 없다: ${table.name}")

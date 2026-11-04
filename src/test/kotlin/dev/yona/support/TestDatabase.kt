@@ -167,6 +167,9 @@ enum class TestDatabase {
             registry.add("spring.jpa.database-platform") { "dev.yona.config.YonaCubridDialect" }
             registry.add("spring.jpa.properties.hibernate.auto_quote_keyword") { "true" }
             registry.add("spring.datasource.hikari.connection-test-query") { "select 1 from db_root" }
+            // 시험은 속성을 직접 등록해 `DatabaseDefaults`가 적용되지 않으므로 운영 기본값과 같은 값을 여기서도 정한다.
+            registry.add("spring.datasource.hikari.max-lifetime") { "300000" }
+            registry.add("spring.jpa.properties.hibernate.jdbc.use_get_generated_keys") { "false" }
         }
     };
 
