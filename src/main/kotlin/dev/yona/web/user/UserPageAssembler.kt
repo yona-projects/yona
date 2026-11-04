@@ -63,7 +63,8 @@ class UserPageAssembler(
         loginId = user.loginId.orEmpty(), name = user.name.orEmpty(), englishName = user.englishName,
         email = if (showEmail) user.email else null,
         avatarUrl = avatars.avatarUrl(user, AVATAR_SIZE), guest = user.isGuest == true,
-        siteManager = siteAdmins.existsByAdminId(requireNotNull(user.id)), locked = user.state == UserState.LOCKED || user.state == UserState.DELETED,
+        siteManager = siteAdmins.existsByAdminId(requireNotNull(user.id)), locked = user.state == UserState.LOCKED, // 삭제한 사용자에는 붙이지 않는다(v1.6은 붙였다, R-52-4)
+        
         since = user.createdDate?.let { SimpleDateFormat("MMM dd, yyyy", Locale.US).format(it) }.orEmpty(),
         providers = providerLogos(user), ownPage = viewer != null && viewer.loginId == user.loginId
     )

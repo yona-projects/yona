@@ -226,13 +226,13 @@ class MyIssuesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `다른 프로젝트의 하위 이슈도 댓글 수 링크는 부모 프로젝트 주소이다 (v1_6 commentAndVoterPairDisplay)`() {
+    fun `다른 프로젝트의 하위 이슈의 댓글 수 링크는 그 하위 이슈의 프로젝트 주소이다 (R-102)`() {
         val me = newUser(); val a = project(me, "a"); val b = project(me, "b")
         val parent = issue(a, "부모", me, assignee = me)
         val child = issue(b, "다른 프로젝트 하위", me, assignee = me, parent = parent)
         comments.save(IssueComment(contents = "c", authorId = me.id, authorLoginId = me.loginId, issue = child, projectId = b.id!!, createdDate = Date()))
         val link = page(login(me)).selectFirst(".child-issue-list .child-issue .item-count-groups a")!!.attr("href")
-        assertEquals("/${a.owner}/${a.name}/issue/${child.number}#comments", link)
+        assertEquals("/${b.owner}/${b.name}/issue/${child.number}#comments", link)
     }
 
     @Test
@@ -240,6 +240,16 @@ class MyIssuesTest : AbstractIntegrationTest() {
         val me = newUser(); val other = newUser(); val a = project(other, "a")
         issue(a, "이슈", other, assignee = me)
         assertEquals(listOf("이슈"), titles(page(login(me), "labelIds" to "999", "milestoneId" to "999")))
+    }
+
+    @Test
+    fun `쓰지 않는 마일스톤 값은 빠른 검색 링크에 실어 나르지 않는다 (R-49-3)`() {
+        val me = newUser()
+        val doc = page(login(me), "milestoneId" to "999")
+        // v1.6은 무시하는 마일스톤 값을 빠른 검색 링크의 data-milestone-id에 그대로 남겼다
+        val values = doc.select("a[pjax-filter]").map { it.attr("data-milestone-id") }
+        assertTrue(values.isNotEmpty())
+        assertTrue(values.all { it.isEmpty() }, values.toString())
     }
 
     @Test

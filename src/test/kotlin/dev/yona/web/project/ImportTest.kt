@@ -138,6 +138,17 @@ class ImportTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름에는 문제가 없고 주소만 비었으면 이름 안내를 더하지 않는다 (R-46-5)`() {
+        val me = user(); val session = login(me)
+        fun errorsOf(html: String) = html.substringAfter("\"htError\": ").substringBefore("\n")
+        val blank = errorsOf(mockMvc.perform(send(session, me.loginId!!, "goodname", "  ")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        // v1.6은 오류가 하나라도 있으면 이름 규칙 안내(project.name.alert)를 이름에 더 붙였다
+        assertTrue(blank.contains("\"url\"") && !blank.contains("\"name\""), blank)
+        val badName = errorsOf(mockMvc.perform(send(session, me.loginId!!, "bad name!", source())).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertTrue(badName.contains("\"name\""), badName)
+    }
+
+    @Test
     fun `같은 이름이 있거나 주소가 비었거나 이름 규칙을 어기면 400이고 이름 안내가 더해진다`() {
         val me = user(); val session = login(me)
         mockMvc.perform(send(session, me.loginId!!, "taken", source())).andExpect(status().isSeeOther)

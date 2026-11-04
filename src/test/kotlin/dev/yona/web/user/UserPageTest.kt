@@ -132,6 +132,8 @@ class UserPageTest : AbstractIntegrationTest() {
         val admin = newUser(); siteAdmins.save(SiteAdmin(admin = admin))
         assertEquals("SITE ADMIN", page("/${admin.loginId}").selectFirst(".user-status .bg-success")!!.text())
         assertEquals("BLOCKED", page("/${newUser(state = UserState.LOCKED).loginId}").selectFirst(".user-status .bg-danger")!!.text())
+        // 삭제한 사용자에는 BLOCKED를 붙이지 않는다. v1.6은 삭제한 사용자도 잠긴 것으로 보아 붙였다(R-52-4)
+        assertNull(page("/${newUser(state = UserState.DELETED).loginId}").selectFirst(".user-status .bg-danger"))
         assertEquals("OUR GUEST", page("/${newUser(guest = true).loginId}").selectFirst(".guest-user .left-mark")!!.text())
     }
 

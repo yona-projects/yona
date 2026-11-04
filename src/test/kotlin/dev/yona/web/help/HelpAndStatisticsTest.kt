@@ -66,12 +66,24 @@ class HelpAndStatisticsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인했으면 도움말의 정보 페이지 링크는 자신의 사용자 페이지를 가리킨다 (R-51-1)`() {
+        val me = newUser()
+        val session = org.springframework.mock.web.MockHttpSession()
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/users/login").session(session).param("loginIdOrEmail", me.loginId!!).param("password", "1234"))
+        val doc = Jsoup.parse(mockMvc.perform(get("/_help").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        val answers = doc.select("ul.qas > li.qa .answer")
+        assertEquals(listOf("/", "/${me.loginId}"), answers[2].select("a").map { it.attr("href") })
+        assertEquals(listOf("/${me.loginId}"), answers[3].select("a").map { it.attr("href") })
+    }
+
+    @Test
     fun `도움말의 답변에는 링크와 게시판 기능 목록이 있다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/_help")).andExpect(status().isOk).andReturn().response.contentAsString)
         val answers = doc.select("ul.qas > li.qa .answer")
         assertEquals("https://github.com/doortts/yona#korean", answers[0].selectFirst("a")!!.attr("href"))
-        assertEquals(listOf("/", "/info"), answers[2].select("a").map { it.attr("href") })
-        assertEquals(listOf("/info"), answers[3].select("a").map { it.attr("href") })
+        // 로그인하지 않았으면 "정보 페이지" 링크는 첫 화면이다. v1.6은 전용 라우트가 없는 `/info`라 로그인 ID가 info인 사용자 페이지로 풀려 404였다(R-51-1)
+        assertEquals(listOf("/", "/"), answers[2].select("a").map { it.attr("href") })
+        assertEquals(listOf("/"), answers[3].select("a").map { it.attr("href") })
         assertEquals(6, answers[4].select("ul > li").size)
         assertEquals("https://github.com/nforge/yobi/issues", answers[5].selectFirst("a")!!.attr("href"))
         assertEquals("Yona 이슈트래커에 등록", answers[5].selectFirst("a")!!.text())

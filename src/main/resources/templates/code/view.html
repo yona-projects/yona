@@ -124,7 +124,7 @@
                     <div id="showFile" class="file-wrap" th:if="${f.mode == 'binary'}">
                         <p>
                             <strong class="filename" th:text="${f.fileName}"></strong><br>
-                            <span class="filesize"></span><br>
+                            <span class="filesize" th:text="${f.size}"></span><br>
                             <a th:href="${f.rawUrl}" class="filehref ybtn"><i class="yobicon-download-alt yobicon-white vmiddle"></i> <th:block th:text="#{button.download}"></th:block></a>
                         </p>
                     </div>

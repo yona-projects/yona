@@ -18,6 +18,8 @@ object SearchSnippets {
         if (contents == null) return emptyList()
         val lowerContents = contents.lowercase()
         val lowerKeyword = keyword.lowercase()
+        // 빈 키워드는 같은 자리를 계속 찾아 끝나지 않았다(C031, v1.6)
+        if (lowerKeyword.isEmpty()) return emptyList()
         val ranges = ArrayList<IntArray>()
         var index = lowerContents.indexOf(lowerKeyword)
         while (index != -1) {

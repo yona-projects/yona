@@ -121,6 +121,14 @@ class SiteSecretTest : AbstractIntegrationTest() {
     // --- 검증 ---
 
     @Test
+    fun `기본 관리자 계정이 없어도 비밀 키를 정하면 오류 없이 재시작을 안내한다 (C034)`() {
+        users.findByLoginIdIgnoreCase("admin")?.let { it.loginId = "admin-renamed"; users.saveAndFlush(it) }
+        // v1.6은 admin 사용자를 찾지 못하면 NPE였다. 계정은 건너뛰고 비밀 키만 정한다
+        secret.configure("관리자", "admin@example.com", "1234")
+        assertTrue(secret.restartRequired)
+    }
+
+    @Test
     fun `ID가 admin이 아니거나 비어 있으면 오류이다`() {
         listOf("other", "").forEach {
             val doc = Jsoup.parse(submit(*with("loginId", it)).andExpect(status().isBadRequest).andReturn().response.contentAsString)

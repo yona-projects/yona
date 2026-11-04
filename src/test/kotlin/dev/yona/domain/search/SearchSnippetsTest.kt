@@ -44,4 +44,12 @@ class SearchSnippetsTest {
     fun `원문의 대소문자를 유지한다`() {
         assertEquals(listOf("Hello World"), SearchSnippets.make("Hello World", "WORLD", 40))
     }
+
+    @Test
+    fun `빈 검색어는 무한 반복하지 않고 조각이 없다 (C031)`() {
+        // v1.6의 반복은 빈 키워드에서 같은 자리를 계속 찾아 끝나지 않았다. 입구에서 막혀 있지만 이 함수만으로도 안전해야 한다
+        org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(5)) {
+            assertEquals(emptyList<String>(), SearchSnippets.make("본문이 있다", "", 40))
+        }
+    }
 }

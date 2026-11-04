@@ -87,7 +87,8 @@ class ProjectImportService(
         if (owner != null && name != null && projects.existsByOwnerIgnoreCaseAndNameIgnoreCase(owner, name)) errors.reject("name", "project.name.duplicate")
         if (LegacyText.isBlank(form.url)) errors.reject("url", "project.import.error.empty.url")
         if (errors.hasErrors()) {
-            errors.reject("name", "project.name.alert")
+            // v1.6은 어떤 오류가 있어도 이름 규칙 안내를 더 붙였다(R-46-5). 이름 규칙을 어긴 경우에만 붙인다
+            if (ProjectNameRules.violations(name).isNotEmpty()) errors.reject("name", "project.name.alert")
             return ImportResult.Rejected(errors)
         }
 

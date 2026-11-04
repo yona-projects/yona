@@ -46,6 +46,14 @@ class MigrationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `원본 프로젝트 목록은 사라진 옛 서버로 가는 링크를 두지 않는다 (R-58-3)`() {
+        val (_, session) = login()
+        val html = mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
+        // v1.6은 `yobi.navercorp.com`으로 고정된 링크를 두었다
+        assertTrue(!html.contains("yobi.navercorp.com"), "옛 서버 링크가 남아 있다")
+    }
+
+    @Test
     fun `로그인하지 않으면 로그인 폼으로 보낸다`() {
         mockMvc.perform(get("/migration")).andExpect(status().isSeeOther)
     }

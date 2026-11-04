@@ -283,6 +283,8 @@ data class YonaProperties(
      */
     data class Ldap(
         val enabled: Boolean = false,
+        /** 접속 프로토콜(`ldap`, `ldaps`). 비어 있으면 최상위 `protocol`을 쓴다. v1.6은 이 키가 아니라 최상위 키만 읽어 `ldap.protocol`을 적어도 무시되었다(R-60-1). */
+        val protocol: String? = null,
         val host: String = "ldap.forumsys.com",
         val port: String = "389",
         val baseDn: String = "ou=scientists,dc=example,dc=com",

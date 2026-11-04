@@ -78,7 +78,7 @@ class LdapSettingsService(private val repository: LdapSettingsRepository, privat
 
     /** 지금 적용되는 접속 프로토콜(`ldap` 또는 `ldaps`)이다. */
     @Transactional(readOnly = true)
-    fun protocol(): String = repository.findById(ROW).orElse(null)?.protocol?.takeIf { it.isNotBlank() } ?: properties.protocol
+    fun protocol(): String = repository.findById(ROW).orElse(null)?.protocol?.takeIf { it.isNotBlank() } ?: properties.ldap.protocol?.takeIf { it.isNotBlank() } ?: properties.protocol
 
     /** LDAP으로 로그인하도록 켜져 있으면 `true`이다. */
     @Transactional(readOnly = true)

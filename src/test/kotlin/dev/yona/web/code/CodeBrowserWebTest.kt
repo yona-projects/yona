@@ -243,6 +243,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val binary = page("/${p.owner}/${p.name}/code/master/data.bin")
         assertEquals("data.bin", binary.selectFirst("#showFile .filename")!!.text())
         assertNotNull(binary.selectFirst("#showFile a.filehref"))
+        // v1.6는 크기 칸이 비어 있었다(R-39). 바이트 수를 담아 두면 화면 스크립트가 읽기 쉬운 단위로 바꾼다
+        assertTrue(binary.selectFirst("#showFile .filesize")!!.text().matches(Regex("\\d+")), binary.selectFirst("#showFile .filesize")!!.outerHtml())
         assertNull(binary.selectFirst(".file-header a[target=_blank]:contains(Raw)"))
     }
 

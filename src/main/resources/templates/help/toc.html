@@ -73,7 +73,7 @@
                         <a href="/">메인화면</a>
                         우측 하단에 다음과 같이 참여하고 있는 프로젝트의 목록을 볼수 있습니다.
                         자물쇠가 있는 것은 비공개 프로젝트이며 자물쇠가 없는 것은 공개 프로젝트 입니다.
-                        혹은 자신의 <a href="/info">정보 페이지</a>에서도 확인하실수 있습니다.
+                        혹은 자신의 <a th:href="${currentUser != null and currentUser.loginId != null} ? '/' + ${currentUser.loginId} : '/'">정보 페이지</a>에서도 확인하실수 있습니다.
                     </div>
                 </div>
             </li>
@@ -86,7 +86,7 @@
                 <div class="answer-wrap">
                     <i class="yobicon-a a"></i>
                     <div class="answer" style="width:100%">
-                        자신의 <a href="/info">정보 페이지</a>에서 참여하고 있는 프로젝트 목록을 볼 수있고
+                        자신의 <a th:href="${currentUser != null and currentUser.loginId != null} ? '/' + ${currentUser.loginId} : '/'">정보 페이지</a>에서 참여하고 있는 프로젝트 목록을 볼 수있고
                         탈퇴도 할수 있습니다. 자신이 프로젝트의 유일한 관리자라면 해당 프로젝트에서 탈퇴를 할 수 없습니다.
                     </div>
                 </div>

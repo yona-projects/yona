@@ -54,9 +54,8 @@ class SocialSession {
         session.removeAttribute(ORIGINAL_URL)
     }
 
-    /** 제공자와 사용자 ID 값이 세션에 있으면 `true`이다. 만료는 보지 않는다 (v1.6 `PlayAuthenticate.getUser`가 null이 아닌 경우). */
-    fun hasKeys(request: HttpServletRequest): Boolean =
-        request.getSession(false)?.let { it.getAttribute(PROVIDER) != null && it.getAttribute(USER_ID) != null } ?: false
+    /** 만료하지 않은 소셜 세션이 있으면 `true`이다. v1.6은 만료를 보지 않고 키만 있으면 참이라 컨트롤러가 만료로 보는 것과 어긋났다(R-59-13). */
+    fun hasKeys(request: HttpServletRequest): Boolean = current(request) != null
 
     private fun clear(session: HttpSession?) {
         session ?: return

@@ -43,8 +43,7 @@
                     <div class="left-project-list">
                         <div class="project-list" ng-repeat="repo in vm.sourceProjects | filter:source:strict" ng-click="vm.getSourceProject(repo.owner, repo.projectName);vm.selectSourceProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedSourceName }" ng-cloak>
                             <div class="owner" ng-if="vm.isNewOwner(repo)">{{repo.owner}}</div>
-                            <div class="project-name"><a href="http://yobi.navercorp.com/{{repo.full_name}}" target="_blank">
-                                {{repo.projectName}}</a></div>
+                            <div class="project-name"><span>{{repo.projectName}}</span></div>
                             <div class="metainfo-sm">
                                 {{repo.owner}} {{repo.members}}명 <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i></div>
                         </div>
