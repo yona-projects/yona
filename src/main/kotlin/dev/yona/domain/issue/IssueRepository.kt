@@ -38,6 +38,9 @@ interface IssueRepository : JpaRepository<Issue, Long> {
     @Query("select count(i) from Issue i join i.labels l where i.project.id = :projectId and l.id = :labelId and i.state = :state")
     fun countByLabel(projectId: Long, labelId: Long, state: State): Long
 
+    /** 프로젝트에서 하위 이슈를 포함해 지정한 상태인 이슈 수이다. 담당자별 비율의 분모에 쓴다(R-68-1). */
+    fun countByProjectIdAndState(projectId: Long, state: State): Long
+
     /** 프로젝트의 최상위 이슈(부모가 없는 이슈) 중 지정한 상태의 개수이다 (v1.6 `Issue.countIssues`). */
     fun countByProjectIdAndParentIsNullAndState(projectId: Long, state: State): Long
 

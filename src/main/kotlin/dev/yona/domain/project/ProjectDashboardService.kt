@@ -66,7 +66,8 @@ class ProjectDashboardService(
     @Transactional(readOnly = true)
     fun byAssignee(project: Project): DashboardByAssignee {
         val projectId = requireNotNull(project.id)
-        val total = openTopLevelCount(project)
+        // 담당자별 수는 하위 이슈를 포함하므로 분모도 같은 집합이어야 한다. v1.6은 최상위 이슈 수를 분모로 써서 100%를 넘을 수 있었다(R-68-1)
+        val total = issues.countByProjectIdAndState(projectId, State.OPEN)
         if (total == 0L) return DashboardByAssignee(true, emptyList(), 0, 0)
         val rows = assignees.findByProjectIdOrderByIdAsc(projectId).mapNotNull { assignee ->
             val count = issues.countByProjectIdAndAssigneeIdAndState(projectId, requireNotNull(assignee.id), State.OPEN)

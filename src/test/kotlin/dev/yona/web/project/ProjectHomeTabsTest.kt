@@ -212,16 +212,16 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
     private fun rows(doc: Document, selector: String) = doc.select("$selector .row")
 
     @Test
-    fun `담당자별 열린 이슈는 하위 이슈를 포함해 세고 분모는 하위 이슈를 뺀 열린 이슈 수이다`() {
+    fun `담당자별 열린 이슈는 하위 이슈를 포함해 세고 분모도 하위 이슈를 포함한 열린 이슈 수이다 (R-68-1)`() {
         val p = project(); val a = user(); val b = user()
         val parent = issue(p, "부모", assignee = a); issue(p, "자식", assignee = a, parent = parent); issue(p, "남의 것", assignee = b); issue(p, "담당 없음")
         issue(p, "닫힘", assignee = a, state = State.CLOSED)
         val doc = home(p, "dashboard")
         val rows = rows(doc, ".overview-assignee")
-        // 분모는 하위 이슈를 뺀 열린 이슈 3개(부모, 남의 것, 담당 없음). 담당자 a는 2개이다.
+        // 분모는 하위 이슈를 포함한 열린 이슈 4개(부모, 자식, 남의 것, 담당 없음). 담당자 a는 2개이다. v1.6은 분모를 3개로 해서 66%였다
         val rowA = rows.first { it.text().contains("@${a.loginId}") }
         assertEquals("2", rowA.selectFirst("div.num strong")!!.text())
-        assertEquals("66%", rowA.selectFirst(".progress")!!.attr("title"))
+        assertEquals("50%", rowA.selectFirst(".progress")!!.attr("title"))
         assertEquals("/${p.owner}/${p.name}/issues?state=open&assigneeId=${a.id}", rowA.selectFirst("a.usf-group")!!.attr("href"))
         val none = rows.last()!!
         assertEquals("1", none.selectFirst("div.num strong")!!.text())
