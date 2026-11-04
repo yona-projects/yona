@@ -59,6 +59,8 @@ class IssueCommentService(
         comment.contents = contents
         comments.save(comment)
         mentions.update(ResourceType.ISSUE_COMMENT, requireNotNull(comment.id).toString(), contents)
+        // v1.6의 `Comment.update()`는 부모를 다시 저장하지 않아 댓글 수가 어긋난 채로 남았다(C082). 댓글 수를 다시 센다
+        comment.issue?.let { syncCommentCount(it) }
         if (notifyMail || comment.authorLoginId != actor.loginId) publisher.publishEvent(IssueCommentActivity(comment, null, false, actor))
         touchOrTransition(requireNotNull(comment.issue), actor, withStateTransition)
         return comment
@@ -76,7 +78,7 @@ class IssueCommentService(
 
     /**
      * 댓글을 지운다. 첨부와 알림 이벤트를 지우고, 이 댓글에 달린 한 줄 댓글은 일반 댓글로 남기며, 이슈의 댓글 수를 맞춘다.
-     * v1.6처럼 멘션 기록은 지우지 않는다([refactoring-backlog.md] R-26).
+     * 이 댓글의 멘션 기록도 지운다(v1.6은 남겨 고아 행이 되었다, R-26).
      */
     @Transactional
     fun delete(comment: IssueComment) {
@@ -84,6 +86,7 @@ class IssueCommentService(
         val issue = comment.issue
         attachments.deleteAll(ResourceType.ISSUE_COMMENT, id)
         issueService.deleteResourceRelations(ResourceType.ISSUE_COMMENT, id.toString())
+        mentions.deleteAll(ResourceType.ISSUE_COMMENT, id.toString())
         comments.findByParentCommentIdOrderByIdAsc(id).forEach { it.parentComment = null }
         entityManager.flush()
         comment.voters.clear()

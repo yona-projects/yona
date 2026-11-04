@@ -103,4 +103,40 @@ class IssueMentionResyncTest : AbstractIntegrationTest() {
         issueService.toNextState(issue, actor)
         assertEquals(listOf(target), issueMentionees(issue))
     }
+
+    @Test
+    fun `댓글을 고치면 이슈의 댓글 수를 다시 센다 (C082)`() {
+        val target = "mt${++sequence}"; user(target); val author = user("author${++sequence}")
+        val issue = issueMentioning(target)
+        val comment = commentService.add(issue, author, "내용", null, false)
+        issue.numOfComments = 7   // 어긋난 값
+        issues.save(issue)
+        commentService.update(comment, author, "고친 내용", notifyMail = false, withStateTransition = false)
+        // v1.6의 `Comment.update()`는 부모를 다시 저장하지 않아 댓글 수가 어긋난 채로 남았다
+        assertEquals(1, issues.findById(issue.id!!).get().numOfComments)
+    }
+
+    @Test
+    fun `댓글을 지우면 그 댓글의 멘션 행도 지운다 (R-26)`() {
+        val target = "mt${++sequence}"; user(target); val author = user("author${++sequence}")
+        val issue = issueMentioning(target)
+        val comment = commentService.add(issue, author, "댓글 @$target", null, false)
+        val rows = { mentions.findAll().filter { it.resourceType == ResourceType.ISSUE_COMMENT && it.resourceId == comment.id.toString() } }
+        assertEquals(1, rows().size)
+        commentService.delete(comment)
+        // v1.6은 멘션 기록을 남겨 고아 행이 되었다
+        assertEquals(0, rows().size)
+    }
+
+    @Test
+    fun `이슈를 지우면 이슈와 댓글의 멘션 행도 지운다 (R-24)`() {
+        val target = "mt${++sequence}"; user(target); val author = user("author${++sequence}")
+        val issue = issueMentioning(target)
+        issueService.adjustWeight(issue, 1)   // 본문 멘션 행을 만든다
+        val comment = commentService.add(issue, author, "댓글 @$target", null, false)
+        assertEquals(listOf(target), issueMentionees(issue))
+        issueService.delete(issue, author)
+        val remaining = mentions.findAll().filter { (it.resourceType == ResourceType.ISSUE_POST && it.resourceId == issue.id.toString()) || (it.resourceType == ResourceType.ISSUE_COMMENT && it.resourceId == comment.id.toString()) }
+        assertEquals(0, remaining.size)
+    }
 }

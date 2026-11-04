@@ -181,7 +181,7 @@ class IssueService(
     /**
      * 이슈를 지운다 (v1.6 `IssueApp.deleteIssue`, `AbstractPosting.delete`). 댓글(첨부와 알림 이벤트 포함), 타임라인 이벤트, 제목 머리말 개수,
      * 이슈의 첨부와 알림 이벤트를 지우고, 하위 이슈의 부모 연결은 끊는다. 초안이 아니고 [notify]가 참이면 [IssueDeletedActivity]를 발행한다(일괄 수정의 삭제는 v1.6 `issue.delete()`만 불러 알림과 웹훅이 없다).
-     * v1.6처럼 멘션 기록은 지우지 않는다([refactoring-backlog.md] R-24).
+     * 이슈와 댓글의 멘션 기록도 지운다(v1.6은 남겨 고아 행이 되었다, R-24).
      */
     @Transactional
     fun delete(issue: Issue, actor: User, notify: Boolean = true) {
@@ -199,6 +199,7 @@ class IssueService(
             val commentId = requireNotNull(comment.id)
             attachments.deleteAll(ResourceType.ISSUE_COMMENT, commentId)
             deleteResourceRelations(ResourceType.ISSUE_COMMENT, commentId.toString())
+            mentions.deleteAll(ResourceType.ISSUE_COMMENT, commentId.toString())
             entityManager.remove(comment)
         }
         entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id", IssueEvent::class.java).setParameter("id", id).resultList
@@ -206,6 +207,8 @@ class IssueService(
         titleHeads.delete(project, issue.title)
         attachments.deleteAll(ResourceType.ISSUE_POST, id)
         deleteResourceRelations(ResourceType.ISSUE_POST, id.toString())
+        // 멘션 기록도 지운다. v1.6은 남겨 고아 행이 되었다(R-24)
+        mentions.deleteAll(ResourceType.ISSUE_POST, id.toString())
         entityManager.createQuery("select i from Issue i where i.parent.id = :id", Issue::class.java).setParameter("id", id).resultList
             .forEach { it.parent = null }
         entityManager.flush()

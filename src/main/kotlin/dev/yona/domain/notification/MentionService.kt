@@ -51,6 +51,12 @@ class MentionService(
         return LinkedHashSet(result.values)
     }
 
+    /** 글이나 댓글을 지울 때 그 멘션 기록을 모두 지운다. */
+    @Transactional
+    fun deleteAll(resourceType: ResourceType, resourceId: String) {
+        mentions.findByResourceTypeAndResourceId(resourceType, resourceId).forEach { mentions.delete(it) }
+    }
+
     /**
      * 글(또는 댓글)의 멘션 기록을 본문에 맞춘다. 사라진 멘션은 지우고 새로 생긴 멘션만 더한다. [body]가 `null`이면 아무것도 하지 않는다.
      */
