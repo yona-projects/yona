@@ -84,7 +84,7 @@ class SearchRowAssembler(
         return SearchItemRow(
             postId = postId, titleUrl = titleUrl, titleText = titleText, titleClass = titleClass, snippets = snippets(contents, keyword), snippetsUrl = snippetsUrl,
             projectLabel = label(project, scoped), projectUrl = project?.let { url(it, "") },
-            authorLoginId = userLoginId, authorName = name, noAuthorText = if (noAuthorKey == "posting.noAuthor") noAuthorKey else message(noAuthorKey),
+            authorLoginId = userLoginId, authorName = name, noAuthorText = message(noAuthorKey),
             createdTitle = helper.dateString(created), createdText = helper.agoOrDateString(created)
         )
     }
@@ -107,7 +107,7 @@ class SearchRowAssembler(
         )
     }
 
-    /** v1.6은 이 줄에서만 `posting.noAuthor`를 쓰는데 메시지 파일에 없어 키 이름이 그대로 보인다. */
+    /** v1.6은 이 줄에서만 `posting.noAuthor`를 쓰는데 메시지 파일에 없어 키 이름이 그대로 보였다. 번들에 키를 더해 문구가 보인다(C028). */
     private fun postingComment(comment: PostingComment, keyword: String, scoped: Boolean, viewer: User?): SearchItemRow {
         val post = requireNotNull(comment.posting)
         return row(

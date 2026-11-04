@@ -103,8 +103,8 @@ class MailResourceCreatorTest : AbstractIntegrationTest() {
         val owner = user(); val outsider = user(); val p = project(owner)
         val mail = MailFixtures.mail("<m-denied@mail>", outsider.email!!, listOf(to(p)), "제목")
         val e = assertFailsWith<PermissionDenied> { creator.saveIssue(mail, p) }
-        // v1.6는 메시지가 {1}부터인데 {0}부터 인자를 넘겨 문구가 어긋난다(R-61). 같은 문구를 그대로 낸다.
-        assertEquals("You (issue) don't have the permission to create ${p.owner}/${p.name} in project {3}.", e.message)
+        // v1.6 영어 문구는 인자를 {1}부터 써서 어긋났다(C184). 인자는 (사용자, 종류, 프로젝트) 순서이고 {0}부터 쓴다.
+        assertEquals("You (${outsider.name}(${outsider.loginId})) don't have the permission to create issue in project ${p.owner}/${p.name}.", e.message)
     }
 
     @Test

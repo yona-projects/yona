@@ -338,6 +338,16 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름이 비어 있는 작성자의 게시글 댓글은 키 이름이 아니라 작성자 없음 문구를 보인다 (C028)`() {
+        val owner = newUser(); val ghost = newUser(name = ""); val p = project(owner, "noauthorboard")
+        val post = postings.save(Posting(project = p, number = ++number, title = "게시 제목", body = "본문", authorId = owner.id, authorLoginId = owner.loginId, authorName = owner.name, createdDate = Date(), updatedDate = Date()))
+        postingComments.save(PostingComment(contents = "pcghost 댓글", createdDate = Date(), authorId = ghost.id, authorLoginId = ghost.loginId, authorName = "", posting = post, projectId = p.id!!))
+        val html = all(null, "post_comment", "pcghost").html()
+        assertFalse(html.contains("posting.noAuthor"), "메시지 키 이름이 그대로 보이면 안 된다")
+        assertTrue(html.contains(java.util.ResourceBundle.getBundle("messages", java.util.Locale.ROOT).getString("posting.noAuthor")), "화면 언어는 영어(기본 번들)이다")
+    }
+
+    @Test
     fun `코드 리뷰 댓글을 찾는다`() {
         val owner = newUser(); val p = project(owner, "review")
         val thread = threads.save(NonRangedCodeCommentThread(commitId = "abcdef0").also { it.project = p; it.createdDate = Date() })

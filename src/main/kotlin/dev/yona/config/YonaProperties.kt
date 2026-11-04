@@ -360,8 +360,8 @@ data class YonaProperties(
      */
     data class Github(
         val allowMigration: Boolean = false,
-        val clientId: String = "TYPE YOUR GITHUB CILENT ID",
-        val clientSecret: String = "TYPE YOUR GITHUB CILENT SECRET",
+        val clientId: String = "TYPE YOUR GITHUB CLIENT ID",
+        val clientSecret: String = "TYPE YOUR GITHUB CLIENT SECRET",
         val accessTokenUrl: String = "https://github.com/login/oauth/access_token"
     )
 

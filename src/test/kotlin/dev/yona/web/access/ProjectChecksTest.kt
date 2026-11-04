@@ -115,7 +115,7 @@ class ProjectChecksTest : AbstractIntegrationTest() {
         val result = call("/nobody/nothing/__t/default")
         assertEquals(403, result.response.status)
         val page = doc(result)
-        assertEquals("error.fobidden", page.title(), "v1.6의 오타 키가 그대로 제목이 된다")
+        assertEquals("You are not authorized", page.title(), "v1.6의 오타 키 `error.fobidden`은 그대로 쓰되 번들에 키를 더해 키 이름이 아니라 문구가 제목이 된다(C152)")
         assertEquals("/users/login", page.selectFirst(".login-form-wrap form")?.attr("action"))
         assertEquals("/nobody/nothing/__t/default", page.selectFirst("input[name=redirectUrl]")?.attr("value"))
         assertTrue(result.response.contentAsString.contains("You are not authorized to access this page or not logged in."), "failed 안내")

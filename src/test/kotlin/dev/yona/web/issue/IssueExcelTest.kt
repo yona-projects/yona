@@ -95,7 +95,7 @@ class IssueExcelTest : AbstractIntegrationTest() {
         val (project, _, _) = fixture()
         val sheet = workbook(project)
         assertEquals(
-            listOf("No", "Status", "Title", "Assignee", "Issue Content", "Issue Label", "Created date", "Due date", "Milestone", "URL", "Comment", "Comment Author", "common.comment.created"),
+            listOf("No", "Status", "Title", "Assignee", "Issue Content", "Issue Label", "Created date", "Due date", "Milestone", "URL", "Comment", "Comment Author", "Comment created"),
             (0 until 13).map { sheet.getCell(it, 0).contents }
         )
     }

@@ -15,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView
  * `app/views/project/statistics.scala.html`에 해당한다.
  *
  * v1.6의 화면은 프로젝트 레이아웃 안에 "Under Construction" 한 줄뿐이다(통계 데이터를 그리지 않는다). 같게 만든다.
- * 제목 메시지 키 `statistics`는 메시지 파일에 없어 키 이름이 그대로 제목에 나온다.
+ * 제목 메시지 키 `statistics`는 v1.6 메시지 파일에 없어 키 이름이 그대로 제목에 나왔다. 번들에 키를 더해 "Statistics" 문구가 제목이 된다(R-51-3).
  */
 @Controller
 @AnonymousCheck

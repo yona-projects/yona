@@ -88,7 +88,7 @@ class HelpAndStatisticsTest : AbstractIntegrationTest() {
         val owner = newUser(); project(owner, "stat")
         val doc = Jsoup.parse(mockMvc.perform(get("/${owner.loginId}/stat/statistics")).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("Under Construction", doc.selectFirst(".project-page-wrap h1")!!.text())
-        assertEquals("statistics - ${owner.loginId}/stat", doc.title())
+        assertEquals("Statistics - ${owner.loginId}/stat", doc.title(), "v1.6은 `statistics` 키가 번들에 없어 키 이름이 제목이었다(R-51-3). 번들에 키를 더해 문구가 제목이 된다")
     }
 
     @Test
