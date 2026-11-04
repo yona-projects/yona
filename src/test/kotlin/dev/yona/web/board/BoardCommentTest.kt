@@ -299,6 +299,19 @@ class BoardCommentTest : AbstractIntegrationTest() {
     // --- 라벨 API ---
 
     @Test
+    fun `라벨을 바꿔도 제목 머리말 개수는 늘지 않는다 (R-29)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val p = post(project, member); p.title = "[버그] 제목"; postings.save(p)
+        val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
+        val x = labels.save(IssueLabel(project = project, category = category, name = "x", color = "#fff"))
+        json(post(api(project, "postlabel/1")), login(member), "[\"${x.id}\"]").andExpect(status().isOk)
+        entityManager.flush(); entityManager.clear()
+        // v1.6은 라벨을 바꿀 때마다 저장 경로가 제목 머리말 개수를 한 번씩 늘렸다
+        val heads = entityManager.createQuery("select h from TitleHead h where h.project.id = :p", dev.yona.domain.project.TitleHead::class.java).setParameter("p", project.id).resultList
+        assertEquals(0, heads.size)
+    }
+
+    @Test
     fun `글의 라벨을 바꾼다`() {
         val project = newProject(); val member = join(newUser(), project)
         val p = post(project, member)

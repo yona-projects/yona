@@ -311,7 +311,7 @@ class IssueLabelTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `라벨을 지우면 이슈를 update로 저장한다 (v1_6 IssueLabel_delete의 issue_save, 제목 머리말 빈도와 멘션 재계산)`() {
+    fun `라벨을 지우면 이슈의 멘션 행을 다시 맞추되 제목 머리말 개수는 늘리지 않는다 (v1_6 IssueLabel_delete의 issue_save, R-111)`() {
         val project = newProject()
         val type = newCategory(project, "Type")
         val bug = newLabel(project, type, "bug")
@@ -321,8 +321,8 @@ class IssueLabelTest : AbstractIntegrationTest() {
         mockMvc.perform(post("${base(project)}/issue/label/${bug.id}/delete").session(manager(project)).param("_method", "delete")).andExpect(status().isOk)
         entityManager.flush(); entityManager.clear()
         val heads = titleHeads.findAll().filter { it.project?.id == project.id && it.headKeyword == "버그" }
-        assertEquals(1, heads.size)
-        assertEquals(1, heads.single().frequency)
+        // v1.6은 이 저장 경로가 제목 머리말 개수를 한 번 늘렸다
+        assertEquals(0, heads.size)
         assertEquals(listOf(mentioned.loginId), mentionRepository.findAll().filter { it.resourceType == ResourceType.ISSUE_POST && it.resourceId == issue.id.toString() }.mapNotNull { it.user?.loginId })
     }
 

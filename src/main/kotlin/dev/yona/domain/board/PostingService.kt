@@ -98,8 +98,8 @@ class PostingService(
     }
 
     /**
-     * 글의 라벨을 [newLabels]로 바꾼다 (v1.6 `BoardApi.updatePostLabel`). v1.6은 `save()`로 저장해 제목 머리말 개수가 한 번 더 늘고
-     * 멘션 기록이 다시 맞춰진다([refactoring-backlog.md] R-29). 같은 결과를 내도록 재현한다.
+     * 글의 라벨을 [newLabels]로 바꾼다 (v1.6 `BoardApi.updatePostLabel`). v1.6은 `save()`로 저장해 멘션 기록이 다시 맞춰지고 제목 머리말 개수가 한 번 더
+     * 늘었다. 멘션 맞춤은 그대로 두고 머리말 개수는 늘리지 않는다(R-29).
      */
     @Transactional
     fun replaceLabels(posting: Posting, newLabels: Set<dev.yona.domain.issue.IssueLabel>) {
@@ -107,7 +107,7 @@ class PostingService(
         posting.labels.addAll(newLabels)
         posting.numOfComments = postingComments.countByPostingId(requireNotNull(posting.id)).toInt()
         postings.save(posting)
-        titleHeads.save(requireNotNull(posting.project), posting.title)
+        // 제목은 바뀌지 않았으므로 제목 머리말 개수를 늘리지 않는다. v1.6은 저장할 때마다 한 번씩 늘렸다(R-29)
         mentions.update(ResourceType.BOARD_POST, posting.id.toString(), posting.body.orEmpty())
     }
 

@@ -333,8 +333,8 @@ class IssueService(
     @Transactional
     fun deleteLabel(label: IssueLabel) {
         labelService.deleteLabel(label).forEach { issue ->
+            // 댓글 수와 멘션 기록은 다시 맞추되 제목 머리말 개수는 늘리지 않는다. v1.6은 저장 때마다 한 번씩 늘렸다(R-111)
             resync(issue)
-            titleHeads.save(requireNotNull(issue.project), issue.title)
         }
     }
 
