@@ -191,11 +191,12 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이력 주소의 소유자는 요청 주소에 쓴 값 그대로이다`() {
+    fun `이력 주소의 소유자는 요청 주소에 대문자로 써도 프로젝트의 실제 소유자 이름이다 (R-68-2)`() {
         val p = project(); val writer = user()
         val issue = issue(p, "대소문자", writer)
         val href = home(p, "history", owner = p.owner!!.uppercase()).selectFirst(".whereis a.title")!!.attr("href")
-        assertEquals("/${p.owner!!.uppercase()}/${p.name}/issue/${issue.number}", href)
+        // v1.6은 요청 주소에 쓴 소유자(대소문자 포함)를 그대로 이력 주소에 썼다
+        assertEquals("/${p.owner}/${p.name}/issue/${issue.number}", href)
     }
 
     @Test

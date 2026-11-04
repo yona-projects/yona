@@ -192,7 +192,8 @@ class MigrationService(
             sb.append("\n\n--- attachments ---")
             files.forEach { file ->
                 if (wiki) sb.append(String.format("\n[%s](../wiki/files/%s/%s)", file["name"], file["id"], file["name"]!!.replace("#", "%23")))
-                else sb.append(String.format("\n[%s](%s)", file["name"], "/" + file["url"]))
+                // v1.6은 `/` + `/files/번호`를 이어 붙여 `//files/번호`(프로토콜 상대 주소)가 되었다(R-58-7). 첨부 주소는 이미 `/files/번호`이다
+                else sb.append(String.format("\n[%s](%s)", file["name"], file["url"]))
             }
         }
         return sb.toString()

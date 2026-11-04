@@ -494,6 +494,7 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val light = newLabel(project, type, "light", "#ffeb3b")
         val dark = newLabel(project, type, "dark", "#3f51b5")
         val short = newLabel(project, type, "short", "#000")
+        val shortLight = newLabel(project, type, "shortlight", "#fff")
         val css = mockMvc.perform(get("${base(project)}/issue/labels.css")).andExpect(status().isOk)
             .andExpect(header().string("Content-Type", "text/css")).andReturn().response.contentAsString
         assertTrue(".issue-label[data-label-id=\"${light.id}\"]{" in css)
@@ -501,8 +502,9 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val active = { l: IssueLabel -> css.substringAfter(".issue-label.active[data-label-id=\"${l.id}\"]{").substringBefore("}") }
         assertTrue("color: dimgray;" in active(light))
         assertTrue("background-color: #3f51b5;" in active(dark) && "color: white;" in active(dark))
-        // v1.6의 3자리 색 처리 결함: 흰색으로 계산되어 어두운 색에도 dimgray가 된다.
-        assertTrue("color: dimgray;" in active(short))
+        // v1.6은 3자리 색을 6자리로 바르게 늘리지 못해 흰색으로 계산했고 어두운 `#000`에도 dimgray가 되었다(R-22). 두 글자씩 늘려 계산한다
+        assertTrue("color: white;" in active(short), active(short))
+        assertTrue("color: dimgray;" in active(shortLight), active(shortLight))
     }
 
     @Test

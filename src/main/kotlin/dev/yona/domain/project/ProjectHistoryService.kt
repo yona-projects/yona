@@ -52,7 +52,8 @@ class ProjectHistoryService(
     fun history(owner: String, project: Project): List<ProjectHistoryItem> {
         val projectId = requireNotNull(project.id)
         val newest = { column: String -> PageRequest.of(0, LIMIT, Sort.by(Sort.Order.desc(column), Sort.Order.desc("id"))) }
-        val base = "/$owner/${project.name}"
+        // v1.6은 요청 주소에 쓴 소유자(대소문자 포함)를 그대로 써서 대문자로 열면 이력 링크도 대문자였다(R-68-2). 프로젝트의 실제 소유자 이름을 쓴다
+        val base = "/${project.owner}/${project.name}"
         val items = mutableListOf<ProjectHistoryItem>()
 
         val recentCommits = try {

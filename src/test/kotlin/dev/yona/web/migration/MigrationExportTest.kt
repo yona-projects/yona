@@ -267,7 +267,7 @@ class MigrationExportTest : AbstractIntegrationTest() {
         val one = issue(p, "첨부 이슈", manager, body = "본문")
         val file = attachments.save(Attachment(name = "a#b.txt", hash = "att-h", containerType = ResourceType.ISSUE_POST, containerId = one.id!!, mimeType = "text/plain", size = 3, createdDate = Date(), ownerLoginId = manager.loginId))
         val session = login(manager)
-        exportOf(session, "/migration/${manager.loginId}/projects/att/issues").andExpect(jsonPath("$.issues[0].issue.body").value(org.hamcrest.Matchers.endsWith("본문\n\n--- attachments ---\n[a#b.txt](//files/${file.id})")))
+        exportOf(session, "/migration/${manager.loginId}/projects/att/issues").andExpect(jsonPath("$.issues[0].issue.body").value(org.hamcrest.Matchers.endsWith("본문\n\n--- attachments ---\n[a#b.txt](/files/${file.id})")))
         exportOf(session, "/migration/${manager.loginId}/projects/att/issues", "withWikiCommit" to "true")
             .andExpect(jsonPath("$.issues[0].issue.body").value(org.hamcrest.Matchers.endsWith("본문\n\n--- attachments ---\n[a#b.txt](../wiki/files/${file.id}/a%23b.txt)")))
     }

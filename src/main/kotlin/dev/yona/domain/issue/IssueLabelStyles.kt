@@ -57,8 +57,8 @@ object IssueLabelStyles {
 
     private fun parseHex(color: String): IntArray {
         val prefixed = if (color.indexOf('#') != 0) "#$color" else color
-        // v1.6 결함 재현: 3자리 색은 문자열 전체를 반복하므로 6자리가 되지 못한다.
-        val base = if (prefixed.length == 4) "#" + prefixed.substring(1).repeat(2) + prefixed.substring(2).repeat(2) + prefixed.substring(3).repeat(2) else prefixed
+        // v1.6은 3자리 색을 문자열 전체를 반복해 늘려 6자리가 되지 못했다(R-22). 글자마다 두 번씩 써서 `#abc`를 `#aabbcc`로 늘린다
+        val base = if (prefixed.length == 4) "#" + prefixed[1].toString().repeat(2) + prefixed[2].toString().repeat(2) + prefixed[3].toString().repeat(2) else prefixed
         if (base.length != 7) return WHITE
         return intArrayOf(base.substring(1, 3).toInt(16), base.substring(3, 5).toInt(16), base.substring(5, 7).toInt(16))
     }

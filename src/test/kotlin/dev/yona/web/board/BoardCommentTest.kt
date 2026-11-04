@@ -165,7 +165,7 @@ class BoardCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `저장되는 댓글 수는 두 번째 댓글부터 실제보다 하나 적다 (v1_6 결함, 지우거나 글을 고치면 바로잡힌다)`() {
+    fun `저장되는 댓글 수는 댓글을 달 때마다 실제 개수이다 (R-116, v1_6은 두 번째 댓글부터 하나 적게 저장했다)`() {
         val project = newProject(); val member = join(newUser(), project)
         val p = post(project, member)
         val session = login(member)
@@ -175,7 +175,7 @@ class BoardCommentTest : AbstractIntegrationTest() {
             entityManager.flush(); entityManager.clear()
             stored += postings.findById(p.id!!).get().numOfComments
         }
-        assertEquals(listOf<Int?>(1, 1, 2, 3), stored)
+        assertEquals(listOf<Int?>(1, 2, 3, 4), stored)
         val last = comments.findAll().maxByOrNull { it.id!! }!!
         mockMvc.perform(delete("${base(project)}/post/1/comment/${last.id}/delete").session(session)).andExpect(status().is3xxRedirection)
         entityManager.flush(); entityManager.clear()

@@ -58,10 +58,10 @@ class TranslationClientTest {
     }
 
     @Test
-    fun `번역문이 없는 덩어리는 문자열 null로 이어 붙고 공백 덩어리는 줄바꿈이다`() {
+    fun `번역문이 없는 덩어리는 문자열 null 대신 원문으로 이어 붙고 공백 덩어리는 줄바꿈이다 (R-75)`() {
         response = """{"result":{}}"""
-        // v1.6 getTranslations는 findPath("translatedText").textValue()가 null이면 String.join이 "null"을 붙인다.
-        assertEquals("null", client().translateLines(listOf("x")))
+        // v1.6 getTranslations는 findPath("translatedText").textValue()가 null이면 String.join이 "null"을 붙여 번역문에 "null"이 섞였다(R-75). 원문을 그대로 둔다
+        assertEquals("x", client().translateLines(listOf("x")))
         assertEquals("\r\n", client().translateLines(listOf("")))
     }
 

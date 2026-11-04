@@ -44,9 +44,8 @@ class PostingCommentService(
         )
         mentions.update(ResourceType.NONISSUE_COMMENT, requireNotNull(comment.id).toString(), contents)
         posting.updatedDate = Date()
-        // v1.6 결함(R-116): 글의 `comments` 목록이 댓글을 저장하기 전에 읽혀 있어 저장하는 댓글 수가 실제보다 하나 적다. 첫 댓글만 목록이 비어 있어 바로 맞는다.
-        // 댓글을 지우거나 글을 고치면 실제 수로 바로잡힌다.
-        posting.numOfComments = if (before == 0) 1 else before
+        // v1.6은 글의 `comments` 목록이 댓글을 저장하기 전에 읽혀 있어 저장하는 댓글 수가 실제보다 하나 적었다(첫 댓글만 맞았다, R-116). 저장 전 개수에 방금 단 댓글을 더한다
+        posting.numOfComments = before + 1
         postings.save(posting)
         publisher.publishEvent(PostingCommentActivity(comment, previous, true, author))
         return comment
