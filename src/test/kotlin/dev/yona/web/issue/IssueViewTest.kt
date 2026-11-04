@@ -384,6 +384,18 @@ class IssueViewTest : AbstractIntegrationTest() {
         assertEquals(listOf("#2", "#3"), view(project, 2).select(".subtasks .child-issue .subtask-number").map { it.text() })
     }
 
+    @Test
+    fun `다른 프로젝트에 있는 하위 이슈의 댓글 수 링크는 그 하위 이슈의 프로젝트를 가리킨다 (R-102)`() {
+        val parentProject = newProject(); val childProject = newProject()
+        val parent = issue(parentProject, 1, title = "부모")
+        val child = issue(childProject, 7, title = "다른 프로젝트의 자식", parent = parent)
+        val writer = newUser(); comment(child, writer); comment(child, writer)
+        val doc = view(parentProject, 1)
+        val href = doc.selectFirst(".subtasks .child-issue a.comments-count")!!.attr("href")
+        // v1.6는 부모 프로젝트의 같은 번호 이슈를 가리켰다
+        assertEquals("/${childProject.owner}/${childProject.name}/issue/7#comments", href)
+    }
+
     // --- 댓글과 타임라인 ---
 
     @Test
