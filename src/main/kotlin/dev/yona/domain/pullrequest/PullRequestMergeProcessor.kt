@@ -130,20 +130,25 @@ class PullRequestMergeProcessor(
 
     /**
      * 가져올 커밋 중 아직 `CURRENT`로 없는 것을 새로 저장하고, 더는 가져오지 않는 커밋은 `PRIOR`로 바꾼다 (v1.6 `saveCommits`).
-     * 이미 `PRIOR`인 커밋이 다시 나타나도 되살리지 않고 새 행을 만든다.
+     * 이미 `PRIOR`인 커밋이 다시 나타나면 v1.6은 되살리지 않고 새 행을 만들어 같은 커밋의 `PRIOR`와 `CURRENT` 행이 함께 남았다.
+     * v2는 `PRIOR` 행을 `CURRENT`로 되돌리고 새 행을 만들지 않는다(R-42-6). 되살린 커밋도 새 커밋으로 알린다.
      */
     private fun saveCommits(pullRequest: PullRequest, gitCommits: List<dev.yona.repository.CommitInfo>): List<PullRequestCommit> {
         val existing = commits.findByPullRequestId(requireNotNull(pullRequest.id))
         val currentIds = existing.filter { it.state == PullRequestCommitState.CURRENT }.mapNotNull { it.commitId }.toSet()
-        val created = gitCommits.filter { it.id !in currentIds }.map {
+        val prior = existing.filter { it.state == PullRequestCommitState.PRIOR }.associateBy { it.commitId }
+        val revived = gitCommits.filter { it.id !in currentIds && it.id in prior }.map { git ->
+            prior.getValue(git.id).also { it.state = PullRequestCommitState.CURRENT }.let { commits.save(it) }
+        }
+        val created = gitCommits.filter { it.id !in currentIds && it.id !in prior }.map {
             PullRequestCommit(
                 pullRequest = pullRequest, commitId = it.id, commitShortId = it.shortId, commitMessage = it.message, authorEmail = it.authorEmail,
                 authorDate = it.authorDate, created = Date(), state = PullRequestCommitState.CURRENT
             )
         }.map { commits.save(it) }
         val keep = gitCommits.map { it.id }.toSet()
-        existing.filter { it.commitId !in keep }.forEach { it.state = PullRequestCommitState.PRIOR; commits.save(it) }
-        return created
+        existing.filter { it.commitId !in keep && it.state == PullRequestCommitState.CURRENT }.forEach { it.state = PullRequestCommitState.PRIOR; commits.save(it) }
+        return revived + created
     }
 
     private fun commitEventOldValue(oldMergeCommitId: String?, newMergeCommitId: String?): String? =

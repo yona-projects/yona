@@ -59,7 +59,9 @@ class MessageParityTest {
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구
         "site.userList.deletedLock", "site.mail.failReason", "site.data.import.confirm",
         // R-61-11, R-61-12: 메일로 댓글을 달 때의 오류 회신 문구
-        "viaEmail.error.notfound.resource", "viaEmail.error.unsupported.resource")
+        "viaEmail.error.notfound.resource", "viaEmail.error.unsupported.resource",
+        // R-52-2: 관리자 권한을 해제할 수 없을 때의 안내 문구
+        "site.userList.adminProtect")
 
     @Test
     fun `언어별 번들의 키는 v1_6과 같고 추가한 키만 더 있다`() {

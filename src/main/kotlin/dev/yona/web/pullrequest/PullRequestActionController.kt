@@ -153,7 +153,7 @@ class PullRequestActionController(
         }
 
         val user = requireNotNull(currentUserProvider.get().user)
-        workflow.update(pullRequest, title, body, fromBranch, toBranch)
+        workflow.update(pullRequest, title, body, fromBranch, toBranch, user)
         val flash = postAttachments.attach(request, user, ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
         return RedirectSupport.see(request, response, base(pullRequest), flash)
     }

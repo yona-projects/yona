@@ -81,6 +81,10 @@ class SiteUserService(
         // 지우면 이름과 이메일이 지워지므로 로그인 ID와 이전 상태만 남긴다(개인정보는 기록에 남기지 않는다)
         audit.record(dev.yona.domain.audit.auditUser("site.user_deleted", user, mapOf("previousState" to user.state?.name)))
         entityManager.createQuery("delete from ProjectUser pu where pu.user.id = :user").setParameter("user", user.id).executeUpdate()
+        // v1.6은 프로젝트 구성원 행만 지워 삭제된 계정이 조직 구성원 목록과 수, 즐겨찾기, 구독에 남았다. 함께 지운다(R-52-5)
+        for (table in listOf("organization_user", "user_enrolled_organization", "favorite_project", "favorite_issue", "favorite_organization", "watch")) {
+            entityManager.createNativeQuery("delete from $table where user_id = :id").setParameter("id", user.id).executeUpdate()
+        }
         applyState(user, UserState.DELETED)
     }
 
@@ -142,6 +146,14 @@ class SiteUserService(
         // v1.6 SiteApp.toggleGuestMode: 새로 읽은 인스턴스를 서버 캐시에 넣는다
         sessionUsers.remember(requireNotNull(user.id))
     }
+
+    /**
+     * [actor]가 [target]의 사이트 관리자 권한을 해제해도 되는지 확인한다. 자기 자신, 기본 `admin`, 마지막 사이트 관리자는 해제할 수 없다.
+     * v1.6은 보호가 없어 모든 관리자의 권한을 거두면 관리 기능에 들어갈 사람이 없어질 수 있었다(R-52-2). 삭제 쪽(`isOnlyManager`)에는 보호가 있었다.
+     */
+    @Transactional(readOnly = true)
+    fun mayRevokeSiteAdmin(actor: User?, target: User): Boolean =
+        target.id != actor?.id && target.id != DEFAULT_ADMIN_ID && siteAdmins.count() > 1
 
     /** 사이트 관리자이면 권한을 거두고 아니면 부여한다 (v1.6 `SiteApp.toggleSiteAdminRole`). */
     fun toggleSiteAdmin(user: User) {

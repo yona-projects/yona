@@ -83,6 +83,11 @@ class SiteUserController(
     @Transactional
     fun toggleSiteAdminRole(@PathVariable loginId: String, request: HttpServletRequest, response: HttpServletResponse): Any {
         val user = users.findByLoginIdIgnoreCase(loginId) ?: return ErrorViews.badRequest()
+        // 자기 자신, 기본 admin, 마지막 사이트 관리자의 권한은 거둘 수 없다(R-52-2, v1.6은 보호가 없었다)
+        if (service.isSiteManager(user) && !service.mayRevokeSiteAdmin(currentUserProvider.get().user, user)) {
+            RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "site.userList.adminProtect"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
+        }
         service.toggleSiteAdmin(user)
         return RedirectSupport.see(request, response, "/sites/userList")
     }

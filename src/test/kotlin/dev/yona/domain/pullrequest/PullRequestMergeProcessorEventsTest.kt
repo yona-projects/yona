@@ -76,5 +76,17 @@ class PullRequestMergeProcessorEventsTest {
         kotlin.test.assertNotNull(pr.updated)
     }
 
+    @Test
+    fun `빠졌다 돌아온 커밋은 새 행을 만들지 않고 PRIOR를 CURRENT로 되돌린다 (R-42-6)`() {
+        val pr = prepare()
+        val prior = PullRequestCommit(id = 7, pullRequest = pr, commitId = "c1", state = PullRequestCommitState.PRIOR)
+        `when`(merger.update(pr)).thenReturn(attempt(listOf(commit("c1"))))
+        `when`(commits.findByPullRequestId(1L)).thenReturn(listOf(prior))
+        org.mockito.Mockito.doAnswer { it.arguments[0] }.`when`(commits).save(org.mockito.ArgumentMatchers.any(PullRequestCommit::class.java))
+        processor.process(1, 2, newPullRequest = false)
+        assertEquals(PullRequestCommitState.CURRENT, prior.state)
+        verify(commits, never()).save(org.mockito.ArgumentMatchers.argThat { it !== prior && it.commitId == "c1" })
+    }
+
     private fun commit(id: String) = CommitInfo(id, id, "m", "m", "a", "a@x", Date(), "a", "a@x", Date(), 1)
 }

@@ -215,6 +215,28 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `새로 추가한 파일의 첫 댓글 알림에도 파일 내용의 차이가 나온다 (R-44-1, v1_6은 파일 이름 줄 뒤에 댓글만 나왔다)`() {
+        val s = commitSetup()
+        GitTestSupport.appendCommits(repositories, s.project, TestCommit("새 파일", mapOf("b.txt" to "l1\nl2\nl3\n".toByteArray()), authorEmail = s.committer.email!!))
+        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "새 파일 확인", range("b.txt") + ("endLine" to "1"))).andExpect(status().isSeeOther)
+        val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
+        val message = notificationMessages.message(note, LANG)!!
+        assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "b.txt") + "\n```diff\n> @@ -0,0 +1,3 @@\n> +l1\n> +l2\n```\n\n새 파일 확인\n\n```diff\n> +l3\n```\n"), message)
+    }
+
+    @Test
+    fun `지운 파일의 첫 댓글 알림에도 파일 내용의 차이가 나온다 (R-44-1)`() {
+        val s = commitSetup()
+        GitTestSupport.appendCommits(repositories, s.project, TestCommit("파일 삭제", deleted = listOf("a.txt"), authorEmail = s.committer.email!!))
+        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "삭제 확인", range("a.txt") + ("startSide" to "A") + ("endSide" to "A") + ("endLine" to "0"))).andExpect(status().isSeeOther)
+        val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
+        val message = notificationMessages.message(note, LANG)!!
+        assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "a.txt") + "\n```diff\n> @@ -1,3 +0,0 @@\n> -line1\n```\n\n삭제 확인\n\n```diff\n> -line2\n> -line3\n```\n"), message)
+    }
+
+    @Test
     fun `풀 리퀘스트 댓글은 폼에 적힌 임시 첨부만 옮기고 나머지는 남긴다 (v1_6 moveOnlySelected)`() {
         val n = ++sequence
         val origin = projects.save(Project(owner = "rao$n", name = "rap$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))

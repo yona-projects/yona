@@ -9,6 +9,11 @@ import dev.yona.domain.issue.Assignee
 import dev.yona.domain.issue.AssigneeRepository
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueRepository
+import dev.yona.domain.enumeration.ResourceType
+import dev.yona.domain.misc.FavoriteProject
+import dev.yona.domain.misc.Watch
+import dev.yona.domain.project.Organization
+import dev.yona.domain.project.OrganizationUser
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectUser
@@ -249,7 +254,42 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
         assertFalse(siteAdmins.existsByAdminId(target.id!!))
     }
 
+    @Test
+    fun `자기 자신의 관리자 권한은 해제할 수 없다 (R-52-2, v1_6은 거둘 수 있었다)`() {
+        val me = admin(); val other = admin()
+        mockMvc.perform(post("/sites/toggleSiteAdminRole/${me.loginId}").session(login(me))).andExpect(status().isForbidden)
+        assertTrue(siteAdmins.existsByAdminId(me.id!!))
+        mockMvc.perform(post("/sites/toggleSiteAdminRole/${other.loginId}").session(login(me))).andExpect(status().isSeeOther)
+        assertFalse(siteAdmins.existsByAdminId(other.id!!))
+    }
+
+    @Test
+    fun `기본 admin의 관리자 권한은 다른 관리자도 해제할 수 없다 (R-52-2)`() {
+        val me = admin()
+        val defaultAdmin = users.findById(dev.yona.domain.site.SiteUserService.DEFAULT_ADMIN_ID).get()
+        if (!siteAdmins.existsByAdminId(defaultAdmin.id!!)) siteAdmins.save(SiteAdmin(admin = defaultAdmin))
+        mockMvc.perform(post("/sites/toggleSiteAdminRole/${defaultAdmin.loginId}").session(login(me))).andExpect(status().isForbidden)
+        assertTrue(siteAdmins.existsByAdminId(defaultAdmin.id!!))
+    }
+
     // --- 삭제 ---
+
+    @Test
+    fun `사용자를 삭제하면 조직 구성원, 조직 가입 신청, 즐겨찾기, 구독도 지운다 (R-52-5, v1_6은 남겼다)`() {
+        val me = admin(); val target = newUser(); val owner = newUser()
+        val p = project(owner, "keepfav"); join(owner, p, RoleType.MANAGER)
+        val org = Organization(name = "delorg${target.id}", descr = "d", created = Date()).also { entityManager.persist(it) }
+        entityManager.persist(OrganizationUser(user = target, organization = org, role = roles.findById(RoleType.ORG_MEMBER.id).get()))
+        target.enrolledOrganizations.add(org)
+        entityManager.persist(FavoriteProject(user = target, project = p, projectName = p.name))
+        entityManager.persist(Watch(user = target, resourceType = ResourceType.PROJECT, resourceId = p.id.toString()))
+        entityManager.flush()
+        mockMvc.perform(delete("/sites/user/delete${target.id}").session(login(me))).andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        fun count(table: String) = (entityManager.createNativeQuery("select count(*) from $table where user_id = :id").setParameter("id", target.id).singleResult as Number).toInt()
+        assertEquals(0, count("organization_user")); assertEquals(0, count("user_enrolled_organization"))
+        assertEquals(0, count("favorite_project")); assertEquals(0, count("watch"))
+    }
 
     @Test
     fun `없는 사용자 번호로 삭제하면 500이 아니라 404이다 (R-52-1)`() {

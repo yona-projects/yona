@@ -341,6 +341,19 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `브랜치가 바뀌면 병합 검사를 다시 시작하고 제목만 바뀌면 하지 않는다 (R-43-3, v1_6은 하지 않았다)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        reload(pr).also { it.isMerging = true; pullRequests.save(it) }
+        fun edit(title: String, fromBranch: String) = mockMvc.perform(
+            post(url(s, pr, "/edit")).session(s.managerSession).param("title", title).param("body", "본문").param("fromBranch", fromBranch).param("toBranch", "refs/heads/master")
+        ).andExpect(status().isSeeOther)
+        edit("제목만 변경", "refs/heads/master")
+        assertEquals(true, reload(pr).isMerging, "브랜치가 같으면 병합 검사를 다시 하지 않는다")
+        edit("브랜치 변경", "refs/heads/other")
+        assertEquals(false, reload(pr).isMerging, "브랜치가 바뀌면 병합 검사를 다시 한다")
+    }
+
+    @Test
     fun `브랜치를 바꿔 다른 열린 요청과 겹치면 받는 프로젝트(원본) 주소의 수정 폼으로 되돌려 보낸다 (R-43-2, v1_6은 포크 주소였다)`() {
         val s = setup(); addChange(s)
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("다른", mapOf("c.txt" to "c\n".toByteArray())), branch = "other")

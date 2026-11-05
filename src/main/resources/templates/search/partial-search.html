@@ -98,17 +98,28 @@ $(function(){
         $('#searchInnerForm').submit();
     });
 
+    // 글자(text)에서 키워드를 찾고 조각마다 HTML로 인코딩해서 조립한다. v1.6은 html()을 정규식으로 바꿔 키워드가 amp, lt 같은 엔티티나 태그 속성과
+    // 겹치면 마크업이 깨졌다
+    function encode(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
     $('.search-content-body, .title').each(function() {
-        var content = $(this).html();
+        var text = $(this).text();
         var matchKeyword = $.trim($('#searchKeyword').val())
                             .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
         var matchRegx = new RegExp(matchKeyword, "ig");
+        var content = "";
+        var last = 0;
+        var found;
 
-        content = content.replace(matchRegx, function(match) {
-            return "<strong class=\"keyword\">"+ match +"</strong>";
-        });
+        while ((found = matchRegx.exec(text)) !== null) {
+            if (found[0].length === 0) { matchRegx.lastIndex++; continue; }
+            content += encode(text.slice(last, found.index)) + "<strong class=\"keyword\">" + encode(found[0]) + "</strong>";
+            last = found.index + found[0].length;
+        }
 
-        $(this).html(content);
+        $(this).html(content + encode(text.slice(last)));
     })
 });
 </script>

@@ -84,6 +84,13 @@ class WebhookListener(
         if (activity.type == EventType.PULL_REQUEST_STATE_CHANGED && activity.newValue == "merged") {
             service.pullRequest(EventType.PULL_REQUEST_MERGED, activity.actor, activity.pullRequest)
         }
+        // v1.6은 새 커밋 웹훅을 임시 값(`toProjectId`)으로 받는 프로젝트를 찾아 병합 검사 경로에서는 보내지 못했고, 닫기와 다시 열기는 보내지 않았다.
+        // 새 커밋과 닫기, 다시 열기도 받는 프로젝트의 웹훅으로 보낸다(R-45-1).
+        if (activity.type == EventType.PULL_REQUEST_COMMIT_CHANGED ||
+            (activity.type == EventType.PULL_REQUEST_STATE_CHANGED && (activity.newValue == "closed" || activity.newValue == "open"))
+        ) {
+            service.pullRequest(activity.type, activity.actor, activity.pullRequest)
+        }
         // 추가 항목(X-14): 담당자 변경은 이슈와 같이 웹훅을 보낸다. 라벨 변경은 보내지 않는다(v1.6 이슈 라벨 변경과 같다).
         if (activity.type == EventType.PULL_REQUEST_ASSIGNEE_CHANGED) {
             service.pullRequest(EventType.PULL_REQUEST_ASSIGNEE_CHANGED, activity.actor, activity.pullRequest)

@@ -244,7 +244,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `풀 리퀘스트는 생성, 병합, 리뷰를 보내고 닫기는 보내지 않는다`() {
+    fun `풀 리퀘스트는 생성, 새 커밋, 닫기, 다시 열기, 병합, 리뷰를 보낸다 (R-45-1, v1_6은 새 커밋과 닫기와 다시 열기를 보내지 않았다)`() {
         val p = project(); val sender = user()
         service.create(p, url, null, false, WebhookType.DETAIL_SLACK)
         val pr = pullRequests.save(PullRequest(title = "요청", body = "본문", toProject = p, fromProject = p, toBranch = "refs/heads/master", fromBranch = "refs/heads/dev", contributor = sender, state = State.OPEN, number = 3))
@@ -252,12 +252,14 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         assertTrue(json(0).path("text").asString("").endsWith("|#3: 요청>"))
         assertEquals(listOf("refs/heads/dev", "refs/heads/master"), json(0).path("attachments").get(0).path("fields").items().drop(1).map { it.path("value").asString("") })
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_STATE_CHANGED, "open", "closed", sender))
+        assertEquals(2, received.size)
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_STATE_CHANGED, "closed", "open", sender))
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_COMMIT_CHANGED, null, null, sender))
-        assertEquals(1, received.size)
+        assertEquals(4, received.size)
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_STATE_CHANGED, "open", "merged", sender))
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_REVIEW_SUBMITTED, "APPROVED", null, sender))
-        assertEquals(3, received.size)
-        assertNotNull(json(2).path("text").asString(""))
+        assertEquals(6, received.size)
+        assertNotNull(json(5).path("text").asString(""))
     }
 
     @Test

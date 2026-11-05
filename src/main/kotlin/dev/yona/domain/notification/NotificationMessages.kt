@@ -134,11 +134,14 @@ class NotificationMessages(
             val message = StringBuilder(messages.getMessage("notification.reviewthread.inTheFile", arrayOf<Any>(thread.path.orEmpty()), locale)).append('\n')
             file.interestLine = thread.endLine
             file.interestSide = thread.endSide
-            val hunks = file.hunks() ?: return message.append(contents).toString()
+            // v1.6은 추가하거나 지운 파일에는 바뀐 곳 목록이 없어 파일 이름 줄 뒤에 댓글만 나왔다. 파일 전체를 +/- 줄로 만든 가상 헝크를 쓴다(R-44-1)
+            val hunks = file.hunks() ?: wholeFileHunks(file, thread.endLine ?: 0) ?: return message.append(contents).toString()
             message.append("```diff\n")
             for (hunk in hunks) {
                 // 쉼표 뒤에 공백이 없는 통합 diff 머리줄이다. v1.6은 쉼표 뒤에 공백을 넣었다(R-44-2)
-                message.append("> @@ -${hunk.beginA + 1},${hunk.endA - hunk.beginA} +${hunk.beginB + 1},${hunk.endB - hunk.beginB} @@\n")
+                val startA = if (hunk.endA == hunk.beginA) hunk.beginA else hunk.beginA + 1
+                val startB = if (hunk.endB == hunk.beginB) hunk.beginB else hunk.beginB + 1
+                message.append("> @@ -$startA,${hunk.endA - hunk.beginA} +$startB,${hunk.endB - hunk.beginB} @@\n")
                 for (line in hunk.lines) {
                     message.append("> ").append(
                         when (line.kind) {
@@ -154,6 +157,27 @@ class NotificationMessages(
             return message.append("```\n").toString()
         }
         return contents
+    }
+
+    /**
+     * 추가하거나 지운 파일의 전체 내용을 `+` 또는 `-` 줄로 만든 가상 헝크이다. 텍스트가 아니면 `null`이다. 메일이 너무 길어지지 않도록 댓글이 달린 줄의
+     * 앞 [WHOLE_FILE_BEFORE]줄과 뒤 [WHOLE_FILE_AFTER]줄까지만 담는다.
+     */
+    private fun wholeFileHunks(file: dev.yona.repository.diff.FileDiff, interest: Int): dev.yona.repository.diff.Hunks? {
+        val added = file.changeType == org.eclipse.jgit.diff.DiffEntry.ChangeType.ADD
+        val deleted = file.changeType == org.eclipse.jgit.diff.DiffEntry.ChangeType.DELETE
+        val text = (if (added) file.b else if (deleted) file.a else null) ?: return null
+        if (if (added) file.isBinaryB else file.isBinaryA) return null
+        val from = maxOf(0, interest - WHOLE_FILE_BEFORE)
+        val to = minOf(text.size(), interest + WHOLE_FILE_AFTER + 1)
+        val hunk = if (added) dev.yona.repository.diff.Hunk(0, 0, from, to) else dev.yona.repository.diff.Hunk(from, to, 0, 0)
+        for (i in from until to) {
+            hunk.lines.add(
+                if (added) dev.yona.repository.diff.DiffLine(file, dev.yona.repository.diff.DiffLineType.ADD, null, i, text.getString(i))
+                else dev.yona.repository.diff.DiffLine(file, dev.yona.repository.diff.DiffLineType.REMOVE, i, null, text.getString(i))
+            )
+        }
+        return dev.yona.repository.diff.Hunks().also { it.add(hunk) }
     }
 
     /** 메일 일반 텍스트 본문에 들어갈 문구이다. 본문 변경은 `---`, `+++` 접두어 형식이다. */
@@ -190,4 +214,11 @@ class NotificationMessages(
         if (event.resourceType == ResourceType.PROJECT) event.resourceId?.toLongOrNull()?.let { projects.findById(it).orElse(null) } else null
 
     private fun organization(id: String) = id.toLongOrNull()?.let { organizations.findById(it).orElse(null) }
+
+    private companion object {
+        /** 추가하거나 지운 파일의 알림에 댓글이 달린 줄 앞으로 담는 줄 수이다. */
+        const val WHOLE_FILE_BEFORE = 20
+        /** 추가하거나 지운 파일의 알림에 댓글이 달린 줄 뒤로 담는 줄 수이다. */
+        const val WHOLE_FILE_AFTER = 3
+    }
 }

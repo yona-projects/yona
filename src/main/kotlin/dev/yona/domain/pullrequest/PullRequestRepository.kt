@@ -42,9 +42,9 @@ interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecifica
     fun findRelated(projectId: Long, branch: String): List<PullRequest>
 
     /**
-     * 사용자가 보낸 풀 리퀘스트 중 [from] 이후에 갱신된 것을 최근 갱신 순으로 조회한다. 같은 시각이면 상태 순이다
-     * (v1.6 `PullRequest.findOpendPullRequestsByDaysAgo`. 이름과 달리 상태는 가리지 않는다).
+     * 사용자가 보낸 열린 풀 리퀘스트 중 [from] 이후에 갱신된 것을 최근 갱신 순으로 조회한다. 같은 시각이면 번호 순이다
+     * (v1.6 `PullRequest.findOpendPullRequestsByDaysAgo`는 이름과 달리 상태를 가리지 않아 닫힌 것과 병합된 것도 나왔다, R-48-3).
      */
-    @Query("select r from PullRequest r where r.contributor.id = :userId and r.updated >= :from order by r.updated desc, r.state asc, r.id asc")
+    @Query("select r from PullRequest r where r.contributor.id = :userId and r.state = dev.yona.domain.enumeration.State.OPEN and r.updated >= :from order by r.updated desc, r.state asc, r.id asc")
     fun findRecentlyByContributor(userId: Long, from: java.util.Date): List<PullRequest>
 }

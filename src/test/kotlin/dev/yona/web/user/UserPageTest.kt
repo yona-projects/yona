@@ -286,6 +286,13 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `풀 리퀘스트 탭에는 열린 요청만 보이고 닫힌 것과 병합된 것은 빠진다 (R-48-3, v1_6은 상태를 가리지 않았다)`() {
+        val u = newUser(); val other = newUser(); val target = project(other, "target"); val fork = project(u, "fork")
+        pullRequest(target, fork, u, "열림"); pullRequest(target, fork, u, "닫힘", state = State.CLOSED); pullRequest(target, fork, u, "병합", state = State.MERGED)
+        assertEquals(listOf("열림"), titles(page("/${u.loginId}"), "#pullRequests"))
+    }
+
+    @Test
     fun `프로젝트 탭에는 읽을 수 있는 소속 프로젝트가 최근 푸시 순 다음 이름 순으로 보인다`() {
         val u = newUser(); val other = newUser()
         val a = project(other, "a-none"); val b = project(other, "b-old", pushed = daysAgo(5)); val c = project(other, "c-new", pushed = daysAgo(1))

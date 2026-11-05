@@ -141,10 +141,12 @@ class PullRequestWorkflow(
     }
 
     /**
-     * 제목, 본문, 브랜치를 고친다. 이슈 언급 이벤트는 지우고 새 제목과 본문으로 다시 남긴다. 병합 검사는 다시 하지 않는다(v1.6 `updateWith`).
+     * 제목, 본문, 브랜치를 고친다. 이슈 언급 이벤트는 지우고 새 제목과 본문으로 다시 남긴다. v1.6 `updateWith`는 브랜치가 바뀌어도 병합 검사를
+     * 다시 하지 않아 충돌과 병합 가능 표시가 낡았다. 브랜치가 바뀌면 다시 열기처럼 병합 검사를 다시 시작한다(R-43-3).
      */
     @Transactional
-    fun update(pullRequest: PullRequest, title: String, body: String, fromBranch: String, toBranch: String) {
+    fun update(pullRequest: PullRequest, title: String, body: String, fromBranch: String, toBranch: String, actor: User) {
+        val branchChanged = pullRequest.fromBranch != fromBranch || pullRequest.toBranch != toBranch
         service.deleteIssueEvents(pullRequest)
         pullRequest.toBranch = toBranch
         pullRequest.fromBranch = fromBranch
@@ -153,6 +155,11 @@ class PullRequestWorkflow(
         pullRequest.updated = Date()
         pullRequests.save(pullRequest)
         service.addIssueEvents(pullRequest)
+        if (branchChanged) {
+            val id = requireNotNull(pullRequest.id)
+            val actorId = requireNotNull(actor.id)
+            runner.run("merging of pull request $id", { processor.start(id) }, { processor.process(id, actorId, false) })
+        }
     }
 
     /** 병합된 요청의 보내는 브랜치를 지우고 마지막 커밋 번호를 요청에 남긴다. 지울 수 없으면 `lastCommitId`가 `null`이 된다(v1.6 그대로). */

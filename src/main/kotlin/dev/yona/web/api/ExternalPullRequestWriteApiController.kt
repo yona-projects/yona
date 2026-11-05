@@ -176,7 +176,7 @@ class ExternalPullRequestWriteApiController(
             }
         }
         val user = requireNotNull(target.user)
-        workflow.update(pullRequest, title, text, fromBranch, toBranch)
+        workflow.update(pullRequest, title, text, fromBranch, toBranch, user)
         attachments.attachIds(user, ids(body.get("temporaryUploadFiles")), ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
         return support.ok(json.of(pullRequest))
     }
