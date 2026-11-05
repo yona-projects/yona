@@ -174,12 +174,14 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `assigneeId와 authorId는 값과 관계없이 현재 사용자 기준이다`() {
+    fun `assigneeId와 authorId는 요청한 사용자 값으로 거른다 (C047)`() {
         val org = newOrg(); val a = orgProject(org); val me = newUser(); val other = newUser()
         issue(a, "내가 맡은 것", author = other, assignee = me); issue(a, "내가 쓴 것", author = me); issue(a, "남의 것", author = other, assignee = other)
         val s = login(me)
-        assertEquals(listOf("내가 맡은 것"), issueTitles(page("/organizations/${org.name}/issues?assigneeId=${other.id}", s)))
-        assertEquals(listOf("내가 쓴 것"), issueTitles(page("/organizations/${org.name}/issues?authorId=${other.id}", s)))
+        assertEquals(listOf("남의 것"), issueTitles(page("/organizations/${org.name}/issues?assigneeId=${other.id}", s)))
+        assertEquals(listOf("남의 것", "내가 맡은 것"), issueTitles(page("/organizations/${org.name}/issues?authorId=${other.id}", s)))
+        assertEquals(listOf("내가 맡은 것"), issueTitles(page("/organizations/${org.name}/issues?assigneeId=${me.id}", s)))
+        assertEquals(listOf("내가 쓴 것"), issueTitles(page("/organizations/${org.name}/issues?authorId=${me.id}", s)))
     }
 
     @Test

@@ -96,7 +96,7 @@ class SvnDavService(
     }
 
     companion object {
-        private val READ_METHODS = setOf(DAVHandlerFactory.METHOD_OPTIONS, DAVHandlerFactory.METHOD_PROPFIND, DAVHandlerFactory.METHOD_GET, DAVHandlerFactory.METHOD_REPORT)
+        private val READ_METHODS = setOf(DAVHandlerFactory.METHOD_OPTIONS, DAVHandlerFactory.METHOD_PROPFIND, DAVHandlerFactory.METHOD_GET, DAVHandlerFactory.METHOD_HEAD, DAVHandlerFactory.METHOD_REPORT)
 
         /** Play가 라우팅하지 못해 v1.6이 따로 가로채던 WebDAV 메서드이다 (`SvnApp.WEBDAV_METHODS`). */
         val WEBDAV_METHODS: List<String> = listOf(

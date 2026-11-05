@@ -109,6 +109,13 @@ class ImportTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `주소 앞뒤에 공백이 있어도 검증과 복제에 같은 주소를 써서 가져온다 (C072)`() {
+        val me = user(); val url = source()
+        mockMvc.perform(send(login(me), me.loginId!!, "spaced", "  $url  ")).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${me.loginId}/spaced"))
+        assertNotNull(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "spaced"))
+    }
+
+    @Test
     fun `조직 소유로 가져오면 조직에 연결되고 만든 사람은 매니저가 되지 않는다`() {
         val me = user(); val org = organizations.save(Organization(name = "imorg${++sequence}", created = Date()))
         organizationUsers.save(OrganizationUser(user = me, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))

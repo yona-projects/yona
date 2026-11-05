@@ -179,7 +179,7 @@
          * @param {Number} nLength Numbers of checked issues
          */
         function _setAttachLabelList(htLabels, nLength){
-            var sCategory, sLabelId, aCategoryIds;
+            var sCategory, sLabelId, aCategoryIds, htLabel;
             var bVisible = false;
 
             // Reset

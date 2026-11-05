@@ -45,7 +45,7 @@ class LineEndingTest {
         assertEquals("a\n", LineEnding.addEol("a"))
         assertEquals("a\n", LineEnding.addEol("a\n"))
         assertEquals("a\r\nb\r\n", LineEnding.addEol("a\r\nb"))
-        assertEquals("\n", LineEnding.addEol(""))
+        assertEquals("", LineEnding.addEol(""), "빈 내용은 개행 한 줄 파일이 되지 않는다 (C079)")
         assertNull(LineEnding.addEol(null))
     }
 }

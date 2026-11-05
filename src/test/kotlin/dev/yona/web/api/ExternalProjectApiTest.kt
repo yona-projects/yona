@@ -176,15 +176,17 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
     // --- 라벨 만들기 ---
 
     @Test
-    fun `라벨과 분류를 만들고 이미 있는 라벨은 409로 알린다`() {
+    fun `라벨과 분류를 만들고 이미 있는 라벨은 409로 알린다 (분류의 isExclusive는 요청을 따른다)`() {
         val project = newProject(); val m = member(project)
         val body = """{"labels":[{"labelName":"bug","labelColor":"#f00","category":"Type","isExclusive":true},{"labelName":"bug","labelColor":"#f00","category":"Type","isExclusive":true},{"labelName":"ui","labelColor":"#0f0","category":"Area","isExclusive":false}]}"""
         json(post(api("owners/${project.owner}/projects/${project.name}/labels")), m.token, body).andExpect(status().isCreated)
-            .andExpect(jsonPath("$[0].status").value(201)).andExpect(jsonPath("$[0].label").value("bug")).andExpect(jsonPath("$[0].category").value("Type")).andExpect(jsonPath("$[0].labelColor").value("#f00")).andExpect(jsonPath("$[0].isExclusive").value(false))
-            .andExpect(jsonPath("$[1].status").value(409)).andExpect(jsonPath("$[1].reason").value("Conflict")).andExpect(jsonPath("$[1].user.labelName").value("bug")).andExpect(jsonPath("$[2].label").value("ui"))
+            .andExpect(jsonPath("$[0].status").value(201)).andExpect(jsonPath("$[0].label").value("bug")).andExpect(jsonPath("$[0].category").value("Type")).andExpect(jsonPath("$[0].labelColor").value("#f00")).andExpect(jsonPath("$[0].isExclusive").value(true))
+            .andExpect(jsonPath("$[1].status").value(409)).andExpect(jsonPath("$[1].reason").value("Conflict")).andExpect(jsonPath("$[1].user.labelName").value("bug")).andExpect(jsonPath("$[2].label").value("ui")).andExpect(jsonPath("$[2].isExclusive").value(false))
         entityManager.flush(); entityManager.clear()
         assertEquals(setOf("bug", "ui"), labels.findAll().filter { it.project?.id == project.id }.map { it.name }.toSet())
         assertEquals(setOf("Type", "Area"), categories.findAll().filter { it.project?.id == project.id }.map { it.name }.toSet())
+        // 요청의 isExclusive가 새 분류에 반영된다 (C058, R-37)
+        assertEquals(mapOf("Type" to true, "Area" to false), categories.findAll().filter { it.project?.id == project.id }.associate { (it.name ?: "") to (it.isExclusive == true) })
     }
 
     @Test

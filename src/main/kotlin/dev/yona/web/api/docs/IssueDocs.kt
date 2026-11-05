@@ -127,7 +127,8 @@ class AuthorByEmail(
 class LabelByName(
     @get:Schema(description = "라벨 이름") val labelName: String,
     @get:Schema(description = "색") val labelColor: String,
-    @get:Schema(description = "분류 이름") val category: String
+    @get:Schema(description = "분류 이름") val category: String,
+    @get:Schema(description = "라벨 만들기에서만 쓴다. 분류가 없어 새로 만들 때 단일 선택 분류로 할지 여부(기본 `false`)") val isExclusive: Boolean? = null
 )
 
 @Schema(description = "이슈 댓글 달기 요청. `comment`가 있으면 토큰 주인이 다는 일반 흐름(응답은 이슈 전체), 없으면 가져오기 흐름(`body`, `author`, `createdAt`을 쓰고 응답은 주소)이다")

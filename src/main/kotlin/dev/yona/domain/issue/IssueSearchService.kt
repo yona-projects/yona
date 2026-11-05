@@ -24,12 +24,12 @@ import java.util.Date
  * @property commentedCheck 댓글이 있는 이슈만
  * @property milestoneId 마일스톤 번호. [NO_VALUE]이면 마일스톤이 없는 이슈
  * @property labelIds 고른 라벨 번호. 모든 라벨을 가진 이슈만 찾는다
- * @property authorId 작성자 번호. [NO_VALUE]이면 작성자가 없는 이슈
- * @property assigneeId 담당자 번호. [NO_VALUE]이면 담당자가 없는 이슈
+ * @property authorId 작성자 번호. [NO_VALUE]이면 작성자가 없는 이슈 (프로젝트를 가리지 않는 검색도 이 값으로 거른다)
+ * @property assigneeId 담당자 번호. [NO_VALUE]이면 담당자가 없는 이슈 (프로젝트를 가리지 않는 검색도 이 값으로 거른다)
  * @property commenterId 지정하면 **현재 사용자**가 댓글을 쓴 이슈만 (v1.6은 번호를 보지 않고 현재 사용자를 쓴다)
- * @property sharerId 지정하면 현재 사용자가 공유받은 이슈만
- * @property favoriteId 지정하면 현재 사용자가 즐겨찾는 이슈만
- * @property mentionId 지정하면 현재 사용자가 멘션된 이슈만 (프로젝트 목록에서는 쓰지 않는다)
+ * @property sharerId 지정하면 현재 사용자가 공유받은 이슈만. 비로그인이면 빈 결과
+ * @property favoriteId 지정하면 현재 사용자가 즐겨찾는 이슈만. 비로그인이면 빈 결과
+ * @property mentionId 지정하면 현재 사용자가 멘션된 이슈만. 비로그인이면 빈 결과
  * @property dueDate 지정한 날까지(그날 포함) 마감인 이슈
  * @property projectNames 조직 이슈 목록이 고른 프로젝트 이름. 검색 질의는 쓰지 않고 화면의 선택 상태를 유지하는 데 쓴다
  */
@@ -220,31 +220,37 @@ class IssueSearchService(private val entityManager: EntityManager) {
                     "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '\\'))"
                 params["filter"] = "%" + condition.filter.lowercase() + "%"
             }
-            // 프로젝트를 가리지 않는 검색은 작성자, 담당자, 댓글 조건의 값을 보지 않고 현재 사용자를 쓴다 (v1.6 `byUser`).
+            // 작성자와 담당자는 요청한 사용자 번호로 거른다. v1.6은 프로젝트를 가리지 않는 검색에서 값을 무시하고 현재 사용자를 썼다(C047)
             condition.authorId?.let {
-                if (it == IssueSearchCondition.NO_VALUE && project != null) clauses += "i.authorId is null"
-                else { clauses += "i.authorId = :author"; params["author"] = if (project == null) viewerId else it }
+                if (it == IssueSearchCondition.NO_VALUE) clauses += "i.authorId is null"
+                else { clauses += "i.authorId = :author"; params["author"] = it }
             }
             condition.assigneeId?.let {
                 if (it == IssueSearchCondition.NO_VALUE) clauses += "i.assignee is null"
-                else if (project == null) { clauses += "i.assignee.user.id = :assignee"; params["assignee"] = viewerId }
+                else if (project == null) { clauses += "i.assignee.user.id = :assignee"; params["assignee"] = it }
                 else { clauses += "(i.assignee.user.id = :assignee and i.assignee.project.id = :project)"; params["assignee"] = it }
             }
             if (condition.commenterId != null && (project != null || condition.commenterId != IssueSearchCondition.NO_VALUE)) {
                 clauses += "i.id in (select c.issue.id from IssueComment c where c.authorId = :commenter" + (if (project != null) " and c.projectId = :project)" else ")")
                 params["commenter"] = viewerId
             }
-            if (project == null && condition.mentionId != null && viewer != null) {
-                val ids = mentioningIssueIds(viewerId)
+            // 멘션, 공유, 즐겨찾기는 로그인한 사용자 기준이라 비로그인이면 조건을 무시하지 않고 빈 결과로 한다. v1.6은 무시해 전체가 나왔다(C048)
+            // 프로젝트 안에서도 멘션 조건을 건다. v1.6은 프로젝트 목록에서 쓰지 않았다(C049)
+            if (condition.mentionId != null) {
+                val ids = if (viewer != null) mentioningIssueIds(viewerId) else emptySet()
                 if (ids.isEmpty()) clauses += "1 = 0" else { clauses += "i.id in :mentioned"; params["mentioned"] = ids }
             }
-            if (condition.sharerId != null && viewer != null) {
-                clauses += "i.id in (select s.issue.id from IssueSharer s where s.user.id = :sharer)"
-                params["sharer"] = viewerId
+            if (condition.sharerId != null) {
+                if (viewer == null) clauses += "1 = 0" else {
+                    clauses += "i.id in (select s.issue.id from IssueSharer s where s.user.id = :sharer)"
+                    params["sharer"] = viewerId
+                }
             }
-            if (condition.favoriteId != null && viewer != null) {
-                clauses += "i.id in (select f.issue.id from FavoriteIssue f where f.user.id = :favorite)"
-                params["favorite"] = viewerId
+            if (condition.favoriteId != null) {
+                if (viewer == null) clauses += "1 = 0" else {
+                    clauses += "i.id in (select f.issue.id from FavoriteIssue f where f.user.id = :favorite)"
+                    params["favorite"] = viewerId
+                }
             }
             addState()
             if (project != null) {

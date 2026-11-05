@@ -37,6 +37,8 @@ object LineEnding {
     /** 내용이 줄바꿈으로 끝나지 않으면 내용의 줄바꿈 종류(모르면 UNIX)로 한 줄 끝을 붙인다. [contents]가 `null`이면 `null`이다. */
     fun addEol(contents: String?): String? {
         if (contents == null) return null
+        // 빈 내용은 그대로 둔다. v1.6은 개행 한 줄을 붙여 빈 파일이 개행 한 줄짜리 파일이 되었다(C079)
+        if (contents.isEmpty()) return contents
         val type = find(contents).let { if (it == EndingType.UNDEFINED) DEFAULT_ENDING_TYPE else it }
         return if (contents.endsWith(type.value)) contents else contents + type.value
     }

@@ -89,7 +89,7 @@ class IssueMassUpdateController(
             if (issue.isDraft == true) continue
             val resource = issue.asResource()
             if (delete) {
-                if (viewer != null && accessControl.isAllowed(viewer, resource, Operation.DELETE)) { issueService.delete(issue, viewer, notify = false); continue }
+                if (viewer != null && accessControl.isAllowed(viewer, resource, Operation.DELETE)) { issueService.delete(issue, viewer, notify = false); updated++; continue }
                 rejected++; continue
             }
             if (viewer == null || !accessControl.isAllowed(viewer, resource, Operation.UPDATE)) { rejected++; continue }

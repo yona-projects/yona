@@ -37,8 +37,9 @@ class RelativeLinkRewriter(
 
     private companion object {
         private const val NOT_ABSOLUTE = "/?(?!https:|http:|ftp:|file:)[.][/]"
-        val IMAGE_LINK = Regex("!\\[([^]]*)]\\($NOT_ABSOLUTE(.*)\\)")
+        // 링크 대상은 최소 일치(`.*?`)로 읽는다. v1.6은 탐욕 일치라 한 줄에 상대 링크가 여럿이면 첫 링크만 바뀌었다(C087)
+        val IMAGE_LINK = Regex("!\\[([^]]*)]\\($NOT_ABSOLUTE(.*?)\\)")
         // 앞 문자가 `!`가 아니어야 한다. v1.6은 문자 하나를 꼭 요구해 문서 맨 앞의 링크를 놓쳤으므로(R-14) 문서 시작도 허용한다
-        val NORMAL_LINK = Regex("(^|[^!])\\[([^]]*)]\\($NOT_ABSOLUTE(.*)\\)")
+        val NORMAL_LINK = Regex("(^|[^!])\\[([^]]*)]\\($NOT_ABSOLUTE(.*?)\\)")
     }
 }

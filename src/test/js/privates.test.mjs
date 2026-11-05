@@ -41,6 +41,18 @@ export const tests = [
     assert.equal(disabledWhenNoneVisible, true, '붙일 라벨이 없는데 단추가 켜져 있다');
     assert.equal(disabledWhenSomeVisible, false);
   } },
+  { name: '라벨 목록을 만들 때 htLabel이 전역 변수로 새지 않는다 (C113-2)', async run() {
+    const code = sourceSnippet('service/yobi.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
+    const page = await pageWith({ html: '<ul id="attach"><li data-value="7"></li></ul><button id="btn"></button>' });
+    const leaked = await page.evaluate((src) => {
+      var htVar = {}, htElement = { welAttachLabels: $('#attach'), welBtnAttachingLabel: $('#btn') };
+      function _getLabelCategoryVisibility() { return true; }
+      new Function('htVar', 'htElement', '_getLabelCategoryVisibility', src.replace(/\/\*\*[^]*$/, '') + '; _setAttachLabelList({ bug: { 7: { issues: [1], exclusive: false, categoryId: 1 } } }, 2);')(htVar, htElement, _getLabelCategoryVisibility);
+      return typeof window.htLabel;
+    }, code);
+    await page.close();
+    assert.equal(leaked, 'undefined');
+  } },
 ];
 
 export const labelTests = [

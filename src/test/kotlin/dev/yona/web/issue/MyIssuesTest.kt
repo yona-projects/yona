@@ -152,10 +152,11 @@ class MyIssuesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `authorId를 주면 번호와 관계없이 내가 작성한 이슈를 보인다`() {
+    fun `authorId를 주면 그 번호의 사용자가 작성한 이슈를 보인다 (C047)`() {
         val me = newUser(); val other = newUser(); val a = project(other, "a")
         issue(a, "내가 쓴 것", me); issue(a, "남이 쓴 것", other, assignee = me)
-        assertEquals(listOf("내가 쓴 것"), titles(page(login(me), "authorId" to "${other.id}")))
+        assertEquals(listOf("남이 쓴 것"), titles(page(login(me), "authorId" to "${other.id}")))
+        assertEquals(listOf("내가 쓴 것"), titles(page(login(me), "authorId" to "${me.id}")))
     }
 
     @Test

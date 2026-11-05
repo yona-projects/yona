@@ -99,7 +99,8 @@ class ProjectImportService(
             siteurl = "http://localhost:9000/$name", createdDate = Date()
         )
         try {
-            repositories.importRepository(project, requireNotNull(form.url), form.authId, form.authPw)
+            // 검증에 쓴 것과 같게 앞뒤 공백을 뗀 주소로 복제한다. v1.6은 검증만 trim하고 원문을 복제에 넘겼다(C072)
+            repositories.importRepository(project, requireNotNull(form.url).trim(), form.authId, form.authPw)
             projects.save(project)
             projectUsers.save(ProjectUser(user = users.getReferenceById(SITE_MANAGER_ID), project = project, role = roles.getReferenceById(RoleType.SITEMANAGER.id)))
             menuSettings.save(

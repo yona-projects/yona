@@ -225,6 +225,18 @@ class IssueListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일반 이슈가 없고 초안만 있어도 작성자에게는 초안 목록이 보인다 (C021)`() {
+        val project = newProject()
+        val me = join(newUser(), project, RoleType.MEMBER)
+        issue(project, 1, "내 초안", author = me, draft = true)
+        val doc = page(project, session = login(me))
+        assertEquals(listOf("#Draft"), doc.select("li.post-item .post-id").map { it.text() })
+        assertTrue(doc.select(".error-wrap").isNotEmpty(), "일반 이슈가 없다는 안내는 그대로 있다")
+        assertEquals(0, page(project).select("li.post-item").size, "작성자가 아니면 초안이 보이지 않는다")
+        assertEquals(0, page(project).select("ul.post-list-wrap").size, "초안이 없으면 빈 목록을 그리지 않는다")
+    }
+
+    @Test
     fun `초안은 작성자에게만 첫 쪽 위쪽에 보인다`() {
         val project = newProject()
         val me = join(newUser(), project, RoleType.MEMBER)

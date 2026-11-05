@@ -229,6 +229,16 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일부만 삭제할 권한이 있으면 지운 것은 지우고 403이 아니라 정상 응답이다 (C046)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val mine = issue(project, 1, author = member); val others = issue(project, 2, author = newUser())
+        post(project, login(member), "issues[0].id" to mine.id.toString(), "issues[1].id" to others.id.toString(), "delete" to "true").andExpect(status().isOk)
+        entityManager.flush(); entityManager.clear()
+        assertTrue(issues.findById(mine.id!!).isEmpty)
+        assertTrue(issues.findById(others.id!!).isPresent)
+    }
+
+    @Test
     fun `일괄 삭제는 삭제 알림과 웹훅을 만들지 않는다`() {
         val project = newProject(); val member = join(newUser(), project)
         val a = issue(project, 1, author = member)

@@ -32,6 +32,10 @@
         </ul>
 
         <th:block th:if="${items.isEmpty()}">
+            <!--/* 일반 이슈가 없어도 작성자의 초안은 보인다. v1.6은 이슈가 있는 분기에서만 초안을 그려 초안만 있으면 보이지 않았다(C021) */-->
+            <th:block th:if="${showDrafts and !drafts.isEmpty()}">
+                <th:block th:replace="~{issue/partial-list :: draftList(${drafts})}"></th:block>
+            </th:block>
             <div class="error-wrap">
                 <i class="ico ico-err1"></i>
                 <p th:text="#{issue.is.empty}"></p>

@@ -186,6 +186,21 @@ class SvnDavTest {
     }
 
     @Test
+    fun `HEAD는 읽기 요청이라 read repo 토큰으로도 쓰기 권한 거절이 나오지 않는다 (C080)`() {
+        val member = user("svh"); val p = project(member, ProjectScope.PRIVATE); createdProjects += p
+        val readOnly = (apiTokens.create(member, "svn", setOf("read:repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value
+        val status = rawWithPassword("HEAD", "/svn/${p.owner}/${p.name}", member.loginId!!, readOnly).statusCode()
+        org.junit.jupiter.api.Assertions.assertTrue(status != 401 && status != 403, "HEAD가 쓰기 권한을 요구하면 안 된다: $status")
+        org.junit.jupiter.api.Assertions.assertEquals(403, rawWithPassword("MKCOL", "/svn/${p.owner}/${p.name}/!svn/wrk/x", member.loginId!!, readOnly).statusCode(), "쓰기 요청은 여전히 막힌다")
+    }
+
+    @Test
+    fun `공개 프로젝트의 HEAD는 익명도 보낼 수 있다 (C080)`() {
+        val status = raw("HEAD", "/svn/${publicProject.owner}/${publicProject.name}").statusCode()
+        org.junit.jupiter.api.Assertions.assertTrue(status != 401 && status != 403, "익명 HEAD가 거절되면 안 된다: $status")
+    }
+
+    @Test
     fun `공개 프로젝트는 public repo 토큰으로 인증한다`() {
         val member = user("svp"); val p = project(member, ProjectScope.PUBLIC); createdProjects += p
         val good = (apiTokens.create(member, "svn", setOf("public_repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value

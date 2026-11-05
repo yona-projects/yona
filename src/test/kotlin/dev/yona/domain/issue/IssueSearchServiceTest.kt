@@ -2,9 +2,11 @@ package dev.yona.domain.issue
 
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.enumeration.ProjectScope
+import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.misc.FavoriteIssue
+import dev.yona.domain.notification.Mention
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.user.User
@@ -204,6 +206,36 @@ class IssueSearchServiceTest : AbstractIntegrationTest() {
         entityManager.flush()
         assertEquals(listOf(1L), numbers(IssueSearchCondition(sharerId = me.id)))
         assertEquals(listOf(2L), numbers(IssueSearchCondition(favoriteId = me.id)))
+    }
+
+    @Test
+    fun `비로그인이 멘션 공유 즐겨찾기 조건을 주면 필터를 무시하지 않고 빈 결과이다 (C048)`() {
+        setUp()
+        issue(1); issue(2)
+        assertEquals(emptyList(), numbers(IssueSearchCondition(mentionId = 1), viewer = null))
+        assertEquals(emptyList(), numbers(IssueSearchCondition(sharerId = 1), viewer = null))
+        assertEquals(emptyList(), numbers(IssueSearchCondition(favoriteId = 1), viewer = null))
+        assertEquals(listOf(2L, 1L), numbers(IssueSearchCondition(), viewer = null))
+    }
+
+    @Test
+    fun `프로젝트 안에서도 mentionId로 멘션된 이슈만 거른다 (C049)`() {
+        setUp()
+        val mentioned = issue(1); issue(2)
+        entityManager.persist(Mention(resourceType = ResourceType.ISSUE_POST, resourceId = mentioned.id.toString(), user = me))
+        entityManager.flush()
+        assertEquals(listOf(1L), numbers(IssueSearchCondition(mentionId = 1)))
+    }
+
+    @Test
+    fun `프로젝트를 가리지 않는 검색도 작성자와 담당자 조건의 값을 쓴다 (C047)`() {
+        setUp()
+        val other = newUser()
+        issue(1, author = me, assignee = other); issue(2, author = other, assignee = me); issue(3, author = other, assignee = other)
+        val global = { c: IssueSearchCondition -> service.searchAll(c, me, 100).items.map { it.number!! } }
+        assertEquals(listOf(2L, 3L), global(IssueSearchCondition(authorId = other.id)).sorted())
+        assertEquals(listOf(1L, 3L), global(IssueSearchCondition(assigneeId = other.id)).sorted())
+        assertEquals(listOf(1L), global(IssueSearchCondition(authorId = me.id)))
     }
 
     @Test

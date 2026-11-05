@@ -149,10 +149,10 @@ class ExternalProjectApiController(
     // --- 라벨 만들기 ---
 
     /**
-     * 라벨 여러 개를 만든다. 본문: `{"labels": [{"labelName", "labelColor", "category"}]}`. 분류가 없으면 만든다(항상 단일 선택이 아닌 분류이다).
+     * 라벨 여러 개를 만든다. 본문: `{"labels": [{"labelName", "labelColor", "category", "isExclusive"}]}`. 분류가 없으면 만들고, 새 분류의 단일 선택 여부는 `isExclusive`(없으면 `false`)를 따른다. 이미 있는 분류는 바꾸지 않는다.
      * 항목마다 `{"status": 201, ...}`, 이미 있으면 `{"status": 409, ...}`를 모아 `201`로 답한다.
      */
-    @ApiOperation(operationId = "createLabels", tags = [ApiTags.LABEL], summary = "라벨 여러 개 만들기", description = "라벨을 한 번에 여러 개 만든다. 분류가 없으면 만든다(단일 선택이 아닌 분류이다). 항목마다 만들었으면 `status` 201, 이미 있으면 409를 모아 `201`로 답한다. 라벨을 만들 수 있어야 한다.")
+    @ApiOperation(operationId = "createLabels", tags = [ApiTags.LABEL], summary = "라벨 여러 개 만들기", description = "라벨을 한 번에 여러 개 만든다. 분류가 없으면 `isExclusive`(없으면 `false`)를 단일 선택 여부로 하여 만든다. 이미 있는 분류는 바꾸지 않는다. 항목마다 만들었으면 `status` 201, 이미 있으면 409를 모아 `201`로 답한다. 라벨을 만들 수 있어야 한다.")
     @BodyDoc(description = "만들 라벨", required = true, content = [Content(schema = Schema(implementation = LabelsCreateRequest::class))])
     @ApiResponse(responseCode = "201", description = "항목마다 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = LabelCreatedItem::class)))])
     @ApiResponse(responseCode = "400", description = "`labels`가 배열이 아니거나 항목에 필수 값이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
@@ -169,7 +169,7 @@ class ExternalProjectApiController(
             val name = node.findValue("labelName")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "labelName is required")
             val color = node.findValue("labelColor")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "labelColor is required")
             val categoryName = node.findValue("category")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "category is required")
-            val label = labelService.createLabel(project, name, color, categoryName, false)
+            val label = labelService.createLabel(project, name, color, categoryName, node.findValue("isExclusive")?.asBoolean(false) ?: false)
             if (label == null) {
                 linkedMapOf("status" to 409, "reason" to "Conflict", "message" to messages.getMessage("label.error.duplicated", null, LocaleContextHolder.getLocale()), "user" to node)
             } else {
