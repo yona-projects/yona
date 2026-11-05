@@ -120,6 +120,11 @@ class SocialAccountService(
 
     /** v1.6 `YonaUserServicePlugin.save`: 자격 증명을 만들고, 같은 이메일의 사용자가 없으면 가입시킨다. */
     private fun signUp(identity: SocialIdentity): SocialLoginResult {
+        // 새 사용자를 만들 수 없는 신원은 자격 증명을 만들었다가 지우지 않고 저장하기 전에 거른다. v1.6은 만든 뒤에 지웠다(R-59-7)
+        if (lookup.findByEmail(identity.email) == null) {
+            val rejected = linkedMapOf<String, String>()
+            if (rejectEmail(identity.email, identity.name, null, rejected)) return SocialLoginResult(null, rejected, forceLogout = true)
+        }
         val credential = credentials.save(UserCredential(active = true, email = identity.email, emailValidated = true, name = identity.name))
         linkedAccounts.save(LinkedAccount(userCredential = credential, providerKey = identity.provider, providerUserId = identity.providerUserId))
         val flash = linkedMapOf<String, String>()
@@ -141,18 +146,11 @@ class SocialAccountService(
      */
     private fun createLocalUser(credential: UserCredential, flash: MutableMap<String, String>): User? {
         val email = credential.email
-        if (email == null || email.equals("null", ignoreCase = true)) {
-            flash["error"] = "app.warn.cannot.access.email.information"
-            log.error("Cannot confirm email address of {}: {}", credential.id, credential.name)
+        if (rejectEmail(email, credential.name, credential.id, flash)) {
             discard(credential)
             return null
         }
-        if (!signup.isAllowedEmailDomain(email)) {
-            flash["info"] = "user.unacceptable.email.domain"
-            log.warn("Signup rejected: {} with {}", credential.name, email)
-            discard(credential)
-            return null
-        }
+        requireNotNull(email)
         // v1.6은 `email.substring(0, email.indexOf("@"))`라 골뱅이가 없는 이메일이면 범위 예외로 500이다
         check(email.contains('@')) { "이메일에 골뱅이가 없어 로그인 ID를 만들 수 없습니다: $email" }
         val created = signup.create(SignupForm(signup.generateLoginId(email.substringBefore('@')), credential.name, email, randomPassword()))
@@ -162,6 +160,24 @@ class SocialAccountService(
         credential.user = created
         credentials.save(credential)
         return created
+    }
+
+    /**
+     * 이메일을 모르거나 허용된 도메인이 아니면 안내를 [flash]에 남기고 `true`를 돌려준다(v1.6 `createLocalUserWithOAuth`의 두 거절 조건).
+     * [credentialId]는 자격 증명을 아직 만들지 않았으면 `null`이다.
+     */
+    private fun rejectEmail(email: String?, name: String?, credentialId: Long?, flash: MutableMap<String, String>): Boolean {
+        if (email == null || email.equals("null", ignoreCase = true)) {
+            flash["error"] = "app.warn.cannot.access.email.information"
+            log.error("Cannot confirm email address of {}: {}", credentialId, name)
+            return true
+        }
+        if (!signup.isAllowedEmailDomain(email)) {
+            flash["info"] = "user.unacceptable.email.domain"
+            log.warn("Signup rejected: {} with {}", name, email)
+            return true
+        }
+        return false
     }
 
     private fun discard(credential: UserCredential) {

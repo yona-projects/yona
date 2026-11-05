@@ -35,6 +35,15 @@ class SocialAccountPolicyTest : AbstractIntegrationTest() {
         assertNull(users.findByLoginId("x"))
     }
 
+    /** 거부될 가입은 자격 증명을 만들었다가 지우지 않고 처음부터 만들지 않는다 (R-59-7). 만든 행이 있었다면 다음 행 번호가 건너뛰어진다. */
+    @Test
+    fun `허용되지 않은 이메일 도메인이면 자격 증명 행을 만들지도 않는다`() {
+        val first = credentials.save(dev.yona.domain.user.UserCredential(email = "sentinel-a@corp.test")).id!!
+        social.signIn(SocialIdentity("github", "policy-skip", "z@outside.test", "밖"))
+        val second = credentials.save(dev.yona.domain.user.UserCredential(email = "sentinel-b@corp.test")).id!!
+        assertEquals(first + 1, second)
+    }
+
     @Test
     fun `허용된 이메일 도메인이면 가입한다`() {
         assertNotNull(social.signIn(SocialIdentity("github", "policy-2", "y@corp.test", "안")).user)

@@ -116,6 +116,16 @@ class SocialAccountServiceTest : AbstractIntegrationTest() {
         assertTrue(viaText.forceLogout)
     }
 
+    /** 이메일이 없는 가입은 자격 증명을 만들었다가 지우지 않고 처음부터 만들지 않는다 (R-59-7). */
+    @Test
+    fun `이메일을 알 수 없으면 자격 증명 행을 만들지도 않는다`() {
+        val first = credentials.save(dev.yona.domain.user.UserCredential(email = "sentinel-a@example.com")).id!!
+        social.signIn(identity(email = null))
+        social.signIn(identity(email = "null"))
+        val second = credentials.save(dev.yona.domain.user.UserCredential(email = "sentinel-b@example.com")).id!!
+        assertEquals(first + 1, second)
+    }
+
     // --- 이미 연결된 신원 (getLocalIdentity) ---
 
     @Test
