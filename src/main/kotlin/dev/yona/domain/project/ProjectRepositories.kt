@@ -2,9 +2,17 @@ package dev.yona.domain.project
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Lock
+import org.springframework.data.jpa.repository.Query
+import jakarta.persistence.LockModeType
 
 /** 프로젝트 저장소이다. */
 interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
+
+    /** 프로젝트 행을 잠그고 읽는다. 커밋이나 롤백까지 같은 행을 잠그는 다른 트랜잭션이 기다리며, 번호를 매기는 순서를 맞추는 데 쓴다. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Project p where p.id = :id")
+    fun lockById(id: Long): Project?
 
     /** 라벨을 붙인 프로젝트의 수이다 (v1.6 `label.projects.size()`). */
     fun countByLabelsId(labelId: Long): Long

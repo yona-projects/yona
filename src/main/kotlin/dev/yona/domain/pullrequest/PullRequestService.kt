@@ -42,7 +42,8 @@ class PullRequestService(
     private val pullRequestCommits: PullRequestCommitRepository,
     private val threadRepository: dev.yona.domain.comment.CommentThreadRepository,
     private val publisher: ApplicationEventPublisher,
-    private val watchService: dev.yona.domain.misc.WatchService
+    private val watchService: dev.yona.domain.misc.WatchService,
+    private val projects: dev.yona.domain.project.ProjectRepository
 ) {
 
     /** 받는 프로젝트 안에서 번호로 찾는다. 번호가 1보다 작으면 `null`이다 (v1.6 `findOne`). */
@@ -81,6 +82,8 @@ class PullRequestService(
     fun create(form: PullRequestForm, contributor: User): PullRequestCreation {
         findDuplicate(form)?.let { return PullRequestCreation(it, false) }
 
+        // 받는 프로젝트 행을 잠가 번호를 매기는 순서를 맞춘다. v1.6은 잠그지 않아 동시에 만들면 번호가 겹칠 수 있었다(C081)
+        projects.lockById(requireNotNull(form.toProject.id))
         val pullRequest = pullRequests.save(
             PullRequest(
                 title = form.title, body = form.body, toProject = form.toProject, fromProject = form.fromProject, toBranch = form.toBranch, fromBranch = form.fromBranch,
