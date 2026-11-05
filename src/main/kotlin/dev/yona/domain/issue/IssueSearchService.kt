@@ -230,7 +230,8 @@ class IssueSearchService(private val entityManager: EntityManager) {
                 else if (project == null) { clauses += "i.assignee.user.id = :assignee"; params["assignee"] = it }
                 else { clauses += "(i.assignee.user.id = :assignee and i.assignee.project.id = :project)"; params["assignee"] = it }
             }
-            if (condition.commenterId != null && (project != null || condition.commenterId != IssueSearchCondition.NO_VALUE)) {
+            // 익명(-1)은 댓글 조건이 없다는 뜻이다. v1.6은 프로젝트 안팎 모두 건너뛰는데 v2는 프로젝트 안에서 현재 사용자로 걸렀다
+            if (condition.commenterId != null && condition.commenterId != IssueSearchCondition.NO_VALUE) {
                 clauses += "i.id in (select c.issue.id from IssueComment c where c.authorId = :commenter" + (if (project != null) " and c.projectId = :project)" else ")")
                 params["commenter"] = viewerId
             }

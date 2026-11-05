@@ -1163,3 +1163,7 @@ MSSQL은 시험 컨텍스트 기동이 길어 같은 범위가 다른 DB의 5배
 | H2 전체 | 14:06:21 | 11분 51초 | 497개 클래스, 4,499개 시험, 실패 0, 건너뜀 2 |
 
 검색 쿼리를 바꾼 C047~C049는 PostgreSQL에서 확인했다. 잠금이나 트랜잭션을 건드리지 않아 MariaDB, MSSQL, Cubrid는 돌리지 않았다.
+
+## 2026-11-05 댓글 작성자 조건의 익명 처리 (R-49-2 일부, A-351)
+
+`commenterId=-1`을 v1.6처럼 조건 없음으로 맞췄다. 시험 1건 추가(수정 전 실패 확인). H2 관련 범위(domain.issue, web.issue, web.organization)와 PostgreSQL(IssueSearchServiceTest, MyIssuesTest)이 통과했다.

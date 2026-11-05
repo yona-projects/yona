@@ -198,6 +198,18 @@ class IssueSearchServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `댓글 작성자 조건이 익명(-1)이면 댓글 조건을 적용하지 않는다 (R-49-2, v1_6 SearchCondition)`() {
+        setUp()
+        val mine = issue(1); issue(2)
+        entityManager.persist(IssueComment(contents = "c", createdDate = Date(), authorId = me.id, issue = mine, projectId = project.id!!))
+        entityManager.flush()
+        val none = IssueSearchCondition.NO_VALUE
+        assertEquals(listOf(2L, 1L), numbers(IssueSearchCondition(commenterId = none)), "프로젝트 안")
+        assertEquals(listOf(2L, 1L), numbers(IssueSearchCondition(commenterId = none), viewer = null))
+        assertEquals(setOf(1L, 2L), service.searchAll(IssueSearchCondition(commenterId = none), me, 100).items.map { it.number!! }.toSet(), "프로젝트를 가리지 않는 검색")
+    }
+
+    @Test
     fun `공유받은 이슈와 즐겨찾는 이슈`() {
         setUp()
         val shared = issue(1); val favorite = issue(2); issue(3)
