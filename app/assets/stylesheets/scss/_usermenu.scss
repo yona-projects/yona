@@ -875,6 +875,11 @@ $violet:  #9c27b0;
 
 /* The navigation menu links */
 .sidenav {
+  /* v1.6의 `row-fluid`는 바깥 여백이 없고 안의 `span5`는 폭이 상자 전체였다. BS5의 `.row`는 바깥으로 거터의 절반만큼 나가
+     상자가 화면 오른쪽 밖으로 10px 나가고, `col-lg-5`는 폭의 5/12만 써서 메뉴가 좁게 접혔다 */
+  --bs-gutter-x: 0;
+  > .right-menu { flex: 0 0 100%; max-width: 100%; }
+
   div.user-menu-wrap{
     text-align: right;
   }

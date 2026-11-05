@@ -5535,6 +5535,10 @@ label.issue-item-row {
 }
 
 .input-mini-min {
+  /* BS5의 `.form-control`은 블록이고 폭에 안쪽 여백을 포함해(border-box) 30px 폭에서 숫자가 한 자리만 보인다. v1.6의 입력란은 인라인이고 폭이 글자 영역이었다 */
+  display: inline-block;
+  box-sizing: content-box;
+  padding: 4px 6px;
   width: 30px;
   border: none;
   top: 4px;
@@ -6907,6 +6911,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 #option_form {
     #s2id_projects {
         margin-top: 0;
+    }
+    /* 프로젝트 선택, 키워드 검색, 2단 보기는 한 줄이다. BS5의 `.row`는 열 폭의 합(7/12 + 4/12)이 남기는 1/12에 2단 보기가 들어가지 못해 줄을 바꾼다 */
+    &.row {
+        flex-wrap: nowrap;
+        align-items: center;
     }
 }
 
