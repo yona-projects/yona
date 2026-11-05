@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { pageWith, ROOT } from './harness.mjs';
 
@@ -91,6 +92,31 @@ export const tests = [
       assert.ok(Math.max(...tops) - Math.min(...tops) <= 6, `세 요소의 위쪽이 ${tops.join(', ')}로 한 줄이 아니다`);
       const right = await page.evaluate(() => document.querySelector('#two-column-mode-checkbox').getBoundingClientRect().right);
       assert.ok(right <= 1270.5, `2단 보기 오른쪽 ${right}이 내용 영역을 넘는다`);
+    },
+  },
+  {
+    name: '사이트 관리 사용자 목록의 단추 열은 v1.6처럼 가입일 열 아래에 놓인다',
+    async run() {
+      // 단추 열의 클래스는 실제 템플릿에서 읽는다
+      const template = fs.readFileSync(path.join(ROOT, 'src/main/resources/templates/site/user-list.html'), 'utf8');
+      const actionClass = /<div th:if="\$\{userState != 'DELETED'\}" class="([^"]*action-buttons[^"]*)"/.exec(template)[1];
+      const page = await open(`<ul class="user-list-wrap"><li class="row listitem">
+        <div class="col-lg-3 listitem-col">이름</div><div class="col-lg-3 listitem-col"><span class="email">a@example.com</span></div>
+        <div class="col-lg-2 listitem-col created-date"><span>2026-10-28</span></div>
+        <div class="${actionClass}"><a class="ybtn ybtn-small">게스트로 전환</a> <a class="ybtn ybtn-small">계정잠그기</a></div></li></ul>`);
+      const date = await rect(page, '.created-date');
+      const buttons = await rect(page, '.action-buttons');
+      const tops = await page.evaluate(() => [document.querySelector('.created-date'), document.querySelector('.action-buttons')].map((e) => Math.round(e.getBoundingClientRect().top)));
+      assert.ok(tops[1] > tops[0], `단추 열이 가입일 열 아래 줄이어야 한다(위치 ${tops.join(', ')})`);
+      assert.ok(Math.abs(buttons.left - date.left) <= 12, `단추 열 왼쪽 ${buttons.left}이 가입일 열 왼쪽 ${date.left}과 같아야 한다`);
+    },
+  },
+  {
+    name: '폭 전체를 쓰는 드롭다운 단추(이슈의 상태 등)는 글자가 왼쪽에 놓인다',
+    async run() {
+      const page = await open(`<div id="state" class="btn-group auto" data-name="state"><button class="btn btn-outline-secondary dropdown-toggle"><span class="d-label"><a>닫힘</a></span></button></div>`);
+      const align = await page.evaluate(() => getComputedStyle(document.querySelector('#state > .dropdown-toggle')).textAlign);
+      assert.equal(align, 'left');
     },
   },
 ];

@@ -61,7 +61,8 @@
             <div class="col-lg-2 listitem-col created-date">
                 <span th:text="${row.createdText}"></span>
             </div>
-            <div th:if="${userState != 'DELETED'}" class="col-lg-4 listitem-col action-buttons">
+            <!--/* v1.6의 단추 열은 `span5`라 한 줄의 열 합(3+3+2+5)이 12를 넘어 가입일 열 아래로 내려갔다. 같은 자리에 오도록 `offset-lg-6`을 준다 */-->
+            <div th:if="${userState != 'DELETED'}" class="col-lg-5 offset-lg-6 listitem-col action-buttons">
                 <a class="ybtn ybtn-small" th:classappend="${row.guest} ? 'ybtn-success'" data-request-method="post" th:attr="data-request-uri=@{${row.guestUrl}}"
                    th:text="${row.guest} ? #{button.user.make.normal.mode} : #{button.user.make.guest.mode}"></a>
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
@@ -69,7 +70,7 @@
                 <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
                 <a th:if="${row.twoFactorEnabled}" class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.twoFactorResetUrl}}" th:text="#{button.user.resetTwoFactor}"></a>
                 <a th:if="${row.ssoLinked}" class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.ssoUnlinkUrl}}" th:text="#{button.user.unlinkSso}"></a>
-                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'text-bg-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
+                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
             </div>

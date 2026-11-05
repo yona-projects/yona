@@ -1238,3 +1238,7 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 ## 2026-11-05 `.row` 사용 화면 점검 (A-363)
 
 선생님이 `.row`를 쓴 곳을 모두 점검하라고 하셨다. 템플릿 54개가 `.row`를 쓴다. 같은 데이터의 v1.6과 v2에서 화면 230개를 열어 (1) 잘림과 내용 영역 밖 요소, (2) 그리드 열의 폭과 위치를 견주었다(`e2e/rowscan.tmp.mjs`, `e2e/colscan.tmp.mjs`, 오류 0건). 결함 세 곳을 더 찾아 고쳤다: 사용자 메뉴의 좁은 폭과 화면 밖 이동(전 화면), 사용자 페이지의 `최근 N일`, 조직 게시판의 검색 줄. 시험 세 건을 먼저 써서 실패를 확인했고(JS 시험 전체 43건 통과), v2를 다시 빌드해 v1.6과 나란히 다시 확인했다. `LegacyBootstrapLintTest`가 통과했다.
+
+## 2026-11-05 남은 세 차이 처리 (A-364)
+
+선생님 결정으로 사이트 관리 사용자 목록의 단추 열을 v1.6처럼 가입일 열 아래로 옮기고 하늘색 단추를 흰색으로 되돌렸으며, 이슈 수정 폼의 `상태` 단추는 글자를 왼쪽 정렬했다(`이슈 옵션`은 유지). 시험 세 건(JS `layout.test.mjs` 두 건, Kotlin `SiteUserManagementTest` 한 건)을 먼저 써서 실패를 확인했다. JS 시험 전체 45건, H2의 `web.site.*`, `ThemeColorTest`, `LegacyBootstrapLintTest`(50초)와 PostgreSQL의 `SiteUserManagementTest`가 통과했다. v2를 다시 빌드해 v1.6과 나란히 다시 확인했다.

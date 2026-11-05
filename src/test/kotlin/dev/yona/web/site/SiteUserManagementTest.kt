@@ -172,6 +172,14 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사이트 어드민 지정 단추는 v1_6처럼 색을 입히지 않고 해제 단추만 ybtn-info이다 (BS2의 label-info는 단추에 효과가 없었다)`() {
+        val me = admin(); val target = newUser()
+        val promote = userList(login(me), "query" to target.loginId!!).selectFirst("li.listitem .action-buttons > a[data-request-uri*=toggleSiteAdminRole]")!!
+        assertFalse(promote.hasClass("text-bg-info"), "BS5의 text-bg-info는 하늘색 바탕을 칠한다: ${promote.className()}")
+        assertFalse(promote.hasClass("ybtn-info"))
+    }
+
+    @Test
     fun `로그인 ID가 anonymous인 실제 사용자도 목록에 나온다 (v1_6은 로그인 ID가 빈 NullUser 행만 뺀다)`() {
         val me = admin()
         val salt = LegacyPasswordHasher.generateSalt()

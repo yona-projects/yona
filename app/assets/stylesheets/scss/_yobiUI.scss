@@ -117,6 +117,9 @@ input[type="search"], input[type="tel"], input[type="color"] {
 .dropdown-menu li:last-of-type.divider { display:none; }
 .btn-group.auto {
     width:100%;
+
+    /* 폭 전체를 쓰는 드롭다운 단추의 글자는 왼쪽에 놓인다(v1.6). BS5의 `.btn`은 가운데 정렬이다 */
+    > .dropdown-toggle { text-align:left; }
 }
 .usf-group {
     .avatar-wrap { margin-right:5px; }
