@@ -132,11 +132,15 @@ class ExternalProjectApiController(
             user to node.findValue("role")?.asString().orEmpty()
         }
         val project = externalProjects.create(
-            ExternalProject(owner, name, json.findValue("projectDescription")?.asString().orEmpty(), json.findValue("projectVcs")?.asString() ?: "GIT", scope(json), members),
+            ExternalProject(owner, name, json.findValue("projectDescription")?.asString().orEmpty(), json.findValue("projectVcs")?.asString() ?: "GIT", scope(json), members, createdDate(json)),
             viewer
         )
         return created(projectNode(project))
     }
+
+    /** 요청의 `projectCreatedDate`(`yyyy-MM-dd a hh:mm:ss Z`, 영어)이다. 없거나 형식이 틀리면 `null`이라 지금 시각을 쓴다. */
+    private fun createdDate(json: JsonNode): java.util.Date? =
+        json.findValue("projectCreatedDate")?.asString()?.let { text -> try { SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).parse(text) } catch (e: ParseException) { null } }
 
     private fun scope(json: JsonNode): ProjectScope = when (json.findValue("projectScope")?.asString()) {
         "PUBLIC" -> ProjectScope.PUBLIC

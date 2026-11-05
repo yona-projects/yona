@@ -260,6 +260,16 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `닫힌 이슈의 라벨 링크는 닫힘 목록으로 간다 (C020, v1_6은 항상 열림 목록이었다)`() {
+        val org = newOrg(); val a = orgProject(org, name = "labc")
+        val category = labelCategories.save(IssueLabelCategory(project = a, name = "종류", isExclusive = false))
+        val label = issueLabels.save(IssueLabel(project = a, category = category, name = "버그", color = "#f00"))
+        issue(a, "닫힌 이슈", state = State.CLOSED).also { it.labels.add(label); issues.save(it) }
+        val link = page("/organizations/${org.name}/issues?state=closed").selectFirst("a.issue-label.list-label")!!
+        assertEquals("/${org.name}/labc/issues?state=closed&labelIds=${label.id}", link.attr("href"))
+    }
+
+    @Test
     fun `조직 메뉴의 Issue 탭이 활성이고 빠른 검색은 로그인했을 때만 세 항목이 더 나온다`() {
         val org = newOrg(); orgProject(org)
         val anonymous = page("/organizations/${org.name}/issues")

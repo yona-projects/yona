@@ -35,7 +35,7 @@
                     <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block></th:block>
                 </span>
             </span>
-            <a th:each="label : ${child.labels}" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issues?state=open&labelIds=' + ${label.id}" class="badge issue-label list-label active twoColumeModeTarget bg-secondary"
+            <a th:each="label : ${child.labels}" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issues?state=' + ${child.state} + '&labelIds=' + ${label.id}" class="badge issue-label list-label active twoColumeModeTarget bg-secondary"
                th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
             <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
         </div>

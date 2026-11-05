@@ -100,6 +100,7 @@ class PullRequestWorkflow(
         pullRequest.mergedCommitIdTo = requireNotNull(result.mergeCommitId).name
         pullRequest.state = State.MERGED
         pullRequest.received = Date()
+        pullRequest.updated = pullRequest.received
         pullRequest.receiver = accepter
         pullRequests.save(pullRequest)
         publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_STATE_CHANGED, State.OPEN.state, State.MERGED.state, accepter))
@@ -149,6 +150,7 @@ class PullRequestWorkflow(
         pullRequest.fromBranch = fromBranch
         pullRequest.title = title
         pullRequest.body = body
+        pullRequest.updated = Date()
         pullRequests.save(pullRequest)
         service.addIssueEvents(pullRequest)
     }
@@ -169,6 +171,7 @@ class PullRequestWorkflow(
     private fun change(pullRequest: PullRequest, state: State, actor: User) {
         pullRequest.state = state
         pullRequest.received = Date()
+        pullRequest.updated = pullRequest.received
         pullRequest.receiver = actor
         pullRequests.save(pullRequest)
     }

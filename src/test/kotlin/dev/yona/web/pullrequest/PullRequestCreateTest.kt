@@ -235,7 +235,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
 
         val pr = pullRequests.findByToProjectIdAndNumber(s.origin.id!!, 1)!!
         assertEquals("요청 제목", pr.title); assertEquals(State.OPEN, pr.state); assertEquals(s.owner.id, pr.contributor?.id)
-        assertEquals(false, pr.isMerging); assertEquals(false, pr.isConflict); assertNotNull(pr.created); assertNull(pr.updated)
+        assertEquals(false, pr.isMerging); assertEquals(false, pr.isConflict); assertNotNull(pr.created); assertNotNull(pr.updated)
         assertNotNull(pr.mergedCommitIdFrom); assertNotNull(pr.mergedCommitIdTo)
 
         val commits = pullRequestCommits.findByPullRequestId(pr.id!!)
@@ -277,12 +277,13 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `가져올 커밋이 없으면 병합됨으로 바뀌고 v1_6처럼 이벤트는 쌓이지 않는다`() {
+    fun `가져올 커밋이 없으면 병합됨으로 바뀌고 병합 이벤트가 쌓인다 (C038, R-42-1, v1_6은 쌓이지 않았다)`() {
         val s = setup()
         mockMvc.perform(send(s, login(s.owner))).andExpect(status().isSeeOther)
         val pr = pullRequests.findAll().single()
         assertEquals(State.MERGED, pr.state); assertEquals(s.owner.id, pr.receiver?.id); assertEquals(false, pr.isConflict)
-        assertEquals(listOf(EventType.NEW_PULL_REQUEST), pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).map { it.eventType })
+        assertNotNull(pr.updated, "만들거나 상태가 바뀌면 갱신 시각이 남는다 (R-42-3)")
+        assertEquals(listOf(EventType.NEW_PULL_REQUEST, EventType.PULL_REQUEST_MERGED), pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).map { it.eventType })
     }
 
     @Test

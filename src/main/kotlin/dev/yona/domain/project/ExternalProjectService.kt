@@ -18,7 +18,7 @@ import java.util.Date
  * @property scope 공개 범위. 정하지 않으면 비공개이다
  * @property members `(사용자, 역할 이름)` 쌍. 역할은 `member`, `manager`(대소문자 무시)만 인정한다
  */
-data class ExternalProject(val owner: String, val name: String, val overview: String, val vcs: String, val scope: ProjectScope, val members: List<Pair<User, String>>)
+data class ExternalProject(val owner: String, val name: String, val overview: String, val vcs: String, val scope: ProjectScope, val members: List<Pair<User, String>>, val createdDate: Date? = null)
 
 /**
  * 외부 REST API가 쓰는 프로젝트 도메인 동작이다. v1.6 `ProjectApi.newProject`(`app/controllers/api/ProjectApi.java:178-275`)에 해당한다.
@@ -52,7 +52,8 @@ class ExternalProjectService(
     fun create(spec: ExternalProject, actor: User): Project {
         val project = Project(owner = spec.owner, name = spec.name, overview = spec.overview, vcs = spec.vcs, projectScope = spec.scope, organization = organizations.findByNameIgnoreCase(spec.owner))
         project.siteurl = "http://localhost:9000/${project.name}"
-        project.createdDate = Date()
+        // v1.6은 요청의 `projectCreatedDate`를 읽어 두고도 `Project.create`가 만든 날짜를 지금으로 덮어썼다. 값이 있으면 생성일로 쓴다(R-36)
+        project.createdDate = spec.createdDate ?: Date()
         projects.save(project)
         // v1.6 `ProjectApi.newProject`는 `Project.create` 안과 밖에서 사이트 관리자 역할을 두 번 넣었다 (R-82, C130). 구성원 목록과 수 조회는
         // 모두 SITEMANAGER 행을 제외하므로 한 번만 넣어도 화면과 응답은 같다.

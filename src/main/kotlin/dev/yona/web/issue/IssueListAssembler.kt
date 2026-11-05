@@ -48,7 +48,9 @@ data class IssueListItem(
     val labels: List<IssueLabelTag>, val labelsData: String,
     val children: List<ChildIssueItem>,
     val assigneeLoginId: String?, val assigneeName: String?, val assigneeAvatarUrl: String?,
-    val due: DueInfo?
+    val due: DueInfo?,
+    /** 이슈의 현재 상태(`open`, `closed`)이다. 라벨 링크가 이 상태의 목록으로 간다(C020, v1.6은 항상 `open`이었다). */
+    val state: String = "open"
 )
 
 /**
@@ -107,7 +109,8 @@ class IssueListAssembler(
                 children = if (id in withChildren) childItems(issue, comments, voters, language) else emptyList(),
                 assigneeLoginId = issue.assignee?.user?.loginId, assigneeName = issue.assignee?.user?.name,
                 assigneeAvatarUrl = issue.assignee?.user?.let { avatars.avatarUrl(it) },
-                due = dueInfo(issue)
+                due = dueInfo(issue),
+                state = if (issue.state == State.CLOSED) "closed" else "open"
             )
         }
     }

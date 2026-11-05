@@ -89,6 +89,8 @@ class ReviewCommentService(
         val saved = save(comment, author, moveAll = false)
         // 임시 댓글은 알림을 보내지 않는다(제출할 때 리뷰 하나로 묶어 알린다)
         if (!asPending) publisher.publishEvent(ReviewCommentedActivity(saved, pullRequest, commitId, author))
+        // v1.6은 풀 리퀘스트의 `updated`를 채우지 않았다. 댓글이 달리면 갱신 시각을 남긴다(R-42-3)
+        pullRequest.updated = Date()
         return saved
     }
 

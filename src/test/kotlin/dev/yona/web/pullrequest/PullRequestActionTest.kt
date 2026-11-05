@@ -330,11 +330,13 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         val first = issues.save(Issue(project = s.origin, number = 1, title = "첫 이슈")); val second = issues.save(Issue(project = s.origin, number = 2, title = "둘째 이슈"))
         val pr = open(s, title = "고침 #1")
         assertEquals(1, issueEvents.findByIssueIdOrderByCreatedAscIdAsc(first.id!!).size)
+        reload(pr).also { it.updated = java.util.Date(0); pullRequests.save(it) }
         mockMvc.perform(
             post(url(s, pr, "/edit")).session(s.managerSession).param("title", "새 제목 #2").param("body", "새 본문")
                 .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master")
         ).andExpect(status().isSeeOther).andExpect(redirectedUrl(url(s, pr, "")))
         assertEquals("새 제목 #2", reload(pr).title); assertEquals("새 본문", reload(pr).body)
+        assertTrue(reload(pr).updated!!.time > 0, "수정하면 갱신 시각이 바뀐다 (R-42-3)")
         assertEquals(0, issueEvents.findByIssueIdOrderByCreatedAscIdAsc(first.id!!).size); assertEquals(1, issueEvents.findByIssueIdOrderByCreatedAscIdAsc(second.id!!).size)
     }
 

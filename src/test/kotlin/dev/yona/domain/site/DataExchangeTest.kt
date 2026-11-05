@@ -124,6 +124,13 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `테이블 값이 배열이 아니면 그 테이블을 비우지 않는다 (R-84, v1_6은 비우기만 했다)`() {
+        jdbc.update("insert into label(name, category) values ('keep', 'c')")
+        import("""{"LABEL": null, "PROPERTY": "x", "UNKNOWN_TABLE": 5}""")
+        assertEquals(listOf("keep"), jdbc.queryForList("select name from label", String::class.java))
+    }
+
+    @Test
     fun `가져온 뒤 없는 풀 리퀘스트나 사용자나 라벨을 가리키는 담당자와 라벨 연결 행은 정리한다 (X-14)`() {
         // v1.6 파일에는 이 두 테이블이 없어 풀 리퀘스트를 바꿔 가져오면 옛 연결 행이 엉뚱한 번호를 가리킬 수 있다
         import("""{"PULL_REQUEST_ASSIGNEE": [{"pull_request_id": 999001, "user_id": 999002}], "PULL_REQUEST_ISSUE_LABEL": [{"pull_request_id": 999001, "issue_label_id": 999003}]}""")

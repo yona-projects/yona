@@ -131,8 +131,8 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
         entityManager.flush(); entityManager.clear()
         val project = projects.findByOwnerIgnoreCaseAndNameIgnoreCase("xpnew", "imported")!!
         assertEquals(ProjectScope.PUBLIC, project.projectScope); assertEquals("가져온 프로젝트", project.overview)
-        // v1.6 `Project.create`가 만든 날짜를 지금으로 덮어쓴다(R-36). 전달한 `projectCreatedDate`는 쓰이지 않는다.
-        assertTrue(kotlin.math.abs(System.currentTimeMillis() - project.createdDate!!.time) < 60_000)
+        // v1.6 `Project.create`가 만든 날짜를 지금으로 덮어써 전달한 `projectCreatedDate`가 쓰이지 않았다. 값이 있으면 생성일로 쓴다(R-36).
+        assertEquals(java.time.OffsetDateTime.parse("2020-01-02T15:04:05+09:00").toInstant().toEpochMilli(), project.createdDate!!.time)
         val roleOf = projectUsers.findAll().filter { it.project?.id == project.id }.associate { it.user!!.id to it.role!!.id }
         assertEquals(RoleType.SITEMANAGER.id, roleOf[1L]); assertEquals(RoleType.MANAGER.id, roleOf[manager.id]); assertEquals(RoleType.MEMBER.id, roleOf[member.id])
         assertNull(roleOf[a.id])

@@ -187,11 +187,11 @@ class SiteDataTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `테이블 이름의 값이 배열이 아니면 테이블만 비워진다 (v1_6 TRUNCATE)`() {
+    fun `테이블 이름의 값이 배열이 아니면 그 테이블을 비우지 않는다 (R-84, v1_6은 비우기만 했다)`() {
         TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         upload(admin(), """{"LABEL": 5}""").andExpect(redirectedUrl("/"))
-        assertEquals(emptyList(), labelNames())
+        assertEquals(listOf("old"), labelNames())
     }
 
     @Test

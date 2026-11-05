@@ -159,14 +159,15 @@ class SystemMailsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 이전 요청 메일은 받는 사용자에게 숨은참조로 수락 링크를 보낸다`() {
+    fun `프로젝트 이전 요청 메일은 받는 사용자에게 받는 사람으로 수락 링크를 보낸다 (R-34, v1_6은 숨은참조였다)`() {
         val sender = user(); val dest = user()
         val p = projects.save(Project(owner = sender.loginId, name = "mv${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
         val transfer = ProjectTransfer(id = 9, sender = sender, destination = dest.loginId, project = p, requested = Date(), confirmKey = "key9", newProjectName = "moved")
         publisher.publishEvent(ProjectTransferRequestedEvent(transfer))
         val mail = sentMails().single()
         assertEquals("[${p.name}] @${sender.loginId} wants to transfer project", mail.subject)
-        assertEquals(listOf(dest.email), addresses(mail, Message.RecipientType.BCC))
+        assertEquals(listOf(dest.email), addresses(mail, Message.RecipientType.TO))
+        assertEquals(emptyList(), addresses(mail, Message.RecipientType.BCC))
         assertTrue(texts(mail).first { !it.contains("<") }.contains("/project/transfer/9/key9"))
         assertEquals("<${siteUrls.absolute("/project/transfer/9/key9")}@${hostname.name()}>", mail.getHeader("References").single())
     }
@@ -179,6 +180,6 @@ class SystemMailsTest : AbstractIntegrationTest() {
         organizationUsers.save(OrganizationUser(user = member, organization = org, role = roles.findById(RoleType.ORG_MEMBER.id).get()))
         val p = projects.save(Project(owner = sender.loginId, name = "mv${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
         publisher.publishEvent(ProjectTransferRequestedEvent(ProjectTransfer(id = 10, sender = sender, destination = org.name, project = p, requested = Date(), confirmKey = "k10", newProjectName = "x")))
-        assertEquals(listOf(admin.email), addresses(sentMails().single(), Message.RecipientType.BCC))
+        assertEquals(listOf(admin.email), addresses(sentMails().single(), Message.RecipientType.TO))
     }
 }

@@ -148,6 +148,21 @@ class IssueListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `라벨 링크는 이슈의 현재 상태 목록으로 간다 (C020, v1_6은 항상 열림 목록이었다)`() {
+        val project = newProject()
+        val category = categories.save(IssueLabelCategory(project = project, name = "종류", isExclusive = false))
+        val bug = labels.save(IssueLabel(project = project, category = category, name = "버그", color = "#f00"))
+        val parent = issue(project, 1, "부모", issueLabels = setOf(bug))
+        issue(project, 2, "닫힌 자식", parent = parent, state = State.CLOSED, issueLabels = setOf(bug)); issue(project, 3, "열린 자식", parent = parent, issueLabels = setOf(bug))
+        issue(project, 4, "닫힌 이슈", state = State.CLOSED, issueLabels = setOf(bug))
+        entityManager.flush()
+        val doc = page(project, "?state=all")
+        fun hrefs(selector: String) = doc.select(selector).map { it.attr("href") }
+        val labelHref = { state: String -> "${base(project)}/issues?state=$state&labelIds=${bug.id}" }
+        assertEquals(listOf(labelHref("closed"), labelHref("open")), hrefs("#issue-item-${parent.id} .child-issue-list a.list-label").sortedBy { if ("closed" in it) 0 else 1 })
+    }
+
+    @Test
     fun `이슈 한 줄의 구성`() {
         val project = newProject()
         val author = newUser("글쓴이"); val assignee = newUser("담당자")

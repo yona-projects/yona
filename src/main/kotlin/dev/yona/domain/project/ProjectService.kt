@@ -18,8 +18,9 @@ import java.net.URLDecoder
  * v1.6 `Project`의 정적 메서드(`findByOwnerAndProjectName`, `findByPreviousPlaceOf`, `hasMember`)와
  * 각 모델의 개수 조회(`Issue.countIssues` 등)에 해당한다.
  *
- * v1.6은 프로젝트 조회 결과를 `CacheStore.projectMap`(`소유자:이름` → 프로젝트 번호)에 캐시한다. 이름을 바꿔도 예전 이름의 항목은 지우지 않아
- * 예전 이름이 계속 같은 프로젝트를 연다(결함 재현, A-07 철회, R-126). 프로젝트를 지울 때만 이름이 사라진 항목을 정리한다.
+ * v1.6은 프로젝트 조회 결과를 `CacheStore.projectMap`(`소유자:이름` → 프로젝트 번호)에 캐시한다. v1.6은 이름을 바꿔도 예전 이름의 항목을 지우지 않아
+ * 예전 이름이 계속 같은 프로젝트를 열었다. v2는 캐시가 가리키는 프로젝트의 현재 소유자와 이름이 키와 다르면 항목을 버리고 옛 위치로 찾은 결과는
+ * 캐시에 넣지 않는다(R-126). 프로젝트를 지울 때는 이름이 사라진 항목을 정리한다.
  */
 @Service
 class ProjectService(
@@ -42,14 +43,19 @@ class ProjectService(
         val key = cacheKey(decodedOwner, decodedName)
         val cachedId = projectMap[key]
         if (cachedId != null && cachedId != 0L) {
-            // 캐시가 가리키는 프로젝트가 이미 없으면(v1.6는 지울 때 항목도 지운다) 항목을 버리고 다시 찾는다
-            projects.findById(cachedId).orElse(null)?.let { return it }
+            // 캐시가 가리키는 프로젝트가 이미 없으면(v1.6는 지울 때 항목도 지운다) 항목을 버리고 다시 찾는다. 이름이나 소유자가 바뀌어 항목의 이름과
+            // 더는 맞지 않을 때도 버린다. v1.6은 그대로 돌려주어 예전 이름이 계속 같은 프로젝트를 열고 같은 이름의 새 프로젝트를 가렸다(R-126)
+            projects.findById(cachedId).orElse(null)
+                ?.takeIf { it.owner.equals(decodedOwner, ignoreCase = true) && it.name.equals(decodedName, ignoreCase = true) }
+                ?.let { return it }
             projectMap.remove(key, cachedId)
         }
-        val found = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(decodedOwner, decodedName)
-            ?: findByPreviousPlaceOf(decodedOwner, decodedName)
-        found?.id?.let { projectMap[key] = it }
-        return found
+        projects.findByOwnerIgnoreCaseAndNameIgnoreCase(decodedOwner, decodedName)?.let { current ->
+            current.id?.let { projectMap[key] = it }
+            return current
+        }
+        // 옛 위치로 찾은 프로젝트는 캐시에 넣지 않는다. 현재 이름이 아닌 키가 남으면 R-126이 되살아난다
+        return findByPreviousPlaceOf(decodedOwner, decodedName)
     }
 
     /** v1.6 `CacheStore.projectMap`이다. 키는 URL을 푼 소유자와 이름을 `:`로 이은 것이고 대소문자를 구별한다. */

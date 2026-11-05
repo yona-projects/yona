@@ -387,8 +387,8 @@ class DataService(
                         TableOutcome.FAILED -> failed += table.name
                         TableOutcome.ABORTED -> { failed += table.name; return }
                     }
-                    // v1.6은 테이블 이름이 맞으면 먼저 TRUNCATE하고, 값이 배열이 아니면 건너뛰므로 테이블만 비워진다
-                    table != null -> { truncate(connection, ids, table); parser.skipChildren() }
+                    // v1.6은 테이블 이름이 맞으면 먼저 TRUNCATE하고, 값이 배열이 아니면 건너뛰어 테이블만 비워졌다. 값이 배열이 아니면 비우지 않고 건너뛴다(R-84)
+                    table != null -> parser.skipChildren()
                     sequenceOf != null && value.isNumeric -> restoreSequence(connection, product, ids, sequenceOf, parser.longValue)
                     else -> parser.skipChildren()
                 }

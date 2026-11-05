@@ -21,7 +21,7 @@ import java.util.Date
  * 3. 가져올 커밋이 있으면 새 커밋을 `CURRENT`로 저장하고 더는 포함되지 않는 것은 `PRIOR`로 바꾼다. 새 커밋이 있으면 (새 풀 리퀘스트가 아닐 때) 커밋
  *    변경 알림을 내보내고 타임라인에 새 커밋 이벤트를 쌓고 리뷰어를 비운다.
  * 4. 가져올 커밋이 없으면 이미 반영된 것으로 보고 `MERGED`로 바꾼다. 이때 v1.6은 상태를 먼저 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓는 조건을
- *    걸어 이벤트가 쌓이지 않는다([refactoring-backlog.md] R-42). 같게 재현한다.
+ *    걸어 이벤트가 쌓이지 않았다. v2는 이미 병합된 요청이 아니면 병합 이벤트와 병합 알림을 남긴다(C038, R-42-1).
  * 5. 충돌이 새로 생기거나 풀리면 병합 상태 알림과 타임라인 이벤트를 쌓는다.
  * 6. 병합 중 표시를 끈다.
  *
@@ -87,6 +87,7 @@ class PullRequestMergeProcessor(
         if (update.attempt.commits.isNotEmpty()) {
             val newCommits = saveCommits(pullRequest, update.attempt.commits)
             if (newCommits.isNotEmpty()) {
+                pullRequest.updated = Date()
                 if (!newPullRequest) publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_COMMIT_CHANGED, null, null, sender))
                 events.addCommits(sender, pullRequest, newCommits, commitEventOldValue(oldMergeCommitId, pullRequest.mergedCommitIdTo))
                 // v1.6은 새 커밋이 들어오면 리뷰어를 모두 비운다. 추가 항목(X-12, D-35 5번)으로 프로젝트가 끌 수 있고(`isDismissingStaleApprovals`), 켜져 있으면
@@ -97,10 +98,17 @@ class PullRequestMergeProcessor(
                 }
             }
         } else {
+            // v1.6은 상태를 MERGED로 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓는 조건을 걸어 이벤트와 알림이 한 번도 남지 않았다.
+            // 이미 병합된 요청이 아니면 병합 이벤트와 병합 알림을 남긴다(C038, R-42-1).
+            val wasMerged = pullRequest.state == State.MERGED
             pullRequest.isConflict = false
             pullRequest.state = State.MERGED
             pullRequest.receiver = sender
-            // v1.6은 위에서 상태를 MERGED로 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓으므로 이 분기는 실행되지 않는다.
+            if (!wasMerged) {
+                pullRequest.updated = Date()
+                events.addMerge(sender, EventType.PULL_REQUEST_MERGED, State.MERGED, pullRequest)
+                publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_STATE_CHANGED, State.OPEN.state, State.MERGED.state, sender))
+            }
         }
 
         val conflict = pullRequest.isConflict == true

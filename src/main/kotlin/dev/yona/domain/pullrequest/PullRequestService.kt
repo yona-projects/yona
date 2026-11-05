@@ -84,10 +84,12 @@ class PullRequestService(
 
         // 받는 프로젝트 행을 잠가 번호를 매기는 순서를 맞춘다. v1.6은 잠그지 않아 동시에 만들면 번호가 겹칠 수 있었다(C081)
         projects.lockById(requireNotNull(form.toProject.id))
+        val now = Date()
         val pullRequest = pullRequests.save(
             PullRequest(
                 title = form.title, body = form.body, toProject = form.toProject, fromProject = form.fromProject, toBranch = form.toBranch, fromBranch = form.fromBranch,
-                contributor = contributor, created = Date(), state = State.OPEN, isMerging = false, isConflict = false, number = nextNumber(form.toProject)
+                // v1.6은 `updated`를 어디서도 채우지 않았다. 만들 때와 고치거나 상태가 바뀌거나 새 커밋이나 댓글이 생길 때 갱신한다(R-42-3)
+                contributor = contributor, created = now, updated = now, state = State.OPEN, isMerging = false, isConflict = false, number = nextNumber(form.toProject)
             )
         )
         addIssueEvents(pullRequest)

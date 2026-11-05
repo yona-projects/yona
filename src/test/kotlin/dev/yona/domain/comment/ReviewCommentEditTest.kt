@@ -53,6 +53,14 @@ class ReviewCommentEditTest : AbstractIntegrationTest() {
     private val range get() = CodeRange("a.txt", Side.B, 1, 0, Side.B, 1, 2)
 
     @Test
+    fun `풀 리퀘스트에 댓글을 달면 갱신 시각이 남는다 (R-42-3, v1_6은 채우지 않았다)`() {
+        val p = project(); val a = user(); val pr = pullRequest(p)
+        assertNull(pr.updated)
+        comments.commentOnPullRequest(p, pr, null, a, "댓글", null, range)
+        assertNotNull(pr.updated)
+    }
+
+    @Test
     fun `고치면 내용이 바뀌고 수정 시각이 남는다`() {
         val p = project(); val a = user(); val pr = pullRequest(p)
         val c = comments.commentOnPullRequest(p, pr, null, a, "처음", null, range)
