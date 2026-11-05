@@ -8040,3 +8040,19 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .two-factor-page .tf-scopes .tf-choice-text { display:contents; }
 .two-factor-page .tf-scopes .tf-choice-text small { font-size:0.8125rem; }
 @media (max-width: 640px) { .two-factor-page .tf-scopes .tf-choice { grid-template-columns:20px 1fr; } .two-factor-page .tf-scopes .tf-choice-text small { grid-column:2; } }
+
+/* 사이트 관리 사용자 목록: v1.6은 단추 열(`span5`)이 줄에 들어가지 못해 float으로 가입일 열 바로 아래로 내려갔다.
+   플렉스 줄은 한 줄의 높이가 가장 큰 열(이름, 68px)에 맞춰져 단추 줄이 그만큼 더 내려가므로, 격자로 가입일 열 아래 줄에 단추 열을 두고
+   이름과 이메일 열은 두 줄에 걸치게 한다(BS5의 열 폭 클래스는 격자 칸의 폭으로 쓰이지 않게 한다) */
+@media (min-width: 992px) {
+  .user-list-wrap > .listitem.row:has(> .action-buttons) {
+    display: grid;
+    grid-template-columns: 25% 25% 1fr;
+    align-items: start;
+
+    > .listitem-col { width: auto; max-width: none; margin-left: 0; }
+    > .listitem-col:nth-child(1), > .listitem-col:nth-child(2) { grid-row: 1 / span 2; }
+    > .created-date { grid-column: 3; grid-row: 1; }
+    > .action-buttons { grid-column: 3; grid-row: 2; width: 83.3333%; }
+  }
+}

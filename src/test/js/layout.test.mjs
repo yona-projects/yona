@@ -100,15 +100,18 @@ export const tests = [
       // 단추 열의 클래스는 실제 템플릿에서 읽는다
       const template = fs.readFileSync(path.join(ROOT, 'src/main/resources/templates/site/user-list.html'), 'utf8');
       const actionClass = /<div th:if="\$\{userState != 'DELETED'\}" class="([^"]*action-buttons[^"]*)"/.exec(template)[1];
-      const page = await open(`<ul class="user-list-wrap"><li class="row listitem">
-        <div class="col-lg-3 listitem-col">이름</div><div class="col-lg-3 listitem-col"><span class="email">a@example.com</span></div>
+      const page = await open(`<div class="site-setting-wrap"><ul class="user-list-wrap"><li class="row listitem">
+        <div class="col-lg-3 listitem-col"><a class="avatar-wrap list-avatar"><img width="32" height="32" alt=""></a><a class="user-name">이름</a><a class="user-id">@id</a></div><div class="col-lg-3 listitem-col"><span class="email">a@example.com</span></div>
         <div class="col-lg-2 listitem-col created-date"><span>2026-10-28</span></div>
-        <div class="${actionClass}"><a class="ybtn ybtn-small">게스트로 전환</a> <a class="ybtn ybtn-small">계정잠그기</a></div></li></ul>`);
+        <div class="${actionClass}"><a class="ybtn ybtn-small">게스트로 전환</a> <a class="ybtn ybtn-small">계정잠그기</a></div></li></ul></div>`);
       const date = await rect(page, '.created-date');
       const buttons = await rect(page, '.action-buttons');
       const tops = await page.evaluate(() => [document.querySelector('.created-date'), document.querySelector('.action-buttons')].map((e) => Math.round(e.getBoundingClientRect().top)));
       assert.ok(tops[1] > tops[0], `단추 열이 가입일 열 아래 줄이어야 한다(위치 ${tops.join(', ')})`);
       assert.ok(Math.abs(buttons.left - date.left) <= 12, `단추 열 왼쪽 ${buttons.left}이 가입일 열 왼쪽 ${date.left}과 같아야 한다`);
+      // v1.6은 단추 줄이 날짜 열 바로 아래에서 시작했다(이름 열의 높이에 밀려 내려가지 않는다)
+      const gap = await page.evaluate(() => document.querySelector('.action-buttons').getBoundingClientRect().top - document.querySelector('.created-date span').getBoundingClientRect().bottom);
+      assert.ok(gap <= 16, `날짜 글자 아래와 단추 열 사이가 ${gap}px로 벌어졌다`);
     },
   },
   {

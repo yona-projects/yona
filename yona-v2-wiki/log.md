@@ -1242,3 +1242,5 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 ## 2026-11-05 남은 세 차이 처리 (A-364)
 
 선생님 결정으로 사이트 관리 사용자 목록의 단추 열을 v1.6처럼 가입일 열 아래로 옮기고 하늘색 단추를 흰색으로 되돌렸으며, 이슈 수정 폼의 `상태` 단추는 글자를 왼쪽 정렬했다(`이슈 옵션`은 유지). 시험 세 건(JS `layout.test.mjs` 두 건, Kotlin `SiteUserManagementTest` 한 건)을 먼저 써서 실패를 확인했다. JS 시험 전체 45건, H2의 `web.site.*`, `ThemeColorTest`, `LegacyBootstrapLintTest`(50초)와 PostgreSQL의 `SiteUserManagementTest`가 통과했다. v2를 다시 빌드해 v1.6과 나란히 다시 확인했다.
+
+선생님이 사용자 목록의 단추 줄이 날짜에서 너무 멀다고 하셔서 같은 항목(A-364)에서 한 번 더 고쳤다. 너비 992px 이상에서 목록 줄을 CSS 격자로 바꿔 단추 줄이 날짜 열 바로 아래에서 시작하게 했다. 시험(`layout.test.mjs`의 간격 검사)을 먼저 보강해 고치기 전 스타일로 되돌려 실패(41px)를 확인했고, 고친 뒤 통과했다. JS 시험 45건 통과. v1.6과 v2의 실제 화면에서 날짜 글자 아래에서 단추 열까지 13px, 줄 높이 115px로 같다.
