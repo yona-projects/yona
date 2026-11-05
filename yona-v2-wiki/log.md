@@ -1176,3 +1176,9 @@ MSSQL은 시험 컨텍스트 기동이 길어 같은 범위가 다른 DB의 5배
 |---|---|---|---|
 | H2 전체(`cleanTest test`) | 4,505(497 클래스, 건너뜀 2) | 실패 0 | 11분 55초 |
 | PostgreSQL 관련 7개 클래스 | 167 | 실패 0 | 35초 |
+
+## 2026-11-05 설정 단축키 Q (R-11, A-353)
+
+선생님이 "프로젝트 역할 이름이 manager인 경우 보여지도록" 조정하라고 하셔서 `settingShortcutEnabled`를 프로젝트 관리자 역할 판정으로 바꿨다. 시험 1건을 먼저 추가해 실패를 확인했다(관리자는 `Q`가 있고, 일반 구성원과 비로그인은 없다). `dev.yona.web.project.*` 347건이 H2에서 통과했다(56초).
+
+R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내는 실제 요청을 잡았다(`e2e/signupreq.tmp.mjs`). 이메일 칸을 벗어나면 `GET /user/isEmailExist?email=...`을 `Content-Type`과 본문 없이 보내고 200과 `{"isExist":...}`를 받는다. 400 검사는 화면의 정상 사용에서 걸리지 않는다.

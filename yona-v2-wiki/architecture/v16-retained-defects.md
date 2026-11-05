@@ -17,7 +17,7 @@ updated: 2026-11-04
 >
 > **권장 10건 수정 (2026-11-05)**: 선생님이 안건표 맨 앞 10건을 권장안대로 수용하셔서 C130, C150, R-52-6, R-54-3, R-59-7, R-61-7, R-65-4, C081, R-56-5, C011을 고쳤다(`해결됨(2026-11-05 권장 10건 수정)`). 판단은 [decisions.md](../decisions.md)의 A-348에 있다.
 >
-> **다음 10건 수용 (2026-11-05)**: 선생님이 C128, C148, C154, C157, C162, C183, C187, R-101을 권장 수용하셔서 고쳤다(`해결됨(2026-11-05 다음 10건 수용)`). C136, C154, C162(R-20), C157(R-19-1)은 같은 결함이라 함께 해결로 바꿨다. R-11과 R-110은 선생님이 설명과 코드 검토를 요청하셔서 아직 고치지 않았다. 판단은 [decisions.md](../decisions.md)의 A-352에 있다.
+> **다음 10건 수용 (2026-11-05)**: 선생님이 C128, C148, C154, C157, C162, C183, C187, R-101을 권장 수용하셔서 고쳤다(`해결됨(2026-11-05 다음 10건 수용)`). C136, C154, C162(R-20), C157(R-19-1)은 같은 결함이라 함께 해결로 바꿨다. R-11은 선생님이 프로젝트 역할 이름이 `manager`인 경우 켜지도록 조정하라고 하셔서 이어서 고쳤고(A-353), R-110은 코드 검토를 요청하셔서 아직 고치지 않았다. 판단은 [decisions.md](../decisions.md)의 A-352에 있다.
 >
 > **권장 수용 11건 (2026-11-05)**: 선생님이 다음 11건을 권장안대로 수용하셔서 C021, C046, C047, C048, C049, C058, C072, C079, C080, C087, C113-2를 고쳤다(`해결됨(2026-11-05 권장 수용 11건)`). R-37은 C058과 같은 결함이라 함께 해결로, R-49-2는 작성자와 담당자를 고치고 댓글 작성자의 익명 처리를 v1.6에 맞춰(A-351) 해결로 바꿨다. 판단은 [decisions.md](../decisions.md)의 A-350에 있다.
 >
@@ -31,9 +31,9 @@ updated: 2026-11-04
 
 | 판정 | 건수 |
 |---|---|
-| 재현 | 89 |
+| 재현 | 88 |
 | 일부만 재현(한 건 안에서 언어나 화면에 따라 다름) | 6 |
-| 해결됨(v2가 고침 24, 이번 날 수정과 재검증 포함) | 226 |
+| 해결됨(v2가 고침 24, 이번 날 수정과 재검증 포함) | 227 |
 | 결함 아님(설명이 틀렸거나 의도된 동작) | 8 |
 | 해당 없음(v2에 해당 코드가 없음) | 1 |
 | 합계(결함 건수) | 330 |
@@ -127,7 +127,7 @@ CSRF 보호가 꺼져 있고(R-02) 세션 쿠키에 `SameSite` 속성이 없다.
 | R-08 | AccessControl | 컨테이너가 프로젝트가 아닌 전역 리소스(예: USER)이면 `isResourceCreatable`이 `container.getProject()`의 예외로 실패한다 | access/AccessControl.kt:86-91에서 컨테이너 종류가 PROJECT가 아니면 container.project를 읽는데, access/Resource.kt:38-39의 GlobalResource.project getter가 UnsupportedOperationException을 던진다. 따라서 전역 리소스 컨테이너로 isResourceCreatable를 부르면 예외가 난다. 그 아래 project == null 분기는 사실상 도달하지 않는다. | 해결됨(2026-11-04 쉬움 흐름 유지 수정) |  | GlobalResource 컨테이너이면 getter를 부르지 않고 isGlobalResourceCreatable로 보내거나 예외를 잡아 null로 처리한다.(쉬움) | 정상 흐름 변경: 아니오 |
 | R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 | AccessControl.kt:190-191에서 privileged(프로젝트 매니저 또는 작성자)를 먼저 계산하고, 192행 근처의 `if (privileged \|\| isAllowedIfAssignee) return true`가 기본 규칙의 `Operation.DELETE -> resource.type != ResourceType.CODE && isProjectMember(...)`(약 213행)보다 먼저 실행된다. CONTENT_TYPES(AccessControl.kt:314)에 CODE가 없어 매니저는 CODE 삭제에서도 true를 받는다. | 해결됨(2026-11-04 보안 수정) | 예 | CODE 삭제를 privileged 판정 앞에서 매니저에게도 거부하도록 DELETE 분기에 CODE 예외를 먼저 둔다.(쉬움) | 영향: 로그인한 해당 프로젝트의 매니저만 코드 리소스 삭제 권한을 얻는다. 일반 구성원과 익명에는 영향이 없고 매니저는 원래 강한 권한이라 실제 피해는 작다. / 정상 흐름 변경: 아니오: 정상 흐름에서 코드 리소스를 삭제하는 화면 경로가 없어 일반 사용 흐름은 바뀌지 않는다. |
 | R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | src/main/kotlin/dev/yona/access/AccessControl.kt:251 `issues.findById(resource.id.toLong()).orElseThrow().assignee`. 없는 이슈 번호면 `NoSuchElementException`이 난다(isResourceCreatable 83행과 isProjectResourceAl… | 해결됨(2026-11-04 수정) |  |  | 예외 종류만 NPE에서 NoSuchElementException으로 다르고 결과(500)는 같다. 사이트 관리자와 조직 관리자는 앞에서 먼저 반환하므로 거치지 않는다. |
-| R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 | ProjectViewContext.kt:161의 settingShortcutEnabled는 여전히 viewer?.loginId == "manager"이고 templates/project/menu.html:90이 이 값으로 Q 단축키를 켠다. 오늘 수정에서 이 코드는 바뀌지 않았다. | 재현 |  | 프로젝트 관리 권한 판정(관리자 또는 사이트 관리자)으로 바꾼다.(쉬움) | 영향: 보안 영향은 없다. 로그인 ID가 manager인 사용자에게만 설정 단축키가 나오고 프로젝트 관리자에게는 나오지 않는다. 화면에서 설정 메뉴 자체는 권한대로 보이므로 단축키만 어긋난다. / 정상 흐름 변경: 예. 프로젝트 관리자에게 Q 단축키가 새로 켜지고 loginId가 manager이면서 관리자가 아닌 사용자에게서는 꺼진다. |
+| R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 | ProjectViewContext.kt:161의 settingShortcutEnabled는 여전히 viewer?.loginId == "manager"이고 templates/project/menu.html:90이 이 값으로 Q 단축키를 켠다. 오늘 수정에서 이 코드는 바뀌지 않았다. | 해결됨(2026-11-05 R-11 수용) |  | 프로젝트 관리 권한 판정(관리자 또는 사이트 관리자)으로 바꾼다.(쉬움) | 영향: 보안 영향은 없다. 로그인 ID가 manager인 사용자에게만 설정 단축키가 나오고 프로젝트 관리자에게는 나오지 않는다. 화면에서 설정 메뉴 자체는 권한대로 보이므로 단축키만 어긋난다. / 정상 흐름 변경: 예. 프로젝트 관리자에게 Q 단축키가 새로 켜지고 loginId가 manager이면서 관리자가 아닌 사용자에게서는 꺼진다. / 처리(2026-11-05): `settingShortcutEnabled`를 로그인 ID 비교에서 프로젝트 관리자 역할(`manager`) 판정으로 바꿨다. 프로젝트 관리자에게 `Q`가 켜지고 로그인 ID만 `manager`인 사용자에게서는 꺼진다. |
 | R-12 | 프로젝트 검사 | 마일스톤, 이슈 라벨, 라벨 분류, 커밋 코멘트를 번호만으로 찾아 경로의 프로젝트와 달라도 통과한다. 숫자가 아닌 식별자는 500이다 | src/main/kotlin/dev/yona/web/access/ProjectResourceLocator.kt:54,57,59,60 `milestones.findById(segments[3].toLong())`, `labels.findById(segments[4].toLong())`, `commitComments.findById(segments[5].toL… | 해결됨(2026-11-04 수정) |  |  | 다른 프로젝트의 마일스톤, 라벨, 커밋 코멘트를 경로의 프로젝트 권한으로 검사하게 되어 교차 프로젝트 접근이 열릴 수 있다. 이슈, 게시글, 풀 리퀘스트는 프로젝트와 번호로 찾아 해당하지 않는다. |
 | R-13 | 프로젝트 생성 | 이름 예약어(`.`, `..`, `.git`) 비교의 `ignoreCase` 분기가 거꾸로라 기본 설정에서 대소문자를 무시한다(`.GIT`도 거부) | domain/project/ProjectNameRules.kt:33이 RESERVED_NAMES.any { it.equals(name, ignoreCase = true) }로 항상 대소문자를 무시하고 .wiki 접미사도 ignoreCase로 막는다. v1.6의 분기 역전 코드는 v2에 없고 결과가 v1.6 기본 설정과 같다. | 결함 아님 |  | 조치가 필요 없다. v1.6에서 설정으로 ignoreCase를 바꾸던 경로가 v2에 없다는 차이만 문서에 남기면 된다.(쉬움) | 영향: 영향이 없다. 로그인한 사용자가 프로젝트를 만들 때 .GIT도 거부되며 v1.6 기본 동작과 같다. / 정정: 직전 재검증의 결함아님 판정에 동의한다. 오늘 수정과 무관하다. / 정상 흐름 변경: 아니오. 정상 흐름은 이미 v1.6 기본 결과와 같아 바뀌지 않는다. |
 | R-14 | README 상대 경로 변환 | 일반 링크 정규식이 앞 문자 하나를 요구해 문서 맨 앞 링크를 놓치고, 컨텍스트 경로를 쓰면 소유자 앞 `/`가 빠진다(`//yonaalice/...`) | src/main/kotlin/dev/yona/markdown/RelativeLinkRewriter.kt:36 NORMAL_LINK `([^!])\[...` 가 앞 문자 하나를 요구해 문서 맨 앞 링크를 놓치고, 21과 26의 `"(/$context$owner/..."`에서 context가 `/ctx`이면 `(//ctxowner/...)`가 된다(17행 `c… | 해결됨(2026-11-04 수정) |  |  |  |

@@ -414,6 +414,16 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `설정 단축키 Q는 프로젝트 관리자 역할에게만 켜진다 (R-11, v1_6은 로그인 ID가 manager일 때만 켰다)`() {
+        val project = newProject()
+        val manager = newUser().also { join(it, project, RoleType.MANAGER) }
+        val member = newUser().also { join(it, project, RoleType.MEMBER) }
+        assertTrue(page(project, login(manager)).html().contains("\"Q\":"))
+        assertFalse(page(project, login(member)).html().contains("\"Q\":"))
+        assertFalse(page(project).html().contains("\"Q\":"))
+    }
+
+    @Test
     fun `프로젝트 모듈 스크립트에 저장소 주소를 넘긴다`() {
         val project = newProject()
         val html = page(project).html()

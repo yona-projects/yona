@@ -155,10 +155,10 @@ class ProjectViewContext(
     val git: Boolean get() = project.vcs == "GIT"
 
     /**
-     * 키보드 단축키 `Q`(설정 화면)를 켤지 여부이다. v1.6은 세션의 로그인 ID가 문자열 `manager`와 같을 때만 켠다.
-     * 역할 이름과 로그인 ID를 혼동한 v1.6의 결함이며 그대로 따른다([refactoring-backlog.md] R-11).
+     * 키보드 단축키 `Q`(설정 화면)를 켤지 여부이다. 프로젝트 관리자 역할이면 켠다. v1.6은 역할 이름과 로그인 ID를 혼동해
+     * 세션의 로그인 ID가 문자열 `manager`일 때만 켰다(R-11).
      */
-    val settingShortcutEnabled: Boolean get() = viewer?.loginId == "manager"
+    val settingShortcutEnabled: Boolean get() = manager
 
     /** 저장소 복제 주소이다. 로그인했으면 `사용자@`가 들어간다 (v1.6 `CodeApp.getURLWithLoginId`). */
     val repositoryUrl: String? get() = deps.repositoryUrls.urlFor(project, request, viewer?.loginId)
