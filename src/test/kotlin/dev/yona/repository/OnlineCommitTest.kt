@@ -95,20 +95,20 @@ class OnlineCommitTest {
     }
 
     @Test
-    fun `줄바꿈은 요청한 파일이 아니라 최상위 트리의 첫 엔트리로 판정한다 (v1_6 결함 재현)`() {
-        // v1.6 BareRepository.getFileObjectId는 TreeWalk.next() 없이 getObjectId(0)을 읽어 깃 정렬 순서의 첫 엔트리를 본다
+    fun `줄바꿈은 요청한 파일의 기존 내용으로 판정한다 (R-91, v1_6은 최상위 트리의 첫 엔트리로 판정했다)`() {
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "a\r\nb\r\n".toByteArray(), "README.md" to "a\nb\n".toByteArray()))
         online.commitRootFile(project, author, "README.md", "x\r\ny", "msg")
-        // 첫 엔트리 ISSUE_TEMPLATE.md가 CRLF라 DOS로 판정한다. 본문은 이미 CRLF이고 끝에 CRLF가 붙는다.
-        assertEquals("x\r\ny\r\n", files()["README.md"])
+        // README.md가 LF라 UNIX로 판정한다. 첫 엔트리 ISSUE_TEMPLATE.md가 CRLF여도 따르지 않는다.
+        assertEquals("x\ny\n", files()["README.md"])
+        online.commitRootFile(project, author, "ISSUE_TEMPLATE.md", "p\nq", "msg")
+        assertEquals("p\r\nq\r\n", files()["ISSUE_TEMPLATE.md"])
     }
 
     @Test
-    fun `없는 파일을 새로 만들 때도 첫 엔트리로 판정한다`() {
+    fun `없는 파일을 새로 만들 때는 내용을 그대로 두고 끝에 줄바꿈만 붙인다 (R-91)`() {
         GitTestSupport.commitFiles(repositories, project, mapOf("README.md" to "a\nb\n".toByteArray(), "a.txt" to "x".toByteArray()))
         online.commitRootFile(project, author, "ISSUE_TEMPLATE.md", "t\r\nu", "msg")
-        // 첫 엔트리 README.md가 LF라 UNIX로 판정해 본문의 CRLF를 LF로 바꾼다
-        assertEquals("t\nu\n", files()["ISSUE_TEMPLATE.md"])
+        assertEquals("t\r\nu\r\n", files()["ISSUE_TEMPLATE.md"])
     }
 
     // --- 지정한 브랜치에 경로로 커밋 (BareCommit.commitTextFile 4인자, GitUtil.commitTextFile) ---

@@ -79,20 +79,18 @@ class UserLeaveTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `소유자는 탈퇴되지 않지만 같은 곳으로 이동한다`() {
+    fun `소유자의 탈퇴는 403이고 구성원에서 빠지지 않는다 (C016, v1_6은 조용히 프로필로 이동했다)`() {
         val owner = newUser(); val p = project(owner)
         join(owner, p, RoleType.MANAGER)
-        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(owner)))
-            .andExpect(status().isSeeOther).andExpect(redirectedUrl("/${owner.loginId}?daysAgo=14&selected=projects"))
+        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(owner))).andExpect(status().isForbidden)
         assertEquals(true, isMember(owner, p))
     }
 
     @Test
-    fun `구성원이 아니어도 같은 곳으로 이동하고 다른 구성원은 그대로이다`() {
+    fun `구성원이 아니면 403이고 다른 구성원은 그대로이다 (C016)`() {
         val owner = newUser(); val member = newUser(); val stranger = newUser(); val p = project(owner)
         join(member, p)
-        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(stranger)))
-            .andExpect(status().isSeeOther).andExpect(redirectedUrl("/${stranger.loginId}?daysAgo=14&selected=projects"))
+        mockMvc.perform(post("/info/leave/${owner.loginId}/proj").session(login(stranger))).andExpect(status().isForbidden)
         assertEquals(true, isMember(member, p))
     }
 }

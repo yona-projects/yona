@@ -152,26 +152,23 @@ class OnlineCommit(private val repositories: RepositoryService) {
     }
 
     /**
-     * 기존 파일의 줄바꿈 종류이다 (v1.6 `BareRepository.findFileLineEnding`).
+     * 최상위 [fileName] 파일의 기존 줄바꿈 종류이다. 파일이 없거나 일반 파일이 아니거나 커밋이 없으면 UNDEFINED이다.
      *
-     * v1.6은 `TreeWalk`에 경로 필터만 걸고 `next()`를 부르지 않은 채 `getObjectId(0)`을 읽는다. 그래서 요청한 파일이 아니라 `HEAD` 최상위 트리의
-     * **첫 엔트리**(깃 정렬 순서의 첫째)를 기준으로 삼는다. 예를 들어 `ISSUE_TEMPLATE.md`가 CRLF이고 `README.md`가 LF이면 README를 고칠 때도
-     * CRLF로 판정한다. 이 동작을 그대로 따른다([refactoring-backlog.md] R-91). 첫 엔트리가 디렉터리이면 트리의 원본 바이트를 문자열로 해석하고,
-     * 서브모듈(gitlink)이면 `MissingObjectException`이 나서 커밋을 만들지 않는다(호출한 쪽이 로그만 남긴다). 커밋이 없으면 UNDEFINED이다.
-     * 트리가 비어 있으면 v1.6은 `ArrayIndexOutOfBoundsException`으로 `500`이 나지만 v2는 같은 예외를 호출한 쪽이 잡아 커밋 없이 계속한다.
+     * v1.6 `BareRepository.findFileLineEnding`은 `TreeWalk`에 경로 필터만 걸고 `next()`를 부르지 않은 채 `getObjectId(0)`을 읽어, 요청한 파일이 아니라
+     * `HEAD` 최상위 트리의 첫 엔트리(깃 정렬 순서의 첫째)를 기준으로 삼았다. 예를 들어 `ISSUE_TEMPLATE.md`가 CRLF이면 LF인 `README.md`를 고칠 때도
+     * CRLF로 맞췄고, 첫 엔트리가 디렉터리나 서브모듈이거나 트리가 비어 있으면 500이 났다(R-91). 편집하는 파일 자신의 내용으로 판정한다.
      */
-    private fun fileLineEnding(repository: Repository, @Suppress("UNUSED_PARAMETER") fileName: String): LineEnding.EndingType {
+    private fun fileLineEnding(repository: Repository, fileName: String): LineEnding.EndingType {
         val head = headObject(repository, Constants.HEAD)
         if (head == ObjectId.zeroId()) return LineEnding.EndingType.UNDEFINED
-        val firstEntry = RevWalk(repository).use { walk ->
-            TreeWalk(repository).use { treeWalk ->
-                treeWalk.addTree(walk.parseCommit(head).tree)
-                treeWalk.isRecursive = false
-                treeWalk.getObjectId(0)
+        val entry: ObjectId = RevWalk(repository).use { walk ->
+            val found: TreeWalk? = TreeWalk.forPath(repository, fileName, walk.parseCommit(head).tree)
+            found?.use { w ->
+                val mode = w.getFileMode(0).bits and FileMode.TYPE_MASK
+                if (mode == FileMode.TYPE_FILE) w.getObjectId(0) else null
             }
-        }
-        if (firstEntry == ObjectId.zeroId()) return LineEnding.EndingType.UNDEFINED
-        return LineEnding.find(String(repository.open(firstEntry).bytes, Charsets.UTF_8))
+        } ?: return LineEnding.EndingType.UNDEFINED
+        return LineEnding.find(String(repository.open(entry).bytes, Charsets.UTF_8))
     }
 
     /** 기존 최상위 트리의 [fileName] 항목을 [blob]으로 바꾼(없으면 이름 순서에 맞게 끼워 넣은) 트리이다 (v1.6 `rebuildExistingTreeWith`). */

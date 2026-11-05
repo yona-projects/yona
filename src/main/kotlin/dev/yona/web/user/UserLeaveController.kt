@@ -1,5 +1,8 @@
 package dev.yona.web.user
 
+import dev.yona.access.AccessControl
+import dev.yona.access.asResource
+import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.project.ProjectMemberService
 import dev.yona.domain.project.ProjectService
 import dev.yona.security.CurrentUserProvider
@@ -24,7 +27,8 @@ import org.springframework.web.bind.annotation.PathVariable
 class UserLeaveController(
     private val projectService: ProjectService,
     private val memberService: ProjectMemberService,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val accessControl: AccessControl
 ) {
 
     // v1.6은 GET이라 링크나 이미지 태그만으로 로그인한 사용자를 프로젝트에서 탈퇴시킬 수 있었다. POST로 받는다(R-48-2)
@@ -38,7 +42,9 @@ class UserLeaveController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound("error.notfound")
         val me = currentUserProvider.get().user
-        if (me?.id != null && !project.isOwner(me)) memberService.removeMember(project, me.id!!)
-        return RedirectSupport.see(request, response, "/${me?.loginId ?: "anonymous"}?daysAgo=14&selected=projects")
+        // v1.6은 `deleteMember`의 403을 버리고 소유자나 비구성원도 조용히 프로필로 보냈다. `LEAVE` 권한이 없으면 403을 돌려준다(C016)
+        if (me?.id == null || !accessControl.isAllowed(me, project.asResource(), Operation.LEAVE)) return ErrorViews.forbidden()
+        memberService.removeMember(project, me.id!!)
+        return RedirectSupport.see(request, response, "/${me.loginId}?daysAgo=14&selected=projects")
     }
 }
