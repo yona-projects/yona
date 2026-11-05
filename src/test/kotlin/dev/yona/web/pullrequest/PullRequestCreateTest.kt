@@ -133,7 +133,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `포크에서 열면 보내는 곳은 포크, 받는 곳은 원본이고 받는 브랜치는 현재 프로젝트의 기본 브랜치이다`() {
+    fun `포크에서 열면 보내는 곳은 포크, 받는 곳은 원본이고 받는 브랜치는 받는 프로젝트의 기본 브랜치이다`() {
         val s = setup()
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("기능", mapOf("b.txt" to "b".toByteArray())), branch = "feature")
         val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
@@ -146,6 +146,16 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         assertEquals("refs/heads/master", doc.selectFirst("#toBranch option[selected]")!!.attr("value"))
         assertEquals("OPEN", doc.selectFirst("#pullRequestState")!!.attr("data-value"))
         assertEquals("/${s.fork.owner}/${s.fork.name}/pullRequests", doc.selectFirst("form[enctype]")!!.attr("action"))
+    }
+
+    @Test
+    fun `받는 브랜치의 기본값은 현재(포크) 프로젝트가 아니라 받는 프로젝트의 기본 브랜치이다 (R-42-4)`() {
+        val s = setup()
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("기능", mapOf("b.txt" to "b".toByteArray())), branch = "feature")
+        // 포크의 기본 브랜치를 feature로 바꿔 원본(master)과 다르게 한다. v1.6은 현재 프로젝트(포크)의 기본 브랜치를 받는 브랜치 기본값으로 썼다
+        repositories.openRepository(s.fork).use { it.updateRef("HEAD").link("refs/heads/feature") }
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        assertEquals("refs/heads/master", doc.selectFirst("#toBranch option[selected]")!!.attr("value"))
     }
 
     @Test

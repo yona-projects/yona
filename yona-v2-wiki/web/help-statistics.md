@@ -5,9 +5,9 @@ sources: [app/controllers/HelpApp.java, app/views/help/toc.scala.html, app/views
 updated: 2026-10-25
 ---
 
-# 도움말, 통계, UI 견본
+# 도움말, 통계
 
-코드: `web/help/HelpController`, `StatisticsController`, `UiKitController`. 템플릿은 `help/toc`, `project/statistics`, `help/uikit`.
+코드: `web/help/HelpController`, `StatisticsController`. 템플릿은 `help/toc`, `project/statistics`. UI 견본(`/_UIKit`)은 없앴다(아래).
 
 ## 도움말 (`GET /_help`)
 
@@ -22,9 +22,9 @@ updated: 2026-10-25
 - 프로젝트 레이아웃 안에 `<h1>Under Construction</h1>` 한 줄뿐이다. 프로젝트 메뉴도 그리지 않는다. 제목은 `statistics - <소유자>/<이름>`이다(`statistics` 키가 메시지 파일에 없어 키 이름이 그대로 나온다).
 - 이 화면으로 가는 링크는 어디에도 없다.
 
-## UI 견본 (`GET /_UIKit`)
+## UI 견본 (`GET /_UIKit`): 없앴다
 
-개발자용 독립 HTML 문서(`<title>Yobi UI</title>`)이다. Buttons, Select, Search Form, Labels, Avatar, Tabs, Switches 견본을 보인다. 로그인 검사가 없다.
+v1.6의 개발자용 독립 HTML 문서(`<title>Yobi UI</title>`)이다. 로그인 검사가 없어 누구나 열 수 있어서 선생님이 페이지를 없애기로 하셨다(R-51-4, A-357). `UiKitController`와 `help/uikit` 템플릿을 지웠고 지금은 404이다. 라우트 대조 시험(`RouteParityTest`의 `INTENTIONAL`, `RouteCoverageTest`의 `FILTER_HANDLED`)에는 의도해서 없앤 v1.6 주소로 적었다.
 
 ## 옮기지 않은 것
 

@@ -64,6 +64,8 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var issues: IssueRepository
+    @Autowired private lateinit var assignees: dev.yona.domain.issue.AssigneeRepository
+    @Autowired private lateinit var messageSource: org.springframework.context.MessageSource
     @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var service: WebhookService
     @Autowired private lateinit var reviewService: dev.yona.domain.pullrequest.PullRequestReviewService
@@ -145,6 +147,35 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `슬랙 첨부의 담당자 항목은 제목이 있고 담당자가 없으면 빠진다 (R-45-4, v1_6은 제목이 빈 항목이었다)`() {
+        val p = project(); service.create(p, url, null, false, WebhookType.DETAIL_SLACK)
+        val assignee = assignees.save(dev.yona.domain.issue.Assignee(user = user(), project = p))
+        val withAssignee = issue(p).also { it.assignee = assignee; issues.save(it) }
+        publisher.publishEvent(IssueChangedActivity(withAssignee, EventType.ISSUE_STATE_CHANGED, "open", "closed", user()))
+        val fields = json(0).path("attachments").get(0).path("fields").items()
+        val field = fields.single { it.path("value").asString("") == assignee.user!!.name }
+        assertEquals(messageSource.getMessage("issue.assignee", null, java.util.Locale.getDefault()), field.path("title").asString(""))
+        assertTrue(fields.none { it.path("title").asString("").isEmpty() })
+
+        publisher.publishEvent(IssueChangedActivity(issues.save(Issue(project = p, number = 8, title = "담당자 없음", body = "내용", state = State.OPEN, createdDate = Date())), EventType.ISSUE_STATE_CHANGED, "open", "closed", user()))
+        val noAssigneeFields = json(1).path("attachments").get(0).path("fields").items()
+        assertEquals(listOf(messageSource.getMessage("issue.state", null, java.util.Locale.getDefault())), noAssigneeFields.map { it.path("title").asString("") })
+    }
+
+    @Test
+    fun `푸시 본문의 커밋 시각은 24시간제이고 커밋 주소 끝에 공백이 없다 (R-45-2, v1_6은 12시간제와 끝 공백이었다)`() {
+        val p = project(); val sender = user()
+        service.create(p, url, null, true, WebhookType.JSON)
+        val afternoon = java.time.LocalDateTime.of(2023, 11, 14, 15, 30, 20).atZone(java.time.ZoneId.systemDefault())
+        val commit = PostReceiveJobs.CommitDetail("b".repeat(40), "bbbbbbb", "요약", "요약", "작성자", "a@example.com", "커미터", "c@example.com", Date.from(afternoon.toInstant()))
+        publisher.publishEvent(CommitsPushedActivity(p, sender, listOf(commit), listOf("refs/heads/master")))
+        val node = json().path("commits").get(0)
+        assertEquals(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date.from(afternoon.toInstant())), node.path("timestamp").asString(""))
+        assertTrue(node.path("timestamp").asString("").contains("T15:30:20"), node.path("timestamp").asString(""))
+        assertEquals("http://localhost:9000/${p.owner}/${p.name}/commit/${"b".repeat(40)}", node.path("url").asString(""))
+    }
+
+    @Test
     fun `구글 챗 형식은 응답의 스레드를 저장하고 다음 알림에 담는다`() {
         val p = project(); service.create(p, url, null, false, WebhookType.DETAIL_HANGOUT_CHAT)
         val issue = issue(p)
@@ -193,7 +224,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         val body = json()
         assertEquals(listOf("refs/heads/master"), body.path("ref").items().map { it.asString("") })
         assertEquals("a".repeat(40), body.path("commits").get(0).path("id").asString(""))
-        assertEquals("http://localhost:9000/${p.owner}/${p.name}/commit/${"a".repeat(40)} ", body.path("commits").get(0).path("url").asString(""))
+        assertEquals("http://localhost:9000/${p.owner}/${p.name}/commit/${"a".repeat(40)}", body.path("commits").get(0).path("url").asString(""))
         assertEquals(body.path("commits").get(0), body.path("head_commit"))
         assertEquals(sender.loginId, body.path("sender").path("login").asString("")); assertEquals(sender.email, body.path("pusher").path("email").asString(""))
         assertEquals(p.name, body.path("repository").path("name").asString("")); assertEquals(false, body.path("repository").path("private").asBoolean())

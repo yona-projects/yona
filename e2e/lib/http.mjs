@@ -9,6 +9,8 @@ export class Session {
   async #fetch(path, { method = 'GET', headers = {}, body, redirect = 'manual' } = {}) {
     const h = { ...headers };
     if (this.cookies.size) h.cookie = this.#cookieHeader();
+    // 서버는 `XSRF-TOKEN` 쿠키 값을 `X-XSRF-TOKEN` 머리글로 되돌려 보내야 쓰기 요청을 받는다
+    if (method !== 'GET' && this.cookies.has('XSRF-TOKEN') && !h['X-XSRF-TOKEN']) h['X-XSRF-TOKEN'] = this.cookies.get('XSRF-TOKEN');
     if (this.token && !h.Authorization) h.Authorization = `token ${this.token}`;
     const res = await fetch(this.base + path, { method, headers: h, body, redirect });
     for (const c of res.headers.getSetCookie?.() ?? []) { const [kv] = c.split(';'); const i = kv.indexOf('='); this.cookies.set(kv.slice(0, i), kv.slice(i + 1)); }
@@ -17,6 +19,7 @@ export class Session {
 
   /** 웹 로그인(세션 쿠키). */
   async login(loginId, password = ADMIN.password) {
+    await this.#fetch('/users/loginform'); // XSRF-TOKEN 쿠키를 받는다
     const res = await this.#fetch('/users/login', { method: 'POST', body: new URLSearchParams({ loginIdOrEmail: loginId, password }) });
     const location = res.headers.get('location') || '';
     if (location.includes('loginform')) throw new Error(`로그인 실패: ${loginId}`);

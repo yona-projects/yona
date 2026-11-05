@@ -109,7 +109,7 @@ class PullRequestCreateController(
         if (toBranches.isEmpty()) return ErrorViews.badRequest("error.pullRequest.empty.to.repository", views.of(to), "PROJECT_HOME")
 
         val fromBranch = request.getParameter("fromBranch").takeUnless { it.isNullOrBlank() } ?: fromBranches[0].name
-        val toBranch = request.getParameter("toBranch").takeUnless { it.isNullOrBlank() } ?: repositories.defaultBranch(project)
+        val toBranch = request.getParameter("toBranch").takeUnless { it.isNullOrBlank() } ?: repositories.defaultBranch(to)  // v1.6은 받는 프로젝트가 아니라 현재 프로젝트의 기본 브랜치를 썼다(R-42-4)
         val associated = associationProjects(project)
         val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         return ModelAndView("pullrequest/create")

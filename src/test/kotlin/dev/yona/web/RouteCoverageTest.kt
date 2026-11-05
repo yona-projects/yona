@@ -91,6 +91,8 @@ class RouteCoverageTest : AbstractIntegrationTest() {
     companion object {
         /** 스프링 핸들러 매핑 밖에서 서블릿 필터가 받는 v1.6 라우트이다. */
         val FILTER_HANDLED: Set<String> = setOf(
+            // R-51-4: 개발자용 UI 견본 페이지는 로그인 검사가 없어 선생님이 페이지를 없애기로 하셨다
+            "GET /_UIKit",
             // X-5(D-36): 비밀번호로 토큰과 세션 쿠키를 발급하던 주소를 삭제했다(토큰은 설정 화면에서 만든다)
             "POST /-_-api/v1/users/token",
             // R-48-2: 프로젝트 탈퇴는 링크 한 번(GET)으로 상태가 바뀌어 요청 위조에 약해 POST로 옮겼다(의도해서 바꾼 v1.6 주소)

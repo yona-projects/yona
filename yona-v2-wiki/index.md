@@ -32,7 +32,7 @@
 - [최초 기동 화면](web/welcome.md): `yona.secret`이 기본값일 때 기본 관리자 계정 설정과 재시작 안내
 - [데이터 내보내기와 가져오기](subsystems/data-exchange.md): 47개 테이블 JSON, 교체 규칙, DB별 처리
 - [사이트 관리](web/site-admin.md): `/sites/userList` 등 사용자 관리와 사이트 관리 틀
-- [도움말, 통계, UI 견본](web/help-statistics.md): `/_help`, `/:user/:project/statistics`, `/_UIKit`
+- [도움말, 통계](web/help-statistics.md): `/_help`, `/:user/:project/statistics` (`/_UIKit`은 없앴다)
 - [검색](web/search.md): `/search`, 조직·프로젝트 범위, 여덟 종류
 - [내 이슈](web/my-issues.md): `/user/issues`, 프로젝트를 가리지 않는 이슈 검색
 - [사용자 페이지와 내 파일](web/user-page.md): `/:user`(프로필, 이슈·풀 리퀘스트·프로젝트 탭), `/user/files`, `/info/leave`

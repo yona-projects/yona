@@ -85,7 +85,8 @@ class WebhookPayloads(
     fun issueAttachments(issue: Issue, eventType: EventType): ArrayNode {
         val fields = mapper.createArrayNode()
         issue.milestone?.let { fields.add(titleValue(text("notification.type.milestone.changed"), it.title, true)) }
-        fields.add(titleValue(text(""), issue.assignee?.user?.name, true))
+        // v1.6는 제목이 빈 담당자 항목을 담당자가 없어도 넣었다. 제목을 주고 담당자가 없으면 항목을 뺀다(R-45-4)
+        issue.assignee?.user?.name?.let { fields.add(titleValue(text("issue.assignee"), it, true)) }
         fields.add(titleValue(text("issue.state"), (issue.state ?: dev.yona.domain.enumeration.State.OPEN).name, true))
         return mapper.createArrayNode().add(attachment(issue.body, fields, eventType))
     }
@@ -191,9 +192,9 @@ class WebhookPayloads(
         val node = mapper.createObjectNode()
         node.put("id", commit.id)
         node.put("message", commit.message)
-        // v1.6의 시각 형식은 12시간제(`hh`)라 오후 시각이 구별되지 않는다 (R-45).
-        node.put("timestamp", SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").format(commit.commitTime))
-        node.put("url", "${baseUrl()}${siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))}/commit/${commit.id} ")
+        // v1.6의 시각 형식은 12시간제(`hh`)라 오후 시각이 구별되지 않았고 주소 끝에 공백이 붙었다. 24시간제로 쓰고 공백을 붙이지 않는다(R-45-2)
+        node.put("timestamp", SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(commit.commitTime))
+        node.put("url", "${baseUrl()}${siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))}/commit/${commit.id}")
         node.set("author", mapper.createObjectNode().also { it.put("name", commit.authorName); it.put("email", commit.authorEmail) })
         node.set("committer", mapper.createObjectNode().also { it.put("name", commit.committerName); it.put("email", commit.committerEmail) })
         return node

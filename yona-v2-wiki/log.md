@@ -1199,3 +1199,12 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 ## 2026-11-05 조직 이름 대소문자 개명과 제목 머리말 개수 (R-19-2, R-112, A-356)
 
 시험을 먼저 바꿔 3건의 실패를 확인한 뒤 고쳤다. H2의 `web.organization.*`, `domain.issue.*`, `web.issue.*`, `ExternalOrganization*`가 통과했고(54초) PostgreSQL의 `IssueServiceTest`, `OrganizationSettingTest`, `ExternalOrganization*`가 통과했다(28초).
+
+## 2026-11-05 안건표 다음 10건 중 5건 수정 (R-42-4, R-45-2, R-45-4, R-48-1, R-51-4)
+
+선생님이 4건을 권장 수용, R-51-4는 페이지 제거로 결정하셨다. 시험을 먼저 바꾸거나 써서 실패를 확인한 뒤 고쳤다. R-41은 Playwright로 현재 코드와 고친 코드의 파일 보기 화면을 찍어 보여 드렸고(`e2e/commentcount.tmp.mjs`, `shots/r41-before.png`, `r41-after.png`) 아직 결정이 없다. 이 과정에서 `e2e/lib/http.mjs`의 `Session`이 서버의 `XSRF-TOKEN` 쿠키를 `X-XSRF-TOKEN` 머리글로 되돌려 보내지 않아 쓰기 요청이 403이던 것을 고쳤다(로그인 전에 `/users/loginform`을 받는다).
+
+| 범위 | 결과 | 소요 시간 |
+|---|---|---|
+| H2 전체(`cleanTest test`) | 4,518건(497 클래스, 건너뜀 2), 실패 0 | 11분 42초 |
+| PostgreSQL 관련 6개 클래스 | 통과, 실패 0 | 29초 |

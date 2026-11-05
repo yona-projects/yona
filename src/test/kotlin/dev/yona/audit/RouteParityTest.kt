@@ -61,6 +61,8 @@ class RouteParityTest : AbstractIntegrationTest() {
          */
         private val INTENTIONAL = listOf(
             "GET /assets/{}",
+            // R-51-4: 개발자용 UI 견본 페이지는 로그인 검사가 없어 선생님이 페이지를 없애기로 하셨다
+            "GET /_UIKit",
             // R-48-2: 프로젝트 탈퇴는 링크 한 번(GET)으로 상태가 바뀌어 요청 위조에 약해 POST로 옮겼다(의도해서 바꾼 v1.6 주소)
             "GET /info/leave/{}/{}",
             "GET /svn/{}", "POST /svn/{}", "PUT /svn/{}", "DELETE /svn/{}", "HEAD /svn/{}", "OPTIONS /svn/{}",

@@ -248,6 +248,17 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `남이 쓴 초안은 이슈 건수에 넣지 않고 본인 초안은 넣는다 (R-48-1, v1_6은 거르지 않았다)`() {
+        val u = newUser(); val p = project(u, "p")
+        issue(p, "열린 이슈", u)
+        issue(p, "초안 이슈", u, state = State.DRAFT).also { it.isDraft = true; issues.save(it) }
+        fun total(doc: Document) = doc.selectFirst(".user-stream-box > ul.nav-tabs li:first-child .num-badge")!!.text()
+        assertEquals("1", total(page("/${u.loginId}")), "익명")
+        assertEquals("1", total(page("/${u.loginId}", login(newUser()))), "다른 사용자")
+        assertEquals("2", total(page("/${u.loginId}", login(u))), "작성자 본인")
+    }
+
+    @Test
     fun `daysAgo를 늘리면 오래된 이슈도 보인다`() {
         val u = newUser(); val p = project(u, "p")
         issue(p, "오래된 이슈", u, updated = daysAgo(20))

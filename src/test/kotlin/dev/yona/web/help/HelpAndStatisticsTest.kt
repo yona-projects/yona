@@ -111,10 +111,7 @@ class HelpAndStatisticsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `UI 키트는 독립 문서로 일곱 개 견본 구역을 보여 준다`() {
-        val doc = Jsoup.parse(mockMvc.perform(get("/_UIKit")).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertEquals("Yobi UI", doc.title())
-        assertEquals(listOf("Buttons", "Select", "Search Form", "Labels", "Avatar", "Tabs", "Switches"), doc.select("h3").map { it.text().trim() }.filter { it.isNotEmpty() }.take(7))
-        assertTrue(doc.select("script[src=/assets/javascripts/common/yobi.Common.js]").isNotEmpty())
+    fun `UI 키트 페이지는 없앴다 (R-51-4, v1_6은 로그인 검사 없이 열렸다)`() {
+        mockMvc.perform(get("/_UIKit")).andExpect(status().isNotFound)
     }
 }

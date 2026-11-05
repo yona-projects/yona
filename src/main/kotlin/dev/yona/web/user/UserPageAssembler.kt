@@ -91,7 +91,9 @@ class UserPageAssembler(
         val since = Date.from(LocalDate.now(clock).minusDays(daysAgo.toLong()).atStartOfDay(clock.zone).toInstant())
         val memberProjects = projects.findProjectsByMember(userId).distinctBy { it.id }.filter { readable(it) }
             .sortedWith(PROJECT_ORDER)
+        // v1.6은 초안을 거르지 않아 남이 쓴 초안도 이슈 건수에 들어갔다. 보는 사람이 작성자가 아닌 초안은 뺀다(R-48-1)
         val recentIssues = issues.findRecentlyByUser(userId, since).filter { readable(it.project) }
+            .filter { !(it.isDraft == true || it.state == State.DRAFT) || it.authorLoginId == viewer?.loginId }
         val recentPullRequests = pullRequests.findRecentlyByContributor(userId, since).filter { readable(it.toProject) }
         return UserActivity(issueRows(recentIssues, viewer), recentPullRequests.map { pullRequestRow(it, viewer) }, memberProjects.map { projectRow(it, user, viewer) })
     }
