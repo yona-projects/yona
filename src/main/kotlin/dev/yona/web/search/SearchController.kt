@@ -65,11 +65,10 @@ class SearchController(
         val requested = request.getParameter("searchType")
         if (organizationName.isEmpty() || keyword.isNullOrEmpty() || requested.isNullOrEmpty()) return ErrorViews.badRequest()
         val organization = organizations.findByName(organizationName)
-        // v1.6은 조직이 있는지 보기 전에 구성원인지 먼저 물어, 이 검사에서는 조직 구성원이면서 관리자 역할도 가진 사용자만 통과한다.
+        // 목록 숨김이 켜져 있으면 조직의 구성원이거나 관리자인 사용자만 쓸 수 있다. v1.6은 조건이 `||`여서 구성원이면서 관리자 역할도 가진 사용자만 통과해 일반 구성원도 막혔다(R-50-7).
         if (properties.hideProjectListing && organization != null) {
-            // v1.6 `user.isMemberOf(organization)`와 `isAdminOf`는 둘 다 세션 사용자에게 기억되는 판정이다
             val viewerId = currentUserProvider.get().user?.id
-            if (!permissions.organizationRole(viewerId, organization.id, RoleType.ORG_MEMBER) || !permissions.organizationRole(viewerId, organization.id, RoleType.ORG_ADMIN)) return ErrorViews.badRequest()
+            if (!permissions.organizationRole(viewerId, organization.id, RoleType.ORG_MEMBER) && !permissions.organizationRole(viewerId, organization.id, RoleType.ORG_ADMIN)) return ErrorViews.badRequest()
         }
         val type = SearchType.of(requested)
         if (type == SearchType.NA || organization == null) return ErrorViews.badRequest()

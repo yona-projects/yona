@@ -326,13 +326,13 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `브랜치를 바꿔 다른 열린 요청과 겹치면 보내는 프로젝트 주소의 수정 폼으로 되돌려 보낸다`() {
+    fun `브랜치를 바꿔 다른 열린 요청과 겹치면 받는 프로젝트(원본) 주소의 수정 폼으로 되돌려 보낸다 (R-43-2, v1_6은 포크 주소였다)`() {
         val s = setup(); addChange(s)
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("다른", mapOf("c.txt" to "c\n".toByteArray())), branch = "other")
         val master = open(s); open(s, fromBranch = "refs/heads/other")
         mockMvc.perform(
             post(url(s, master, "/edit")).session(s.managerSession).param("title", "t").param("body", "b").param("fromBranch", "refs/heads/other").param("toBranch", "refs/heads/master")
-        ).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${s.fork.owner}/${s.fork.name}/pullRequest/${master.number}/editform"))
+        ).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${s.origin.owner}/${s.origin.name}/pullRequest/${master.number}/editform"))
         assertEquals("refs/heads/master", reload(master).fromBranch)
     }
 

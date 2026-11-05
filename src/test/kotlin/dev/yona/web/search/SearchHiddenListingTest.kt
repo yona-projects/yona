@@ -69,6 +69,8 @@ class SearchHiddenListingTest : AbstractIntegrationTest() {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
+    @Autowired private lateinit var organizations: OrganizationRepository
+    @Autowired private lateinit var organizationUsers: OrganizationUserRepository
 
     private var sequence = 0
 
@@ -97,5 +99,18 @@ class SearchHiddenListingTest : AbstractIntegrationTest() {
         assertEquals(emptyList(), titles(null))
         assertEquals(emptyList(), titles(login(outsider)))
         assertEquals(listOf("hiddenneedle"), titles(login(member)))
+    }
+
+    @Test
+    fun `목록 숨김이면 조직 검색은 그 조직의 구성원이나 관리자 어느 쪽이든 쓸 수 있다 (R-50-7, v1_6은 두 역할을 모두 가져야 했다)`() {
+        val org = organizations.save(Organization(name = "hiddenorg", descr = "d", created = Date()))
+        val member = newUser(); val admin = newUser(); val outsider = newUser()
+        organizationUsers.save(OrganizationUser(user = member, organization = org, role = roles.findById(RoleType.ORG_MEMBER.id).get()))
+        organizationUsers.save(OrganizationUser(user = admin, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))
+        fun status(session: MockHttpSession?) = mockMvc.perform(get("/organizations/hiddenorg/search").apply { session?.let { session(it) } }.param("searchType", "issue").param("keyword", "x")).andReturn().response.status
+        assertEquals(200, status(login(member)), "일반 구성원")
+        assertEquals(200, status(login(admin)), "조직 관리자")
+        assertEquals(400, status(login(outsider)), "조직에 속하지 않은 사용자")
+        assertEquals(400, status(null), "익명")
     }
 }

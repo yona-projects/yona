@@ -144,9 +144,9 @@ class PullRequestActionController(
         if (fromBranch != pullRequest.fromBranch || toBranch != pullRequest.toBranch) {
             val duplicate = pullRequestService.findDuplicate(PullRequestForm(title, body, from, project, fromBranch, toBranch))
             if (duplicate != null) {
-                // v1.6는 수정 화면 주소를 받는 프로젝트가 아니라 보내는 프로젝트로 만든다 ([refactoring-backlog.md] R-43).
+                // v1.6는 수정 화면 주소를 받는 프로젝트(원본)가 아니라 보내는 프로젝트(포크)로 만들어, 포크의 같은 번호 요청으로 보냈다(R-43-2)
                 return RedirectSupport.see(
-                    request, response, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(from.owner, from.name)}/pullRequest/${pullRequest.number}/editform"), mapOf(RedirectSupport.WARNING to "pullRequest.duplicated")
+                    request, response, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}/editform"), mapOf(RedirectSupport.WARNING to "pullRequest.duplicated")
                 )
             }
         }
