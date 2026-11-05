@@ -42,13 +42,18 @@ class DataService(
     private val log = LoggerFactory.getLogger(javaClass)
     private val mapper = JsonMapper.builder().build()
 
-    /** DB 전체를 [out]에 JSON으로 쓴다. 트랜잭션이나 스냅샷 격리는 없다. [out]은 닫지 않는다. */
+    /**
+     * DB 전체를 [out]에 JSON으로 쓴다. 읽기 전용 반복 읽기 트랜잭션 하나로 읽어 테이블 사이가 같은 시점의 자료가 되게 한다.
+     * v1.6은 격리가 없어 쓰는 도중의 변경이 테이블마다 다르게 보였다(R-56-5). 격리 수준을 지원하지 않는 DB에서는 기본 격리로 읽는다.
+     * 쓰다가 실패하면 예외가 그대로 나가며, 호출한 쪽은 이를 응답 실패로 다뤄야 한다. [out]은 닫지 않는다.
+     */
     fun export(out: OutputStream) {
         val started = System.currentTimeMillis()
         val writer = out.bufferedWriter(Charsets.UTF_8)
         dataSource.connection.use { connection ->
             val product = connection.metaData.databaseProductName
             val ids = Identifiers(connection, product)
+            val previous = beginConsistentRead(connection)
             writer.write("{")
             var firstTable = true
             for (table in DataTables.all) {
@@ -61,8 +66,37 @@ class DataService(
             }
             writer.write("\n}\n")
             writer.flush()
+            endConsistentRead(connection, previous)
         }
         log.info("Exported all data in {} ms", System.currentTimeMillis() - started)
+    }
+
+    /** 연결 설정을 내보내기 앞의 상태로 되돌릴 때 쓰는 값이다. */
+    private class ConnectionState(val autoCommit: Boolean, val readOnly: Boolean, val isolation: Int)
+
+    /** 읽기 전용 반복 읽기 트랜잭션을 시작한다. 지원하지 않는 설정은 건너뛰고 기본대로 읽는다. */
+    private fun beginConsistentRead(connection: Connection): ConnectionState {
+        val state = ConnectionState(connection.autoCommit, connection.isReadOnly, connection.transactionIsolation)
+        try {
+            connection.autoCommit = false
+            connection.isReadOnly = true
+            connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
+        } catch (e: java.sql.SQLException) {
+            log.warn("Could not start a consistent read for the export; reading with the default isolation", e)
+        }
+        return state
+    }
+
+    /** 읽기 트랜잭션을 마치고 연결 설정을 되돌린다. 연결 풀로 돌아가는 연결이므로 되돌리지 못하면 기록만 남긴다. */
+    private fun endConsistentRead(connection: Connection, previous: ConnectionState) {
+        try {
+            if (!connection.autoCommit) connection.rollback()
+            connection.transactionIsolation = previous.isolation
+            connection.isReadOnly = previous.readOnly
+            connection.autoCommit = previous.autoCommit
+        } catch (e: java.sql.SQLException) {
+            log.warn("Could not restore the connection after the export", e)
+        }
     }
 
     private fun writeRows(connection: Connection, ids: Identifiers, table: DataTable, writer: java.io.Writer) {
