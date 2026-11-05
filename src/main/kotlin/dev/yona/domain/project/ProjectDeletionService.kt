@@ -57,6 +57,9 @@ class ProjectDeletionService(
         deleteIssues(projectId)
         deletePostings(projectId)
 
+        // 프로젝트 자체의 첨부(로고)이다. v1.6은 지우지 않아 파일과 attachment 행이 고아로 남았다(R-18)
+        attachments.deleteAll(ResourceType.PROJECT, projectId)
+
         // 웹훅
         native("delete from webhook_thread where webhook_id in (select id from webhook where project_id = :id)", projectId)
         native("delete from webhook where project_id = :id", projectId)

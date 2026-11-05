@@ -287,6 +287,17 @@ class MailHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `커밋 주소로 온 답장은 해시만 있어도 오류 없이 건너뛴다 (R-124-4)`() {
+        val sender = user(); val p = project(sender); member(sender, p)
+        // 알림이 만드는 주소는 `commit/프로젝트번호:해시`이다. 해시만 있는 주소는 주소의 프로젝트로 보고 같은 주소로 다룬다.
+        handle(MailFixtures.mail("<h-commit-hash@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/commit/abc123")), "Re: 커밋", "답장"))
+        assertTrue(replies().isEmpty(), "오류 회신이 없어야 한다")
+        handle(MailFixtures.mail("<h-commit-full@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/commit/${p.id}%3Aabc123")), "Re: 커밋", "답장"))
+        assertTrue(replies().isEmpty(), "오류 회신이 없어야 한다")
+        assertEquals(0, issues.findAll().count { it.project?.id == p.id }, "커밋에는 댓글을 달지 않으므로 새 이슈도 만들지 않는다")
+    }
+
+    @Test
     fun `종류가 다른 리소스를 가리키면 아무것도 만들지 않는다`() {
         val sender = user(); val p = project(sender); member(sender, p)
         handle(MailFixtures.mail("<h-miles@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/user/${sender.id}")), "이상한 대상"))

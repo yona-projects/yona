@@ -218,6 +218,23 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `만들기 폼은 멀티파트로 보내고 올려 둔 임시 첨부가 마일스톤으로 옮겨진다 (R-23)`() {
+        val project = newProject()
+        val user = manager(project)
+        // v1.6 폼에는 enctype이 없어 브라우저가 일반 폼으로 보냈고, 서버는 멀티파트일 때만 임시 첨부 번호를 읽어 첨부가 옮겨지지 않았다
+        assertEquals("multipart/form-data", page("${base(project)}/newMilestoneForm", login(user)).selectFirst("form#milestone-form")!!.attr("enctype"))
+        val temp = attachments.save(Attachment(name = "a.txt", hash = "h-r23", containerType = ResourceType.USER, containerId = user.id!!, mimeType = "text/plain", size = 1L, createdDate = Date(), ownerLoginId = user.loginId))
+        mockMvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("${base(project)}/milestones").session(login(user))
+                .param("title", "v-attach").param("contents", "c").param("state", "OPEN").param("temporaryUploadFiles", temp.id.toString())
+        ).andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        val moved = attachments.findById(temp.id!!).get()
+        assertEquals(ResourceType.MILESTONE, moved.containerType)
+        assertEquals(milestones.findAll().single { it.title == "v-attach" }.id, moved.containerId)
+    }
+
+    @Test
     fun `마일스톤을 만들면 마감일은 그날의 마지막 초가 되고 보기 화면으로 간다`() {
         val project = newProject()
         val result = mockMvc.perform(

@@ -39,23 +39,28 @@ class AccountService(
      * 이름과 이메일, 아바타를 저장한다. 이메일이 비었으면 `user.wrongEmail.alert`, 바꾸는 이메일이 이미 쓰이고 있으면
      * `user.email.duplicate`로 거부한다. 이메일 형식은 검사하지 않는다(v1.6).
      *
-     * 아바타는 [avatarId]의 첨부가 이미지일 때만 바꾼다. 이전 아바타는 지운다. v1.6은 첨부의 소유자를 검사하지 않으므로
-     * 남이 올린 첨부도 옮긴다(옮긴 첨부는 올린 사람의 임시 첨부에서 빠진다). 첨부가 1MB를 넘어도 v1.6처럼 거부하지 않고 옮긴다([refactoring-backlog.md] R-21).
+     * 아바타는 [avatarId]의 첨부가 이미지일 때만 바꾼다. 이전 아바타는 지운다. 이미지가 1MB를 넘으면 `user.avatar.fileSizeAlert`,
+     * 본인이 올린 첨부가 아니면 `user.avatar.uploadError`로 거부하고 이름과 이메일도 저장하지 않는다. v1.6은 크기 초과를 폼 오류로만 기록하고
+     * 그대로 옮겼으며 첨부의 소유자도 검사하지 않아 남이 올린 첨부도 옮겼다(R-21).
      */
     fun updateProfile(user: User, name: String?, email: String?, avatarId: String?): String? {
         if (email.isNullOrEmpty() || !SignupService.isValidEmailFormat(email)) return "user.wrongEmail.alert"
         if (user.email != email && signup.isEmailExist(email)) return "user.email.duplicate"
 
+        val avatar = avatarId?.toLongOrNull()?.let { attachmentRepository.findById(it).orElse(null) }
+            ?.takeIf { it.mimeType?.substringBefore('/')?.lowercase() == "image" }
+        if (avatar != null) {
+            if ((avatar.size ?: 0) > AVATAR_FILE_LIMIT_SIZE) return "user.avatar.fileSizeAlert"
+            if (!user.loginId.equals(avatar.ownerLoginId, ignoreCase = true)) return "user.avatar.uploadError"
+        }
+
         val before = mapOf("name" to user.name, "email" to user.email)
         user.email = email
         user.name = HtmlSanitizer.defaultSanitize(HtmlSanitizer.defaultSanitize(name))
 
-        avatarId?.toLongOrNull()?.let { id ->
-            val attachment = attachmentRepository.findById(id).orElse(null)
-            if (attachment != null && attachment.mimeType?.substringBefore('/')?.lowercase() == "image") {
-                attachments.deleteAll(ResourceType.USER_AVATAR, requireNotNull(user.id))
-                attachments.moveTo(attachment, ResourceType.USER_AVATAR, requireNotNull(user.id))
-            }
+        if (avatar != null) {
+            attachments.deleteAll(ResourceType.USER_AVATAR, requireNotNull(user.id))
+            attachments.moveTo(avatar, ResourceType.USER_AVATAR, requireNotNull(user.id))
         }
 
         emails.findByEmailIgnoreCaseAndValid(email, false).forEach { emails.delete(it) }
@@ -145,6 +150,8 @@ class AccountService(
     }
 
     private companion object {
+        /** 아바타로 쓸 수 있는 이미지의 최대 크기(바이트)이다. v1.6 `UserApp.AVATAR_FILE_LIMIT_SIZE`는 `1024*1000*1`이라 1MB가 아니라 1,024,000바이트이다. */
+        const val AVATAR_FILE_LIMIT_SIZE = 1_024_000L
         const val VALIDATION_TOKEN_LENGTH = 50
         const val DIGITS = 10
     }

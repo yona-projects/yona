@@ -48,6 +48,7 @@ class NotificationListTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var events: NotificationEventRepository
+    @Autowired private lateinit var messageSource: org.springframework.context.MessageSource
 
     private var sequence = 0
 
@@ -98,6 +99,26 @@ class NotificationListTest : AbstractIntegrationTest() {
         assertEquals("이름sender1", item.selectFirst(".meta a.author")?.text())
         assertTrue(item.selectFirst(".meta")!!.text().contains("@sender1"))
         assertNotNull(item.selectFirst(".meta .ago"))
+    }
+
+    @Test
+    fun `본문은 서버 기본 언어가 아니라 로그인한 사용자의 언어로 만든다 (R-35, v1_6은 Lang_defaultLang이었다)`() {
+        val savedDefault = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(java.util.Locale.US)
+        try {
+            val sender = user(); val i = issue(sender)
+            // 로그인하면 언어가 요청의 언어로 저장되므로, 로그인한 뒤에 언어를 정한다
+            val korean = user(); val koreanSession = login(korean)
+            korean.lang = "ko-KR"; users.save(korean)
+            event(sender, korean, i, EventType.ISSUE_STATE_CHANGED, "open", "closed")
+            val message = page("/notifications", koreanSession).selectFirst("li.notification-stream .message")!!.text()
+            assertEquals(messageSource.getMessage("notification.issue.closed", null, java.util.Locale.KOREA), message)
+            // 언어를 정하지 않은 사용자는 서버 기본 언어를 쓴다
+            val plain = user(); val plainSession = login(plain)
+            plain.lang = null; users.save(plain)
+            event(sender, plain, i, EventType.ISSUE_STATE_CHANGED, "open", "closed")
+            assertEquals(messageSource.getMessage("notification.issue.closed", null, java.util.Locale.US), page("/notifications", plainSession).selectFirst("li.notification-stream .message")!!.text())
+        } finally { java.util.Locale.setDefault(savedDefault) }
     }
 
     @Test

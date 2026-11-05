@@ -88,11 +88,10 @@ class OnlineCommitTest {
     }
 
     @Test
-    fun `내용 끝에 줄바꿈을 붙이고 CRLF 파일에도 v1_6처럼 LF로 쓴다`() {
+    fun `내용 끝에 줄바꿈을 붙이고 CRLF 파일이면 CRLF로 쓴다 (R-27, v1_6은 LF로 썼다)`() {
         GitTestSupport.commitFiles(repositories, project, mapOf("README.md" to "a\r\nb\r\n".toByteArray()))
         online.commitRootFile(project, author, "README.md", "x\ny", "msg")
-        // 바꾸라는 대상이 DOS여도 v1.6의 변환은 아무것도 하지 않는다(R-27). 끝에는 파일의 줄바꿈 종류(UNIX, 내용 기준)가 붙는다.
-        assertEquals("x\ny\n", files()["README.md"])
+        assertEquals("x\r\ny\r\n", files()["README.md"])
     }
 
     @Test
@@ -100,7 +99,7 @@ class OnlineCommitTest {
         // v1.6 BareRepository.getFileObjectId는 TreeWalk.next() 없이 getObjectId(0)을 읽어 깃 정렬 순서의 첫 엔트리를 본다
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "a\r\nb\r\n".toByteArray(), "README.md" to "a\nb\n".toByteArray()))
         online.commitRootFile(project, author, "README.md", "x\r\ny", "msg")
-        // 첫 엔트리 ISSUE_TEMPLATE.md가 CRLF라 DOS로 판정한다. 변환은 하지 않고 끝에 CRLF가 붙는다.
+        // 첫 엔트리 ISSUE_TEMPLATE.md가 CRLF라 DOS로 판정한다. 본문은 이미 CRLF이고 끝에 CRLF가 붙는다.
         assertEquals("x\r\ny\r\n", files()["README.md"])
     }
 

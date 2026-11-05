@@ -7,7 +7,7 @@ import kotlin.test.assertNull
 /**
  * 줄바꿈 처리를 검증한다. 원본: `app/utils/LineEnding.java`.
  *
- * v1.6의 `changeLineEnding(…, DOS)`는 `\n`을 `\n`으로 바꾸는 코드라 아무것도 하지 않는다. 그대로 재현한다([refactoring-backlog.md] R-27).
+ * v1.6의 `changeLineEnding(…, DOS)`는 `\n`을 `\n`으로 바꾸는 코드라 아무것도 하지 않았다. DOS로 바꾸면 모든 줄바꿈이 CRLF가 된다(R-27).
  */
 class LineEndingTest {
 
@@ -28,10 +28,11 @@ class LineEndingTest {
     }
 
     @Test
-    fun `DOS로 바꾸라고 해도 v1_6처럼 내용이 그대로이다`() {
-        assertEquals("a\nb", LineEnding.change("a\nb", "DOS"))
-        assertEquals("a\nb", LineEnding.change("a\nb", "dos"))
+    fun `DOS로 바꾸면 모든 줄바꿈이 CRLF가 된다 (R-27, v1_6은 아무것도 바꾸지 않았다)`() {
+        assertEquals("a\r\nb", LineEnding.change("a\nb", "DOS"))
+        assertEquals("a\r\nb\r\n", LineEnding.change("a\nb\n", "dos"))
         assertEquals("a\r\nb", LineEnding.change("a\r\nb", "DOS"))
+        assertEquals("a\r\nb\r\nc", LineEnding.change("a\r\nb\nc", "DOS"), "섞인 줄바꿈도 모두 CRLF가 된다")
     }
 
     @Test

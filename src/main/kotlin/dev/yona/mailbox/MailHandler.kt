@@ -243,7 +243,19 @@ class MailHandler(
     private fun resourceFromDetail(detail: String): Pair<ResourceType, String>? {
         val segments = detail.split("/", limit = 3)
         if (segments.size < 3) return null
-        return pathResource(segments[2])
+        return pathResource(commitPathWithProject(segments[0], segments[1], segments[2]))
+    }
+
+    /**
+     * `commit/해시` 경로에 프로젝트 번호를 붙여 `commit/프로젝트번호:해시`로 만든다. 커밋 리소스의 번호는 `프로젝트번호:해시`인데
+     * 해시만 있으면 번호를 읽다가 `NumberFormatException`이 났다(v1.6, R-124-4). 해시만 있는 주소는 주소의 프로젝트에 속한 커밋으로 본다.
+     * 프로젝트를 찾지 못하면 경로를 그대로 두어, 없는 리소스를 가리킨 다른 주소처럼 오류 회신이 나간다.
+     */
+    private fun commitPathWithProject(owner: String, projectName: String, path: String): String {
+        val segments = path.split("/")
+        if (segments.size != 2 || segments[0] != ResourceType.COMMIT.resource || segments[1].contains(':')) return path
+        val project = transactions.execute { projectService.findByOwnerAndProjectName(owner, projectName) } ?: return path
+        return "${segments[0]}/${project.id}:${segments[1]}"
     }
 
     /** `종류/번호` 경로의 리소스이다 (v1.6 `Resource.findByPath`). 없는 번호이면 v1.6처럼 오류이다. */

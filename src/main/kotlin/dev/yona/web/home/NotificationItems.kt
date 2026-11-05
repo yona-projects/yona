@@ -35,7 +35,7 @@ data class NotificationItem(
 /**
  * 알림 이벤트를 홈의 알림 목록 항목으로 바꾼다. v1.6 `app/views/index/partial_notifications.scala.html`의 항목 계산에 해당한다.
  *
- * 본문은 받는 사람의 언어가 아니라 서버 기본 언어로 만든다(v1.6이 `Lang.defaultLang()`을 쓴다). 문구를 만들 수 없는 알림은 v1.6에서는
+ * 본문은 로그인한 사용자의 언어로 만들고 언어를 정하지 않았으면 서버 기본 언어를 쓴다(R-35, v1.6은 항상 `Lang.defaultLang()`이었다). 문구를 만들 수 없는 알림은 v1.6에서는
  * 화면 전체를 오류로 만들지만, v2는 빈 본문으로 보여 준다(A-59).
  */
 @Component
@@ -48,7 +48,7 @@ class NotificationItemAssembler(
     @Transactional(readOnly = true)
     fun assemble(events: List<NotificationEvent>, viewer: User?): List<NotificationItem> = events.map { event ->
         val sender = event.senderId?.let { users.findById(it).orElse(null) }
-        val message = messages.message(event, Locale.getDefault().toLanguageTag()).orEmpty()
+        val message = messages.message(event, viewer?.lang ?: Locale.getDefault().toLanguageTag()).orEmpty()
         NotificationItem(
             id = requireNotNull(event.id), iconClass = icon(requireNotNull(event.eventType), event.newValue),
             edit = event.eventType == EventType.ISSUE_BODY_CHANGED || event.eventType == EventType.COMMENT_UPDATED,

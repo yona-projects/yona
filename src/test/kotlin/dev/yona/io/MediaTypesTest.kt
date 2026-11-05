@@ -55,11 +55,13 @@ class MediaTypesTest {
     }
 
     @Test
-    fun `문자 집합은 65536번째 바이트 이후로 감지한다`() {
+    fun `문자 집합은 파일 전체로 감지한다 (R-17, v1_6은 65536번째 바이트 이후만 봐서 작은 파일은 항상 UTF-8이었다)`() {
         val euckr = java.nio.charset.Charset.forName("EUC-KR")
         fun body(size: Int): ByteArray { val unit = "안녕하세요 한글 문서 내용입니다.\n".toByteArray(euckr); return ByteArray(size) { unit[it % unit.size] } }
-        assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(body(30_000), "a.txt"))
+        assertEquals("text/plain; charset=EUC-KR", MediaTypes.detect(body(30_000), "a.txt"))
         assertEquals("text/plain; charset=EUC-KR", MediaTypes.detect(body(70_000), "a.txt"))
+        assertEquals("text/plain; charset=EUC-KR", MediaTypes.detect("안녕하세요 한글 문서 내용입니다.\n".repeat(5).toByteArray(euckr), "a.txt"))
+        assertEquals("text/plain; charset=UTF-8", MediaTypes.detect("안녕하세요 한글 문서 내용입니다.\n".repeat(5).toByteArray(), "a.txt"))
         assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(ByteArray(0), "a.txt"))
         assertEquals("application/octet-stream", MediaTypes.detect(ByteArray(0), null))
     }

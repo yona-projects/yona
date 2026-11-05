@@ -91,16 +91,18 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
         val p = project()
         val m = milestones.save(Milestone(project = p, title = "1.0 출시", contents = "", state = State.OPEN))
         assertEquals(msg("notification.milestone.changed", "1.0 출시"), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "-1", m.id.toString()), en))
-        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.getDefault())), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
+        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.forLanguageTag(en))), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
     }
 
     @Test
-    fun `마일스톤 없음 문구는 받는 사람의 언어가 아니라 서버 JVM 기본 로캘이다 (v1_6 Lang_defaultLang, 공식 v1_16_0 실행으로 확인)`() {
+    fun `마일스톤 없음 문구는 서버 기본 언어가 아니라 받는 사람의 언어이다 (R-32, v1_6은 Lang_defaultLang이었다)`() {
         val before = Locale.getDefault()
         Locale.setDefault(Locale.KOREA)
         try {
             val english = notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), "en-US")
-            assertTrue(english!!.contains(messages.getMessage("issue.noMilestone", null, Locale.KOREA)), english)
+            assertTrue(english!!.contains(messages.getMessage("issue.noMilestone", null, Locale.US)), english)
+            val korean = notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), "ko-KR")
+            assertTrue(korean!!.contains(messages.getMessage("issue.noMilestone", null, Locale.KOREA)), korean)
         } finally { Locale.setDefault(before) }
     }
 

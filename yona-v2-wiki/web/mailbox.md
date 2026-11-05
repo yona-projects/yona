@@ -36,6 +36,18 @@ updated: 2026-10-25
 ## 알림 메일에 답장하기
 알림 메일의 `Reply-To`는 `수신주소+소유자/프로젝트/종류/번호@도메인`이라 메일 프로그램의 "회신"이 곧 댓글이 된다([subsystems/notifications.md](../subsystems/notifications.md)). 종류는 `ResourceType.resource` 값(`issue_post`, `board_post`, `comment_thread` 등), 번호는 리소스 번호(DB 번호)이다. 수신 주소의 계산은 `MailboxAddress`가 맡고 `MailHandler`와 알림 메일 발송이 함께 쓴다.
 
+### 커밋 알림에 대한 답장
+
+커밋 알림 메일의 `Reply-To`는 `수신주소+소유자/프로젝트/commit/프로젝트번호:해시@도메인`이다. 커밋 리소스의 번호는 `프로젝트번호:커밋해시`이다. 사용자가 주소를 손으로 `commit/해시`처럼 해시만 적어 보내면 v1.6은 번호를 읽다가 `NumberFormatException`이 되어 처리하지 못했다(R-124-4).
+
+v2의 `MailHandler.commitPathWithProject`는 해시만 있는 `commit/해시` 경로를 주소의 `소유자/프로젝트`로 찾은 프로젝트의 번호를 붙여 `commit/프로젝트번호:해시`로 바꾼 뒤 처리한다. 결과는 완전한 주소와 같다.
+
+| 받는 주소의 세부 부분 | 처리 |
+|---|---|
+| `소유자/프로젝트/commit/프로젝트번호:해시` | 커밋 리소스로 인식한다. 커밋에는 댓글을 달 수 없으므로 아무것도 만들지 않고 건너뛴다. 오류 회신도 없고 새 이슈도 만들지 않는다. |
+| `소유자/프로젝트/commit/해시` | 위와 같은 주소로 바꿔 같게 처리한다(v1.6은 오류). |
+| 주소의 프로젝트를 찾을 수 없는 `commit/해시` | 경로를 바꾸지 않아 없는 리소스를 가리킨 다른 주소처럼 오류 회신이 나간다. |
+
 ## 리소스 만들기 (`MailResourceCreator`)
 - 보낸 사람이 프로젝트에 그 리소스를 만들 권한이 있어야 한다. 이슈는 제목이 메일 제목, 본문이 메일 본문이다.
 - 본문 읽기(`MailContent`): 파일 이름이 있는 파트는 첨부, `multipart/related`는 `start` 또는 첫 파트가 본문이고 나머지는 첨부, `multipart/alternative`는 텍스트를 우선(관련 파트 안에서는 HTML 우선), 그 밖의 `multipart`는 이어 붙인다.

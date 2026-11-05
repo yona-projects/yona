@@ -16,7 +16,6 @@ import java.nio.charset.Charset
 object MediaTypes {
 
     /** Tika `MimeTypes.getMinLength()`이다. 1.2와 3.x가 같다. */
-    private const val MAGIC_LENGTH = 65536
 
     private val detector: V16MimeDetector by lazy {
         val xml = requireNotNull(MediaTypes::class.java.getResourceAsStream("/mime/tika-mimetypes-1.2.xml")) { "tika-mimetypes-1.2.xml이 없다" }
@@ -42,9 +41,9 @@ object MediaTypes {
         val media = detector.detect(ByteArrayInputStream(bytes), metadata(name))
         return when {
             media.type.lowercase() == "text" -> {
-                val rest = if (bytes.size > MAGIC_LENGTH) bytes.copyOfRange(MAGIC_LENGTH, bytes.size) else ByteArray(0)
+                // v1.6은 Tika가 앞 65536바이트를 읽은 스트림의 나머지로 문자 집합을 감지해 그 이하 파일은 항상 UTF-8이었다. 파일 전체로 감지한다(R-17).
                 // v1.6은 Charset.forName(...).name()으로 JVM 정규 이름을 쓴다 (예: BIG5는 Big5, SHIFT_JIS는 Shift_JIS)
-                "$media; charset=${Charset.forName(CharsetDetection.detect(rest)).name()}"
+                "$media; charset=${Charset.forName(CharsetDetection.detect(bytes)).name()}"
             }
             media.toString() == "audio/ogg" && name?.substringAfterLast('.', "")?.lowercase() == "ogv" -> "video/ogg"
             else -> media.toString()

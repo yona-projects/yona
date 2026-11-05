@@ -57,6 +57,7 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var favorites: FavoriteProjectRepository
+    @Autowired private lateinit var attachments: dev.yona.domain.misc.AttachmentRepository
 
     private var sequence = 0
 
@@ -155,6 +156,16 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         mockMvc.perform(delete("/${project.owner}/${project.name}/delete").session(login(manager(project))))
             .andExpect(status().isSeeOther)
             .andExpect(header().string("Location", "/"))
+    }
+
+    @Test
+    fun `프로젝트 자체의 첨부(로고)도 지운다 (R-18, v1_6은 고아 데이터로 남겼다)`() {
+        val project = newProject()
+        val manager = manager(project)
+        val logo = attachments.save(dev.yona.domain.misc.Attachment(name = "logo.png", hash = "h-r18-${System.nanoTime()}", containerType = dev.yona.domain.enumeration.ResourceType.PROJECT, containerId = project.id!!, mimeType = "image/png", size = 1L, createdDate = java.util.Date(), ownerLoginId = manager.loginId))
+        mockMvc.perform(delete("/${project.owner}/${project.name}/delete").session(login(manager)))
+        attachments.flush()
+        assertFalse(attachments.findById(logo.id!!).isPresent)
     }
 
     @Test

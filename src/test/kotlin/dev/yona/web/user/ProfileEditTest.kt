@@ -238,14 +238,39 @@ class ProfileEditTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `남이 올린 이미지 첨부도 아바타로 옮긴다 (v1_6은 소유자를 검사하지 않는다)`() {
+    fun `남이 올린 이미지 첨부는 아바타로 옮기지 않고 거부한다 (R-21, v1_6은 소유자를 검사하지 않았다)`() {
         val user = newUser()
         val other = newUser()
         val foreignFile = File.createTempFile("avatar-fo", ".png").apply { writeBytes(png + 5) }
         val foreign = attachments.store(foreignFile, "f.png", ResourceType.USER, other.id!!, other.loginId).attachment
-        edit(login(user), "x", user.email, foreign.id.toString())
-        assertEquals(listOf("f.png"), attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).map { it.name })
-        assertTrue(attachments.findByContainer(ResourceType.USER, other.id!!).isEmpty())
+        val result = edit(login(user), "새 이름", user.email, foreign.id.toString())
+        assertEquals(400, result.response.status)
+        assertTrue(result.response.contentAsString.contains("Failed to upload"))
+        assertTrue(attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).isEmpty())
+        assertEquals(1, attachments.findByContainer(ResourceType.USER, other.id!!).size, "올린 사람의 임시 첨부는 그대로이다")
+        assertEquals(user.name, users.findById(user.id!!).get().name, "거부하면 이름도 바꾸지 않는다")
+    }
+
+    @Test
+    fun `1MB를 넘는 이미지는 폼 오류로 거부한다 (R-21, v1_6은 오류만 기록하고 옮겼다)`() {
+        val user = newUser()
+        val big = File.createTempFile("avatar-big", ".png").apply { writeBytes(png + ByteArray(1_024_001)) }
+        val temp = attachments.store(big, "big.png", ResourceType.USER, user.id!!, user.loginId).attachment
+        val result = edit(login(user), "새 이름", user.email, temp.id.toString())
+        assertEquals(400, result.response.status)
+        assertTrue(result.response.contentAsString.contains("less than 1MB"))
+        assertTrue(attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).isEmpty())
+        assertEquals(user.name, users.findById(user.id!!).get().name)
+    }
+
+    @Test
+    fun `제한(1,024,000바이트) 이하의 본인 이미지는 아바타로 옮긴다 (R-21)`() {
+        val user = newUser()
+        val edge = File.createTempFile("avatar-edge", ".png").apply { writeBytes(png + ByteArray(1_024_000 - png.size)) }
+        val temp = attachments.store(edge, "edge.png", ResourceType.USER, user.id!!, user.loginId).attachment
+        assertEquals(1_024_000L, temp.size)
+        assertEquals(303, edit(login(user), "x", user.email, temp.id.toString()).response.status)
+        assertEquals(listOf("edge.png"), attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).map { it.name })
     }
 
     @Test

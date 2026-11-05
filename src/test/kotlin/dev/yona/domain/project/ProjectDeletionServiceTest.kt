@@ -177,7 +177,7 @@ class ProjectDeletionServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈, 게시글, 댓글의 첨부와 알림 이벤트는 지우고 프로젝트 로고는 남긴다`() {
+    fun `이슈, 게시글, 댓글의 첨부와 알림 이벤트와 프로젝트 로고를 지운다 (R-18)`() {
         val p = project(); val other = project(); val member = user()
         val pid = p.id!!
         val issue = persist(Issue(project = p, number = 1, title = "t", state = State.OPEN, authorId = member.id))
@@ -203,12 +203,12 @@ class ProjectDeletionServiceTest : AbstractIntegrationTest() {
         service.delete(p)
         em.flush(); em.clear()
 
-        // v1.6 Project.delete는 issue.delete()와 posting.delete()를 불러 이슈, 게시글, 댓글의 첨부와 알림 이벤트를 지운다. 프로젝트 로고는 지우지 않는다.
+        // v1.6 Project.delete는 issue.delete()와 posting.delete()를 불러 이슈, 게시글, 댓글의 첨부와 알림 이벤트를 지운다. 프로젝트 로고는 v1.6이 지우지 않았으나 지운다(R-18).
         targets.forEach { (type, id) ->
             assertEquals(0, count("attachment", "container_type = '${type.name}' and container_id = $id"), "$type 첨부")
             assertEquals(0, count("notification_event", "resource_type = '${type.name}' and resource_id = '$id'"), "$type 알림 이벤트")
         }
-        assertEquals(1, count("attachment", "container_type = 'PROJECT' and container_id = $pid"))
+        assertEquals(0, count("attachment", "container_type = 'PROJECT' and container_id = $pid"))
         assertEquals(1, count("attachment", "id = ${untouched.id}"))
         assertNotNull(other.id)
     }

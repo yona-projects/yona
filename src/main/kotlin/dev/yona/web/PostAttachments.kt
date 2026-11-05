@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component
  * (`app/controllers/AbstractPostingApp.java:221-231, 254-268`)에 해당한다.
  *
  * 임시 첨부 번호는 폼의 숨은 값 `temporaryUploadFiles`(쉼표로 이은 번호)에 있다. v1.6은 **멀티파트 본문일 때만** 이 값을 읽는다.
- * 일반 폼(`application/x-www-form-urlencoded`)으로 보내는 화면에서는 임시 첨부가 옮겨지지 않는다([refactoring-backlog.md] R-23).
+ * 일반 폼(`application/x-www-form-urlencoded`)으로 보내는 화면에서는 임시 첨부가 옮겨지지 않는다. v1.6의 마일스톤 만들기 폼이 일반 폼이어서
+ * 첨부가 옮겨지지 않았으므로 이 폼에 `enctype="multipart/form-data"`를 주었다(R-23). 이 클래스의 읽기 규칙은 v1.6 그대로이다.
  */
 @Component
 class PostAttachments(
