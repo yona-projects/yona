@@ -81,7 +81,7 @@ class ReviewListController(
             .addObject("title", "menu.review")
             .addObject("projectView", views.of(project))
             .addObject("cond", condition)
-            .addObject("rows", page.items.map { row(it) })
+            .addObject("rows", rowsOf(page.items))
             .addObject("totalPageCount", page.totalPageCount)
             .addObject("meId", viewer.id)
             .addObject("quick", ReviewQuickCounts(count(everyone), count(everyone.copy(participantId = viewer.id)), count(everyone.copy(authorId = viewer.id))))
@@ -119,9 +119,15 @@ class ReviewListController(
     private fun excelUrl(request: HttpServletRequest): String =
         QueryLinks.excelLink(QueryLinks.requestUri(request), EXCEL_EXT)
 
-    private fun row(thread: CommentThread): ReviewRow {
-        val first: ReviewComment? = thread.reviewComments.minWithOrNull(compareBy({ it.createdDate }, { it.id }))
-        val author: User? = first?.authorId?.let { users.findById(it).orElse(null) }
+    /** 쪽에 나온 스레드의 줄이다. 첫 댓글 작성자는 스레드마다 조회하지 않고 한 번에 조회한다. v1.6은 스레드마다 번호로 조회했다(R-65-4). */
+    private fun rowsOf(items: List<CommentThread>): List<ReviewRow> {
+        val firsts = items.associateWith { thread -> thread.reviewComments.minWithOrNull(compareBy({ it.createdDate }, { it.id })) }
+        val authorIds = firsts.values.mapNotNull { it?.authorId }.toSet()
+        val authors = if (authorIds.isEmpty()) emptyMap() else users.findAllById(authorIds).associateBy { it.id }
+        return items.map { row(it, firsts[it], firsts[it]?.authorId?.let { id -> authors[id] }) }
+    }
+
+    private fun row(thread: CommentThread, first: ReviewComment?, author: User?): ReviewRow {
         val avatar = author?.let { avatars.avatarUrl(it).let { url -> if (url == AvatarService.DEFAULT_AVATAR_URL) avatars.gravatarUrl(it.email, AVATAR_SIZE) else url } }
         return ReviewRow(
             id = requireNotNull(thread.id), href = links.thread(thread), contents = first?.contents.orEmpty(), authorLoginId = author?.loginId, authorName = author?.name,
