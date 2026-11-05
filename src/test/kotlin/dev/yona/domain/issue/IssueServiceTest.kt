@@ -407,13 +407,24 @@ class IssueServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `다른 프로젝트로 옮겨도 옛 프로젝트의 머리말 개수는 줄지 않는다 (v1_6은 이미 바뀐 프로젝트로 뺀다)`() {
+    fun `다른 프로젝트로 옮기면 옛 프로젝트의 머리말 개수를 줄이고 새 프로젝트에 더한다 (R-112, v1_6은 이미 바뀐 프로젝트로 뺐다)`() {
         val from = project(); val to = project(); val author = user(); val mover = user()
         projectUsers.save(dev.yona.domain.project.ProjectUser(user = mover, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
         val issue = service.create(from, author, input("[A] 제목"))
         service.update(issue, mover, edit("[B] 제목"), target = to)
-        assertEquals(1, titleHeads.findAll().single { it.project?.id == from.id && it.headKeyword == "A" }.frequency)
+        assertEquals(0, titleHeads.findAll().count { it.project?.id == from.id && it.headKeyword == "A" }, "옛 프로젝트의 A는 0이 되어 지워진다")
         assertEquals(1, titleHeads.findAll().single { it.project?.id == to.id && it.headKeyword == "B" }.frequency)
+    }
+
+    @Test
+    fun `다른 프로젝트로 옮겨도 새 프로젝트의 같은 머리말 개수는 깎이지 않는다 (R-112)`() {
+        val from = project(); val to = project(); val author = user(); val mover = user()
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = mover, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
+        service.create(to, author, input("[A] 새 프로젝트의 글"))
+        val issue = service.create(from, author, input("[A] 옮길 글"))
+        service.update(issue, mover, edit("[A] 옮긴 글"), target = to)
+        assertEquals(0, titleHeads.findAll().count { it.project?.id == from.id && it.headKeyword == "A" })
+        assertEquals(2, titleHeads.findAll().single { it.project?.id == to.id && it.headKeyword == "A" }.frequency)
     }
 
     @Test

@@ -1195,3 +1195,7 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 |---|---|---|
 | H2 전체(`cleanTest test`) | 1건 실패: `ProjectDeletionServiceTest`가 프로젝트 로고를 남기는 v1.6 동작을 고정하고 있어 R-18에 맞게 고쳤다. 그 클래스를 다시 돌려 통과 | 11분 50초 |
 | PostgreSQL 관련 19개 클래스 | 359건 통과, 실패 0 | 55초 |
+
+## 2026-11-05 조직 이름 대소문자 개명과 제목 머리말 개수 (R-19-2, R-112, A-356)
+
+시험을 먼저 바꿔 3건의 실패를 확인한 뒤 고쳤다. H2의 `web.organization.*`, `domain.issue.*`, `web.issue.*`, `ExternalOrganization*`가 통과했고(54초) PostgreSQL의 `IssueServiceTest`, `OrganizationSettingTest`, `ExternalOrganization*`가 통과했다(28초).

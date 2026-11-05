@@ -170,10 +170,13 @@ class OrganizationManagementService(
 
     // --- 설정 ---
 
-    /** 이름을 바꿀 수 없는 이유이다. 바꾸지 않으면(대소문자까지 같으면) 검사하지 않는다. 사용자 로그인 ID나 다른 조직과 겹치면 중복이다. */
+    /**
+     * 이름을 바꿀 수 없는 이유이다. 자기 조직의 이름과 대소문자만 다르면(같은 이름 포함) 중복이 아니다. 사용자 로그인 ID나 다른 조직과 겹치면 중복이다.
+     * v1.6은 바뀐 이름인지는 대소문자를 구별하고 중복은 무시해, 대소문자만 바꾸면 자기 자신과 겹친다며 거부했다(R-19-2).
+     */
     @Transactional(readOnly = true)
     fun isDuplicateName(organization: Organization, newName: String): Boolean {
-        if (organization.name == newName) return false
+        if (organization.name.equals(newName, ignoreCase = true)) return false
         return users.existsByLoginIdIgnoreCase(newName) || organizations.existsByNameIgnoreCase(newName)
     }
 

@@ -234,10 +234,18 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `대소문자만 바꾸는 이름 변경은 거부된다 (v1 6 결함 재현)`() {
-        // 이름이 바뀌었는지는 대소문자까지 구별해 보고, 중복은 대소문자를 무시해 확인하므로 자기 자신과 겹친다 (R-19).
+    fun `대소문자만 바꾸는 이름 변경은 허용한다 (R-19-2, v1_6은 자기 자신과 겹친다고 거부했다)`() {
+        // 이름이 바뀌었는지는 대소문자까지 구별해 보고, 중복 검사에서는 자기 조직을 제외한다.
         val org = newOrg()
-        assertEquals(400, save(org, login(admin(org)), "name" to org.name!!.uppercase(), "descr" to "x").response.status)
+        val upper = org.name!!.uppercase()
+        assertEquals(303, save(org, login(admin(org)), "name" to upper, "descr" to "x").response.status)
+        assertEquals(upper, reload(org).name)
+    }
+
+    @Test
+    fun `대소문자만 다른 다른 조직의 이름으로는 바꿀 수 없다 (R-19-2)`() {
+        val org = newOrg(); val other = newOrg()
+        assertEquals(400, save(org, login(admin(org)), "name" to other.name!!.uppercase(), "descr" to "x").response.status)
     }
 
     @Test

@@ -305,9 +305,10 @@ class IssueService(
         if (moved && previousProject.isPrivate() && previousProject.owner.equals(actor.loginId, ignoreCase = true)) issue.history = ""
         issues.save(issue)
 
-        // v1.6 `editPosting`: 새 제목을 먼저 더하고 옛 제목을 나중에 뺀다. 빼는 쪽의 프로젝트는 이미 바뀐 `original.project`(옮겼다면 새 프로젝트)이다
+        // 새 제목을 먼저 더하고 옛 제목을 나중에 뺀다. v1.6 `editPosting`은 빼는 쪽 프로젝트도 이미 바뀐 새 프로젝트로 보아, 옮기면 옛 프로젝트의
+        // 개수는 줄지 않고 새 프로젝트의 개수가 깎였다. 옛 제목은 원래 있던 프로젝트에서 뺀다(R-112)
         titleHeads.save(project, issue.title)
-        titleHeads.delete(project, oldTitle)
+        titleHeads.delete(previousProject, oldTitle)
         mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), issue.body)
 
         recordChanges(issue, actor, edit, moved, previousProject, oldState, oldAssignee, oldBody, fromWatchers)
