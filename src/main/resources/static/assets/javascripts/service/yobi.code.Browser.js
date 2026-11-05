@@ -128,13 +128,31 @@
             }
         }
 
+        /**
+         * 주소 해시에서 폴더 경로를 읽는다. 폴더 링크에 붙는 `#cb-<경로>` 앵커는 접두어 `cb-`를 벗겨 경로로 읽는다.
+         * 다만 `cb-`로 시작하는 폴더가 화면에 실제로 있으면 접두어가 아니라 폴더 이름이다.
+         *
+         * @return {String} 폴더 경로. 해시가 없으면 빈 문자열
+         */
+        function _getHashPath(){
+            var sHash = document.location.hash.substr(1);
+
+            if(sHash.indexOf("cb-") === 0 && $('[data-targetpath="' + sHash + '"]').length === 0){
+                return sHash.substr(3);
+            }
+
+            return sHash;
+        }
+
         function _onHashChange(){
             if(document.location.hash.length < 1){
                 return false;
             }
 
-            var sTargetPath = document.location.hash.substr(1);
+            var sHash = document.location.hash.substr(1);
+            var sTargetPath = _getHashPath();
             var welList = $('[data-listpath="' + sTargetPath + '"]');
+            var bAnchor = (sTargetPath !== sHash);
 
             var sCheckPath = "";
             htVar.aPathQueue = [];
@@ -147,7 +165,10 @@
             _updateBreadcrumbs(htVar.aPathQueue);
 
             if(welList.length > 0){
-                welList.toggle();
+                // 앵커로 들어왔을 때 이미 그려진 목록은 접지 않는다
+                if(!bAnchor){
+                    welList.toggle();
+                }
                 _setCurrentPathBold(sTargetPath);
             } else {
                 _requestFolderList();
@@ -524,7 +545,7 @@
             htElement.welBreadCrumbs.html(breadcrumb);
 
             var $newFileLink = $("#new-file-link");
-            var path = window.location.hash.substr(1);
+            var path = _getHashPath();
 
             // 'New File' Button supports only git repositories.
             if ($newFileLink[0]) {
