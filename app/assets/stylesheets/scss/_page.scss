@@ -2540,6 +2540,8 @@ label.inline-list {
 
     .project-clone-wrap {
         position: relative;
+        /* 입력란과 복사 단추는 이 상자의 오른쪽 끝을 기준으로 절대 위치에 놓인다. BS5의 `.row`는 거터의 절반(10px)만큼 바깥으로 나가므로 그만큼 되돌린다 */
+        right:10px;
         padding:5px 0;
         @include border-radius(6px);
 
@@ -4438,7 +4440,8 @@ label.issue-item-row {
     position:relative;
 
     /* 브랜치 선택 상자: select2가 폭을 숨은 select에서 읽어 좁게 잡으면 이름이 잘리므로 고정 폭을 준다 */
-    > .select2-container.float-end, > .select2-container.float-start { width:220px !important; }
+    > .select2-container.float-end, > .select2-container.float-start,
+    .code-browse-header > .select2-container.float-end, .code-browse-header > .select2-container.float-start { width:220px !important; }
 
     .code-browse-header {
       margin-top:10px;
@@ -4629,7 +4632,8 @@ label.issue-item-row {
     }
 
     /** list **/
-    .row   { line-height:2.5rem; }
+    /* v1.6의 `row-fluid`는 바깥 여백이 없다. BS5의 `.row`는 거터의 절반만큼 바깥으로 나가 부모의 `overflow`에 잘리므로 목록 줄은 거터를 없앤다 */
+    .row   { line-height:2.5rem; --bs-gutter-x:0; }
     .currentPath { font-weight:bold; background:#f7f7f7; }
     .listhead {
         background:#f7f7f7;
