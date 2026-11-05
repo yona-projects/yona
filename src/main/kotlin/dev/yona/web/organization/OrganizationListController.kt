@@ -10,6 +10,7 @@ import dev.yona.domain.pullrequest.PullRequestCategory
 import dev.yona.domain.pullrequest.PullRequestSearchCondition
 import dev.yona.domain.pullrequest.PullRequestSearchService
 import dev.yona.security.CurrentUserProvider
+import dev.yona.web.AjaxRequests
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.issue.IssueConditionBinder
@@ -58,7 +59,9 @@ class OrganizationListController(
         val targets = selected(visible, names)
         val ids = targets.map { requireNotNull(it.id) }
         val page = issueSearch.searchIn(ids, condition, viewer, itemsPerPage)
-        return ModelAndView("organization/issue-list")
+        // v1.6은 PJAX 요청에도 전체 화면을 돌려주었다(R-64-4). PJAX 요청은 목록 조각만 돌려준다
+        val view = if (AjaxRequests.isXhr(request) && AjaxRequests.isPjax(request)) "organization/issue-list :: listWrap" else "organization/issue-list"
+        return ModelAndView(view)
             .addObject("title", "title.issueList")
             .addObject("orgView", orgViews.of(organization))
             .addObject("cond", condition)

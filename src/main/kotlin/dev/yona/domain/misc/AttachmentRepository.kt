@@ -25,6 +25,6 @@ interface AttachmentRepository : JpaRepository<Attachment, Long> {
      * 사용자가 올린 첨부를 최근 순으로 쪽 단위로 조회한다 (v1.6 `Attachment.findByUser`).
      * [filter]가 비어 있지 않으면 이름에 대소문자 구분 없이 포함된 것만 조회한다.
      */
-    @Query("select a from Attachment a where a.ownerLoginId = :loginId and (:filter = '' or lower(a.name) like lower(concat('%', :filter, '%')) escape '\\') order by a.createdDate desc, a.id desc")
+    @Query("select a from Attachment a where a.ownerLoginId = :loginId and (:filter = '' or lower(a.name) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#filter)}, '%')) escape '\\') order by a.createdDate desc, a.id desc")
     fun findByUser(loginId: String, filter: String, pageable: Pageable): Page<Attachment>
 }

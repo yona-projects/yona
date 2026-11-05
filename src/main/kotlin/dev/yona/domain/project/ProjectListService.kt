@@ -57,7 +57,7 @@ class ProjectListService(
             val predicates = mutableListOf<Predicate>()
 
             if ((query != null && LegacyText.isNotBlank(query))) {
-                val pattern = "%${query.lowercase()}%"
+                val pattern = dev.yona.util.LikeEscape.contains(query)
                 val labelJoin = root.join<Project, dev.yona.domain.issue.Label>("labels", JoinType.LEFT)
                 predicates += cb.or(
                     cb.like(cb.lower(root.get("owner")), pattern, '\\'),

@@ -115,7 +115,7 @@ enum class PullRequestReviewAction {
 enum class PullRequestCommitState { PRIOR, CURRENT }
 
 /** `property` 테이블의 키 목록이다. */
-enum class PropertyName { MAILBOX_LAST_SEEN_UID, MAILBOX_LAST_UID_VALIDITY }
+enum class PropertyName { MAILBOX_LAST_SEEN_UID, MAILBOX_LAST_UID_VALIDITY, UPDATE_NOTICE_OFF }
 
 /**
  * 리소스에 대해 수행하는 연산의 종류이다. 권한 검사의 입력이다 (v1.6 `models.enumeration.Operation`).

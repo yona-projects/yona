@@ -19,7 +19,7 @@ interface UserRepository : JpaRepository<User, Long> {
      */
     @Query(
         "select u from User u where u.state <> dev.yona.domain.enumeration.UserState.DELETED and " +
-            "(lower(u.loginId) like lower(concat('%', :query, '%')) escape '\\' or lower(u.name) like lower(concat('%', :query, '%')) escape '\\') order by u.id"
+            "(lower(u.loginId) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#query)}, '%')) escape '\\' or lower(u.name) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#query)}, '%')) escape '\\') order by u.id"
     )
     fun search(query: String, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<User>
 

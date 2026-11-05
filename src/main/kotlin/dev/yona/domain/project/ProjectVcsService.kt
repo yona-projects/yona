@@ -4,14 +4,15 @@ import dev.yona.domain.board.PostingRepository
 import dev.yona.repository.ProjectReadmeService
 import dev.yona.repository.RepositoryService
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * 프로젝트의 저장소 종류를 바꾼다. v1.6 `ProjectApp.changeVCS`와 `Project.changeVCS`에 해당한다.
  *
- * 순서: README 게시글 표시를 끄고(저장소에 README가 있을 때) -> 포크의 원본 연결을 끊고 -> 기존 저장소를 지우고 -> 종류를
- * 바꿔 새 저장소를 만든다. v1.6 `changeVCS`는 트랜잭션이 없어 저장 즉시 반영되므로, 중간에 실패해도 이미 저장한 README 표시 해제와
- * 포크 분리는 그대로 남고 지운 저장소 디렉터리도 돌아오지 않는다([refactoring-backlog.md] R-74). 그래서 이 서비스에는 일부러 트랜잭션을 걸지 않는다.
- * 저장소 종류는 새 저장소를 만든 뒤에야 저장한다.
+ * 순서: README 게시글 표시를 끄고(저장소에 README가 있을 때) -> 포크의 원본 연결을 끊고 -> 새 종류의 저장소를 만들고 -> 종류를 저장하고 -> 기존
+ * 저장소를 지운다. v1.6 `changeVCS`는 트랜잭션이 없고 기존 저장소를 먼저 지워서, 새 저장소 생성이 실패하면 저장한 README 표시 해제와 포크 분리가 남고
+ * 기존 저장소도 돌아오지 않았다([refactoring-backlog.md] R-74). 지금은 변경을 트랜잭션으로 묶어 DB 변경이 함께 되돌아가고, 되돌릴 수 없는 저장소 삭제를
+ * 마지막으로 미뤄 새 저장소 생성이 실패해도 기존 저장소가 남는다. 저장소 종류별 경로가 달라 새 저장소를 먼저 만들 수 있다.
  */
 @Service
 class ProjectVcsService(
@@ -24,6 +25,7 @@ class ProjectVcsService(
 ) {
 
     /** [project]의 저장소 종류를 다음 종류로 바꾼다. */
+    @Transactional
     fun change(project: Project) {
         val projectId = requireNotNull(project.id)
         if (readme.read(project) != null) {
@@ -36,7 +38,6 @@ class ProjectVcsService(
         }
 
         val previous = project.vcs
-        repositories.deleteRepository(project)
         project.vcs = project.nextVcs()
         try {
             repositories.createRepository(project)
@@ -44,6 +45,18 @@ class ProjectVcsService(
             project.vcs = previous
             throw e
         }
+        val next = project.vcs
+        // 기존 저장소는 이전 종류로 찾아 지운다. 지우지 못하면 새로 만든 저장소도 되돌려 예외를 던진다(트랜잭션이 DB를 되돌린다)
+        project.vcs = previous
+        try {
+            repositories.deleteRepository(project)
+        } catch (e: Exception) {
+            project.vcs = next
+            runCatching { repositories.deleteRepository(project) }
+            project.vcs = previous
+            throw e
+        }
+        project.vcs = next
         projects.save(project)
         audit.record(dev.yona.domain.audit.auditProject("project.vcs_changed", project, mapOf("from" to previous, "to" to project.vcs)))
     }

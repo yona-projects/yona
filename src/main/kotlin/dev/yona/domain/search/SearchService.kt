@@ -143,7 +143,7 @@ class SearchService(
     /** 질의의 조건절과 매개변수를 만든다. */
     private inner class Query(private val type: SearchType, private val scope: SearchScope, keyword: String, private val viewer: User?) {
         val spec = spec(type)
-        private val params = linkedMapOf<String, Any?>("kw" to "%" + keyword.lowercase() + "%")
+        private val params = linkedMapOf<String, Any?>("kw" to dev.yona.util.LikeEscape.contains(keyword))
         private val where: String = build()
 
         fun where(): String = "where $where"

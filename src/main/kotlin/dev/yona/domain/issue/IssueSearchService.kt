@@ -218,7 +218,7 @@ class IssueSearchService(private val entityManager: EntityManager) {
             if (condition.filter.isNotBlank()) {
                 clauses += "(lower(i.title) like :filter escape '\\' or lower(cast(i.body as string)) like :filter escape '\\' or exists " +
                     "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '\\'))"
-                params["filter"] = "%" + condition.filter.lowercase() + "%"
+                params["filter"] = dev.yona.util.LikeEscape.contains(condition.filter)
             }
             // 작성자와 담당자는 요청한 사용자 번호로 거른다. v1.6은 프로젝트를 가리지 않는 검색에서 값을 무시하고 현재 사용자를 썼다(C047)
             condition.authorId?.let {

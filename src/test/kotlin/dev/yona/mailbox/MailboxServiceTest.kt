@@ -162,6 +162,44 @@ class MailboxServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `서버에 연결하지 못하면 일정 간격으로 다시 시도해 서버가 살아나면 시작한다 (R-61-8, v1_6은 다시 시도하지 않았다)`() {
+        val port = java.net.ServerSocket(0).use { it.localPort }
+        val retrying = MailboxService(
+            dev.yona.config.YonaProperties(
+                backgroundAsync = false, mailboxPollingInterval = java.time.Duration.ofMillis(200),
+                imap = dev.yona.config.YonaProperties.Imap(use = true, host = "127.0.0.1", user = "late@mail.test", password = "pw", port = port, ssl = false)
+            ),
+            properties, handler, users
+        )
+        retrying.start()
+        assertFalse(retrying.running, "서버가 없으면 처음에는 시작하지 못한다")
+        val late = GreenMail(ServerSetup(port, "127.0.0.1", "imap")).also { it.setUser("late@mail.test", "late@mail.test", "pw"); it.start() }
+        try {
+            val deadline = System.currentTimeMillis() + 15_000
+            while (!retrying.running && System.currentTimeMillis() < deadline) Thread.sleep(100)
+            assertTrue(retrying.running, "서버가 살아난 뒤 다시 시도해 시작해야 한다")
+        } finally {
+            retrying.stop(); late.stop()
+        }
+    }
+
+    @Test
+    fun `설정이 틀려 인증에 실패하면 다시 시도하지 않는다 (R-61-8)`() {
+        val wrong = MailboxService(
+            dev.yona.config.YonaProperties(
+                backgroundAsync = false, mailboxPollingInterval = java.time.Duration.ofMillis(100),
+                imap = dev.yona.config.YonaProperties.Imap(use = true, host = "127.0.0.1", user = "yona@mail.test", password = "wrong", port = greenMail.imap.port, ssl = false)
+            ),
+            properties, handler, users
+        )
+        wrong.start()
+        Thread.sleep(600)
+        assertFalse(wrong.running)
+        assertEquals(0, wrong.pendingRetries, "계정이 잠기지 않도록 인증 실패는 다시 시도하지 않는다")
+        wrong.stop()
+    }
+
+    @Test
     fun `처음 시작하면 UID 유효값만 기록하고 이미 있던 메일은 처리하지 않는다`() {
         deliver("old1", "예전 메일")
         mailbox.start()

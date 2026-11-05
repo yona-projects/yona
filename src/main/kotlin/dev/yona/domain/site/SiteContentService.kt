@@ -27,7 +27,7 @@ class SiteContentService(private val entityManager: EntityManager) {
         if (name.isBlank()) page("from Project p order by p.createdDate desc, p.id desc", "select count(p) from Project p", emptyMap(), PROJECT_PAGE_SIZE, pageIndex, Project::class.java)
         else page(
             "from Project p where lower(p.name) like :name escape '\\' order by p.id", "select count(p) from Project p where lower(p.name) like :name escape '\\'",
-            mapOf("name" to "%" + name.lowercase() + "%"), PROJECT_PAGE_SIZE, pageIndex, Project::class.java
+            mapOf("name" to dev.yona.util.LikeEscape.contains(name)), PROJECT_PAGE_SIZE, pageIndex, Project::class.java
         )
 
     /** 게시글을 만든 최근 순으로 한 쪽(30개) 찾는다. 공지와 비공개 프로젝트의 글도 담는다. */

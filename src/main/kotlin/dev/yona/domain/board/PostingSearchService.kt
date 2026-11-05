@@ -45,7 +45,7 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val params = linkedMapOf<String, Any>("project" to requireNotNull(project.id))
         if (condition.filter.isNotEmpty()) {
             where.append(" and (lower(p.title) like :filter escape '\\' or lower(cast(p.body as string)) like :filter escape '\\')")
-            params["filter"] = "%" + condition.filter.lowercase() + "%"
+            params["filter"] = dev.yona.util.LikeEscape.contains(condition.filter)
         }
         if (condition.labelIds.isNotEmpty()) {
             where.append(" and p.id in (select p2.id from Posting p2 join p2.labels l where l.id in :labelIds)")
@@ -73,7 +73,7 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val params = linkedMapOf<String, Any>("projects" to projectIds)
         if (condition.filter.isNotEmpty()) {
             where.append(" and (lower(p.title) like :filter escape '\\' or lower(cast(p.body as string)) like :filter escape '\\')")
-            params["filter"] = "%" + condition.filter.lowercase() + "%"
+            params["filter"] = dev.yona.util.LikeEscape.contains(condition.filter)
         }
         val field = if (condition.effectiveOrderBy in ORDERABLE) condition.effectiveOrderBy else "createdDate"
         val direction = if (condition.orderDir.equals("asc", ignoreCase = true)) "asc" else "desc"

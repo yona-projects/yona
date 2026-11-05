@@ -25,9 +25,13 @@ class MediaTypesTest {
     }
 
     @Test
-    fun `비ASCII 비율이 높은 UTF-8 텍스트는 octet-stream이다 (v1_6 결함)`() {
-        assertEquals("application/octet-stream", MediaTypes.detect(korean, "a.md"))
-        assertEquals("application/octet-stream", MediaTypes.detect(korean, null))
+    fun `비ASCII 비율이 높아도 UTF-8로 읽히는 텍스트는 text-plain이고 UTF-8이 아닌 바이트는 octet-stream이다 (R-92, v1_6은 octet-stream이었다)`() {
+        assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(korean, "a.md"))
+        assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(korean, null))
+        // 중간에 잘린 한글 한 글자(UTF-8 3바이트 중 앞 2바이트)로 끝나도 텍스트이다
+        assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(korean + "한".toByteArray().copyOf(2), null))
+        // UTF-8이 아닌 바이트(제어 문자가 섞인 비텍스트)는 텍스트로 보지 않는다
+        assertEquals("application/octet-stream", MediaTypes.detect(byteArrayOf(0xB0.toByte(), 0xA1.toByte(), 0x01, 0x02, 0x03, 0x04, 0xFE.toByte(), 0xFF.toByte()) + ByteArray(200) { 0x03 }, null))
         assertEquals("text/plain; charset=UTF-8", MediaTypes.detect(("hello world and some plain english text goes here and there and everywhere " + "한글").toByteArray(), null))
     }
 

@@ -318,13 +318,13 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색어의 밑줄과 퍼센트는 like의 와일드카드로 동작한다 (v1_6은 이스케이프하지 않는다)`() {
-        val a = newOrg("wxa-team"); val b = newOrg("wyb-team")
-        val names = page("/orgs?filter=w_a-", login(newUser())).select("li.project .header a.black").map { it.text() }
-        assertEquals(listOf(a.name), names)
+    fun `검색어의 밑줄과 퍼센트는 글자 그대로 찾는다 (R-96, v1_6은 이스케이프하지 않아 와일드카드였다)`() {
+        val a = newOrg("wxa-team"); val b = newOrg("w_b-team")
+        val names = page("/orgs?filter=w_b-", login(newUser())).select("li.project .header a.black").map { it.text() }
+        assertEquals(listOf(b.name), names, "밑줄은 한 글자 와일드카드가 아니라 밑줄 자체이다")
         val all = Jsoup.parse(mockMvc.perform(get("/orgs").param("filter", "w%-team").session(login(newUser()))).andExpect(status().isOk).andReturn().response.contentAsString)
             .select("li.project .header a.black").map { it.text() }
-        assertEquals(setOf(a.name, b.name), all.toSet())
+        assertEquals(emptyList(), all, "퍼센트도 글자 그대로라 w%-team이라는 이름만 맞는다 ($a)")
     }
 
     @Test

@@ -98,7 +98,7 @@ class ReviewSearchService(private val entityManager: EntityManager) {
                 clauses += "(exists (select 1 from ReviewComment fc where fc.thread.id = t.id and lower(cast(fc.contents as string)) like :filter escape '\\')" +
                     " or t.id in (select x.id from CodeCommentThread x where lower(x.commitId) like :filter escape '\\' or lower(x.path) like :filter escape '\\')" +
                     " or t.id in (select y.id from NonRangedCodeCommentThread y where lower(y.commitId) like :filter escape '\\' or lower(y.path) like :filter escape '\\'))"
-                params["filter"] = "%" + condition.filter.lowercase() + "%"
+                params["filter"] = dev.yona.util.LikeEscape.contains(condition.filter)
             }
         }
 

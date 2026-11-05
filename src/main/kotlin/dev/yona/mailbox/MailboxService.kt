@@ -31,7 +31,9 @@ import java.util.concurrent.TimeUnit
  * 않으면 `yona.mailbox-polling-interval`(기본 5분)마다 가져온다. 처리한 메일의 UID가 지금까지의 마지막 UID보다 크면 속성
  * `MAILBOX_LAST_SEEN_UID`로 기록한다.
  *
- * 폴더를 열지 못하면 경고만 남기고 다시 시도하지 않는다(v1.6과 같다). 수신 대기 스레드가 죽으면 진단 화면이 알린다.
+ * 폴더를 열지 못하면 로그를 남기고, 서버에 연결하지 못한 경우(일시 장애일 수 있다)에는 `yona.mailbox-polling-interval`(기본 5분)마다 최대 [MAX_START_RETRIES]번
+ * 다시 시도한다. v1.6은 다시 시도하지 않아 서버를 다시 시작할 때까지 수신이 멈췄다(R-61-8). 설정이 비었거나 인증에 실패한 경우는 설정 오류이거나 계정이
+ * 잠길 수 있어 다시 시도하지 않는다. 수신 대기 스레드가 죽으면 진단 화면이 알린다.
  */
 @Service
 class MailboxService(
@@ -52,6 +54,11 @@ class MailboxService(
     @Volatile private var stopping = false
 
     @Volatile private var started = false
+    @Volatile private var retry: ScheduledExecutorService? = null
+    @Volatile private var retries = 0
+
+    /** 시작을 다시 시도할 남은 횟수이다. 시험에서 다시 시도하는지 확인하는 데 쓴다. */
+    val pendingRetries: Int get() = if (retry == null) 0 else MAX_START_RETRIES - retries
 
     /** 시작에 성공했으면 `true`이다. 한 번 시작하면 멈춰도 유지한다(진단은 멈춘 뒤에도 알려야 한다). */
     val running: Boolean get() = started
@@ -92,11 +99,32 @@ class MailboxService(
             folder = openFolder(connect())
         } catch (e: Exception) {
             log.error("Failed to open IMAP folder", e)
+            if (isTransient(e)) scheduleRetry()
             return
         }
+        retry?.shutdownNow()
+        retry = null
         val begin = { handleNewMessagesAndListen() }
         if (properties.backgroundAsync) Executors.newSingleThreadExecutor { Thread(it, "mailbox-start").apply { isDaemon = true } }.also { it.execute(begin); it.shutdown() } else begin()
         started = true
+        retries = 0
+    }
+
+    /** 서버에 닿지 못한 일시 장애이면 `true`이다. 인증 실패와 설정 오류는 다시 시도해도 같으므로 아니다. */
+    private fun isTransient(e: Exception): Boolean =
+        e is MessagingException && e !is jakarta.mail.AuthenticationFailedException && e !is jakarta.mail.NoSuchProviderException
+
+    /** 설정한 간격 뒤에 [start]를 다시 시도한다. 최대 [MAX_START_RETRIES]번이다. */
+    private fun scheduleRetry() {
+        if (stopping) return
+        if (retries >= MAX_START_RETRIES) {
+            log.error("Giving up starting the mailbox service after {} retries", retries)
+            return
+        }
+        retries++
+        val executor = retry ?: Executors.newSingleThreadScheduledExecutor { Thread(it, "mailbox-start-retry").apply { isDaemon = true } }.also { retry = it }
+        log.warn("Retrying to start the mailbox service in {} ({}/{})", properties.mailboxPollingInterval, retries, MAX_START_RETRIES)
+        executor.schedule({ start() }, properties.mailboxPollingInterval.toMillis(), TimeUnit.MILLISECONDS)
     }
 
     private fun handleNewMessagesAndListen() {
@@ -225,8 +253,9 @@ class MailboxService(
     /** 수신을 멈추고 폴더와 연결을 닫는다. 시작하지 않았으면 아무것도 하지 않는다. */
     @PreDestroy
     fun stop() {
-        if (folder == null && store == null && polling == null) return
         stopping = true
+        retry?.shutdownNow()
+        if (folder == null && store == null && polling == null) return
         // 이미 닫힌 폴더를 닫으면 IllegalStateException이다. 폴더와 연결을 따로 닫아 하나가 실패해도 나머지를 닫는다.
         try {
             folder?.close(true)
@@ -255,5 +284,10 @@ class MailboxService(
             !thread.isAlive -> listOf("The Email Receiver is not running")
             else -> emptyList()
         }
+    }
+
+    companion object {
+        /** 서버에 연결하지 못했을 때 시작을 다시 시도하는 최대 횟수이다(기본 간격 5분이면 한 시간). */
+        const val MAX_START_RETRIES = 12
     }
 }

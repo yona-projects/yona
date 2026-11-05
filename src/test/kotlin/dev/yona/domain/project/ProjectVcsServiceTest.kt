@@ -1,6 +1,5 @@
 package dev.yona.domain.project
 
-import dev.yona.domain.board.Posting
 import dev.yona.domain.board.PostingRepository
 import dev.yona.repository.ProjectReadmeService
 import dev.yona.repository.RepositoryService
@@ -13,13 +12,14 @@ import org.mockito.Mockito.`when`
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 
 /**
- * 저장소 종류 변경이 실패했을 때의 중간 상태를 검증한다. 원본: `app/controllers/ProjectApp.java:721-740`, `app/models/Project.java:658-670`.
+ * 저장소 종류 변경이 실패했을 때를 검증한다. 원본: `app/controllers/ProjectApp.java:721-740`, `app/models/Project.java:658-670`.
  *
- * v1.6 `changeVCS`는 트랜잭션이 없어 README 표시 해제와 포크 연결 끊기가 저장 즉시 반영되고, 저장소 생성이 실패해도 되돌아가지 않는다
- * ([refactoring-backlog.md] R-74). 서비스에 트랜잭션이 걸려 있지 않아야 이 중간 상태가 재현된다.
+ * v1.6 `changeVCS`는 트랜잭션이 없어 README 표시 해제와 포크 연결 끊기가 저장 즉시 반영되고, 기존 저장소를 먼저 지운 뒤 새 저장소를 만들다 실패하면
+ * 저장소만 지워진 중간 상태로 남았다([refactoring-backlog.md] R-74). 지금은 변경을 트랜잭션으로 묶고 새 저장소를 먼저 만든 뒤 기존 저장소를 지운다.
+ * 새 저장소 생성이 실패하면 기존 저장소는 그대로이고 DB 변경은 되돌아간다(여기서는 트랜잭션이 걸려 있는지와 호출 순서를 확인한다).
  */
 class ProjectVcsServiceTest {
 
@@ -31,27 +31,37 @@ class ProjectVcsServiceTest {
     private val service = ProjectVcsService(projects, postings, postingService, readme, repositories, mock(dev.yona.domain.audit.AuditRecorder::class.java))
 
     @Test
-    fun `서비스에는 트랜잭션이 걸려 있지 않다`() {
-        assertNull(ProjectVcsService::class.java.getAnnotation(Transactional::class.java))
-        assertNull(ProjectVcsService::class.java.getMethod("change", Project::class.java).getAnnotation(Transactional::class.java))
+    fun `변경은 트랜잭션으로 묶여 있다 (R-74)`() {
+        assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java).getAnnotation(Transactional::class.java))
     }
 
     @Test
-    fun `저장소 생성이 실패하면 README 해제와 포크 분리는 저장된 채 남고 종류는 저장되지 않는다`() {
+    fun `새 저장소 생성이 실패하면 기존 저장소를 지우지 않고 종류도 되돌린다 (R-74, v1_6은 저장소만 지워졌다)`() {
         val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
-        val fork = Project(id = 2L, owner = "f", name = "p", vcs = "GIT", originalProject = project)
-        val posting = Posting(id = 3L, readme = true)
-        `when`(readme.read(project)).thenReturn("README")
-        `when`(postings.findFirstByProjectIdAndReadmeTrue(1L)).thenReturn(posting)
-        `when`(projects.findByOriginalProjectId(1L)).thenReturn(listOf(fork))
+        `when`(readme.read(project)).thenReturn(null)
+        `when`(projects.findByOriginalProjectId(1L)).thenReturn(emptyList())
         doThrow(IllegalStateException("create failed")).`when`(repositories).createRepository(project)
 
         assertFailsWith<IllegalStateException> { service.change(project) }
 
-        verify(postingService).unmarkReadmeOnVcsChange(posting)
-        assertNull(fork.originalProject)
-        verify(projects).save(fork)
-        verify(repositories).deleteRepository(project)
+        verify(repositories, never()).deleteRepository(project)
+        assertEquals("GIT", project.vcs)
         verify(projects, never()).save(project)
+    }
+
+    @Test
+    fun `새 저장소를 먼저 만들고 기존 저장소를 지운다 (R-74)`() {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        `when`(readme.read(project)).thenReturn(null)
+        `when`(projects.findByOriginalProjectId(1L)).thenReturn(emptyList())
+        val vcsAtCall = mutableListOf<String>()
+        `when`(repositories.createRepository(project)).thenAnswer { vcsAtCall += "create:" + project.vcs; null }
+        `when`(repositories.deleteRepository(project)).thenAnswer { vcsAtCall += "delete:" + project.vcs; null }
+
+        service.change(project)
+
+        assertEquals(listOf("create:Subversion", "delete:GIT"), vcsAtCall, "새 종류로 만들고, 기존 종류로 지운다")
+        assertEquals("Subversion", project.vcs)
+        verify(projects).save(project)
     }
 }

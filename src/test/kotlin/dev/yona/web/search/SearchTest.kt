@@ -189,11 +189,10 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색어의 역슬래시는 LIKE의 이스케이프 문자로 쓰인다 (v1_6 Ebean은 기본 이스케이프를 그대로 쓴다)`() {
-        // 패턴 `%\%`는 "퍼센트로 끝나는 글"이다. 역슬래시를 글자 그대로 찾는 것이 아니다
+    fun `검색어의 역슬래시는 글자 그대로 찾는다 (R-96, v1_6 Ebean은 LIKE의 이스케이프 문자로 읽혀 퍼센트로 끝나는 글을 찾았다)`() {
         val owner = newUser(); val p = project(owner, "bslash")
         issue(p, "끝이 퍼센트 100%", owner); issue(p, "역슬래시 a\\b", owner)
-        assertEquals(listOf("끝이 퍼센트 100%"), titles(all(null, "issue", "\\")))
+        assertEquals(listOf("역슬래시 a\\b"), titles(all(null, "issue", "\\")))
     }
 
     @Test
@@ -325,13 +324,13 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `키워드의 퍼센트와 밑줄은 와일드카드이다 (v1_6 Ebean icontains는 이스케이프하지 않는다)`() {
+    fun `키워드의 퍼센트와 밑줄은 글자 그대로 찾는다 (R-96, v1_6 Ebean icontains는 와일드카드였다)`() {
         val owner = newUser(); val p = project(owner, "wildcard")
-        issue(p, "wildxcard 제목", owner); issue(p, "wildcard 제목", owner); issue(p, "무관한 제목", owner)
-        // '_'는 한 글자 와일드카드라 wild_card는 wildxcard만 찾고 wildcard는 찾지 않는다
-        assertEquals(setOf("wildxcard 제목"), titles(all(null, "issue", "wild_card")).toSet())
-        // '%'는 임의 길이 와일드카드이다
-        assertEquals(setOf("wildxcard 제목", "wildcard 제목"), titles(all(null, "issue", "wild%card")).toSet())
+        issue(p, "wild_card 제목", owner); issue(p, "wildxcard 제목", owner); issue(p, "wildcard 제목", owner)
+        // '_'는 밑줄 자체라 wild_card는 밑줄이 든 글만 찾는다
+        assertEquals(setOf("wild_card 제목"), titles(all(null, "issue", "wild_card")).toSet())
+        // '%'도 글자 그대로라 wild%card라는 글자가 든 글이 없으면 찾지 않는다
+        assertEquals(emptySet(), titles(all(null, "issue", "wild%card")).toSet())
     }
 
     @Test

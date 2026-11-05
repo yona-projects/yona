@@ -39,7 +39,7 @@ class ApiUserNodes(
             "u.$field = :q"
         }
         return entityManager.createQuery("select u from User u where u.state = :state and $where order by u.id", User::class.java)
-            .setParameter("state", UserState.ACTIVE).setParameter("q", query).resultList
+            .setParameter("state", UserState.ACTIVE).setParameter("q", if (type.isNullOrBlank()) dev.yona.util.LikeEscape.escape(query) else query).resultList
     }
 
     /** 검색 결과 중 이 프로젝트의 담당자나 공유자 후보가 될 수 있는지 본다. 공개 프로젝트는 누구나, 비공개는 구성원(과 조직 구성원)이다. */

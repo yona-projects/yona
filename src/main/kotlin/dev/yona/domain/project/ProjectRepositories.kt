@@ -96,8 +96,8 @@ interface OrganizationRepository : JpaRepository<Organization, Long> {
      * v1.6의 운영 DB(MariaDB)는 `like`가 대소문자를 구별하지 않으므로 같게 대소문자를 무시한다.
      */
     @org.springframework.data.jpa.repository.Query(
-        value = "select o from Organization o where lower(o.name) like lower(concat('%', :name, '%')) escape '\\' or lower(o.descr) like lower(concat('%', :descr, '%')) escape '\\' order by o.id desc",
-        countQuery = "select count(o) from Organization o where lower(o.name) like lower(concat('%', :name, '%')) escape '\\' or lower(o.descr) like lower(concat('%', :descr, '%')) escape '\\'"
+        value = "select o from Organization o where lower(o.name) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#name)}, '%')) escape '\\' or lower(o.descr) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#descr)}, '%')) escape '\\' order by o.id desc",
+        countQuery = "select count(o) from Organization o where lower(o.name) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#name)}, '%')) escape '\\' or lower(o.descr) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#descr)}, '%')) escape '\\'"
     )
     fun findByNameContainingIgnoreCaseOrDescrContainingIgnoreCaseOrderByIdDesc(
         @org.springframework.data.repository.query.Param("name") name: String,
@@ -143,7 +143,7 @@ interface TitleHeadRepository : JpaRepository<TitleHead, Long> {
 
     /** 프로젝트에서 키워드에 [query]가 들어 있는(대소문자 무시) 것을 찾는다 (v1.6 `TitleHead.findByProject`). */
     @org.springframework.data.jpa.repository.Query(
-        "select t from TitleHead t where t.project.id = :projectId and lower(t.headKeyword) like lower(concat('%', :query, '%')) escape '\\' order by t.id"
+        "select t from TitleHead t where t.project.id = :projectId and lower(t.headKeyword) like lower(concat('%', :#{T(dev.yona.util.LikeEscape).escape(#query)}, '%')) escape '\\' order by t.id"
     )
     fun search(projectId: Long, query: String): List<TitleHead>
 }

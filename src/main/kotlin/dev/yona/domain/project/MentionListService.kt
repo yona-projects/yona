@@ -154,7 +154,8 @@ class MentionListService(
                 "or cast(i.number as string) like concat(:query, '%') escape '\\') order by i.createdDate desc, i.id desc"
         }
         val typed = entityManager.createQuery(jpql, Issue::class.java).setParameter("project", projectId)
-        if (query.isNotEmpty()) typed.setParameter("query", query)
+        // 제목은 `LIKE`라 이스케이프하고, 번호 쪽 `LIKE`도 같은 값을 쓴다(R-96)
+        if (query.isNotEmpty()) typed.setParameter("query", dev.yona.util.LikeEscape.escape(query))
         return typed.setMaxResults(limit).resultList
     }
 
@@ -233,7 +234,7 @@ class MentionListService(
                 "lower(u.loginId) like lower(concat('%', :q, '%')) escape '\\' or lower(u.name) like lower(concat('%', :q, '%')) escape '\\' or " +
                 "lower(u.englishName) like lower(concat('%', :q, '%')) escape '\\' or lower(u.email) like lower(concat('%', :q, '%')) escape '\\') " +
                 "order by u.createdDate desc, u.id desc", User::class.java
-        ).setParameter("manager", SITE_MANAGER_ID).setParameter("state", UserState.ACTIVE).setParameter("q", query)
+        ).setParameter("manager", SITE_MANAGER_ID).setParameter("state", UserState.ACTIVE).setParameter("q", dev.yona.util.LikeEscape.escape(query))
             .setMaxResults(USER_COUNT_PER_PAGE).resultList
 
     private companion object {

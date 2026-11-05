@@ -163,11 +163,11 @@ class BoardListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색어의 퍼센트는 와일드카드이다 (v1_6 Ebean icontains)`() {
+    fun `검색어의 퍼센트는 글자 그대로 찾는다 (R-96, v1_6 Ebean icontains는 와일드카드였다)`() {
         val project = newProject()
         post(project, "100% done", 1); post(project, "other", 2)
-        // "%"만 넣으면 모든 글에 맞는다
-        assertEquals(setOf("100% done", "other"), numbers(doc(project, null, "filter" to "%")).toSet())
+        // "%"만 넣으면 퍼센트가 든 글에만 맞는다
+        assertEquals(setOf("100% done"), numbers(doc(project, null, "filter" to "%")).toSet())
     }
 
     @Test

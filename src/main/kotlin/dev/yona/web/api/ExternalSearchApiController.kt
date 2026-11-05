@@ -142,7 +142,7 @@ class ExternalSearchApiController(
         val denied = orgPolicy.deniedOrganizationIds()
         if (denied.isNotEmpty()) where.append(" and not (coalesce(pr.toProject.organization.id, -1L) in :deniedOrganizations and pr.toProject.projectScope <> :deniedPublicScope)")
         fun <T> query(jpql: String, type: Class<T>) = entityManager.createQuery(jpql, type).also { q ->
-            q.setParameter("kw", "%" + keyword.lowercase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
+            q.setParameter("kw", dev.yona.util.LikeEscape.contains(keyword))
             if (states.isNotEmpty()) q.setParameter("states", states)
             if (visibleProjects != null) q.setParameter("projects", visibleProjects.ifEmpty { listOf(-1L) })
             if (denied.isNotEmpty()) { q.setParameter("deniedOrganizations", denied); q.setParameter("deniedPublicScope", ProjectScope.PUBLIC) }

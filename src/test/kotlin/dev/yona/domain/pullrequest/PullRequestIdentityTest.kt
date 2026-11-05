@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
  * 시스템이 만드는 병합 커밋의 작성자 메일 주소를 검증한다.
  *
  * 원본: `app/models/Config.java`의 `getSystemEmailAddress`. SMTP 주소가 없으면 `new SiteAdmin().admin`의 메일을 쓰려 하지만
- * 방금 만든 빈 객체의 `admin`은 항상 `null`이어서 언제나 `yona@yona.io`이다.
+ * 방금 만든 빈 객체의 `admin`은 항상 `null`이어서 v1.6은 언제나 `yona@yona.io`였다(R-89). 지금은 SMTP 주소가 없으면 기본 관리자(`admin`)의 메일을 쓴다.
  */
 @Transactional
 class PullRequestIdentityTest : AbstractIntegrationTest() {
@@ -27,9 +27,19 @@ class PullRequestIdentityTest : AbstractIntegrationTest() {
     @MockitoSpyBean private lateinit var mailSender: NotificationMailSender
 
     @Test
-    fun `SMTP 주소가 없으면 사이트 관리자의 메일이 있어도 yona@yona_io이다`() {
-        // 초기 데이터의 사이트 관리자(admin, project.yona@gmail.com)가 있어도 쓰지 않는다
-        assertTrue(siteAdmins.existsByAdminId(requireNotNull(users.findByLoginId("admin")?.id)))
+    fun `SMTP 주소가 없으면 기본 관리자의 메일을 쓴다 (R-89, v1_6은 언제나 yona@yona_io였다)`() {
+        val admin = requireNotNull(users.findByLoginId("admin"))
+        assertTrue(siteAdmins.existsByAdminId(requireNotNull(admin.id)))
+        Mockito.doReturn(null).`when`(mailSender).fromAddress()
+        assertEquals(admin.email, identity.system().emailAddress)
+        assertEquals("project.yona@gmail.com", identity.system().emailAddress)
+    }
+
+    @Test
+    fun `기본 관리자의 메일이 비어 있으면 yona@yona_io이다 (R-89)`() {
+        val admin = requireNotNull(users.findByLoginId("admin"))
+        admin.email = ""
+        users.save(admin)
         Mockito.doReturn(null).`when`(mailSender).fromAddress()
         assertEquals("yona@yona.io", identity.system().emailAddress)
     }

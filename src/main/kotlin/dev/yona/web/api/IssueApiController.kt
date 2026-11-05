@@ -169,7 +169,7 @@ class IssueApiController(
         val foundUsers = nodesOf.search(query, type)
         val foundProjects = entityManager.createQuery(
             "select p from Project p where p.projectScope = :scope and lower(p.name) like lower(concat('%', :q, '%')) escape '\\' order by p.id", Project::class.java
-        ).setParameter("scope", ProjectScope.PUBLIC).setParameter("q", query).resultList
+        ).setParameter("scope", ProjectScope.PUBLIC).setParameter("q", dev.yona.util.LikeEscape.escape(query)).resultList
         val total = foundUsers.size + foundProjects.size
         val limit = if (total > ApiUserNodes.MAX_FETCH_USERS) ApiUserNodes.MAX_FETCH_USERS / 2 else Int.MAX_VALUE
         val nodes = mutableListOf<Map<String, Any?>>()

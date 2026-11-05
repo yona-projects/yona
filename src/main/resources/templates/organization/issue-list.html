@@ -15,6 +15,7 @@
 <th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
     <div class="page-wrap">
+<th:block th:fragment="listWrap" th:with="org=${orgView}">
         <div pjax-container class="row issue-list-wrap">
             <div class="left-menu col-lg-2 span-hard-wrap">
                 <div class="inner advanced">
@@ -139,6 +140,7 @@
                 </div>
             </div>
         </div>
+</th:block>
     </div>
 </div>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>
