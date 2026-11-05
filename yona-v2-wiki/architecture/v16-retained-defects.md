@@ -19,7 +19,7 @@ updated: 2026-11-04
 >
 > **R-46-2 결함 아님 (2026-11-05)**: 선생님이 외부 저장소 가져오기로 만든 프로젝트가 구독과 방문 기록을 남기지 않는 것은 자연스러운 동작이라고 결정하셔서 `결함 아님`으로 바꿨다(A-358).
 >
-> **다음 10건 중 5건 수용 (2026-11-05)**: 선생님이 R-42-4, R-45-2, R-45-4, R-48-1을 권장 수용, R-51-4를 "해당 페이지 제거"로 결정하셔서 고쳤다(`해결됨(2026-11-05 다음 10건 중 5건)`). R-41은 아직 결정이 없어 고치지 않았다. R-43-4는 이어서 권장 수용하셔서 고쳤다(A-360). R-43-2와 R-50-7은 설명을 들으신 뒤 권장 수용하셔서 이어서 고쳤고(A-359), R-46-2는 결함 아님으로 분류했다(A-358). 판단은 [decisions.md](../decisions.md)의 A-357에 있다.
+> **다음 10건 중 5건 수용 (2026-11-05)**: 선생님이 R-42-4, R-45-2, R-45-4, R-48-1을 권장 수용, R-51-4를 "해당 페이지 제거"로 결정하셔서 고쳤다(`해결됨(2026-11-05 다음 10건 중 5건)`). R-41과 R-43-4는 이어서 권장 수용하셔서 고쳤다(A-360, A-361). R-43-2와 R-50-7은 설명을 들으신 뒤 권장 수용하셔서 이어서 고쳤고(A-359), R-46-2는 결함 아님으로 분류했다(A-358). 판단은 [decisions.md](../decisions.md)의 A-357에 있다.
 >
 > **다음 10건 중 8건 수용 (2026-11-05)**: 선생님이 R-124-4, R-17, R-18, R-21, R-23, R-27, R-32, R-35를 수용하셔서 고쳤다(`해결됨(2026-11-05 다음 10건 중 8건)`). R-112는 설명을 들으신 뒤, R-19-2는 "자기 이름만 제외"하는 해석으로 이어서 고쳤다(A-356). 판단은 [decisions.md](../decisions.md)의 A-355와 A-356에 있다.
 >
@@ -37,9 +37,9 @@ updated: 2026-11-04
 
 | 판정 | 건수 |
 |---|---|
-| 재현 | 68 |
+| 재현 | 67 |
 | 일부만 재현(한 건 안에서 언어나 화면에 따라 다름) | 6 |
-| 해결됨(v2가 고침 24, 이번 날 수정과 재검증 포함) | 246 |
+| 해결됨(v2가 고침 24, 이번 날 수정과 재검증 포함) | 247 |
 | 결함 아님(설명이 틀렸거나 의도된 동작) | 9 |
 | 해당 없음(v2에 해당 코드가 없음) | 1 |
 | 합계(결함 건수) | 330 |
@@ -165,7 +165,7 @@ CSRF 보호가 꺼져 있고(R-02) 세션 쿠키에 `SameSite` 속성이 없다.
 | R-38 | 코드 브라우저 폴더 목록 | 폴더 이동 주소에 `#cb-…` 앵커를 붙이려는 조건이 `" folder"`(앞 공백)와 비교해 항상 거짓이라 앵커가 붙지 않는다 | CodePageAssembler.kt:90-92 folder()의 FolderEntry href는 UrlPaths.join(filePath, fileName)뿐이고 #cb- 앵커를 붙이지 않는다. id만 "cb-$listPath$fileName"으로 만들어 두고 링크에 쓰지 않는다. | 해결됨(2026-11-05 앵커 해석 수정) |  | 폴더 항목의 href 끝에 "#cb-" 앵커를 붙인다(v1.6 의도대로).(쉬움) | 영향: 폴더로 들어갈 때 주소에 앵커가 없어 앵커 위치로 이동하는 동작이 없다. 화면 이동에는 문제가 없고 시각적 영향이 거의 없다. 로그인 여부와 무관하다. / 정상 흐름 변경: 예. 폴더 링크 주소가 앵커를 포함하도록 바뀐다. 처리: 서버 링크에는 앵커를 붙이지 않고, 앵커가 붙은 주소(비동기 하위 폴더 링크 포함)로 들어와도 `yobi.code.Browser.js`가 `cb-`를 벗겨 경로로 읽도록 고쳤다(A-349). |
 | R-39 | 코드 브라우저 이진 파일 안내 | 파일 크기를 문자열 값으로 읽는 도우미(`fieldText`)가 숫자 노드에는 비어 있어 크기가 표시되지 않는다 | src/main/resources/templates/code/view.html:127 `<span class="filesize"></span><br>` 이진 파일 안내의 크기 칸이 비어 있다 | 해결됨(2026-11-04 수정) |  |  | FileView에 size 값은 있으나(CodePageAssembler.kt:116) 이진 안내에서 쓰지 않는다. |
 | R-40 | 커밋 이력의 쪽 나누기 | `page * size + size`개를 읽어 마지막 `size`개를 남기므로, 전체 커밋이 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹친다(예: 30개일 때 1쪽은 가장 오래된 25개) | src/main/kotlin/dev/yona/repository/CommitHistoryService.kt:67-69 `log.setMaxCount(page * size + size)` 뒤 `if (recent.size >= size) recent.removeFirst()`로 마지막 size개만 남긴다 | 해결됨(2026-11-04 수정) |  |  | 30개 커밋이면 1쪽(page=1)은 가장 오래된 25개이다. |
-| R-41 | 파일 보기의 댓글 수 | `countOnCommit`에 경로를 `"/"+path`로 넘겨, 코드 범위 스레드는 경로가 항상 달라 세지 않고 파일 단위 스레드만 센다 | web/code/CodePageAssembler.kt:126이 reviewThreads.countOnCommit(project, revId, "/$path")를 넘긴다. domain/comment/ReviewThreadService.kt:34-37은 코드 범위 스레드를 it.path == path로 비교하므로 슬래시가 붙은 경로와 같을 수 없어 세지 않고, 범위 없는 스레드(findNonRangedThreadsNotOnPullRequest)만 센다. KDoc에 R-41로 의도적 유지라고 적혀 있다. | 재현 |  | 호출부에서 앞 슬래시를 떼어 경로를 넘긴다.(쉬움) | 영향: 파일 보기 화면의 댓글 수가 코드 범위 스레드를 빼고 표시된다. 코드를 볼 수 있는 모든 사용자가 보며 보안 영향은 없다. / 정상 흐름 변경: 예. 표시되는 댓글 수가 늘어나 화면 숫자가 v1.6과 달라진다. |
+| R-41 | 파일 보기의 댓글 수 | `countOnCommit`에 경로를 `"/"+path`로 넘겨, 코드 범위 스레드는 경로가 항상 달라 세지 않고 파일 단위 스레드만 센다 | web/code/CodePageAssembler.kt:126이 reviewThreads.countOnCommit(project, revId, "/$path")를 넘긴다. domain/comment/ReviewThreadService.kt:34-37은 코드 범위 스레드를 it.path == path로 비교하므로 슬래시가 붙은 경로와 같을 수 없어 세지 않고, 범위 없는 스레드(findNonRangedThreadsNotOnPullRequest)만 센다. KDoc에 R-41로 의도적 유지라고 적혀 있다. | 해결됨(2026-11-05 R-41 수용) |  | 호출부에서 앞 슬래시를 떼어 경로를 넘긴다.(쉬움) | 영향: 파일 보기 화면의 댓글 수가 코드 범위 스레드를 빼고 표시된다. 코드를 볼 수 있는 모든 사용자가 보며 보안 영향은 없다. / 정상 흐름 변경: 예. 표시되는 댓글 수가 늘어나 화면 숫자가 v1.6과 달라진다. / 처리(2026-11-05): 파일 보기의 댓글 수를 셀 때 앞 슬래시를 붙이지 않은 경로를 넘겨 코드 범위 스레드도 센다. 같은 파일에 파일 단위 1개, 코드 범위 2개를 달면 1이던 숫자가 3이 된다(A-361). |
 | R-42-1 | 풀 리퀘스트 병합 검사의 결함 | 보낼 커밋이 없으면 상태를 `MERGED`로 바꾼 뒤 "상태가 MERGED가 아니면" 이벤트를 쌓는 조건을 걸어 병합 이벤트와 알림이 남지 않는다 | domain/pullrequest/PullRequestMergeProcessor.kt:96-101의 else 분기(보낼 커밋 없음)는 isConflict=false, state=MERGED, receiver=sender만 설정하고 주석이 v1.6처럼 이벤트 분기가 실행되지 않는다고 적는다. 이후 publishMerge는 충돌 상태 변화에만 호출된다. | 재현 |  | else 분기에서 addMerge와 PULL_REQUEST_STATE_CHANGED merged 알림을 발행한다.(쉬움) | 영향: 보안 영향은 없다. 보낼 커밋이 없어 병합으로 판정된 풀 리퀘스트에 병합 이벤트와 알림이 남지 않아 타임라인과 알림, 웹훅에서 병합이 보이지 않는다(승인 경로는 별도로 STATE_CHANGED를 발행한다). / 정상 흐름 변경: 예. 새 이벤트와 알림이 추가로 나간다. |
 | R-42-2 | 풀 리퀘스트 병합 검사의 결함 | 검사 중 예외가 나면 병합 중 표시(`isMerging`)를 끄지 않아 화면이 계속 "병합 중"이다 | PullRequestMergeProcessor.process(58-62행)가 handle의 예외를 catch해 로그만 남기고, isMerging=false는 handle 마지막(111행)에서만 실행된다. start()(46행)가 true를 별도 트랜잭션으로 커밋하며 BackgroundJobRunner.execute도 실패 시 로그만 남긴다. 시작 시 복구 코드(PullRequestStartup)도 isMerging을 건드리지 않는다. | 해결됨(2026-11-04 쉬움 흐름 유지 수정) |  | process의 catch에서 새 트랜잭션으로 isMerging=false를 저장한다.(쉬움) | 영향: 보안 영향은 없다. 검사가 실패한 풀 리퀘스트가 계속 병합 중으로 보이고 외부 REST의 병합 요청은 409를 받는다(ExternalPullRequestWriteApiController.kt:263). / 정상 흐름 변경: 아니오: 정상 흐름은 이미 false로 돌아오며 오류 경로만 복구된다. |
 | R-42-3 | 풀 리퀘스트 병합 검사의 결함 | 풀 리퀘스트의 `updated`는 어디서도 채우지 않는다 | domain/pullrequest/PullRequest.kt:46 var updated: Date? = null 정의뿐이고 domain/pullrequest, web/pullrequest, 전체 main 코드 어디에도 updated 대입이나 @PreUpdate가 없다. 읽는 곳은 PullRequestRepository.kt:48 쿼리, PullRequestSearch.kt:117(coalesce로 created 대체), PullRequestJson.kt:45(created 대체)이다. | 재현 |  | 생성, 수정, 상태 변경, 댓글, 새 커밋 시점에 updated를 갱신한다.(보통) | 영향: 보안 영향은 없다. 풀 리퀘스트의 갱신 시각 정렬과 사용자 페이지 기간 조회가 항상 비어 있거나 created로 대체된 값에 의존한다. / 정상 흐름 변경: 예. 사용자 페이지의 최근 풀 리퀘스트 목록과 API updatedAt 정렬이 달라진다. |

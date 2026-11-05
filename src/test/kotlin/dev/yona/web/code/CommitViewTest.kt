@@ -188,6 +188,16 @@ class CommitViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `파일 보기의 댓글 수는 코드 범위 스레드도 센다 (R-41, v1_6은 경로에 슬래시를 붙여 파일 단위 스레드만 셌다)`() {
+        val p = project()
+        val (_, second) = twoCommits(p)
+        val author = user("filecounter")
+        thread(p, author, second, ThreadState.OPEN, true)
+        thread(p, author, second, ThreadState.OPEN, false)
+        assertEquals("2", page("/${p.owner}/${p.name}/code/master/a.txt").selectFirst(".number-of-comments")!!.text().trim())
+    }
+
+    @Test
     fun `커밋 이력에는 댓글 수가 나온다`() {
         val p = project()
         val (_, second) = twoCommits(p)

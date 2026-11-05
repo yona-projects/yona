@@ -1220,3 +1220,7 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 ## 2026-11-05 풀 리퀘스트 수정 폼의 기준 프로젝트 (R-43-4, A-360)
 
 선생님이 권장 수용하셨다. 시험을 먼저 써서 실패를 확인했고 고치기 전 컨트롤러로 되돌려 다시 확인했다. H2의 `web.pullrequest.*`가 통과했고(50초) PostgreSQL의 `PullRequestActionTest`가 통과했다(21초).
+
+## 2026-11-05 파일 보기의 댓글 수 (R-41, A-361)
+
+선생님이 Playwright 스크린샷(`shots/r41-before.png`, `r41-after.png`)과 설명을 보신 뒤 권장 수용하셨다. 시험을 먼저 써서 실패를 확인했다. H2의 `web.code.*`와 `domain.comment.*`가 통과했고(3분 17초) PostgreSQL의 `CommitViewTest`가 통과했다(20초).
