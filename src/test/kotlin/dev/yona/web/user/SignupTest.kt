@@ -231,15 +231,13 @@ class SignupTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이메일 사용 여부는 JSON 내용 형식일 때만 본문이 JSON이어야 한다 (공식 v1_16_0 실행 결과)`() {
+    fun `이메일 사용 여부는 내용 형식과 본문을 보지 않는다 (R-110, v1_6은 JSON 내용 형식에 JSON 본문을 요구해 400이었다)`() {
         existingUser(email = "used2@example.com")
-        // 내용 형식이 없거나 JSON이 아니면 본문을 해석하지 않는다
         mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com")).andExpect(jsonPath("$.isExist").value(true))
         mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("text/plain").content("{}")).andExpect(jsonPath("$.isExist").value(true))
         mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/x-www-form-urlencoded").content("a=b")).andExpect(jsonPath("$.isExist").value(true))
-        // JSON 내용 형식이면 본문이 JSON이어야 한다
-        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json")).andExpect(status().isBadRequest)
-        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json").content("{bad")).andExpect(status().isBadRequest)
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json")).andExpect(jsonPath("$.isExist").value(true))
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json").content("{bad")).andExpect(jsonPath("$.isExist").value(true))
         mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("text/json").content("{}")).andExpect(jsonPath("$.isExist").value(true))
         mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json").content("[1]")).andExpect(jsonPath("$.isExist").value(true))
     }

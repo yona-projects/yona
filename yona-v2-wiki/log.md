@@ -1182,3 +1182,7 @@ MSSQL은 시험 컨텍스트 기동이 길어 같은 범위가 다른 DB의 5배
 선생님이 "프로젝트 역할 이름이 manager인 경우 보여지도록" 조정하라고 하셔서 `settingShortcutEnabled`를 프로젝트 관리자 역할 판정으로 바꿨다. 시험 1건을 먼저 추가해 실패를 확인했다(관리자는 `Q`가 있고, 일반 구성원과 비로그인은 없다). `dev.yona.web.project.*` 347건이 H2에서 통과했다(56초).
 
 R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내는 실제 요청을 잡았다(`e2e/signupreq.tmp.mjs`). 이메일 칸을 벗어나면 `GET /user/isEmailExist?email=...`을 `Content-Type`과 본문 없이 보내고 200과 `{"isExist":...}`를 받는다. 400 검사는 화면의 정상 사용에서 걸리지 않는다.
+
+## 2026-11-05 이메일 중복 확인의 JSON 본문 검사 제거 (R-110, A-354)
+
+선생님이 실제 요청을 확인한 뒤 권장안을 수용하셔서 `isEmailExist`의 JSON 검사를 지웠다. 시험을 먼저 바꿔 실패를 확인했다(JSON 내용 형식의 빈 본문과 깨진 본문이 200이어야 한다). `dev.yona.web.user.*`가 H2에서 통과했고(52초) `SignupTest`가 PostgreSQL에서 통과했다(18초).

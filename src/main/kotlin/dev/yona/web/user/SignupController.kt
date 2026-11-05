@@ -85,23 +85,12 @@ class SignupController(
         json(mapOf("isExist" to signupService.isLoginIdUsed(name), "isReserved" to dev.yona.domain.user.LoginIdRules.isReserved(name)))
 
     /**
-     * 이메일이 쓰이는지 알린다. v1.6은 이 액션에 `@BodyParser.Of(BodyParser.Json.class)`가 있다. 공식 v1.16.0을 실행해 본 결과
-     * 내용 형식이 없거나 JSON이 아닌 요청(`text/plain`, 폼 등)은 본문을 해석하지 않고 그대로 처리한다. 내용 형식이 `application/json`이나
-     * `text/json`일 때만 본문이 JSON이어야 하며 비어 있거나 JSON이 아니면 400 화면이다([refactoring-backlog.md] R-110).
+     * 이메일이 쓰이는지 알린다. v1.6은 이 액션에 `@BodyParser.Of(BodyParser.Json.class)`가 있어서 내용 형식이 `application/json`이나
+     * `text/json`이면 본문이 JSON이어야 했고 비어 있거나 JSON이 아니면 400 화면이었다. 가입 화면은 내용 형식과 본문 없이 호출하므로
+     * 이 검사는 정상 사용에서 걸리지 않았고, 내용 형식과 본문을 보지 않도록 고쳤다([refactoring-backlog.md] R-110, A-354).
      */
     @GetMapping("/user/isEmailExist")
-    fun isEmailExist(@RequestParam email: String, request: HttpServletRequest): Any {
-        val type = request.contentType?.let { runCatching { org.springframework.http.MediaType.parseMediaType(it) }.getOrNull() }
-        val jsonType = type != null && ((type.type == "application" && type.subtype == "json") || (type.type == "text" && type.subtype == "json"))
-        if (jsonType && !hasJsonBody(request)) throw dev.yona.web.error.BindFailureException("JSON body expected")
-        return json(mapOf("isExist" to signupService.isEmailExist(email)))
-    }
-
-    private fun hasJsonBody(request: HttpServletRequest): Boolean = try {
-        tools.jackson.databind.json.JsonMapper.builder().build().readTree(request.inputStream).let { !it.isMissingNode }
-    } catch (e: Exception) {
-        false
-    }
+    fun isEmailExist(@RequestParam email: String): Any = json(mapOf("isExist" to signupService.isEmailExist(email)))
 
     private fun signupView(): ModelAndView {
         val admin = users.findByLoginId("admin")
