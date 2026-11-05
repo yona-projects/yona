@@ -106,8 +106,8 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
         condition.organizationProjectIds?.let { ids ->
             if (ids.isEmpty()) predicates += cb.disjunction()
             else {
+                // v1.6은 보내는 프로젝트도 보이는 조직 프로젝트여야 해서, 조직 밖의 포크에서 온 요청이 목록에 한 건도 나오지 않았다. 받는 프로젝트만 본다(R-64-3)
                 predicates += root.get<Project>("toProject").get<Long>("id").`in`(ids)
-                predicates += root.get<Project>("fromProject").get<Long>("id").`in`(ids)
             }
         }
         if (condition.category.states.isNotEmpty()) predicates += root.get<State>("state").`in`(condition.category.states.toList())

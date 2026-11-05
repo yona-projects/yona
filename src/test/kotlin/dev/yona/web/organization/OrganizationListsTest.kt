@@ -310,11 +310,19 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `받는 쪽과 보내는 쪽이 모두 보이는 프로젝트여야 한다`() {
+    fun `받는 프로젝트가 보이면 보내는 프로젝트가 가려져 있어도 목록에 나온다 (R-64-3, v1_6은 둘 다 보여야 했다)`() {
         val org = newOrg(); val open = orgProject(org); val secret = orgProject(org, ProjectScope.PRIVATE)
         pr(open, number = 1, title = "공개끼리"); pr(open, from = secret, number = 2, title = "비공개에서 옴"); pr(secret, number = 3, title = "비공개로 감")
-        assertEquals(listOf("공개끼리"), prTitles(page("/organizations/${org.name}/pullrequests")))
+        assertEquals(listOf("비공개에서 옴", "공개끼리"), prTitles(page("/organizations/${org.name}/pullrequests")), "받는 프로젝트(공개)만 보이면 된다. 받는 프로젝트가 가려진 요청은 빠진다")
         assertEquals(listOf("비공개로 감", "비공개에서 옴", "공개끼리"), prTitles(page("/organizations/${org.name}/pullrequests", login(member(secret)))))
+    }
+
+    @Test
+    fun `조직 밖의 포크에서 온 요청도 목록에 나온다 (R-64-3)`() {
+        val org = newOrg(); val target = orgProject(org)
+        val fork = projects.save(Project(owner = "someone-${++sequence}", name = "fork${sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC, createdDate = Date()))
+        pr(target, from = fork, number = 5, title = "포크에서 온 요청")
+        assertEquals(listOf("포크에서 온 요청"), prTitles(page("/organizations/${org.name}/pullrequests")))
     }
 
     @Test

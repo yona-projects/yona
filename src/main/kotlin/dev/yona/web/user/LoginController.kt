@@ -39,7 +39,6 @@ class LoginController(
     private val flashTranslator: FlashMessageTranslator,
     private val loginSession: dev.yona.security.LoginSessionService,
     private val properties: dev.yona.config.YonaProperties,
-    private val home: dev.yona.web.home.HomeController,
     private val audit: dev.yona.domain.audit.AuditBoundary,
     private val completion: dev.yona.security.LoginCompletion,
     private val twoFactorLogin: dev.yona.security.TwoFactorLogin,
@@ -65,15 +64,11 @@ class LoginController(
     }
 
     /**
-     * 소셜 로그인만 허용하는 사이트에서 로그인 요청이 오면 안내와 함께 홈 화면을 그린다 (v1.6 `UserApp.login`의
-     * `useSocialLoginOnly` 분기: `flash(error)` 뒤 `Application.index()`). 안내는 이 화면에 바로 보이고 다음 요청에도 한 번 보인다.
+     * 소셜 로그인만 허용하는 사이트에서 로그인 요청이 오면 안내를 남기고 홈으로 303 이동한다. v1.6 `UserApp.login`의 `useSocialLoginOnly` 분기는
+     * 거부하면서 `Application.index()`로 홈 화면을 200으로 그려, 주소가 `/users/login`인 채로 새로고침하면 로그인이 다시 제출되었다(R-60-11).
      */
-    private fun socialLoginOnly(request: HttpServletRequest, response: HttpServletResponse): Any {
-        val notice = mapOf<String, Any>(RedirectSupport.ERROR to "app.warn.support.social.login.only")
-        RedirectSupport.saveFlash(request, response, notice)
-        val page = home.index(request, response)
-        return page
-    }
+    private fun socialLoginOnly(request: HttpServletRequest, response: HttpServletResponse): Any =
+        RedirectSupport.see(request, response, "/", mapOf(RedirectSupport.ERROR to "app.warn.support.social.login.only"))
 
     @GetMapping("/users/logout")
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Void> {

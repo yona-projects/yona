@@ -82,8 +82,9 @@ class LdapAuthService(
     private fun fallback(loginIdOrEmail: String, password: String, flash: Map<String, String>): LdapAuthResult {
         if (!config.fallbackToLocalLogin) return LdapAuthResult(null, flash)
         log.warn("fallback to local login: {}", loginIdOrEmail)
-        // v1.6 `authenticateWithPlainPassword`는 로그인 ID로만 찾고 계정 상태는 보지 않는다.
-        val user = users.findByLoginId(loginIdOrEmail)?.takeIf { LegacyPasswordHasher.matches(password, it.passwordSalt.orEmpty(), it.password.orEmpty()) }
+        // v1.6 `authenticateWithPlainPassword`는 로그인 ID로만 찾고 계정 상태는 보지 않았다. 로그인 ID나 이메일로 찾고 활성 계정만 받는다(R-60-7)
+        val user = users.findByLoginKey(loginIdOrEmail)?.takeIf { it.state == UserState.ACTIVE }
+            ?.takeIf { LegacyPasswordHasher.matches(password, it.passwordSalt.orEmpty(), it.password.orEmpty()) }
         // v1.6는 폴백이 성공해도 인증 실패 안내를 남겼다(R-60-6). 로그인되었으면 안내를 남기지 않는다
         return LdapAuthResult(user, if (user == null) flash else emptyMap())
     }

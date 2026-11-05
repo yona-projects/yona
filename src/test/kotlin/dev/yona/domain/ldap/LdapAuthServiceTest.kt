@@ -99,10 +99,20 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이메일로 입력하면 로컬 폴백은 로그인 ID로만 찾는다`() {
+    fun `이메일로 입력해도 로컬 폴백이 이메일로 찾는다 (R-60-7, v1_6은 로그인 ID로만 찾았다)`() {
         local("byemail@corp.test", "byemailuser", password = "local-pw")
         Mockito.`when`(directory.authenticate("byemail@corp.test", "local-pw")).thenThrow(CommunicationException("down"))
-        assertNull(ldap.authenticate("byemail@corp.test", "local-pw").user)
+        assertEquals("byemailuser", ldap.authenticate("byemail@corp.test", "local-pw").user?.loginId)
+    }
+
+    @Test
+    fun `로컬 폴백은 활성이 아닌 계정은 받지 않는다 (R-60-7)`() {
+        local("lk@corp.test", "lockedfb", password = "local-pw", state = UserState.LOCKED)
+        local("dl@corp.test", "deletedfb", password = "local-pw", state = UserState.DELETED)
+        Mockito.`when`(directory.authenticate("lockedfb", "local-pw")).thenThrow(CommunicationException("down"))
+        Mockito.`when`(directory.authenticate("deletedfb", "local-pw")).thenThrow(CommunicationException("down"))
+        assertNull(ldap.authenticate("lockedfb", "local-pw").user)
+        assertNull(ldap.authenticate("deletedfb", "local-pw").user)
     }
 
     @Test

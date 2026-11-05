@@ -23,16 +23,14 @@ class SocialLoginOnlyTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
 
     @Test
-    fun `비밀번호 로그인 요청은 안내와 함께 홈 화면을 그린다`() {
-        val result = mockMvc.perform(post("/users/login").param("loginIdOrEmail", "admin").param("password", "admin00")).andExpect(status().isOk).andReturn()
-        assertEquals("index/notifications", result.modelAndView?.viewName)
+    fun `비밀번호 로그인 요청은 안내를 남기고 홈으로 303 이동한다 (R-60-11, v1_6은 홈 화면을 200으로 그렸다)`() {
+        val result = mockMvc.perform(post("/users/login").param("loginIdOrEmail", "admin").param("password", "admin00")).andExpect(status().isSeeOther).andReturn()
+        assertEquals("/", result.response.getHeader("Location"))
         assertEquals("app.warn.support.social.login.only", result.flashMap["error"])
-        val notices = (result.modelAndView!!.model["flashMessages"] as dev.yona.web.layout.FlashMessages).notices
-        assertEquals(1, notices.size)
     }
 
     @Test
     fun `AJAX 로그인 요청도 같다`() {
-        mockMvc.perform(post("/users/login").header("Accept", "application/json").param("loginIdOrEmail", "admin").param("password", "admin00")).andExpect(status().isOk)
+        mockMvc.perform(post("/users/login").header("Accept", "application/json").param("loginIdOrEmail", "admin").param("password", "admin00")).andExpect(status().isSeeOther)
     }
 }
