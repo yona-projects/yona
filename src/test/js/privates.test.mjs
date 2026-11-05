@@ -25,6 +25,22 @@ export const tests = [
     await page.close();
     assert.equal(out, 'ok', out);
   } },
+  { name: '붙일 라벨이 하나도 보이지 않으면 라벨 붙이기 단추를 끈다 (C011)', async run() {
+    const code = sourceSnippet('service/yobi.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
+    const page = await pageWith({ html: '<ul id="attach"><li data-value="7"></li></ul><button id="btn"></button>' });
+    const run = (labels, visible) => page.evaluate(([src, labels, visible]) => {
+      var htVar = {}, htElement = { welAttachLabels: $('#attach'), welBtnAttachingLabel: $('#btn') };
+      function _getLabelCategoryVisibility() { return visible; }
+      new Function('htVar', 'htElement', '_getLabelCategoryVisibility', src.replace(/\/\*\*[^]*$/, '') + '; _setAttachLabelList(' + JSON.stringify(labels) + ', 2);')(htVar, htElement, _getLabelCategoryVisibility);
+      return $('#btn').prop('disabled');
+    }, [code, labels, visible]);
+    const allAttached = { bug: { 7: { issues: [1, 2], exclusive: false, categoryId: 1 } } };
+    const disabledWhenNoneVisible = await run(allAttached, false);
+    const disabledWhenSomeVisible = await run(allAttached, true);
+    await page.close();
+    assert.equal(disabledWhenNoneVisible, true, '붙일 라벨이 없는데 단추가 켜져 있다');
+    assert.equal(disabledWhenSomeVisible, false);
+  } },
 ];
 
 export const labelTests = [

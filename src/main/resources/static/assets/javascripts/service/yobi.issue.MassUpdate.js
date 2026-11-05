@@ -203,7 +203,8 @@
                 bVisible = _getLabelCategoryVisibility(htElement.welAttachLabels, sCategory) || bVisible;
             } // end-for-category
 
-            htElement.welBtnAttachingLabel.attr("disabled", htLabels.hasOwnProperty() ? !bVisible : false);
+            // v1.6은 `htLabels.hasOwnProperty()`에 인자가 없어 항상 false라 단추가 늘 켜져 있었다(C011)
+            htElement.welBtnAttachingLabel.attr("disabled", !bVisible);
         }
 
         /**

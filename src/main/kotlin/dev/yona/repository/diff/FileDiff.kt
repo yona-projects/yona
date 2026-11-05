@@ -189,8 +189,10 @@ class FileDiff {
         val edits = editList ?: return
         val kept = EditList()
         for (edit in edits) {
-            if (lineA != null && lineA >= edit.beginA - context && lineA <= edit.endA + context) kept.add(edit)
-            if (lineB != null && lineB >= edit.beginB - context && lineB <= edit.endB + context) kept.add(edit)
+            // v1.6은 두 조건을 따로 검사해 둘 다 맞으면 같은 바뀐 곳을 두 번 더했다(C150)
+            val matchesA = lineA != null && lineA >= edit.beginA - context && lineA <= edit.endA + context
+            val matchesB = lineB != null && lineB >= edit.beginB - context && lineB <= edit.endB + context
+            if (matchesA || matchesB) kept.add(edit)
         }
         editList = kept
     }
