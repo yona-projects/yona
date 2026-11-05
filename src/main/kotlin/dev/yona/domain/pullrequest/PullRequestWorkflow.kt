@@ -46,7 +46,8 @@ class PullRequestWorkflow(
     private val issueCloser: PullRequestIssueCloser,
     private val threads: dev.yona.domain.comment.CommentThreadRepository,
     private val metrics: dev.yona.observability.CollaborationMetrics,
-    private val signatureCheck: PullRequestSignatureCheck
+    private val signatureCheck: PullRequestSignatureCheck,
+    private val reviewService: PullRequestReviewService
 ) {
 
     /**
@@ -117,7 +118,7 @@ class PullRequestWorkflow(
     }
 
     /**
-     * 닫힌 요청을 다시 연다. 병합됐거나 이미 열린 요청이면 `false`이다. 열고 나면 병합 검사를 다시 시작한다.
+     * 닫힌 요청을 다시 연다. 병합됐거나 이미 열린 요청이면 `false`이다. 이전 승인은 해제하고(프로젝트가 끄지 않은 경우), 열고 나면 병합 검사를 다시 시작한다.
      */
     @Transactional
     fun reopen(pullRequest: PullRequest, actor: User): Boolean {
@@ -127,6 +128,11 @@ class PullRequestWorkflow(
         // v1.6 `PullRequest.reopen`은 `PushedBranch.removeByPullRequestFrom`을 불러 보내는 쪽의 최근 푸시 브랜치 기록을 지운다.
         pushedBranches.findFirstByProjectIdAndName(requireNotNull(pullRequest.fromProject?.id), requireNotNull(pullRequest.fromBranch))?.let { pushedBranches.delete(it) }
         record(pullRequest, before, State.OPEN, actor)
+        // 닫힌 사이에 바뀐 내용을 이전 승인으로 오인하지 않도록, 새 커밋이 들어왔을 때와 같이 승인을 해제한다(C183, v1.6은 다시 열어도 리뷰어를 두었다).
+        if (pullRequest.toProject?.isDismissingStaleApprovals != false) {
+            reviewService.dismissStaleApprovals(pullRequest)
+            pullRequest.reviewers.clear()
+        }
         val id = requireNotNull(pullRequest.id)
         val actorId = requireNotNull(actor.id)
         runner.run("merging of pull request $id", { processor.start(id) }, { processor.process(id, actorId, false) })

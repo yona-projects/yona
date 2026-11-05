@@ -66,13 +66,13 @@ class UserMenuService(
     fun visitedProjects(user: User): List<Project> =
         recentProjects.findByUserIdOrderByIdDesc(requireNotNull(user.id)).mapNotNull { it.project }
 
-    /** 구독 중인 프로젝트를 이름 순서로 돌려준다. 구독 해제한 프로젝트는 뺀다 (v1.6 `User.getWatchingProjects("name ASC")`). Ebean의 메모리 정렬은 `Comparable.compareTo`라 대소문자를 구분하고 대문자가 소문자보다 앞선다. */
+    /** 구독 중인 프로젝트를 이름 순서로 돌려준다. 구독 해제한 프로젝트는 뺀다 (v1.6 `User.getWatchingProjects("name ASC")`). v1.6은 Ebean의 메모리 정렬이 `Comparable.compareTo`라 대소문자를 구분했지만, 다른 프로젝트 목록과 같게 대소문자를 구분하지 않는다([refactoring-backlog.md] R-101). */
     @Transactional(readOnly = true)
     fun watchingProjects(user: User): List<Project> {
         val userId = requireNotNull(user.id)
         val ids = watches.findByUserIdAndResourceType(userId, ResourceType.PROJECT).mapNotNull { it.resourceId }.toMutableList()
         unwatches.findByUserIdAndResourceType(userId, ResourceType.PROJECT).forEach { ids.remove(it.resourceId) }
-        return ids.mapNotNull { id -> id.toLongOrNull()?.let { entityManager.find(Project::class.java, it) } }.sortedBy { it.name.orEmpty() }
+        return ids.mapNotNull { id -> id.toLongOrNull()?.let { entityManager.find(Project::class.java, it) } }.sortedBy { it.name.orEmpty().lowercase() }
     }
 
     /** 내가 만든(소유한) 프로젝트를 만든 시각 내림차순으로 돌려준다 (v1.6 `Project.findProjectsCreatedByUser`). */

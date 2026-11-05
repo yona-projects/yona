@@ -86,11 +86,11 @@ class OrganizationViewContext(
     val canSeeMembers: Boolean get() = siteManager || member || admin
 
     /**
-     * 탈퇴할 수 없는 상태이면 `true`이다 (v1.6 `OrganizationApp.validateForLeave`의 오류). 조직을 고칠 수 없는 사용자이고
-     * 관리자가 한 명뿐일 때 오류이다. 조건이 거꾸로 쓰여 있어서 관리자는 한 명뿐이어도 탈퇴할 수 있다([refactoring-backlog.md] R-19).
+     * 탈퇴할 수 없는 상태이면 `true`이다 (v1.6 `OrganizationApp.validateForLeave`의 오류). 조직 관리자이고 관리자가 한 명뿐일 때,
+     * 곧 마지막 관리자일 때 오류이다. v1.6은 조건이 거꾸로(`!isAllowed`)여서 일반 구성원이 막히고 마지막 관리자가 나갈 수 있었다(C157).
      */
     val leaveBlocked: Boolean by lazy {
-        !deps.accessControl.isAllowed(viewer, organization.asResource(), Operation.LEAVE) &&
+        deps.accessControl.isAllowed(viewer, organization.asResource(), Operation.LEAVE) &&
             deps.organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L
     }
 

@@ -323,18 +323,27 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `일반 구성원은 관리자가 한 명뿐이면 탈퇴할 수 없다 (v1 6 규칙)`() {
+    fun `일반 구성원은 관리자가 한 명뿐이어도 탈퇴한다 (C157)`() {
         val org = newOrg()
         join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
-        leave(org, login(member)).andExpect(status().isForbidden).andExpect(jsonPath("$.errorMsg").value("organization.member.atLeastOneAdmin"))
-        assertEquals(RoleType.ORG_MEMBER.id, roleOf(org, member))
+        leave(org, login(member)).andExpect(status().isOk)
+        assertNull(roleOf(org, member))
     }
 
     @Test
-    fun `관리자는 한 명뿐이어도 탈퇴할 수 있다 (v1 6 결함 재현)`() {
+    fun `마지막 관리자는 탈퇴할 수 없다 (C157, v1 6은 조건이 거꾸로였다)`() {
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
+        leave(org, login(admin)).andExpect(status().isForbidden).andExpect(jsonPath("$.errorMsg").value("organization.member.atLeastOneAdmin"))
+        assertEquals(RoleType.ORG_ADMIN.id, roleOf(org, admin))
+    }
+
+    @Test
+    fun `관리자가 둘 이상이면 관리자도 탈퇴한다 (C157)`() {
+        val org = newOrg()
+        val admin = join(org, newUser(), RoleType.ORG_ADMIN)
+        join(org, newUser(), RoleType.ORG_ADMIN)
         leave(org, login(admin)).andExpect(status().isOk)
         assertNull(roleOf(org, admin))
     }

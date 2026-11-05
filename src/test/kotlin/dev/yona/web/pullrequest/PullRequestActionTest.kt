@@ -282,6 +282,26 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `다시 열면 이전 승인 리뷰어를 비운다 (C183)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        reload(pr).also { it.reviewers.add(s.manager); pullRequests.save(it) }
+        mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertEquals(1, reload(pr).reviewers.size, "닫아도 리뷰어는 그대로이다")
+        mockMvc.perform(post(url(s, pr, "/open")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertTrue(reload(pr).reviewers.isEmpty())
+    }
+
+    @Test
+    fun `오래된 승인 해제를 끈 프로젝트는 다시 열어도 리뷰어를 그대로 둔다 (C183, X-12)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        s.origin.isDismissingStaleApprovals = false; projects.save(s.origin)
+        reload(pr).also { it.reviewers.add(s.manager); pullRequests.save(it) }
+        mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isSeeOther)
+        mockMvc.perform(post(url(s, pr, "/open")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertEquals(1, reload(pr).reviewers.size)
+    }
+
+    @Test
     fun `수정 폼은 제목과 본문, 고정된 브랜치를 보여 준다`() {
         val s = setup(); addChange(s); val pr = open(s, title = "원래 제목", body = "원래 본문")
         val doc = org.jsoup.Jsoup.parse(mockMvc.perform(get(url(s, pr, "/editform")).session(s.managerSession)).andExpect(status().isOk).andReturn().response.contentAsString)

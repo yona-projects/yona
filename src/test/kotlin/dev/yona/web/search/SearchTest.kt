@@ -404,7 +404,9 @@ class SearchTest : AbstractIntegrationTest() {
     @Test
     fun `조직 범위의 오류 응답`() {
         organization("orgerr")
-        mockMvc.perform(get("/organizations/orgerr/search").param("searchType", "issue")).andExpect(status().isBadRequest)
+        // 키워드가 없는 요청도 다른 400처럼 오류 화면을 보인다 (C128)
+        val missing = mockMvc.perform(get("/organizations/orgerr/search").param("searchType", "issue")).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(missing.isNotBlank(), "400 응답에 오류 화면 본문이 있어야 한다")
         mockMvc.perform(get("/organizations/nosuchorg/search").param("searchType", "issue").param("keyword", "a")).andExpect(status().isBadRequest)
         mockMvc.perform(get("/organizations/orgerr/search").param("searchType", "bad").param("keyword", "a")).andExpect(status().isBadRequest)
     }

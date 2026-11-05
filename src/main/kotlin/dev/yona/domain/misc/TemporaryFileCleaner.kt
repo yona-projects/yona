@@ -13,8 +13,8 @@ import java.util.Date
  *
  * 서버가 뜬 뒤 보관 기간(`yona.temporary-files-keep-up-time`, 기본 하루)이 지나면 처음 실행하고, 이후 같은 주기로 반복한다.
  *
- * v1.6의 조회 조건 `createdDate >= (오늘 0시 - 보관 기간)`을 그대로 따른다. 오래된 첨부가 아니라 **최근 보관 기간 안에 올린** 임시 첨부를
- * 지운다([refactoring-backlog.md] R-20).
+ * 조회 조건은 `createdDate < (오늘 0시 - 보관 기간)`이라 보관 기간이 지난 임시 첨부만 지운다. v1.6은 부등호가 반대(`>=`)여서 오래된 첨부가
+ * 아니라 최근에 올린 첨부를 지웠다([refactoring-backlog.md] R-20, C154, C162).
  */
 @Component
 class TemporaryFileCleaner(
@@ -45,7 +45,7 @@ class TemporaryFileCleaner(
     /** 임시 첨부를 지우고 지운 개수를 돌려준다. */
     @Transactional
     fun cleanUp(now: Long = System.currentTimeMillis()): Int {
-        val targets = attachments.findByContainerTypeAndCreatedDateGreaterThanEqual(
+        val targets = attachments.findByContainerTypeAndCreatedDateLessThan(
             ResourceType.USER, Date(startOfDay(now) - properties.temporaryFilesKeepUpTime.toMillis())
         )
         targets.forEach { attachmentService.delete(it) }

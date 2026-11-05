@@ -102,7 +102,7 @@ class OrganizationService(
             properties.hideProjectListing -> emptyList()
             else -> all.filter { (it.isPublic() && viewer?.isGuest != true) || isProjectMember(it) }
         }
-        return result.sortedBy { it.name }
+        return result.sortedBy { it.name.orEmpty().lowercase() }
     }
 
     companion object {

@@ -142,8 +142,8 @@ class MailContent(var body: String = "", val attachments: MutableList<MimePart> 
             return result
         }
 
-        /** 첫 파트이고 `start`가 없거나, 콘텐츠 ID가 `start`와 같은 파트가 본문이다. */
-        private fun isRoot(part: MimePart, index: Int, rootId: String?): Boolean = (rootId == null && index == 0) || part.contentID == rootId
+        /** 첫 파트이고 `start`가 없거나, 콘텐츠 ID가 있고 `start`와 같은 파트가 본문이다. 둘 다 없는 파트를 같다고 보지 않는다(v1.6은 `null == null`로 모두 본문이 되었다). */
+        private fun isRoot(part: MimePart, index: Int, rootId: String?): Boolean = (rootId == null && index == 0) || (part.contentID != null && part.contentID == rootId)
 
         private fun point(part: BodyPart?, preferences: List<String>): Int {
             if (part == null) return 0

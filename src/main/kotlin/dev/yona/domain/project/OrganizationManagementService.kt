@@ -149,14 +149,14 @@ class OrganizationManagementService(
     }
 
     /**
-     * 본인이 조직에서 나간다. 조직을 고칠 수 없는 사용자이고 관리자가 한 명뿐이면 거부한다.
-     * 조건이 거꾸로 쓰여 있어서 관리자는 한 명뿐이어도 나갈 수 있다([refactoring-backlog.md] R-19, v1.6 `validateForLeave`).
+     * 본인이 조직에서 나간다. 조직 관리자이고 관리자가 한 명뿐이면 마지막 관리자가 빠지지 않도록 거부한다.
+     * v1.6 `validateForLeave`는 조건이 거꾸로(`!isAllowed`)여서 일반 구성원이 관리자 한 명일 때 나가지 못하고 마지막 관리자는 나갈 수 있었다(C157).
      *
      * @return 거부 이유의 메시지 키. 성공이면 `null`
      */
     fun leave(organization: Organization, actor: User): String? {
         val orgId = requireNotNull(organization.id)
-        if (!accessControl.isAllowed(actor, organization.asResource(), Operation.LEAVE) &&
+        if (accessControl.isAllowed(actor, organization.asResource(), Operation.LEAVE) &&
             organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L
         ) {
             return "organization.member.atLeastOneAdmin"

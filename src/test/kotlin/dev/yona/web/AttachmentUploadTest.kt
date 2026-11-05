@@ -309,25 +309,25 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
         val now = java.time.LocalDateTime.of(2026, 10, 26, 20, 0).atZone(zone).toInstant().toEpochMilli()
         val user = newUser()
         fun at(h: Long, hash: String) = attachmentRepository.save(dev.yona.domain.misc.Attachment(name = hash, hash = hash, containerType = ResourceType.USER, containerId = user.id!!, createdDate = Date(java.time.LocalDateTime.of(2026, 10, 25, 0, 0).plusHours(h).atZone(zone).toInstant().toEpochMilli())))
-        val yesterdayMorning = at(6, "t1")      // 어제 6시: 기준(어제 0시) 이후라 지운다
+        val yesterdayMorning = at(6, "t1")      // 어제 6시: 기준(어제 0시) 이후라 남긴다
         val dayBefore = attachmentRepository.save(dev.yona.domain.misc.Attachment(name = "t2", hash = "t2", containerType = ResourceType.USER, containerId = user.id!!, createdDate = Date(java.time.LocalDateTime.of(2026, 10, 24, 23, 0).atZone(zone).toInstant().toEpochMilli())))
         assertEquals(1, cleaner.cleanUp(now))
         val remaining = attachmentRepository.findAll().map { it.id }
-        assertTrue(yesterdayMorning.id !in remaining)
-        assertTrue(dayBefore.id in remaining)
+        assertTrue(yesterdayMorning.id in remaining)
+        assertTrue(dayBefore.id !in remaining)
     }
 
     @Test
-    fun `정리 작업은 보관 기간 안에 올린 임시 첨부를 지운다 (v1 6 결함 재현)`() {
-        // v1.6는 `createdDate >= (지금 - 보관 기간)`인 첨부를 지워서 오래된 것이 아니라 최근 것을 지운다 (R-20).
+    fun `정리 작업은 보관 기간이 지난 임시 첨부만 지우고 최근에 올린 것은 남긴다 (C154, C162)`() {
+        // v1.6는 `createdDate >= (지금 - 보관 기간)`인 첨부를 지워서 오래된 것이 아니라 최근 것을 지웠다. 보관 기간이 지난 것만 지운다.
         val user = newUser()
         val recent = attachmentRepository.save(dev.yona.domain.misc.Attachment(name = "recent", hash = "h1", containerType = ResourceType.USER, containerId = user.id!!, createdDate = Date()))
         val old = attachmentRepository.save(dev.yona.domain.misc.Attachment(name = "old", hash = "h2", containerType = ResourceType.USER, containerId = user.id!!, createdDate = Date(System.currentTimeMillis() - 3 * 86_400_000L)))
         val project = attachmentRepository.save(dev.yona.domain.misc.Attachment(name = "proj", hash = "h3", containerType = ResourceType.PROJECT, containerId = 1, createdDate = Date()))
         assertEquals(1, cleaner.cleanUp())
         val remaining = attachmentRepository.findAll().map { it.id }
-        assertTrue(recent.id !in remaining)
-        assertTrue(old.id in remaining)
+        assertTrue(recent.id in remaining)
+        assertTrue(old.id !in remaining)
         assertTrue(project.id in remaining)
     }
 }

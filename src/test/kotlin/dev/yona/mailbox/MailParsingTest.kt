@@ -120,6 +120,13 @@ class MailParsingTest {
     }
 
     @Test
+    fun `관련 파트에서 start도 콘텐츠 ID도 없으면 첫 파트만 본문이고 나머지는 첨부이다 (C187)`() {
+        val content = MailContent.extract(message { setContent(multipart("related", textPart("본문"), textPart("둘째 파트"))) })
+        assertEquals("본문", content.body)
+        assertEquals(1, content.attachments.size)
+    }
+
+    @Test
     fun `파일 이름이 있는 파트는 첨부이고 본문 파트는 이어 붙인다`() {
         val file = MimeBodyPart().apply {
             setContent("data", "application/octet-stream")

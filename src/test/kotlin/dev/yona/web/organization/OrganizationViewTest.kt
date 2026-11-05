@@ -202,6 +202,16 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `홈의 프로젝트는 대소문자를 구분하지 않고 이름순으로 보여 준다 (C148)`() {
+        val org = newOrg()
+        orgProject(org, name = "Zeta")
+        orgProject(org, name = "alpha")
+        orgProject(org, name = "Beta")
+        val names = page("/organizations/${org.name}").select("ul.all-projects li.project .header > a.black").map { it.text() }
+        assertEquals(listOf("alpha", "Beta", "Zeta"), names)
+    }
+
+    @Test
     fun `조직 구성원은 비공개 프로젝트를 구성원일 때만 보고 관리자는 모두 본다`() {
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
@@ -258,13 +268,14 @@ class OrganizationViewTest : AbstractIntegrationTest() {
 
     @Test
     fun `탈퇴 버튼은 v1 6 규칙을 따른다`() {
-        // 조직 관리자가 아니면서 관리자가 한 명뿐이면 탈퇴 버튼이 없다. 관리자는 한 명뿐이어도 탈퇴 버튼이 있다 (v1.6 결함).
+        // 관리자가 한 명뿐이면 그 관리자에게는 탈퇴 버튼이 없고(마지막 관리자 보호), 일반 구성원에게는 있다 (C157, v1.6은 조건이 거꾸로였다).
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
-        assertEquals("/organizations/${org.name}/member/leave", page("/organizations/${org.name}", login(admin)).selectFirst("#groupLeaveBtn")?.attr("data-href"))
-        assertNull(page("/organizations/${org.name}", login(member)).selectFirst("#groupLeaveBtn"))
+        assertNull(page("/organizations/${org.name}", login(admin)).selectFirst("#groupLeaveBtn"))
+        assertEquals("/organizations/${org.name}/member/leave", page("/organizations/${org.name}", login(member)).selectFirst("#groupLeaveBtn")?.attr("data-href"))
         join(org, newUser(), RoleType.ORG_ADMIN)
+        assertNotNull(page("/organizations/${org.name}", login(admin)).selectFirst("#groupLeaveBtn"))
         assertNotNull(page("/organizations/${org.name}", login(member)).selectFirst("#groupLeaveBtn"))
     }
 
