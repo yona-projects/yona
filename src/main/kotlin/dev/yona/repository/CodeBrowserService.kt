@@ -141,8 +141,8 @@ class CodeBrowserService(
     fun archive(project: Project, branch: String, out: OutputStream) = metrics.operation(project.vcs, "archive") { archiveImpl(project, branch, out) }
 
     private fun archiveImpl(project: Project, branch: String, out: OutputStream) {
-        // Subversion은 내려받기를 지원하지 않는다. v1.6 `SVNRepository.getArchive`는 아무것도 쓰지 않는다(R-62).
-        if (isSvn(project)) return
+        // v1.6 `SVNRepository.getArchive`는 아무것도 쓰지 않아 빈 파일이 내려갔다. Subversion은 최신 리비전의 내용을 zip으로 만든다(R-62-3)
+        if (isSvn(project)) return svn.exportZip(project.owner.orEmpty(), project.name.orEmpty(), out)
         repositories.openRepository(project).use { repository ->
             val id = repository.resolve(branch) ?: return
             // v1.6 JGit 4.5는 항목의 수정 시각을 내려받는 시각으로 쓴다. 7.x는 커밋 시각을 쓰므로 트리로 지정해 맞춘다

@@ -156,11 +156,17 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `내려받기는 빈 압축 응답이다`() {
+    fun `내려받기는 최신 내용을 압축 파일로 만든다 (R-62-3, v1_6은 본문이 빈 200이었다)`() {
         val p = filled()
         val result = mockMvc.perform(get("/${p.owner}/${p.name}/code/HEAD/download")).andExpect(status().isOk).andReturn()
         assertEquals("attachment; filename=${p.name}-HEAD.zip", result.response.getHeader("Content-Disposition"))
-        assertEquals(0, result.response.contentAsByteArray.size)
+        val entries = linkedMapOf<String, String>()
+        java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(result.response.contentAsByteArray)).use { zip ->
+            generateSequence { zip.nextEntry }.forEach { entry -> entries[entry.name] = if (entry.isDirectory) "" else String(zip.readBytes()) }
+        }
+        assertEquals("# 제목", entries["README.md"])
+        assertEquals("fun main() {}\n", entries["src/App.kt"])
+        assertEquals("object Tool\n", entries["src/util/Tool.kt"])
     }
 
     @Test

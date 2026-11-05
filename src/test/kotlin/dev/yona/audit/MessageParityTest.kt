@@ -57,7 +57,9 @@ class MessageParityTest {
      */
     private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구
-        "site.userList.deletedLock", "site.mail.failReason", "site.data.import.confirm")
+        "site.userList.deletedLock", "site.mail.failReason", "site.data.import.confirm",
+        // R-61-11, R-61-12: 메일로 댓글을 달 때의 오류 회신 문구
+        "viaEmail.error.notfound.resource", "viaEmail.error.unsupported.resource")
 
     @Test
     fun `언어별 번들의 키는 v1_6과 같고 추가한 키만 더 있다`() {

@@ -65,7 +65,8 @@ class ProjectHistoryService(
             val user = userLookup.findByEmail(commit.authorEmail)
             items += item(user, commit.authorName, commit.commitTime, "commit", commit.shortId, commit.shortMessage, "$base/commit/${commit.id}")
         }
-        for (issue in issues.findByProjectId(projectId, newest("createdDate"))) {
+        // v1.6은 초안과 닫힌 이슈도 담아 남이 쓴 초안의 제목이 홈 이력에 보였다. 열린 이슈만 담는다(R-68-3)
+        for (issue in issues.findByProjectIdAndState(projectId, dev.yona.domain.enumeration.State.OPEN, newest("createdDate"))) {
             items += item(issue.authorLoginId?.let { users.findByLoginId(it) }, issue.authorName, issue.createdDate, "issue", "#${issue.number}", issue.title, "$base/issue/${issue.number}")
         }
         for (posting in postings.findByProjectId(projectId, newest("createdDate"))) {

@@ -101,6 +101,7 @@ class ExternalIssueService(
     @Transactional
     fun update(issue: Issue, actor: User, title: String, body: String, milestoneTitle: String?, state: State, assignee: User?): Issue {
         val project = requireNotNull(issue.project)
+        val oldTitle = issue.title
         issue.title = title
         issue.body = body
         issue.milestone = milestoneTitle?.let { milestones.findFirstByProjectIdAndTitle(requireNotNull(project.id), it) }
@@ -109,7 +110,7 @@ class ExternalIssueService(
         val old = issue.assignee?.user
         if (old?.loginId.orEmpty() != assignee?.loginId.orEmpty()) event(issue, actor, EventType.ISSUE_ASSIGNEE_CHANGED, old?.loginId, assignee?.loginId)
         issue.assignee = assignee?.let { issueService.findOrCreateAssignee(project, it.loginId) }
-        return saveLikeV16(issue)
+        return saveLikeV16(issue, oldTitle)
     }
 
     /**
@@ -119,6 +120,7 @@ class ExternalIssueService(
     @Transactional
     fun patch(issue: Issue, actor: User, patch: IssuePatch): Issue {
         val project = requireNotNull(issue.project)
+        val oldTitle = issue.title
         patch.title?.let { issue.title = it }
         patch.body?.let { issue.body = it }
         if (patch.milestoneSet) issue.milestone = patch.milestoneId?.let { milestones.findById(it).orElse(null) }
@@ -133,7 +135,7 @@ class ExternalIssueService(
             issue.labels.clear()
             issue.labels.addAll(labelService.findByIds(project, patch.labelIds))
         }
-        return saveLikeV16(issue)
+        return saveLikeV16(issue, oldTitle)
     }
 
     /** 상태만 바꾼다. 바뀌면 이벤트를 남긴다(v1.6 `updateIssueState`). 수정 시각은 건드리지 않는다. */
@@ -144,13 +146,18 @@ class ExternalIssueService(
     }
 
     /**
-     * v1.6 `AbstractPosting.save()`와 같은 부수 효과를 낸다. 댓글 수를 다시 세고 저장한 뒤 제목 머리말 개수를 한 번 더 늘리고
-     * 멘션 기록을 본문에 맞춘다([refactoring-backlog.md] R-29와 같은 동작).
+     * 댓글 수를 다시 세고 저장한 뒤 멘션 기록을 본문에 맞춘다. v1.6 `AbstractPosting.save()`는 저장할 때마다 제목 머리말 개수를 한 번 더 늘렸다
+     * ([refactoring-backlog.md] R-29, R-77). 제목이 바뀐 경우에만 이전 제목의 머리말을 빼고 새 제목의 머리말을 더한다.
+     *
+     * @param oldTitle 바꾸기 전의 제목. 주지 않으면 제목이 바뀌지 않은 것으로 본다
      */
-    private fun saveLikeV16(issue: Issue): Issue {
+    private fun saveLikeV16(issue: Issue, oldTitle: String? = issue.title): Issue {
         issue.numOfComments = comments.countByIssueId(requireNotNull(issue.id)).toInt()
         val saved = issues.save(issue)
-        titleHeads.save(requireNotNull(saved.project), saved.title)
+        if (saved.title != oldTitle) {
+            titleHeads.delete(requireNotNull(saved.project), oldTitle)
+            titleHeads.save(requireNotNull(saved.project), saved.title)
+        }
         mentions.update(ResourceType.ISSUE_POST, requireNotNull(saved.id).toString(), saved.body.orEmpty())
         return saved
     }

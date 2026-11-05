@@ -53,6 +53,26 @@ class RepositoryInitTest : AbstractIntegrationTest() {
     private fun head(project: Project) = repositories.openRepository(project).use { it.resolve(Constants.HEAD) }
 
     @Test
+    fun `같은 서버(루프백 주소)가 아닌 곳의 호출은 403이고 저장소를 건드리지 않는다 (R-66, v1_6은 누구나 호출할 수 있었다)`() {
+        val a = project()
+        repositories.createRepository(a)
+        GitTestSupport.commitFiles(repositories, a, mapOf("a.txt" to "a".toByteArray()))
+        mockMvc.perform(get("/_init").with { it.remoteAddr = "203.0.113.5"; it }).andExpect(status().isForbidden)
+        assertNotNull(head(a), "403이면 저장소를 지우면 안 된다")
+        mockMvc.perform(get("/_init").with { it.remoteAddr = "0:0:0:0:0:0:0:1"; it }).andExpect(status().isSeeOther)
+    }
+
+    @Test
+    fun `같은 서버의 프록시를 거쳐 온 요청은 403이다 (프록시 뒤에서는 연결 주소가 프록시의 루프백이라 헤더로 거른다)`() {
+        val a = project()
+        repositories.createRepository(a)
+        GitTestSupport.commitFiles(repositories, a, mapOf("a.txt" to "a".toByteArray()))
+        mockMvc.perform(get("/_init").header("X-Forwarded-For", "203.0.113.5")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/_init").header("Forwarded", "for=203.0.113.5")).andExpect(status().isForbidden)
+        assertNotNull(head(a), "403이면 저장소를 지우면 안 된다")
+    }
+
+    @Test
     fun `로그인하지 않아도 호출할 수 있고 홈으로 303 이동한다`() {
         mockMvc.perform(get("/_init")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/"))
     }

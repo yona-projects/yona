@@ -171,6 +171,29 @@ class SvnRepositories(private val dataDirectory: DataDirectory) {
         ByteArrayOutputStream().also { repository.getFile(path, number, null, it) }.toByteArray()
     }
 
+    /**
+     * 최신 리비전의 모든 폴더와 파일을 zip으로 [out]에 쓴다(내려받기). 폴더는 이름 끝에 `/`가 붙은 항목이고 파일은 내용 그대로이다.
+     * v1.6은 아무것도 쓰지 않아 빈 파일이 내려갔다(R-62-3).
+     */
+    fun exportZip(owner: String, name: String, out: java.io.OutputStream) {
+        java.util.zip.ZipOutputStream(out).use { zip ->
+            fun walk(path: String) {
+                for (entry in entries(owner, name, path).orEmpty()) {
+                    val child = if (path.isEmpty()) entry.name else "$path/${entry.name}"
+                    if (entry.directory) {
+                        zip.putNextEntry(java.util.zip.ZipEntry("$child/")); zip.closeEntry()
+                        walk(child)
+                    } else {
+                        zip.putNextEntry(java.util.zip.ZipEntry(child))
+                        zip.write(rawFile(owner, name, HEAD, child) ?: ByteArray(0))
+                        zip.closeEntry()
+                    }
+                }
+            }
+            walk("")
+        }
+    }
+
     /** 최신 리비전에서 [path]가 파일이면 `true`이다. 리비전을 주면 그 리비전에서 확인한다. */
     fun isFile(owner: String, name: String, path: String, revision: String? = null): Boolean = session(owner, name) { repository ->
         repository.checkPath(path, revision?.toLong() ?: repository.latestRevision) == SVNNodeKind.FILE

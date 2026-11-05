@@ -172,11 +172,15 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `내려받기는 아무것도 쓰지 않는다`() {
+    fun `내려받기는 최신 리비전의 폴더와 파일을 zip으로 쓴다 (R-62-3, v1_6은 아무것도 쓰지 않았다)`() {
         val p = project()
-        commit(p, "dev", "처음", mapOf("a.txt" to "1"))
+        commit(p, "dev", "처음", mapOf("a.txt" to "1", "dir/b.txt" to "2"))
         val out = ByteArrayOutputStream()
         service.archive(p, "HEAD", out)
-        assertEquals(0, out.size())
+        val entries = linkedMapOf<String, String>()
+        java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(out.toByteArray())).use { zip ->
+            generateSequence { zip.nextEntry }.forEach { entries[it.name] = if (it.isDirectory) "" else String(zip.readBytes()) }
+        }
+        assertEquals(mapOf("a.txt" to "1", "dir/" to "", "dir/b.txt" to "2"), entries.toMap())
     }
 }

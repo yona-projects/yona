@@ -318,18 +318,23 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `수정, 상태, 라벨 변경은 v1_6 save처럼 제목 머리말 개수를 늘린다`() {
+    fun `수정, 상태, 라벨 변경은 제목이 그대로이면 제목 머리말 개수를 바꾸지 않고 제목이 바뀌면 이전 머리말을 빼고 새 머리말을 더한다 (R-77, v1_6은 저장할 때마다 늘렸다)`() {
         val (user, project) = member("t")
         val i = issue(project, user); i.title = "[버그] 제목"; issues.save(i)
         val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
         val x = labels.save(IssueLabel(project = project, category = category, name = "x", color = "#fff"))
         val frequency = { entityManager.flush(); entityManager.clear(); titleHeads.findFirstByProjectIdAndHeadKeyword(project.id!!, "버그")?.frequency ?: 0 }
+        titleHeads.save(dev.yona.domain.project.TitleHead(project = project, headKeyword = "버그", frequency = 1))
         json(patch(api(project, "issues/1")), user.token, """{"state":"closed"}""").andExpect(status().isOk)
         assertEquals(1, frequency())
         json(post(api(project, "issuelabel/1")), user.token, "[\"${x.id}\"]").andExpect(status().isOk)
-        assertEquals(2, frequency())
+        assertEquals(1, frequency())
         json(put(api(project, "issues/1")), user.token, """{"title":"[버그] 제목","body":"b","state":"OPEN","assignees":[]}""").andExpect(status().isOk)
-        assertEquals(3, frequency())
+        assertEquals(1, frequency(), "제목이 그대로이면 개수를 늘리지 않는다")
+        json(put(api(project, "issues/1")), user.token, """{"title":"[기능] 새 제목","body":"b","state":"OPEN","assignees":[]}""").andExpect(status().isOk)
+        assertEquals(0, frequency(), "이전 제목의 머리말은 뺀다")
+        entityManager.flush(); entityManager.clear()
+        assertEquals(1, titleHeads.findFirstByProjectIdAndHeadKeyword(project.id!!, "기능")?.frequency ?: 0, "새 제목의 머리말은 더한다")
     }
 
     // --- 댓글 ---

@@ -134,6 +134,16 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈 이력에는 열린 이슈만 나오고 초안과 닫힌 이슈는 빠진다 (R-68-3, v1_6은 모두 담았다)`() {
+        val p = project(); val writer = user()
+        issue(p, "열린 이슈", writer)
+        issue(p, "닫힌 이슈", writer, state = State.CLOSED)
+        issue(p, "초안 이슈", writer, state = State.DRAFT)
+        val titles = home(p, "history").select("ul.activity-streams li.activity-stream .whereis a.title").map { it.text() }
+        assertEquals(listOf("열린 이슈"), titles)
+    }
+
+    @Test
     fun `이슈 이력의 한 줄에는 작성자와 종류와 짧은 제목과 주소가 있다`() {
         val p = project(); val writer = user()
         val issue = issue(p, "이력 이슈", writer)

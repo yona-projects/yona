@@ -225,10 +225,13 @@ class MailHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `알 수 없는 리소스를 가리키면 예상하지 못한 오류를 회신한다`() {
+    fun `없는 리소스 번호를 가리키면 없는 리소스라고 회신한다 (R-61-12, v1_6은 모호한 Unexpected error occurs였다)`() {
         val sender = user(); val p = project(sender); member(sender, p)
         handle(MailFixtures.mail("<h-boom@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/issue_post/999999")), "없는 이슈"))
-        assertTrue(textOf(replies().single()).contains("Unexpected error occurs"))
+        val reply = textOf(replies().single())
+        assertTrue(reply.contains("does not exist") && reply.contains("issue_post/999999"), reply)
+        assertTrue(!reply.contains("Unexpected error occurs"), reply)
+        assertEquals(0, issues.findAll().count { it.project?.id == p.id }, "없는 리소스로는 새 이슈도 만들지 않는다")
     }
 
     // --- 댓글 달기 ---
@@ -287,20 +290,23 @@ class MailHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `커밋 주소로 온 답장은 해시만 있어도 오류 없이 건너뛴다 (R-124-4)`() {
+    fun `커밋 주소로 온 답장은 해시만 있어도 같은 주소로 읽고 댓글을 달 수 없다고 회신한다 (R-124-4, R-61-11)`() {
         val sender = user(); val p = project(sender); member(sender, p)
         // 알림이 만드는 주소는 `commit/프로젝트번호:해시`이다. 해시만 있는 주소는 주소의 프로젝트로 보고 같은 주소로 다룬다.
         handle(MailFixtures.mail("<h-commit-hash@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/commit/abc123")), "Re: 커밋", "답장"))
-        assertTrue(replies().isEmpty(), "오류 회신이 없어야 한다")
+        val first = textOf(replies().single())
+        assertTrue(first.contains("cannot comment on") && !first.contains("Unexpected error occurs"), first)
         handle(MailFixtures.mail("<h-commit-full@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/commit/${p.id}%3Aabc123")), "Re: 커밋", "답장"))
-        assertTrue(replies().isEmpty(), "오류 회신이 없어야 한다")
-        assertEquals(0, issues.findAll().count { it.project?.id == p.id }, "커밋에는 댓글을 달지 않으므로 새 이슈도 만들지 않는다")
+        assertEquals(2, replies().size)
+        assertTrue(textOf(replies().last()).contains("cannot comment on"))
+        assertEquals(0, issues.findAll().count { it.project?.id == p.id }, "커밋에는 댓글을 달 수 없으므로 새 이슈도 만들지 않는다")
     }
 
     @Test
-    fun `종류가 다른 리소스를 가리키면 아무것도 만들지 않는다`() {
+    fun `종류가 다른 리소스를 가리키면 아무것도 만들지 않고 댓글을 달 수 없다고 회신한다 (R-61-11, v1_6은 오류 회신도 없었다)`() {
         val sender = user(); val p = project(sender); member(sender, p)
         handle(MailFixtures.mail("<h-miles@m>", sender.email!!, listOf(yona("${p.owner}/${p.name}/user/${sender.id}")), "이상한 대상"))
         assertEquals(0, issues.findAll().count { it.project?.id == p.id })
+        assertTrue(textOf(replies().single()).contains("cannot comment on"))
     }
 }

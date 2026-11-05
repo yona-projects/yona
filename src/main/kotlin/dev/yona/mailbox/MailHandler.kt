@@ -138,22 +138,30 @@ class MailHandler(
         message.getHeader(name)?.any { it.substringBefore(';').trim().equals(expected, ignoreCase = true) } ?: false
 
     private fun createResources(message: MimeMessage, sender: User, errors: MutableList<String>) {
-        val threads = findThreads(message)
+        val lang = locale(sender)
+        val threads = findThreads(message, lang, errors)
+        // 댓글을 달 수 없는 종류(커밋, 사용자 등)를 가리키면 v1.6은 아무것도 하지 않고 오류 회신도 없었다. 이유를 회신한다(R-61-11)
+        for (thread in threads.filter { it.type !in REPLYABLE }) {
+            val reason = messages.getMessage("viaEmail.error.unsupported.resource", arrayOf<Any>("${thread.type.resource}/${thread.id}"), lang)
+            if (reason !in errors) errors += reason
+        }
+        // 리소스를 가리키는 주소가 잘못되어 오류를 모았으면 새 이슈를 만들지 않는다. 답장을 달려던 메일이 엉뚱한 새 이슈가 되지 않게 한다
+        val addressedWrongly = errors.isNotEmpty()
         // 한 메일이 여러 리소스를 만들 수 있다.
         for (project in findProjects(message, sender, errors)) {
-            var commented = false
+            var commented = addressedWrongly
             for (thread in threads) {
+                if (thread.type !in REPLYABLE) continue
                 if (thread.projectId.getOrThrow() != project.id) continue
                 when (thread.type) {
                     ResourceType.COMMENT_THREAD -> {
                         val comment = transactions.execute { creator.saveReviewComment(message, resources.get(thread.type, thread.id)) }
                         remember(message, ResourceType.REVIEW_COMMENT, requireNotNull(comment?.id))
                     }
-                    ResourceType.ISSUE_POST, ResourceType.BOARD_POST -> {
+                    else -> {
                         val comment = requireNotNull(transactions.execute { creator.saveComment(message, resources.get(thread.type, thread.id)) })
                         remember(message, comment.type, requireNotNull(comment.id))
                     }
-                    else -> Unit
                 }
                 commented = true
             }
@@ -204,7 +212,7 @@ class MailHandler(
     }
 
     /** 이 메일이 답하는 리소스를 찾는다. `In-Reply-To`와 `References`의 메시지 ID, 받는 주소의 세부 부분이 단서이다. */
-    private fun findThreads(message: MimeMessage): List<ReplyTarget> {
+    private fun findThreads(message: MimeMessage, lang: Locale, errors: MutableList<String>): List<ReplyTarget> {
         val messageIds = LinkedHashSet<String>()
         message.getHeader("In-Reply-To", null)?.let { messageIds += MessageIds.parse(it) }
         message.getHeader("References")?.forEach { messageIds += MessageIds.parse(it) }
@@ -223,7 +231,16 @@ class MailHandler(
                 }
             }
         }
-        for (address in toYona(message.allRecipients)) resourceFromDetail(address.detail)?.let { add(it.first, it.second) }
+        for (address in toYona(message.allRecipients)) {
+            try {
+                resourceFromDetail(address.detail)?.let { add(it.first, it.second) }
+            } catch (e: Exception) {
+                // 없는 리소스 번호는 v1.6에서 모호한 `Unexpected error occurs` 회신이었다. 어떤 리소스가 없는지 알린다(R-61-12)
+                log.info("Error while finding a resource by address '{}'", address.detail, e)
+                val path = address.detail.split("/", limit = 3).getOrNull(2) ?: address.detail
+                errors += messages.getMessage("viaEmail.error.notfound.resource", arrayOf<Any>(path), lang)
+            }
+        }
         return found.values.toList()
     }
 
@@ -320,3 +337,6 @@ class MailHandler(
         }
     }
 }
+
+/** 메일로 댓글을 달 수 있는 리소스 종류이다(리뷰 스레드, 이슈, 게시글). */
+private val REPLYABLE = setOf(ResourceType.COMMENT_THREAD, ResourceType.ISSUE_POST, ResourceType.BOARD_POST)
