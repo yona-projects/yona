@@ -42,6 +42,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirec
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -309,6 +310,18 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         assertEquals("원래 본문", doc.selectFirst("textarea[name=body]")!!.text())
         assertEquals("refs/heads/master", doc.selectFirst("input[type=hidden][name=fromBranch]")!!.attr("value"))
         assertEquals(url(s, pr, "/edit"), doc.selectFirst("form[enctype]")!!.attr("action"))
+    }
+
+    @Test
+    fun `수정 폼의 병합 결과, 멘션, 마크다운 미리보기 주소는 받는 프로젝트(원본) 기준이다 (R-43-4, v1_6은 포크 기준이었다)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        // 스크립트 안의 문자열은 슬래시를 `\/`로 쓴다
+        val html = mockMvc.perform(get(url(s, pr, "/editform")).session(s.managerSession)).andExpect(status().isOk).andReturn().response.contentAsString.replace("\\/", "/")
+        val origin = "/${s.origin.owner}/${s.origin.name}"; val fork = "/${s.fork.owner}/${s.fork.name}"
+        assertTrue(html.contains("$origin/newPullRequest/mergeResult"), "병합 결과 주소")
+        assertTrue(html.contains("$origin/mentionList"), "멘션 목록 주소")
+        assertTrue(html.contains("/markdown$origin"), "마크다운 미리보기 주소")
+        assertFalse(html.contains("$fork/newPullRequest/mergeResult") || html.contains("$fork/mentionList") || html.contains("/markdown$fork"), "포크 기준 주소가 남지 않아야 한다")
     }
 
     @Test

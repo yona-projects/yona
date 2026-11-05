@@ -1216,3 +1216,7 @@ R-110 확인용으로 Playwright로 가입 화면(`/users/signupform`)이 보내
 ## 2026-11-05 R-50-7과 R-43-2 수정 (A-359)
 
 선생님이 두 항목을 설명을 들으신 뒤 권장 수용하셨다. 시험을 먼저 바꾸거나 써서 실패를 확인했다. R-43-2는 고치기 전 컨트롤러로 되돌려 실패를 다시 확인했다. H2의 `web.pullrequest.*`, `web.search.*`가 통과했고(54초) PostgreSQL의 `PullRequestActionTest`, `SearchHiddenListingTest`, `SearchTest`가 통과했다(28초).
+
+## 2026-11-05 풀 리퀘스트 수정 폼의 기준 프로젝트 (R-43-4, A-360)
+
+선생님이 권장 수용하셨다. 시험을 먼저 써서 실패를 확인했고 고치기 전 컨트롤러로 되돌려 다시 확인했다. H2의 `web.pullrequest.*`가 통과했고(50초) PostgreSQL의 `PullRequestActionTest`가 통과했다(21초).

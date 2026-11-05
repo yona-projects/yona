@@ -106,11 +106,12 @@ class PullRequestActionController(
     fun editForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long): Any {
         val (toProject, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val from = requireNotNull(pullRequest.fromProject)
-        val fromBase = siteUrls.path(dev.yona.util.UrlPaths.projectPath(from.owner, from.name))
+        // 병합 결과, 멘션, 마크다운 미리보기는 요청이 속한 받는 프로젝트 기준이다. v1.6은 보내는 프로젝트(포크) 기준으로 만들었다(R-43-4)
+        val toBase = siteUrls.path(dev.yona.util.UrlPaths.projectPath(toProject.owner, toProject.name))
         return ModelAndView("pullrequest/edit")
             .addObject("title", "title.editPullRequest")
             .addObject("projectView", views.of(toProject))
-            .addObject("markdownProject", views.of(from))
+            .addObject("markdownProject", views.of(toProject))
             .addObject("action", "${base(pullRequest)}/edit")
             .addObject("pullRequestId", pullRequest.id)
             .addObject("fromLabel", "${from.owner} / ${from.name}").addObject("fromProjectId", from.id).addObject("fromBranch", pullRequest.fromBranch)
@@ -121,8 +122,8 @@ class PullRequestActionController(
             .addObject("open", pullRequest.open)
             .addObject("prTitle", pullRequest.title.orEmpty())
             .addObject("body", pullRequest.body.orEmpty())
-            .addObject("mergeResultUrl", "$fromBase/newPullRequest/mergeResult")
-            .addObject("mentionUrl", "$fromBase/mentionList")
+            .addObject("mergeResultUrl", "$toBase/newPullRequest/mergeResult")
+            .addObject("mentionUrl", "$toBase/mentionList")
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/edit")
