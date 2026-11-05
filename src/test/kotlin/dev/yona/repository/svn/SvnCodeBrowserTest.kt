@@ -63,6 +63,22 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `리비전을 알려 주면 그 시점의 폴더 목록과 파일 내용을 보인다 (R-62-2, v1_6은 항상 최신이었다)`() {
+        val p = project()
+        user("svrev")
+        commit(p, "svrev", "처음", mapOf("a.txt" to "old", "keep.txt" to "k"))
+        commit(p, "svrev", "둘째", mapOf("a.txt" to "newer", "added.txt" to "x"))
+        val past = assertNotNull(service.metaData(p, "1", ""))
+        assertEquals(setOf("a.txt", "keep.txt"), entries(past).keys, "리비전 1에는 added.txt가 없다")
+        assertEquals(1L, entries(past).getValue("a.txt")["commitId"])
+        val latest = assertNotNull(service.metaData(p, null, ""))
+        assertEquals(setOf("a.txt", "keep.txt", "added.txt"), entries(latest).keys)
+        assertEquals("old", assertNotNull(service.metaData(p, "1", "a.txt"))["data"])
+        assertEquals("newer", assertNotNull(service.metaData(p, null, "a.txt"))["data"])
+        assertNull(service.metaData(p, "1", "added.txt"), "리비전 1에는 없는 파일이다")
+    }
+
+    @Test
     fun `폴더는 항목마다 마지막 커밋 정보를 담는다`() {
         val p = project()
         val dev = user("svdev")
@@ -135,12 +151,12 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `폴더 정보는 항상 최신 리비전에서 읽는다`() {
+    fun `폴더 정보는 알려 준 리비전에서 읽는다 (R-62-2, v1_6은 항상 최신에서 읽었다)`() {
         val p = project()
         commit(p, "dev", "하나", mapOf("a.txt" to "1"))
         commit(p, "dev", "둘", mapOf("b.txt" to "2"))
-        // v1.6은 리비전을 알려 줘도 목록은 최신(HEAD)에서 읽는다(R-62).
-        assertEquals(setOf("a.txt", "b.txt"), entries(service.metaData(p, "1", "")!!).keys)
+        assertEquals(setOf("a.txt"), entries(service.metaData(p, "1", "")!!).keys)
+        assertEquals(setOf("a.txt", "b.txt"), entries(service.metaData(p, "HEAD", "")!!).keys)
     }
 
     @Test
@@ -153,11 +169,12 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `지난 리비전에만 있는 파일은 오류 없이 없다고 답한다 (v1_6은 500)`() {
+    fun `지난 리비전에만 있는 파일은 그 리비전에서는 읽히고 최신에서는 오류 없이 없다고 답한다 (v1_6은 500, R-62-2)`() {
         val p = project()
         commit(p, "dev", "하나", mapOf("old.txt" to "v1"))
         commit(p, "dev", "둘", mapOf("new.txt" to "v2"), deletes = listOf("old.txt"))
-        assertNull(service.metaData(p, "1", "old.txt"))
+        assertEquals("v1", assertNotNull(service.metaData(p, "1", "old.txt"))["data"])
+        assertNull(service.metaData(p, null, "old.txt"))
     }
 
     @Test

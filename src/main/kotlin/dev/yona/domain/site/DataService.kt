@@ -496,18 +496,22 @@ class DataService(
                 ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
                 return@forEachIndexed
             }
-            val found = row.get(column.key)
+            val found = row.get(column.key) ?: column.legacyKey?.let { row.get(it) }
             if (found == null && column.absentBoolean != null) { if (smallintBooleans) ps.setShort(position, if (column.absentBoolean) 1 else 0) else ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
             if (found == null && column.absentNull) { ps.setNull(position, Types.VARCHAR); return@forEachIndexed }
             if (found == null && column.absentString != null) { ps.setString(position, column.absentString); return@forEachIndexed }
             val node = requireNotNull(found) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
             when (column.type) {
-                DataType.LONG -> if (node.isNull && column.nullableLong) ps.setNull(position, Types.BIGINT) else ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
-                DataType.INT -> (if (node.isNumber) node.intValue() else 0).let { if (smallintBooleans) ps.setShort(position, it.toShort()) else ps.setInt(position, it) }
+                // v1.6는 교환기마다 NULL을 허용한다고 표시한 컬럼만 NULL로 가져와 표시가 빠진 NULL 가능 컬럼은 0이 되었다. DB가 NULL을 허용하는 컬럼이면 JSON null을 NULL로 가져온다(R-56-6)
+                DataType.LONG -> if (node.isNull && (column.nullableLong || ids.isNullable(table, column.name))) ps.setNull(position, Types.BIGINT) else ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
+                DataType.INT ->
+                    if (node.isNull && ids.isNullable(table, column.name)) ps.setNull(position, if (smallintBooleans) Types.SMALLINT else Types.INTEGER)
+                    else (if (node.isNumber) node.intValue() else 0).let { if (smallintBooleans) ps.setShort(position, it.toShort()) else ps.setInt(position, it) }
                 DataType.STRING, DataType.CLOB -> if (node.isString) ps.setString(position, node.asString()) else ps.setNull(position, Types.VARCHAR)
                 DataType.BOOLEAN -> (node.isBoolean && node.booleanValue()).let { if (smallintBooleans) ps.setShort(position, if (it) 1 else 0) else ps.setBoolean(position, it) }
-                DataType.TIMESTAMP -> timeOf(node).let { if (it == 0L) ps.setNull(position, Types.TIMESTAMP) else ps.setTimestamp(position, Timestamp(it)) }
-                DataType.DATE -> timeOf(node).let { if (it == 0L) ps.setNull(position, Types.DATE) else ps.setDate(position, java.sql.Date(it)) }
+                // v1.6는 JSON이 숫자가 아니거나 0이면 NULL로 넣어 에폭 0의 시각도 NULL이 되었다. JSON null(숫자가 아닌 값)일 때만 NULL로 넣는다(R-56-6)
+                DataType.TIMESTAMP -> if (!node.isNumber) ps.setNull(position, Types.TIMESTAMP) else ps.setTimestamp(position, Timestamp(node.longValue()))
+                DataType.DATE -> if (!node.isNumber) ps.setNull(position, Types.DATE) else ps.setDate(position, java.sql.Date(node.longValue()))
                 DataType.STRING_LONG -> {
                     val number = if (node.isNumber) node.longValue() else node.takeIf { it.isString }?.asString()?.toLongOrNull()
                     if (number == null) ps.setNull(position, Types.BIGINT) else ps.setLong(position, number)
@@ -659,6 +663,10 @@ class DataService(
         val isCubrid = product.contains("CUBRID", ignoreCase = true)
 
         private val smallintColumns = HashSet<String>()
+        private val nullableColumns = HashSet<String>()
+
+        /** DB가 NULL을 허용하는 컬럼인지 여부이다(R-56-6). */
+        fun isNullable(table: DataTable, column: String): Boolean = "${table.sqlName}.${column.lowercase()}" in nullableColumns
 
         /** Cubrid에서만 `smallint` 열을 구분한다. 그 밖의 데이터베이스는 `int`와 `boolean`을 그대로 넣어도 된다. */
         fun isSmallint(table: DataTable, column: String): Boolean = isCubrid && "${table.sqlName}.${column.lowercase()}" in smallintColumns
@@ -669,6 +677,7 @@ class DataService(
                     val table = rs.getString("TABLE_NAME")
                     if (isSqlServer && rs.getString("IS_AUTOINCREMENT") == "YES") identityTables += table.lowercase()
                     if (isCubrid && rs.getInt("DATA_TYPE") == Types.SMALLINT) smallintColumns += table.lowercase() + "." + rs.getString("COLUMN_NAME").lowercase()
+                    if (rs.getInt("NULLABLE") == java.sql.DatabaseMetaData.columnNullable) nullableColumns += table.lowercase() + "." + rs.getString("COLUMN_NAME").lowercase()
                     tables.putIfAbsent(table.lowercase(), table)
                     columns.getOrPut(table.lowercase()) { HashMap() }[rs.getString("COLUMN_NAME").lowercase()] = rs.getString("COLUMN_NAME")
                 }

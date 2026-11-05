@@ -55,6 +55,26 @@ class MigrationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `화면 문구는 한국어로 고정이 아니라 요청 언어를 따른다 (R-58-4, v1_6은 한국어로 고정이었다)`() {
+        val (_, session) = login()
+        fun html(language: String) = mockMvc.perform(get("/migration").session(session).header("Accept-Language", language)).andExpect(status().isOk).andReturn().response.contentAsString
+            .replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
+        val english = html("en")
+        assertTrue(!Regex("[가-힣]").containsMatchIn(english), "영어 화면에 한국어가 남아 있다: " + Regex(".{20}[가-힣]+.{10}").find(english)?.value)
+        assertTrue(english.contains("Select a source project"), "영어 문구가 없다")
+        val korean = html("ko-KR")
+        assertTrue(korean.contains("Source 프로젝트를 선택해 주세요") && korean.contains("마일스톤 옮기기"), "한국어 문구가 그대로여야 한다")
+    }
+
+    @Test
+    fun `이전 화면의 스크립트도 문구를 메시지 번들에서 읽는다 (R-58-4)`() {
+        val script = java.io.File("src/main/resources/static/assets/javascripts/service/yona.Migration.js").readLines()
+            .filter { !it.trim().startsWith("//") && !it.contains("logToIssue") && !it.contains("labelOfPost") }
+        val hangul = script.filter { Regex("[가-힣]").containsMatchIn(it) }
+        assertEquals(emptyList(), hangul, "스크립트에 한국어 문구가 남아 있다")
+    }
+
+    @Test
     fun `로그인하지 않으면 로그인 폼으로 보낸다`() {
         mockMvc.perform(get("/migration")).andExpect(status().isSeeOther)
     }
@@ -126,7 +146,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
     @Test
     fun `화면은 원본의 구성을 담는다`() {
         val (_, session) = login()
-        val html = mockMvc.perform(get("/migration").session(session)).andReturn().response.contentAsString
+        val html = mockMvc.perform(get("/migration").session(session).header("Accept-Language", "ko-KR")).andReturn().response.contentAsString
         listOf("Source 프로젝트를 선택해 주세요", "마일스톤 옮기기", "이슈 옮기기", "게시글 옮기기", "기존 이슈 담당자", "Yona to Github", "{{vm.sourceProjects.length}}").forEach { assertTrue(html.contains(it), it) }
     }
 

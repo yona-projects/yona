@@ -35,7 +35,9 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Test
     fun `특수한 컬럼 이름과 종류가 v1_6과 같다`() {
         val attachment = DataTables.find("attachment")!!
-        assertEquals("content_type", attachment.columns.first { it.name == "container_type" }.key)
+        // v1.6는 `content_type` 키로 썼다. v2는 `container_type`으로 쓰고 옛 키도 읽는다(R-56-8)
+        assertEquals("container_type", attachment.columns.first { it.name == "container_type" }.key)
+        assertEquals("content_type", attachment.columns.first { it.name == "container_type" }.legacyKey)
         assertEquals(DataType.DATE, attachment.columns.first { it.name == "created_date" }.type)
         assertEquals(DataType.STRING_LONG, attachment.columns.first { it.name == "container_id" }.type)
         assertEquals(11, DataTables.find("N4USER")!!.columns.size)

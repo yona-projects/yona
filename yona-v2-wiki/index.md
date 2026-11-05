@@ -13,6 +13,7 @@
 - [v1.6 위키 9~11차 갱신분의 v2 대조 결과](architecture/v16-sync-9-11.md): 바뀐 127개 페이지의 대조, 고친 항목, 결정 대기, 판정하지 못한 항목
 - [v1.6 위키 127쪽 전수 줄 대조](architecture/v16-sync-ledger.md): 장부 2,267줄의 판정 집계, 불일치 92줄의 처리, 판정하지 못한 9줄
 - [직접 만든 요청에서만 닿는 차이](architecture/hand-crafted-request-differences.md): A-24에 따라 재현하지 않는 v1.6 동작 목록
+- [데이터 교정 스크립트와 알려진 한계](architecture/data-fix-and-known-limits.md): 가져오기에서 NULL이 0이 된 컬럼, 코드 리뷰 스레드의 `prev_commit_id`, 대량 메일의 `mailto:` 길이 한도(R-56-6, R-44-3, R-54-6)
 - [기술 스택 결정 기록](architecture/technology-decisions.md): 쿼리 계층, 스키마 관리, 검증 DB, 테스트 스택과 테스트 DB 운영 방식
 
 ## 웹 (`web/`)

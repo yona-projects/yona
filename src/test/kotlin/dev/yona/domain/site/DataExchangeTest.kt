@@ -95,14 +95,14 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `첨부는 컨테이너 종류를 content_type 키로 쓰고 컨테이너 번호는 문자열이다`() {
+    fun `첨부는 컨테이너 종류를 container_type 키로 쓰고 컨테이너 번호는 문자열이다 (R-56-8, v1_6은 content_type 키였다)`() {
         jdbc.update("insert into attachment(name, hash, container_type, mime_type, ${q("size")}, container_id, created_date) values ('a.txt', 'h1', 'ISSUE_POST', 'text/plain', 5, 7, ?)", Timestamp(1_700_000_000_000L))
         val row = exported()["ATTACHMENT"].first { it["name"].asString() == "a.txt" }
-        assertEquals("ISSUE_POST", row["content_type"].asString())
+        assertEquals("ISSUE_POST", row["container_type"].asString())
         assertTrue(row["container_id"].isString)
         assertEquals("7", row["container_id"].asString())
         assertTrue(row["created_date"].isNumber)
-        assertFalse(row.has("container_type"))
+        assertFalse(row.has("content_type"))
     }
 
     // --- 가져오기 ---
@@ -232,6 +232,33 @@ class DataExchangeTest : AbstractIntegrationTest() {
         assertEquals(listOf("ISSUE", "ISSUE_COMMENT"), result.imported.filter { it.startsWith("ISSUE") })
         assertTrue(result.failed.none { it == "ISSUE_COMMENT" }, result.failed.toString())
         assertEquals(880002L, jdbc.queryForObject("select project_id from issue_comment where id = 880003", Long::class.java))
+    }
+
+    private fun issueRow(id: Long, authorId: String, due: String) =
+        """{"id": $id, "title": "t", "body": "b", "created_date": 1700000000000, "num_of_comments": 0, "milestone_id": null, "author_id": $authorId, "author_login_id": "a", "author_name": "A",
+            "state": 1, "project_id": 880002, "assignee_id": null, "number": $id, "updated_date": 1700000000000, "due_date": $due}"""
+
+    @Test
+    fun `DB에서 NULL이 가능한 정수 컬럼은 표시가 없어도 JSON null이면 NULL로 가져온다 (R-56-6, v1_6은 0이 되었다)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        import("""{"ISSUE": [${issueRow(880011, "null", "null")}]}""")
+        assertEquals(null, jdbc.queryForObject("select author_id from issue where id = 880011", Long::class.javaObjectType))
+    }
+
+    @Test
+    fun `시각은 JSON null일 때만 NULL이고 에폭 0은 그대로 가져온다 (R-56-6, v1_6은 0도 NULL로 바꿨다)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        import("""{"ISSUE": [${issueRow(880012, "1", "null")}, ${issueRow(880013, "1", "0")}]}""")
+        assertEquals(null, jdbc.queryForObject("select due_date from issue where id = 880012", java.sql.Timestamp::class.java))
+        assertEquals(0L, jdbc.queryForObject("select due_date from issue where id = 880013", java.sql.Timestamp::class.java)!!.time)
+    }
+
+    @Test
+    fun `첨부의 컨테이너 종류는 container_type 키로 쓰고 옛 content_type 키도 읽는다 (R-56-8)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        fun row(id: Long, key: String) = """{"id": $id, "name": "a$id.txt", "hash": "h$id", "$key": "ISSUE_POST", "mime_type": "text/plain", "size": 1, "container_id": "7", "created_date": 1700000000000}"""
+        import("""{"ATTACHMENT": [${row(880021, "container_type")}, ${row(880022, "content_type")}]}""")
+        assertEquals(listOf("ISSUE_POST", "ISSUE_POST"), jdbc.queryForList("select container_type from attachment where id in (880021, 880022) order by id", String::class.java))
     }
 
     @Test
@@ -466,19 +493,19 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `JSON null은 정수 컬럼에서 허용 여부에 따라 NULL이나 0이 된다`() {
+    fun `JSON null은 DB가 NULL을 허용하는 정수 컬럼에서 NULL이 된다 (R-56-6, v1_6은 표시가 빠진 컬럼에서 0이었다)`() {
         TestDatabase.assumeOrphanRowsSurviveImport()
         import("""{"MENTION": [{"id": 1, "resource_type": "ISSUE_POST", "resource_id": null, "user_id": null}],
                     "ASSIGNEE": [{"id": 1, "user_id": null, "project_id": null}]}""")
         assertNull(jdbc.queryForObject("select user_id from mention", Long::class.javaObjectType))
         assertNull(jdbc.queryForObject("select resource_id from mention", String::class.java))
-        assertEquals(0L, jdbc.queryForObject("select user_id from assignee", Long::class.java))
-        assertEquals(0L, jdbc.queryForObject("select project_id from assignee", Long::class.java))
+        assertNull(jdbc.queryForObject("select user_id from assignee", Long::class.javaObjectType))
+        assertNull(jdbc.queryForObject("select project_id from assignee", Long::class.javaObjectType))
     }
 
     @Test
-    fun `시각 0은 NULL이고 불린 null은 false이며 문자열이 아닌 값은 NULL이다`() {
-        import("""{"ORGANIZATION": [{"id": 5, "name": 123, "descr": "d", "created": 0}],
+    fun `시각 null은 NULL이고 불린 null은 false이며 문자열이 아닌 값은 NULL이다 (R-56-6)`() {
+        import("""{"ORGANIZATION": [{"id": 5, "name": 123, "descr": "d", "created": null}],
                     "ROLE": [{"id": 905, "name": "r", "active": null}]}""")
         assertNull(jdbc.queryForObject("select created from organization", Timestamp::class.java))
         assertNull(jdbc.queryForObject("select name from organization", String::class.java))

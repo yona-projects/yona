@@ -50,14 +50,15 @@ data class DerivedColumn(val table: String, val column: String, val via: String)
  *
  * @property name DB 컬럼 이름(소문자)
  * @property type 값 종류
- * @property key JSON 키. 기본은 [name]이다(`ATTACHMENT.container_type`만 `content_type`이다)
+ * @property key JSON 키. 기본은 [name]이다
+ * @property legacyKey 가져올 때 [key]가 없으면 읽는 옛 키이다. `ATTACHMENT.container_type`은 v1.6이 `content_type`으로 썼다(R-56-8)
  * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
  * @property absentNull 가져오는 파일에 이 키가 없을 때 `null`로 채울지이다. 값이 비어 있을 수 있는 추가 개발 컬럼에 쓴다
  * @property absentString 가져오는 파일에 이 키가 없을 때 쓰는 문자열 값이다(`absentBoolean`의 문자열 판이다).
  * @property derivedFrom 이 컬럼은 내보내지 않고, 가져올 때 [DerivedColumn]이 가리키는 테이블에서 채운다. 파일에 이 키가 있어도 쓰지 않는다
  * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false, val derivedFrom: DerivedColumn? = null)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false, val derivedFrom: DerivedColumn? = null, val legacyKey: String? = null)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -109,7 +110,7 @@ object DataTables {
             DataColumn("id", LONG),
             DataColumn("name", STRING),
             DataColumn("hash", STRING),
-            DataColumn("container_type", STRING, key = "content_type"),
+            DataColumn("container_type", STRING, legacyKey = "content_type"),
             DataColumn("mime_type", STRING),
             DataColumn("size", LONG),
             DataColumn("container_id", STRING_LONG),

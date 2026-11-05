@@ -239,13 +239,18 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `설정 파일에 쓰지 못하면 직접 고치라는 안내가 더해진다`() {
+    fun `설정 파일에 쓰지 못하면 계정을 바꾸지 않고 다시 시도하라는 안내와 함께 폼을 다시 보인다 (R-57-5, v1_6은 계정만 바꾸고 직접 고치라고 했다)`() {
         val config = File(environment.getProperty("yona.data-dir")!!, "config")
         config.deleteRecursively()
         config.writeText("a regular file blocks the directory")
+        val before = users.findByLoginIdIgnoreCase("admin")?.password
         try {
-            val doc = Jsoup.parse(submit(*valid).andExpect(status().isOk).andReturn().response.contentAsString)
-            assertTrue(doc.select(".secret-box").text().contains("Please update application.secret with random text."))
+            val response = submit(*valid).andExpect(status().isInternalServerError).andReturn().response.contentAsString
+            val doc = Jsoup.parse(response)
+            assertEquals("Tada! Welcome to Yona!", doc.title())
+            assertTrue(doc.select("form .badge.bg-danger").text().contains("Could not save the secret key"), doc.select("form .badge").text())
+            assertEquals(before, users.findByLoginIdIgnoreCase("admin")?.password, "쓰기에 실패하면 관리자 계정은 바뀌지 않는다")
+            assertTrue(secret.invalid && !secret.restartRequired)
         } finally {
             config.delete()
         }

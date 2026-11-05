@@ -91,10 +91,9 @@ class LdapAuthService(
 
     private fun synchronize(ldapUser: LdapUser, password: String): LdapAuthResult {
         val local = lookup.findByEmail(ldapUser.email) ?: return create(ldapUser, password)
-        if (!LegacyPasswordHasher.matches(password, local.passwordSalt.orEmpty(), local.password.orEmpty())) {
-            local.password = LegacyPasswordHasher.hash(password, requireNotNull(local.passwordSalt))
-        }
-        local.name = ldapUser.displayNameWithDepartment
+        // v1.6은 입력한 비밀번호가 로컬과 다르면 로컬 비밀번호를 LDAP 비밀번호로 바꿨다. 로컬 비밀번호는 바꾸지 않는다(R-60-8).
+        // 이름은 LDAP 값이 다를 때만 쓴다. LDAP이 이름의 기준이라 로컬에서 고친 이름은 다음 LDAP 로그인에 LDAP 값으로 돌아온다
+        if (local.name != ldapUser.displayNameWithDepartment) local.name = ldapUser.displayNameWithDepartment
         if (ldapUser.englishName.isNotBlank()) local.englishName = ldapUser.englishName
         local.isGuest = isGuestUser(ldapUser)
         return LdapAuthResult(users.save(local))

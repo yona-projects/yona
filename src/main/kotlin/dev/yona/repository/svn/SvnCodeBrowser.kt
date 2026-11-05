@@ -31,7 +31,8 @@ class SvnCodeBrowser(
 ) {
 
     /**
-     * [path]의 폴더나 파일 정보이다. [revision]은 번호이고 번호가 아니면(`HEAD` 포함) 최신으로 본다. 경로가 없으면 `null`이다.
+     * [path]의 폴더나 파일 정보이다. [revision]은 번호이고 번호가 아니면(`HEAD` 포함) 최신으로 본다. 폴더 목록과 파일 내용도 그 리비전에서 읽는다
+     * (v1.6은 경로 종류만 그 리비전으로 판정하고 목록과 내용은 항상 최신에서 읽었다, R-62-2). 경로가 없으면 `null`이다.
      * 폴더는 `{"type": "folder", "data": {이름: {…}}}`, 파일은 `{"type": "file", …}`이다.
      */
     fun metaData(project: Project, revision: String?, path: String): Map<String, Any?>? {
@@ -39,14 +40,14 @@ class SvnCodeBrowser(
         val name = project.name.orEmpty()
         val number = revision?.toLongOrNull()
         return when (svn.kindOf(owner, name, path, number)) {
-            SVNNodeKind.DIR -> folder(project, path)
-            SVNNodeKind.FILE -> file(owner, name, path)
+            SVNNodeKind.DIR -> folder(project, path, number)
+            SVNNodeKind.FILE -> file(owner, name, path, number)
             else -> null
         }
     }
 
-    private fun folder(project: Project, path: String): Map<String, Any?>? {
-        val entries = svn.entries(project.owner.orEmpty(), project.name.orEmpty(), path) ?: return null
+    private fun folder(project: Project, path: String, revision: Long?): Map<String, Any?>? {
+        val entries = svn.entries(project.owner.orEmpty(), project.name.orEmpty(), path, revision) ?: return null
         val data = LinkedHashMap<String, Any?>()
         for (entry in entries) {
             val author = entry.author
@@ -62,8 +63,8 @@ class SvnCodeBrowser(
         return linkedMapOf("type" to "folder", "data" to data)
     }
 
-    private fun file(owner: String, name: String, path: String): Map<String, Any?>? {
-        val file = svn.file(owner, name, path) ?: return null
+    private fun file(owner: String, name: String, path: String, revision: Long?): Map<String, Any?>? {
+        val file = svn.file(owner, name, path, revision) ?: return null
         // v1.6은 크기를 넘는 파일을 바이너리로 표시했다(R-62-8). Git처럼 바이너리 판정은 그대로 하고, 크기를 넘으면 내용만 비워 "너무 크다" 안내가 나오게 한다
         val binary = dev.yona.io.RawTextBinary.isBinary(file.bytes)
         var data: String? = null

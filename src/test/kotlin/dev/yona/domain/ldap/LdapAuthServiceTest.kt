@@ -59,14 +59,14 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `같은 이메일의 사용자가 있으면 이름과 영문 이름을 갱신하고 비밀번호가 다르면 바꾼다`() {
+    fun `같은 이메일의 사용자가 있으면 이름과 영문 이름을 갱신하고 로컬 비밀번호는 바꾸지 않는다 (R-60-8, v1_6은 비밀번호가 다르면 바꿨다)`() {
         val existing = local("same@corp.test", "samelocal", password = "old-pw")
         Mockito.`when`(directory.authenticate("sameldap", "new-pw")).thenReturn(ldapUser(login = "sameldap", email = "same@corp.test", name = "바뀐 이름", english = "Changed"))
         val user = assertNotNull(ldap.authenticate("sameldap", "new-pw").user)
         assertEquals(existing.id, user.id)
         assertEquals("바뀐 이름", user.name)
         assertEquals("Changed", user.englishName)
-        assertTrue(LegacyPasswordHasher.matches("new-pw", user.passwordSalt!!, user.password!!))
+        assertTrue(LegacyPasswordHasher.matches("old-pw", user.passwordSalt!!, user.password!!), "LDAP으로 로그인해도 로컬 비밀번호는 그대로이다")
         assertEquals("samelocal", user.loginId)
     }
 

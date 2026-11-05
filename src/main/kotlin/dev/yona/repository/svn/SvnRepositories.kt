@@ -131,10 +131,14 @@ class SvnRepositories(private val dataDirectory: DataDirectory) {
     /** 커밋이 하나도 없으면 `true`이다 (v1.6 `isEmpty`). */
     fun isEmpty(owner: String, name: String): Boolean = latestRevision(owner, name) == 0L
 
-    /** [path]가 폴더이면 항목 목록(SVNKit가 돌려주는 순서 그대로, v1.6 `getMetaDataFromPath`처럼 정렬하지 않는다)을, 아니면 `null`이다. 항상 최신 리비전에서 읽는다 (v1.6 `getMetaDataFromPath`). */
-    fun entries(owner: String, name: String, path: String): List<SvnEntry>? = session(owner, name) { repository ->
-        if (repository.checkPath(path, -1) != SVNNodeKind.DIR) return null
-        val found = repository.getDir(path, -1, SVNProperties(), SVNDirEntry.DIRENT_ALL, null as Collection<*>?)
+    /**
+     * [path]가 폴더이면 항목 목록(SVNKit가 돌려주는 순서 그대로, v1.6 `getMetaDataFromPath`처럼 정렬하지 않는다)을, 아니면 `null`이다.
+     * [revision]은 번호이고 `null`이면 최신이다. v1.6은 리비전을 알려 줘도 항상 최신에서 읽었다(R-62-2).
+     */
+    fun entries(owner: String, name: String, path: String, revision: Long? = null): List<SvnEntry>? = session(owner, name) { repository ->
+        val number = revision ?: -1L
+        if (repository.checkPath(path, number) != SVNNodeKind.DIR) return null
+        val found = repository.getDir(path, number, SVNProperties(), SVNDirEntry.DIRENT_ALL, null as Collection<*>?)
         found.map { entry ->
             entry as SVNDirEntry
             SvnEntry(entry.name, entry.kind == SVNNodeKind.DIR, entry.revision, entry.author, entry.date, entry.commitMessage, entry.size)
@@ -150,13 +154,14 @@ class SvnRepositories(private val dataDirectory: DataDirectory) {
         }
     }
 
-    /** 파일의 내용과 마지막 커밋 정보이다. 최신 리비전에서 읽고, 파일이 아니면 `null`이다. */
-    fun file(owner: String, name: String, path: String): SvnFile? = session(owner, name) { repository ->
-        if (repository.checkPath(path, -1) != SVNNodeKind.FILE) return null
+    /** 파일의 내용과 마지막 커밋 정보이다. [revision]은 번호이고 `null`이면 최신이다(v1.6은 항상 최신, R-62-2). 파일이 아니면 `null`이다. */
+    fun file(owner: String, name: String, path: String, revision: Long? = null): SvnFile? = session(owner, name) { repository ->
+        val number = revision ?: -1L
+        if (repository.checkPath(path, number) != SVNNodeKind.FILE) return null
         val out = ByteArrayOutputStream()
         val properties = SVNProperties()
-        repository.getFile(path, -1, properties, out)
-        val info = repository.info(path, -1)
+        repository.getFile(path, number, properties, out)
+        val info = repository.info(path, number)
         val committed = properties.getStringValue(SVNProperty.COMMITTED_DATE)
         SvnFile(
             out.toByteArray(), info.size, properties.getStringValue(SVNProperty.COMMITTED_REVISION), properties.getStringValue(SVNProperty.LAST_AUTHOR),

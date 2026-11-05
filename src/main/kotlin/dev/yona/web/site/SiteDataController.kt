@@ -90,7 +90,12 @@ class SiteDataController(
         return try {
             val result = file.inputStream.use { data.import(it) }
             audit.record(dev.yona.domain.audit.AuditEvent("site.data_imported", targetType = "site", details = mapOf("via" to "web", "imported" to result.imported, "failed" to result.failed)))
-            RedirectSupport.see(request, response, "/")
+            // v1.6은 일부 테이블이 실패해도 처음 화면으로 가서 실패를 로그에만 남겼다. 실패가 있으면 가져오기 화면으로 돌아가 실패한 테이블을 안내한다(R-56-4)
+            if (result.failed.isNotEmpty()) {
+                RedirectSupport.see(request, response, "/sites/data", linkedMapOf(RedirectSupport.WARNING to "site.data.import.failed", "failedTables" to result.failed.joinToString(", ")))
+            } else {
+                RedirectSupport.see(request, response, "/")
+            }
         } catch (e: Exception) {
             log.error("Failed to import data", e)
             ErrorViews.badRequest()

@@ -160,10 +160,10 @@ class SiteDataTest : AbstractIntegrationTest() {
         TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
         // v1.6 DefaultExchanger는 테이블마다 트랜잭션을 잡고 예외를 삼킨다. 실패한 테이블만 되돌리고 302 /이다.
-        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/data"))
         assertEquals(emptyList(), labelNames())
         // 되돌린 뒤 자동 커밋으로 바꿀 때 부분 행이 확정되지 않아야 한다(같은 입력을 한 번 더)
-        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(redirectedUrl("/"))
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(redirectedUrl("/sites/data"))
         assertEquals(emptyList(), labelNames())
     }
 
@@ -171,7 +171,7 @@ class SiteDataTest : AbstractIntegrationTest() {
     fun `파일 중간의 구문 오류도 그 테이블의 행 넣기를 되돌리고 처음 화면으로 이동한다`() {
         TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
-        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": ##}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": ##}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/data"))
         assertEquals(emptyList(), labelNames())
     }
 
@@ -179,10 +179,10 @@ class SiteDataTest : AbstractIntegrationTest() {
     fun `행에 필수 값이 없거나 기본 키가 겹치면 그 테이블은 빈 채로 남는다`() {
         TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
-        upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(redirectedUrl("/"))
+        upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(redirectedUrl("/sites/data"))
         assertEquals(emptyList(), labelNames())
         seedOld()
-        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 1, "name": "b", "category": "c"}]}""").andExpect(redirectedUrl("/"))
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 1, "name": "b", "category": "c"}]}""").andExpect(redirectedUrl("/sites/data"))
         assertEquals(emptyList(), labelNames())
     }
 
@@ -198,9 +198,17 @@ class SiteDataTest : AbstractIntegrationTest() {
     fun `앞서 끝낸 테이블은 남고 뒤에서 깨진 테이블은 빈 채로 남는다`() {
         TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
         seedOld()
-        upload(admin(), """{"MENTION": [{"id": 9001, "resource_type": "SD_TEST", "resource_id": "sd-new", "user_id": null}], "LABEL": [{"id": 1, "name": "x", "category": "c"}, {"id": 2, "name": """").andExpect(redirectedUrl("/"))
+        upload(admin(), """{"MENTION": [{"id": 9001, "resource_type": "SD_TEST", "resource_id": "sd-new", "user_id": null}], "LABEL": [{"id": 1, "name": "x", "category": "c"}, {"id": 2, "name": """").andExpect(redirectedUrl("/sites/data"))
         assertEquals(listOf("sd-new"), mentionResources())
         assertEquals(emptyList(), labelNames())
+    }
+
+    @Test
+    fun `실패한 테이블이 있으면 가져오기 화면으로 돌아가 실패한 테이블을 안내한다 (R-56-4, v1_6은 처음 화면으로 가고 로그에만 남겼다)`() {
+        TestDatabase.assumeOtherConnectionsIgnoreUncommittedRows()
+        val result = upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/data")).andReturn()
+        assertEquals("site.data.import.failed", result.flashMap["warning"])
+        assertTrue(result.flashMap.values.any { it.toString().contains("LABEL") }, "실패한 테이블 이름이 안내에 들어 있어야 한다: ${result.flashMap}")
     }
 
     // --- 아바타 없는 사용자 ---

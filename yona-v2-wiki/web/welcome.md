@@ -17,7 +17,7 @@ updated: 2026-10-25
 
 1. 입력 화면(`welcome/secret`, 200): 제목 `Tada! Welcome to <사이트 이름>!`, 경고 문구, 폼(`POST /`). 항목은 ID(`admin`으로 고정, 읽기 전용), 이름, 이메일, 비밀번호, 비밀번호 확인이다.
 2. 제출(`POST`, 어느 주소든) 검사: ID가 비었거나 `admin`이 아니면 `user.wrongloginId.alert`, 비밀번호가 비면 `user.wrongPassword.alert`, 확인과 다르면 `user.confirmPassword.alert`, 이메일이 비면 `validation.invalidEmail`, 이미 쓰는 이메일이면 `user.email.duplicate`. 오류가 있으면 400으로 입력 화면을 다시 그리며 이름과 이메일은 그대로 채워 둔다.
-3. 통과하면 기본 관리자(`admin`) 계정의 이름, 이메일, 새 소금과 비밀번호 해시를 저장한다. 이어서 새 비밀 키(보안 난수 130비트의 32진수)를 `<데이터 디렉터리>/config/secret.properties`(`yona.secret=값`)에 쓴다. 이 파일은 시작할 때 `spring.config.import`로 읽는다(A-93).
-4. 재시작 안내(`welcome/restart`, 200): `app.restart.notice`. 파일에 쓰지 못했으면 `app.restart.updateSecretYourself`가 더해진다. 이 뒤로는 **어떤 요청이든** 재시작 안내이다. 서버를 다시 시작하면 정상으로 돌아오고 새 비밀번호로 로그인된다.
+3. 통과하면 기본 관리자(`admin`) 계정의 이름, 이메일, 새 소금과 비밀번호 해시를 저장한다. 새 비밀 키(보안 난수 130비트의 32진수)를 `<데이터 디렉터리>/config/secret.properties`(`yona.secret=값`)에 **먼저** 쓰고, 쓰기에 성공했을 때만 위 계정을 저장한다. 쓰지 못하면 계정은 바뀌지 않고 500과 함께 폼을 다시 보이며 `app.secret.writeFailed`로 권한을 확인하고 다시 시도하라고 안내한다(v1.6은 계정을 먼저 바꾸고 직접 고치라고 했다, R-57-5, A-372). 이 파일은 시작할 때 `spring.config.import`로 읽는다(A-93).
+4. 재시작 안내(`welcome/restart`, 200): `app.restart.notice`. 파일에 쓰지 못한 경우는 위처럼 폼으로 되돌아가므로 이 화면에 오지 않는다(`app.restart.updateSecretYourself` 키는 v1.6 번들과의 대조를 위해 남겨 두었다). 이 뒤로는 **어떤 요청이든** 재시작 안내이다. 서버를 다시 시작하면 정상으로 돌아오고 새 비밀번호로 로그인된다.
 
 `POST /`는 비밀 키를 정한 뒤에는 400이다(v1.6 `Application.fake`, "호출하지 마시오"). 이 경로는 폼을 컨트롤러까지 보내려고 있다.

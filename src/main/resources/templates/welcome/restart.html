@@ -4,7 +4,7 @@
   https://yona.io
 
   이식 원본: app/views/welcome/restart.scala.html
-  모델: siteName, failedToUpdate
+  모델: siteName
 */-->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
@@ -44,7 +44,6 @@
                 <h3 th:text="#{app.restart.welcome}"></h3>
                 <p class="secret-box txt-center">
                     <th:block th:utext="#{app.restart.notice}"></th:block>
-                    <th:block th:if="${failedToUpdate}" th:utext="#{app.restart.updateSecretYourself}"></th:block>
                 </p>
             </div>
         </div>

@@ -45,7 +45,12 @@ class SiteSecretInterceptor(
 
         val errors = validate(request)
         if (errors.isNotEmpty()) return secretView(errors, request).also { it.status = HttpStatus.BAD_REQUEST }
-        secret.configure(request.getParameter("name"), request.getParameter("email"), request.getParameter("password"))
+        try {
+            secret.configure(request.getParameter("name"), request.getParameter("email"), request.getParameter("password"))
+        } catch (e: SiteSecret.SecretWriteException) {
+            // 계정은 바뀌지 않았다. 같은 폼을 다시 보이고 다시 시도하라고 안내한다(R-57-5)
+            return secretView(mapOf("password" to listOf("app.secret.writeFailed")), request).also { it.status = HttpStatus.INTERNAL_SERVER_ERROR }
+        }
         return restartView()
     }
 
@@ -89,5 +94,4 @@ class SiteSecretInterceptor(
 
     private fun restartView() = ModelAndView("welcome/restart")
         .addObject("siteName", properties.siteName)
-        .addObject("failedToUpdate", secret.failedToUpdate)
 }

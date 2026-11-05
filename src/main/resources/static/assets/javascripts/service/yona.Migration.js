@@ -110,7 +110,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
     vm._test_ = {};
     vm._test_.flatLabelMap = flatLabelMap;
 
-    var testNotiMsg = "'테스트 기간 중에는 Destination을 test-org 그룹 하위의 프로젝트로만 지정 가능합니다!'";
+    var testNotiMsg = Messages('migration.js.destinationOnly');
     activate();
 
     ///////////////////////////
@@ -307,7 +307,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
 
     function importPosts() {
         checkHardcodedDestinationForTest();
-        if(!lastConfirm("게시글", vm.destination)) return;
+        if(!lastConfirm(Messages('migration.post'), vm.destination)) return;
 
         vm.importBtnDisabled = true;
         var source = vm.source;
@@ -319,14 +319,14 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         assertIsProjectSelected('Destination', destination);
 
         loadingBar.start();
-        systemMessage("서버로부터 게시글을 읽어들입니다...");
+        systemMessage(Messages('migration.js.readingPosts'));
         migrationService.importPosts(source, destination).then(function (result) {
             vm.importResult = result;
             vm.destination.issues = result;
             endLoadingBar(1);
-            systemMessage("읽어 들인 게시글을 Github으로 보내는중입니다.");
-            systemMessage("(실제 최종 데이터가 보이려면 작업 이후에도 시간이 좀 더 걸릴 수 있습니다)");
-            systemMessage("진행바가 끝까지 진행된 이후에는 브라우저를 닫으셔도 이슈 이전작업에 영향을 주지 않습니다");
+            systemMessage(Messages('migration.js.sendingPosts'));
+            systemMessage(Messages('migration.js.delayNotice'));
+            systemMessage(Messages('migration.js.closeBrowserOk'));
             delegateAttachmentsMigration();
         });
         migrationService.logToIssue(vm.source, vm.destination, "게시글", vm.yobiUser, vm.source.postCount);
@@ -334,13 +334,13 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
 
     function importIssues(source){
         if(!vm.source.hasOwnProperty('projectName')){
-            systemMessage("source 프로젝트를 선택하세요!");
+            systemMessage(Messages('migration.js.selectSourceFirst'));
             return;
         }
 
         checkHardcodedDestinationForTest();
 
-        if(!lastConfirm('이슈', vm.destination)) return;
+        if(!lastConfirm(Messages('migration.issue'), vm.destination)) return;
         vm.importBtnDisabled = true;
         importProjectLabels(source);
     }
@@ -374,8 +374,8 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
     function importIssueLabelMap(source) {
         migrationService.importIssueLabelMap(source.owner, source.projectName).then(function (data) {
             vm.rawIssueLabelMap = data;
-            systemMessage(Object.keys(vm.rawIssueLabelMap).length + "개의 이슈에 라벨이 붙어 있습니다.");
-            systemMessage("작업중입니다. 잠시만 기다려 주세요..");
+            systemMessage(Messages('migration.js.labeledIssues', Object.keys(vm.rawIssueLabelMap).length));
+            systemMessage(Messages('migration.js.working'));
             flatLabelMap(vm.rawIssueLabelMap);
             executeIssueImports();
         });
@@ -386,8 +386,8 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         migrationService.importProjectLabels(source.owner, source.projectName)
             .then(function (data) {
                 vm.projectLabels = data.labels;
-                systemMessage(Object.keys(vm.projectLabels).length + "개의 라벨이 존재합니다.");
-                systemMessage("프로젝트의 issue별 라벨을 정리합니다...");
+                systemMessage(Messages('migration.js.labelCount', Object.keys(vm.projectLabels).length));
+                systemMessage(Messages('migration.js.arrangingLabels'));
                 importIssueLabelMap(source);
             });
     }
@@ -442,7 +442,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
 
 
     function getDestinationProjects() {
-        systemMessage("Github 프로젝트 목록을 읽어들입니다...");
+        systemMessage(Messages('migration.js.readingGithub'));
         loadingBar.start();
         migrationService.getDestinationProjects().then(function (response) {
             vm.destinationProjects = response;
@@ -467,14 +467,14 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         assertIsProjectSelected('Source', source);
         assertIsProjectSelected('Destination', destination);
 
-        systemMessage("서버로부터 이슈를 읽어들입니다...");
+        systemMessage(Messages('migration.js.readingIssues'));
         migrationService.importIssues(source, destination, issueLabelMap).then(function (result) {
             vm.importResult = result;
             vm.destination.issues = result;
             endLoadingBar(1);
-            systemMessage("읽어 들인 이슈를 Github으로 보내는중입니다.");
-            systemMessage("(실제 최종 데이터가 보이려면 작업 이후에도 시간이 좀 더 걸릴 수 있습니다)");
-            systemMessage("진행바가 끝까지 진행된 이후에는 브라우저를 닫으셔도 이슈 이전작업에 영향을 주지 않습니다");
+            systemMessage(Messages('migration.js.sendingIssues'));
+            systemMessage(Messages('migration.js.delayNotice'));
+            systemMessage(Messages('migration.js.closeBrowserOk'));
         });
         migrationService.logToIssue(vm.source, vm.destination, "이슈", vm.yobiUser, vm.source.issueCount);
     }
@@ -495,13 +495,13 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         }, 500);
     }
     function lastConfirm(type, target){
-        return confirm("\n" +target.owner + "/" + target.projectName + " 프로젝트로 \n\n" + type + " 마이그레이션을 시작하시겠습니까?\n\n마이그레이션이 종료되기 전에 브라우저 창을 닫지 말아주세요.");
+        return confirm(Messages('migration.js.confirmStart', target.owner, target.projectName, type));
     }
 
     function assertIsProjectSelected(name, project) {
         if (!project || !project.owner || !project.projectName) {
             $log.error(project);
-            systemMessage(name + " 프로젝트가 지정되지 않았습니다");
+            systemMessage(Messages('migration.js.projectNotSet', name));
             vm.importBtnDisabled = false;
             throw name + " isn't ready!"
         }
@@ -510,7 +510,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
     function importMilestones() {
         checkHardcodedDestinationForTest();
 
-        if(!lastConfirm('마일스톤', vm.destination)) return;
+        if(!lastConfirm(Messages('migration.milestone'), vm.destination)) return;
 
         vm.importBtnDisabled = true;
 
@@ -519,7 +519,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
         assertIsProjectSelected('Source', vm.source);
         assertIsProjectSelected('Destination', vm.destination);
 
-        systemMessage("마일스톤을 복사합니다..");
+        systemMessage(Messages('migration.js.copyMilestones'));
 
         migrationService.importMilestones(vm.source, vm.destination).then(function (result) {
             vm.importResult = result;
@@ -547,7 +547,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
                     return undefined;
                 }
 
-                var confirmationMessage = '페이지를 떠나시겠습니까? 마이그레이션이 진행중인 상태가 아닌지 확인해 주세요!';
+                var confirmationMessage = Messages('migration.js.leavePage');
 
                 (e || window.event).returnValue = confirmationMessage; //Gecko + IE
                 return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
@@ -592,8 +592,8 @@ angular.module("yona.migration")
 
 function importWarning() {
     var warningTemplate = '<div class="alert-icon text-align-left" ng-if="data.length > 0">' +
-        '<div><i class="yobicon-alert"></i><span class="alert-icon-text" ng-if="data.length > 0"> 대상 프로젝트에 <strong>{{type}}</strong> 데이터가 존재합니다.</span></div>' +
-        '<div class="text-align-left description" ng-if="data.length >0">import 진행시 데이터가 추가됩니다. 기존 데이터를 건드리지는 않으나 중복데이터가 입력될 가능성이 있으니 미리 확인해 주세요</div>' +
+        '<div><i class="yobicon-alert"></i><span class="alert-icon-text" ng-if="data.length > 0">' + Messages('migration.js.warnExists') + '</span></div>' +
+        '<div class="text-align-left description" ng-if="data.length >0">' + Messages('migration.js.warnAdds') + '</div>' +
         '</div>';
     return ({
         template: warningTemplate,

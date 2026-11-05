@@ -61,7 +61,14 @@ class MessageParityTest {
         // R-61-11, R-61-12: 메일로 댓글을 달 때의 오류 회신 문구
         "viaEmail.error.notfound.resource", "viaEmail.error.unsupported.resource",
         // R-52-2: 관리자 권한을 해제할 수 없을 때의 안내 문구
-        "site.userList.adminProtect")
+        "site.userList.adminProtect",
+        // R-56-4: 데이터 가져오기에서 일부 테이블이 실패했을 때의 안내 문구
+        "site.data.import.failed",
+        // R-57-5: 최초 기동 화면에서 비밀 키를 설정 파일에 쓰지 못했을 때의 안내 문구
+        "app.secret.writeFailed",
+        // R-58-4: 이전(Migration) 화면 문구
+        "migration.selectSource", "migration.selectDestination", "migration.sourceCount", "migration.repoMembers", "migration.destinationCount", "migration.noWorkerInAdmin", "migration.workerNeeded", "migration.notAdmin", "migration.bothNotAdmin", "migration.userUsedInstead", "migration.cannotNonAdmin", "migration.target", "migration.milestone", "migration.moveMilestones", "migration.issue", "migration.milestoneFirst", "migration.moveIssues", "migration.post", "migration.postsBecomeIssues", "migration.postsWait", "migration.movePosts", "migration.caution", "migration.readGuide", "migration.assignees", "migration.assigneeHelp", "migration.notAssigned",
+        "migration.js.destinationOnly", "migration.js.readingPosts", "migration.js.sendingPosts", "migration.js.delayNotice", "migration.js.closeBrowserOk", "migration.js.selectSourceFirst", "migration.js.labeledIssues", "migration.js.working", "migration.js.labelCount", "migration.js.arrangingLabels", "migration.js.readingGithub", "migration.js.readingIssues", "migration.js.sendingIssues", "migration.js.confirmStart", "migration.js.projectNotSet", "migration.js.copyMilestones", "migration.js.leavePage", "migration.js.warnExists", "migration.js.warnAdds")
 
     @Test
     fun `언어별 번들의 키는 v1_6과 같고 추가한 키만 더 있다`() {
