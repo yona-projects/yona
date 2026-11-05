@@ -70,16 +70,15 @@ class SignupService(
 
     /**
      * 이메일의 앞부분 같은 후보로 쓸 수 있는 로그인 ID를 만든다 (v1.6 `generateLoginId`). 겹치면 `-yona`를 붙이고, 또 겹치면 숫자를
-     * 이어 붙인다. v1.6 `newLoginIdWithoutDup`은 번호를 바꾸는 것이 아니라 후보 뒤에 이어 붙인다(`dup2`, `dup23`, `dup234`).
+     * 이어 붙인다. v1.6 `newLoginIdWithoutDup`은 번호를 바꾸는 것이 아니라 앞 후보 뒤에 이어 붙여(`dup2`, `dup23`, `dup234`) 후보가 길어졌다. 매번 원래 후보에 번호를 붙인다(`dup2`, `dup3`, `dup4`, R-59-5).
      */
     @Transactional(readOnly = true)
     fun generateLoginId(candidate: String): String {
         if (users.findByLoginId(candidate) == null) return candidate
         if (users.findByLoginId("$candidate-yona") == null) return "$candidate-yona"
-        var suggestion = candidate
         var number = 2
         while (true) {
-            suggestion = "$suggestion$number"
+            val suggestion = "$candidate$number"
             if (users.findByLoginId(suggestion) == null) return suggestion
             number++
         }

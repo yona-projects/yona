@@ -42,12 +42,14 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
+@org.springframework.test.context.TestPropertySource(properties = ["yona.data-dir=build/tmp/it-site-content"])
 class SiteContentListsTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
     @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var repositories: dev.yona.repository.RepositoryService
     @Autowired private lateinit var postings: PostingRepository
     @Autowired private lateinit var issues: IssueRepository
 
@@ -132,6 +134,16 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         val owner = newUser(); val p = project(owner, "todelete")
         mockMvc.perform(delete("/sites/project/delete/${p.id}").session(admin())).andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/projectList"))
         assertFalse(projects.existsById(p.id!!))
+    }
+
+    @Test
+    fun `사이트 관리의 프로젝트 삭제는 저장소 디렉터리도 지운다 (R-53-3, v1_6은 디스크에 남겼다)`() {
+        val owner = newUser(); val p = project(owner, "withrepo")
+        repositories.createRepository(p)
+        val dir = java.io.File("build/tmp/it-site-content/repo/git/${p.owner}/${p.name}.git")
+        assertTrue(dir.isDirectory, "시험 준비: 저장소가 만들어져 있어야 한다")
+        mockMvc.perform(delete("/sites/project/delete/${p.id}").session(admin())).andExpect(status().isSeeOther)
+        assertFalse(dir.exists(), "저장소 디렉터리가 남아 있다")
     }
 
     @Test

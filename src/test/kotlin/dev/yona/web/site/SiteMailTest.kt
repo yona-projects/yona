@@ -102,6 +102,17 @@ class SiteMailTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `메일을 보내지 못하면 성공 안내 대신 실패 안내가 보인다 (R-54-2, v1_6은 보내지 못해도 성공 안내였다)`() {
+        Mockito.doThrow(org.springframework.mail.MailSendException("refused")).`when`(mailSender).send(Mockito.any(MimeMessage::class.java))
+        val response = mockMvc.perform(
+            post("/sites/mail").session(admin()).param("from", "noreply@example.com").param("to", "a@example.com").param("subject", "제목입니다").param("body", "본문 내용")
+        ).andExpect(status().isOk).andReturn().response.contentAsString
+        val doc = Jsoup.parse(response)
+        assertTrue(doc.select(".alert-success").isEmpty(), "실패했는데 성공 안내가 보인다")
+        assertTrue(doc.select(".alert-danger").isNotEmpty(), "실패 안내가 보여야 한다")
+    }
+
+    @Test
     fun `메일을 보내면 입력한 내용으로 한 통이 나가고 같은 응답에 성공 안내가 보인다`() {
         val response = mockMvc.perform(
             post("/sites/mail").session(admin()).param("from", "noreply@example.com").param("to", "a@example.com").param("subject", "제목입니다").param("body", "본문 내용")
@@ -152,10 +163,13 @@ class SiteMailTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/sites/mailList").session(session).apply { accept?.let { accept(it) }; params.forEach { (k, v) -> param(k, v) } })
 
     @Test
-    fun `all이 true이면 모든 사용자의 이메일을 돌려준다`() {
-        val a = newUser(); val b = newUser(); val gone = newUser().also { it.state = UserState.DELETED; users.save(it) }
+    fun `all이 true이면 활성 사용자의 이메일만 돌려준다 (R-54-5, v1_6은 삭제되거나 잠긴 사용자도 담았다)`() {
+        val a = newUser(); val b = newUser()
+        val gone = newUser().also { it.state = UserState.DELETED; users.save(it) }
+        val locked = newUser().also { it.state = UserState.LOCKED; users.save(it) }
         val body = mailList(admin(), "application/json", "all" to "true").andExpect(status().isOk).andReturn().response.contentAsString
-        listOf(a, b, gone).forEach { assertTrue(body.contains(it.email!!), it.email) }
+        listOf(a, b).forEach { assertTrue(body.contains(it.email!!), it.email) }
+        listOf(gone, locked).forEach { assertTrue(!body.contains(it.email!!), "${it.state} 사용자의 이메일 ${it.email}이 들어 있다") }
     }
 
     @Test

@@ -35,7 +35,7 @@ class SiteMailController(private val service: SiteMailService) {
     @PostMapping("/sites/mail")
     fun sendMail(request: HttpServletRequest): ModelAndView {
         // v1.6은 본문이 비었거나 주소가 올바르지 않으면 메일 라이브러리의 예외로 500이었다(R-54-1). 잘못된 요청이므로 400이다
-        try {
+        val sent = try {
             service.send(
                 from = request.getParameter("from").orEmpty(), to = request.getParameter("to").orEmpty(),
                 subject = request.getParameter("subject").orEmpty(), body = request.getParameter("body").orEmpty()
@@ -43,7 +43,8 @@ class SiteMailController(private val service: SiteMailService) {
         } catch (e: IllegalArgumentException) {
             return ErrorViews.badRequest()
         }
-        return mailView(null, true)
+        // 메일 서버가 없거나 거절했으면 성공이라고 알리지 않고 실패 안내를 보인다(R-54-2)
+        return if (sent) mailView(null, true) else mailView("site.mail.failReason", false)
     }
 
     @GetMapping("/sites/massmail")

@@ -173,9 +173,25 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름이 비어 있으면 오류이다 (R-57-2, v1_6은 이름을 검사하지 않고 그대로 저장했다)`() {
+        listOf("", "   ").forEach {
+            val doc = Jsoup.parse(submit(*with("name", it)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+            assertTrue(doc.select("dt:has(label[for=uname]) span.bg-danger").isNotEmpty(), "이름 칸에 오류가 보여야 한다: '$it'")
+        }
+    }
+
+    @Test
+    fun `기본 관리자 자신의 이메일은 중복이 아니다 (R-57-3, v1_6은 기본값을 그대로 두면 이미 쓰는 이메일이라고 했다)`() {
+        val own = users.findByLoginIdIgnoreCase("admin")!!.email!!
+        submit(*with("email", own)).andExpect(status().isOk)
+    }
+
+    @Test
     fun `이메일이 없거나 이미 쓰는 이메일이면 오류이다`() {
         assertEquals(400, submit(*with("email", "")).andReturn().response.status)
-        val duplicate = Jsoup.parse(submit(*with("email", "project.yona@gmail.com")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        // 기본 관리자 자신의 이메일이 아니라 다른 사용자가 쓰는 이메일이어야 중복이다(R-57-3)
+        val other = users.save(dev.yona.domain.user.User(loginId = "secretother", name = "other", email = "secret-other@example.com", state = dev.yona.domain.enumeration.UserState.ACTIVE))
+        val duplicate = Jsoup.parse(submit(*with("email", other.email!!)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
         assertTrue(duplicate.select("dt:has(label[for=email]) span.bg-danger").isNotEmpty())
     }
 

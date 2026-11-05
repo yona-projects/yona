@@ -25,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView
 class SiteSecretInterceptor(
     private val secret: SiteSecret,
     private val signup: SignupService,
+    private val users: dev.yona.domain.user.UserRepository,
     private val properties: YonaProperties
 ) : HandlerInterceptor {
 
@@ -64,6 +65,8 @@ class SiteSecretInterceptor(
         }
         if (loginId.isBlank()) reject("loginId", "user.wrongloginId.alert")
         if (loginId != SiteSecret.DEFAULT_ADMIN_LOGIN_ID) reject("loginId", "user.wrongloginId.alert")
+        // v1.6은 이름을 읽지도 않고 그대로 저장했다. 이름은 비어 있으면 안 된다(R-57-2)
+        if (request.getParameter("name").isNullOrBlank()) reject("name", "error.required")
         val password = request.getParameter("password")
         if (password.isNullOrBlank()) reject("password", "user.wrongPassword.alert")
         if (password == null) throw NullPointerException("password")
@@ -72,7 +75,8 @@ class SiteSecretInterceptor(
         if (email.isNullOrBlank()) reject("email", "validation.invalidEmail")
         // v1.6는 User.email의 @Constraints.Email 검사를 폼 바인딩이 먼저 하므로 형식이 틀린 이메일은 user.wrongEmail.alert로 거절한다
         if (!email.isNullOrBlank() && !dev.yona.domain.user.SignupService.isValidEmailFormat(email)) reject("email", "user.wrongEmail.alert")
-        if (!email.isNullOrBlank() && signup.isEmailExist(email)) reject("email", "user.email.duplicate")
+        // 기본 관리자 자신의 이메일은 중복이 아니다. v1.6은 기본값을 그대로 두면 이미 쓰는 이메일이라고 거절했다(R-57-3)
+        if (!email.isNullOrBlank() && signup.isEmailExist(email) && !email.equals(users.findByLoginIdIgnoreCase(SiteSecret.DEFAULT_ADMIN_LOGIN_ID)?.email, ignoreCase = true)) reject("email", "user.email.duplicate")
         return errors
     }
 

@@ -41,6 +41,7 @@ class SiteContentController(
     private val service: SiteContentService,
     private val projects: ProjectRepository,
     private val deletion: ProjectDeletionService,
+    private val repositories: dev.yona.repository.RepositoryService,
     private val users: UserRepository,
     private val avatars: AvatarService,
     private val projectViews: ProjectViewFactory,
@@ -79,6 +80,10 @@ class SiteContentController(
     fun deleteProject(@PathVariable projectId: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val project = projects.findById(projectId).orElse(null) ?: return ErrorViews.notFound()
         deletion.delete(project)
+        // v1.6은 DB의 행만 지워 저장소, 위키, LFS 디렉터리가 디스크에 남았고 같은 이름의 프로젝트를 다시 만들면 부딪쳤다. 프로젝트 삭제 화면처럼 함께 지운다(R-53-3)
+        repositories.deleteRepository(project)
+        repositories.deleteWiki(project)
+        repositories.deleteLfs(project)
         return RedirectSupport.see(request, response, "/sites/projectList")
     }
 

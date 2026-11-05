@@ -32,11 +32,19 @@
     <h3 th:text="#{site.data.import}"></h3>
     <p th:text="#{site.data.import.info}"></p>
 
-    <form th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
+    <form id="importForm" th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
         <input class="form-control" type="file" name="data">
         <p>
             <input type="submit">
         </p>
     </form>
+    <!--/* 가져오기는 병합이 아니라 교체이므로 제출 전에 한 번 확인한다(R-56-3). v1.6은 확인이 없었다 */-->
+    <script th:inline="javascript">
+    $(function(){
+        $("form[action$='sites/import']").on("submit", function(){
+            return confirm(/*[[#{site.data.import.confirm}]]*/ "");
+        });
+    });
+    </script>
 </th:block>
 </html>

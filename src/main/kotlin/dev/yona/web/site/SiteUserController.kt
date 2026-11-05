@@ -96,6 +96,11 @@ class SiteUserController(
         val userState = parseState(state) ?: return ErrorViews.badRequest()
         val target = users.findByLoginIdIgnoreCase(loginId)
             ?: return RedirectSupport.see(request, response, "/sites/userList?pageNum=0", mapOf(RedirectSupport.WARNING to "user.notExists.name"))
+        // v1.6은 삭제된 사용자도 활성으로 되돌려, 지운 이름과 이메일이 복구되지 않은 빈 비밀번호의 활성 계정이 되었다. 삭제된 사용자는 전환하지 않고 안내한다(R-52-3)
+        if (target.state == UserState.DELETED) {
+            RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "site.userList.deletedLock"))
+            return listView(0, query, userState)
+        }
         service.changeState(target, if (target.state == UserState.ACTIVE) UserState.LOCKED else UserState.ACTIVE)
         return listView(0, query, userState)
     }

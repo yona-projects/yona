@@ -73,9 +73,9 @@ class SocialAccountServiceTest : AbstractIntegrationTest() {
     fun `로그인 ID가 겹치면 -yona를 붙이고 또 겹치면 숫자를 이어 붙인다`() {
         localUser("other1@example.com", loginId = "dup")
         assertEquals("dup-yona", social.signIn(identity(email = "dup@example.com")).user!!.loginId)
-        // v1.6은 숫자를 이어 붙여 만든다: dup2, 겹치면 dup23, dup234
+        // v1.6은 숫자를 이어 붙여 만들어 dup2, dup23, dup234가 되었다. 원래 후보에 번호를 붙인다: dup2, dup3 (R-59-5)
         assertEquals("dup2", social.signIn(identity(email = "dup@other.example.com")).user!!.loginId)
-        assertEquals("dup23", social.signIn(identity(email = "dup@third.example.com")).user!!.loginId)
+        assertEquals("dup3", social.signIn(identity(email = "dup@third.example.com")).user!!.loginId)
     }
 
     @Test

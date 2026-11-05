@@ -43,9 +43,10 @@ class SiteMailService(
     /**
      * 메일을 보낸다.
      *
+     * @return 보냈으면 `true`. 메일 서버가 없거나 거절했으면 `false`이다(v1.6은 보내지 못해도 성공으로 알렸다, R-54-2)
      * @throws IllegalArgumentException 보내는 주소나 받는 주소가 올바르지 않거나 본문이 비었을 때(v1.6은 commons-email의 `EmailException`으로 500이다)
      */
-    fun send(from: String, to: String, subject: String, body: String) {
+    fun send(from: String, to: String, subject: String, body: String): Boolean {
         require(body.isNotEmpty()) { "본문이 비었습니다." }
         val message = MimeMessage(Session.getInstance(Properties()))
         val helper = MimeMessageHelper(message, false, "UTF-8")
@@ -53,7 +54,7 @@ class SiteMailService(
         helper.setTo(address(to))
         helper.setSubject(subject)
         helper.setText(body, false)
-        dispatcher.sendNow("사이트 관리자 메일", message)
+        return dispatcher.sendNow("사이트 관리자 메일", message)
     }
 
     private fun address(text: String): InternetAddress = try {
@@ -62,9 +63,11 @@ class SiteMailService(
         throw IllegalArgumentException("메일 주소가 올바르지 않습니다: $text", e)
     }
 
-    /** 모든 사용자의 이메일이다. 삭제되었거나 잠긴 사용자도 담는다. 순서는 v1.6 `HashSet`과 같다. */
+    /**
+     * 활성 사용자의 이메일이다. v1.6은 삭제된 사용자(가짜 주소)와 잠긴 사용자도 담았다(R-54-5). 순서는 v1.6 `HashSet`과 같다.
+     */
     @Transactional(readOnly = true)
-    fun allEmails(): Set<String> = HashSet<String>().also { set -> users.findAll().forEach { u -> u.email?.let { set.add(it) } } }
+    fun allEmails(): Set<String> = HashSet<String>().also { set -> users.findAll().filter { it.state == dev.yona.domain.enumeration.UserState.ACTIVE }.forEach { u -> u.email?.let { set.add(it) } } }
 
     /**
      * `소유자/이름` 형식의 프로젝트들의 구성원 이메일이다. 사이트 관리자 역할 행은 뺀다.

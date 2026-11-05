@@ -95,6 +95,15 @@ class SiteDataTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `올리기를 제출하기 전에 교체한다는 확인을 묻는다 (R-56-3, v1_6은 확인 없이 전체 데이터를 교체했다)`() {
+        val html = mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString
+        val script = Jsoup.parse(html).select("script").joinToString("\n") { it.data() }
+        assertTrue(script.contains("confirm("), "제출 전에 confirm을 부르는 스크립트가 있어야 한다")
+        assertTrue(script.contains("sites/import"), "올리기 폼에 거는 스크립트여야 한다")
+        assertTrue(script.contains("Replace all existing data"), "교체한다는 문구가 확인 창에 들어 있어야 한다")
+    }
+
+    @Test
     fun `데이터 화면과 내려받기와 올리기는 사이트 관리자만 쓴다`() {
         val session = login(newUser())
         mockMvc.perform(get("/sites/data").session(session)).andExpect(status().isForbidden)

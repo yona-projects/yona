@@ -204,9 +204,15 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
         assertEquals(UserState.LOCKED, users.findById(target.id!!).get().state)
         mockMvc.perform(post("/sites/toggleAccountLock").session(session).param("loginId", target.loginId!!).param("state", "LOCKED")).andExpect(status().isOk)
         assertEquals(UserState.ACTIVE, users.findById(target.id!!).get().state)
+    }
+
+    @Test
+    fun `삭제된 사용자는 잠금 전환으로 되살리지 않고 안내한다 (R-52-3, v1_6은 이름이 지워진 활성 계정이 되었다)`() {
+        val me = admin(); val session = login(me)
         val deleted = newUser(state = UserState.DELETED)
-        mockMvc.perform(post("/sites/toggleAccountLock").session(session).param("loginId", deleted.loginId!!)).andExpect(status().isOk)
-        assertEquals(UserState.ACTIVE, users.findById(deleted.id!!).get().state)
+        val response = mockMvc.perform(post("/sites/toggleAccountLock").session(session).param("loginId", deleted.loginId!!).param("state", "DELETED")).andExpect(status().isOk).andReturn().response
+        assertEquals(UserState.DELETED, users.findById(deleted.id!!).get().state)
+        assertTrue(response.contentAsString.contains("A deleted user cannot be locked or unlocked."), "삭제된 사용자는 전환할 수 없다는 안내가 보여야 한다")
     }
 
     @Test

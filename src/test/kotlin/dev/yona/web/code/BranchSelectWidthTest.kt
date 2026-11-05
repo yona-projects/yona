@@ -13,7 +13,7 @@ class BranchSelectWidthTest {
     @Test
     fun `브랜치 선택 상자의 select2 폭을 고정하는 규칙이 있다`() {
         val css = File("app/assets/stylesheets/scss/_page.scss").readText()
-        assertTrue(Regex("""\.select2-container\.float-end,\s*>\s*\.select2-container\.float-start\s*\{\s*width:\s*220px\s*!important""").containsMatchIn(css), "폭 고정 규칙이 없다")
+        assertTrue(Regex("""\.code-browse-header\s*>\s*\.select2-container\.float-start\s*\{\s*width:\s*220px\s*!important""").containsMatchIn(css), "폭 고정 규칙이 없다")
     }
 
     @Test
