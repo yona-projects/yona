@@ -66,10 +66,17 @@ class MailHandler(
     /**
      * 메일 한 통을 처리한다.
      *
-     * @param onProcessed 처리한 메일마다 부른다. 호출한 쪽이 마지막으로 본 UID를 갱신하는 데 쓴다. 건너뛴 메일에는 부르지 않는다
-     *   (v1.6은 건너뛴 메일의 UID를 갱신하지 않는다)
+     * @param onProcessed 처리한 메일마다 부른다. 호출한 쪽이 마지막으로 본 UID를 갱신하는 데 쓴다. 자동 응답, 중복, 알 수 없는 보낸 사람처럼
+     *   건너뛴 메일에도 한 번 부른다. v1.6은 건너뛴 메일의 UID를 갱신하지 않아 다음 시작 때마다 다시 가져왔다(R-61-7)
      */
     fun handle(message: MimeMessage, onProcessed: () -> Unit = {}) {
+        var notified = false
+        process(message) { notified = true; onProcessed() }
+        if (!notified) onProcessed()
+    }
+
+    /** [handle]의 본문이다. 보낸 사람별로 처리를 마칠 때마다 [onProcessed]를 부른다. */
+    private fun process(message: MimeMessage, onProcessed: () -> Unit) {
         try {
             if (isAutoReplied(message)) return
         } catch (e: MessagingException) {

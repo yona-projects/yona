@@ -41,8 +41,8 @@ class SiteUserService(
         val params = linkedMapOf<String, Any?>("defaultAdmin" to DEFAULT_ADMIN_ID, "anonymous" to ANONYMOUS_LOGIN_ID)
         when (state) {
             UserState.GUEST -> clauses += "u.isGuest = true"
-            // v1.6은 사이트 관리자 행의 번호가 1인 것을 뺀다(기본 관리자의 행).
-            UserState.SITE_ADMIN -> clauses += "u.id in (select sa.admin.id from SiteAdmin sa where sa.id <> $DEFAULT_ADMIN_ID)"
+            // v1.6은 사이트 관리자 행의 번호가 1인 것을 뺐다. 기본 관리자의 행이 1번이 아닌 데이터에서 어긋나므로 사용자 번호로 뺀다(R-52-6).
+            UserState.SITE_ADMIN -> clauses += "u.id in (select sa.admin.id from SiteAdmin sa)"
             else -> { clauses += "u.state = :state"; params["state"] = state }
         }
         if ((query != null && LegacyText.isNotBlank(query))) {
@@ -61,9 +61,9 @@ class SiteUserService(
     @Transactional(readOnly = true)
     fun isSiteManager(user: User?): Boolean = user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
 
-    /** 사이트 관리자로 등록된 사용자 수에서 기본 관리자를 뺀 수이다. 목록의 사이트 관리자 탭 배지에 쓴다. */
+    /** 사이트 관리자로 등록된 행 수에서 기본 관리자의 행을 뺀 수이다. 목록의 사이트 관리자 탭 배지에 쓴다. */
     @Transactional(readOnly = true)
-    fun siteAdminBadgeCount(): Long = siteAdmins.count() - 1
+    fun siteAdminBadgeCount(): Long = siteAdmins.countByAdminIdNot(DEFAULT_ADMIN_ID)
 
     /** 사용자가 어느 프로젝트의 유일한 매니저인지 확인한다 (v1.6 `Project.isOnlyManager`). */
     @Transactional(readOnly = true)

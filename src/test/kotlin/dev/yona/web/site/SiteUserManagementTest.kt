@@ -62,6 +62,7 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var assignees: AssigneeRepository
     @Autowired private lateinit var entityManager: EntityManager
+    @Autowired private lateinit var service: dev.yona.domain.site.SiteUserService
 
     private var sequence = 0
     private var clock = 1_700_000_000_000L
@@ -128,6 +129,20 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
         assertTrue(names(userList(session, "state" to "SITE_ADMIN")).contains("@${me.loginId}"))
         assertEquals("LOCKED", userList(session, "state" to "LOCKED").selectFirst("form.float-end input[name=state]")!!.attr("value"))
         assertEquals(listOf("ACTIVE", "LOCKED", "DELETED", "GUEST", "SITE_ADMIN").size, userList(session).select(".col-lg-10 > ul.nav-tabs > li").size)
+    }
+
+    /** 사이트 관리자 탭은 관리자 행 번호가 아니라 사용자 번호로 기본 관리자를 뺀다 (R-52-6). v1.6은 행 번호 1을 뺐다. */
+    @Test
+    fun `사이트 관리자 탭은 행 번호가 아니라 기본 관리자 사용자 번호로 뺀다`() {
+        val other = newUser()
+        entityManager.flush()
+        // 행 번호 1이 기본 관리자가 아닌 사용자의 행인 데이터(가져오기 뒤 등)를 만든다
+        entityManager.createNativeQuery("update site_admin set admin_id = :user where id = 1").setParameter("user", other.id).executeUpdate()
+        entityManager.clear()
+        val listed = service.findUsers(0, null, UserState.SITE_ADMIN).items.map { it.id }
+        assertTrue(listed.contains(other.id), "행 번호 1의 사용자도 목록에 있어야 한다")
+        val expected = (entityManager.createNativeQuery("select count(*) from site_admin where admin_id <> 1").singleResult as Number).toLong()
+        assertEquals(expected, service.siteAdminBadgeCount())
     }
 
     @Test

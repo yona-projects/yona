@@ -54,10 +54,9 @@ class ExternalProjectService(
         project.siteurl = "http://localhost:9000/${project.name}"
         project.createdDate = Date()
         projects.save(project)
-        // v1.6 `ProjectApi.newProject`는 `Project.create` 안과 밖에서 사이트 관리자 역할을 두 번 넣는다. `ProjectUser.findByIds`가 SITEMANAGER 행을 제외해 매번 새 행이 생긴다 (R-82).
-        repeat(2) {
-            projectUsers.save(ProjectUser(user = users.getReferenceById(SITE_MANAGER_ID), project = project, role = roles.getReferenceById(RoleType.SITEMANAGER.id)))
-        }
+        // v1.6 `ProjectApi.newProject`는 `Project.create` 안과 밖에서 사이트 관리자 역할을 두 번 넣었다 (R-82, C130). 구성원 목록과 수 조회는
+        // 모두 SITEMANAGER 행을 제외하므로 한 번만 넣어도 화면과 응답은 같다.
+        projectUsers.save(ProjectUser(user = users.getReferenceById(SITE_MANAGER_ID), project = project, role = roles.getReferenceById(RoleType.SITEMANAGER.id)))
         repositories.createRepository(project)
         menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         audit.record(dev.yona.domain.audit.auditProject("project.created", project, mapOf("via" to "api", "scope" to project.projectScope?.name, "vcs" to project.vcs)))

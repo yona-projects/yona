@@ -107,8 +107,8 @@ class MailHandlerTest : AbstractIntegrationTest() {
     @Test
     fun `자동 응답 메일은 처리하지 않는다`() {
         val sender = user(); val p = project(sender); member(sender, p)
-        assertEquals(0, handle(MailFixtures.mail("<h-auto1@m>", sender.email!!, listOf(toProject(p)), "부재", headers = mapOf("Auto-Submitted" to "auto-replied; owner-email=\"x\""))))
-        assertEquals(0, handle(MailFixtures.mail("<h-auto2@m>", sender.email!!, listOf(toProject(p)), "부재", headers = mapOf("X-Naver-Absent" to "yes"))))
+        assertEquals(1, handle(MailFixtures.mail("<h-auto1@m>", sender.email!!, listOf(toProject(p)), "부재", headers = mapOf("Auto-Submitted" to "auto-replied; owner-email=\"x\""))))
+        assertEquals(1, handle(MailFixtures.mail("<h-auto2@m>", sender.email!!, listOf(toProject(p)), "부재", headers = mapOf("X-Naver-Absent" to "yes"))))
         assertEquals(0, issues.findAll().count { it.project?.id == p.id })
     }
 
@@ -117,14 +117,15 @@ class MailHandlerTest : AbstractIntegrationTest() {
         val sender = user(); val p = project(sender); member(sender, p)
         // 다른 테스트가 커밋한 기록과 (종류, 번호)가 겹치지 않게 고유한 번호를 쓴다.
         originalEmails.save(OriginalEmail(messageId = "<h-dup@m>", resourceType = ResourceType.ISSUE_POST, resourceId = "9${System.nanoTime()}", handledDate = Date()))
-        assertEquals(0, handle(MailFixtures.mail("<h-dup@m>", sender.email!!, listOf(toProject(p)), "중복")))
+        assertEquals(1, handle(MailFixtures.mail("<h-dup@m>", sender.email!!, listOf(toProject(p)), "중복")))
         assertEquals(0, issues.findAll().count { it.project?.id == p.id })
     }
 
+    /** 건너뛴 메일도 처리 완료로 알려야 마지막으로 본 UID가 앞서 가서 다음 시작 때 다시 가져오지 않는다 (R-61-7). */
     @Test
     fun `사용자가 아닌 사람의 메일은 건너뛴다`() {
         val owner = user(); val p = project(owner, ProjectScope.PUBLIC)
-        assertEquals(0, handle(MailFixtures.mail("<h-unknown@m>", "stranger@elsewhere.test", listOf(toProject(p)), "모르는 사람")))
+        assertEquals(1, handle(MailFixtures.mail("<h-unknown@m>", "stranger@elsewhere.test", listOf(toProject(p)), "모르는 사람")))
         assertEquals(0, issues.findAll().count { it.project?.id == p.id })
         assertTrue(replies().isEmpty())
     }
