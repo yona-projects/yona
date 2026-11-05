@@ -44,7 +44,9 @@ class DataService(
 
     /**
      * DB 전체를 [out]에 JSON으로 쓴다. 읽기 전용 반복 읽기 트랜잭션 하나로 읽어 테이블 사이가 같은 시점의 자료가 되게 한다.
-     * v1.6은 격리가 없어 쓰는 도중의 변경이 테이블마다 다르게 보였다(R-56-5). 격리 수준을 지원하지 않는 DB에서는 기본 격리로 읽는다.
+     * v1.6은 격리가 없어 쓰는 도중의 변경이 테이블마다 다르게 보였다(R-56-5). 반복 읽기가 스냅샷 방식인 DB(H2, PostgreSQL, MariaDB, MySQL)에서만
+     * 쓴다. SQL Server와 Cubrid의 반복 읽기는 읽은 행에 공유 잠금을 끝까지 쥐어 쓰는 쪽과 서로 막으므로 기본 격리로 읽고, 그 DB에서는 v1.6처럼
+     * 테이블 사이가 어긋날 수 있다. 격리 수준을 지원하지 않는 DB에서도 기본 격리로 읽는다.
      * 쓰다가 실패하면 예외가 그대로 나가며, 호출한 쪽은 이를 응답 실패로 다뤄야 한다. [out]은 닫지 않는다.
      */
     fun export(out: OutputStream) {
@@ -53,7 +55,7 @@ class DataService(
         dataSource.connection.use { connection ->
             val product = connection.metaData.databaseProductName
             val ids = Identifiers(connection, product)
-            val previous = beginConsistentRead(connection)
+            val previous = beginConsistentRead(connection, product)
             writer.write("{")
             var firstTable = true
             for (table in DataTables.all) {
@@ -75,8 +77,9 @@ class DataService(
     private class ConnectionState(val autoCommit: Boolean, val readOnly: Boolean, val isolation: Int)
 
     /** 읽기 전용 반복 읽기 트랜잭션을 시작한다. 지원하지 않는 설정은 건너뛰고 기본대로 읽는다. */
-    private fun beginConsistentRead(connection: Connection): ConnectionState {
+    private fun beginConsistentRead(connection: Connection, product: String): ConnectionState {
         val state = ConnectionState(connection.autoCommit, connection.isReadOnly, connection.transactionIsolation)
+        if (!usesRepeatableRead(product)) return state
         try {
             connection.autoCommit = false
             connection.isReadOnly = true
@@ -87,8 +90,12 @@ class DataService(
         return state
     }
 
+    /** 내보내기에서 반복 읽기를 쓰는 DB이면 `true`이다. 잠금 방식 반복 읽기를 쓰는 DB([LOCK_BASED_REPEATABLE_READ])는 쓰지 않는다. */
+    internal fun usesRepeatableRead(product: String): Boolean = LOCK_BASED_REPEATABLE_READ.none { product.contains(it, ignoreCase = true) }
+
     /** 읽기 트랜잭션을 마치고 연결 설정을 되돌린다. 연결 풀로 돌아가는 연결이므로 되돌리지 못하면 기록만 남긴다. */
     private fun endConsistentRead(connection: Connection, previous: ConnectionState) {
+        if (connection.autoCommit == previous.autoCommit && connection.transactionIsolation == previous.isolation) return
         try {
             if (!connection.autoCommit) connection.rollback()
             connection.transactionIsolation = previous.isolation
@@ -693,6 +700,9 @@ class DataService(
     private companion object {
         /** 임시 저장 리뷰(X-26, D-38)의 임시 행을 내보내지 않는 테이블이다. */
         val PENDING_TABLES = setOf("COMMENT_THREAD", "REVIEW_COMMENT")
+
+        /** 반복 읽기가 읽은 행의 공유 잠금을 끝까지 쥐는 DB의 제품 이름이다. 내보내기가 쓰는 쪽과 서로 막으므로 반복 읽기를 쓰지 않는다. */
+        val LOCK_BASED_REPEATABLE_READ = listOf("Microsoft SQL Server", "CUBRID")
 
         /** 배치로 묶어 넣는 행 수이다 (v1.6 `data.batch.size` 기본값). */
     }

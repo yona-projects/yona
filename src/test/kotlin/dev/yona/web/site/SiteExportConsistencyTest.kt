@@ -48,22 +48,39 @@ class SiteExportConsistencyTest : AbstractIntegrationTest() {
     @Autowired private lateinit var migration: ReviewerSettingMigration
     @MockitoSpyBean private lateinit var data: DataService
 
-    @Test
-    fun `내보내기는 읽기 전용 반복 읽기 트랜잭션 하나로 읽는다`() {
-        val calls = mutableListOf<String>()
-        val recording = object : DataSource by dataSource {
-            override fun getConnection(): Connection {
-                val real = dataSource.connection
-                return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Connection::class.java)) { _, method, args ->
-                    if (method.name in setOf("setAutoCommit", "setReadOnly", "setTransactionIsolation", "commit", "rollback")) calls += "${method.name}:${args?.firstOrNull()}"
-                    try { method.invoke(real, *(args ?: emptyArray())) } catch (e: java.lang.reflect.InvocationTargetException) { throw e.targetException }
-                } as Connection
-            }
+    /** 연결 설정 호출을 기록하는 데이터 소스이다. */
+    private fun recordingSource(calls: MutableList<String>) = object : DataSource by dataSource {
+        override fun getConnection(): Connection {
+            val real = dataSource.connection
+            return Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Connection::class.java)) { _, method, args ->
+                if (method.name in setOf("setAutoCommit", "setReadOnly", "setTransactionIsolation", "commit", "rollback")) calls += "${method.name}:${args?.firstOrNull()}"
+                try { method.invoke(real, *(args ?: emptyArray())) } catch (e: java.lang.reflect.InvocationTargetException) { throw e.targetException }
+            } as Connection
         }
-        DataService(recording, properties, backfill, migration).export(ByteArrayOutputStream())
-        assertTrue(calls.contains("setTransactionIsolation:${Connection.TRANSACTION_REPEATABLE_READ}"), "반복 읽기 격리여야 한다: $calls")
-        assertTrue(calls.contains("setReadOnly:true"), "읽기 전용이어야 한다: $calls")
-        assertTrue(calls.contains("setAutoCommit:false"), "트랜잭션 하나로 읽어야 한다: $calls")
+    }
+
+    @Test
+    fun `내보내기는 DB에 맞게 읽기 전용 반복 읽기 트랜잭션 하나로 읽거나 기본 격리로 읽는다`() {
+        val calls = mutableListOf<String>()
+        val service = DataService(recordingSource(calls), properties, backfill, migration)
+        service.export(ByteArrayOutputStream())
+        val product = dataSource.connection.use { it.metaData.databaseProductName }
+        if (service.usesRepeatableRead(product)) {
+            assertTrue(calls.contains("setTransactionIsolation:${Connection.TRANSACTION_REPEATABLE_READ}"), "반복 읽기 격리여야 한다: $calls")
+            assertTrue(calls.contains("setReadOnly:true"), "읽기 전용이어야 한다: $calls")
+            assertTrue(calls.contains("setAutoCommit:false"), "트랜잭션 하나로 읽어야 한다: $calls")
+        } else {
+            assertTrue(calls.none { it.startsWith("setTransactionIsolation") }, "$product 에서 격리 수준을 바꿨다: $calls")
+        }
+    }
+
+    /** SQL Server와 Cubrid의 반복 읽기는 쓰는 쪽과 서로 막으므로 쓰지 않는다. MSSQL에서 내려받기가 시간 초과로 실패했던 문제를 막는다. */
+    @Test
+    fun `잠금 방식 DB에서는 반복 읽기를 쓰지 않는다`() {
+        val service = DataService(dataSource, properties, backfill, migration)
+        assertEquals(false, service.usesRepeatableRead("Microsoft SQL Server"))
+        assertEquals(false, service.usesRepeatableRead("CUBRID"))
+        listOf("H2", "PostgreSQL", "MariaDB", "MySQL").forEach { assertEquals(true, service.usesRepeatableRead(it), it) }
     }
 
     @Test
