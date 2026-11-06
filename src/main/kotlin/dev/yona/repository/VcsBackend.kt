@@ -1,5 +1,6 @@
 package dev.yona.repository
 
+import dev.yona.domain.project.Project
 import dev.yona.domain.vcs.VcsType
 import org.springframework.stereotype.Component
 
@@ -42,23 +43,65 @@ interface RepositoryLifecycle {
 }
 
 /**
- * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 [RepositoryLifecycle] 구현을 빈으로 등록하기만 하면 된다.
+ * 커밋 이력과 커밋 하나를 읽는 계약이다. 결과는 종류와 무관한 [CommitInfo]이다. [dev.yona.repository.CommitHistoryService]가 지표와 함께 이것을 부른다.
  */
-@Component
-class VcsBackends(lifecycles: List<RepositoryLifecycle>) {
-
-    private val lifecycles: Map<VcsType, RepositoryLifecycle> = lifecycles.associateBy { it.type }
+interface CommitReader {
 
     /**
-     * [vcs] 열 값의 수명 구현이다.
+     * [revision](없으면 `HEAD`)부터 거슬러 오르는 이력의 [page]번째 쪽(0부터)이다. [path]를 주면 그 경로를 바꾼 커밋만 모은다.
+     * 리비전을 풀 수 없으면 `null`이다.
+     */
+    fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>?
+
+    /** [revision]의 커밋이다. 없으면 `null`이다(풀 수 없거나 커밋이 아닌 객체 포함). */
+    fun commit(project: Project, revision: String): CommitInfo?
+
+    /** 커밋 번호 [ids]에 해당하는 커밋을 한 번에 읽는다. 풀 수 없거나 커밋이 아닌 번호는 결과에서 빠진다. */
+    fun commits(project: Project, ids: Collection<String>): Map<String, CommitInfo>
+
+    /** 커밋의 첫 부모이다. 부모가 없으면 `null`이다. */
+    fun parentOf(project: Project, revision: String): CommitInfo?
+}
+
+/**
+ * 한 종류의 저장소를 다루는 구현 묶음이다. 종류마다 이것을 하나 등록한다(Git, Subversion, 이어서 Mercurial).
+ * 읽기 계약은 공통화 단계마다 이 묶음에 더해진다.
+ */
+interface VcsBackend {
+    /** 이 구현이 맡는 저장소 종류. */
+    val type: VcsType
+
+    /** 만들기, 지우기, 옮기기, 참조 이름. */
+    val lifecycle: RepositoryLifecycle
+
+    /** 커밋 이력과 커밋 하나. */
+    val commits: CommitReader
+}
+
+/**
+ * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 [VcsBackend] 구현을 빈으로 등록하기만 하면 된다.
+ */
+@Component
+class VcsBackends(backends: List<VcsBackend>) {
+
+    private val backends: Map<VcsType, VcsBackend> = backends.associateBy { it.type }
+
+    /**
+     * [vcs] 열 값의 구현 묶음이다.
      *
      * @throws UnsupportedOperationException 모르는 값이거나 구현이 없을 때
      */
-    fun lifecycle(vcs: String?): RepositoryLifecycle =
-        VcsType.of(vcs)?.let { lifecycles[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
+    fun backend(vcs: String?): VcsBackend =
+        VcsType.of(vcs)?.let { backends[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
+
+    /** [vcs]의 수명 구현이다. */
+    fun lifecycle(vcs: String?): RepositoryLifecycle = backend(vcs).lifecycle
+
+    /** [vcs]의 커밋 읽기 구현이다. */
+    fun commits(vcs: String?): CommitReader = backend(vcs).commits
 
     companion object {
         /** 단위 시험용으로 구현을 직접 묶는다. */
-        fun of(vararg lifecycles: RepositoryLifecycle) = VcsBackends(lifecycles.toList())
+        fun of(vararg backends: VcsBackend) = VcsBackends(backends.toList())
     }
 }

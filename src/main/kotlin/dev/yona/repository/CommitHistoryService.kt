@@ -1,11 +1,6 @@
 package dev.yona.repository
 
 import dev.yona.domain.project.Project
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.errors.MissingObjectException
-import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevWalk
 import org.springframework.stereotype.Service
 import java.util.Date
 
@@ -26,103 +21,37 @@ data class CommitInfo(
 
 /**
  * 커밋 이력과 커밋 하나를 읽는다. v1.6 `GitRepository.getHistory`, `getCommit`(`app/playRepository/GitRepository.java:790-830`)에 해당한다.
+ * 저장소 종류별 읽기는 [CommitReader]가 맡고([VcsBackends]가 프로젝트의 종류로 고른다), 이 서비스는 지표를 더한다.
  */
 @Service
 class CommitHistoryService(
-    private val repositories: RepositoryService,
-    private val svn: dev.yona.repository.svn.SvnRepositories,
+    private val backends: VcsBackends,
     private val metrics: dev.yona.observability.VcsMetrics
 ) {
 
-    private fun isSvn(project: Project) = project.vcs == RepositoryService.VCS_SUBVERSION
-
-    /** Subversion 커밋을 Git 커밋과 같은 모양으로 바꾼다. 이메일은 없고 작성자는 로그인 ID이다 (v1.6 `SvnCommit`). */
-    private fun info(commit: dev.yona.repository.svn.SvnCommit) = CommitInfo(
-        id = commit.id, shortId = commit.shortId, shortMessage = commit.shortMessage, message = commit.message.orEmpty(), authorName = commit.authorName.orEmpty(),
-        authorEmail = "", authorDate = commit.date ?: Date(0), committerName = commit.authorName.orEmpty(), committerEmail = "", commitTime = commit.date ?: Date(0),
-        parentCount = commit.parentCount
-    )
+    private fun reader(project: Project) = backends.commits(project.vcs)
 
     /**
      * [revision](없으면 `HEAD`)부터 거슬러 오르는 이력의 [page]번째 쪽(0부터)이다. [path]를 주면 그 경로를 바꾼 커밋만 모은다.
      * 리비전을 풀 수 없으면 `null`이다. 저장소에 커밋이 하나도 없어 `HEAD`를 풀 수 없을 때도 `null`이다(v1.6 `getHistory`가 null을 돌려주고 `NoHeadException` 분기는 도달하지 않는다).
      *
      * 앞 쪽만큼 건너뛰고 [size]개를 읽는다(v1.6은 `page * size + size`개를 읽어 마지막 [size]개를 남겨 마지막 쪽이 앞 쪽과 겹쳤다, R-40).
+     * Subversion은 브랜치가 없어 리비전은 보지 않는다.
      */
     fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? =
-        metrics.operation(project.vcs, "history") { historyImpl(project, page, size, revision, path) }
-
-    private fun historyImpl(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? {
-        // Subversion은 브랜치가 없어 리비전은 보지 않고, 경로를 정하면 그 경로를 바꾼 리비전만 모은다 (v1.6 `SVNRepository.getHistory`).
-        if (isSvn(project)) return svn.history(project.owner.orEmpty(), project.name.orEmpty(), page, size, path?.takeIf { it.isNotEmpty() }).map { info(it) }
-        return gitHistory(project, page, size, revision, path)
-    }
-
-    private fun gitHistory(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? = repositories.openRepository(project).use { repository ->
-        val startId = (if (revision == null) repository.resolve(Constants.HEAD) else repository.resolve(revision)) ?: return null
-        // 트리나 블롭을 가리키는 태그이면 v1.6은 예외로 500이었다(R-128). 커밋이 아니면 이력이 없는 것으로 본다
-        val start = try {
-            RevWalk(repository).use { it.parseCommit(startId) }
-        } catch (e: org.eclipse.jgit.errors.IncorrectObjectTypeException) {
-            return null
-        }
-        val log = Git(repository).log().add(start)
-        if (!path.isNullOrEmpty()) log.addPath(path)
-        // v1.6는 `쪽 * 크기 + 크기`개를 읽어 마지막 `크기`개를 남겨, 전체가 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹쳤다(R-40). 앞 쪽만큼 건너뛰고 한 쪽만 읽는다
-        log.setSkip(page * size).setMaxCount(size).call().map { info(it) }
-    }
+        metrics.operation(project.vcs, "history") { reader(project).history(project, page, size, revision, path) }
 
     /** [revision]의 커밋이다. 없으면 `null`이다(풀 수 없거나 커밋이 아닌 객체 포함). */
-    fun commit(project: Project, revision: String): CommitInfo? = metrics.operation(project.vcs, "commit") { commitImpl(project, revision) }
-
-    private fun commitImpl(project: Project, revision: String): CommitInfo? {
-        if (isSvn(project)) return revision.toLongOrNull()?.let { svn.commit(project.owner.orEmpty(), project.name.orEmpty(), it) }?.let { info(it) }
-        return gitCommit(project, revision)
-    }
-
-    private fun gitCommit(project: Project, revision: String): CommitInfo? = repositories.openRepository(project).use { repository ->
-        val id = repository.resolve(revision) ?: return null
-        try { RevWalk(repository).use { info(it.parseCommit(id)) } } catch (e: MissingObjectException) { null }
-    }
+    fun commit(project: Project, revision: String): CommitInfo? = metrics.operation(project.vcs, "commit") { reader(project).commit(project, revision) }
 
     /**
      * 커밋 번호 [ids]에 해당하는 커밋을 한 번에 읽는다(저장소를 한 번만 연다). 풀 수 없거나 커밋이 아닌 번호는 결과에서 빠진다. Subversion은 빈 맵이다.
      * 풀 리퀘스트 커밋 목록처럼 여러 커밋의 서명 판정이 필요할 때 쓴다(X-4).
      */
-    fun commits(project: Project, ids: Collection<String>): Map<String, CommitInfo> {
-        if (isSvn(project) || ids.isEmpty()) return emptyMap()
-        return repositories.openRepository(project).use { repository ->
-            RevWalk(repository).use { walk ->
-                ids.distinct().mapNotNull { id ->
-                    val resolved = repository.resolve(id) ?: return@mapNotNull null
-                    try { id to info(walk.parseCommit(resolved)) } catch (e: Exception) { null }
-                }.toMap()
-            }
-        }
-    }
+    fun commits(project: Project, ids: Collection<String>): Map<String, CommitInfo> = reader(project).commits(project, ids)
 
     /** 커밋의 첫 부모이다. 첫 커밋이면 `null`이다. Subversion은 바로 앞 리비전이다 (v1.6 `getParentCommitOf`). */
-    fun parentOf(project: Project, revision: String): CommitInfo? {
-        // Subversion의 부모는 바로 앞 리비전이다 (v1.6 `SVNRepository.getParentCommitOf`).
-        // v1.6은 첫 리비전에서도 리비전 0을 읽으려 했다(R-62-9). 첫 리비전은 부모가 없다
-        if (isSvn(project)) return revision.toLongOrNull()?.takeIf { it > 1 }?.let { svn.commit(project.owner.orEmpty(), project.name.orEmpty(), it - 1) }?.let { info(it) }
-        return gitParentOf(project, revision)
-    }
-
-    private fun gitParentOf(project: Project, revision: String): CommitInfo? = repositories.openRepository(project).use { repository ->
-        val id = repository.resolve(revision) ?: return null
-        RevWalk(repository).use { walk ->
-            val commit = walk.parseCommit(id)
-            if (commit.parentCount > 0) info(walk.parseCommit(commit.getParent(0).id)) else null
-        }
-    }
-
-    private fun info(commit: RevCommit): CommitInfo = CommitInfo(
-        id = commit.name, shortId = commit.abbreviate(7).name(), shortMessage = commit.shortMessage, message = commit.fullMessage,
-        authorName = commit.authorIdent.name, authorEmail = commit.authorIdent.emailAddress, authorDate = commit.authorIdent.`when`,
-        committerName = commit.committerIdent.name, committerEmail = commit.committerIdent.emailAddress, commitTime = Date(commit.commitTime * 1000L), parentCount = commit.parentCount,
-        signature = if (commit.rawGpgSignature != null) dev.yona.domain.gpgkey.GitSignatures.ofCommit(commit.rawBuffer) else null
-    )
+    fun parentOf(project: Project, revision: String): CommitInfo? = reader(project).parentOf(project, revision)
 
     /** 저장소에 커밋이 하나도 없다(`HEAD`를 풀 수 없다). */
     class NoHeadException : RuntimeException("저장소에 커밋이 없습니다.")
