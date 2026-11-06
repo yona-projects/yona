@@ -1390,3 +1390,8 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 hg4j 병합 커밋 진입점 구현 보고 반영
 
 `hg-da` 세션이 `MergeCommitCommand`를 구현하고 시험을 마쳤다고 보고했다(실제 `hg`와 노드 해시 일치, 동시 푸시 잠금 시험 포함). 아직 커밋, 버전 올리기, 게시는 하지 않아 로컬 작업 트리에만 있고 1.2.0 후보이다. 이름 바꿈 추적이 없고, `TreeMergeCommand`가 한쪽 삭제와 다른 쪽 수정을 충돌로 보고하도록 바뀌었으며, changegroup 훅이 새 체인지셋이 있을 때만 불리고 `nodes`에 새 것만 담기게 고쳐졌다. `mercurial-plan.md` 4.1, 4.2절과 D-86 4번을 갱신했다.
+
+
+## 2026-11-06 hg4j 1.1.1 게시 확인
+
+선생님이 hg4j 변경이 1.1.1로 올라갔다고 알려 확인했다. hg4j 저장소의 커밋 `a545b7b`와 태그 `v1.1.1`, Gradle Plugin Portal의 플러그인 마커 1.1.1과 라이브러리 jar(`MergeCommitCommand`, `MergeCommitResult` 포함)를 확인했다. Maven Central 메타데이터는 확인 시점에 1.1.0까지였고 1.1.1 jar는 404였다. `mercurial-plan.md`와 D-86 4번의 버전 표기를 1.1.1로 고쳤다.

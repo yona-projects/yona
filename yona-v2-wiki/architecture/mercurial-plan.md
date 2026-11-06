@@ -86,7 +86,7 @@ updated: 2026-11-06
 
 **없거나 한계가 있는 것**(CHANGELOG의 알려진 문제와 소스 확인):
 
-- **병합 커밋 공개 진입점은 hg4j 담당 세션이 구현했다(2026-11-06). 아직 커밋, 버전 올리기, Maven Central 게시는 하지 않았고 로컬 작업 트리에만 있다(버전 1.2.0 후보, 선생님 확인 대기).** 자세한 계약은 4.2절에 있다.
+- **병합 커밋 공개 진입점은 hg4j 1.1.1에 들어 있다(2026-11-06 구현, 커밋 `a545b7b`, 태그 `v1.1.1`).** 1.1.1의 jar가 Gradle Plugin Portal 저장소(`https://plugins.gradle.org/m2`)에서 내려받아지고 `MergeCommitCommand`와 `MergeCommitResult` 클래스가 들어 있음을 확인했다. **Maven Central의 메타데이터는 같은 날 확인 시점에 1.1.0까지만 보였고 1.1.1의 jar는 404였다**(게시 반영 지연일 수 있다). 자세한 계약은 4.2절에 있다.
 - Mercurial 7.2와 7.2.4만 시험되었고, wire protocol v2, `largefiles`, `upgrade`는 없다.
 - `TransportE2EMatrixInteropTest`의 "머리를 만드는 푸시 거절" 시험이 전체 실행에서 가끔 실패한다는 보고가 있다(원인 미상).
 - 폴더 트리는 평평한 매니페스트로 주어진다. `TreeWalk.setRecursive(false)`와 `PathFilter`로 한 단계씩 걷는 것은 가능하나 하위 폴더 항목 자체는 내주지 않으므로, 코드 보기용 폴더 목록은 서버가 경로 앞부분으로 묶는다(작은 코드).
@@ -100,14 +100,14 @@ hg4j 담당 세션(`hg-da`)이 소스를 읽고 회신한 내용이다. 푸시 �
 
 | 훅 | context 값 | 비고 |
 |---|---|---|
-| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **hg4j 1.2.0 후보(작업 트리)에서 고쳐졌다: 새 체인지셋이 하나라도 있을 때만 훅이 불리고 `nodes`에는 새 체인지셋만 담긴다(실제 hg와 같다).** 1.1.0까지는 이미 있는 체인지셋만 담긴 번들을 재푸시해도 훅이 불리고 `nodes`에 기존 노드가 들어왔다. 따라서 **1.2.0을 쓰면 별도 걸러내기가 필요 없다.** 1.1.0을 써야 한다면 푸시 전후 `heads`로 걸러 쓴다 |
+| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **hg4j 1.1.1에서 고쳐졌다(hg4j 담당 세션 보고, 이 훅의 동작을 내가 직접 실행해 확인하지는 않았다): 새 체인지셋이 하나라도 있을 때만 훅이 불리고 `nodes`에는 새 체인지셋만 담긴다(실제 hg와 같다).** 1.1.0까지는 이미 있는 체인지셋만 담긴 번들을 재푸시해도 훅이 불리고 `nodes`에 기존 노드가 들어왔다. 따라서 **1.1.1 이상을 쓰면 별도 걸러내기가 필요 없다.** |
 | `preChangegroup`, `preTxnChangegroup` | 같은 `nodes` | 푸시 전 검사(보호 규칙, 서명)에 쓴다 |
 | `prePushkey`, `postPushkey` | `namespace`, `key`, `old`, `new`, `repository` | bookmark 생성은 `old`가 빈 문자열, 삭제는 `new`가 빈 문자열이고 null이 아니다. 값은 노드 hex. pre가 거절하면 구버전 pushkey 명령은 `0\n`, bundle2 파트는 "prepushkey hook failed"로 응답한다. post는 성공했을 때만 불리고 반환값은 무시된다. `namespace`가 `bookmarks`가 아닌 pushkey(phases 등)도 훅은 불리므로 Yona는 `namespace`를 걸러야 한다 |
 | SSH | `HgSshWireServer`에 같은 훅 다섯 종류가 있고 같은 `Wire1Commands` 경로로 부른다 | HTTP와 SSH가 같은 변환기를 쓸 수 있다 |
 
 - 폴더 한 단계 걷기는 hg4j에 **없다**. `ManifestWalk`와 `TreeCommand`는 파일 항목 전체를 경로 오름차순으로 평평하게 돌려주므로(treemanifest 하위 폴더도 펼친다) 폴더 목록은 Yona가 경로 앞부분으로 묶는 방식이 맞다.
 
-### 4.2 병합 커밋 공개 진입점 `MergeCommitCommand`(hg4j 1.2.0 후보)
+### 4.2 병합 커밋 공개 진입점 `MergeCommitCommand`(hg4j 1.1.1)
 
 패키지 `io.github.search5.hg4j.api`. `new MergeCommitCommand(HgRepository)` 또는 `Hg.mergeCommit()`.
 
