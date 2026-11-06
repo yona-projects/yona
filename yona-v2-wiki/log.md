@@ -1805,4 +1805,4 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 
 ## [2026-11-07] build | Mercurial LFS 수명 주기 보완
 
-LFS 파일이 있는 저장소의 포크가 해시 불일치로 실패하는 것을 점검 중 찾았다(Git LFS는 처음부터 포크 시험이 있었다). hg4j 수정 jar를 임시로 얹고 본문 복사(`HgLfsBlobs`)와 `HgLfsLifecycleTest` 5건을 추가했다. 관련 시험 329건 통과(4분 23초). 전체 시험은 아직 돌리지 않았다.
+LFS 파일이 있는 저장소의 포크가 해시 불일치로 실패하는 것을 점검 중 찾았다(Git LFS는 처음부터 포크 시험이 있었다). hg4j 수정 jar를 임시로 얹고 본문 복사(`HgLfsBlobs`)와 `HgLfsLifecycleTest` 5건을 추가했다. 관련 시험 329건 통과(4분 23초). 전체 H2 시험은 15분 24초, 4,817건(건너뜀 2) 전부 통과.
