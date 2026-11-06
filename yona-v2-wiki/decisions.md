@@ -1145,7 +1145,7 @@ updated: 2026-10-29
 - **결정자**: 선생님(2026-11-06).
 - **질문과 권장안**: (A) 배포 전까지 `settings.gradle.kts`에 임시 `includeBuild("/home/jiho/yona-convert/hg4j")`를 둔다 (B) 1.1.2 배포를 기다린다. **권장 (A).** 이유: 8e(스쿼시, 리베이스)와 9a의 일부가 새 기능에 의존하고, 임시이며 줄 하나로 되돌릴 수 있다. 대가는 그동안 이 컴퓨터에서만 빌드된다는 점이다.
 - **확정 내용**: (A). 배포되면 `includeBuild` 줄을 지우고 `build.gradle.kts`의 hg4j 버전을 1.1.2 이상으로 올린다. 그동안 D-86 4번은 임시 예외이다. `Hg4jDependencyTest`가 새 기능이 클래스패스에 있는지 확인한다(옛 hg4j가 올라오면 시험이 실패한다).
-- **상태**: 확정(2026-11-06). 되돌리는 일은 mercurial-plan.md 7.8절에 적어 둔다.
+- **상태**: 확정(2026-11-06). **정리 완료(2026-11-06): hg4j 1.1.2가 Maven Central에 공개되어 `includeBuild`를 지우고 `build.gradle.kts`의 버전을 1.1.2로 올렸다.** 되돌리는 일은 mercurial-plan.md 7.8절에 적어 둔다.
 
 
 ### D-90. Mercurial LFS는 hg4j 내장 처리를 쓴다 (2026-11-06, **확정**)

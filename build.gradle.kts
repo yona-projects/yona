@@ -143,7 +143,7 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
 	// Mercurial 저장소 처리(X-7, D-86). 순수 Java 구현이라 외부 hg 실행 파일이 필요 없다. 1.1.1 이상이어야 병합 커밋 진입점이 있다.
-	implementation("io.github.search5.hg4j:hg4j:1.1.1")
+	implementation("io.github.search5.hg4j:hg4j:1.1.2")
 
 	// GPG 서명 검증(X-4, D-65). 사용자가 등록한 공개키로 검증하므로 서버 로컬 키링을 읽는 JGit의 gpg.bc 모듈은 쓰지 않고 BouncyCastle을 직접 쓴다
 	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
