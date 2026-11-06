@@ -111,6 +111,12 @@ dependencyManagement {
 	imports {
 		mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
 	}
+	// Apache MINA SSHD(X-3 내장 SSH 서버, X-7 hg4j)의 두 모듈은 같은 버전이어야 한다. Spring의 버전 관리가 sshd-core만 고정해, hg4j가 직접 요구하는
+	// sshd-common이 따로 올라가 둘이 어긋났다. hg4j가 시험한 2.20.1로 맞춘다.
+	dependencies {
+		dependency("org.apache.sshd:sshd-core:2.20.1")
+		dependency("org.apache.sshd:sshd-common:2.20.1")
+	}
 }
 
 dependencies {
@@ -136,13 +142,16 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
+	// Mercurial 저장소 처리(X-7, D-86). 순수 Java 구현이라 외부 hg 실행 파일이 필요 없다. 1.1.1 이상이어야 병합 커밋 진입점이 있다.
+	implementation("io.github.search5.hg4j:hg4j:1.1.1")
+
 	// GPG 서명 검증(X-4, D-65). 사용자가 등록한 공개키로 검증하므로 서버 로컬 키링을 읽는 JGit의 gpg.bc 모듈은 쓰지 않고 BouncyCastle을 직접 쓴다
 	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
 	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
 	// SAML SP 키쌍의 자체 서명 인증서를 만든다(X-16, D-80 19번)
 	implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
 	// X-3: 내장 SSH 서버(`yona.ssh.enabled`)와 공개키 형식 읽기. 시스템 sshd와는 무관하다(D-66).
-	implementation("org.apache.sshd:sshd-core:2.15.0")
+	implementation("org.apache.sshd:sshd-core:2.20.1")
 	// 2단계 인증(X-2, D-69)의 QR 코드를 만든다. 화면에는 인라인 SVG로 내보내므로 핵심 라이브러리만 쓴다
 	implementation("com.google.zxing:core:3.5.3")
 	// 2단계 인증의 보안 키(WebAuthn, 패스키) 검증이다. 두 번째 단계로만 쓴다(X-2, D-69)

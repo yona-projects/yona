@@ -1395,3 +1395,13 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 hg4j 1.1.1 게시 확인
 
 선생님이 hg4j 변경이 1.1.1로 올라갔다고 알려 확인했다. hg4j 저장소의 커밋 `a545b7b`와 태그 `v1.1.1`, Gradle Plugin Portal의 플러그인 마커 1.1.1과 라이브러리 jar(`MergeCommitCommand`, `MergeCommitResult` 포함)를 확인했다. Maven Central 메타데이터는 확인 시점에 1.1.0까지였고 1.1.1 jar는 404였다. `mercurial-plan.md`와 D-86 4번의 버전 표기를 1.1.1로 고쳤다.
+
+
+## 2026-11-06 hg4j 1.1.1 의존성 추가와 재검토
+
+선생님 지시로 `build.gradle.kts`에 hg4j 의존성을 더했다. (1) 저장소: Gradle Plugin Portal(`https://plugins.gradle.org/m2/`)을 `io.github.search5.hg4j` 그룹으로만 한정해 더했다(Maven Central에 1.1.1이 반영되면 지운다). (2) `implementation("io.github.search5.hg4j:hg4j:1.1.1")`. (3) 시험 `Hg4jDependencyTest`: 병합 커밋 클래스, HTTP와 SSH 서빙 클래스, sshd 두 모듈의 버전 일치 3건(먼저 실패 확인). **재검토에서 발견한 문제:** hg4j가 `sshd-common` 2.20.1을 직접 요구하는데 Spring의 버전 관리가 `sshd-core`를 2.15.0으로 고정해, 실행 클래스패스에 core 2.15.0과 common 2.20.1이 섞여 올라왔다(내장 SSH 서버의 위험). 두 모듈을 hg4j가 시험한 2.20.1로 맞췄다. SSH 시험 포함 101건 통과. 전체 H2 시험은 이어서 돌린다.
+
+
+## 2026-11-06 hg4j 1.1.1 Central 확인과 전체 시험
+
+선생님이 Maven Central에 1.1.1이 올라왔다고 알려 확인했다(메타데이터 `release` 1.1.1, jar 200). 임시로 더한 Plugin Portal 저장소 블록을 지우고 `--refresh-dependencies`로 Central 단독 해결과 `Hg4jDependencyTest`를 확인했다. 전체 H2 시험(`cleanTest test`): 4,589건(건너뜀 2), 실패 0, **11분 54초**(저장소 블록을 지우기 전 설정으로 돌렸고, 의존성 해결과 위 시험만 지운 뒤 다시 확인했다). sshd 두 모듈을 2.20.1로 맞춘 변경 포함.

@@ -86,7 +86,7 @@ updated: 2026-11-06
 
 **없거나 한계가 있는 것**(CHANGELOG의 알려진 문제와 소스 확인):
 
-- **병합 커밋 공개 진입점은 hg4j 1.1.1에 들어 있다(2026-11-06 구현, 커밋 `a545b7b`, 태그 `v1.1.1`).** 1.1.1의 jar가 Gradle Plugin Portal 저장소(`https://plugins.gradle.org/m2`)에서 내려받아지고 `MergeCommitCommand`와 `MergeCommitResult` 클래스가 들어 있음을 확인했다. **Maven Central의 메타데이터는 같은 날 확인 시점에 1.1.0까지만 보였고 1.1.1의 jar는 404였다**(게시 반영 지연일 수 있다). 자세한 계약은 4.2절에 있다.
+- **병합 커밋 공개 진입점은 hg4j 1.1.1에 들어 있다(2026-11-06 구현, 커밋 `a545b7b`, 태그 `v1.1.1`).** 1.1.1의 jar가 Gradle Plugin Portal 저장소(`https://plugins.gradle.org/m2`)에서 내려받아지고 `MergeCommitCommand`와 `MergeCommitResult` 클래스가 들어 있음을 확인했다. **처음 확인한 시점에는 Maven Central에 아직 1.1.0까지만 보였으나, 같은 날 선생님이 알려 주셔서 다시 확인하니 1.1.1 jar와 메타데이터(`release` 1.1.1)가 Central에 올라와 있었다.** 자세한 계약은 4.2절에 있다.
 - Mercurial 7.2와 7.2.4만 시험되었고, wire protocol v2, `largefiles`, `upgrade`는 없다.
 - `TransportE2EMatrixInteropTest`의 "머리를 만드는 푸시 거절" 시험이 전체 실행에서 가끔 실패한다는 보고가 있다(원인 미상).
 - 폴더 트리는 평평한 매니페스트로 주어진다. `TreeWalk.setRecursive(false)`와 `PathFilter`로 한 단계씩 걷는 것은 가능하나 하위 폴더 항목 자체는 내주지 않으므로, 코드 보기용 폴더 목록은 서버가 경로 앞부분으로 묶는다(작은 코드).
@@ -134,6 +134,13 @@ hg4j 담당 세션(`hg-da`)이 소스를 읽고 회신한 내용이다. 푸시 �
 - 한쪽이 삭제하고 다른 쪽이 수정한 파일은 충돌이다.
 - treemanifest 저장소는 거부한다. LFS 대용량 파일은 포인터가 아니라 실제 내용으로 기록한다. 외부 병합 도구는 없고 줄 단위 병합이다.
 - **기존 동작 변경:** 이 작업 중 `TreeMergeCommand`의 버그가 고쳐졌다. 한쪽 삭제와 다른 쪽 수정이 겹치면 삭제가 조용히 이기고 수정이 사라졌으나 이제 충돌로 보고한다(실제 hg와 같음). `GraftInMemory`와 `rebase --dry-run`도 같이 바뀌었고 `graft --to` 충돌 안내 문구를 실제 hg와 같게 맞췄다.
+
+### 4.3 Yona 빌드에 hg4j를 더한 결과(2026-11-06 확인)
+
+- `build.gradle.kts`: `implementation("io.github.search5.hg4j:hg4j:1.1.1")`을 더했다. 처음에는 Maven Central에 1.1.1이 없어 Gradle Plugin Portal 저장소를 한정해 더했으나, 선생님이 Central 게시를 알려 주셔서 **그 저장소는 지웠고** `--refresh-dependencies`로 Central 단독 해결을 확인했다. 해결된 jar에 `MergeCommitCommand`, `HgHttpWireServer`, `HgSshWireServer`가 있음을 시험(`Hg4jDependencyTest`)으로 고정했다.
+- **버전 충돌을 하나 찾아 고쳤다.** hg4j는 `sshd-core`와 `sshd-common` 2.20.1을 요구하는데, Spring의 버전 관리가 `sshd-core`만 2.15.0으로 고정해 실행 클래스패스에 두 모듈이 서로 다른 버전으로 섞여 올라왔다. 내장 SSH 서버(X-3)가 영향을 받는 구성이라 두 모듈을 hg4j가 시험한 **2.20.1로 맞췄다.** SSH 시험(`dev.yona.ssh.*`) 포함 101건이 통과했고, 전체 H2 시험은 4,589건(건너뜀 2) 실패 0이었다(11분 54초).
+- 그 밖의 전이 의존성은 Yona의 기존 선택이 이긴다: `commons-compress` 1.26.1 요구는 1.28.0, BouncyCastle 1.78 요구는 1.82, `slf4j`는 2.0.18. `zstd-jni`와 `jakarta.servlet-api` 6.1.0이 새로 들어온다.
+- 단계 0의 남은 일: 실제 `hg` 7.2 상호운용 기준선과, hg4j를 Spring 서블릿 컨테이너에 올릴 때의 `HgHttpWireServer` 연결 방식 확인.
 
 ## 5. 이전 시도(`next` 브랜치, P3-12)의 교훈
 
