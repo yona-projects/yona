@@ -47,6 +47,16 @@ object HgTestSupport {
         return hg(dir, "log", "-r", ".", "--template", "{node}")
     }
 
+    /** [commit]과 같지만 파일 내용이 바이트이다(이진 파일 시험용). */
+    fun commitBytes(dir: File, message: String, files: Map<String, ByteArray>, date: String = "2026-11-01 10:00 +0900", user: String? = null): String {
+        for ((path, content) in files) File(dir, path).also { it.parentFile.mkdirs() }.writeBytes(content)
+        hg(dir, "addremove")
+        val args = mutableListOf("commit", "-m", message, "-d", date)
+        if (user != null) args += listOf("-u", user)
+        hg(dir, *args.toTypedArray())
+        return hg(dir, "log", "-r", ".", "--template", "{node}")
+    }
+
     /** 현재 위치(또는 [rev])에 이름표를 만든다. */
     fun bookmark(dir: File, name: String, rev: String? = null) { hg(dir, *(listOf("bookmark", name) + (rev?.let { listOf("-r", it) } ?: emptyList())).toTypedArray()) }
 
