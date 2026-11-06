@@ -31,8 +31,8 @@ class PullRequestIdentityTest : AbstractIntegrationTest() {
         val admin = requireNotNull(users.findByLoginId("admin"))
         assertTrue(siteAdmins.existsByAdminId(requireNotNull(admin.id)))
         Mockito.doReturn(null).`when`(mailSender).fromAddress()
-        assertEquals(admin.email, identity.system().emailAddress)
-        assertEquals("project.yona@gmail.com", identity.system().emailAddress)
+        assertEquals(admin.email, identity.system().email)
+        assertEquals("project.yona@gmail.com", identity.system().email)
     }
 
     @Test
@@ -41,12 +41,12 @@ class PullRequestIdentityTest : AbstractIntegrationTest() {
         admin.email = ""
         users.save(admin)
         Mockito.doReturn(null).`when`(mailSender).fromAddress()
-        assertEquals("yona@yona.io", identity.system().emailAddress)
+        assertEquals("yona@yona.io", identity.system().email)
     }
 
     @Test
     fun `SMTP 주소가 있으면 그것을 쓴다`() {
         Mockito.doReturn("noreply@example.com").`when`(mailSender).fromAddress()
-        assertEquals("noreply@example.com", identity.system().emailAddress)
+        assertEquals("noreply@example.com", identity.system().email)
     }
 }

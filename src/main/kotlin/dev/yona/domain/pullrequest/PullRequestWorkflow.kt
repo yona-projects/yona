@@ -3,7 +3,6 @@ package dev.yona.domain.pullrequest
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.user.User
-import org.eclipse.jgit.lib.PersonIdent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -84,7 +83,7 @@ class PullRequestWorkflow(
         pullRequests.save(pullRequest)
 
         val result = try {
-            merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
+            merger.merge(pullRequest, MergePerson(accepter.name.orEmpty(), accepter.email.orEmpty()), chosen, commitTitle, commitMessage)
         } catch (e: Exception) {
             pullRequest.isMerging = false
             pullRequests.save(pullRequest)
@@ -96,8 +95,8 @@ class PullRequestWorkflow(
             return AcceptResult.CONFLICT
         }
 
-        pullRequest.mergedCommitIdFrom = result.attempt.leftParent.name
-        pullRequest.mergedCommitIdTo = requireNotNull(result.mergeCommitId).name
+        pullRequest.mergedCommitIdFrom = result.attempt.leftParent
+        pullRequest.mergedCommitIdTo = requireNotNull(result.mergeCommitId)
         pullRequest.state = State.MERGED
         pullRequest.received = Date()
         pullRequest.updated = pullRequest.received

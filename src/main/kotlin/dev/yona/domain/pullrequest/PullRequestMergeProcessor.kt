@@ -79,8 +79,8 @@ class PullRequestMergeProcessor(
             null
         }
         update.mergeCommitId?.let {
-            pullRequest.mergedCommitIdFrom = update.attempt.leftParent.name
-            pullRequest.mergedCommitIdTo = it.name
+            pullRequest.mergedCommitIdFrom = update.attempt.leftParent
+            pullRequest.mergedCommitIdTo = it
         }
         pullRequests.save(pullRequest)
 

@@ -15,7 +15,6 @@ import dev.yona.support.AbstractIntegrationTest
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.revwalk.RevWalk
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -105,16 +104,16 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val update = merger.update(pr)
         val merged = assertNotNull(update.mergeCommitId)
         repositories.openGitRepository(origin).use { repository ->
-            assertEquals(update.attempt.rightParent, repository.resolve(merger.headRef(pr)))
-            assertEquals(merged, repository.resolve(merger.mergedRef(pr)))
+            assertEquals(update.attempt.rightParent, repository.resolve(merger.headRef(pr)).name)
+            assertEquals(merged, repository.resolve(merger.mergedRef(pr)).name)
             RevWalk(repository).use { walk ->
-                val commit = walk.parseCommit(merged)
+                val commit = walk.parseCommit(org.eclipse.jgit.lib.ObjectId.fromString(merged))
                 assertEquals(2, commit.parentCount)
-                assertEquals(update.attempt.leftParent, commit.getParent(0).id); assertEquals(update.attempt.rightParent, commit.getParent(1).id)
+                assertEquals(update.attempt.leftParent, commit.getParent(0).id.name); assertEquals(update.attempt.rightParent, commit.getParent(1).id.name)
                 assertEquals("Yona", commit.authorIdent.name)
                 assertTrue(commit.fullMessage.startsWith("Merge branch 'master' of ${fork.owner}/${fork.name}\n\nfrom pull-request 1\n\n* master:\n  새 파일\n"), commit.fullMessage)
             }
-            assertNotEquals(merged, repository.resolve("refs/heads/master"))
+            assertNotEquals(merged, repository.resolve("refs/heads/master").name)
         }
     }
 
@@ -135,12 +134,12 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b\n".toByteArray())))
         val pr = pullRequest(origin, fork)
         pr.reviewers.add(user())
-        val sender = PersonIdent("받는 사람", "receiver@example.com")
+        val sender = MergePerson("받는 사람", "receiver@example.com")
         val result = merger.merge(pr, sender)!!
         repositories.openGitRepository(origin).use { repository ->
-            assertEquals(result.mergeCommitId, repository.resolve("refs/heads/master"))
+            assertEquals(result.mergeCommitId, repository.resolve("refs/heads/master").name)
             RevWalk(repository).use { walk ->
-                val commit = walk.parseCommit(result.mergeCommitId)
+                val commit = walk.parseCommit(org.eclipse.jgit.lib.ObjectId.fromString(result.mergeCommitId))
                 assertEquals("받는 사람", commit.authorIdent.name); assertEquals("receiver@example.com", commit.committerIdent.emailAddress)
                 assertTrue(commit.fullMessage.contains("Reviewed-by: 병합자"), commit.fullMessage)
             }
@@ -154,7 +153,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         GitTestSupport.appendCommits(repositories, origin, TestCommit("원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n".toByteArray())))
         GitTestSupport.appendCommits(repositories, fork, TestCommit("포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n".toByteArray())))
         val before = repositories.openGitRepository(origin).use { it.resolve("refs/heads/master") }
-        assertNull(merger.merge(pullRequest(origin, fork), PersonIdent("n", "e@example.com")))
+        assertNull(merger.merge(pullRequest(origin, fork), MergePerson("n", "e@example.com")))
         assertEquals(before, repositories.openGitRepository(origin).use { it.resolve("refs/heads/master") })
     }
 

@@ -2,11 +2,10 @@ package dev.yona.domain.pullrequest
 
 import dev.yona.config.YonaProperties
 import dev.yona.domain.notification.NotificationMailSender
-import org.eclipse.jgit.lib.PersonIdent
 import org.springframework.stereotype.Component
 
 /**
- * 시스템이 만드는 Git 커밋의 작성자이다. v1.6 `new PersonIdent(Config.getSiteName(), Config.getSystemEmailAddress())`.
+ * 시스템이 만드는 병합 커밋의 작성자이다. v1.6 `new PersonIdent(Config.getSiteName(), Config.getSystemEmailAddress())`.
  *
  * 메일 주소는 SMTP 보내는 주소가 있으면 그것이고, 없으면 기본 관리자(`admin`)의 메일이며, 그것도 비어 있으면 `yona@yona.io`이다.
  *
@@ -21,7 +20,7 @@ class PullRequestIdentity(
 ) {
 
     /** 시스템 병합 커밋의 작성자이다. */
-    fun system(): PersonIdent = PersonIdent(properties.siteName, systemEmail())
+    fun system(): MergePerson = MergePerson(properties.siteName, systemEmail())
 
     private fun systemEmail(): String =
         mailSender.fromAddress() ?: users.findByLoginId(DEFAULT_ADMIN_LOGIN_ID)?.email?.takeIf { it.isNotBlank() } ?: DEFAULT_EMAIL

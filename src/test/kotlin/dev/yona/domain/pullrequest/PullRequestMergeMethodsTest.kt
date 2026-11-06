@@ -16,7 +16,6 @@ import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.CommitBuilder
-import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.junit.jupiter.api.Test
@@ -75,7 +74,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         org.eclipse.jgit.treewalk.TreeWalk.forPath(r, path, commit.tree)?.let { String(r.open(it.getObjectId(0)).bytes) }
     }
 
-    private val merger1 get() = PersonIdent("병합한 사람", "merger@example.com")
+    private val merger1 get() = MergePerson("병합한 사람", "merger@example.com")
 
     // --- 스쿼시 ---
 
@@ -88,7 +87,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         val update = merger.merge(pr, merger1, MergeMethod.SQUASH)
         assertNotNull(update)
         val squash = commit(origin, head(origin))
-        assertEquals(update!!.mergeCommitId!!.name, squash.name)
+        assertEquals(update!!.mergeCommitId!!, squash.name)
         assertEquals(1, squash.parentCount); assertEquals(before, squash.getParent(0).name)
         assertEquals("b\n", text(origin, squash, "b.txt")); assertEquals("c\n", text(origin, squash, "c.txt"))
         assertEquals("작성자", squash.authorIdent.name); assertEquals(contributor.email, squash.authorIdent.emailAddress)
@@ -134,7 +133,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         assertEquals("원저자", first.authorIdent.name); assertEquals("orig@example.com", first.authorIdent.emailAddress)
         assertEquals("병합한 사람", tip.committerIdent.name); assertEquals("병합한 사람", first.committerIdent.name)
         assertEquals("o\n", text(origin, tip, "o.txt")); assertEquals("b\n", text(origin, tip, "b.txt")); assertEquals("c\n", text(origin, tip, "c.txt"))
-        assertEquals(tip.name, update!!.mergeCommitId!!.name, "병합 후 기준 커밋은 새 머리 커밋이다")
+        assertEquals(tip.name, update!!.mergeCommitId!!, "병합 후 기준 커밋은 새 머리 커밋이다")
     }
 
     @Test
@@ -156,7 +155,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         repositories.openGitRepository(fork).use { r ->
             val tip = RevWalk(r).use { it.parseCommit(r.resolve("refs/heads/master")) }
             val base = tip.getParent(0)
-            val builder = CommitBuilder().apply { setTreeId(tip.tree.id); setParentIds(tip.id, base.id); author = merger1; setCommitter(merger1); message = "병합 커밋\n" }
+            val builder = CommitBuilder().apply { setTreeId(tip.tree.id); setParentIds(tip.id, base.id); author = org.eclipse.jgit.lib.PersonIdent(merger1.name, merger1.email); setCommitter(author); message = "병합 커밋\n" }
             val id = r.newObjectInserter().use { ins -> ins.insert(builder).also { ins.flush() } }
             r.updateRef("refs/heads/master").apply { setNewObjectId(id); isForceUpdate = true }.update()
         }
@@ -189,7 +188,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         // 기본값을 그대로 보내면 아무것도 보내지 않은 것과 같은 메시지가 된다
         GitTestSupport.appendCommits(repositories, fork, TestCommit("하나", mapOf("b.txt" to "b\n".toByteArray())))
         val update = merger.merge(pr, merger1, MergeMethod.MERGE, mergeTitle, mergeBody)
-        assertTrue(commit(origin, update!!.mergeCommitId!!.name).fullMessage.startsWith("$mergeTitle\n\n$mergeBody"))
+        assertTrue(commit(origin, update!!.mergeCommitId!!).fullMessage.startsWith("$mergeTitle\n\n$mergeBody"))
     }
 
     @Test
@@ -197,11 +196,11 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         val (origin, fork) = originAndFork()
         GitTestSupport.appendCommits(repositories, fork, TestCommit("하나", mapOf("b.txt" to "b\n".toByteArray())))
         val update = merger.merge(pullRequest(origin, fork), merger1, MergeMethod.MERGE, "직접 쓴 제목", "직접 쓴 본문")
-        val merge = commit(origin, update!!.mergeCommitId!!.name)
+        val merge = commit(origin, update!!.mergeCommitId!!)
         assertEquals(2, merge.parentCount)
         assertTrue(merge.fullMessage.startsWith("직접 쓴 제목\n\n직접 쓴 본문"), merge.fullMessage)
         val plain = merger.merge(pullRequest(origin, fork).also { it.number = 8 }, merger1)
-        assertTrue(plain == null || commit(origin, plain.mergeCommitId!!.name).fullMessage.startsWith("Merge branch"), "기본 제목은 v1.6과 같다")
+        assertTrue(plain == null || commit(origin, plain.mergeCommitId!!).fullMessage.startsWith("Merge branch"), "기본 제목은 v1.6과 같다")
         assertNotNull(Git(repositories.openGitRepository(origin)))
     }
 }

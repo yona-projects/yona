@@ -6,7 +6,6 @@ import dev.yona.domain.enumeration.State
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.repository.CommitInfo
-import org.eclipse.jgit.lib.ObjectId
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
@@ -33,7 +32,7 @@ class PullRequestMergeProcessorEventsTest {
     private val processor = PullRequestMergeProcessor(pullRequests, commits, merger, events, users, publisher, mock(PullRequestReviewService::class.java))
     private val sender = User(id = 2, loginId = "sender")
 
-    private fun attempt(list: List<CommitInfo>) = MergeUpdate(MergeAttempt(false, list, ObjectId.zeroId(), ObjectId.zeroId()), null)
+    private fun attempt(list: List<CommitInfo>) = MergeUpdate(MergeAttempt(false, list, "0".repeat(40), "0".repeat(40)), null)
 
     private fun prepare(): PullRequest {
         val pr = PullRequest(id = 1, state = State.OPEN)
