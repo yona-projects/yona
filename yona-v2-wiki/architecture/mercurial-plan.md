@@ -348,7 +348,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 
 - **7단계:** 7a 포크(`cloneLocal`, `FORK` 능력), 7b 가져오기(`cloneRemote`), 7c REST와 문서, 7d 지표와 감사.
 - **8단계:** 8a 준비(풀 리퀘스트 쪽 Git 의존을 중립 계약으로, 숨은 참조는 D-87: secret 체인지셋과 예약 이름표 `yobi/pull/<번호>/head|merged`), 8b 비교(커밋 목록, diff, 충돌 판정), 8c 병합 커밋(`MergeCommitCommand`, 병합 노드가 실제 `hg`와 같은지 검증, 충돌은 4.2절의 한계 기준), 8d 이벤트와 화면, 8e 스쿼시와 리베이스.
-- **9단계:** 9a LFS(hg4j가 이미 처리하는 경로를 컨트롤러가 통과시키는지부터), 9b 데이터 교환, 9c GPG(설계 결정을 선생님께 여쭙는다).
+- **9단계:** 9a LFS(hg4j가 이미 처리하는 경로를 컨트롤러가 통과시키는지부터), 9b 데이터 교환, 9c GPG(D-88: 보고 있는 리비전의 `.hgsigs`로 판정, 등록 키와 작성자 이메일 일치, 서명 커밋 필수 규칙은 이번 푸시의 `.hgsigs`로 검사하고 `.hgsigs`만 바꾸는 커밋은 제외).
 
 ## 8. 결정이 필요한 질문
 
