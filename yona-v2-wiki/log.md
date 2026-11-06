@@ -1425,3 +1425,8 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 Mercurial 공통화 3단계(푸시 이벤트 중립화)
 
 푸시 전 검사(`PushPolicy`)와 푸시 뒤 처리(`PushEvents`)를 JGit 타입에서 떼어 `RefUpdate` 목록만 받게 했다. `GitHooks`는 JGit 훅을 연결하는 어댑터로 줄었고, `Ruleset.pushViolation`과 `PostReceiveJobs`도 종류와 무관한 타입을 쓴다. 새 시험 `RefUpdateTest`, `PushPolicyTest`, `PushEventsTest`(`hg` 이름의 감사 기록 확인). 전체 H2 시험(`cleanTest test`): 4,618건(건너뜀 2) 실패 0, **11분 42초**.
+
+
+## 2026-11-06 Mercurial 공통화 4단계(diff, 서빙 앞단, 종류 변경 대상)와 X-47 이름 정리
+
+X-47(1)의 남은 일로 `PostReceiveJobs.CommitDetail`을 중립 `PushedCommit`(`domain/vcs`)으로 옮겼다. 4a: 변경 목록과 파일 내용 읽기를 `DiffReader`(`GitDiffReader`)로 나누고 `DiffService`는 종류와 무관하게 글 비교만 한다(`FileDiff`의 변경 종류와 모드는 중립 타입). 4b: `VcsServingGate`가 HTTP Basic 인증, 토큰 범위, 401과 403을 맡고 `GitHttpController`는 프로토콜만 남았다. 4c: `ProjectVcsService.targets`와 `change(project, target)`, 폼의 `targetVcs` 매개변수(대상을 주지 않으면 v1.6처럼 번갈아 바꿈). 새 시험 `DiffServiceContentTest`, `VcsServingGateTest`와 `ProjectVcsServiceTest`, `ProjectChangeVcsTest`의 추가분. 처음 전체 시험에서 `AuditCoverageTest`가 한 건 실패했다(`change(project)`가 감사 기록을 직접 남기지 않고 다른 메서드를 부르는 구조): 기본 인수를 가진 메서드 하나로 합쳐 고쳤다. 고친 뒤 전체 H2 시험(`cleanTest test`): 4,634건(건너뜀 2) 실패 0, **11분 59초**.
