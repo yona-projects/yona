@@ -895,7 +895,8 @@ $violet:  #9c27b0;
   }
 }
 
-.nav-subtab.unstyled {
+.nav-subtab.unstyled,
+.nav-subtab.list-unstyled { /* 템플릿은 BS5 이름 `list-unstyled`를 쓴다 */
   color: black;
   background-color: #eee;
   display: inline-block;

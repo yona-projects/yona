@@ -239,4 +239,14 @@ export const tests = [
       assert.equal(m.s[3], 42, `검색란 높이 ${m.s[3]}`);
     },
   },
+  {
+    name: '사용자 메뉴의 프로젝트 필터 줄(최근 방문, 내가 만든 등)은 v1.6처럼 회색 배경이다 (A-377)',
+    async run() {
+      const template = fs.readFileSync(path.join(ROOT, 'src/main/resources/templates/index/my-project-list.html'), 'utf8');
+      const ulClass = /<ul class="(nav-subtab[^"]*)"/.exec(template)[1];
+      const page = await open(`<div class="subtab-wrap subtab-group"><ul id="f" class="${ulClass}"><li class="active"><a>최근 방문</a></li><li><a>내가 만든</a></li></ul></div>`);
+      const bg = await page.evaluate(() => getComputedStyle(document.getElementById('f')).backgroundColor);
+      assert.equal(bg, 'rgb(238, 238, 238)');
+    },
+  },
 ];
