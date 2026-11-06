@@ -65,7 +65,10 @@ class HgPullRefs(private val repositories: HgRepositories) {
                 require(head >= 0) { "보내는 저장소에 체인지셋이 없습니다: $node" }
                 val base = HgChangesets.ancestors(forkLog, head).sortedDescending().asSequence().mapNotNull { HgChangesets.read(forkLog, it)?.node }
                     .firstOrNull { HgChangesets.revOf(targetLog, it) >= 0 }
-                BundleCommand(fork.repository).setOutputFile(file).setRevision(node).setBaseRevision(base ?: "null").call()
+                val bundle = BundleCommand(fork.repository).setOutputFile(file).setRevision(node)
+                // 공통 조상이 없으면 모두 옮긴다(`hg bundle -a`와 같다)
+                if (base != null) bundle.setBaseRevision(base) else bundle.setAll(true)
+                bundle.call()
             }
             UnbundleCommand(target.repository).setBundleFile(file).call()
         } finally {
