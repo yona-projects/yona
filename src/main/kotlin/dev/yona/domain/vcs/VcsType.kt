@@ -23,7 +23,13 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
     ),
 
     /** Subversion. v1.6에서 Git 전용이던 기능을 지원하지 않고, 커밋을 리비전 번호로 가리킨다. */
-    SUBVERSION("Subversion", setOf(VcsCapability.NUMERIC_REVISIONS, VcsCapability.AUTHOR_LOGIN_IDS));
+    SUBVERSION("Subversion", setOf(VcsCapability.NUMERIC_REVISIONS, VcsCapability.AUTHOR_LOGIN_IDS)),
+
+    /**
+     * Mercurial(hg4j, X-7, D-86). 이름표(bookmark)를 브랜치로 보인다. 기능은 구현이 끝나는 단계마다 더한다: 지금은 읽기(브랜치와 태그 목록, 내려받기,
+     * 커밋 작성자의 이메일)이고, 서빙(6단계)과 포크(7단계), 풀 리퀘스트(8단계), LFS와 서명(9단계)은 아직 아니다.
+     */
+    MERCURIAL("Mercurial", setOf(VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS));
 
     /** [capability]를 지원하면 `true`이다. */
     fun supports(capability: VcsCapability): Boolean = capability in capabilities

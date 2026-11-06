@@ -172,7 +172,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `지원하지 않는 VCS는 501이다`() {
         val n = ++sequence
-        val p = projects.save(Project(owner = "swo$n", name = "swp$n", vcs = "Mercurial", projectScope = ProjectScope.PUBLIC))
+        val p = projects.save(Project(owner = "swo$n", name = "swp$n", vcs = "Bazaar", projectScope = ProjectScope.PUBLIC))
         menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isNotImplemented)
     }

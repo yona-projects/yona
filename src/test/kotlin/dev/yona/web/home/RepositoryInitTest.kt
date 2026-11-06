@@ -105,9 +105,9 @@ class RepositoryInitTest : AbstractIntegrationTest() {
 
     @Test
     fun `한 프로젝트가 실패해도 나머지는 계속한다`() {
-        val bad = project("Mercurial"); val good = project()
+        val bad = project("Bazaar"); val good = project()
         mockMvc.perform(get("/_init")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/"))
         assertTrue(File("build/tmp/it-repo-init/repo/git/${good.owner}/${good.name}.git/HEAD").isFile)
-        assertEquals("Mercurial", bad.vcs)
+        assertEquals("Bazaar", bad.vcs)
     }
 }

@@ -209,7 +209,7 @@ class CodeBrowserController(
         return bytes to path.substringAfterLast('/')
     }
 
-    /** Git도 Subversion도 아닌 프로젝트이면 v1.6의 지원하지 않는 VCS 응답(`501`)이다. */
+    /** 저장소 종류를 모르거나 지원하지 않는 프로젝트이면 v1.6의 지원하지 않는 VCS 응답(`501`)이다. */
     private fun notSupported(project: Project): ResponseEntity<String>? =
-        if (project.vcs == "GIT" || project.vcs == "Subversion") null else ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("${project.vcs} is not supported!")
+        if (dev.yona.domain.vcs.VcsType.of(project.vcs) != null) null else ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("${project.vcs} is not supported!")
 }

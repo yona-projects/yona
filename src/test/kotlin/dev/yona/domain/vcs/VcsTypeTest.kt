@@ -83,6 +83,22 @@ class VcsTypeTest {
         assertThat(VcsSupport(null).authorLoginIds).isFalse()
     }
 
+    @Test
+    fun `Mercurial은 열 값이 Mercurial이고 읽기 기능만 지원한다 (D-86)`() {
+        assertThat(VcsType.of("Mercurial")).isEqualTo(VcsType.MERCURIAL)
+        assertThat(VcsType.MERCURIAL.columnValue).isEqualTo("Mercurial")
+        // 이름표를 브랜치로 보이고, 태그와 내려받기를 지원하며, 커밋 작성자는 이메일로 식별한다
+        for (capability in listOf(VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS)) {
+            assertThat(VcsType.MERCURIAL.supports(capability)).describedAs("Mercurial의 $capability").isTrue()
+        }
+        // 서빙(6단계), 포크(7단계), 풀 리퀘스트(8단계), LFS와 서명(9단계)은 구현이 끝난 단계에서 더한다
+        for (capability in listOf(VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.PROTECTED_REFS, VcsCapability.ONLINE_EDITING)) {
+            assertThat(VcsType.MERCURIAL.supports(capability)).describedAs("Mercurial의 $capability").isFalse()
+        }
+        assertThat(VcsType.MERCURIAL.supports(VcsCapability.NUMERIC_REVISIONS)).isFalse()
+        assertThat(VcsType.MERCURIAL.supports(VcsCapability.AUTHOR_LOGIN_IDS)).isFalse()
+    }
+
     private companion object {
         /** v1.6에서 `project.isGit` 등으로 Git에서만 열던 나머지 기능이다. */
         val OTHER_GIT_FEATURES = listOf(

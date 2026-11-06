@@ -140,7 +140,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         val session = login(manager(project))
         val url = "/${project.owner}/${project.name}/changeVCS"
         mockMvc.perform(post(url).session(session).param("targetVcs", "Subversion")).andExpect(status().isBadRequest)
-        mockMvc.perform(post(url).session(session).param("targetVcs", "Mercurial")).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url).session(session).param("targetVcs", "Bazaar")).andExpect(status().isBadRequest)
         mockMvc.perform(post(url).session(session).param("targetVcs", "")).andExpect(status().isBadRequest)
         projects.flush()
         assertEquals("Subversion", projects.findById(project.id!!).get().vcs)
