@@ -192,11 +192,13 @@ class HgHttpTest {
     }
 
     @Test
-    fun `Mercurial이 아닌 프로젝트와 모르는 명령은 거절한다`() {
+    fun `Mercurial 프로젝트가 아니면 와이어 프로토콜로 답하지 않고 모르는 명령은 거절한다`() {
+        // Git 프로젝트의 `?cmd=`는 v1.6처럼 쿼리를 무시하는 프로젝트 홈이다(Mercurial 응답이 아니다)
         val git = project(ProjectScope.PUBLIC, vcs = "GIT")
-        assertEquals(404, raw("/${git.owner}/${git.name}?cmd=capabilities").statusCode())
+        assertFalse("unbundle" in String(raw("/${git.owner}/${git.name}?cmd=capabilities").body()))
         assertEquals(400, raw("/${project.owner}/${project.name}?cmd=nosuchcommand").statusCode())
-        assertEquals(404, raw("/${member.loginId}/nosuchproject?cmd=capabilities").statusCode())
+        // 없는 프로젝트는 필터가 건드리지 않고 앱의 보통 처리(익명이면 접근 거절)로 넘어간다
+        assertTrue(raw("/${member.loginId}/nosuchproject?cmd=capabilities").statusCode() in listOf(403, 404))
     }
 
     @Test
