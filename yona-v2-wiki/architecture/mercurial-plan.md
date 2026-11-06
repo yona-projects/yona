@@ -365,6 +365,21 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - 시험: `HgRepositoriesTest`(포크, 태그, secret), `ForkTest`(웹 포크), `ImportTest`(가져오기, 종류 오류, 문구), `ExternalMercurialApiTest`, `RepositoryStorageMetricsTest`, `VcsTypeTest`, `MessageParityTest`.
 - 구현 판단은 `decisions.md` A-380에 적었다.
 
+### 7.10 8단계 진행 기록(2026-11-06): 풀 리퀘스트
+
+| 소단계 | 산출 | 내용 |
+|---|---|---|
+| 8a | `PullRequestBackend`, `MergeMessages`, `GitPullRequestBackend`, `HgPullRefs` | 병합기(`PullRequestMerger`)를 종류와 무관한 계약으로 분리하고 기존 Git 본문을 `GitPullRequestBackend`로 옮겼다(`PullRequestMerger`는 받는 프로젝트의 `vcs`로 구현을 골라 넘기는 파사드). 값 타입은 40자 노드 문자열과 `MergePerson`이다. 병합 제목과 본문 글은 `MergeMessages`로 공유한다. Git 풀 리퀘스트 관련 시험 338건이 그대로 통과했다. 숨은 참조(D-87)는 `HgPullRefs`: 가져온 체인지셋을 secret으로 두고 예약 이름표 `yobi/pull/<번호>/head`, `merged`로 가리킨다. 예약 이름표는 브랜치 목록과 이름 풀이에서 빠지고 푸시는 `refs/yobi/…`로 보아 거부한다 |
+| 8b | `HgPullRequestBackend.attempt`, `HgCommitReader.range` | 병합 가능 여부는 저장소를 쓰지 않는 hg4j `TreeMergeCommand`로 계산한다. 가져올 커밋은 보내는 머리에서 받는 머리의 조상을 뺀 것이다 |
+| 8c | 같은 곳 `update`, `merge(MERGE)` | `MergeCommitCommand`로 부모 둘짜리 병합 체인지셋을 만든다(Git `--no-ff`처럼 조상 관계여도 만든다). 요청이 있는 동안은 secret이고, 받아들이면 공개로 올리고 받는 이름표를 옮긴다. 같은 두 부모면 병합 결과를 다시 쓴다 |
+| 8e | 같은 곳 `merge(SQUASH, REBASE)`, `rebaseBlocked` | 스쿼시는 `MergeCommitCommand.setSquash(true)`(부모가 받는 머리 하나, 작성자는 요청자), 리베이스는 `GraftInMemory.execute()`(작성자, 날짜, 메시지는 그대로). 리베이스 막힘 이유는 병합 체인지셋이 섞였으면 `merge-commits`, 한 체인지셋이라도 충돌하면 `conflict`(dry-run). hg4j 1.1.2의 새 기능이다(D-89) |
+| 8d | `PullRequestBranchService`, `PullRequestChangesService`, `PULL_REQUESTS` 능력 | 두 서비스를 종류와 무관한 계약(`RefReader.createBranch` 추가, `CommitReader`, `CodeReader`)으로 바꿔 Git 직접 호출을 걷었다(`GitDependencyGuardTest` 허용 목록에서 둘을 뺐다). 능력을 켜서 만들기, 보기, 변경 보기, 받아들이기, 보내는 브랜치 삭제와 복원이 Mercurial에서 돈다 |
+
+- **가져오기는 번들로 한다(`HgPullRefs.transfer`).** hg4j `PullCommand`는 실제 `hg pull`처럼 보내는 쪽의 이름표를 받는 저장소에 반영해, 받는 저장소의 `main`이 병합 전에 저절로 앞서 나가고 포크의 다른 이름표가 들어온다(시험으로 재현). `BundleCommand`(`--base`는 받는 저장소가 가진 가장 최근의 조상)와 `UnbundleCommand`는 체인지셋만 옮긴다(hg4j 담당 세션이 알려 준 원본 hg의 방식).
+- 시험: `HgPullRefsTest`(8), `HgPullRequestMergerTest`(16), `HgPullRequestServicesTest`(4), `HgPullRequestWebTest`(5), `Hg4jDependencyTest`, 그리고 Git 풀 리퀘스트 관련 시험 전체가 안전망이다.
+- 알려진 한계: (1) 병합 알림 수신자 가운데 "변경한 줄의 작성자 추정"은 Git(JGit blame)만 한다. (2) 병합은 폴더 이름 바꿈, 한쪽 삭제와 다른 쪽 수정, 파일 단위 병합 도구가 필요한 경우를 충돌로 본다(4.2절). (3) 풀 리퀘스트를 닫아도 secret 체인지셋은 남는다(D-87). (4) 가져오는 동안 같은 받는 저장소의 다른 풀 리퀘스트 병합은 저장소 단위 잠금으로 기다린다.
+- 구현 판단은 `decisions.md` A-381에 적었다.
+
 ## 8. 결정이 필요한 질문
 
 [decisions.md](../decisions.md) D-86에 같은 내용을 권장안과 이유와 함께 올렸다.
