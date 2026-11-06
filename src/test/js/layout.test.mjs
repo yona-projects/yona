@@ -122,4 +122,96 @@ export const tests = [
       assert.equal(align, 'left');
     },
   },
+  {
+    name: '상단 검색 상자는 v1.6처럼 입력란 전체 70x30, 단추 높이 20이다 (A-377)',
+    async run() {
+      const page = await open(`<form class="gnb-search-form"><div class="search-box"><input type="text" name="keyword"><button type="submit"><i>돋보기</i></button></div></form>`);
+      const size = await page.evaluate(() => { const i = document.querySelector('.search-box input').getBoundingClientRect(); const b = document.querySelector('.search-box button').getBoundingClientRect(); return { iw: i.width, ih: i.height, bh: b.height }; });
+      assert.equal(Math.round(size.iw), 70, `입력란 폭 ${size.iw}`);
+      assert.equal(Math.round(size.ih), 30, `입력란 높이 ${size.ih}`);
+      assert.equal(Math.round(size.bh), 20, `단추 높이 ${size.bh}`);
+    },
+  },
+  {
+    name: '폭을 정한 입력란은 v1.6처럼 안쪽 여백이 폭에 더해진다: 복제 주소 113x30, 최근 N일 44x30, 쪽 번호 44x30 (A-377)',
+    async run() {
+      const page = await open(`<div class="project-home-header row"><div class="project-clone-wrap col-lg-3"><input id="clone" class="project-clone-url form-control" value="http://x"></div></div>
+        <div class="user-stream-box"><div class="float-end">최근<input id="days" type="number" class="input-mini-min form-control" value="30">일</div></div>
+        <div class="page-navigation-wrap"><ul class="page-nums"><li class="page-num"><input id="pageNum" type="number" class="input-mini nospinner" value="1"></li></ul></div>`);
+      const sizes = await page.evaluate(() => Object.fromEntries(['#clone', '#days', '#pageNum'].map((s) => { const r = document.querySelector(s).getBoundingClientRect(); return [s, [Math.round(r.width), Math.round(r.height)]]; })));
+      // 복제 주소 입력란의 폭 값은 화면 너비에 따라 달라지므로(실제 화면은 100px) 전체 폭이 값에 안쪽 여백 12와 테두리 1을 더한 것인지 본다
+      const clone = await page.evaluate(() => { const e = document.querySelector('#clone'); const cs = getComputedStyle(e); return { total: e.getBoundingClientRect().width, width: parseFloat(cs.width), box: cs.boxSizing, height: e.getBoundingClientRect().height }; });
+      assert.equal(clone.box, 'content-box');
+      assert.equal(Math.round(clone.total), Math.round(clone.width + 13), `전체 폭 ${clone.total}은 폭 값 ${clone.width}에 13을 더한 값이어야 한다`);
+      assert.equal(Math.round(clone.height), 30);
+      assert.deepEqual(sizes['#days'], [44, 30]);
+      assert.deepEqual(sizes['#pageNum'], [44, 30]);
+    },
+  },
+  {
+    name: '왼쪽 9칸과 오른쪽 3칸 화면은 v1.6의 폭과 간격이다: 왼쪽 열 938, 오른쪽 열 295, 시작 위치 10과 975 (A-377)',
+    async run() {
+      const page = await open(`<form><div class="row"><div class="col-lg-12"><dl><dd><input id="title" class="zen-mode text title form-control" type="text"></dd></dl></div>
+        <div class="row"><div class="col-lg-9 span-left-pane"><div id="left">왼쪽</div></div><div class="col-lg-3 span-hard-wrap"><div id="right">오른쪽</div></div></div></div></form>`);
+      const left = await rect(page, '#left'); const right = await rect(page, '#right'); const title = await rect(page, '#title');
+      assert.equal(Math.round(left.left), 10, `왼쪽 열 시작 ${left.left}`);
+      assert.equal(Math.round(left.width), 938, `왼쪽 열 폭 ${left.width}`);
+      assert.equal(Math.round(right.left), 975, `오른쪽 열 시작 ${right.left}`);
+      assert.equal(Math.round(right.width), 295, `오른쪽 열 폭 ${right.width}`);
+      assert.equal(Math.round(title.left), 10, `제목 입력란 시작 ${title.left}(안쪽 .row가 겹쳐 들여쓰면 20이다)`);
+    },
+  },
+  {
+    name: '제목 입력란은 높이 29, 마크다운 편집기 글상자는 1260x310이다 (A-377)',
+    async run() {
+      const page = await open(`<div class="content-wrap"><input id="title" class="zen-mode text title form-control" type="text"><textarea id="editor" class="editorSeries content comment nm form-control" style="width:1246px"></textarea></div>`);
+      const t = await page.evaluate(() => document.querySelector('#title').getBoundingClientRect().height);
+      const e = await page.evaluate(() => { const r = document.querySelector('#editor').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+      assert.equal(Math.round(t), 29, `제목 입력란 높이 ${t}`);
+      assert.deepEqual(e, [1260, 310]);
+    },
+  },
+  {
+    name: '왼쪽 2칸과 오른쪽 10칸 목록 화면은 끝에 붙은 script가 있어도 v1.6의 폭이다: 188, 시작 위치 10과 224 (A-377)',
+    async run() {
+      const page = await open(`<div class="row cb"><div class="left-menu col-lg-2" id="a">검색</div><div class="col-lg-10 span-hard-wrap" id="b">목록</div><script>/* 목록 조각의 스크립트 */</script></div>`);
+      const a = await rect(page, '#a'); const b = await rect(page, '#b');
+      assert.equal(Math.round(a.left), 10); assert.equal(Math.round(a.width), 188);
+      assert.equal(Math.round(b.left), 224); assert.equal(Math.round(b.width), 1046);
+    },
+  },
+  {
+    name: '달력의 월 선택 상자는 높이 30이고 날짜 단추는 칸을 넘지 않는다 (A-377)',
+    async run() {
+      const page = await open(`<div class="pika-single"><div class="pika-lendar"><div class="pika-title"><div class="pika-label"><select class="pika-select pika-select-month"><option>November</option></select></div></div>
+        <table class="pika-table"><tbody><tr><td data-day="1"><button class="pika-button pika-day" type="button">1</button></td></tr></tbody></table></div></div>`);
+      const h = await page.evaluate(() => document.querySelector('.pika-select-month').getBoundingClientRect().height);
+      assert.equal(Math.round(h), 30, `월 선택 상자 높이 ${h}`);
+      const over = await page.evaluate(() => { const b = document.querySelector('.pika-day').getBoundingClientRect(); const c = document.querySelector('.pika-table td').getBoundingClientRect(); return b.width - c.width; });
+      assert.ok(over <= 0.5, `날짜 단추가 칸보다 ${over}px 넓다`);
+    },
+  },
+  {
+    name: '탭은 v1.6처럼 좌우 안쪽 여백 30, 아래 간격 20이고 코드 화면은 0이며 작은 탭과 nm 탭은 그대로이다 (A-377)',
+    async run() {
+      const tab = (cls, id) => `<ul id="${id}" class="nav nav-tabs ${cls}"><li class="nav-item"><a class="nav-link active">탭</a></li></ul>`;
+      const page = await open(`${tab('mb-3', 'plain')}${tab('mb-3 small', 'small')}${tab('nm mb-3', 'nm')}<div class="code-browse-wrap">${tab('mb-3', 'code')}</div>`);
+      const m = await page.evaluate(() => Object.fromEntries(['plain', 'small', 'nm', 'code'].map((id) => { const ul = document.getElementById(id); return [id, [getComputedStyle(ul.querySelector('a')).paddingLeft, getComputedStyle(ul).marginBottom]]; })));
+      assert.deepEqual(m.plain, ['30px', '20px']);
+      assert.equal(m.small[0], '15px', '작은 탭의 안쪽 여백은 v1.6도 15px이다');
+      assert.notEqual(m.small[1], '20px');
+      assert.equal(m.nm[1], '0px');
+      assert.deepEqual(m.code, ['30px', '0px']);
+    },
+  },
+  {
+    name: '폭을 따로 정하지 않은 글 입력란은 v1.6처럼 전체 220x30이다 (A-377)',
+    async run() {
+      const page = await open(`<dl><dd class="mt10"><input id="plain" class="text form-control" type="text"><input id="due" class="validate due-date form-control" type="text"><input id="wide" class="text form-control w-100" type="text"></dd></dl>`);
+      const size = await page.evaluate(() => Object.fromEntries(['plain', 'due', 'wide'].map((id) => { const r = document.getElementById(id).getBoundingClientRect(); return [id, [Math.round(r.width), Math.round(r.height)]]; })));
+      assert.deepEqual(size.plain, [220, 30]);
+      assert.deepEqual(size.due, [220, 30]);
+      assert.ok(size.wide[0] > 220, '폭 클래스를 쓴 입력란은 그 폭을 따른다');
+    },
+  },
 ];

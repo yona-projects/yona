@@ -8056,3 +8056,153 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     > .action-buttons { grid-column: 3; grid-row: 2; width: 83.3333%; }
   }
 }
+
+/*
+ * v1.6 입력 요소 치수 맞춤(A-377).
+ * v1.6(Bootstrap 2)의 입력란은 상자 크기가 content-box이고 높이 20px, 안쪽 여백 4px 6px, 줄 높이 20px이다. 폭을 정한 입력란은 폭에 안쪽 여백과 테두리가 더해져 더 넓었다.
+ * BS5의 reboot는 border-box이고 `.form-control`이 안쪽 여백 6px 12px를 주어, 같은 폭 값이 안쪽 여백만큼 좁고 높이가 달라졌다. 폭을 정해 쓰는 입력란에 v1.6의 치수를 되돌린다.
+ * 테두리 색 같은 모양은 D-56(BS5 고유 모양)대로 둔다.
+ */
+@mixin v16-input-box {
+  box-sizing: content-box;
+  height: 20px;
+  padding: 4px 6px;
+  line-height: 1.25rem;
+}
+
+/* 상단 검색 상자: v1.6은 입력란이 content-box 폭 50px에 안쪽 여백 5px 10px(전체 70px)이고 단추는 높이 20px이었다 */
+.search-box {
+  input {
+    box-sizing: content-box;
+    height: 20px;
+    line-height: 1.875rem;
+    padding: 5px 10px;
+    margin-bottom: 3px;
+    width: 50px;
+    &:focus { width: 200px; }
+  }
+  button {
+    height: 20px;
+    line-height: 1.25rem;
+  }
+}
+
+/* 프로젝트 홈의 복제 주소 입력란 */
+.project-home-header .project-clone-wrap .project-clone-url {
+  @include v16-input-box;
+}
+
+/* 사용자 페이지의 "최근 N일" 입력란: v1.6은 `input[type=number]`의 테두리와 흰 배경이 `border: none`을 이겼다 */
+.input-mini-min {
+  @include v16-input-box;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* 검색줄의 입력란(`.textbox`), 멤버 추가와 이메일 추가의 아이디 입력란, 웹훅과 라벨 입력란 */
+.search-bar .textbox,
+.text.uname,
+.input-webhook-payload,
+.input-webhook-secret,
+.input-label {
+  box-sizing: content-box;
+}
+.text.uname,
+.input-webhook-payload,
+.input-webhook-secret,
+.input-label {
+  height: 20px;
+  padding: 4px 6px;
+  line-height: 1.25rem;
+}
+
+/* 쪽 번호 입력란 */
+.page-num .input-mini {
+  @include v16-input-box;
+}
+
+/* 제목 입력란(이슈, 글, 마일스톤): v1.6은 `.content-wrap .text`의 폭 97%에 안쪽 여백이 더해졌다 */
+.content-wrap input.text.title {
+  @include v16-input-box;
+  display: inline-block;
+  width: 97%;
+}
+
+/* 달력의 월, 연 선택 상자: v1.6은 BS2 `select`의 높이 30px, 안쪽 여백 4px 6px, 테두리 #ccc이었다 */
+.pika-select {
+  box-sizing: border-box;
+  height: 30px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/*
+ * v1.6 유동 격자(Bootstrap 2 `row-fluid`/`spanN`) 맞춤(A-377).
+ * BS2의 유동 격자는 거터가 없고 열 사이에 2.1277%의 간격을 둔다. 폭은 spanN = N * 6.383% + (N - 1) * 2.1277%이다.
+ * BS5의 `.row`는 바깥으로 거터의 절반(10px)만큼 나가고 열마다 안쪽 여백을 주며 폭은 N/12이다. 그래서 두 열짜리 화면(왼쪽 9칸과 오른쪽 3칸 등)은 왼쪽 열이 13px
+ * 좁고 오른쪽 열이 20px 왼쪽으로 밀렸다. 열이 둘이고 합이 12인 `.row`는 거터를 없애고 v1.6의 폭과 간격을 쓴다. 한 칸짜리 `.col-lg-12`만 든 `.row`도
+ * 거터를 없앤다(안쪽 `.row`가 겹쳐 10px씩 들여쓰기가 되었다). 끝에 붙은 `<script>`는 열로 세지 않는다. 좁은 화면(992px 미만)은 BS5처럼 쌓인다.
+ */
+@media (min-width: 992px) {
+  .row:has(> .col-lg-12:first-child):not(:has(> :nth-child(n+2):not(script))),
+  .row:has(> .row) {
+    --bs-gutter-x: 0;
+  }
+  @for $a from 1 through 11 {
+    $b: 12 - $a;
+    .row:has(> .col-lg-#{$a}):has(> .col-lg-#{$b}):not(:has(> :nth-child(n+3):not(script))) {
+      --bs-gutter-x: 0;
+      > .col-lg-#{$a} {
+        flex: 0 0 auto;
+        width: $a * 6.382978723% + ($a - 1) * 2.127659574%;
+      }
+      > .col-lg-#{$b} {
+        flex: 0 0 auto;
+        width: $b * 6.382978723% + ($b - 1) * 2.127659574%;
+      }
+      > :nth-child(2) {
+        margin-left: 2.127659574%;
+      }
+    }
+  }
+}
+
+/* 달력의 날짜 단추: pikaday는 content-box를 전제로 폭 100%에 안쪽 여백 5px를 쓰지만 v1.6은 칸 안에 들어맞았다 */
+.pika-button {
+  box-sizing: border-box;
+}
+
+/* 마크다운 편집기의 글상자: v1.6은 content-box라 높이 300px에 안쪽 여백과 테두리가 더해져 310px, 폭도 14px 더 넓었다 */
+textarea.editorSeries.content {
+  box-sizing: content-box;
+  padding: 4px 6px;
+  line-height: 1.25rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/*
+ * 탭 막대(A-377): v1.6은 `.nav-tabs li a`의 좌우 안쪽 여백이 30px이고 막대 아래 간격이 BS2 기본 20px이었다(코드 화면은 0).
+ * BS5 `.nav-link`는 8px 16px이고 템플릿의 `mb-3`은 16px라 탭이 좁고 아래 내용이 4px 붙었다. 작은 탭(`.small`)은 v1.6도 4px 15px이라 그대로 둔다.
+ */
+.page-wrap-outer .nav-tabs:not(.small) > .nav-item > .nav-link {
+  padding-left: 30px;
+  padding-right: 30px;
+}
+.page-wrap-outer .nav-tabs.mb-3:not(.nm):not(.small) {
+  margin-bottom: 20px !important; /* BS5 유틸리티 `.mb-3`가 !important이다 */
+}
+.page-wrap-outer .code-browse-wrap > .nav-tabs.mb-3:not(.nm):not(.small) {
+  margin-bottom: 0 !important;
+}
+
+/*
+ * 폭 클래스가 없는 글 입력란(A-377): v1.6의 `input[type=text]`는 폭 206px에 안쪽 여백과 테두리가 더해진 전체 220px, 높이 30px의 인라인 상자였다.
+ * BS5 `.form-control`은 블록에 폭 100%라 부모 폭을 다 채운다. 폭 클래스(`w-*`, `col-*`)나 크기 클래스(`input-*`), 제목 입력란을 쓴 곳은 그 지정을 따른다.
+ */
+.page-wrap-outer input.form-control:is([type="text"], [type="email"], [type="password"], :not([type])):not(.w-25):not(.w-50):not(.w-75):not(.w-100):not(.w-auto):not([class*="col-"]):not([class*="input-"]):not(.title):not(.project-clone-url):not(.select2-input) {
+  @include v16-input-box;
+  display: inline-block;
+  width: 206px;
+}
