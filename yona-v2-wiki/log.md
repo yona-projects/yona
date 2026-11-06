@@ -1424,4 +1424,4 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 
 ## 2026-11-06 Mercurial 공통화 3단계(푸시 이벤트 중립화)
 
-푸시 전 검사(`PushPolicy`)와 푸시 뒤 처리(`PushEvents`)를 JGit 타입에서 떼어 `RefUpdate` 목록만 받게 했다. `GitHooks`는 JGit 훅을 연결하는 어댑터로 줄었고, `Ruleset.pushViolation`과 `PostReceiveJobs`도 종류와 무관한 타입을 쓴다. 새 시험 `RefUpdateTest`, `PushPolicyTest`, `PushEventsTest`(`hg` 이름의 감사 기록 확인). 전체 H2 시험(`cleanTest test`): 4,620건 실패 0(건너뜀 2), **11분 42초**.
+푸시 전 검사(`PushPolicy`)와 푸시 뒤 처리(`PushEvents`)를 JGit 타입에서 떼어 `RefUpdate` 목록만 받게 했다. `GitHooks`는 JGit 훅을 연결하는 어댑터로 줄었고, `Ruleset.pushViolation`과 `PostReceiveJobs`도 종류와 무관한 타입을 쓴다. 새 시험 `RefUpdateTest`, `PushPolicyTest`, `PushEventsTest`(`hg` 이름의 감사 기록 확인). 전체 H2 시험(`cleanTest test`): 4,618건(건너뜀 2) 실패 0, **11분 42초**.
