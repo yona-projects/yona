@@ -97,7 +97,7 @@ class CommitHistoryController(
         return ModelAndView("code/history")
             .addObject("title", "title.commitHistory")
             .addObject("projectView", views.of(project))
-            .addObject("git", project.vcs != RepositoryService.VCS_SUBVERSION)
+            .addObject("git", !dev.yona.domain.vcs.VcsSupport(project.vcs).numericRevisions)
             .addObject("rows", rows)
             .addObject("hasPath", path != null)
             .addObject("rootUrl", "$base/commits/${UrlPaths.routeSegment(branch.orEmpty())}/")
@@ -133,7 +133,7 @@ class CommitHistoryController(
             if (path != null) url += "&path=$path#" + path.replace("/", "-").replace(".", "-")
             url
         } else "$base/commit/${UrlPaths.routeSegment(commit.id)}"
-        val subversion = project.vcs == RepositoryService.VCS_SUBVERSION
+        val subversion = dev.yona.domain.vcs.VcsSupport(project.vcs).authorLoginIds
         // Subversion은 작성자의 로그인 ID로 사용자를 찾고 이메일이 없다 (v1.6 `SvnCommit.getAuthor`, `getAuthorEmail`).
         val user = if (subversion) commit.authorName.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) } else userLookup.findByEmail(commit.authorEmail)
         // v1.6 commitMsg.scala.html: 자동 링크를 건 전체 메시지를 줄로 나눈다(Java split은 뒤쪽 빈 줄을 버린다). 두 줄 이상이면 첫 줄과 그 줄바꿈을 모두 지운 나머지를 숨은 본문으로 보인다.

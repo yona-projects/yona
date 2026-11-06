@@ -52,7 +52,7 @@ class BoardViewController(
         val post = postings.findByProjectIdAndNumber(requireNotNull(project.id), number)
             ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.BOARD_POST.resource)
         val viewer = currentUserProvider.get().user
-        val body = if (post.readme == true && project.vcs == "GIT") readme.readFirstFound(project).orEmpty() else post.body
+        val body = if (post.readme == true && dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.README_POSTING)) readme.readFirstFound(project).orEmpty() else post.body
 
         if (request.getHeader("Accept").orEmpty().contains("application/json")) {
             val comments = postingComments.findByPostingIdOrderByCreatedDateAscIdAsc(requireNotNull(post.id)).map { comment ->

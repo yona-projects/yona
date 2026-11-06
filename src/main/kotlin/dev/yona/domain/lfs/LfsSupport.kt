@@ -10,5 +10,5 @@ import dev.yona.repository.RepositoryService
 object LfsSupport {
 
     /** [project]의 저장소 종류가 LFS를 지원하면 `true`이다. */
-    fun supports(project: Project): Boolean = project.vcs == RepositoryService.VCS_GIT
+    fun supports(project: Project): Boolean = dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.LFS)
 }

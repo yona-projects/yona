@@ -79,7 +79,7 @@ class MentionListService(
             }
             // Subversion 커밋의 작성자는 로그인 ID로 찾는다 (v1.6 `SvnCommit.getAuthor`).
             svnAuthorLoginId?.takeIf { it.isNotEmpty() }?.let { add(users.findByLoginId(it)) }
-            val commenterLoginIds = if (fromProject.vcs == "Subversion") {
+            val commenterLoginIds = if (dev.yona.domain.vcs.VcsCapabilities.supports(fromProject.vcs, dev.yona.domain.vcs.VcsCapability.AUTHOR_LOGIN_IDS)) {
                 entityManager.createQuery("select c.authorLoginId from CommitComment c where c.commitId = :commitId and c.project.id = :projectId order by c.id", String::class.java)
                     .setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
             } else {

@@ -31,7 +31,7 @@
                 <span class="ybtn ybtn-small">M</span>
                 <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{milestone}"></span><br>
 
-                <th:block th:if="${view != null and view.git}">
+                <th:block th:if="${view != null and view.vcs.pullRequests}">
                     <span class="ybtn ybtn-small">P</span>
                     <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.pullRequest}"></span><br>
                 </th:block>

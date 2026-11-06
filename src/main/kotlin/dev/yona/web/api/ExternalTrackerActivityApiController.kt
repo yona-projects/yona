@@ -98,7 +98,7 @@ class ExternalTrackerActivityApiController(
         if (limit != null && limit < 1) return support.badRequest("limit must be at least 1")
         val wanted = (listOfNotNull(person.email) + emails.findByUserIdOrderById(requireNotNull(person.id)).filter { it.valid == true }.mapNotNull { it.email }).map { it.lowercase() }.toSet()
         val max = (limit ?: 30).coerceAtMost(100)
-        val scanned = if (project.vcs == "GIT") history.history(project, 0, COMMIT_SCAN_CAP, null, null).orEmpty() else emptyList()
+        val scanned = if (dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.COMMIT_EMAILS)) history.history(project, 0, COMMIT_SCAN_CAP, null, null).orEmpty() else emptyList()
         val found = scanned.filter { it.authorEmail.lowercase() in wanted }
         val items = found.take(max).map {
             linkedMapOf("sha" to it.id, "authorName" to it.authorName, "authorEmail" to it.authorEmail, "message" to it.message, "committedAt" to ApiInstants.format(it.authorDate))

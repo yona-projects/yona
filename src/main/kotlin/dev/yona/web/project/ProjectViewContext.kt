@@ -151,8 +151,8 @@ class ProjectViewContext(
     val pullRequestPath: String
         get() = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/" + if (forked) "sentPullRequests" else "pullRequests"
 
-    /** Git 프로젝트이면 `true`이다. */
-    val git: Boolean get() = project.vcs == "GIT"
+    /** 이 프로젝트의 저장소 종류가 지원하는 기능이다. 템플릿이 `${projectView.vcs.pullRequests}`처럼 쓴다. */
+    val vcs: dev.yona.domain.vcs.VcsSupport get() = dev.yona.domain.vcs.VcsSupport(project.vcs)
 
     /**
      * 키보드 단축키 `Q`(설정 화면)를 켤지 여부이다. 프로젝트 관리자 역할이면 켠다. v1.6은 역할 이름과 로그인 ID를 혼동해

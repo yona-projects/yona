@@ -6,19 +6,19 @@
 <div class="bubble-wrap gray readme">
 <th:block th:if="${readmeHtml == null}">
   <p class="default">
-    <th:block th:if="${view.git}">
+    <th:block th:if="${view.vcs.readmePosting}">
       <span th:text="#{project.readme}"></span>
       <br><br>
       <a th:if="${view.canCreateCommit}" th:href="@{/{owner}/{name}/postform(owner=${view.project.owner},name=${view.project.name},readme=true)}" class="ybtn" th:text="#{project.readme.create}"></a>
     </th:block>
-    <span th:unless="${view.git}" th:text="#{project.svn.readme}"></span>
+    <span th:unless="${view.vcs.readmePosting}" th:text="#{project.svn.readme}"></span>
   </p>
 </th:block>
 <div th:if="${readmeHtml != null}" class="readme-wrap">
     <header>
       <i class="yobicon-book-open vmiddle"></i>
       <strong class="vmiddle" th:text="${' ' + readmeFileName}"></strong>
-      <a th:if="${view.git and view.canCreateCommit}" th:href="@{/{owner}/{name}/postform(owner=${view.project.owner},name=${view.project.name},readme=true)}" class="ybtn vmiddle ml5" th:text="#{button.edit}"></a>
+      <a th:if="${view.vcs.onlineEditing and view.canCreateCommit}" th:href="@{/{owner}/{name}/postform(owner=${view.project.owner},name=${view.project.name},readme=true)}" class="ybtn vmiddle ml5" th:text="#{button.edit}"></a>
     </header>
     <div class="readme-body markdown-wrap" th:utext="${readmeHtml}"></div>
 </div>

@@ -95,7 +95,7 @@ class ProjectImportService(
         }
 
         val project = Project(
-            owner = owner, name = name, overview = form.overview, vcs = "GIT", projectScope = scope, organization = organization,
+            owner = owner, name = name, overview = form.overview, vcs = dev.yona.domain.vcs.VcsType.GIT.columnValue, projectScope = scope, organization = organization,
             siteurl = "http://localhost:9000/$name", createdDate = Date()
         )
         try {

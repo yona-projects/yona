@@ -131,7 +131,7 @@ class BoardWriteController(
         val posting = postings.findByProjectIdAndNumber(requireNotNull(project.id), number)
             ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.BOARD_POST.resource)
         if (!accessControl.isAllowed(viewer, posting.asResource(), Operation.READ)) return ErrorViews.forbidden("error.forbidden", views.of(project))
-        val body = if (posting.readme == true && project.vcs == "GIT") readmeService.readFirstFound(project) else posting.body
+        val body = if (posting.readme == true && dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.README_POSTING)) readmeService.readFirstFound(project) else posting.body
         return editView(project, viewer, posting, "post.modify", emptyMap(), allowedToNotice(viewer, project), body.orEmpty(), posting.title.orEmpty())
     }
 
@@ -238,7 +238,7 @@ class BoardWriteController(
             .addObject("lineEnding", LineEnding.find(prepared).name)
             .addObject("allowedToNotice", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE))
             .addObject("canCommit", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT))
-            .addObject("isGit", project.vcs == "GIT")
+            .addObject("isGit", dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.README_POSTING))
     }
 
     private fun editView(project: Project, viewer: User?, posting: Posting, title: String, errors: Map<String, List<String>>, allowedToNotice: Boolean, body: String, titleValue: String): ModelAndView =
@@ -254,7 +254,7 @@ class BoardWriteController(
             .addObject("readme", posting.readme == true)
             .addObject("allowedToNotice", allowedToNotice)
             .addObject("canCommit", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT))
-            .addObject("isGit", project.vcs == "GIT")
+            .addObject("isGit", dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.README_POSTING))
             .addObject("canUpdate", accessControl.isAllowed(viewer, posting.asResource(), Operation.UPDATE))
             .addObject("authoredByViewer", viewer != null && posting.authorLoginId == viewer.loginId)
 

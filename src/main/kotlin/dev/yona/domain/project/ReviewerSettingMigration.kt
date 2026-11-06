@@ -45,7 +45,7 @@ class ReviewerSettingMigration(
         val projects = entityManager.createQuery("select p from Project p where p.isUsingReviewerCount = true", Project::class.java).resultList
         var migrated = 0
         for (project in projects) {
-            if (project.vcs == "GIT") {
+            if (dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.PROTECTED_REFS)) {
                 val approvals = maxOf(project.defaultReviewerCount ?: 1, 1)
                 for (branch in branchesOf(project)) {
                     val name = "$MIGRATED_NAME ($branch)"

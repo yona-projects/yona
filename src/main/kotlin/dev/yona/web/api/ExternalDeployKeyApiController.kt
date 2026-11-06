@@ -115,7 +115,7 @@ class ExternalDeployKeyApiController(
         request.setAttribute(CALLER, user)
         val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: reject(requests.message(HttpStatus.NOT_FOUND, "not found"))
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) reject(requests.message(HttpStatus.FORBIDDEN, "Forbidden request"))
-        if (project.vcs != RepositoryService.VCS_GIT) reject(requests.message(HttpStatus.BAD_REQUEST, "deploy keys are only for Git projects"))
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.DEPLOY_KEYS)) reject(requests.message(HttpStatus.BAD_REQUEST, "deploy keys are only for Git projects"))
         return project
     }
 

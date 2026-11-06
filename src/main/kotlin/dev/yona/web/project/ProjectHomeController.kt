@@ -85,7 +85,7 @@ class ProjectHomeController(
         // v1.6은 README가 아닌 탭이면 이력을 만들고, 이력 탭에서만 쓴다. 대시보드는 자기 영역을 따로 그린다.
         if (tabId == "history") mav.addObject("history", tabs.historyRows(ownerId, project))
         if (tabId == "dashboard") {
-            mav.addObject("dashboard", tabs.dashboard(project, view.menuSetting.issue == true, view.menuSetting.pullRequest == true, view.git))
+            mav.addObject("dashboard", tabs.dashboard(project, view.menuSetting.issue == true, view.menuSetting.pullRequest == true, view.vcs.pullRequests))
         }
         return mav
     }

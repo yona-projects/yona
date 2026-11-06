@@ -52,7 +52,7 @@ class BoardViewAssembler(
         val resource = post.asResource()
         val lang = viewer?.lang
         // README 글은 저장소 README를 본문으로 보여 준다. 저장소에 README가 없으면 빈 본문이다 (v1.6 `StringUtils.defaultString(BareRepository.readREADME(project))`).
-        val body = if (post.readme == true && project.vcs == "GIT") readme.readFirstFound(project).orEmpty() else post.body.orEmpty()
+        val body = if (post.readme == true && dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.README_POSTING)) readme.readFirstFound(project).orEmpty() else post.body.orEmpty()
         val author = post.authorLoginId?.let { users.findByLoginIdIgnoreCase(it) }
         val allComments = postingComments.findByPostingIdOrderByCreatedDateAscIdAsc(postId)
         val projectLabels = labelService.labels(project)

@@ -90,7 +90,7 @@ class MentionListController(
             // 커밋이 없으면 v1.6은 커밋 작성자를 읽다가 널 참조로 500이다. 커밋이 필요한 사용자 후보에서만 404로 알린다(A-72)
             if (commit == null) return ErrorViews.notFound()
             val viewer = currentUserProvider.get().user
-            result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer, if (fromProject.vcs == "Subversion") commit.authorName else null), viewer)
+            result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer, if (dev.yona.domain.vcs.VcsCapabilities.supports(fromProject.vcs, dev.yona.domain.vcs.VcsCapability.AUTHOR_LOGIN_IDS)) commit.authorName else null), viewer)
         }
         if (mentionType.equals("issue", ignoreCase = true)) {
             result["result"] = mentionService.issues(project, query, ISSUE_MENTION_SHOW_LIMIT).map {

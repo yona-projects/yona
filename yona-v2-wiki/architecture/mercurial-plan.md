@@ -243,6 +243,14 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 
 1~4단계는 **새 기능 없이 구조만 바꾸므로** 기존 시험이 그대로 통과해야 한다. 이 4단계를 끝내면 Subversion과 Git이 같은 계약을 쓰게 되고, 그 자체로 코드 정리의 성과다. Mercurial 없이 멈춰도 손해가 없다.
 
+### 7.1 1단계 진행 기록(2026-11-06)
+
+**1a 완료(커밋 `8fc5cc4e9`).** `domain/vcs/VcsType.kt`에 `VcsType`(열 값, 능력 집합), `VcsCapability`, `VcsCapabilities.supports(열 값, 능력)`을 두고, `@IsOnlyGitAvailable`(37곳, 15개 파일)을 `@RequiresVcs(능력)`으로 바꿨다. 능력은 기능별로 나누었다: 풀 리퀘스트 컨트롤러 9개는 `PULL_REQUESTS`, 포크는 `FORK`, 브랜치는 `BRANCHES`, 태그는 `TAGS`, 배포 키는 `DEPLOY_KEYS`, LFS는 `LFS`, 규칙은 `PROTECTED_REFS`. 접근 검사의 실행 순서는 어노테이션 종류와 무관한 규칙이라 그대로이고, 400 응답 문구도 같다. 관련 시험 564건 통과.
+
+**1b: 기능 확인용 비교를 능력 질의로 교체.** 웹과 도메인의 `vcs ==` 비교 가운데 "이 종류가 이 기능을 지원하는가"를 묻는 곳을 바꿨다. 능력을 일곱 개 더했다: `DEFAULT_BRANCH`, `README_POSTING`, `ARCHIVE_DOWNLOAD`, `ONLINE_EDITING`, `LINE_COMMENT_THREADS`, `COMMIT_EMAILS`(Git이 가짐), `NUMERIC_REVISIONS`와 `AUTHOR_LOGIN_IDS`(Subversion이 가짐). 템플릿은 `ProjectViewContext.git` 대신 `view.vcs.pullRequests`처럼 이름 있는 속성(`VcsSupport`)을 쓴다. 모르는 `vcs` 값은 이전처럼 아무것도 지원하지 않는다(v1.6의 `"GIT".equals(vcs)`가 거짓인 것과 같다).
+
+**남긴 것(2단계의 몫).** 어느 구현을 부를지 정하는 분기는 기능 질의가 아니라 백엔드 호출이라 1단계에서 바꾸지 않았다: `CodeBrowserController`의 501 분기, `CommitViewController`와 `ReviewCommentController`의 Subversion 분기, `NoheadViews`, `SvnDavService`, `GitHttpController`, `RepositoryUrls`, `ProjectViewContext.cloneUrl`, SSH 처리기 상수, `AutoLinkRenderer`, `VcsMetrics`. 종류 목록을 쓰는 `ProjectCreateController`의 선택지와 `ProjectDocs`, `Project.nextVcs()`는 새 종류가 생기는 5단계와 종류 변경 대상 선택(4단계)에서 함께 바꾼다.
+
 ### 7.6 시험 전략
 
 - 종류별로 같은 시나리오를 도는 **공통 계약 시험**을 만든다(수명, 읽기, 푸시 이벤트). Git, Subversion, Mercurial이 모두 통과해야 한다.

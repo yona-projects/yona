@@ -106,8 +106,8 @@ class ExternalProjectManageApiController(
         val name = json.get("name")?.takeIf { it.isString }?.asString("") ?: return requests.message(HttpStatus.BAD_REQUEST, "name is required")
         val overview = optionalString(json, "description") { return it }
         val scope = scopeOf(json) { return it } ?: ProjectScope.entries.firstOrNull { it.name.equals(properties.projectDefaultScope, ignoreCase = true) } ?: ProjectScope.PUBLIC
-        val vcs = optionalString(json, "vcs") { return it }?.also { if (it != RepositoryService.VCS_GIT && it != RepositoryService.VCS_SUBVERSION) return requests.message(HttpStatus.BAD_REQUEST, "vcs must be GIT or Subversion") }
-            ?: RepositoryService.VCS_GIT
+        val vcs = optionalString(json, "vcs") { return it }?.also { if (dev.yona.domain.vcs.VcsType.of(it) == null) return requests.message(HttpStatus.BAD_REQUEST, "vcs must be GIT or Subversion") }
+            ?: dev.yona.domain.vcs.VcsType.GIT.columnValue
         val defaults = properties.projectDefaultMenus.replace(" ", "").split(",").filter { it in ProjectForm.MENU_NAMES }.toSet()
         val menus = menusOf(json, defaults) { return it }
         val form = ProjectForm(owner = owner, name = name, overview = overview, projectScope = scope.name, vcs = vcs, menus = menus)
@@ -151,7 +151,7 @@ class ExternalProjectManageApiController(
         val rebase = optionalBoolean(json, "allowRebaseMerge") { return it }
         val defaultMethod = optionalString(json, "defaultMergeMethod") { return it }
         val defaultBranch = optionalString(json, "defaultBranch") { return it }?.let { branch ->
-            if (project.vcs != RepositoryService.VCS_GIT) return requests.message(HttpStatus.BAD_REQUEST, "defaultBranch is only for Git projects")
+            if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.DEFAULT_BRANCH)) return requests.message(HttpStatus.BAD_REQUEST, "defaultBranch is only for Git projects")
             val ref = if (branch.startsWith("refs/heads/")) branch else "refs/heads/$branch"
             if (ref !in repositories.refNames(project)) return requests.message(HttpStatus.BAD_REQUEST, "no branch by request: $branch")
             ref

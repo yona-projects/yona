@@ -64,15 +64,15 @@ class CodePageAssembler(
         }
         val itemName = branchItemName(branch)
         // v1.6 code/view.scala.html은 `project.isGit`일 때만 브랜치 탭, 내려받기, 새 파일 링크를 낸다
-        val git = project.vcs == RepositoryService.VCS_GIT
+        val support = dev.yona.domain.vcs.VcsSupport(project.vcs)
         return CodePage(
             showTabs = chain.first()["type"] == "folder",
             filesTabUrl = codeUrl(branchSegment, path.substringBeforeLast('/', "")),
             commitsTabUrl = "$base/commits/$branchSegment/",
-            branchesTabUrl = if (git) "$base/branches" else null,
+            branchesTabUrl = if (support.branches) "$base/branches" else null,
             branches = branches, rootUrl = basePath, projectName = name, crumbs = crumbs,
-            downloadUrl = if (git) "$base/code/$branchSegment/download" else null,
-            newFileUrl = if (git && loggedIn) "$base/postform?path=$dir&branch=$itemName" else null,
+            downloadUrl = if (support.archiveDownload) "$base/code/$branchSegment/download" else null,
+            newFileUrl = if (support.onlineEditing && loggedIn) "$base/postform?path=$dir&branch=$itemName" else null,
             items = items, initialPath = path,
             metaInfoUrl = "$base/code/$branchSegment/!", basePathUrl = basePath
         )
@@ -98,7 +98,7 @@ class CodePageAssembler(
     }
 
     private fun file(project: Project, info: Map<String, Any?>, branch: String, path: String, loggedIn: Boolean, siteManager: Boolean, maxFileSize: Long, base: String): FileView {
-        val git = project.vcs != RepositoryService.VCS_SUBVERSION
+        val git = !dev.yona.domain.vcs.VcsSupport(project.vcs).numericRevisions
         // Git은 커밋 ID, Subversion은 리비전 번호가 파일의 리비전이다 (v1.6 `TemplateHelper.CodeBrowser.getFileRev`).
         val revId = (if (git) info["commitId"] else info["revisionNo"]) as? String ?: ""
         // 열기 주소의 리비전은 Git은 브랜치 이름, Subversion은 리비전 번호이다 (v1.6 `partial_view_file`의 `getRevIdString`).
@@ -123,7 +123,7 @@ class CodePageAssembler(
             commitUrl = "$base/commit/${UrlPaths.routeSegment(revId)}" + (if (branch.isNotEmpty()) "?branch=${URLEncoder.encode(branch, Charsets.UTF_8)}" else "") + "#$path",
             userHref = userLink(info["userLoginId"] as? String ?: ""), avatarUrl = info["avatar"] as? String ?: "", author = info["author"] as? String ?: "",
             ago = (info["createdDate"] as? Long)?.let { helper.agoOrDateString(Date(it)) }.orEmpty(), commitMessage = info["commitMessage"] as? String ?: "",
-            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = if (git) reviewThreads.countOnCommit(project, revId, path).toLong() else 0L, binary = binary, mode = mode, size = size, mimeType = mimeType,
+            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = if (dev.yona.domain.vcs.VcsSupport(project.vcs).lineCommentThreads) reviewThreads.countOnCommit(project, revId, path).toLong() else 0L, binary = binary, mode = mode, size = size, mimeType = mimeType,
             data = data, renderedMarkdown = if (mode == "markdown" && data != null) markdown.renderFileInCodeBrowser(data, project) else null,
             editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager, git = git,
             lfs = lfsView(project, mode, data, path, base)

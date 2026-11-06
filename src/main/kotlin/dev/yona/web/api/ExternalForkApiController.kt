@@ -61,7 +61,7 @@ class ExternalForkApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val original = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isProjectResourceCreatable(user, original, ResourceType.FORK)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
-        if (original.vcs != "GIT") return requests.message(HttpStatus.BAD_REQUEST, "only Git projects can be forked")
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(original.vcs, dev.yona.domain.vcs.VcsCapability.FORK)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects can be forked")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
 
         val ownerNode = json.get("owner")?.takeIf { !it.isNull }

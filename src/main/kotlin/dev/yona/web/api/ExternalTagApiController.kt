@@ -57,7 +57,7 @@ class ExternalTagApiController(
         val target = support.target(owner, projectName, null, request)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
-        if (project.vcs != RepositoryService.VCS_GIT) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAGS)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
         return support.ok(linkedMapOf("tags" to tagService.tags(project).map { node(it) }))
     }
 
@@ -78,7 +78,7 @@ class ExternalTagApiController(
         target.error?.let { return it }
         val project = requireNotNull(target.project)
         val user = requireNotNull(target.user)
-        if (project.vcs != RepositoryService.VCS_GIT) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAGS)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
         if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val body = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val name = body.get("name")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "name is required")
@@ -107,7 +107,7 @@ class ExternalTagApiController(
         val target = support.target(owner, projectName, null, request)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
-        if (project.vcs != RepositoryService.VCS_GIT) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAGS)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
         if (!accessControl.isAllowed(requireNotNull(target.user), project.asResource(), Operation.DELETE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         if (!tagService.delete(project, name.removePrefix("/"))) return requests.message(HttpStatus.NOT_FOUND, "no tag by request")
         return ResponseEntity.noContent().build<Void>()

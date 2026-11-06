@@ -94,8 +94,8 @@ class ProjectSettingController(
 
     private fun formView(project: Project, warning: String?): ModelAndView {
         val view = views.of(project)
-        val branches = if (project.vcs == RepositoryService.VCS_GIT) repositories.refNames(project) else emptyList()
-        val defaultBranch = if (project.vcs == RepositoryService.VCS_GIT) repositories.defaultBranch(project) else "HEAD"
+        val branches = if (dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.DEFAULT_BRANCH)) repositories.refNames(project) else emptyList()
+        val defaultBranch = if (dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.DEFAULT_BRANCH)) repositories.defaultBranch(project) else "HEAD"
         val locale = LocaleContextHolder.getLocale()
         val oldPlace = if (!project.previousName.isNullOrBlank()) {
             val place = if (project.previousOwnerLoginId == null) "" else "${project.previousOwnerLoginId}/${project.previousName}"

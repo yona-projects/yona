@@ -94,7 +94,7 @@
                         <span th:if="${projectView.menuSetting.issue}" class="project-btn-item">
                             <a th:href="@{/{owner}/{name}/issueform(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-success" th:text="#{button.newIssue}"></a>
                         </span>
-                        <th:block th:if="${projectView.menuSetting.code and projectView.git}">
+                        <th:block th:if="${projectView.menuSetting.code and projectView.vcs.fork}">
                             <span class="project-btn-item">
                                 <a th:href="@{/{owner}/{name}/newFork(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-inverse" th:text="#{fork}"></a>
                             </span>

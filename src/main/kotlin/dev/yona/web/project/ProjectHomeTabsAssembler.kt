@@ -70,10 +70,10 @@ class ProjectHomeTabsAssembler(
 
     /** 메뉴 설정에 따라 보일 영역만 채운다. */
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    fun dashboard(project: Project, issueMenu: Boolean, pullRequestMenu: Boolean, git: Boolean): DashboardView {
+    fun dashboard(project: Project, issueMenu: Boolean, pullRequestMenu: Boolean, pullRequestsSupported: Boolean): DashboardView {
         val owner = project.owner.orEmpty(); val name = project.name.orEmpty()
         val assignee = if (issueMenu) dashboard.byAssignee(project) else null
-        val pullRequestArea = pullRequestMenu && git
+        val pullRequestArea = pullRequestMenu && pullRequestsSupported
         val pulls = if (pullRequestArea) dashboard.pullRequests(project) else null
         return DashboardView(
             issueMenu = issueMenu, pullRequestArea = pullRequestArea, owner = owner, name = name, issueBase = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(owner, name)}/issues?state=open"),
