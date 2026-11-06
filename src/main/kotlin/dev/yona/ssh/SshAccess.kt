@@ -25,8 +25,9 @@ sealed interface SshAuthorization {
     /**
      * 허용한다. [sender]는 브랜치 보호 규칙의 바이패스 판정에 쓰는 사용자이며 배포 키로 접속했으면 `null`이다(배포 키는 규칙을 우회하지 못한다).
      * [wiki]이면 [project]의 코드 저장소가 아니라 위키 저장소(`<이름>.wiki.git`)에 대한 허용이다(`decisions.md` D-68). [pusher]는 푸시한 뒤의 작업(이슈 참조, 풀 리퀘스트 갱신, 커밋 알림)을 귀속할 사용자이다. 사용자 키는 [sender]와 같고, 배포 키는 키를 등록한 사용자(활성일 때)이며 없으면 `null`이다(`decisions.md` D-68).
+     * [writable]은 쓸 수 있는지이다. 쓰기를 요구한 요청은 허용됐다면 항상 `true`이고, 쓰기가 선택인 요청([SshRepositoryRequest.writeOptional])에서만 `false`일 수 있다.
      */
-    data class Allowed(val project: Project, val sender: User?, val pusher: User? = sender, val wiki: Boolean = false) : SshAuthorization
+    data class Allowed(val project: Project, val sender: User?, val pusher: User? = sender, val wiki: Boolean = false, val writable: Boolean = true) : SshAuthorization
 
     /** 저장소를 읽을 수 없거나 없다. 있는지 없는지 알려 주지 않으려고 둘을 구분하지 않는다. */
     data object NotFound : SshAuthorization
@@ -70,8 +71,9 @@ class SshAccess(
         principal.deployKeyId?.let { return authorizeDeployKey(it, project, request) }
         val user = principal.userId?.let { users.findById(it).orElse(null) }?.takeIf { usable(it) } ?: return SshAuthorization.NotFound
         if (!allowed(project, user, Operation.READ)) return SshAuthorization.NotFound
-        if (request.write && !allowed(project, user, Operation.UPDATE)) return SshAuthorization.Denied("ERROR: Permission to ${request.owner}/${request.name} denied to ${user.loginId}.")
-        return SshAuthorization.Allowed(project, user)
+        val writable = allowed(project, user, Operation.UPDATE)
+        if (request.write && !writable) return SshAuthorization.Denied("ERROR: Permission to ${request.owner}/${request.name} denied to ${user.loginId}.")
+        return SshAuthorization.Allowed(project, user, writable = writable)
     }
 
     /**
@@ -93,7 +95,7 @@ class SshAccess(
         val key = deployKeys.find(project, id) ?: return SshAuthorization.NotFound
         if (request.write && key.readOnly != false) return SshAuthorization.Denied("ERROR: The deploy key for ${request.owner}/${request.name} is read-only.")
         val creator = key.createdById?.let { users.findById(it).orElse(null) }?.takeIf { usable(it) }
-        return SshAuthorization.Allowed(project, sender = null, pusher = creator)
+        return SshAuthorization.Allowed(project, sender = null, pusher = creator, writable = key.readOnly == false)
     }
 
     private fun usable(user: User) = user.state != UserState.LOCKED && user.state != UserState.DELETED

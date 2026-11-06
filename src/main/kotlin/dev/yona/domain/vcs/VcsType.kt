@@ -27,9 +27,15 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
 
     /**
      * Mercurial(hg4j, X-7, D-86). 이름표(bookmark)를 브랜치로 보인다. 기능은 구현이 끝나는 단계마다 더한다: 지금은 읽기(브랜치와 태그 목록, 내려받기,
-     * 커밋 작성자의 이메일, README 글)이고, 서빙(6단계)과 포크(7단계), 풀 리퀘스트(8단계), LFS와 서명(9단계)은 아직 아니다.
+     * 커밋 작성자의 이메일, README 글)과 서빙(배포 키와 보호 규칙, 6단계)이고, 포크(7단계), 풀 리퀘스트(8단계), LFS와 서명(9단계)은 아직 아니다.
      */
-    MERCURIAL("Mercurial", setOf(VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING));
+    MERCURIAL(
+        "Mercurial",
+        setOf(
+            VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING,
+            VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS
+        )
+    );
 
     /** [capability]를 지원하면 `true`이다. */
     fun supports(capability: VcsCapability): Boolean = capability in capabilities

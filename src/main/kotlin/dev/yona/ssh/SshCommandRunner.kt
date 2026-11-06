@@ -52,8 +52,8 @@ class SshCommandRunner(
         val vcs = request.vcs.lowercase()
         metrics.request(vcs, request.service, "code") { measured ->
             exit = when (val result = access.authorize(principal, request)) {
-                SshAuthorization.NotFound -> { measured.result = "not_found"; fail(reject, "ERROR: Repository not found.") }
-                is SshAuthorization.Denied -> { measured.result = "denied"; fail(reject, result.message) }
+                SshAuthorization.NotFound -> { measured.result = "not_found"; fail(handler, request, streams, reject, "ERROR: Repository not found.") }
+                is SshAuthorization.Denied -> { measured.result = "denied"; fail(handler, request, streams, reject, result.message) }
                 is SshAuthorization.Allowed -> {
                     val target = if (result.wiki) "wiki" else "code"
                     measured.target = target
@@ -65,6 +65,12 @@ class SshCommandRunner(
             }
         }
         return exit
+    }
+
+    /** 종류의 클라이언트가 읽을 수 있게 거절하고, 처리기가 쓰지 못하면 접속 방식의 기본 방식으로 알린다. */
+    private fun fail(handler: SshVcsHandler, request: SshRepositoryRequest, streams: SshStreams, reject: (String) -> Unit, message: String): Int {
+        if (!handler.rejectProtocol(request, message, streams)) reject(message)
+        return 1
     }
 
     private fun fail(reject: (String) -> Unit, message: String): Int {

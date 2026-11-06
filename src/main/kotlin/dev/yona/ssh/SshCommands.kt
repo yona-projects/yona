@@ -10,16 +10,20 @@ import java.io.OutputStream
  * @property owner 프로젝트 소유자 이름
  * @property name 프로젝트 이름
  * @property write 푸시처럼 저장소를 바꾸는 명령이면 `true`, 복제처럼 읽기만 하면 `false`이다
- * @property service 지표의 `service` 태그 값이다. git은 `upload_pack`(복제)과 `receive_pack`(푸시)이다
+ * @property service 지표의 `service` 태그 값이다. git은 `upload_pack`(복제)과 `receive_pack`(푸시)이다. Mercurial은 `serve`이다
+ * @property writeOptional 명령 줄만으로는 읽기인지 쓰기인지 알 수 없을 때(Mercurial의 `serve --stdio`) `true`이다. 이때 인가는 읽기 권한만 요구하고, 쓸 수 있는지는
+ *   [SshAuthorization.Allowed.writable]로 알려 처리기가 푸시를 막게 한다
  */
-data class SshRepositoryRequest(val vcs: String, val owner: String, val name: String, val write: Boolean, val service: String = if (write) "receive_pack" else "upload_pack")
+data class SshRepositoryRequest(
+    val vcs: String, val owner: String, val name: String, val write: Boolean, val service: String = if (write) "receive_pack" else "upload_pack", val writeOptional: Boolean = false
+)
 
 /** 명령 하나를 실행할 때 쓰는 세 줄의 입출력이다. 입력은 클라이언트가 보내는 바이트, 출력과 오류는 클라이언트로 가는 바이트이다. */
 class SshStreams(val input: InputStream, val output: OutputStream, val error: OutputStream)
 
 /**
  * 저장소 종류별 SSH 명령 처리기이다(`decisions.md` D-66 6번). 인증과 인가(키 조회, 접근 권한, 읽기 전용 배포 키)는 [SshAccess]가 공통으로 하고, 처리기는 명령을 읽는 일과
- * 인가를 통과한 뒤 실제 프로토콜을 실행하는 일만 맡는다. 지금은 [GitSshHandler]만 있고 Mercurial 처리기(`hg -R <저장소> serve --stdio`)는 X-7에서 더한다.
+ * 인가를 통과한 뒤 실제 프로토콜을 실행하는 일만 맡는다. [GitSshHandler]와 Mercurial 처리기([dev.yona.ssh.HgSshHandler], `hg -R <저장소> serve --stdio`)가 있다.
  */
 interface SshVcsHandler {
 
@@ -33,4 +37,10 @@ interface SshVcsHandler {
      * @return 프로세스 종료 코드와 같은 값. 성공은 0이다
      */
     fun execute(grant: SshAuthorization.Allowed, request: SshRepositoryRequest, command: String, streams: SshStreams): Int
+
+    /**
+     * 프로토콜을 시작하기 전에 거절하는 사유를 이 종류의 클라이언트가 읽을 수 있는 방식으로 쓴다. 쓰지 못했으면(기본) `false`이고, 호출한 쪽이 접속 방식의 기본 방식(오류 채널이나 git의
+     * 오류 줄)으로 알린다. Mercurial은 클라이언트가 인사를 보내고 응답을 기다리므로 그에 맞춰 답해야 한다.
+     */
+    fun rejectProtocol(request: SshRepositoryRequest, message: String, streams: SshStreams): Boolean = false
 }

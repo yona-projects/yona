@@ -8,6 +8,7 @@ import dev.yona.repository.PushPolicy
 import io.github.search5.hg4j.api.HgHook
 import io.github.search5.hg4j.lib.HgRepository
 import io.github.search5.hg4j.transport.HgHttpWireServer
+import io.github.search5.hg4j.transport.HgSshWireServer
 import org.springframework.stereotype.Component
 
 /**
@@ -26,15 +27,21 @@ class HgHooks(private val policy: PushPolicy, private val events: PushEvents) {
     /**
      * 요청 하나의 푸시를 다루는 훅 묶음이다. 요청마다 새로 만들고, [attachTo]로 서버에 걸고, 서블릿이 끝난 뒤 [finish]를 부른다.
      */
-    inner class Session(private val project: Project, private val sender: User?) {
+    inner class Session(private val project: Project, private val sender: User?, private val pusher: User?) {
         private val nodes = mutableListOf<String>()
         private val moves = mutableListOf<RefUpdate>()
 
-        /** [server]에 푸시 전 검사와 수집 훅을 건다. */
+        /** HTTP 서버에 푸시 전 검사와 수집 훅을 건다. */
         fun attachTo(server: HgHttpWireServer): HgHttpWireServer = server
-            .registerPrePushkeyHook(HgHook { context -> allowed(context) })
-            .registerPostPushkeyHook(HgHook { context -> collectMove(context); true })
-            .registerPostChangegroupHook(HgHook { context -> collectNodes(context); true })
+            .registerPrePushkeyHook(prePushkey).registerPostPushkeyHook(postPushkey).registerPostChangegroupHook(postChangegroup)
+
+        /** SSH 서버에 푸시 전 검사와 수집 훅을 건다. */
+        fun attachTo(server: HgSshWireServer): HgSshWireServer = server
+            .registerPrePushkeyHook(prePushkey).registerPostPushkeyHook(postPushkey).registerPostChangegroupHook(postChangegroup)
+
+        private val prePushkey = HgHook { context -> allowed(context) }
+        private val postPushkey = HgHook { context -> collectMove(context); true }
+        private val postChangegroup = HgHook { context -> collectNodes(context); true }
 
         private fun isBookmark(context: Map<String, Any?>) = context["namespace"] == "bookmarks"
 
@@ -62,12 +69,15 @@ class HgHooks(private val policy: PushPolicy, private val events: PushEvents) {
         /** 푸시가 반영된 뒤의 처리를 한다. 받은 체인지셋도 이름표 이동도 없으면 아무것도 하지 않는다. */
         fun finish(changelog: io.github.search5.hg4j.storage.Revlog) {
             val updates = HgPushUpdates.of(changelog, nodes, moves)
-            if (updates.isNotEmpty()) events.afterPush(project, sender, VCS_TAG, updates)
+            if (updates.isNotEmpty()) events.afterPush(project, pusher, VCS_TAG, updates)
         }
     }
 
-    /** [project]에 대한 [sender]의 푸시 하나를 다룰 훅 묶음을 만든다. */
-    fun session(project: Project, sender: User?): Session = Session(project, sender)
+    /**
+     * [project]에 대한 푸시 하나를 다룰 훅 묶음을 만든다. [sender]는 보호 규칙의 바이패스를 판정하는 사용자이고(배포 키는 `null`), [pusher]는 푸시 뒤 작업을
+     * 귀속할 사용자이다. 사용자가 푸시하면 둘이 같다.
+     */
+    fun session(project: Project, sender: User?, pusher: User? = sender): Session = Session(project, sender, pusher)
 
     private companion object {
         /** 지표와 감사에 쓰는 종류 이름이다. */

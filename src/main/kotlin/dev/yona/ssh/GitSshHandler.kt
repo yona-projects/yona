@@ -81,14 +81,14 @@ class GitSshHandler(private val repositories: RepositoryService, private val hoo
 
         /**
          * 명령의 경로(`'/소유자/저장소.git'` 꼴)를 소유자와 저장소 이름으로 읽는다. 따옴표, 앞의 슬래시, `.git` 접미어, 끝 슬래시는 있어도 없어도 된다.
-         * 두 단계가 아니거나 `..`이나 셸 메타 문자가 있으면 `null`이다. `git-lfs-authenticate`([LfsSshHandler])도 같은 규칙을 쓴다.
+         * 두 단계가 아니거나 `..`이나 셸 메타 문자가 있으면 `null`이다. `git-lfs-authenticate`([LfsSshHandler])와 Mercurial 처리기([HgSshHandler], 접미어를 떼지 않는다)도 같은 규칙을 쓴다.
          */
-        fun parsePath(raw: String): Pair<String, String>? {
+        fun parsePath(raw: String, stripGitSuffix: Boolean = true): Pair<String, String>? {
             val path = when {
                 raw.length >= 2 && raw.first() == '\'' && raw.last() == '\'' -> raw.substring(1, raw.length - 1)
                 raw.length >= 2 && raw.first() == '"' && raw.last() == '"' -> raw.substring(1, raw.length - 1)
                 else -> raw
-            }.trim().trim('/').removeSuffix(".git").trimEnd('/')
+            }.trim().trim('/').let { if (stripGitSuffix) it.removeSuffix(".git") else it }.trimEnd('/')
             val parts = path.split('/')
             if (parts.size != 2 || parts.any { it.isEmpty() || it == "." || it == ".." || !SEGMENT.matches(it) }) return null
             return parts[0] to parts[1]
