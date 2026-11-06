@@ -121,4 +121,28 @@ class VcsBackendsTest {
         override fun rawFile(project: dev.yona.domain.project.Project, revision: String, path: String): ByteArray? = null
         override fun archive(project: dev.yona.domain.project.Project, branch: String, out: java.io.OutputStream) = Unit
     }
+
+    @Test
+    fun `열 값으로 종류별 참조 읽기 구현을 고르고 Subversion에는 없다`() {
+        val git = GitRepositories(DataDirectory(YonaProperties(dataDir = dataDir.path)))
+        val backends = VcsBackends.of(refs = listOf(GitRefReader(git)))
+        assertThat(backends.refs("GIT")).isInstanceOf(GitRefReader::class.java)
+        // 브랜치와 태그는 Git만 지원한다(v1.6의 `@IsOnlyGitAvailable`). Subversion은 구현이 없다
+        assertThatThrownBy { backends.refs("Subversion") }.isInstanceOf(UnsupportedOperationException::class.java).hasMessage("지원하지 않는 VCS입니다: Subversion")
+    }
+
+    @Test
+    fun `커밋이 없는 Git 저장소에는 브랜치와 태그가 없고 태그를 만들면 빈 저장소 오류이다`() {
+        val git = GitRepositories(DataDirectory(YonaProperties(dataDir = dataDir.path)))
+        git.create("tester", "emptyrefs")
+        val project = project("GIT", "emptyrefs")
+        val refs = GitRefReader(git)
+        assertThat(refs.branches(project)).isEmpty()
+        assertThat(refs.headBranch(project)).isNull()
+        assertThat(refs.tags(project)).isEmpty()
+        assertThat(refs.findTag(project, "v1")).isNull()
+        assertThat(refs.deleteTag(project, "v1")).isFalse()
+        val created = refs.createTag(project, "v1", null, null, TagAuthor("tester", "tester@example.com"))
+        assertThat(created.error).isEqualTo(TagCreateError.EMPTY_REPOSITORY)
+    }
 }

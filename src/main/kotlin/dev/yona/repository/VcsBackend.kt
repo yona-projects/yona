@@ -116,6 +116,45 @@ interface TextReader : VcsPart {
 }
 
 /**
+ * 브랜치 한 줄의 저장소 쪽 값이다. 풀 리퀘스트 같은 도메인 정보는 [dev.yona.repository.BranchService]가 더한다.
+ *
+ * @property name 참조 전체 이름(`refs/heads/master`)
+ * @property headCommitId 머리 커밋 전체 번호
+ * @property committerDate 머리 커밋의 커밋 시각
+ */
+data class RefHead(val name: String, val headCommitId: String, val headCommitShortId: String, val committerDate: java.util.Date)
+
+/** 태그를 단 사람이다. 주석 태그의 태그 단 사람으로 쓴다. */
+data class TagAuthor(val name: String, val email: String)
+
+/**
+ * 브랜치와 태그를 읽고 바꾸는 계약이다. 브랜치와 태그가 없는 종류(Subversion)는 구현이 없다([VcsBackends.refs]가 지원하지 않는 VCS로 알린다).
+ */
+interface RefReader : VcsPart {
+
+    /** `refs/heads/` 아래 브랜치만 머리 커밋이 최근인 순서로 모은다. 커밋을 가리키지 않는 참조는 건너뛴다. */
+    fun branches(project: Project): List<RefHead>
+
+    /** 기본 브랜치(`HEAD`가 가리키는 브랜치)이다. 저장소가 비어 `HEAD`를 풀 수 없으면 `null`이다. */
+    fun headBranch(project: Project): RefHead?
+
+    /** 브랜치를 지운다(병합 여부와 관계없이 강제로). */
+    fun deleteBranch(project: Project, branchName: String)
+
+    /** 태그를 태그 시각이 최근인 순서로 모은다. 같으면 이름순이고, 시각을 알 수 없는 태그는 맨 뒤이다. */
+    fun tags(project: Project): List<TagInfo>
+
+    /** 이름으로 태그 하나를 찾는다. 없으면 `null`이다. */
+    fun findTag(project: Project, shortName: String): TagInfo?
+
+    /** 태그를 만든다. [message]가 있으면 주석 태그(태그 단 사람은 [tagger])이고 없으면 경량 태그이다. */
+    fun createTag(project: Project, name: String, target: String?, message: String?, tagger: TagAuthor): TagCreation
+
+    /** 태그를 지운다. 그런 태그가 없으면 `false`이다. */
+    fun deleteTag(project: Project, shortName: String): Boolean
+}
+
+/**
  * 메모리에 올리지 않고 흘려보내는 큰 파일이다. 크기와 종류 감지용 앞부분, 스트림 열기를 담고, 다 쓰면 [close]로 저장소를 닫는다.
  */
 class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: AutoCloseable, private val opener: () -> java.io.InputStream) : java.io.Closeable {
@@ -124,16 +163,17 @@ class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: Aut
 }
 
 /**
- * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader], [TextReader])을
+ * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader], [TextReader], [RefReader])을
  * 빈으로 등록하기만 하면 된다.
  */
 @Component
-class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>, text: List<TextReader>) {
+class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>, text: List<TextReader>, refs: List<RefReader>) {
 
     private val lifecycles: Map<VcsType, RepositoryLifecycle> = lifecycles.associateBy { it.type }
     private val commits: Map<VcsType, CommitReader> = commits.associateBy { it.type }
     private val code: Map<VcsType, CodeReader> = code.associateBy { it.type }
     private val text: Map<VcsType, TextReader> = text.associateBy { it.type }
+    private val refs: Map<VcsType, RefReader> = refs.associateBy { it.type }
 
     private fun <T> pick(parts: Map<VcsType, T>, vcs: String?): T =
         VcsType.of(vcs)?.let { parts[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
@@ -154,11 +194,14 @@ class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitRea
     /** [vcs]의 파일 텍스트 읽기 구현이다. */
     fun text(vcs: String?): TextReader = pick(text, vcs)
 
+    /** [vcs]의 브랜치와 태그 구현이다. 브랜치와 태그가 없는 종류는 지원하지 않는 VCS이다. */
+    fun refs(vcs: String?): RefReader = pick(refs, vcs)
+
     companion object {
         /** 단위 시험용으로 구현을 직접 묶는다. 필요 없는 역할은 비워 둔다. */
         fun of(
             lifecycles: List<RepositoryLifecycle> = emptyList(), commits: List<CommitReader> = emptyList(), code: List<CodeReader> = emptyList(),
-            text: List<TextReader> = emptyList()
-        ) = VcsBackends(lifecycles, commits, code, text)
+            text: List<TextReader> = emptyList(), refs: List<RefReader> = emptyList()
+        ) = VcsBackends(lifecycles, commits, code, text, refs)
     }
 }

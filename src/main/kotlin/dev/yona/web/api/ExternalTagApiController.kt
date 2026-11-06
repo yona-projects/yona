@@ -11,7 +11,6 @@ import dev.yona.repository.TagInfo
 import dev.yona.repository.TagService
 import dev.yona.web.access.AnonymousCheck
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jgit.lib.PersonIdent
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -84,7 +83,7 @@ class ExternalTagApiController(
         val name = body.get("name")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "name is required")
         val revision = body.get("target")?.takeIf { !it.isNull }?.let { if (it.isString) it.asString("") else return requests.message(HttpStatus.BAD_REQUEST, "target must be a string") }
         val message = body.get("message")?.takeIf { !it.isNull }?.let { if (it.isString) it.asString("") else return requests.message(HttpStatus.BAD_REQUEST, "message must be a string") }
-        val tagger = PersonIdent(user.name.orEmpty().ifBlank { user.loginId.orEmpty() }, user.email.orEmpty().ifBlank { "${user.loginId}@localhost" })
+        val tagger = dev.yona.repository.TagAuthor(user.name.orEmpty().ifBlank { user.loginId.orEmpty() }, user.email.orEmpty().ifBlank { "${user.loginId}@localhost" })
         val result = tagService.create(project, name, revision, message, tagger)
         result.error?.let { error ->
             return when (error) {
