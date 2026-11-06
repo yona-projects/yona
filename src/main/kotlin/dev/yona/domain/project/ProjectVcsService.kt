@@ -31,17 +31,13 @@ class ProjectVcsService(
      */
     fun targets(project: Project): List<String> = backends.creatableTypes().filter { it != project.vcs }
 
-    /** [project]의 저장소 종류를 다음 종류(Git이면 Subversion, 아니면 Git)로 바꾼다. v1.6 `changeVCS`와 같다. */
-    @Transactional
-    fun change(project: Project) = change(project, null)
-
     /**
-     * [project]의 저장소 종류를 [target]으로 바꾼다. [target]을 주지 않으면 v1.6처럼 번갈아 바꾼다([Project.nextVcs]).
+     * [project]의 저장소 종류를 [target]으로 바꾼다. [target]을 주지 않으면 v1.6처럼 번갈아 바꾼다([Project.nextVcs]): Git이면 Subversion, 아니면 Git이다(v1.6 `changeVCS`).
      *
      * @throws IllegalArgumentException [target]이 지금 종류이거나 [targets]에 없을 때. 아무것도 바꾸지 않는다
      */
     @Transactional
-    fun change(project: Project, target: String?) {
+    fun change(project: Project, target: String? = null) {
         val chosen = if (target == null) project.nextVcs() else target.also { require(it in targets(project)) { "바꿀 수 없는 저장소 종류입니다: $it" } }
         val projectId = requireNotNull(project.id)
         if (readme.read(project) != null) {

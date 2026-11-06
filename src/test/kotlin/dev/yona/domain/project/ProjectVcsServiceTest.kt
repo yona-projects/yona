@@ -43,7 +43,7 @@ class ProjectVcsServiceTest {
 
     @Test
     fun `변경은 트랜잭션으로 묶여 있다 (R-74)`() {
-        assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java).getAnnotation(Transactional::class.java))
+        assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java, String::class.java).getAnnotation(Transactional::class.java))
     }
 
     @Test

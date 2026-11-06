@@ -287,6 +287,27 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - **Mercurial 연결 방법.** Mercurial 서빙(6단계)은 `postChangegroup`의 새 노드 목록과 `pushkey`의 bookmark 이동을 `RefUpdate` 목록으로 바꿔 `PushPolicy`와 `PushEvents`에 넘기기만 하면 된다. 푸시 전 검사는 `preTxnChangegroup`과 `prePushkey` 훅에서 같은 방식으로 부른다.
 - 새 시험: `RefUpdateTest`(도우미와 Git 변환), `PushPolicyTest`(`hg` 이름으로 규칙과 서명 검사), `PushEventsTest`(`hg.push` 등 감사 기록, 마지막 푸시 시각, 최근 브랜치). 기존 푸시 시험(`GitHttpTest`, SSH 시험, `PostReceiveJobsTest`, `RulesetTest`)은 새 타입에 맞춰 고쳤다.
 
+### 7.4 4단계 진행 기록(2026-11-06)
+
+**4a: diff.** 바뀐 파일 목록과 파일 내용 읽기를 종류별 계약 `DiffReader`(`VcsBackend.kt`)로 나누고, 글 비교(바뀐 곳, 헝크, 한도)는 종류와 무관한 `DiffService`가 그 목록과 내용만으로 한다.
+
+- 중립 값(`domain/vcs/Diff.kt`): `FileChangeType`(`ADD`, `MODIFY`, `DELETE`, `RENAME`, `COPY`), `FileChange`(변경 종류, 앞뒤 경로, 앞뒤 파일 모드 비트, 내용을 필요할 때 읽는 함수 둘), `DiffSource`(앞뒤 커밋 번호, 변경 목록, 글 비교 알고리즘, 쓴 뒤 닫는다), `ContentTooLargeException`, `TextDiffAlgorithm`.
+- `GitDiffReader`가 JGit `DiffFormatter`로 변경 목록과 이름 바꿈, 복사를 구하고 두 저장소를 함께 읽는 판독기(포크 사이 비교)도 갖는다. JGit의 큰 객체 예외는 `ContentTooLargeException`으로 바뀐다.
+- `FileDiff`의 변경 종류와 파일 모드가 JGit 타입(`DiffEntry.ChangeType`, `FileMode`)에서 중립 타입(`FileChangeType`, 모드 비트 `Int`)으로 바뀌었다. 파일 모드는 8진수로 보여 준다(`100644`).
+- 글 비교(JGit의 `RawText`, `EditList`, 히스토그램, `V16DiffAlgorithm`)는 어느 종류의 파일 내용에도 쓸 수 있는 글 알고리즘이라 그대로 둔다. v1.6 diff 출력과 어긋나지 않게 맞춘 코드를 두 번째로 만들지 않기 위해서이다.
+- 시험: `DiffServiceContentTest`(가짜 `DiffReader`로 Git 없이 헝크, 추가와 삭제, 이진, 이름 바꿈, 권한 변경, 큰 파일, 닫기), 기존 `DiffServiceTest`는 실제 Git 저장소로 그대로 통과.
+- Subversion은 자체 패치 화면(`svn-diff.html`)을 쓰므로 `DiffReader`가 없다. 리뷰어 추천(`RelatedAuthorsService`)의 JGit 사용은 Git 전용으로 남아 있다.
+
+**4b: HTTP 서빙 앞단.** `VcsServingGate`(`web/access/VcsServingGate.kt`)가 Git 컨트롤러에서 종류와 무관한 부분을 맡는다.
+
+- `enter`: HTTP Basic 자격을 읽고 사용자를 정한다. 형식이 틀리면 400, 같은 주소의 인증 실패가 연달아 막았으면 429.
+- `admit`: 토큰 범위(403), 권한(익명 401과 `WWW-Authenticate`, 로그인한 사용자 403과 안내 문구)을 확인한다. 코드를 구성원에게만 여는 프로젝트의 읽기 승격과 위키 저장소의 위키 페이지 권한도 여기서 다룬다. 안내 문구에는 요청한 이름을 적고, Git 2.1.0 이전 클라이언트의 문자 집합 규칙(v1.6)은 `charsetByUserAgent`로 켜고 끈다.
+- `GitHttpController`는 프로토콜(서비스 이름, 광고, 본문 풀기, 내용 형식)과 위키 이름 규칙만 남았다. Mercurial 컨트롤러는 같은 앞단을 부르고 `charsetByUserAgent = false`로 항상 UTF-8 안내를 낸다.
+- 시험: `VcsServingGateTest`(`hg` 이름으로 인증, 토큰 범위, 401과 403, 구성원 전용 코드). `GitHttpTest` 전체가 그대로 통과.
+- Subversion WebDAV(`SvnDavService`)는 흐름이 달라 이번에 옮기지 않았다. SSH는 처음부터 `SshVcsHandler`와 `SshAccess`로 종류와 무관하게 나뉘어 있다.
+
+**4c: 종류 변경의 대상 선택.** `ProjectVcsService.targets(project)`가 저장소를 만들 수 있게 등록된 종류에서 지금 종류를 뺀 목록을 주고, `change(project, target)`이 대상을 받는다. 대상을 주지 않으면 v1.6처럼 번갈아 바꾼다(`Project.nextVcs`). 지금 종류이거나 등록되지 않은 종류이면 `IllegalArgumentException`이고 컨트롤러는 400이며 아무것도 바꾸지 않는다. 폼은 `targetVcs` 매개변수를 받는다. 화면은 지금(Git과 Subversion뿐) v1.6 그대로이고, **선택 상자와 문구는 Mercurial이 등록되는 5단계에서 더해** 실제로 보이는 화면을 Playwright로 확인한다.
+
 ### 7.6 시험 전략
 
 - 종류별로 같은 시나리오를 도는 **공통 계약 시험**을 만든다(수명, 읽기, 푸시 이벤트). Git, Subversion, Mercurial이 모두 통과해야 한다.
