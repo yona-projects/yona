@@ -1360,3 +1360,8 @@ R-83(조직 검색의 `!isMemberOf || !isAdminOf`)은 R-50-7과 같은 결함인
 ## 2026-11-06 화면 배치 v1.6 맞춤(A-377)
 
 `_page.scss` 보정과 `layout.test.mjs` 시험 8건 추가(보정 전 7건 실패 확인). 전체 화면 비교(구조 요소 차이 972건에서 294건, 입력 요소 폭 차이 1,009건에서 451건)는 한 번에 약 10분이 걸렸다. 남은 차이는 `decisions.md` A-377에 적었다.
+
+
+## 2026-11-06 Mercurial(X-7) 설계 보고서
+
+Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41곳, 종류 비교 39개 파일 75줄, `@IsOnlyGitAvailable` 37곳). hg4j 1.1.0의 기능과 `next` 브랜치의 이전 시도(P3-12, P3-33)를 읽고 [architecture/mercurial-plan.md](architecture/mercurial-plan.md)에 공통화 계획과 단계, 위험을 적었다. 결정 질문 7개는 D-86(대기)에 올렸다. 구현은 시작하지 않았다.

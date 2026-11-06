@@ -116,6 +116,7 @@
 - [MCP 서버](architecture/mcp-server.md): Streamable HTTP(세션 없음), OAuth 토큰만, 토큰 대상 검증(RFC 8707), REST를 같은 길로 부르는 도구, 감사와 지표, 클라이언트 연결 절차 (X-6, D-72)
 - [MCP 서버 구현 계획](architecture/mcp-server-plan.md): 계획과 단계 0~6
 - [Git LFS 구현 계획](architecture/git-lfs-plan.md): X-8 계획과 결정 질문(D-79)
+- [Mercurial 설계(X-7)](architecture/mercurial-plan.md): Git 접점 조사, hg4j가 주는 것, 공통화 리팩터링 계획, 결정 질문(D-86)
 - [Git LFS 서버](architecture/git-lfs.md): X-8 구현 결과(경로, 인증, 저장, 잠금, SSH, 화면)
 - [엔터프라이즈 SSO 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
 - [엔터프라이즈 SSO](architecture/enterprise-sso.md): X-16 구현 결과(OIDC, SAML 2, SP 키, SSO 전용 모드, 연결된 계정, Keycloak 확인)
