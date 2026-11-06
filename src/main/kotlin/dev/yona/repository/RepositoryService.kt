@@ -3,16 +3,26 @@ package dev.yona.repository
 import dev.yona.domain.project.Project
 import dev.yona.repository.svn.SvnRepositories
 import org.eclipse.jgit.lib.Repository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
  * 프로젝트의 저장소를 만들고 지우고 여는 진입점이다. v1.6 `playRepository.RepositoryService`에 해당한다.
  *
- * 프로젝트의 `vcs` 값(`GIT`, `Subversion`)으로 저장소 종류를 고른다. Subversion은 SVNKit으로 처리한다 (D-13). 포크, 복제, 가져오기,
- * 저장소 열기는 Git만 지원한다.
+ * 프로젝트의 `vcs` 값(`GIT`, `Subversion`)으로 저장소 종류를 고른다. 종류별 구현은 [VcsBackends]가 맡는다(Git은 JGit, Subversion은
+ * SVNKit, D-13). 포크와 가져오기는 구현이 지원할 때만 된다. 저장소 열기([openRepository])는 아직 Git만 지원한다.
  */
 @Service
-class RepositoryService(private val git: GitRepositories, private val svn: SvnRepositories, private val wiki: WikiRepositories, private val lfs: dev.yona.domain.lfs.LfsStorage) {
+class RepositoryService @Autowired constructor(
+    private val backends: VcsBackends,
+    private val git: GitRepositories,
+    private val wiki: WikiRepositories,
+    private val lfs: dev.yona.domain.lfs.LfsStorage
+) {
+
+    /** 단위 시험용이다. Git과 Subversion 구현으로 등록부를 만든다. */
+    constructor(git: GitRepositories, svn: SvnRepositories, wiki: WikiRepositories, lfs: dev.yona.domain.lfs.LfsStorage) :
+        this(VcsBackends.of(GitLifecycle(git), dev.yona.repository.svn.SvnLifecycle(svn)), git, wiki, lfs)
 
     /**
      * 프로젝트의 저장소를 새로 만든다. 같은 위치에 이미 있으면 먼저 지운다 (v1.6 `createRepository`).
@@ -21,32 +31,18 @@ class RepositoryService(private val git: GitRepositories, private val svn: SvnRe
      */
     fun createRepository(project: Project) {
         deleteRepository(project)
-        when (project.vcs) {
-            VCS_GIT -> git.create(owner(project), name(project))
-            VCS_SUBVERSION -> svn.create(owner(project), name(project))
-            else -> throw unsupported(project)
-        }
+        backends.lifecycle(project.vcs).create(owner(project), name(project))
     }
 
     /** 프로젝트의 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
-    fun deleteRepository(project: Project) {
-        when (project.vcs) {
-            VCS_GIT -> git.delete(owner(project), name(project))
-            VCS_SUBVERSION -> svn.delete(owner(project), name(project))
-            else -> throw unsupported(project)
-        }
-    }
+    fun deleteRepository(project: Project) = backends.lifecycle(project.vcs).delete(owner(project), name(project))
 
     /**
      * 프로젝트 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다. 옮기지 못하면 `false`이다
      * (v1.6 `PlayRepository.move`).
      */
     fun moveRepository(project: Project, newOwner: String, newName: String): Boolean {
-        val moved = when (project.vcs) {
-            VCS_GIT -> git.move(owner(project), name(project), newOwner, newName)
-            VCS_SUBVERSION -> svn.move(owner(project), name(project), newOwner, newName)
-            else -> throw unsupported(project)
-        }
+        val moved = backends.lifecycle(project.vcs).move(owner(project), name(project), newOwner, newName)
         // 위키 저장소는 프로젝트의 VCS와 무관하게 항상 따라간다 (X-17, D-60). LFS 객체도 따라간다(X-8, D-79).
         return moved && wiki.move(owner(project), name(project), newOwner, newName) && lfs.move(owner(project), name(project), newOwner, newName)
     }
@@ -86,40 +82,29 @@ class RepositoryService(private val git: GitRepositories, private val svn: SvnRe
     fun cloneRepository(original: Project, fork: Project) {
         if (original.vcs != VCS_GIT) throw unsupported(original)
         if (fork.vcs != VCS_GIT) throw unsupported(fork)
-        git.cloneLocal(owner(original), name(original), owner(fork), name(fork))
+        backends.lifecycle(fork.vcs).cloneLocal(owner(original), name(original), owner(fork), name(fork))
     }
 
     /** 다른 Git 저장소를 [project]의 저장소로 복제해 가져온다 (v1.6 `GitRepository.cloneRepository`). */
     fun importRepository(project: Project, url: String, authId: String?, authPw: String?) {
-        git.cloneRemote(owner(project), name(project), url, authId, authPw)
+        backends.lifecycle(project.vcs).cloneRemote(owner(project), name(project), url, authId, authPw)
     }
 
     /** 프로젝트 저장소 디렉터리를 새 이름으로 옮긴다. 옮기지 못하면 `false`이다 (v1.6 `PlayRepository.renameTo`). */
     fun renameRepository(project: Project, newName: String): Boolean = moveRepository(project, owner(project), newName)
 
     /** 저장소의 브랜치, 태그, 원격 참조 이름이다. Subversion은 `HEAD` 하나이다 (v1.6 `getRefNames`). */
-    fun refNames(project: Project): List<String> = when (project.vcs) {
-        VCS_GIT -> git.refNames(owner(project), name(project))
-        VCS_SUBVERSION -> svn.refNames()
-        else -> throw unsupported(project)
-    }
+    fun refNames(project: Project): List<String> = backends.lifecycle(project.vcs).refNames(owner(project), name(project))
 
     /** 저장소의 기본 브랜치를 [target]으로 바꾼다 (v1.6 `setDefaultBranch`). */
-    fun setDefaultBranch(project: Project, target: String) {
-        when (project.vcs) {
-            VCS_GIT -> git.setDefaultBranch(owner(project), name(project), target)
-            // Subversion은 기본 브랜치를 바꿀 수 없다(v1.6 `setDefaultBranch`는 아무 일도 하지 않는다).
-            VCS_SUBVERSION -> Unit
-            else -> throw unsupported(project)
-        }
-    }
+    fun setDefaultBranch(project: Project, target: String) = backends.lifecycle(project.vcs).setDefaultBranch(owner(project), name(project), target)
 
     /**
      * 프로젝트 저장소의 기본 브랜치 이름이다. 예: `refs/heads/master`. 저장소를 열 수 없으면 `HEAD`이다
      * (v1.6 `Project.defaultBranch`).
      */
-    fun defaultBranch(project: Project): String = if (project.vcs == VCS_SUBVERSION) svn.defaultBranch() else try {
-        openRepository(project).use { it.findRef(org.eclipse.jgit.lib.Constants.HEAD)?.target?.name ?: "HEAD" }
+    fun defaultBranch(project: Project): String = try {
+        backends.lifecycle(project.vcs).defaultBranch(owner(project), name(project))
     } catch (e: Exception) {
         "HEAD"
     }
