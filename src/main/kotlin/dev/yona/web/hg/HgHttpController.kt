@@ -31,6 +31,7 @@ class HgHttpController(
     private val projectService: ProjectService,
     private val gate: VcsServingGate,
     private val hgRepositories: HgRepositories,
+    private val hooks: dev.yona.repository.hg.HgHooks,
     private val recentVisits: RecentVisitService,
     private val metrics: dev.yona.observability.VcsMetrics
 ) {
@@ -66,9 +67,12 @@ class HgHttpController(
         gate.admit(project, identity, VcsServingGate.Access(write = write), "hg", request, response, ownerName, projectName, charsetByUserAgent = false)?.let { return it }
         if (cmd == "getbundle" || cmd == "unbundle") recentVisits.visits(identity.user, project)
         val hg: Hg = hgRepositories.open(requireNotNull(project.owner), requireNotNull(project.name))
+        val session = hooks.session(project, identity.user)
         try {
             // 프로젝트의 읽기와 쓰기는 위 앞단이 정했으므로 서블릿의 `[web]` 규칙은 쓰지 않는다(설정 파일을 직접 고쳐 푸시를 허용하는 일을 막는다)
-            HgHttpWireServer(hg.repository).setEnforceWebPermissions(false).service(request, response)
+            session.attachTo(HgHttpWireServer(hg.repository).setEnforceWebPermissions(false)).service(request, response)
+            // 푸시 뒤 처리는 요청이 끝난 뒤 한 번 한다(체인지그룹과 이름표 이동을 합쳐야 해서)
+            if (write) session.finish(dev.yona.repository.hg.HgRevisions.changelog(hg))
         } finally {
             hg.close()
         }

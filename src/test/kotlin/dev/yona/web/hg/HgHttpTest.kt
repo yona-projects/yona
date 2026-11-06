@@ -72,6 +72,8 @@ class HgHttpTest {
     @Autowired private lateinit var apiTokenService: dev.yona.domain.apitoken.ApiTokenService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
+    @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
 
     @TempDir lateinit var work: File
 
@@ -200,5 +202,75 @@ class HgHttpTest {
     fun `기능 목록은 와이어 프로토콜로 답한다`() {
         val body = String(raw("/${project.owner}/${project.name}?cmd=capabilities").body())
         assertTrue("batch" in body && "unbundle" in body, body)
+    }
+
+    // --- 푸시 전 검사와 푸시 뒤 처리(X-7 6b, 6c) ---
+
+    private fun protect(pattern: String, configure: dev.yona.domain.project.Ruleset.() -> Unit = {}) {
+        protectionRules.save(dev.yona.domain.project.Ruleset(project = project, name = pattern, pattern = pattern, createdDate = java.util.Date()).apply(configure))
+    }
+
+    /** 서버에 이름표 [bookmark]를 만들고 복제해 커밋 하나를 얹은 작업 복사본을 돌려준다. */
+    private fun cloneWithBookmark(bookmark: String): File {
+        HgTestSupport.hg(serverDir(project), "bookmark", bookmark)
+        val (dir, result) = clone(project, member)
+        assertEquals(0, result.first, result.second)
+        // 이름표를 활성화해야 다음 커밋과 함께 움직인다
+        assertEquals(0, hg(dir, "update", bookmark).first)
+        File(dir, "more-${counter.incrementAndGet()}.txt").writeText("more\n")
+        hg(dir, "add", "."); assertEquals(0, hg(dir, "commit", "-m", "더한 커밋", "-d", "2026-11-04 10:00 +0900").first)
+        return dir
+    }
+
+    private fun serverBookmarks() = HgTestSupport.hg(serverDir(project), "bookmarks", "--template", "{bookmark} {node}\\n")
+
+    @Test
+    fun `풀 리퀘스트를 요구하는 이름표로는 직접 푸시하지 못하고 체인지셋도 남지 않는다`() {
+        protect("main") { requirePullRequest = true }
+        val dir = cloneWithBookmark("main")
+        val before = serverBookmarks()
+        val pushed = hg(dir, "push", "-B", "main", url(project, member))
+        assertFalse(pushed.first == 0, "보호된 이름표로 푸시가 성공했다: ${pushed.second}")
+        assertEquals(before, serverBookmarks())
+        assertFalse("더한 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+        assertTrue(HgTestSupport.verifies(serverDir(project)))
+    }
+
+    @Test
+    fun `보호하지 않는 이름표로는 푸시하고 보호 규칙이 있어도 다른 이름표는 막지 않는다`() {
+        protect("main") { requirePullRequest = true }
+        val dir = cloneWithBookmark("feature")
+        val pushed = hg(dir, "push", "-B", "feature", url(project, member))
+        assertEquals(0, pushed.first, pushed.second)
+        assertTrue("더한 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+    }
+
+    @Test
+    fun `이름표 삭제는 삭제를 막는 규칙에 걸린다`() {
+        protect("main") { restrictDeletions = true }
+        HgTestSupport.hg(serverDir(project), "bookmark", "main")
+        val (dir, _) = clone(project, member)
+        hg(dir, "bookmark", "-d", "main")
+        val pushed = hg(dir, "push", "-B", "main", url(project, member))
+        assertFalse(pushed.first == 0, "삭제가 허용됐다: ${pushed.second}")
+        assertTrue("main" in serverBookmarks())
+    }
+
+    @Test
+    fun `푸시하면 마지막 푸시 시각과 최근 푸시한 브랜치가 남는다`() {
+        val dir = cloneWithBookmark("feature")
+        assertEquals(0, hg(dir, "push", "-B", "feature", url(project, member)).first)
+        val saved = projects.findById(project.id!!).get()
+        assertTrue(saved.lastPushedDate != null)
+        assertTrue(pushedBranches.findAll().filter { it.project?.id == project.id }.any { it.name == "refs/heads/feature" })
+    }
+
+    @Test
+    fun `이름표 없이 체인지셋만 푸시해도 푸시 뒤 처리가 돈다`() {
+        val (dir, _) = clone(project, member)
+        File(dir, "plain.txt").writeText("p\n"); hg(dir, "add", "plain.txt"); hg(dir, "commit", "-m", "이름표 없는 커밋")
+        assertEquals(0, hg(dir, "push", url(project, member)).first)
+        assertTrue(projects.findById(project.id!!).get().lastPushedDate != null)
+        assertTrue(pushedBranches.findAll().filter { it.project?.id == project.id }.any { it.name == "refs/heads/default" })
     }
 }

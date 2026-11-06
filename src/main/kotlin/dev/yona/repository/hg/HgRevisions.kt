@@ -1,6 +1,7 @@
 package dev.yona.repository.hg
 
 import io.github.search5.hg4j.api.Hg
+import io.github.search5.hg4j.lib.HgRepository
 import io.github.search5.hg4j.lib.NodeId
 
 /**
@@ -51,8 +52,11 @@ object HgRevisions {
     }
 
     /** 변경 로그(changelog)이다. 커밋의 부모와 번호를 읽을 때 쓴다. */
-    fun changelog(hg: Hg): io.github.search5.hg4j.storage.Revlog {
-        val store = hg.repository.storeDir
-        return hg.repository.getRevlog(java.io.File(store, "00changelog.i"), java.io.File(store, "00changelog.d"))
+    fun changelog(hg: Hg): io.github.search5.hg4j.storage.Revlog = changelog(hg.repository)
+
+    /** 푸시 훅이 넘겨 주는 저장소([HgRepository])의 변경 로그이다. */
+    fun changelog(repository: HgRepository): io.github.search5.hg4j.storage.Revlog {
+        val store = repository.storeDir
+        return repository.getRevlog(java.io.File(store, "00changelog.i"), java.io.File(store, "00changelog.d"))
     }
 }

@@ -54,6 +54,17 @@ class HgCommitReader(private val hg: HgRepositories) : CommitReader {
         }
     }
 
+    /** 푸시가 가져온 커밋이다: [newId]에서 [oldId]의 조상을 뺀 것을 최근 순으로 돌려준다. [oldId]가 영 번호면 Git과 같이 새 커밋 하나이다. */
+    override fun pushedCommits(project: Project, oldId: String, newId: String): List<CommitInfo> = open(project).use { h ->
+        val changelog = HgRevisions.changelog(h)
+        val end = HgChangesets.revOf(changelog, newId)
+        if (end < 0) return emptyList()
+        if (oldId == dev.yona.domain.vcs.RefUpdate.NULL_ID) return listOfNotNull(HgChangesets.read(changelog, end)?.let { info(it) })
+        val start = HgChangesets.revOf(changelog, oldId)
+        val known = if (start < 0) emptySet() else HgChangesets.ancestors(changelog, start)
+        (HgChangesets.ancestors(changelog, end) - known).sortedDescending().mapNotNull { HgChangesets.read(changelog, it)?.let { c -> info(c) } }
+    }
+
     override fun parentOf(project: Project, revision: String): CommitInfo? = open(project).use { h ->
         val node = HgRevisions.resolve(h, revision) ?: return null
         val changelog = HgRevisions.changelog(h)
