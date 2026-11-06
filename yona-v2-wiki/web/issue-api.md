@@ -27,6 +27,16 @@ updated: 2026-10-23
 
 v1.6 `ProjectApi.getResult` 형식이다: `number, id, title, type(ISSUE_POST), author{loginId,name,email}, createdAt/updatedAt(yyyy-MM-dd'T'HH:mm:ssZ), body, owner, projectName`, 담당자가 있으면 `assignees`, `state`, 라벨이 있으면 `labels[{labelName,labelColor,category}]`, 마일스톤이 있으면 `milestoneId, milestoneTitle`, 마감일이 있으면 `dueDate`(`yyyy-MM-dd a hh:mm:ss Z`, 영어), `refUrl`, 첨부가 있으면 `attachments`, 댓글이 있으면 `comments`(한 줄 댓글은 `childComments`).
 
+## 다른 도구에서 글을 가져올 때 (작성자 보존, R-98)
+
+가져오기 API(`POST …/projects/{프로젝트}/issues`, 이슈와 게시글의 댓글 만들기)는 토큰을 가진 한 사람이 다른 사람의 이름으로 글을 올릴 수 있다. 본문의 `author.email`로 작성자를 찾는다. 대표 이메일, 보조 이메일, 대소문자를 무시한 대표 이메일 순서이다.
+
+- **이메일이 Yona의 사용자와 맞으면** 그 사용자가 작성자이다.
+- **맞는 사용자가 없으면** 작성자를 "존재하지 않는 사용자"라는 익명 사용자(번호 -1)로 기록한다. 사용자를 새로 만들지 않고 글은 정상으로 만들어진다. 원래 작성자의 이메일은 어디에도 남지 않는다. v1.6도 같고 그대로 유지하기로 했다(A-376).
+- **`author`를 주지 않으면** 요청한 토큰의 사용자가 작성자이다.
+
+작성자를 보존하려면 글을 올리기 **전에** 사이트 관리자의 토큰으로 사용자를 만든다. `POST /-_-api/v1/users`에 `{"users": [{"loginId": "hong", "name": "홍길동", "email": "hong@corp.com"}]}`를 보내면 사용자마다 `201`, 이미 있는 이메일이나 아이디는 `409`, 허용하지 않는 메일 도메인은 `403`으로 알려 준다. 비밀번호는 무작위이므로 그 사용자는 비밀번호 찾기로 들어온다. 사용자를 만든 뒤 같은 이메일을 `author.email`로 주고 글을 올리면 작성자가 이어진다.
+
 ## 미룬 것
 
 - `POST …/issues/:n/commentNotiReceivers`(댓글 알림 수신자 미리 보기)는 알림 수신자 계산에 의존하므로 4단계에서 옮긴다.
