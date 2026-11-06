@@ -23,10 +23,7 @@ class RepositoryService @Autowired constructor(
     /** 단위 시험용이다. Git과 Subversion 구현으로 등록부를 만든다. */
     constructor(git: GitRepositories, svn: SvnRepositories, wiki: WikiRepositories, lfs: dev.yona.domain.lfs.LfsStorage) :
         this(
-            VcsBackends.of(
-                GitBackend(GitLifecycle(git), GitCommitReader(git)),
-                dev.yona.repository.svn.SvnBackend(dev.yona.repository.svn.SvnLifecycle(svn), dev.yona.repository.svn.SvnCommitReader(svn))
-            ),
+            VcsBackends.of(lifecycles = listOf(GitLifecycle(git), dev.yona.repository.svn.SvnLifecycle(svn))),
             git, wiki, lfs
         )
 

@@ -20,8 +20,8 @@ class VcsBackendsTest {
         val git = GitRepositories(directory)
         val svn = SvnRepositories(directory)
         return VcsBackends.of(
-            GitBackend(GitLifecycle(git), GitCommitReader(git)),
-            dev.yona.repository.svn.SvnBackend(dev.yona.repository.svn.SvnLifecycle(svn), dev.yona.repository.svn.SvnCommitReader(svn))
+            lifecycles = listOf(GitLifecycle(git), dev.yona.repository.svn.SvnLifecycle(svn)),
+            commits = listOf(GitCommitReader(git), dev.yona.repository.svn.SvnCommitReader(svn))
         )
     }
 
@@ -105,5 +105,20 @@ class VcsBackendsTest {
         assertThat(commits.parentOf(project, "1")).isNull()
         // Subversion은 한 번에 여러 커밋을 읽는 기능이 없어 빈 맵이다
         assertThat(commits.commits(project, listOf("1"))).isEmpty()
+    }
+
+    @Test
+    fun `열 값으로 종류별 코드 읽기 구현을 고른다`() {
+        val backends = VcsBackends.of(code = listOf(NamedCodeReader(VcsType.GIT)))
+        assertThat(backends.code("GIT").type).isEqualTo(VcsType.GIT)
+        assertThatThrownBy { backends.code("Subversion") }.isInstanceOf(UnsupportedOperationException::class.java).hasMessage("지원하지 않는 VCS입니다: Subversion")
+    }
+
+    /** 등록부가 종류로 구현을 고르는지만 보는 자리 표시 구현이다. */
+    private class NamedCodeReader(override val type: VcsType) : CodeReader {
+        override fun isEmpty(project: dev.yona.domain.project.Project) = true
+        override fun metaData(project: dev.yona.domain.project.Project, revision: String?, path: String): Map<String, Any?>? = null
+        override fun rawFile(project: dev.yona.domain.project.Project, revision: String, path: String): ByteArray? = null
+        override fun archive(project: dev.yona.domain.project.Project, branch: String, out: java.io.OutputStream) = Unit
     }
 }

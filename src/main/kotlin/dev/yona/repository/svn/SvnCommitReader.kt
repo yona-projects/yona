@@ -13,6 +13,8 @@ import java.util.Date
 @Component
 class SvnCommitReader(private val svn: SvnRepositories) : CommitReader {
 
+    override val type: dev.yona.domain.vcs.VcsType get() = dev.yona.domain.vcs.VcsType.SUBVERSION
+
     private fun info(commit: SvnCommit) = CommitInfo(
         id = commit.id, shortId = commit.shortId, shortMessage = commit.shortMessage, message = commit.message.orEmpty(), authorName = commit.authorName.orEmpty(),
         authorEmail = "", authorDate = commit.date ?: Date(0), committerName = commit.authorName.orEmpty(), committerEmail = "", commitTime = commit.date ?: Date(0),

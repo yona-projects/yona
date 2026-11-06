@@ -16,6 +16,8 @@ import java.util.Date
 @Component
 class GitCommitReader(private val git: GitRepositories) : CommitReader {
 
+    override val type: dev.yona.domain.vcs.VcsType get() = dev.yona.domain.vcs.VcsType.GIT
+
     private fun open(project: Project) = git.open(requireNotNull(project.owner), requireNotNull(project.name))
 
     override fun history(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? = open(project).use { repository ->

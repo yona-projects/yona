@@ -4,16 +4,19 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.vcs.VcsType
 import org.springframework.stereotype.Component
 
+/** 저장소 종류별 구현이 어느 종류를 맡는지 밝힌다. */
+interface VcsPart {
+    /** 이 구현이 맡는 저장소 종류. */
+    val type: VcsType
+}
+
 /**
  * 한 종류의 저장소를 만들고 지우고 옮기고 참조를 알려 주는 계약이다. [RepositoryService]가 프로젝트의 `vcs` 값으로 구현을 골라 쓴다
  * (Mercurial 도입을 위한 공통화 2a, D-86). 종류마다 `if (vcs == ...)`로 가르던 자리를 구현 추가로 바꾼다.
  *
  * 소유자와 이름은 URL 디코딩이 끝난 값이다. 지원하지 않는 일([cloneLocal], [cloneRemote])은 기본으로 [UnsupportedOperationException]이다.
  */
-interface RepositoryLifecycle {
-
-    /** 이 구현이 맡는 저장소 종류. */
-    val type: VcsType
+interface RepositoryLifecycle : VcsPart {
 
     /** 저장소를 새로 만든다. */
     fun create(owner: String, name: String)
@@ -45,7 +48,7 @@ interface RepositoryLifecycle {
 /**
  * 커밋 이력과 커밋 하나를 읽는 계약이다. 결과는 종류와 무관한 [CommitInfo]이다. [dev.yona.repository.CommitHistoryService]가 지표와 함께 이것을 부른다.
  */
-interface CommitReader {
+interface CommitReader : VcsPart {
 
     /**
      * [revision](없으면 `HEAD`)부터 거슬러 오르는 이력의 [page]번째 쪽(0부터)이다. [path]를 주면 그 경로를 바꾼 커밋만 모은다.
@@ -64,44 +67,71 @@ interface CommitReader {
 }
 
 /**
- * 한 종류의 저장소를 다루는 구현 묶음이다. 종류마다 이것을 하나 등록한다(Git, Subversion, 이어서 Mercurial).
- * 읽기 계약은 공통화 단계마다 이 묶음에 더해진다.
+ * 코드 보기(폴더, 파일, 원본 내용, 내려받기)를 위해 저장소를 읽는 계약이다. 결과는 화면과 JSON 응답이 함께 쓰는 맵이다.
+ * [dev.yona.repository.CodeBrowserService]가 지표와 함께 이것을 부른다.
  */
-interface VcsBackend {
-    /** 이 구현이 맡는 저장소 종류. */
-    val type: VcsType
+interface CodeReader : VcsPart {
 
-    /** 만들기, 지우기, 옮기기, 참조 이름. */
-    val lifecycle: RepositoryLifecycle
+    /** 저장소에 읽을 내용이 하나도 없으면 `true`이다. */
+    fun isEmpty(project: Project): Boolean
 
-    /** 커밋 이력과 커밋 하나. */
-    val commits: CommitReader
+    /**
+     * [revision](브랜치, 태그, 커밋 번호, 없으면 기본 위치)에서 [path]의 폴더나 파일 정보이다. 폴더는 `{"type": "folder", "data": {이름: {…}}}`,
+     * 파일은 `{"type": "file", …}`이다. 저장소가 비었거나 위치와 경로가 없으면 `null`이다.
+     */
+    fun metaData(project: Project, revision: String?, path: String): Map<String, Any?>?
+
+    /** [path]가 폴더 하나만 담은 중간 폴더이면 `true`이다. 중간 폴더를 건너뛰지 않는 종류는 항상 `false`이다. */
+    fun isIntermediateFolder(project: Project, path: String): Boolean = false
+
+    /** [revision]의 [path] 파일 내용이다. 폴더이거나 없으면 `null`이다. */
+    fun rawFile(project: Project, revision: String, path: String): ByteArray?
+
+    /** 메모리에 올리지 않고 흘려보내야 하는 큰 파일이면 그 정보를, 아니면 `null`이다. 지원하지 않는 종류는 항상 `null`이다. */
+    fun largeRawFile(project: Project, revision: String, path: String): LargeRawFile? = null
+
+    /** [branch]의 내용을 zip으로 [out]에 쓴다. */
+    fun archive(project: Project, branch: String, out: java.io.OutputStream)
 }
 
 /**
- * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 [VcsBackend] 구현을 빈으로 등록하기만 하면 된다.
+ * 메모리에 올리지 않고 흘려보내는 큰 파일이다. 크기와 종류 감지용 앞부분, 스트림 열기를 담고, 다 쓰면 [close]로 저장소를 닫는다.
+ */
+class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: AutoCloseable, private val opener: () -> java.io.InputStream) : java.io.Closeable {
+    fun open(): java.io.InputStream = opener()
+    override fun close() = owner.close()
+}
+
+/**
+ * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader])을
+ * 빈으로 등록하기만 하면 된다.
  */
 @Component
-class VcsBackends(backends: List<VcsBackend>) {
+class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>) {
 
-    private val backends: Map<VcsType, VcsBackend> = backends.associateBy { it.type }
+    private val lifecycles: Map<VcsType, RepositoryLifecycle> = lifecycles.associateBy { it.type }
+    private val commits: Map<VcsType, CommitReader> = commits.associateBy { it.type }
+    private val code: Map<VcsType, CodeReader> = code.associateBy { it.type }
+
+    private fun <T> pick(parts: Map<VcsType, T>, vcs: String?): T =
+        VcsType.of(vcs)?.let { parts[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
 
     /**
-     * [vcs] 열 값의 구현 묶음이다.
+     * [vcs] 열 값의 수명 구현이다.
      *
-     * @throws UnsupportedOperationException 모르는 값이거나 구현이 없을 때
+     * @throws UnsupportedOperationException 모르는 값이거나 구현이 없을 때(아래 읽기 구현도 같다)
      */
-    fun backend(vcs: String?): VcsBackend =
-        VcsType.of(vcs)?.let { backends[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
-
-    /** [vcs]의 수명 구현이다. */
-    fun lifecycle(vcs: String?): RepositoryLifecycle = backend(vcs).lifecycle
+    fun lifecycle(vcs: String?): RepositoryLifecycle = pick(lifecycles, vcs)
 
     /** [vcs]의 커밋 읽기 구현이다. */
-    fun commits(vcs: String?): CommitReader = backend(vcs).commits
+    fun commits(vcs: String?): CommitReader = pick(commits, vcs)
+
+    /** [vcs]의 코드 읽기 구현이다. */
+    fun code(vcs: String?): CodeReader = pick(code, vcs)
 
     companion object {
-        /** 단위 시험용으로 구현을 직접 묶는다. */
-        fun of(vararg backends: VcsBackend) = VcsBackends(backends.toList())
+        /** 단위 시험용으로 구현을 직접 묶는다. 필요 없는 역할은 비워 둔다. */
+        fun of(lifecycles: List<RepositoryLifecycle> = emptyList(), commits: List<CommitReader> = emptyList(), code: List<CodeReader> = emptyList()) =
+            VcsBackends(lifecycles, commits, code)
     }
 }

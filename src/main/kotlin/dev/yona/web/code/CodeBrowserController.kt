@@ -187,7 +187,7 @@ class CodeBrowserController(
     }
 
     /** JGit의 큰 객체 한도를 넘는 Git 파일이면 흘려보낼 수 있는 형태로 돌려준다. 아니면 `null`이다. */
-    private fun largeFile(owner: String, name: String, rev: String, rawPath: String): Pair<dev.yona.repository.CodeBrowserService.LargeRawFile, String>? {
+    private fun largeFile(owner: String, name: String, rev: String, rawPath: String): Pair<dev.yona.repository.LargeRawFile, String>? {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return null
         val path = rawPath.removePrefix("/")
         val large = service.largeRawFile(project, UrlPaths.decodeSegmentOrSelf(rev), path) ?: return null
@@ -195,7 +195,7 @@ class CodeBrowserController(
     }
 
     /** 큰 파일을 응답에 바로 흘려 쓴다. 본문을 직접 썼으므로 `null`을 돌려준다. */
-    private fun streamed(large: dev.yona.repository.CodeBrowserService.LargeRawFile, contentType: String, response: HttpServletResponse): Any? {
+    private fun streamed(large: dev.yona.repository.LargeRawFile, contentType: String, response: HttpServletResponse): Any? {
         response.contentType = contentType
         response.setContentLengthLong(large.size)
         large.use { l -> l.open().use { it.copyTo(response.outputStream) } }
