@@ -1,19 +1,11 @@
 package dev.yona.web.git
 
-import dev.yona.util.LenientVersion
-import dev.yona.access.AccessControl
-import dev.yona.access.ProjectResource
-import dev.yona.domain.enumeration.Operation
-import dev.yona.domain.enumeration.ResourceType
-import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.RecentVisitService
-import dev.yona.domain.user.User
 import dev.yona.repository.GitHttpService
-import dev.yona.web.access.BasicCredentials
+import dev.yona.web.access.VcsServingGate
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -22,8 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
-import java.util.Base64
-import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 /**
@@ -38,11 +28,9 @@ import java.util.zip.GZIPInputStream
 @ResponseBody
 class GitHttpController(
     private val projectService: ProjectService,
-    private val accessControl: AccessControl,
-    private val basicAuth: dev.yona.web.access.BasicAuthResolver,
+    private val gate: VcsServingGate,
     private val gitHttp: GitHttpService,
     private val recentVisits: RecentVisitService,
-    private val messages: MessageSource,
     private val properties: dev.yona.config.YonaProperties,
     private val wikiService: dev.yona.domain.wiki.WikiService,
     private val metrics: dev.yona.observability.VcsMetrics
@@ -54,23 +42,15 @@ class GitHttpController(
         @PathVariable ownerName: String, @PathVariable("project") projectName: String, @RequestParam(required = false) service: String?,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
-        val credentials = BasicCredentials.parse(request)
-        if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
-        val identity = metrics.span("vcs.authenticate", "vcs" to "git") { basicAuth.identify(request, response, credentials) }
-        if (identity.blocked) return tooManyAttempts()
+        val identity = when (val entry = gate.enter("git", request, response)) {
+            is VcsServingGate.Entry.Passed -> entry.identity
+            is VcsServingGate.Entry.Stopped -> return entry.response
+        }
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
         // 서비스 이름은 요청 매개변수라 지표 태그로 쓰지 않고 `info_refs`로 고정한다(카디널리티)
         return measured("info_refs", response) { handle(ownerName, projectName, service, advertise = true, identity, request, response, it) }
-    }
-
-    /**
-     * 자격 형식이 틀리면 본문 없는 400이다. v1.6 `BasicAuthAction`은 기본 액션 밖에서 직접 `badRequest()`를 내므로 `Cache-Control`이 붙지 않는다.
-     */
-    private fun malformed(response: HttpServletResponse): ResponseEntity<Void> {
-        response.setHeader("Cache-Control", null)
-        return ResponseEntity.badRequest().build()
     }
 
     /** 복제나 가져오기, 푸시의 요청 본문을 처리한다. */
@@ -79,10 +59,10 @@ class GitHttpController(
         @PathVariable ownerName: String, @PathVariable("project") projectName: String, @PathVariable service: String,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
-        val credentials = BasicCredentials.parse(request)
-        if (credentials === BasicCredentials.MALFORMED) return malformed(response)
-        val identity = metrics.span("vcs.authenticate", "vcs" to "git") { basicAuth.identify(request, response, credentials) }
-        if (identity.blocked) return tooManyAttempts()
+        val identity = when (val entry = gate.enter("git", request, response)) {
+            is VcsServingGate.Entry.Passed -> entry.identity
+            is VcsServingGate.Entry.Stopped -> return entry.response
+        }
         return measured(service.removePrefix("git-").replace('-', '_'), response) { handle(ownerName, projectName, service, advertise = false, identity, request, response, it) }
     }
 
@@ -99,13 +79,6 @@ class GitHttpController(
         return out
     }
 
-    /** 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36). */
-    private fun tooManyAttempts(): ResponseEntity<String> = text(HttpStatus.TOO_MANY_REQUESTS, "Too many failed authentication attempts")
-
-    /** 401 본문이다. 비밀번호 칸에 토큰이 아닌 값을 보냈으면 토큰을 쓰라고 안내한다(D-70). */
-    private fun unauthorizedMessage(identity: dev.yona.web.access.BasicIdentity) =
-        if (identity.passwordRefused) dev.yona.web.access.BasicIdentity.PASSWORD_REFUSED_MESSAGE else "Invalid username or password"
-
     private fun handle(
         ownerName: String, projectName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse,
         req: dev.yona.observability.VcsMetrics.Request
@@ -115,17 +88,8 @@ class GitHttpController(
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName)
             ?: return handleWiki(ownerName, projectName, service, advertise, identity, request, response, req)
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
-        // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(읽기는 `repo`나 `read:repo`, 공개 프로젝트는 `public_repo`, 푸시는 `repo`나 공개 프로젝트의 `public_repo`)
-        if (!basicAuth.allowsRepository(identity, project, write = service != GitHttpService.UPLOAD_PACK)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
-
-        if (!metrics.span("vcs.authorize", "vcs" to "git") { isAllowed(project, user, service) }) {
-            if (user == null) {
-                response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
-                return text(HttpStatus.UNAUTHORIZED, unauthorizedMessage(identity))
-            }
-            return forbidden(user, ownerName, projectName, request.getHeader("User-Agent"))
-        }
-
+        // 토큰 범위와 권한은 공통 앞단이 확인한다. 안내 문구에는 요청한 이름을 적는다(프로젝트 이름이 바뀐 뒤 이전 주소로 들어왔을 수 있다)
+        gate.admit(project, identity, VcsServingGate.Access(write = service != GitHttpService.UPLOAD_PACK), "git", request, response, ownerName, projectName)?.let { return it }
 
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
@@ -159,16 +123,7 @@ class GitHttpController(
         // 위키를 끈 프로젝트는 저장소가 있어도 없는 것처럼 404이다(D-61)
         if (!wikiService.enabled(project)) return ResponseEntity.notFound().build<Void>()
         req.target = "wiki"
-        if (!basicAuth.allowsRepository(identity, project, write = service != GitHttpService.UPLOAD_PACK)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
-        val user = identity.user
-        val operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
-        if (!metrics.span("vcs.authorize", "vcs" to "git", "target" to "wiki") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.WIKI_PAGE, project), operation) }) {
-            if (user == null) {
-                response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
-                return text(HttpStatus.UNAUTHORIZED, unauthorizedMessage(identity))
-            }
-            return forbidden(user, ownerName, repositoryName, request.getHeader("User-Agent"))
-        }
+        gate.admit(project, identity, VcsServingGate.Access(write = service != GitHttpService.UPLOAD_PACK, wiki = true), "git", request, response, ownerName, repositoryName)?.let { return it }
         if (!wikiService.available(project)) return text(HttpStatus.CONFLICT, "The wiki of this project is not available")
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
@@ -180,42 +135,6 @@ class GitHttpController(
             if (!gitHttp.rpcWiki(project, service, input, metrics.countedOutput("git", "wiki", response.outputStream))) req.result = "error"
         }
         return null
-    }
-
-    /** 복제는 읽기, 푸시는 수정 권한이다. 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다. */
-    private fun isAllowed(project: Project, user: User?, service: String): Boolean {
-        var operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
-        if (project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user)) operation = Operation.UPDATE
-        return accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)
-    }
-
-    /**
-     * 로그인한 사용자의 권한 없음 응답이다. `git.error.permission`은 요청의 언어(`Accept-Language`)로, `git.error.notAllowedCharset`은
-     * 서버 JVM의 기본 로케일로 적는다 (v1.6 `GitApp`: 앞은 `Messages.get(키, …)`, 뒤는 `Messages.get(Lang.defaultLang(), 키, …)`).
-     */
-    private fun forbidden(user: User, owner: String, project: String, userAgent: String?): ResponseEntity<String> {
-        return if (isCharsetAllowed(userAgent)) {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).header("Content-Type", "text/plain;charset=UTF-8")
-                .body(messages.getMessage("git.error.permission", arrayOf<Any>(user.loginId.orEmpty(), owner, project), org.springframework.context.i18n.LocaleContextHolder.getLocale()))
-        } else {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).header("Content-Type", "text/plain")
-                .body(messages.getMessage("git.error.notAllowedCharset", arrayOf<Any>(user.loginId.orEmpty(), owner, project), Locale.getDefault()))
-        }
-    }
-
-    /** Git 2.1.0부터 Content-Type에 문자 집합을 허용한다. `User-Agent`의 버전이 올바른 세 자리 버전이 아니면 허용하지 않는다 (v1.6 `isCharsetAllowed`). */
-    private fun isCharsetAllowed(userAgent: String?): Boolean {
-        if (userAgent == null) return false
-        // v1.6은 `java-semver`의 관대한 파서로 읽고, 읽지 못하면 거짓이다
-        val version = LenientVersion.parse(semverize(userAgent.substringAfter('/'))) ?: return false
-        return version >= LenientVersion.of(2, 1, 0)
-    }
-
-    /** v1.6 `Config.semverize`: `v` 접두어 제거, `.pre` 같은 문자 단계는 `-pre`로, 두 자리는 세 자리로 맞춘다. */
-    private fun semverize(version: String): String {
-        var v = version.replaceFirst(Regex("^v"), "")
-        v = v.replace(Regex("\\.([^\\d]+)"), "-$1")
-        return v.replaceFirst(Regex("^(\\d+\\.\\d+)($|-)"), "$1.0$2")
     }
 
     private fun text(status: HttpStatus, body: String): ResponseEntity<String> =
