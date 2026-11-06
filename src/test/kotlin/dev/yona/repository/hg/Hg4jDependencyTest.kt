@@ -16,6 +16,22 @@ class Hg4jDependencyTest {
         assertThat(runCatching { Class.forName(MERGE_COMMIT_RESULT) }.isSuccess).describedAs("$MERGE_COMMIT_RESULT 클래스").isTrue()
     }
 
+    /**
+     * 8e와 9단계가 쓰는 hg4j 1.1.2의 새 기능이다(배포 전에는 `settings.gradle.kts`의 임시 `includeBuild`로 받는다, D-89): 스쿼시 병합, 그래프트 결과 값,
+     * 머리별 태그 읽기, 서버의 기준 경로, 훅 거절 사유 예외. 메서드 이름을 문자열로 찾는 것은 옛 hg4j가 올라왔을 때 컴파일 오류가 아니라 시험 실패로
+     * 드러나게 하기 위해서이다.
+     */
+    @Test
+    fun `hg4j 1_1_2의 스쿼시, 그래프트 결과, 머리별 태그, 기준 경로, 훅 거절 사유 기능이 있다`() {
+        fun has(className: String, method: String) = runCatching { Class.forName(className).methods.any { it.name == method } }.getOrDefault(false)
+        val api = "io.github.search5.hg4j.api."
+        assertThat(has(api + "MergeCommitCommand", "setSquash")).describedAs("MergeCommitCommand.setSquash").isTrue()
+        assertThat(has(api + "GraftInMemory", "execute")).describedAs("GraftInMemory.execute").isTrue()
+        assertThat(has(api + "TagsCommand", "setReadFromHeads")).describedAs("TagsCommand.setReadFromHeads").isTrue()
+        assertThat(has("io.github.search5.hg4j.transport.HgHttpWireServer", "setBasePath")).describedAs("HgHttpWireServer.setBasePath").isTrue()
+        assertThat(runCatching { Class.forName("io.github.search5.hg4j.errors.HgHookAbortException") }.isSuccess).describedAs("HgHookAbortException").isTrue()
+    }
+
     @Test
     fun `서버 쪽 HTTP와 SSH 서빙 클래스가 있다`() {
         for (name in listOf("io.github.search5.hg4j.transport.HgHttpWireServer", "io.github.search5.hg4j.transport.HgSshWireServer")) {

@@ -1139,6 +1139,15 @@ updated: 2026-10-29
 - **상태**: 확정(2026-11-06). 진행은 [architecture/mercurial-plan.md](architecture/mercurial-plan.md) 7.8절 9c.
 
 
+### D-89. hg4j 배포 전까지 임시 `includeBuild` (2026-11-06, **확정**)
+
+- **배경**: D-86 4번은 "게시된 hg4j 1.1.1 이상"(권장 A, 확정)이었다. 8단계와 9단계에 필요한 hg4j 보완(스쿼시용 `MergeCommitCommand.setSquash`, 리베이스 결과 값 `GraftInMemory.execute`, 병합과 그래프트의 LFS 포인터 보존, 서버 훅 거절 사유 `HgHookAbortException`, `HgHttpWireServer.setBasePath`, 머리별 태그 읽기 `TagsCommand.setReadFromHeads`)을 hg4j 담당 세션(`hg-da`)이 구현해 커밋했으나(`ca44e39`, `963bc8b`) 아직 배포하지 않았다(다음 배포는 1.1.2). `hg-da`가 배포 전까지 빌드가 로컬 소스를 참조하게 해 달라고 요청했다.
+- **결정자**: 선생님(2026-11-06).
+- **질문과 권장안**: (A) 배포 전까지 `settings.gradle.kts`에 임시 `includeBuild("/home/jiho/yona-convert/hg4j")`를 둔다 (B) 1.1.2 배포를 기다린다. **권장 (A).** 이유: 8e(스쿼시, 리베이스)와 9a의 일부가 새 기능에 의존하고, 임시이며 줄 하나로 되돌릴 수 있다. 대가는 그동안 이 컴퓨터에서만 빌드된다는 점이다.
+- **확정 내용**: (A). 배포되면 `includeBuild` 줄을 지우고 `build.gradle.kts`의 hg4j 버전을 1.1.2 이상으로 올린다. 그동안 D-86 4번은 임시 예외이다. `Hg4jDependencyTest`가 새 기능이 클래스패스에 있는지 확인한다(옛 hg4j가 올라오면 시험이 실패한다).
+- **상태**: 확정(2026-11-06). 되돌리는 일은 mercurial-plan.md 7.8절에 적어 둔다.
+
+
 ## 정책 결정
 
 ### P-01. v1.6을 그대로 따른다 (AGENTS.md)
