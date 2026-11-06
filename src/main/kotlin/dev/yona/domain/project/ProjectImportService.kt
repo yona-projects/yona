@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.domain.vcs.VcsType
 import dev.yona.util.LegacyText
 import dev.yona.access.AccessControl
 import dev.yona.domain.enumeration.RoleType
@@ -23,7 +24,9 @@ import java.util.Date
  * @property authId 저장소에 접근할 아이디. 어디에도 저장하지 않는다
  */
 data class ProjectImportForm(
-    val owner: String?, val name: String?, val overview: String?, val projectScope: String?, val url: String?, val authId: String?, val authPw: String?, val menus: Set<String>
+    val owner: String?, val name: String?, val overview: String?, val projectScope: String?, val url: String?, val authId: String?, val authPw: String?, val menus: Set<String>,
+    /** 가져올 저장소 종류(`GIT`, `Mercurial`). 없으면 v1.6처럼 Git이다. */
+    val vcs: String? = null
 )
 
 /** 가져오기 결과이다. */
@@ -80,6 +83,10 @@ class ProjectImportService(
         val scope = form.projectScope?.let { value -> dev.yona.domain.enumeration.ProjectScope.entries.firstOrNull { it.name == value } }
         if (form.projectScope != null && scope == null) errors.reject("projectScope", "error.invalid")
 
+        // v1.6은 종류를 Git으로 고정했다. 종류가 없으면 Git이고, 가져올 수 있는 종류(Git, Mercurial)가 아니면 오류이다(X-7)
+        val vcs = if (form.vcs.isNullOrEmpty()) VcsType.GIT.columnValue else IMPORTABLE.firstOrNull { it == form.vcs }
+        if (vcs == null) errors.reject("vcs", "error.invalid")
+
         if (!ownerIsUser && organization == null) errors.reject("owner", "project.owner.invalidate")
         if (ownerIsUser && ownerUser?.id != creator.id) errors.reject("owner", "project.owner.invalidate")
         if (organization != null && !organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(requireNotNull(organization.id), requireNotNull(creator.id), RoleType.ORG_ADMIN.id)) {
@@ -95,7 +102,7 @@ class ProjectImportService(
         }
 
         val project = Project(
-            owner = owner, name = name, overview = form.overview, vcs = dev.yona.domain.vcs.VcsType.GIT.columnValue, projectScope = scope, organization = organization,
+            owner = owner, name = name, overview = form.overview, vcs = vcs, projectScope = scope, organization = organization,
             siteurl = "http://localhost:9000/$name", createdDate = Date()
         )
         try {
@@ -118,6 +125,19 @@ class ProjectImportService(
             errors.reject("url", "project.import.error.wrong.url")
         } catch (e: TransportException) {
             transportError(errors, e, form.authId.isNullOrEmpty() && form.authPw.isNullOrEmpty())
+        } catch (e: io.github.search5.hg4j.errors.HgAuthException) {
+            // Mercurial: 인증이 필요하거나 틀렸다. Git의 안내와 같은 문구를 쓴다
+            if (form.authId.isNullOrEmpty() && form.authPw.isNullOrEmpty()) {
+                errors.reject("repoAuth", "required")
+                errors.reject("url", "project.import.error.transport.unauthorized")
+            } else {
+                errors.reject("authId", "project.import.error.transport.failedToAuth")
+            }
+        } catch (e: java.io.IOException) {
+            // Mercurial: 주소를 읽을 수 없거나 저장소가 아니거나 전송에 실패했다
+            errors.reject("url", "project.import.error.wrong.url")
+        } catch (e: IllegalArgumentException) {
+            errors.reject("url", "project.import.error.wrong.url")
         }
         repositories.deleteRepository(project)
         return ImportResult.Rejected(errors)
@@ -164,6 +184,9 @@ class ProjectImportService(
     }
 
     private companion object {
+        /** 가져올 수 있는 저장소 종류이다. Subversion은 가져오지 못한다. */
+        val IMPORTABLE = listOf(VcsType.GIT.columnValue, VcsType.MERCURIAL.columnValue)
+
         /** 사이트 관리자의 사용자 번호이다 (v1.6 `User.SITE_MANAGER_ID`). */
         const val SITE_MANAGER_ID = 1L
     }

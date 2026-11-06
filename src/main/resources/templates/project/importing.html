@@ -153,10 +153,12 @@
               </label>
             </div>
             <div class="col-lg-10 cu-desc">
-              <select data-toggle="select2" class="mb10 mt5 form-select" disabled>
-                <option selected th:text="#{project.new.vcsType.git}"></option>
+              <select id="vcs" name="vcs" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox" class="mb10 mt5 form-select" style="min-width: 220px;">
+                <option th:each="vcsType : ${vcsTypes}" th:value="${vcsType.value}"
+                        th:selected="${(form.vcs == null and vcsType.value == 'GIT') or form.vcs == vcsType.value}"
+                        th:text="#{${vcsType.labelKey}}">
+                </option>
               </select>
-              <input type="hidden" name="vcs" value="GIT">
             </div>
           </div>
           <hr>

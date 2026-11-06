@@ -65,7 +65,7 @@ class ImportController(
         val form = ProjectImportForm(
             request.getParameter("owner"), request.getParameter("name"), request.getParameter("overview"), request.getParameter("projectScope"),
             request.getParameter("url"), request.getParameter("authId"), request.getParameter("authPw"),
-            ALL_MENUS.filter { request.getParameter(it)?.lowercase() in TRUE_VALUES }.toSet()
+            ALL_MENUS.filter { request.getParameter(it)?.lowercase() in TRUE_VALUES }.toSet(), request.getParameter("vcs")
         )
         return when (val result = importService.import(form, requireNotNull(creator))) {
             is ImportResult.Created -> RedirectSupport.see(request, response, dev.yona.util.UrlPaths.projectPath(result.project.owner, result.project.name))
@@ -89,6 +89,7 @@ class ImportController(
             .addObject("organizations", adminOrganizations)
             .addObject("ownerIsOrganization", form.owner?.let { owner -> adminOrganizations.any { it.name.equals(owner, ignoreCase = true) } } ?: false)
             .addObject("privateIsDefault", properties.projectDefaultScope.equals("private", ignoreCase = true))
+            .addObject("vcsTypes", IMPORT_VCS_TYPES)
             .addObject("repoAuthChecked", !form.authId.isNullOrEmpty() || errors.first("repoAuth") != null)
     }
 
@@ -105,5 +106,11 @@ class ImportController(
         val ALL_MENUS = listOf("code", "issue", "pullRequest", "review", "milestone", "board")
         val DEFAULT_MENUS = ALL_MENUS.toSet()
         val TRUE_VALUES = setOf("true", "on", "yes", "1")
+
+        /** 가져올 수 있는 저장소 종류의 선택지이다. Subversion은 가져오지 못한다. */
+        val IMPORT_VCS_TYPES = listOf(
+            ProjectCreateController.VcsOption("GIT", "project.new.vcsType.git"),
+            ProjectCreateController.VcsOption("Mercurial", "project.new.vcsType.mercurial")
+        )
     }
 }

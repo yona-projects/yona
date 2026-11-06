@@ -54,6 +54,31 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
         }
     }
 
+    /**
+     * 다른 Mercurial 저장소를 주소로 가져와 복제한다(X-7 7b). [cloneLocal]과 같이 빈 저장소를 만들어 가져오고(작업 파일 없음), 인증 정보는
+     * 있을 때만 쓴다. 같은 이름의 디렉터리가 남아 있으면 이전에 실패한 흔적이므로 지우고 시작하며, 실패하면 만들다 만 디렉터리를 지운다.
+     *
+     * @throws io.github.search5.hg4j.errors.HgAuthException 인증이 필요하거나 인증 정보가 틀렸을 때
+     * @throws IOException 주소를 읽을 수 없거나 저장소가 아니거나 전송에 실패했을 때
+     */
+    fun cloneRemote(owner: String, name: String, url: String, authId: String?, authPw: String?) {
+        delete(owner, name)
+        create(owner, name)
+        try {
+            open(owner, name).use { hg ->
+                val pull = io.github.search5.hg4j.api.PullCommand(hg.repository).setSource(url)
+                if (!authId.isNullOrEmpty() || !authPw.isNullOrEmpty()) {
+                    pull.setCredentialsProvider(io.github.search5.hg4j.transport.UsernamePasswordCredentialsProvider(authId.orEmpty(), authPw.orEmpty()))
+                }
+                pull.call()
+            }
+            File(directoryOf(owner, name), ".hg/dirstate").delete()
+        } catch (e: Exception) {
+            delete(owner, name)
+            throw e
+        }
+    }
+
     /** 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
     fun delete(owner: String, name: String) {
         directoryOf(owner, name).deleteRecursively()

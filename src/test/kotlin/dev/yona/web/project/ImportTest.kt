@@ -79,8 +79,8 @@ class ImportTest : AbstractIntegrationTest() {
     }
 
     private fun send(session: MockHttpSession, owner: String, name: String, url: String, extra: Map<String, String> = emptyMap()) =
-        post("/_import").session(session).param("owner", owner).param("name", name).param("url", url).param("projectScope", "PUBLIC").param("vcs", "GIT")
-            .param("code", "true").param("issue", "true").apply { extra.forEach { (k, v) -> param(k, v) } }
+        post("/_import").session(session).param("owner", owner).param("name", name).param("url", url).param("projectScope", "PUBLIC").param("vcs", extra["vcs"] ?: "GIT")
+            .param("code", "true").param("issue", "true").apply { extra.filterKeys { it != "vcs" }.forEach { (k, v) -> param(k, v) } }
 
     @Test
     fun `가져오기 폼은 로그인이 필요하고 소유자를 미리 고를 수 있다`() {
@@ -91,7 +91,9 @@ class ImportTest : AbstractIntegrationTest() {
         assertEquals("/_import", doc.selectFirst("form#importGit")!!.attr("action"))
         assertEquals(listOf(me.loginId, org.name), doc.select("select#project-owner option").map { it.attr("value") })
         assertEquals(org.name, doc.selectFirst("select#project-owner option[selected]")!!.attr("value"))
-        assertEquals("GIT", doc.selectFirst("input[name=vcs]")!!.attr("value"))
+        // 저장소 종류는 가져올 수 있는 종류(Git, Mercurial)를 고르는 선택 상자이고 기본은 Git이다(v1.6은 Git으로 고정한 숨은 입력이었다)
+        assertEquals(listOf("GIT", "Mercurial"), doc.select("select#vcs option").map { it.attr("value") })
+        assertEquals("GIT", doc.selectFirst("select#vcs option[selected]")!!.attr("value"))
         assertEquals(7, doc.select("input[type=checkbox][name][value=true]").size)
     }
 
@@ -179,5 +181,60 @@ class ImportTest : AbstractIntegrationTest() {
     @Test
     fun `로그인하지 않으면 만들 수 없다`() {
         mockMvc.perform(post("/_import").param("owner", "x").param("name", "y").param("url", "z")).andExpect(status().isForbidden)
+    }
+
+    // --- Mercurial 가져오기(X-7 7b) ---
+
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
+
+    /** 가져올 Mercurial 원본 저장소의 경로이다. 커밋 둘과 이름표 `main`이 있다. */
+    private fun hgSource(): String {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
+        val n = ++sequence
+        val dir = hgRepositories.directoryOf("imo$n", "hgsrc$n")
+        // 이전 실행이 남긴 디렉터리가 있으면 지운다(번호가 실행마다 같다)
+        dir.deleteRecursively(); dev.yona.support.HgTestSupport.init(dir)
+        dev.yona.support.HgTestSupport.commit(dir, "하나", mapOf("a.txt" to "a\n"))
+        dev.yona.support.HgTestSupport.commit(dir, "둘", mapOf("b.txt" to "b\n"), "2026-11-02 10:00 +0900")
+        dev.yona.support.HgTestSupport.bookmark(dir, "main")
+        return dir.canonicalPath
+    }
+
+    @Test
+    fun `종류를 Mercurial로 고르면 Mercurial 저장소를 가져와 같은 종류의 프로젝트를 만든다`() {
+        val me = user(); val url = hgSource()
+        mockMvc.perform(send(login(me), me.loginId!!, "hgimported", url, mapOf("vcs" to "Mercurial"))).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${me.loginId}/hgimported"))
+        val project = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "hgimported")!!
+        assertEquals("Mercurial", project.vcs)
+        assertEquals(listOf("refs/heads/main"), repositories.refNames(project))
+        assertTrue(dev.yona.support.HgTestSupport.verifies(hgRepositories.directoryOf(me.loginId!!, "hgimported")))
+        assertTrue(projectUsers.existsByUserIdAndProjectIdAndRoleId(me.id!!, project.id!!, RoleType.MANAGER.id))
+    }
+
+    @Test
+    fun `Mercurial 저장소가 아닌 주소는 주소 오류이고 만들다 만 디렉터리를 남기지 않는다`() {
+        val me = user()
+        val response = mockMvc.perform(send(login(me), me.loginId!!, "hgbroken", "/no/such/hg/repository", mapOf("vcs" to "Mercurial"))).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(response.contains("\"url\""), response)
+        assertNull(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "hgbroken"))
+        assertTrue(!hgRepositories.directoryOf(me.loginId!!, "hgbroken").exists())
+    }
+
+    @Test
+    fun `가져올 수 없는 종류나 모르는 값은 종류 오류이다`() {
+        val me = user(); val url = source()
+        for (vcs in listOf("Subversion", "Bazaar")) {
+            val response = mockMvc.perform(send(login(me), me.loginId!!, "badvcs", url, mapOf("vcs" to vcs))).andExpect(status().isBadRequest).andReturn().response.contentAsString
+            assertTrue(response.contains("\"vcs\""), response)
+        }
+        assertNull(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "badvcs"))
+    }
+
+    @Test
+    fun `종류를 주지 않으면 v1_6처럼 Git으로 가져온다`() {
+        val me = user(); val url = source()
+        mockMvc.perform(post("/_import").session(login(me)).param("owner", me.loginId!!).param("name", "novcs").param("url", url).param("projectScope", "PUBLIC").param("code", "true"))
+            .andExpect(status().isSeeOther)
+        assertEquals("GIT", projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "novcs")!!.vcs)
     }
 }
