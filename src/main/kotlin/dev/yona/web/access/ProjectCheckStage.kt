@@ -29,7 +29,7 @@ import org.springframework.web.servlet.support.RequestContextUtils
  * ## 어노테이션 하나가 하는 일
  * - [GuestProhibit]: 게스트이면 홈으로 보낸다.
  * - [NullProjectCheck]: 프로젝트가 있는지만 확인한다.
- * - [IsAllowed], [IsCreatable], [IsOnlyGitAvailable], [DefaultProjectCheck], [CodeAccessCheck]: 프로젝트를 찾고 읽기 권한을 확인한 뒤
+ * - [IsAllowed], [IsCreatable], [RequiresVcs], [DefaultProjectCheck], [CodeAccessCheck]: 프로젝트를 찾고 읽기 권한을 확인한 뒤
  *   자기 검사를 한다. v1.6의 `AbstractProjectCheckAction.call`이 하위 액션마다 공통으로 하는 일이다. 같은 요청에서 여러 개가 붙으면
  *   읽기 확인은 한 번만 계산한다(결과가 같다).
  *
@@ -60,13 +60,13 @@ class ProjectCheckStage(
             is NullProjectCheck -> {
                 findProject(pathSegments(request), request) ?: throw ViewResultException(projectNotFound(request))
             }
-            is IsAllowed, is IsCreatable, is IsOnlyGitAvailable, is DefaultProjectCheck, is CodeAccessCheck -> {
+            is IsAllowed, is IsCreatable, is RequiresVcs, is DefaultProjectCheck, is CodeAccessCheck -> {
                 val segments = pathSegments(request)
                 val project = readableProject(request, segments)
                 when (annotation) {
                     is IsAllowed -> checkAllowed(annotation, project, segments)
                     is IsCreatable -> checkCreatable(annotation, project)
-                    is IsOnlyGitAvailable -> if (project.vcs != "GIT") {
+                    is RequiresVcs -> if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, annotation.value)) {
                         throw ViewResultException(ErrorViews.badRequest("error.badrequest.only.available.for.git"))
                     }
                     is CodeAccessCheck -> if (project.isCodeAccessibleMemberOnly == true &&

@@ -3,7 +3,8 @@ package dev.yona.support
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.CodeAccessCheck
 import dev.yona.web.access.DefaultProjectCheck
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.access.SiteManagerOnly
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -48,7 +49,7 @@ class AccessChainTestControllers : AccessChainParent() {
 
 /** 클래스에 Git 전용 검사가 있고 메서드에 코드 접근 검사가 있는 컨트롤러이다. */
 @RestController
-@IsOnlyGitAvailable
+@RequiresVcs(VcsCapability.PULL_REQUESTS)
 class AccessChainGitControllers {
 
     /** 메서드의 `CodeAccess`가 클래스의 `OnlyGit`보다 바깥이다 (`BranchApp.branches`와 같다). */

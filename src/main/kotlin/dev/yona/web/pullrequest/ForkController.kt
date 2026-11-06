@@ -11,7 +11,8 @@ import dev.yona.util.SiteUrls
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsCreatable
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
@@ -57,7 +58,7 @@ class ForkController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.FORK)
     fun newFork(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @RequestParam(required = false) forkOwner: String?
     ): Any {
@@ -83,7 +84,7 @@ class ForkController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.FORK)
     fun fork(
         @PathVariable("user") owner: String, @PathVariable("project") name: String,
         @RequestParam(name = "name", required = false) forkName: String?,
@@ -117,7 +118,7 @@ class ForkController(
     @PostMapping("/{user}/{project}/clone")
     @IsCreatable(ResourceType.FORK)
     @ResponseBody
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.FORK)
     fun doClone(
         @PathVariable("user") owner: String, @PathVariable("project") name: String,
         @RequestParam(name = "name", required = false) forkName: String?, @RequestParam(required = false) projectScope: String?, request: HttpServletRequest

@@ -13,7 +13,8 @@ import dev.yona.security.AvatarService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -46,7 +47,7 @@ class PullRequestReviewRequestController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun request(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @RequestBody(required = false) body: Map<String, Any?>?): Any {
         val pullRequest = find(owner, name, id) ?: return ErrorViews.notFound()
         val login = body?.get("reviewer")?.toString()?.takeIf { it.isNotBlank() } ?: return ErrorViews.badRequest("error.validation")
@@ -61,7 +62,7 @@ class PullRequestReviewRequestController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun cancel(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @PathVariable reviewer: String): Any {
         val pullRequest = find(owner, name, id) ?: return ErrorViews.notFound()
         val target = users.findByLoginId(reviewer) ?: return ErrorViews.notFound()
@@ -74,7 +75,7 @@ class PullRequestReviewRequestController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun candidates(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @RequestParam(required = false, defaultValue = "") query: String): Any {
         val pullRequest = find(owner, name, id) ?: return ErrorViews.notFound()
         return json(reviewRequests.candidates(pullRequest, query, currentUserProvider.get().user).map { userNode(it) })

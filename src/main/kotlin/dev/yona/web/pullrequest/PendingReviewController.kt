@@ -6,7 +6,8 @@ import dev.yona.domain.pullrequest.PullRequestService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -33,7 +34,7 @@ class PendingReviewController(
     @PostMapping("/{user}/{project}/pullRequest/{id}/pendingReview/comments/{commentId}/delete")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun deleteComment(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @PathVariable commentId: Long,
         request: HttpServletRequest, response: HttpServletResponse
@@ -47,7 +48,7 @@ class PendingReviewController(
     @PostMapping("/{user}/{project}/pullRequest/{id}/pendingReview/discard")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun discard(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val pullRequest = projectService.findByOwnerAndProjectName(owner, name)?.let { pullRequestService.findOne(it, id) } ?: return ErrorViews.notFound()
         pendingReview.discard(pullRequest, requireNotNull(currentUserProvider.get().user))

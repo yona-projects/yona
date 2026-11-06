@@ -27,11 +27,17 @@ annotation class IsAllowed(val value: Operation, val resourceType: ResourceType 
 @MustBeDocumented
 annotation class IsCreatable(val value: ResourceType)
 
-/** Git 프로젝트에서만 동작하는 기능에 붙인다. 다른 VCS이면 400을 응답한다. v1.6 `IsOnlyGitAvailable`이다. */
+/**
+ * 프로젝트의 저장소 종류가 [value] 기능을 지원하지 않으면 400을 응답한다. v1.6 `IsOnlyGitAvailable`을 기능 단위로 나눈 것이다.
+ * v1.6에서 이 어노테이션이 붙었던 기능은 모두 Git에서만 지원했으므로 지금의 응답은 같다. 종류가 늘어도 이 어노테이션은 바뀌지 않고
+ * [dev.yona.domain.vcs.VcsType]의 능력 선언만 바뀐다.
+ *
+ * @property value 요구하는 기능
+ */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class IsOnlyGitAvailable
+annotation class RequiresVcs(val value: dev.yona.domain.vcs.VcsCapability)
 
 /**
  * 프로젝트가 있고 읽을 수 있는지만 검사한다. 나머지 권한은 컨트롤러 안에서 직접 판단하는 경우에 쓴다.

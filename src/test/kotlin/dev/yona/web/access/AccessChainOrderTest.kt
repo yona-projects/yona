@@ -81,12 +81,12 @@ class AccessChainOrderTest : AbstractIntegrationTest() {
 
     @Test
     fun `메서드 어노테이션이 먼저이고 클래스는 부모부터 자식 순서이다`() {
-        // 메서드(DefaultProjectCheck) -> 부모 클래스(AnonymousCheck) -> 자식 클래스(RestController, IsOnlyGitAvailable)
+        // 메서드(DefaultProjectCheck) -> 부모 클래스(AnonymousCheck) -> 자식 클래스(RestController, RequiresVcs)
         val noise = setOf("GetMapping", "RestController", "Metadata")
         assertEquals(listOf("DefaultProjectCheck", "AnonymousCheck"), names("projectThenAnonymous").filterNot { it in noise })
         assertEquals(listOf("SiteManagerOnly", "AnonymousCheck"), names("siteManager").filterNot { it in noise })
         val git = AccessChainInterceptor.annotationsInPlayOrder(HandlerMethod(gitControllers, AccessChainGitControllers::class.java.getMethod("codeThenGit"))).map { it.annotationClass.simpleName }
-        assertEquals(listOf("CodeAccessCheck", "IsOnlyGitAvailable"), git.filterNot { it in noise })
+        assertEquals(listOf("CodeAccessCheck", "RequiresVcs"), git.filterNot { it in noise })
     }
 
     @Test

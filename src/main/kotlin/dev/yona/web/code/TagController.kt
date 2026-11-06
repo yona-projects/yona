@@ -14,7 +14,8 @@ import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.CodeAccessCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import org.springframework.stereotype.Controller
@@ -45,7 +46,7 @@ data class TagRow(
  * 태그 이름은 주소에서 두 번 디코딩하며([UrlPaths.decodeSegmentOrSelf]) 슬래시가 들어 있을 수 있다.
  */
 @Controller
-@IsOnlyGitAvailable
+@RequiresVcs(VcsCapability.TAGS)
 @AnonymousCheck
 class TagController(
     private val projectService: ProjectService,

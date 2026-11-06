@@ -15,7 +15,8 @@ import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -50,7 +51,7 @@ class PullRequestReviewController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun submit(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse
     ): Any {
@@ -72,7 +73,7 @@ class PullRequestReviewController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun dismiss(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @PathVariable reviewId: Long,
         request: HttpServletRequest, response: HttpServletResponse

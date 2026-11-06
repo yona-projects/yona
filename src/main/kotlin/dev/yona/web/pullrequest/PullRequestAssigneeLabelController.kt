@@ -16,7 +16,8 @@ import dev.yona.security.AvatarService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
@@ -53,7 +54,7 @@ class PullRequestAssigneeLabelController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun assignees(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @RequestBody(required = false) body: Map<String, Any?>?): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val pullRequest = pullRequestService.findOne(project, id) ?: return ErrorViews.notFound()
@@ -72,7 +73,7 @@ class PullRequestAssigneeLabelController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun labels(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val pullRequest = pullRequestService.findOne(project, id) ?: return ErrorViews.notFound()

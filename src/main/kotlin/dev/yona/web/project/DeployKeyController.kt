@@ -10,7 +10,8 @@ import dev.yona.web.RedirectSupport
 import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -27,7 +28,7 @@ import org.springframework.web.servlet.ModelAndView
  * 목록의 행 동작은 삭제 하나뿐이다. 설정을 고칠 수 있는 사용자(프로젝트 관리자)만 쓰며 Git 프로젝트에서만 동작한다. 다른 저장소의 키 삭제는 404이다.
  */
 @Controller
-@IsOnlyGitAvailable
+@RequiresVcs(VcsCapability.DEPLOY_KEYS)
 @AnonymousCheck
 class DeployKeyController(
     private val projectService: ProjectService,

@@ -19,7 +19,8 @@ import dev.yona.web.PostAttachments
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
@@ -59,7 +60,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     // 트랜잭션을 걸지 않는다: 병합 중 예외가 나도 먼저 저장한 병합 중 표시가 남아야 v1.6과 같다 (R-76)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun accept(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val accepter = requireNotNull(currentUserProvider.get().user)
@@ -80,7 +81,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun close(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         workflow.close(pullRequest, requireNotNull(currentUserProvider.get().user))
@@ -91,7 +92,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun open(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         if (!workflow.reopen(pullRequest, requireNotNull(currentUserProvider.get().user))) return ErrorViews.badRequest()
@@ -102,7 +103,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun editForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long): Any {
         val (toProject, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val from = requireNotNull(pullRequest.fromProject)
@@ -130,7 +131,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun edit(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val title = request.getParameter("title")
@@ -162,7 +163,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun deleteFromBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         workflow.deleteFromBranch(pullRequest)
@@ -173,7 +174,7 @@ class PullRequestActionController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun restoreFromBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         workflow.restoreFromBranch(pullRequest)

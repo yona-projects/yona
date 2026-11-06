@@ -13,7 +13,8 @@ import dev.yona.web.RedirectSupport
 import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -29,7 +30,7 @@ import org.springframework.web.servlet.ModelAndView
  * 떠난 잠금을 프로젝트 관리자가 강제로 풀게 한다. 설정을 고칠 수 있는 사용자(프로젝트 관리자)만 쓰고 Git 프로젝트에서만 동작한다.
  */
 @Controller
-@IsOnlyGitAvailable
+@RequiresVcs(VcsCapability.LFS)
 @AnonymousCheck
 class ProjectLfsController(
     private val projectService: ProjectService,

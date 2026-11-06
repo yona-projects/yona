@@ -11,7 +11,8 @@ import dev.yona.util.UrlPaths
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -28,7 +29,7 @@ import org.springframework.web.servlet.ModelAndView
  * 이름, 적용 상태, 바이패스, 대상 브랜치, 규칙을 정해 저장한다. 설정을 고칠 수 있는 사용자(프로젝트 관리자)만 쓰며 Git 프로젝트에서만 동작한다.
  */
 @Controller
-@IsOnlyGitAvailable
+@RequiresVcs(VcsCapability.PROTECTED_REFS)
 @AnonymousCheck
 class RulesetController(private val projectService: ProjectService, private val service: RulesetService, private val views: ProjectViewFactory) {
 

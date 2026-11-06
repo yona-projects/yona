@@ -7,7 +7,8 @@ import dev.yona.web.access.DefaultProjectCheck
 import dev.yona.web.access.GuestProhibit
 import dev.yona.web.access.IsAllowed
 import dev.yona.web.access.IsCreatable
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.access.NullProjectCheck
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -59,7 +60,7 @@ class ProjectCheckTestControllers {
     @GetMapping("/{owner}/{project}/__t/creatable")
     fun creatable(): String = "ok"
 
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     @GetMapping("/{owner}/{project}/__t/git-only")
     fun gitOnly(): String = "ok"
 

@@ -22,7 +22,8 @@ import dev.yona.util.SiteUrls
 import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
-import dev.yona.web.access.IsOnlyGitAvailable
+import dev.yona.domain.vcs.VcsCapability
+import dev.yona.web.access.RequiresVcs
 import dev.yona.web.code.CodePageAssembler
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
@@ -96,7 +97,7 @@ class PullRequestListController(
     @GetMapping("/{user}/{project}/pullRequests")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun open(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: HttpServletResponse
     ): Any = list(owner, name, PullRequestCategory.OPEN, request, response)
@@ -104,7 +105,7 @@ class PullRequestListController(
     @GetMapping("/{user}/{project}/closedPullRequests")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun closed(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: HttpServletResponse
     ): Any = list(owner, name, PullRequestCategory.CLOSED, request, response)
@@ -112,7 +113,7 @@ class PullRequestListController(
     @GetMapping("/{user}/{project}/sentPullRequests")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
-    @IsOnlyGitAvailable
+    @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun sent(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: HttpServletResponse
     ): Any = list(owner, name, PullRequestCategory.SENT, request, response)
