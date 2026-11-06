@@ -23,3 +23,45 @@ v1.6에서 온 동작을 의도적으로 그대로 두었거나 고친 결과, �
 - **동작:** 사이트 관리자의 대량 메일 화면은 받는 사람 주소를 `mailto:` 하나로 연다(v1.6 그대로).
 - **결정:** 문서화만 한다(A-372). 브라우저와 메일 프로그램마다 `mailto:`의 길이 한도가 다르다(보통 수천 자). 받는 사람이 아주 많으면 메일 프로그램이 받지 못할 수 있다.
 - **우회:** 프로젝트를 나누어 선택하거나 받는 사람을 숨은참조로 붙여 넣는다. 실제로 이런 규모는 드물다고 보아 고치지 않는다.
+
+## R-56-7: 데이터 내보내기와 가져오기는 DB 정보만 다룬다
+
+- **동작:** `/sites/export`와 `/sites/import`는 DB의 테이블만 다룬다. 첨부 파일의 본문(업로드 디렉터리), 저장소(`repo/git`, `repo/svn`, 위키 저장소), 설정 파일(`config/`)은 들어 있지 않다(v1.6 그대로).
+- **결정:** 결함이 아니다(A-374). 파일들은 원래 개별 백업 대상이다. 데이터 화면에 이 안내(`site.data.warning4`)를 더했다.
+- **옮길 때:** DB 파일과 함께 데이터 디렉터리(`yona.data-dir`) 전체를 따로 복사한다.
+
+## R-56-2: 내보내기와 가져오기에서 빠진 테이블과 컬럼 (2026-11-05 확인)
+
+현재 스키마(Hibernate가 만드는 테이블)와 `DataTables`(내보내기와 가져오기 표, 69개)를 비교한 결과이다.
+
+**표에 없는 테이블 17개**
+
+| 구분 | 테이블 | 내용 |
+|---|---|---|
+| 사용자 편의 | `favorite_project`, `favorite_issue`, `favorite_organization` | 즐겨찾기 |
+| | `recent_project`, `recent_issue` | 최근 방문한 프로젝트와 최근 본 이슈 |
+| | `user_setting` | 로그인 후 첫 화면 설정 |
+| 이슈와 글 | `issue_sharer` | 이슈 공유자 |
+| | `title_head` | 제목 머리말 빈도 |
+| | `posting_issue_label` | 게시글에 붙은 라벨 |
+| 연동 | `webhook`, `webhook_thread` | 웹훅과 웹훅 스레드(Hangouts Chat 등) |
+| 계정 | `linked_account`, `user_credential` | 소셜 로그인 연결, 사용자 자격(소셜 가입) |
+| | `user_verification` | 이메일 인증 코드 |
+| | `device_authorization` | 기기 인증(CLI 로그인) 진행 상태 |
+| 감사 | `audit_log`, `audit_chain_head`, `audit_stream_cursor` | 감사 로그와 해시 체인, 외부 전송 위치 |
+
+**표에는 있지만 컬럼이 빠진 테이블**
+
+| 테이블 | 빠진 컬럼 |
+|---|---|
+| `n4user` | `is_guest`, `english_name`, `token` (R-56-1에서 더했다) |
+| `issue` | `is_draft`, `weight`, `parent_id`, `updated_by_author_id`, `history` (R-56-1에서 더했다) |
+| `issue_comment` | `parent_comment_id` (댓글에 단 답글의 부모) |
+| `posting` | `parent_id`, `updated_by_author_id`, `history` |
+| `posting_comment` | `parent_comment_id`, `project_id` |
+| `project` | `is_code_accessible_member_only`, `previous_name`, `previous_owner_login_id`, `previous_name_changed_time` (코드 공개 범위, 이전 이름 기록) |
+| `attachment` | `owner_login_id` |
+| `review_comment` | `edited_date` (고친 시각) |
+| `comment_thread`, `review_comment` | `pending_date` (임시 저장 리뷰라 일부러 내보내지 않는다, X-26) |
+
+위 두 표가 R-56-2의 실제 범위이다. 즐겨찾기와 웹훅 등을 넣기로 하셨고, 어느 테이블을 넣을지는 선생님 확인을 기다린다.

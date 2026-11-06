@@ -63,7 +63,7 @@ class MessageParityTest {
         // R-52-2: 관리자 권한을 해제할 수 없을 때의 안내 문구
         "site.userList.adminProtect",
         // R-56-4: 데이터 가져오기에서 일부 테이블이 실패했을 때의 안내 문구
-        "site.data.import.failed",
+        "site.data.import.failed", "site.data.warning4",
         // R-57-5: 최초 기동 화면에서 비밀 키를 설정 파일에 쓰지 못했을 때의 안내 문구
         "app.secret.writeFailed",
         // R-58-4: 이전(Migration) 화면 문구

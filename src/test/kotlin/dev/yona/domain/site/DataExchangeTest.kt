@@ -73,11 +73,11 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `행은 컬럼 순서대로 소문자 키로 쓰고 사용자 테이블은 열한 개 컬럼이다`() {
+    fun `행은 컬럼 순서대로 소문자 키로 쓰고 사용자 테이블은 열네 개 컬럼이다 (v1_6의 열한 개에 R-56-1의 세 개가 더해졌다)`() {
         val users = exported()["N4USER"]
         assertTrue(users.size() >= 1)
         assertEquals(
-            listOf("id", "name", "login_id", "password", "password_salt", "email", "remember_me", "created_date", "state", "last_state_modified_date", "lang"),
+            listOf("id", "name", "login_id", "password", "password_salt", "email", "remember_me", "created_date", "state", "last_state_modified_date", "lang", "is_guest", "english_name", "token"),
             users[0].propertyNames().toList()
         )
         assertEquals("admin", users[0]["login_id"].asString())
@@ -251,6 +251,39 @@ class DataExchangeTest : AbstractIntegrationTest() {
         import("""{"ISSUE": [${issueRow(880012, "1", "null")}, ${issueRow(880013, "1", "0")}]}""")
         assertEquals(null, jdbc.queryForObject("select due_date from issue where id = 880012", java.sql.Timestamp::class.java))
         assertEquals(0L, jdbc.queryForObject("select due_date from issue where id = 880013", java.sql.Timestamp::class.java)!!.time)
+    }
+
+    @Test
+    fun `사용자와 이슈의 빠졌던 컬럼도 내보낸다 (R-56-1, v1_6 교환기는 다루지 않았다)`() {
+        val exported = exported()
+        val user = exported["N4USER"].first()
+        listOf("is_guest", "english_name", "token").forEach { assertTrue(user.has(it), "N4USER.$it") }
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        import("""{"ISSUE": [{"id": 880051, "title": "exp", "body": "b", "created_date": 1700000000000, "num_of_comments": 0, "milestone_id": null, "author_id": 1, "author_login_id": "a", "author_name": "A",
+            "state": 1, "project_id": 880002, "assignee_id": null, "number": 880051, "updated_date": 1700000000000, "due_date": null, "is_draft": true, "weight": 2}]}""")
+        val issue = exported()["ISSUE"].first { it["title"].asString() == "exp" }
+        listOf("is_draft", "weight", "parent_id", "updated_by_author_id", "history").forEach { assertTrue(issue.has(it), "ISSUE.$it") }
+        assertTrue(issue["is_draft"].asBoolean()); assertEquals(2, issue["weight"].asInt())
+    }
+
+    @Test
+    fun `사용자와 이슈의 빠졌던 컬럼을 가져오고 옛 v1_6 파일에 없으면 기본값이 된다 (R-56-1)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        fun issue(id: Long, extra: String) = """{"id": $id, "title": "t$id", "body": "b", "created_date": 1700000000000, "num_of_comments": 0, "milestone_id": null, "author_id": 1, "author_login_id": "a", "author_name": "A",
+            "state": 1, "project_id": 880002, "assignee_id": null, "number": $id, "updated_date": 1700000000000, "due_date": null$extra}"""
+        import("""{"ISSUE": [${issue(880031, "")}, ${issue(880032, ""","is_draft": true, "weight": 3, "parent_id": 880031, "updated_by_author_id": 1, "history": "[]" """)}]}""")
+        assertEquals(false, jdbc.queryForObject("select is_draft from issue where id = 880031", Boolean::class.java), "v1.6 파일에 없으면 초안이 아니다")
+        assertEquals(0, jdbc.queryForObject("select weight from issue where id = 880031", Int::class.java))
+        assertEquals(null, jdbc.queryForObject("select parent_id from issue where id = 880031", Long::class.javaObjectType))
+        assertEquals(true, jdbc.queryForObject("select is_draft from issue where id = 880032", Boolean::class.java))
+        assertEquals(3, jdbc.queryForObject("select weight from issue where id = 880032", Int::class.java))
+        assertEquals(880031L, jdbc.queryForObject("select parent_id from issue where id = 880032", Long::class.java))
+        import("""{"N4USER": [{"id": 880041, "name": "n", "login_id": "u880041", "password": "", "password_salt": "", "email": "u880041@x.test", "remember_me": false, "created_date": 1700000000000, "state": "ACTIVE", "last_state_modified_date": null, "lang": "ko-KR"},
+            {"id": 880042, "name": "n", "login_id": "u880042", "password": "", "password_salt": "", "email": "u880042@x.test", "remember_me": false, "created_date": 1700000000000, "state": "ACTIVE", "last_state_modified_date": null, "lang": "ko-KR", "is_guest": true, "english_name": "Eng", "token": "tok"}]}""")
+        assertEquals(false, jdbc.queryForObject("select is_guest from n4user where id = 880041", Boolean::class.java))
+        assertEquals(true, jdbc.queryForObject("select is_guest from n4user where id = 880042", Boolean::class.java))
+        assertEquals("Eng", jdbc.queryForObject("select english_name from n4user where id = 880042", String::class.java))
+        assertEquals("tok", jdbc.queryForObject("select token from n4user where id = 880042", String::class.java))
     }
 
     @Test

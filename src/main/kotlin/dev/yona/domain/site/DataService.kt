@@ -498,7 +498,11 @@ class DataService(
             }
             val found = row.get(column.key) ?: column.legacyKey?.let { row.get(it) }
             if (found == null && column.absentBoolean != null) { if (smallintBooleans) ps.setShort(position, if (column.absentBoolean) 1 else 0) else ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
-            if (found == null && column.absentNull) { ps.setNull(position, Types.VARCHAR); return@forEachIndexed }
+            if (found == null && column.absentInt != null) { if (smallintBooleans) ps.setShort(position, column.absentInt.toShort()) else ps.setInt(position, column.absentInt); return@forEachIndexed }
+            if (found == null && column.absentNull) {
+                ps.setNull(position, when (column.type) { DataType.LONG -> Types.BIGINT; DataType.INT -> Types.INTEGER; DataType.TIMESTAMP -> Types.TIMESTAMP; DataType.DATE -> Types.DATE; DataType.BOOLEAN -> Types.BOOLEAN; else -> Types.VARCHAR })
+                return@forEachIndexed
+            }
             if (found == null && column.absentString != null) { ps.setString(position, column.absentString); return@forEachIndexed }
             val node = requireNotNull(found) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
             when (column.type) {

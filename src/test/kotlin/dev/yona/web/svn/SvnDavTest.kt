@@ -411,6 +411,28 @@ class SvnDavTest {
     }
 
     @Test
+    fun `대소문자만 다른 주소도 같은 저장소로 동작한다 (R-62-6, v1_6은 저장소를 찾지 못했다)`() {
+        val response = raw("OPTIONS", "/svn/${publicProject.owner!!.uppercase()}/${publicProject.name!!.uppercase()}")
+        assertEquals(200, response.statusCode(), response.body())
+        assertTrue(response.headers().firstValue("DAV").isPresent)
+    }
+
+    @Test
+    fun `바뀌기 전 이름의 주소는 새 주소로 301 리디렉션한다 (R-62-6)`() {
+        val old = publicProject.name!!
+        publicProject.name = old + "-renamed"
+        publicProject.previousOwnerLoginId = publicProject.owner
+        publicProject.previousName = old
+        publicProject.previousNameChangedTime = System.currentTimeMillis()
+        projects.save(publicProject)
+        val response = raw("GET", "/svn/${publicProject.owner}/$old/trunk/a%20b.txt")
+        assertEquals(301, response.statusCode())
+        assertEquals("/svn/${publicProject.owner}/${old}-renamed/trunk/a%20b.txt", response.headers().firstValue("Location").orElse(null))
+        assertEquals(301, raw("OPTIONS", "/svn/${publicProject.owner}/$old").statusCode())
+        assertEquals("/svn/${publicProject.owner}/${old}-renamed", raw("OPTIONS", "/svn/${publicProject.owner}/$old").headers().firstValue("Location").orElse(null))
+    }
+
+    @Test
     fun `토큰으로 인증하면 404와 403 응답에도 세션 쿠키를 심지 않는다 (D-70)`() {
         // v1.6은 비밀번호 인증으로 웹 세션을 만들어 이후의 403, 404 응답에도 세션이 실렸다. 토큰만 받는 지금은 어느 응답에도 세션 쿠키가 없다(D-70)
         fun cookie(response: HttpResponse<String>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }

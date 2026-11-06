@@ -199,3 +199,8 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 - v1.6을 그대로 따른다. 결함도 재현하고 [refactoring-backlog.md](refactoring-backlog.md)에 올린다.
 - 기술 스택은 [architecture/technology-decisions.md](architecture/technology-decisions.md)의 결정을 따르고, 새 결정이 필요하면 선생님께 먼저 묻는다.
 - 검증은 H2, PostgreSQL, MariaDB 세 DB에서 모두 통과해야 한다. 화면 캡처는 Playwright로만 하며 v1.6 화면은 캡처할 수 없으므로 새 화면만 캡처한다. v1.6과의 일치는 템플릿 소스 대조와 테스트로 확인한다.
+
+
+## 보류한 항목 (선생님 결정)
+
+- **도움말 다국어 (R-51-2, 2026-11-05):** 도움말(`help/toc`, `help/markdown`, `help/keymap`)을 언어별 템플릿 파일로 나누는 일은 가장 나중의 영역으로 보류했다. 지금 하지 않는다. 한국어는 v1.6 그대로 두고 영어를 새로 쓰며, 일본어, 러시아어, 우즈베크어는 영어와 같게 둔다.

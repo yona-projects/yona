@@ -50,12 +50,26 @@ class SvnDavService(
         if (segments.size < 3) return text(response, 403, null)
         // v1.6 SvnApp은 Play 기본 액션 안에서 응답하므로 이후의 모든 응답에 Cache-Control이 붙는다(주소가 짧은 403은 라우트 밖이라 붙지 않는다)
         response.setHeader("Cache-Control", "no-cache")
-        val owner = segments[1]
-        val pathInfo = segments[2]
-        val projectName = pathInfo.split("/", limit = 2)[0]
+        val urlOwner = segments[1]
+        val urlPathInfo = segments[2]
+        val urlProjectName = urlPathInfo.split("/", limit = 2)[0]
 
-        val project = projectService.findByOwnerAndProjectName(owner, projectName)
+        val project = projectService.findByOwnerAndProjectName(urlOwner, urlProjectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
+        val canonicalOwner = project.owner.orEmpty()
+        val canonicalName = project.name.orEmpty()
+        // 주소가 바뀌기 전 이름(이전 위치)이면 새 주소로 301 리디렉션한다. v1.6은 프로젝트는 찾아도 저장소를 주소의 글자 그대로 찾아 오류가 났다(R-62-6)
+        if (!urlOwner.equals(canonicalOwner, ignoreCase = true) || !urlProjectName.equals(canonicalName, ignoreCase = true)) {
+            val rawSegments = request.requestURI.removePrefix(request.contextPath).removePrefix("/").split("/", limit = 4)
+            val rest = rawSegments.getOrNull(3)?.let { "/$it" }.orEmpty()
+            val query = request.queryString?.let { "?$it" }.orEmpty()
+            response.setHeader("Cache-Control", "no-cache")
+            response.setHeader("Location", request.contextPath + "/svn/" + dev.yona.util.UrlPaths.encode(canonicalOwner) + "/" + dev.yona.util.UrlPaths.encode(canonicalName) + rest + query)
+            return text(response, 301, null)
+        }
+        // 저장소 경로는 주소의 글자가 아니라 DB의 정확한 소유자와 이름으로 만든다. 대소문자만 다른 주소도 운영체제와 무관하게 같은 저장소로 동작한다(R-62-6)
+        val owner = canonicalOwner
+        val pathInfo = canonicalName + (urlPathInfo.split("/", limit = 2).getOrNull(1)?.let { "/$it" }.orEmpty())
         // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
         var operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
         // 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다(Git과 같다). v1.6의 Subversion은 이 설정을 보지 않았다(R-62-5)

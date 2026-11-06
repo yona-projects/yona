@@ -40,10 +40,11 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals("content_type", attachment.columns.first { it.name == "container_type" }.legacyKey)
         assertEquals(DataType.DATE, attachment.columns.first { it.name == "created_date" }.type)
         assertEquals(DataType.STRING_LONG, attachment.columns.first { it.name == "container_id" }.type)
-        assertEquals(11, DataTables.find("N4USER")!!.columns.size)
+        // v1.6의 11개에 빠졌던 `is_guest`, `english_name`, `token`이 더해져 14개이다(R-56-1)
+        assertEquals(14, DataTables.find("N4USER")!!.columns.size)
         // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
         assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
-        assertEquals(34, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
+        assertEquals(36, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
     @Test

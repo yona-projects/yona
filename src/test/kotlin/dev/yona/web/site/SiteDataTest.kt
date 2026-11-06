@@ -82,9 +82,10 @@ class SiteDataTest : AbstractIntegrationTest() {
     // --- 화면 ---
 
     @Test
-    fun `데이터 화면에는 경고 세 줄과 내보내기 링크와 올리기 폼이 있다`() {
+    fun `데이터 화면에는 경고 네 줄과 내보내기 링크와 올리기 폼이 있다 (네 번째는 DB 정보만 다룬다는 안내, R-56-7)`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertEquals(3, doc.select(".cu-desc li.notice").size)
+        assertEquals(4, doc.select(".cu-desc li.notice").size)
+        assertTrue(doc.select(".cu-desc li.notice").last()!!.text().contains("database information only"), "DB 정보만 다룬다는 안내가 있어야 한다")
         assertEquals("/sites/export", doc.select(".col-lg-10 a.ybtn-primary").attr("href"))
         val form = doc.selectFirst(".col-lg-10 form")!!
         assertEquals("/sites/import", form.attr("action"))
