@@ -224,4 +224,19 @@ export const tests = [
       assert.deepEqual(size.dd, [107, 30]);
     },
   },
+  {
+    name: '사용자 메뉴는 v1.6처럼 내용 폭 350, 검색란 높이 42이고 탭 셋은 한 줄에 놓인다 (A-377)',
+    async run() {
+      const page = await open(`<div id="mySidenav" class="sidenav row align-items-start" style="width:360px;position:absolute;right:0;top:0">
+        <div class="col-lg-5 right-menu span-hard-wrap"><div class="user-menu-wrap"><span class="user-menu"><a>프로필 페이지</a></span></div>
+        <ul class="nav nav-tabs nm mb-3"><li class="nav-item"><a id="t1" class="nav-link">즐겨찾기</a></li><li class="nav-item"><a id="t2" class="nav-link active">프로젝트</a></li><li class="nav-item"><a id="t3" class="nav-link">최근 읽은 이슈</a></li></ul>
+        <div class="tab-content"><div class="tab-pane user-project-list active"><form><div class="group"><input id="s" class="search-input project-search form-control" placeholder="검색할 이름"></div></form></div></div></div></div>`);
+      await page.evaluate(() => document.body.appendChild(document.getElementById('mySidenav'))); // 실제 메뉴는 페이지 본문(.page-wrap-outer) 밖에 있다
+      const m = await page.evaluate(() => { const r = (s) => { const q = document.querySelector(s).getBoundingClientRect(); return [Math.round(q.left), Math.round(q.top), Math.round(q.width), Math.round(q.height)]; }; return { menu: r('.right-menu'), t1: r('#t1'), t2: r('#t2'), t3: r('#t3'), s: r('#s') }; });
+      assert.equal(m.menu[2], 350, `메뉴 폭 ${m.menu[2]}`);
+      assert.equal(m.menu[0], 1280 - 350, `메뉴 시작 ${m.menu[0]}`);
+      assert.equal(m.t3[1], m.t1[1], '탭 셋은 한 줄에 놓인다(선생님 결정: v1.6의 줄바꿈은 의도가 아니다)');
+      assert.equal(m.s[3], 42, `검색란 높이 ${m.s[3]}`);
+    },
+  },
 ];

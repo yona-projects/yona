@@ -230,6 +230,8 @@ $violet:  #9c27b0;
     margin-bottom: 0;
     border-radius: unset;
     height: 34px;
+    box-sizing: content-box; /* v1.6(BS2)은 content-box라 안쪽 여백 4px 6px가 더해져 전체 359x42였다 */
+    padding: 4px 6px;
   }
 
   .search-input:focus {
@@ -878,7 +880,7 @@ $violet:  #9c27b0;
   /* v1.6의 `row-fluid`는 바깥 여백이 없고 안의 `span5`는 폭이 상자 전체였다. BS5의 `.row`는 바깥으로 거터의 절반만큼 나가
      상자가 화면 오른쪽 밖으로 10px 나가고, `col-lg-5`는 폭의 5/12만 써서 메뉴가 좁게 접혔다 */
   --bs-gutter-x: 0;
-  > .right-menu { flex: 0 0 100%; max-width: 100%; }
+  > .right-menu { flex: 0 0 350px; max-width: 350px; margin-left: auto; } /* v1.6의 `.right-menu`는 폭 350px이다 */
 
   div.user-menu-wrap{
     text-align: right;
