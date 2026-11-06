@@ -8206,3 +8206,25 @@ textarea.editorSeries.content {
   display: inline-block;
   width: 206px;
 }
+
+/* 감시 수 단추(A-377): v1.6은 content-box에 높이 20px, 안쪽 여백 4px 12px, 테두리 없음이라 전체 높이 28px이었다 */
+.watch-btn > .watcher-count {
+  box-sizing: content-box;
+  height: 20px;
+  padding: 4px 12px;
+  line-height: 1.25rem;
+  border: 0;
+}
+.watch-btn > button {
+  padding: 4px 10px;
+}
+
+/* 이슈 일괄 변경 드롭다운(A-377): v1.6은 `.btn.medium`이라 높이 30px, 폭 107px, 안쪽 여백 0 0 0 12px이었다 */
+.mass-update-form .btn-group > .dropdown-toggle {
+  box-sizing: border-box;
+  width: 107px;
+  height: 30px;
+  padding: 0 0 0 12px;
+  line-height: 1.25rem;
+  text-align: left;
+}

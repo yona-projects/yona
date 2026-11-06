@@ -214,4 +214,14 @@ export const tests = [
       assert.ok(size.wide[0] > 220, '폭 클래스를 쓴 입력란은 그 폭을 따른다');
     },
   },
+  {
+    name: '감시 단추는 v1.6처럼 28 높이이고 이슈 일괄 변경 드롭다운은 107x30이다 (A-377)',
+    async run() {
+      const page = await open(`<ul class="project-util"><li><div class="btn-group dropdown watch-btn"><a id="count" class="btn btn-sm watcher-count btn-light">3</a></div></li></ul>
+        <div class="mass-update-wrap"><form class="mass-update-form float-start"><div class="btn-group"><button id="dd" class="btn btn-outline-secondary dropdown-toggle" type="button"><span class="d-label">담당자</span></button></div></form></div>`);
+      const size = await page.evaluate(() => Object.fromEntries(['count', 'dd'].map((id) => { const r = document.getElementById(id).getBoundingClientRect(); return [id, [Math.round(r.width), Math.round(r.height)]]; })));
+      assert.equal(size.count[1], 28, `감시 수 단추 높이 ${size.count[1]}`);
+      assert.deepEqual(size.dd, [107, 30]);
+    },
+  },
 ];
