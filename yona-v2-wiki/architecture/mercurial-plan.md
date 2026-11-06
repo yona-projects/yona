@@ -350,6 +350,19 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - **8단계:** 작업량이 가장 큰 단계이다(풀 리퀘스트의 Git 의존 파일이 여럿이고 8a가 이미 도는 Git 코드를 건드린다). 숨은 참조 모델(D-87)과 병합 동작(4.2절)이 정해져 결정이 필요한 위험은 없고, 소단계마다 시험과 커밋으로 확인한다. 8a 초반에 secret 가져오기와 단계 올리기 흐름을 시험으로 먼저 확인한다. 8a 준비(풀 리퀘스트 쪽 Git 의존을 중립 계약으로, 숨은 참조는 D-87: secret 체인지셋과 예약 이름표 `yobi/pull/<번호>/head|merged`), 8b 비교(커밋 목록, diff, 충돌 판정), 8c 병합 커밋(`MergeCommitCommand`, 병합 노드가 실제 `hg`와 같은지 검증, 충돌은 4.2절의 한계 기준), 8d 이벤트와 화면, 8e 스쿼시와 리베이스.
 - **9단계:** 9a LFS(hg4j가 이미 처리하는 경로를 컨트롤러가 통과시키는지부터), 9b 데이터 교환, 9c GPG(D-88: 보고 있는 리비전의 `.hgsigs`로 판정, 등록 키와 작성자 이메일 일치, 서명 커밋 필수 규칙은 이번 푸시의 `.hgsigs`로 검사하고 `.hgsigs`만 바꾸는 커밋은 제외).
 
+### 7.9 7단계 진행 기록(2026-11-06): 포크, 가져오기, REST, 지표
+
+| 소단계 | 산출 | 내용 |
+|---|---|---|
+| 7a | `HgRepositories.cloneLocal`, `FORK` 능력 | 빈 저장소를 만들어 원본에서 `PullCommand`로 가져온다(이름표는 함께, 태그는 `.hgtags`로 오고 원본의 secret 체인지셋은 hg4j가 숨겨 오지 않는다). hg4j `CloneCommand`는 작업 파일을 꺼내므로 쓰지 않는다. 가져온 뒤 `.hg/dirstate`를 지워 실제 `hg verify`가 통과하게 한다. `RepositoryService.cloneRepository`의 Git 고정 검사를 능력 질의와 같은 종류 검사로 바꿨다 |
+| 7a 부수 | `HgRevisions.tags` | **hg4j `tags()`가 작업 디렉터리의 `.hgtags`만 읽어 서버 저장소(푸시나 포크로 만든 저장소)에서는 태그가 비어 보이는 결함을 찾았다**(포크 시험에서 발견, 5단계와 6단계 시험은 작업 파일이 있는 저장소여서 놓쳤다). 모든 머리의 `.hgtags`를 읽어 합친다(영 노드는 삭제, 없는 노드는 제외, 로컬 태그는 hg4j 결과). hg4j 담당 세션(`hg-da`)에 보완을 요청했다 |
+| 7b | `HgRepositories.cloneRemote`, 가져오기 화면 | `_import`에 저장소 종류 선택 상자(Git 기본, Mercurial)를 두었다. 종류가 없으면 v1.6처럼 Git이다. 오류는 hg4j `HgAuthException`과 `IOException`을 Git과 같은 안내 키로 옮기고, Mercurial을 고르면 제목, 주소 칸 이름, 안내, 오류 문구가 Mercurial을 말한다(`*.hg` 키 6개, 종류를 바꿀 때 스크립트가 문구를 바꾼다) |
+| 7c | REST, 문서 | 프로젝트 만들기(`vcs=Mercurial`), 포크, 배포 키, 태그 목록, 사람이 쓴 커밋이 Mercurial에서 도는 것을 시험(`ExternalMercurialApiTest`). 거절 문구와 OpenAPI 설명에서 "Git 프로젝트만"을 "Git과 Mercurial"로 고쳤다 |
+| 7d | `RepositoryStorageMetrics` | 저장소 총 용량 지표에 `hg` 합계를 더했다. 감사와 요청 지표의 `hg` 태그는 6단계에서 이미 들어갔다 |
+
+- 시험: `HgRepositoriesTest`(포크, 태그, secret), `ForkTest`(웹 포크), `ImportTest`(가져오기, 종류 오류, 문구), `ExternalMercurialApiTest`, `RepositoryStorageMetricsTest`, `VcsTypeTest`, `MessageParityTest`.
+- 구현 판단은 `decisions.md` A-380에 적었다.
+
 ## 8. 결정이 필요한 질문
 
 [decisions.md](../decisions.md) D-86에 같은 내용을 권장안과 이유와 함께 올렸다.
