@@ -26,6 +26,19 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
         val directory = directoryOf(owner, name)
         directory.mkdirs()
         Hg.init().setDirectory(directory).call().close()
+        enableLfs(directory)
+    }
+
+    /**
+     * 저장소의 `.hg/hgrc`에 lfs 확장을 켠다(X-7 9a, D-90). 서버 쪽 hg4j(`HgHttpWireServer`)는 이 확장이 켜진 저장소의 LFS 요청(배치와 객체)만 처리하고,
+     * 저장소에 LFS 파일이 없으면 클라이언트가 확장을 켜지 않아도 아무 영향이 없다. 포크와 가져오기도 [create]를 거치므로 같은 설정을 받는다.
+     *
+     * 사용자 캐시(`lfs.usercache`)는 끈다(`experimental.lfs.disableusercache`). hg4j 서버는 객체가 있는지를 저장소의 LFS 저장소와 함께 이 캐시도 보는데,
+     * 캐시는 컴퓨터의 모든 저장소가 공유하므로 켜 두면 한 프로젝트가 올린 큰 파일 본문이 다른 프로젝트에도 "이미 있음"으로 보이고(저장소 사이에 새는 것),
+     * 올린 본문이 그 저장소의 저장소 안에 들어가지 않는다.
+     */
+    private fun enableLfs(directory: File) {
+        File(directory, ".hg/hgrc").appendText("[extensions]\nlfs =\n\n[experimental]\nlfs.disableusercache = true\n")
     }
 
     /**

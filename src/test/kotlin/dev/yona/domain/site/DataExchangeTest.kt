@@ -656,4 +656,19 @@ class DataExchangeTest : AbstractIntegrationTest() {
         assertEquals(mapper.readTree(before)["N4USER"], exported()["N4USER"])
         assertEquals(mapper.readTree(before).propertyNames().toList(), exported().propertyNames().toList())
     }
+
+    @Test
+    fun `Mercurial 프로젝트의 종류 값은 내보내기와 가져오기를 거쳐 그대로 남고 새 테이블은 없다 (X-7 9b)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        import("""{"PROJECT": [{"id": 880120, "name": "dxhg", "overview": "o", "vcs": "Mercurial", "siteurl": "s", "owner": "dxo", "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0,
+            "original_project_id": null, "last_pushed_date": null, "is_using_reviewer_count": false, "default_reviewer_count": 0, "organization_id": null, "project_scope": "PUBLIC"}]}""")
+        // 내보낸 파일에서 같은 값이 나오고, 그 파일을 다시 가져와도 같다
+        val row = exported()["PROJECT"].first { it["id"].asLong() == 880120L }
+        assertEquals("Mercurial", row["vcs"].asString())
+        val again = exportBytes()
+        service.import(ByteArrayInputStream(again))
+        assertEquals("Mercurial", jdbc.queryForObject("select vcs from project where id = 880120", String::class.java))
+        // Mercurial을 위해 더한 테이블은 없다: 내보내기 대상은 그대로 DataTables의 테이블이다
+        assertEquals(DataTables.all.map { it.name }.toSet(), exported().propertyNames().asSequence().filter { !it.endsWith("_SEQ") }.toSet())
+    }
 }

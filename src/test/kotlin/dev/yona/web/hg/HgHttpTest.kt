@@ -288,4 +288,50 @@ class HgHttpTest {
         assertTrue("hg.push" in actions, actions.toString())
         assertTrue("hg.push_rejected" in actions, actions.toString())
     }
+
+    // --- LFS(X-7 9a, D-90): hg4j 내장 처리 ---
+
+    private val lfsConfig = arrayOf("--config", "extensions.lfs=", "--config", "lfs.track=size('>100')")
+
+    private fun lfsUrl(user: User? = null) = url(project, user) + "/.git/info/lfs"
+
+    private fun lfsObjects(): List<File> = File(serverDir(project), ".hg/store/lfs/objects").walkTopDown().filter { it.isFile }.toList()
+
+    @Test
+    fun `LFS 파일을 푸시하면 저장소 안 LFS 저장소에 본문이 들어가고 복제하면 본문을 되받는다`() {
+        val (dir, cloned) = clone(project, member)
+        assertEquals(0, cloned.first, cloned.second)
+        // 본문이 실행마다 달라야 한다: 같은 컴퓨터의 hg 사용자 캐시에 같은 본문이 있으면 서버가 이미 있는 객체로 본다(운영에서는 서로 다른 컴퓨터이다)
+        val body = "큰 파일 본문 ${System.nanoTime()} ".repeat(30)
+        File(dir, "big.bin").writeText(body)
+        assertEquals(0, hg(dir, "--config", "extensions.lfs=", "--config", "lfs.track=size('>100')", "add", "big.bin").first)
+        val committed = hg(dir, "--config", "extensions.lfs=", "--config", "lfs.track=size('>100')", "commit", "-m", "LFS 파일", "-d", "2026-11-03 10:00 +0900")
+        assertEquals(0, committed.first, committed.second)
+        val pushed = hg(dir, *lfsConfig, "--config", "lfs.url=${lfsUrl(member)}", "push", url(project, member))
+        assertEquals(0, pushed.first, pushed.second)
+        assertEquals(1, lfsObjects().size, "저장소 안 LFS 저장소에 본문이 한 개 있어야 한다. 푸시 출력=${pushed.second} 서버 lfs 관련 파일=" + File(serverDir(project), ".hg").walkTopDown().filter { it.isFile && it.path.contains("lfs") }.map { it.path.substringAfter(".hg/") }.toList() + " 서버 requires=" + File(serverDir(project), ".hg/requires").readText().replace("\n", ","))
+        // 새로 복제해 본문을 되받는다(공개 프로젝트의 읽기는 익명이어도 된다)
+        val fresh = File(work, "fresh-${counter.incrementAndGet()}")
+        val got = hg(work, *lfsConfig, "--config", "lfs.url=${lfsUrl()}", "clone", url(project), fresh.path)
+        assertEquals(0, got.first, got.second)
+        assertEquals(body, File(fresh, "big.bin").readText())
+    }
+
+    @Test
+    fun `구성원이 아니거나 익명이면 LFS 본문을 올리지 못한다`() {
+        val (dir, _) = clone(project, member)
+        File(dir, "big.bin").writeText("큰 파일 본문 ${System.nanoTime()} ".repeat(30))
+        hg(dir, "--config", "extensions.lfs=", "--config", "lfs.track=size('>100')", "add", "big.bin")
+        hg(dir, "--config", "extensions.lfs=", "--config", "lfs.track=size('>100')", "commit", "-m", "LFS 파일", "-d", "2026-11-03 10:00 +0900")
+        val denied = hg(dir, *lfsConfig, "--config", "lfs.url=${lfsUrl(outsider)}", "push", url(project, outsider))
+        assertFalse(denied.first == 0, "구성원이 아닌 사용자의 푸시가 성공했다: ${denied.second}")
+        assertEquals(0, lfsObjects().size)
+    }
+
+    @Test
+    fun `LFS 경로는 저장소 기준 경로 밖에서 처리하지 않는다`() {
+        // 기준 경로 아래의 batch는 hg4j가 답하고(405나 400이어도 404는 아니다), 다른 프로젝트 이름으로는 404이다
+        val ok = HttpClient.newHttpClient().send(HttpRequest.newBuilder(URI.create("http://localhost:$port/${project.owner}/${project.name}/.git/info/lfs/objects/batch")).POST(HttpRequest.BodyPublishers.ofString("{}")).header("Content-Type", "application/vnd.git-lfs+json").build(), HttpResponse.BodyHandlers.ofString())
+        assertTrue(ok.statusCode() != 404, "batch가 처리되지 않았다: ${ok.statusCode()} ${ok.body()}")
+    }
 }
