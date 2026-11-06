@@ -40,7 +40,7 @@ class DiffService(private val repositories: RepositoryService, private val metri
     /** [revision]의 커밋이 첫 부모와 비교해 바꾼 파일들이다. 첫 커밋이면 모든 파일이 추가이다. 리비전을 풀 수 없으면 `null`이다. */
     fun commitDiff(project: Project, revision: String): List<FileDiff>? = metrics.operation(project.vcs, "diff") { commitDiffImpl(project, revision) }
 
-    private fun commitDiffImpl(project: Project, revision: String): List<FileDiff>? = repositories.openRepository(project).use { repository ->
+    private fun commitDiffImpl(project: Project, revision: String): List<FileDiff>? = repositories.openGitRepository(project).use { repository ->
         val id = repository.resolve(revision) ?: return null
         val commit = try { RevWalk(repository).use { it.parseCommit(id) } } catch (e: org.eclipse.jgit.errors.MissingObjectException) { return null }
         val parent = if (commit.parentCount > 0) commit.getParent(0).id else null
@@ -49,13 +49,13 @@ class DiffService(private val repositories: RepositoryService, private val metri
 
     /** 같은 저장소의 [revA]에서 [revB]로 바뀐 파일들이다. */
     fun diff(project: Project, revA: String, revB: String): List<FileDiff> = metrics.operation(project.vcs, "diff") {
-        repositories.openRepository(project).use { repository -> fileDiffs(repository, repository, repository.resolve(revA), repository.resolve(revB)) }
+        repositories.openGitRepository(project).use { repository -> fileDiffs(repository, repository, repository.resolve(revA), repository.resolve(revB)) }
     }
 
     /** [projectA]의 [revA]에서 [projectB]의 [revB]로 바뀐 파일들이다(포크 사이의 비교). */
     fun diff(projectA: Project, revA: String, projectB: Project, revB: String): List<FileDiff> = metrics.operation(projectA.vcs, "diff") {
-        repositories.openRepository(projectA).use { repoA ->
-            repositories.openRepository(projectB).use { repoB -> fileDiffs(repoA, repoB, repoA.resolve(revA), repoB.resolve(revB)) }
+        repositories.openGitRepository(projectA).use { repoA ->
+            repositories.openGitRepository(projectB).use { repoB -> fileDiffs(repoA, repoB, repoA.resolve(revA), repoB.resolve(revB)) }
         }
     }
 

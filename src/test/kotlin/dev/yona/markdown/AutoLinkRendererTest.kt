@@ -167,7 +167,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     fun `커밋 SHA를 짧은 SHA 링크로 바꾼다`() {
         val project = project()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
-        val full = repositories.openRepository(project).use { it.resolve("HEAD").name }
+        val full = repositories.openGitRepository(project).use { it.resolve("HEAD").name }
         val html = render("<p>${full.substring(0, 10)}</p>", project)
         assertTrue(html.contains(">${full.substring(0, 7)}</a>"), html)
         assertTrue(html.contains("/${project.owner}/${project.name}/commit/$full"), html)
@@ -177,7 +177,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     fun `골뱅이를 붙인 SHA도 링크로 바꾼다`() {
         val project = project()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
-        val full = repositories.openRepository(project).use { it.resolve("HEAD").name }
+        val full = repositories.openGitRepository(project).use { it.resolve("HEAD").name }
         assertTrue(render("<p>@${full.substring(0, 8)}</p>", project).contains(">${full.substring(0, 7)}</a>"))
     }
 
@@ -187,7 +187,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
         assertEquals("<p>abcdef1234</p>", render("<p>abcdef1234</p>", project))
         val noCode = project(code = false)
         GitTestSupport.commitFiles(repositories, noCode, mapOf("a.txt" to "a".toByteArray()))
-        val full = repositories.openRepository(noCode).use { it.resolve("HEAD").name }
+        val full = repositories.openGitRepository(noCode).use { it.resolve("HEAD").name }
         assertEquals("<p>${full.substring(0, 9)}</p>", render("<p>${full.substring(0, 9)}</p>", noCode))
     }
 

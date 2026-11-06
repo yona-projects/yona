@@ -78,7 +78,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val attempt = merger.attempt(pullRequest(origin, fork))
         assertFalse(attempt.conflict)
         assertEquals(listOf("또 하나", "새 파일"), attempt.commits.map { it.shortMessage })
-        repositories.openRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
+        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
     }
 
     @Test
@@ -104,7 +104,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val pr = pullRequest(origin, fork)
         val update = merger.update(pr)
         val merged = assertNotNull(update.mergeCommitId)
-        repositories.openRepository(origin).use { repository ->
+        repositories.openGitRepository(origin).use { repository ->
             assertEquals(update.attempt.rightParent, repository.resolve(merger.headRef(pr)))
             assertEquals(merged, repository.resolve(merger.mergedRef(pr)))
             RevWalk(repository).use { walk ->
@@ -126,7 +126,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val pr = pullRequest(origin, fork)
         val update = merger.update(pr)
         assertTrue(update.attempt.conflict); assertNull(update.mergeCommitId)
-        repositories.openRepository(origin).use { assertNull(it.resolve(merger.mergedRef(pr))) }
+        repositories.openGitRepository(origin).use { assertNull(it.resolve(merger.mergedRef(pr))) }
     }
 
     @Test
@@ -137,7 +137,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         pr.reviewers.add(user())
         val sender = PersonIdent("받는 사람", "receiver@example.com")
         val result = merger.merge(pr, sender)!!
-        repositories.openRepository(origin).use { repository ->
+        repositories.openGitRepository(origin).use { repository ->
             assertEquals(result.mergeCommitId, repository.resolve("refs/heads/master"))
             RevWalk(repository).use { walk ->
                 val commit = walk.parseCommit(result.mergeCommitId)
@@ -153,9 +153,9 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val (origin, fork) = originAndFork()
         GitTestSupport.appendCommits(repositories, origin, TestCommit("원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n".toByteArray())))
         GitTestSupport.appendCommits(repositories, fork, TestCommit("포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n".toByteArray())))
-        val before = repositories.openRepository(origin).use { it.resolve("refs/heads/master") }
+        val before = repositories.openGitRepository(origin).use { it.resolve("refs/heads/master") }
         assertNull(merger.merge(pullRequest(origin, fork), PersonIdent("n", "e@example.com")))
-        assertEquals(before, repositories.openRepository(origin).use { it.resolve("refs/heads/master") })
+        assertEquals(before, repositories.openGitRepository(origin).use { it.resolve("refs/heads/master") })
     }
 
     @Test

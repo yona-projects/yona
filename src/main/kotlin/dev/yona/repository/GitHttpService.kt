@@ -30,7 +30,7 @@ class GitHttpService(
 
     /** 프로젝트의 Git 저장소가 디스크에 있으면 `true`이다. 없으면(만들다 만 프로젝트 등) 응답을 쓰기 전에 알 수 있게 한다. */
     fun exists(project: Project): Boolean = try {
-        repositories.openRepository(project).close()
+        repositories.openGitRepository(project).close()
         true
     } catch (e: org.eclipse.jgit.errors.RepositoryNotFoundException) {
         false
@@ -39,7 +39,7 @@ class GitHttpService(
     /** `# service=…` 한 줄과 서비스가 광고하는 ref 목록을 [out]에 쓴다. */
     fun advertise(project: Project, service: String, out: OutputStream) {
         // 디렉터리가 없어도 빈 저장소와 같은 광고를 낸다 (v1.6 `gitAdvertise`, 저장소 존재를 확인하지 않는다).
-        repositories.openRepositoryForHttp(project).use { writeAdvertisement(it, service, out) }
+        repositories.openGitRepositoryForHttp(project).use { writeAdvertisement(it, service, out) }
         out.flush()
     }
 
@@ -69,7 +69,7 @@ class GitHttpService(
      * 끝에는 입력과 출력을 닫는다. 디렉터리가 없어도 같은 방식으로 처리한다(`info/refs`와 같다).
      */
     fun rpc(project: Project, service: String, input: InputStream, out: OutputStream, sender: dev.yona.domain.user.User? = null): Boolean =
-        exchange({ repositories.openRepositoryForHttp(project) }, service, input, out) { receive ->
+        exchange({ repositories.openGitRepositoryForHttp(project) }, service, input, out) { receive ->
             receive.preReceiveHook = hooks.preReceive(project, sender)
             receive.postReceiveHook = hooks.postReceive(project, sender)
         }

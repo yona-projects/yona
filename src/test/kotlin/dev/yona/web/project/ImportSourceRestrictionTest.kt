@@ -74,7 +74,7 @@ class ImportSourceRestrictionTest : AbstractIntegrationTest() {
         val source = projects.save(Project(owner = "isrsrc$n", name = "src$n", vcs = "GIT", projectScope = ProjectScope.PRIVATE))
         repositories.createRepository(source)
         dev.yona.support.GitTestSupport.pushCommits(repositories, source, dev.yona.support.GitTestSupport.TestCommit("비공개", mapOf("secret.txt" to "x".toByteArray())))
-        val directory = repositories.openRepository(source).use { it.directory }
+        val directory = repositories.openGitRepository(source).use { it.directory }
         for (bad in listOf(directory.toURI().toString(), directory.absolutePath, "http://127.0.0.1:9/x.git", "http://localhost:9/x.git")) {
             val html = mockMvc.perform(send(session, me.loginId!!, bad)).andExpect(status().isBadRequest).andReturn().response.contentAsString
             org.junit.jupiter.api.Assertions.assertTrue(html.contains("\"url\""), "$bad -> ${html.take(200)}")

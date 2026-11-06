@@ -143,7 +143,7 @@ class AutoLinkRenderer(
         val codeAvailable = menuSettings.findFirstByProjectId(requireNotNull(project.id))?.code != false
         if (!codeAvailable || project.vcs != RepositoryService.VCS_GIT) return null
         return try {
-            repositories.openRepository(project).use { repository ->
+            repositories.openGitRepository(project).use { repository ->
                 val id = repository.resolve(sha) ?: return null
                 RevWalk(repository).use { walk ->
                     val commit = walk.parseCommit(id)

@@ -215,7 +215,7 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
 
     /** [from]에서 [to]까지의 범위에 있는 커밋을 최근 것이 앞이 되게 돌려준다 (v1.6 `GitRepository.diffCommits`). */
     fun commitsBetween(pullRequest: PullRequest, from: String, to: String): List<CommitInfo> =
-        repositories.openRepository(requireNotNull(pullRequest.toProject)).use { repository ->
+        repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { repository ->
             val sinceId = repository.resolve(from) ?: return emptyList()
             val untilId = repository.resolve(to) ?: return emptyList()
             commits(repository, sinceId, untilId)
@@ -231,14 +231,14 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
         val lock = locks.computeIfAbsent(requireNotNull(pullRequest.toProject?.id)) { ReentrantLock() }
         lock.lock()
         try {
-            return repositories.openRepository(requireNotNull(pullRequest.toProject)).use(action)
+            return repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use(action)
         } finally {
             lock.unlock()
         }
     }
 
     private fun fetch(repository: Repository, pullRequest: PullRequest, destination: String) {
-        val source = repositories.openRepository(requireNotNull(pullRequest.fromProject)).use { it.directory }
+        val source = repositories.openGitRepository(requireNotNull(pullRequest.fromProject)).use { it.directory }
         Git(repository).fetch().setRemote(source.toURI().toString())
             .setRefSpecs(RefSpec().setSource(pullRequest.fromBranch).setDestination(destination).setForceUpdate(true)).call()
     }

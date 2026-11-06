@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
  * 프로젝트의 저장소를 만들고 지우고 여는 진입점이다. v1.6 `playRepository.RepositoryService`에 해당한다.
  *
  * 프로젝트의 `vcs` 값(`GIT`, `Subversion`)으로 저장소 종류를 고른다. 종류별 구현은 [VcsBackends]가 맡는다(Git은 JGit, Subversion은
- * SVNKit, D-13). 포크와 가져오기는 구현이 지원할 때만 된다. 저장소 열기([openRepository])는 아직 Git만 지원한다.
+ * SVNKit, D-13). 포크와 가져오기는 구현이 지원할 때만 된다. 저장소 열기([openGitRepository])는 Git 전용이다.
  */
 @Service
 class RepositoryService @Autowired constructor(
@@ -65,14 +65,20 @@ class RepositoryService @Autowired constructor(
      */
     fun deleteWiki(project: Project) = wiki.delete(owner(project), name(project))
 
-    /** Git 프로젝트의 저장소를 연다. 호출한 쪽이 닫아야 한다. */
-    fun openRepository(project: Project): Repository {
+    /**
+     * Git 프로젝트의 저장소를 연다. 호출한 쪽이 닫아야 한다. Git이 아니면 [UnsupportedOperationException]이다.
+     *
+     * JGit 타입을 그대로 돌려주므로 **Git 전용 하위 시스템**(온라인 커밋, 푸시 뒤 처리, 풀 리퀘스트 병합, Git 서빙, diff, 자동 링크)만 쓴다.
+     * 종류와 무관한 읽기(이력, 코드, README, 브랜치와 태그)는 [VcsBackends]의 읽기 구현을 거친다. 이 이름은 Git 의존이 남은 자리를
+     * 찾기 쉽게 하려는 것이고, 남은 호출 지점은 공통화 3~4단계와 풀 리퀘스트 단계(X-7 8단계)에서 계약으로 바뀐다.
+     */
+    fun openGitRepository(project: Project): Repository {
         if (project.vcs != VCS_GIT) throw unsupported(project)
         return git.open(owner(project), name(project))
     }
 
-    /** Git 스마트 HTTP용으로 저장소를 연다. 디렉터리가 없어도 예외가 없다 ([GitRepositories.openForHttp]). */
-    fun openRepositoryForHttp(project: Project): Repository {
+    /** Git 스마트 HTTP용으로 저장소를 연다(Git 전용, [openGitRepository] 참고). 디렉터리가 없어도 예외가 없다 ([GitRepositories.openForHttp]). */
+    fun openGitRepositoryForHttp(project: Project): Repository {
         if (project.vcs != VCS_GIT) throw unsupported(project)
         return git.openForHttp(owner(project), name(project))
     }

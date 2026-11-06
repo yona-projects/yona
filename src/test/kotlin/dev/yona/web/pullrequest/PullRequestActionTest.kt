@@ -114,7 +114,7 @@ class PullRequestActionTest : AbstractIntegrationTest() {
 
     private fun reload(pr: PullRequest) = pullRequests.findById(pr.id!!).get()
 
-    private fun masterHead(project: Project) = repositories.openRepository(project).use { it.resolve("refs/heads/master") }
+    private fun masterHead(project: Project) = repositories.openGitRepository(project).use { it.resolve("refs/heads/master") }
 
     private fun addChange(s: Setup, message: String = "새 파일", file: String = "b.txt", content: String = "b\n", branch: String = "master") =
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit(message, mapOf(file to content.toByteArray())), branch = branch)
@@ -368,7 +368,7 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     fun `병합된 요청의 보낸 브랜치를 지우고 되살릴 수 있다`() {
         val s = setup(); addChange(s, branch = "feature"); val pr = open(s, fromBranch = "refs/heads/feature")
         pr.state = State.MERGED; pr.receiver = s.manager; pullRequests.save(pr)
-        val forkBranches = { repositories.openRepository(s.fork).use { r -> r.refDatabase.getRefsByPrefix("refs/heads/").map { it.name } } }
+        val forkBranches = { repositories.openGitRepository(s.fork).use { r -> r.refDatabase.getRefsByPrefix("refs/heads/").map { it.name } } }
         assertTrue("refs/heads/feature" in forkBranches())
         mockMvc.perform(delete(url(s, pr, "/deletefrombranch")).session(login(s.manager))).andExpect(status().isSeeOther)
         assertNull(reload(pr).lastCommitId.takeIf { "refs/heads/feature" in forkBranches() })

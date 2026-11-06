@@ -42,7 +42,7 @@ class DiffServiceTest : AbstractIntegrationTest() {
 
     private fun lines(vararg l: String) = l.joinToString("\n", postfix = "\n")
 
-    private fun revisions(p: Project): List<String> = repositories.openRepository(p).use { r -> org.eclipse.jgit.api.Git(r).log().call().map { it.name }.reversed() }
+    private fun revisions(p: Project): List<String> = repositories.openGitRepository(p).use { r -> org.eclipse.jgit.api.Git(r).log().call().map { it.name }.reversed() }
 
     @Test
     fun `첫 커밋은 모든 파일이 추가이다`() {

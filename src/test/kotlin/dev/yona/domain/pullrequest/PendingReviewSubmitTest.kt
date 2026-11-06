@@ -52,7 +52,7 @@ class PendingReviewSubmitTest : AbstractIntegrationTest() {
     }
 
     private fun pullRequest(p: Project, contributor: User): PullRequest {
-        val head = repositories.openRepository(p).use { it.resolve("refs/heads/master").name }
+        val head = repositories.openGitRepository(p).use { it.resolve("refs/heads/master").name }
         return PullRequest(
             toProject = p, fromProject = p, number = (++sequence).toLong(), title = "요청", contributor = contributor, state = State.OPEN, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature",
             mergedCommitIdFrom = head, mergedCommitIdTo = head

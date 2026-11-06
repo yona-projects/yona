@@ -42,7 +42,7 @@ class CommitHistoryDefectsTest : AbstractIntegrationTest() {
     }
 
     /** 커밋이 아니라 트리를 가리키는 가벼운 태그를 만든다(`git tag t <tree>`). */
-    private fun treeTag(project: Project, commitId: String, name: String) = repositories.openRepository(project).use { repository ->
+    private fun treeTag(project: Project, commitId: String, name: String) = repositories.openGitRepository(project).use { repository ->
         val tree = RevWalk(repository).use { it.parseCommit(ObjectId.fromString(commitId)).tree.id }
         repository.updateRef("refs/tags/$name").apply { setNewObjectId(tree); update() }
     }

@@ -1,6 +1,8 @@
 package dev.yona.domain.twofactor
 
+import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
@@ -17,6 +19,12 @@ class QrCodeTest {
         repeat(500) { decodeOnce() }
     }
 
+    /**
+     * QR 코드만 읽도록 형식을 제한한 판독 설정이다. 모든 형식을 시도하면 무작위 그림에서 1차원 바코드를 우연히 "읽어"(예: `13743062`) 가끔 엉뚱한 글을
+     * 돌려준다. 이 시험이 보려는 것은 QR 코드가 같은 글을 담았는가이다. `MultiFormatReader.decode(image)`는 미리 준 설정을 지우므로 판독할 때마다 설정을 넘긴다.
+     */
+    private val qrOnly = mapOf<DecodeHintType, Any>(DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE))
+
     private fun decodeOnce() {
         val text = Totp.otpauthUri(Totp.newSecret(), "Yona", "alice@example.com")
         val svg = QrCode.svg(text)
@@ -29,7 +37,7 @@ class QrCodeTest {
         val result = listOf(6, 2, 3, 4, 8).firstNotNullOfOrNull { scale ->
             val side = (size + margin * 2) * scale
             val pixels = IntArray(side * side) { i -> val x = (i % side) / scale - margin; val y = (i / side) / scale - margin; if ((x to y) in dark) 0xFF000000.toInt() else 0xFFFFFFFF.toInt() }
-            try { MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(RGBLuminanceSource(side, side, pixels)))) } catch (e: com.google.zxing.NotFoundException) { null }
+            try { MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(RGBLuminanceSource(side, side, pixels))), qrOnly) } catch (e: com.google.zxing.NotFoundException) { null }
         } ?: error("어떤 크기에서도 읽히지 않았다: $text")
         assertEquals(text, result.text)
     }

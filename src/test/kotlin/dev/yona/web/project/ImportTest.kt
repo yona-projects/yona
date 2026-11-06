@@ -75,7 +75,7 @@ class ImportTest : AbstractIntegrationTest() {
         repositories.createRepository(p)
         GitTestSupport.pushCommits(repositories, p, TestCommit("하나", mapOf("a.txt" to "a".toByteArray())), TestCommit("둘", mapOf("b.txt" to "b".toByteArray())))
         GitTestSupport.appendCommits(repositories, p, TestCommit("기능", mapOf("c.txt" to "c".toByteArray())), branch = "feature")
-        return repositories.openRepository(p).use { it.directory.toURI().toString() }
+        return repositories.openGitRepository(p).use { it.directory.toURI().toString() }
     }
 
     private fun send(session: MockHttpSession, owner: String, name: String, url: String, extra: Map<String, String> = emptyMap()) =

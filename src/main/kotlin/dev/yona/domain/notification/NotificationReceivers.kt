@@ -190,7 +190,7 @@ class NotificationReceivers(
         val to = pullRequest.mergedCommitIdTo
         if (from != null && to != null) {
             try {
-                repositories.openRepository(requireNotNull(pullRequest.toProject)).use { group.addAll(relatedAuthors.find(it, from, to)) }
+                repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { group.addAll(relatedAuthors.find(it, from, to)) }
             } catch (e: dev.yona.repository.LimitExceededException) {
                 projectUsers.findMembers(requireNotNull(pullRequest.toProject?.id), dev.yona.domain.enumeration.RoleType.SITEMANAGER.id).mapNotNull { it.user }.forEach { group.add(it) }
             } catch (e: Exception) {

@@ -133,7 +133,7 @@ class BoardWriteTest : AbstractIntegrationTest() {
     private fun submit(project: Project, path: String, session: MockHttpSession?, vararg params: Pair<String, String>) =
         mockMvc.perform(multipart("${base(project)}/$path").apply { session?.let { session(it) } }.apply { params.forEach { (k, v) -> param(k, v) } })
 
-    private fun headFiles(project: Project): Map<String, String> = repositories.openRepository(project).use { repository ->
+    private fun headFiles(project: Project): Map<String, String> = repositories.openGitRepository(project).use { repository ->
         val id = repository.resolve("HEAD^{commit}") ?: return emptyMap()
         RevWalk(repository).use { walk ->
             TreeWalk(repository).use { tree ->
@@ -212,7 +212,7 @@ class BoardWriteTest : AbstractIntegrationTest() {
     fun `파일 경로로 열면 브랜치의 파일을 채우고 구성원만 열 수 있다`() {
         val project = newProject(); val member = join(newUser(), project)
         val actor = User(loginId = "x", name = "X", email = "x@example.com")
-        repositories.openRepository(project).close()
+        repositories.openGitRepository(project).close()
         dev.yona.repository.OnlineCommit(repositories).commitTextFile(project, actor, "master", "docs/a.md", "파일 내용", "init")
         val doc = Jsoup.parse(get(project, "postform?branch=master&path=docs/a.md&edit=", login(member)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("파일 내용", doc.selectFirst("textarea[name=body]")!!.text())

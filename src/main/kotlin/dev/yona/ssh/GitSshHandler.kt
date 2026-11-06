@@ -57,7 +57,7 @@ class GitSshHandler(private val repositories: RepositoryService, private val hoo
      * 저장소를 연다. 위키는 푸시를 받을 때 없으면 먼저 만들고, 복제는 위키를 한 번도 쓰지 않았어도 빈 저장소처럼 열린다(HTTP와 같다).
      */
     private fun open(grant: SshAuthorization.Allowed): org.eclipse.jgit.lib.Repository {
-        if (!grant.wiki) return repositories.openRepository(grant.project)
+        if (!grant.wiki) return repositories.openGitRepository(grant.project)
         val owner = requireNotNull(grant.project.owner); val name = requireNotNull(grant.project.name)
         return wikis.openForHttp(owner, name)
     }

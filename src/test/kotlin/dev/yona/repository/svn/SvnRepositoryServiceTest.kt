@@ -78,7 +78,7 @@ class SvnRepositoryServiceTest {
     fun `Git 전용 동작은 지원하지 않는다`() {
         val service = service()
         service.createRepository(project())
-        assertFailsWith<UnsupportedOperationException> { service.openRepository(project()) }
+        assertFailsWith<UnsupportedOperationException> { service.openGitRepository(project()) }
         assertFailsWith<UnsupportedOperationException> { service.cloneRepository(project(), project("fork")) }
     }
 }

@@ -103,7 +103,7 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         return Setup(origin, forks.fork(origin, contributor.loginId!!, "pjf$n", ProjectScope.PUBLIC, contributor), contributor, manager)
     }
 
-    private fun head(project: Project, branch: String = "master"): ObjectId? = repositories.openRepository(project).use { it.resolve("refs/heads/$branch") }
+    private fun head(project: Project, branch: String = "master"): ObjectId? = repositories.openGitRepository(project).use { it.resolve("refs/heads/$branch") }
 
     /** 포크의 [branch]에 커밋을 더한 뒤 푸시 명령을 만든다. */
     private fun push(s: Setup, message: String, file: String, content: String, branch: String = "master"): ReceiveCommand {
@@ -135,7 +135,7 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         watchService.watch(s.contributor, ResourceType.PROJECT, s.origin.id.toString())
         val outsider = user(); watchService.watch(outsider, ResourceType.PROJECT, s.origin.id.toString())
         GitTestSupport.appendCommits(repositories, s.origin, TestCommit("첫 푸시", mapOf("b.txt" to "b".toByteArray())), TestCommit("둘째 푸시", mapOf("c.txt" to "c".toByteArray())))
-        val old = ObjectId.fromString(head(s.origin)!!.name).let { _ -> repositories.openRepository(s.origin).use { it.resolve("refs/heads/master~2") } }
+        val old = ObjectId.fromString(head(s.origin)!!.name).let { _ -> repositories.openGitRepository(s.origin).use { it.resolve("refs/heads/master~2") } }
         val command = ReceiveCommand(old, head(s.origin), "refs/heads/master")
         jobs.afterPush(s.origin, s.contributor, listOf(command))
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_COMMIT }

@@ -37,7 +37,7 @@ class OnlineCommitTest {
         repositories.createRepository(project)
     }
 
-    private fun files(ref: String = Constants.HEAD): Map<String, String> = repositories.openRepository(project).use { repository ->
+    private fun files(ref: String = Constants.HEAD): Map<String, String> = repositories.openGitRepository(project).use { repository ->
         val id = repository.resolve("$ref^{commit}") ?: return emptyMap()
         RevWalk(repository).use { walk ->
             TreeWalk(repository).use { tree ->
@@ -49,7 +49,7 @@ class OnlineCommitTest {
         }
     }
 
-    private fun head() = repositories.openRepository(project).use { it.resolve(Constants.HEAD) }
+    private fun head() = repositories.openGitRepository(project).use { it.resolve(Constants.HEAD) }
 
     // --- 최상위 파일 한 개를 HEAD에 커밋 (BareCommit.commitTextFile 3인자) ---
 
@@ -58,7 +58,7 @@ class OnlineCommitTest {
         val id = online.commitRootFile(project, author, "README.md", "# 안녕", "Update README.md")
         assertNotNull(id); assertEquals(id, head())
         assertEquals(mapOf("README.md" to "# 안녕\n"), files())
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val commit = RevWalk(repository).use { it.parseCommit(id) }
             assertEquals("Update README.md", commit.fullMessage)
             assertEquals("Bob", commit.authorIdent.name); assertEquals("bob@example.com", commit.committerIdent.emailAddress)
@@ -72,7 +72,7 @@ class OnlineCommitTest {
         val before = head()
         val id = online.commitRootFile(project, author, "README.md", "new", "msg")
         assertEquals(mapOf("README.md" to "new\n", "a.txt" to "a", "z.txt" to "z"), files())
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val commit = RevWalk(repository).use { it.parseCommit(id) }
             assertEquals(before, commit.getParent(0))
         }
@@ -116,14 +116,14 @@ class OnlineCommitTest {
     @Test
     fun `빈 저장소의 브랜치에 중첩 경로 파일을 커밋한다`() {
         val id = online.commitTextFile(project, author, "master", "docs/guide/a.md", "내용", "Add a.md")
-        assertEquals(id, repositories.openRepository(project).use { it.resolve("refs/heads/master") })
+        assertEquals(id, repositories.openGitRepository(project).use { it.resolve("refs/heads/master") })
         assertEquals(mapOf("docs/guide/a.md" to "내용"), files("refs/heads/master"))
     }
 
     @Test
     fun `기존 브랜치의 다른 파일을 유지하고 경로의 파일만 바꾼다`() {
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray(), "b.txt" to "b".toByteArray()))
-        val branch = repositories.openRepository(project).use { it.exactRef(Constants.HEAD).target.name.removePrefix("refs/heads/") }
+        val branch = repositories.openGitRepository(project).use { it.exactRef(Constants.HEAD).target.name.removePrefix("refs/heads/") }
         online.commitTextFile(project, author, branch, "b.txt", "B2", "edit b")
         online.commitTextFile(project, author, branch, "dir/c.txt", "c", "add c")
         assertEquals(mapOf("a.txt" to "a", "b.txt" to "B2", "dir/c.txt" to "c"), files("refs/heads/$branch"))

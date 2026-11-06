@@ -50,7 +50,7 @@ class PendingReviewServiceTest : AbstractIntegrationTest() {
         dev.yona.support.GitTestSupport.pushCommits(repositories, it, dev.yona.support.GitTestSupport.TestCommit("기반", mapOf("a.txt" to "1\n2\n3\n4\n".toByteArray())))
     }
 
-    private fun head(p: Project): String = repositories.openRepository(p).use { it.resolve("refs/heads/master").name }
+    private fun head(p: Project): String = repositories.openGitRepository(p).use { it.resolve("refs/heads/master").name }
 
     private fun pullRequest(p: Project, contributor: User) =
         PullRequest(

@@ -46,7 +46,7 @@ class ReviewCommentEditTest : AbstractIntegrationTest() {
     }
 
     private fun pullRequest(p: Project): PullRequest {
-        val head = repositories.openRepository(p).use { it.resolve("refs/heads/master").name }
+        val head = repositories.openGitRepository(p).use { it.resolve("refs/heads/master").name }
         return PullRequest(toProject = p, fromProject = p, number = (++sequence).toLong(), title = "요청", contributor = user(), state = State.OPEN, toBranch = "refs/heads/master", fromBranch = "refs/heads/f", mergedCommitIdFrom = head, mergedCommitIdTo = head).also { em.persist(it) }
     }
 

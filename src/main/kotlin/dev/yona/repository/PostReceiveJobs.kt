@@ -81,7 +81,7 @@ class PostReceiveJobs(
         val project = projects.findById(projectId).orElse(null) ?: return PushedCommits(emptyList(), emptyList())
         val details = mutableListOf<CommitDetail>()
         val refNames = mutableListOf<String>()
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             for (command in pushed) {
                 if (command.type == ReceiveCommand.Type.CREATE || command.type == ReceiveCommand.Type.UPDATE || command.type == ReceiveCommand.Type.UPDATE_NONFASTFORWARD) {
                     details += parse(repository, command.oldId, command.newId)

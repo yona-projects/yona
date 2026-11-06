@@ -219,7 +219,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     fun `기본 브랜치 선택지는 브랜치만 보여 주고 현재 기본 브랜치를 고른다`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             repository.updateRef("refs/heads/dev").apply { setNewObjectId(repository.resolve(Constants.HEAD)) }.update()
             repository.updateRef("refs/tags/v1").apply { setNewObjectId(repository.resolve(Constants.HEAD)) }.update()
         }
@@ -456,7 +456,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     fun `슬래시가 있는 브랜치도 기본 브랜치로 선택되어 보인다 (v1_6 itemName)`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             repository.updateRef("refs/heads/feature/x").apply { setNewObjectId(repository.resolve(Constants.HEAD)) }.update()
         }
         save(project, login(manager(project)), "name" to project.name!!, "defaultBranch" to "refs/heads/feature/x", *allMenus)
@@ -468,7 +468,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     fun `기본 브랜치를 바꾼다`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             repository.updateRef("refs/heads/dev").apply { setNewObjectId(repository.resolve(Constants.HEAD)) }.update()
         }
         save(project, login(manager(project)), "name" to project.name!!, "defaultBranch" to "refs/heads/dev", *allMenus)

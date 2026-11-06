@@ -55,7 +55,7 @@ class PullRequestChangesService(
         if (commitId != null) return all.filter { it.commitId == commitId }
         val from = pullRequest.mergedCommitIdFrom
         val to = pullRequest.mergedCommitIdTo
-        return repositories.openRepository(requireNotNull(pullRequest.toProject)).use { repository ->
+        return repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { repository ->
             all.filter { thread ->
                 when {
                     thread.prevCommitId.isNullOrEmpty() -> false
@@ -86,7 +86,7 @@ class PullRequestChangesService(
             return commits.findByPullRequestId(requireNotNull(pullRequest.id)).none { it.commitId == thread.commitId }
         }
         val path = thread.path.orEmpty().removePrefix("/")
-        return repositories.openRepository(requireNotNull(pullRequest.toProject)).use { repository ->
+        return repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { repository ->
             try {
                 !noChangesBetween(repository, from, thread.prevCommitId, path) || !noChangesBetween(repository, to, thread.commitId, path)
             } catch (e: MissingObjectException) {

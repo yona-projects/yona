@@ -100,7 +100,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         GitTestSupport.pushCommits(
             repositories, project, TestCommit("커밋", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray()), authorName = "작성자", authorEmail = committer.email!!)
         )
-        val commitId = repositories.openRepository(project).use { it.resolve("refs/heads/master")!!.name }
+        val commitId = repositories.openGitRepository(project).use { it.resolve("refs/heads/master")!!.name }
         val manager = user()
         projectUsers.save(ProjectUser(user = manager, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
         return Setup(project, commitId, committer, manager, login(manager))
@@ -207,7 +207,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     fun `첫 댓글 알림 문구에는 댓글이 달린 줄까지의 차이가 함께 나온다`() {
         val s = commitSetup()
         GitTestSupport.appendCommits(repositories, s.project, TestCommit("수정", mapOf("a.txt" to "line1\nCHANGED\nline3\n".toByteArray()), authorEmail = s.committer.email!!))
-        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        val second = repositories.openGitRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
         mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "여기 확인", range() + ("endLine" to "1"))).andExpect(status().isSeeOther)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         val message = notificationMessages.message(note, LANG)!!
@@ -218,7 +218,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     fun `새로 추가한 파일의 첫 댓글 알림에도 파일 내용의 차이가 나온다 (R-44-1, v1_6은 파일 이름 줄 뒤에 댓글만 나왔다)`() {
         val s = commitSetup()
         GitTestSupport.appendCommits(repositories, s.project, TestCommit("새 파일", mapOf("b.txt" to "l1\nl2\nl3\n".toByteArray()), authorEmail = s.committer.email!!))
-        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        val second = repositories.openGitRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
         mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "새 파일 확인", range("b.txt") + ("endLine" to "1"))).andExpect(status().isSeeOther)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         val message = notificationMessages.message(note, LANG)!!
@@ -229,7 +229,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     fun `지운 파일의 첫 댓글 알림에도 파일 내용의 차이가 나온다 (R-44-1)`() {
         val s = commitSetup()
         GitTestSupport.appendCommits(repositories, s.project, TestCommit("파일 삭제", deleted = listOf("a.txt"), authorEmail = s.committer.email!!))
-        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        val second = repositories.openGitRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
         mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "삭제 확인", range("a.txt") + ("startSide" to "A") + ("endSide" to "A") + ("endLine" to "0"))).andExpect(status().isSeeOther)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         val message = notificationMessages.message(note, LANG)!!

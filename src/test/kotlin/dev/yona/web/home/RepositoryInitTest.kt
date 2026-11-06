@@ -50,7 +50,7 @@ class RepositoryInitTest : AbstractIntegrationTest() {
         return projects.save(Project(owner = "rio$n", name = "rip$n", vcs = vcs, projectScope = ProjectScope.PUBLIC))
     }
 
-    private fun head(project: Project) = repositories.openRepository(project).use { it.resolve(Constants.HEAD) }
+    private fun head(project: Project) = repositories.openGitRepository(project).use { it.resolve(Constants.HEAD) }
 
     @Test
     fun `같은 서버(루프백 주소)가 아닌 곳의 호출은 403이고 저장소를 건드리지 않는다 (R-66, v1_6은 누구나 호출할 수 있었다)`() {

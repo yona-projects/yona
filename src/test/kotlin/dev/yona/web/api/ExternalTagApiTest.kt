@@ -102,7 +102,7 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
     @Test
     fun `대상은 브랜치와 커밋과 태그로 주고 없으면 기본 브랜치의 끝이다`() {
         val project = newProject(); val member = newUser(); roleOn(project, member, RoleType.MEMBER); val token = tokenOf(member)
-        val commits = repositories.openRepository(project).use { r -> org.eclipse.jgit.api.Git(r).log().call().map { it.name }.toList() }
+        val commits = repositories.openGitRepository(project).use { r -> org.eclipse.jgit.api.Git(r).log().call().map { it.name }.toList() }
         json(post(api(project)), token, """{"name":"from-commit","target":"${commits.last()}"}""").andExpect(status().isCreated).andExpect(jsonPath("$.result.commit.id").value(commits.last()))
         json(post(api(project)), token, """{"name":"from-short","target":"${commits.last().take(8)}"}""").andExpect(status().isCreated).andExpect(jsonPath("$.result.commit.id").value(commits.last()))
         json(post(api(project)), token, """{"name":"from-tag","target":"from-commit"}""").andExpect(status().isCreated).andExpect(jsonPath("$.result.commit.id").value(commits.last()))

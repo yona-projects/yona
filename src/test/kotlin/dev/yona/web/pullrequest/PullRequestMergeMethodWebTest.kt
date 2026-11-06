@@ -111,7 +111,7 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
 
     private fun reload(pr: PullRequest) = pullRequests.findById(pr.id!!).get()
 
-    private fun masterHead(project: Project) = repositories.openRepository(project).use { it.resolve("refs/heads/master") }
+    private fun masterHead(project: Project) = repositories.openGitRepository(project).use { it.resolve("refs/heads/master") }
 
     private fun addChange(s: Setup, message: String = "새 파일", file: String = "b.txt", content: String = "b\n", branch: String = "master") =
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit(message, mapOf(file to content.toByteArray())), branch = branch)
@@ -120,7 +120,7 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         post(url(s, pr, "/accept")).session(s.managerSession).also { r -> params.forEach { (k, v) -> r.param(k, v) } }
     )
 
-    private fun commitOf(project: Project, id: String) = repositories.openRepository(project).use { r -> org.eclipse.jgit.revwalk.RevWalk(r).use { it.parseCommit(r.resolve(id)) } }
+    private fun commitOf(project: Project, id: String) = repositories.openGitRepository(project).use { r -> org.eclipse.jgit.revwalk.RevWalk(r).use { it.parseCommit(r.resolve(id)) } }
 
     private fun page(s: Setup, pr: PullRequest) = Jsoup.parse(mockMvc.perform(get(url(s, pr, "")).session(s.managerSession).header("Accept-Language", "ko-KR")).andExpect(status().isOk).andReturn().response.contentAsString)
 

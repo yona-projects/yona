@@ -41,7 +41,7 @@ class OnlineCommit(private val repositories: RepositoryService) {
      */
     fun commitRootFile(project: Project, actor: User, fileName: String, contents: String, message: String): ObjectId? {
         val identity = PersonIdent(actor.name.orEmpty(), actor.email.orEmpty())
-        return repositories.openRepository(project).use { repository ->
+        return repositories.openGitRepository(project).use { repository ->
             repository.newObjectInserter().use { inserter ->
                 val text = LineEnding.addEol(LineEnding.change(contents, fileLineEnding(repository, fileName)))!!
                 val head = headObject(repository, Constants.HEAD)
@@ -74,7 +74,7 @@ class OnlineCommit(private val repositories: RepositoryService) {
      */
     fun commitTextFile(project: Project, actor: User, branch: String, path: String, text: String, message: String): ObjectId {
         val identity = PersonIdent(actor.name.orEmpty(), actor.email.orEmpty())
-        return repositories.openRepository(project).use { repository ->
+        return repositories.openGitRepository(project).use { repository ->
             repository.newObjectInserter().use { inserter ->
                 val head = repository.resolve("$branch^{commit}")
                 val index = DirCache.newInCore()
@@ -130,7 +130,7 @@ class OnlineCommit(private val repositories: RepositoryService) {
      * (v1.6 `GitUtil.getReadTextFile`은 모든 오류를 `null`로 돌려준다).
      */
     fun readTextFile(project: Project, branch: String, path: String): String? = try {
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val head = repository.resolve("$branch^{commit}") ?: return@use null
             RevWalk(repository).use { walk ->
                 val treeWalk = TreeWalk.forPath(repository, path, walk.parseTree(head)) ?: return@use null

@@ -251,6 +251,23 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 
 **남긴 것(2단계의 몫).** 어느 구현을 부를지 정하는 분기는 기능 질의가 아니라 백엔드 호출이라 1단계에서 바꾸지 않았다: `CodeBrowserController`의 501 분기, `CommitViewController`와 `ReviewCommentController`의 Subversion 분기, `NoheadViews`, `SvnDavService`, `GitHttpController`, `RepositoryUrls`, `ProjectViewContext.cloneUrl`, SSH 처리기 상수, `AutoLinkRenderer`, `VcsMetrics`. 종류 목록을 쓰는 `ProjectCreateController`의 선택지와 `ProjectDocs`, `Project.nextVcs()`는 새 종류가 생기는 5단계와 종류 변경 대상 선택(4단계)에서 함께 바꾼다.
 
+### 7.2 2단계 진행 기록(2026-11-06)
+
+종류별 구현을 `project.vcs` 값으로 고르는 등록부 `VcsBackends`(`repository/VcsBackend.kt`)를 두고, 역할별 계약과 Git, Subversion 구현을 나눴다. 역할별로 따로 등록해서(`@Component`) 새 종류는 구현 빈을 더하기만 하면 되고, 시험에서는 필요한 역할만 묶을 수 있다. 모르는 종류나 구현이 없는 역할은 이전과 같은 `UnsupportedOperationException("지원하지 않는 VCS입니다: …")`이다.
+
+| 단계 | 계약 | Git 구현 | Subversion 구현 | 정면(지표, 조합만 남김) |
+|---|---|---|---|---|
+| 2a | `RepositoryLifecycle`(만들기, 지우기, 옮기기, 참조 이름, 기본 브랜치, 포크, 가져오기) | `GitLifecycle` | `SvnLifecycle` | `RepositoryService` |
+| 2b | `CommitReader`(이력, 커밋, 여러 커밋, 부모) | `GitCommitReader` | `SvnCommitReader` | `CommitHistoryService` |
+| 2c | `CodeReader`(비었는지, 폴더와 파일 정보, 중간 폴더, 원본, 큰 파일, zip), `LargeRawFile` | `GitCodeReader` | `SvnCodeReader` | `CodeBrowserService` |
+| 2d | `TextReader`(파일 텍스트, README, 게시글용 README) | `GitTextReader` | `SvnTextReader` | `ProjectReadmeService`, `RepositoryFileReader` |
+| 2e | `RefReader`(브랜치, 태그 읽기와 쓰기), `RefHead`, `TagAuthor` | `GitRefReader` | 없음(브랜치와 태그가 없는 종류) | `BranchService`, `TagService` |
+
+- 정면 서비스의 공개 메서드는 그대로라서 화면과 API 호출처 50곳 가까이는 바뀌지 않았다. 지표(`metrics.operation`)도 정면에 남아 있다.
+- `TagService.create`의 태그 단 사람이 JGit 타입(`PersonIdent`)이던 것을 종류와 무관한 `TagAuthor`로 바꿨다.
+- **`openRepository`를 `openGitRepository`로 이름을 바꿨다.** JGit 저장소를 그대로 돌려주므로 Git 전용 하위 시스템만 쓰고, 종류와 무관한 읽기는 모두 계약을 거친다. 남은 호출 지점은 `GitDependencyGuardTest`가 목록으로 지킨다(온라인 커밋, 푸시 뒤 처리, Git 서빙, diff, 풀 리퀘스트, 자동 링크). 이 목록은 3단계, 4단계와 풀 리퀘스트 단계에서 하나씩 줄인다.
+- 시험: 등록부가 종류로 구현을 고르는지, 빈 저장소의 동작이 Git과 Subversion에서 어떻게 다른지(`VcsBackendsTest`), Git 의존 지점이 늘지 않는지(`GitDependencyGuardTest`)를 새로 추가했다.
+
 ### 7.6 시험 전략
 
 - 종류별로 같은 시나리오를 도는 **공통 계약 시험**을 만든다(수명, 읽기, 푸시 이벤트). Git, Subversion, Mercurial이 모두 통과해야 한다.

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 class PullRequestBranchService(private val repositories: RepositoryService) {
 
     /** 보내는 브랜치를 지울 수 있으면 `true`이다. */
-    fun canDelete(pullRequest: PullRequest): Boolean = repositories.openRepository(requireNotNull(pullRequest.fromProject)).use { from ->
+    fun canDelete(pullRequest: PullRequest): Boolean = repositories.openGitRepository(requireNotNull(pullRequest.fromProject)).use { from ->
         val current = from.fullBranch
         val branch = pullRequest.fromBranch
         val head = from.findRef(branch)?.takeIf { it.name.startsWith(Constants.R_HEADS) }?.objectId ?: return false
@@ -25,13 +25,13 @@ class PullRequestBranchService(private val repositories: RepositoryService) {
         // 삭제를 막는 규칙 묶음이 있는 브랜치는 지우지 않는다(`decisions.md` D-46, A-251). 이 경로는 관리자 우회를 두지 않는다
         if (pullRequest.fromProject?.rulesetsFor(branch)?.any { it.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) != null } == true) return false
         val commitName = RevWalk(from).use { it.parseCommit(head).name }
-        repositories.openRepository(requireNotNull(pullRequest.toProject)).use { it.resolve(commitName) != null }
+        repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { it.resolve(commitName) != null }
     }
 
     /** 보내는 브랜치를 지우고 지운 머리 커밋 번호를 돌려준다. 지울 수 없으면 `null`이다. */
     fun delete(pullRequest: PullRequest): String? {
         if (!canDelete(pullRequest)) return null
-        return repositories.openRepository(requireNotNull(pullRequest.fromProject)).use { from ->
+        return repositories.openGitRepository(requireNotNull(pullRequest.fromProject)).use { from ->
             val head = requireNotNull(from.resolve(pullRequest.fromBranch))
             val last = RevWalk(from).use { it.parseCommit(head).name }
             Git(from).branchDelete().setBranchNames(pullRequest.fromBranch).setForce(true).call()
@@ -40,14 +40,14 @@ class PullRequestBranchService(private val repositories: RepositoryService) {
     }
 
     /** 보내는 브랜치가 없고 지울 때 남긴 커밋 번호가 있으면 `true`이다. */
-    fun canRestore(pullRequest: PullRequest): Boolean = repositories.openRepository(requireNotNull(pullRequest.fromProject)).use {
+    fun canRestore(pullRequest: PullRequest): Boolean = repositories.openGitRepository(requireNotNull(pullRequest.fromProject)).use {
         it.resolve(pullRequest.fromBranch) == null && pullRequest.lastCommitId != null
     }
 
     /** 지워진 보내는 브랜치를 마지막 커밋에서 다시 만든다. 되살릴 수 없으면 아무것도 하지 않는다. */
     fun restore(pullRequest: PullRequest) {
         if (!canRestore(pullRequest)) return
-        repositories.openRepository(requireNotNull(pullRequest.fromProject)).use { from ->
+        repositories.openGitRepository(requireNotNull(pullRequest.fromProject)).use { from ->
             Git(from).branchCreate().setName(pullRequest.fromBranch.orEmpty().replace("refs/heads/", "")).setStartPoint(pullRequest.lastCommitId).call()
         }
     }

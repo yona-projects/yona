@@ -61,7 +61,7 @@ class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
     @Test
     fun `태그는 브랜치가 아니므로 규칙 묶음을 만들지 않는다`() {
         val project = withBranches(project(true, 1), "master"); em.flush()
-        repositories.openRepository(project).use { it.updateRef("refs/tags/v1").also { u -> u.setNewObjectId(it.resolve("refs/heads/master")); u.update() } }
+        repositories.openGitRepository(project).use { it.updateRef("refs/tags/v1").also { u -> u.setNewObjectId(it.resolve("refs/heads/master")); u.update() } }
         migration.migrate()
         assertEquals(listOf("master"), migratedOf(project).map { it.pattern })
     }

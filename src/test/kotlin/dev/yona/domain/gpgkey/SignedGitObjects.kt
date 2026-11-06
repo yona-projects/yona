@@ -31,7 +31,7 @@ object SignedGitObjects {
     fun commit(
         repositories: RepositoryService, project: Project, key: TestGpgKey?, committerEmail: String, message: String = "signed commit", branch: String = "master",
         signerKeyId: Long? = null, tamper: Boolean = false, time: Long = 1_800_000_000_000L, parent: String? = null
-    ): String = repositories.openRepository(project).use { repository ->
+    ): String = repositories.openGitRepository(project).use { repository ->
         val inserter = repository.newObjectInserter()
         val tree = TreeFormatter().apply { append("a.txt", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, "a".toByteArray())) }
         val ident = PersonIdent("Committer", committerEmail, Date(time), UTC)
@@ -52,7 +52,7 @@ object SignedGitObjects {
 
     /** [project] 저장소의 [commitId]에 [key]로 서명한 주석 태그 [name]을 만든다. 태그 개체 번호를 돌려준다. [key]가 `null`이면 서명 없는 주석 태그이다. */
     fun annotatedTag(repositories: RepositoryService, project: Project, key: TestGpgKey?, name: String, taggerEmail: String, commitId: String, time: Long = 1_800_000_100_000L): String =
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val inserter = repository.newObjectInserter()
             val builder = TagBuilder().apply {
                 tag = name; tagger = PersonIdent("Tagger", taggerEmail, Date(time), UTC); message = "릴리스 $name\n"
@@ -70,7 +70,7 @@ object SignedGitObjects {
     fun sshCommit(
         repositories: RepositoryService, project: Project, key: dev.yona.domain.sshkey.TestSshSigner.Key, committerEmail: String, message: String = "ssh signed commit", branch: String = "master",
         time: Long = 1_800_000_000_000L, parent: String? = null
-    ): String = repositories.openRepository(project).use { repository ->
+    ): String = repositories.openGitRepository(project).use { repository ->
         val inserter = repository.newObjectInserter()
         val tree = TreeFormatter().apply { append("a.txt", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, "a".toByteArray())) }
         val ident = PersonIdent("Committer", committerEmail, Date(time), UTC)
@@ -88,7 +88,7 @@ object SignedGitObjects {
 
     /** [annotatedTag]와 같지만 SSH 키로 서명한다. */
     fun sshAnnotatedTag(repositories: RepositoryService, project: Project, key: dev.yona.domain.sshkey.TestSshSigner.Key, name: String, taggerEmail: String, commitId: String, time: Long = 1_800_000_100_000L): String =
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val inserter = repository.newObjectInserter()
             val builder = TagBuilder().apply {
                 tag = name; tagger = PersonIdent("Tagger", taggerEmail, Date(time), UTC); message = "릴리스 $name\n"

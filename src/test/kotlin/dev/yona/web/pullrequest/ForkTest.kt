@@ -165,14 +165,14 @@ class ForkTest : AbstractIntegrationTest() {
     fun `포크는 원본을 가리키는 bare 복제이고 PR용 ref는 복사하지 않는다 (v1_6 실제 결과)`() {
         val p = project(); val me = user()
         // PR 가져오기용 비표준 ref를 원본에 하나 둔다. v1.6 폴백 복제는 refs/heads/*와 태그만 가져온다.
-        val originDirectory = repositories.openRepository(p).use { origin ->
+        val originDirectory = repositories.openGitRepository(p).use { origin ->
             val head = origin.resolve("HEAD")
             origin.updateRef("refs/yobi/pull/1/head").apply { setNewObjectId(head); update() }
             origin.directory.canonicalPath
         }
         mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "barefork").param("projectScope", "PUBLIC")).andExpect(status().isOk)
         val fork = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "barefork")!!
-        repositories.openRepository(fork).use { forked ->
+        repositories.openGitRepository(fork).use { forked ->
             assertTrue(forked.isBare)
             assertEquals(setOf("refs/heads/master", "refs/heads/feature"), forked.refDatabase.getRefsByPrefix("refs/heads/").map { it.name }.toSet())
             assertTrue(forked.refDatabase.getRefsByPrefix("refs/yobi/").isEmpty())

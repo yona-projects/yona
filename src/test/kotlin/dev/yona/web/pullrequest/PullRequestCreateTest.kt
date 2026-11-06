@@ -153,7 +153,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         val s = setup()
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("기능", mapOf("b.txt" to "b".toByteArray())), branch = "feature")
         // 포크의 기본 브랜치를 feature로 바꿔 원본(master)과 다르게 한다. v1.6은 현재 프로젝트(포크)의 기본 브랜치를 받는 브랜치 기본값으로 썼다
-        repositories.openRepository(s.fork).use { it.updateRef("HEAD").link("refs/heads/feature") }
+        repositories.openGitRepository(s.fork).use { it.updateRef("HEAD").link("refs/heads/feature") }
         val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
         assertEquals("refs/heads/master", doc.selectFirst("#toBranch option[selected]")!!.attr("value"))
     }
@@ -244,7 +244,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         assertEquals(commits.single().id.toString(), pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).last().newValue)
         assertNull(pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).last().oldValue)
 
-        repositories.openRepository(s.origin).use { assertNotNull(it.resolve("refs/yobi/pull/${pr.id}/merged")) }
+        repositories.openGitRepository(s.origin).use { assertNotNull(it.resolve("refs/yobi/pull/${pr.id}/merged")) }
         assertNull(pushedBranches.findFirstByProjectIdAndName(s.fork.id!!, "refs/heads/master"))
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_PULL_REQUEST }
         assertEquals("[${s.origin.name}] 요청 제목 (#1)", note.title); assertEquals(pr.id.toString(), note.resourceId)

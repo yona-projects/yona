@@ -173,7 +173,7 @@ class WikiGitHttpTest {
     @Test
     fun `위키 푸시는 코드 저장소를 건드리지 않는다`() {
         push(project, member)
-        repositories.openRepository(project).use { assertNull(it.resolve("refs/heads/master")) }
+        repositories.openGitRepository(project).use { assertNull(it.resolve("refs/heads/master")) }
     }
 
     @Test

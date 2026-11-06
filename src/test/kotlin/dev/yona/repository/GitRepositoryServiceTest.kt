@@ -90,7 +90,7 @@ class GitRepositoryServiceTest {
     fun `저장소를 연 상태에서도 지울 수 있다`() {
         val service = service()
         service.createRepository(project())
-        service.openRepository(project()).use { Git(it).use { } }
+        service.openGitRepository(project()).use { Git(it).use { } }
         service.deleteRepository(project())
         assertFalse(File(dataDir, "repo/git/alice/demo.git").exists())
     }

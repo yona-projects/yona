@@ -465,7 +465,7 @@ class GitHttpTest {
         assertTrue(text.startsWith("001e# service=git-upload-pack\n0000"), text); assertTrue(text.contains("capabilities^{}"), text); assertTrue(text.endsWith("0000"), text)
         val receive = raw("/${p.owner}/${p.name}/info/refs?service=git-receive-pack", headers = arrayOf("Authorization" to basic(member)))
         assertEquals(200, receive.statusCode()); assertTrue(String(receive.body()).contains("capabilities^{}"))
-        assertTrue(!java.io.File(repositories.openRepositoryForHttp(p).use { it.directory.path }).exists())
+        assertTrue(!java.io.File(repositories.openGitRepositoryForHttp(p).use { it.directory.path }).exists())
     }
 
     @Test

@@ -67,11 +67,11 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         PullRequest(title = "요청 제목", body = "본문", toProject = origin, fromProject = fork, toBranch = "refs/heads/master", fromBranch = "refs/heads/master", contributor = contributor, created = Date(), updated = Date(), state = State.OPEN, number = 7)
     )
 
-    private fun head(project: Project): String = repositories.openRepository(project).use { it.resolve("refs/heads/master").name }
+    private fun head(project: Project): String = repositories.openGitRepository(project).use { it.resolve("refs/heads/master").name }
 
-    private fun commit(project: Project, id: String): RevCommit = repositories.openRepository(project).use { r -> RevWalk(r).use { it.parseCommit(r.resolve(id)) } }
+    private fun commit(project: Project, id: String): RevCommit = repositories.openGitRepository(project).use { r -> RevWalk(r).use { it.parseCommit(r.resolve(id)) } }
 
-    private fun text(project: Project, commit: RevCommit, path: String): String? = repositories.openRepository(project).use { r ->
+    private fun text(project: Project, commit: RevCommit, path: String): String? = repositories.openGitRepository(project).use { r ->
         org.eclipse.jgit.treewalk.TreeWalk.forPath(r, path, commit.tree)?.let { String(r.open(it.getObjectId(0)).bytes) }
     }
 
@@ -153,7 +153,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         val (origin, fork) = originAndFork()
         GitTestSupport.appendCommits(repositories, fork, TestCommit("하나", mapOf("b.txt" to "b\n".toByteArray())))
         // 포크 master의 머리 커밋을 한 부모로, 기반 커밋을 다른 부모로 하는 병합 커밋을 직접 만든다
-        repositories.openRepository(fork).use { r ->
+        repositories.openGitRepository(fork).use { r ->
             val tip = RevWalk(r).use { it.parseCommit(r.resolve("refs/heads/master")) }
             val base = tip.getParent(0)
             val builder = CommitBuilder().apply { setTreeId(tip.tree.id); setParentIds(tip.id, base.id); author = merger1; setCommitter(merger1); message = "병합 커밋\n" }
@@ -172,7 +172,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         val before = head(origin)
         merger.rebaseBlocked(pullRequest(origin, fork))
         assertEquals(before, head(origin))
-        repositories.openRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
+        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
     }
 
     @Test
@@ -202,6 +202,6 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         assertTrue(merge.fullMessage.startsWith("직접 쓴 제목\n\n직접 쓴 본문"), merge.fullMessage)
         val plain = merger.merge(pullRequest(origin, fork).also { it.number = 8 }, merger1)
         assertTrue(plain == null || commit(origin, plain.mergeCommitId!!.name).fullMessage.startsWith("Merge branch"), "기본 제목은 v1.6과 같다")
-        assertNotNull(Git(repositories.openRepository(origin)))
+        assertNotNull(Git(repositories.openGitRepository(origin)))
     }
 }

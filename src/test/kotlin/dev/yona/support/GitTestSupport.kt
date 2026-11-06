@@ -22,7 +22,7 @@ object GitTestSupport {
      * 저장소는 미리 만들어져 있어야 하며, 이전 내용은 모두 대체된다.
      */
     fun commitFiles(repositories: RepositoryService, project: Project, files: Map<String, ByteArray>) {
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val inserter = repository.newObjectInserter()
             val tree = TreeFormatter()
             files.toSortedMap().forEach { (name, bytes) ->
@@ -49,7 +49,7 @@ object GitTestSupport {
      * [toTree]가 참이면 커밋이 아니라 `HEAD`의 트리를 가리킨다(커밋이 아닌 대상을 가리키는 태그를 만들 때 쓴다).
      */
     fun createRef(repositories: RepositoryService, project: Project, refName: String, toTree: Boolean = false) {
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val target = requireNotNull(repository.resolve(if (toTree) "HEAD^{tree}" else "HEAD")) { "HEAD를 풀 수 없습니다." }
             repository.updateRef(refName).apply { setNewObjectId(target); setForceUpdate(true) }.update()
         }
@@ -59,7 +59,7 @@ object GitTestSupport {
      * [project] 저장소의 `HEAD` 커밋에 주석 태그 [name]을 만든다. [message]는 태그 메시지, [taggerName]과 [time]은 태그를 단 사람과 시각이다.
      */
     fun createAnnotatedTag(repositories: RepositoryService, project: Project, name: String, message: String, taggerName: String = "릴리서", time: Long = 1_800_000_000_000L) {
-        repositories.openRepository(project).use { repository ->
+        repositories.openGitRepository(project).use { repository ->
             val head = repository.resolve("HEAD")
             org.eclipse.jgit.api.Git(repository).tag().setName(name).setAnnotated(true).setMessage(message)
                 .setTagger(PersonIdent(taggerName, "tagger@example.com", Date(time), TimeZone.getTimeZone("UTC")))
@@ -84,7 +84,7 @@ object GitTestSupport {
      * 저장소가 비어 있으면 `HEAD`가 [branch]를 가리키게 한다.
      */
     fun pushCommits(repositories: RepositoryService, project: Project, vararg commits: TestCommit, branch: String = "master", startTime: Long = 1_700_000_000_000L) {
-        val bare = repositories.openRepository(project).use { it.directory }
+        val bare = repositories.openGitRepository(project).use { it.directory }
         val work: File = Files.createTempDirectory("yona-it-work").toFile()
         try {
             Git.init().setDirectory(work).setInitialBranch(branch).call().use { git ->
@@ -116,7 +116,7 @@ object GitTestSupport {
         repositories: RepositoryService, project: Project, vararg commits: TestCommit, branch: String = "master", baseBranch: String = "master",
         startTime: Long = 1_750_000_000_000L
     ) {
-        val bare = repositories.openRepository(project).use { it.directory }
+        val bare = repositories.openGitRepository(project).use { it.directory }
         val work: File = Files.createTempDirectory("yona-it-work").toFile()
         try {
             Git.cloneRepository().setURI(bare.toURI().toString()).setDirectory(work).setBranch("refs/heads/$baseBranch").call().use { git ->
