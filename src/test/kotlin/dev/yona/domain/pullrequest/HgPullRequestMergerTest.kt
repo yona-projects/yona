@@ -36,6 +36,11 @@ import kotlin.test.assertTrue
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-hg-pull-request"])
 class HgPullRequestMergerTest : AbstractIntegrationTest() {
 
+    private companion object {
+        /** 8e 시험은 hg4j 1.1.2의 새 기능이 필요하다. 배포되거나 includeBuild가 복구되면(D-89) 해제한다. */
+        const val REBUILD = "hg4j 1.1.2(스쿼시, 그래프트 결과)가 빌드에 들어오면 해제한다. D-89"
+    }
+
     @Autowired private lateinit var merger: PullRequestMerger
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var projects: ProjectRepository
@@ -210,13 +215,100 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         assertEquals("Merge branch 'main' of ${fork.owner}/${fork.name} into 'main'" to "from pull-request 1\n\n* main:\n  a\n  b\n", merger.defaults(pr, MergeMethod.MERGE, listOf("a", "b")))
     }
 
+    // --- 스쿼시와 리베이스(8e, hg4j 1.1.2) ---
+
+    private fun commitBy(project: Project, message: String, files: Map<String, String?>, user: String, date: String = "2026-11-02 10:00 +0900"): String {
+        HgTestSupport.hg(dir(project), "update", "-C", "main")
+        return HgTestSupport.commit(dir(project), message, files, date, user)
+    }
+
+    private fun parents(p: Project, rev: String) = hg(p, "log", "-r", rev, "--template", "{p1node} {p2node}").split(" ").filter { it.isNotBlank() && !it.all { c -> c == '0' } }
+
+    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
-    fun `스쿼시와 리베이스는 hg4j 보완 전까지 지원하지 않는다`() {
+    fun `스쿼시는 병합 결과 트리를 받는 머리 하나만 부모로 갖는 커밋 하나로 만들고 작성자는 요청자이다`() {
+        val (origin, fork) = originAndFork()
+        commit(origin, "원본 파일", mapOf("o.txt" to "o\n"))
+        commit(fork, "새 파일", mapOf("b.txt" to "b\n")); commit(fork, "또 하나", mapOf("c.txt" to "c\n"), date = "2026-11-03 10:00 +0900")
+        val pr = pullRequest(origin, fork)
+        val result = merger.merge(pr, MergePerson("받는 사람", "receiver@example.com"), MergeMethod.SQUASH)!!
+        val squash = assertNotNull(result.mergeCommitId)
+
+        assertEquals(squash, node(origin, "main"))
+        assertEquals(listOf(result.attempt.leftParent), parents(origin, squash))
+        assertEquals("public", phase(origin, squash))
+        // 병합 결과 트리: 원본과 포크의 파일이 모두 있다
+        assertEquals("o\nb\nc\n".replace("\n", "").length, hg(origin, "files", "-r", squash, "-T", "{path}").length - "a.txt".length)
+        assertEquals(setOf("a.txt", "o.txt", "b.txt", "c.txt"), hg(origin, "files", "-r", squash, "-T", "{path}\\n").lines().filter { it.isNotBlank() }.toSet())
+        assertEquals("${pr.contributor!!.name} <${pr.contributor!!.email}>", hg(origin, "log", "-r", squash, "--template", "{author}"))
+        assertTrue(hg(origin, "log", "-r", squash, "--template", "{desc}").startsWith("요청 (#1)\n\n* 새 파일\n* 또 하나"), hg(origin, "log", "-r", squash, "--template", "{desc}"))
+        assertTrue(HgTestSupport.verifies(dir(origin)))
+    }
+
+    @org.junit.jupiter.api.Disabled(REBUILD)
+    @Test
+    fun `스쿼시는 제목과 본문을 직접 정할 수 있다`() {
         val (origin, fork) = originAndFork()
         commit(fork, "새 파일", mapOf("b.txt" to "b\n"))
-        val pr = pullRequest(origin, fork)
-        assertNotEquals(null, merger.rebaseBlocked(pr))
-        org.junit.jupiter.api.assertThrows<UnsupportedOperationException> { merger.merge(pr, MergePerson("n", "e@example.com"), MergeMethod.SQUASH) }
-        org.junit.jupiter.api.assertThrows<UnsupportedOperationException> { merger.merge(pr, MergePerson("n", "e@example.com"), MergeMethod.REBASE) }
+        val result = merger.merge(pullRequest(origin, fork), MergePerson("n", "e@example.com"), MergeMethod.SQUASH, "내 제목", "내 본문")!!
+        assertTrue(hg(origin, "log", "-r", result.mergeCommitId!!, "--template", "{desc}").startsWith("내 제목\n\n내 본문"))
+    }
+
+    @org.junit.jupiter.api.Disabled(REBUILD)
+    @Test
+    fun `리베이스는 원래 커밋을 받는 머리 위에 순서대로 다시 적용하고 작성자와 메시지는 그대로이다`() {
+        val (origin, fork) = originAndFork()
+        val tip = commit(origin, "원본 파일", mapOf("o.txt" to "o\n"))
+        val first = commitBy(fork, "새 파일", mapOf("b.txt" to "b\n"), "포크 작성자 <fork@example.com>")
+        val second = commitBy(fork, "또 하나", mapOf("c.txt" to "c\n"), "포크 작성자 <fork@example.com>", "2026-11-03 10:00 +0900")
+        val result = merger.merge(pullRequest(origin, fork), MergePerson("받는 사람", "receiver@example.com"), MergeMethod.REBASE)!!
+        val newTip = assertNotNull(result.mergeCommitId)
+
+        assertEquals(newTip, node(origin, "main"))
+        // 선형 이력: 새 머리 ← 다시 적용한 첫 커밋 ← 받는 쪽의 옛 머리. 원래 체인지셋과는 다른 노드이다
+        val newFirst = parents(origin, newTip).single()
+        assertEquals(listOf(tip), parents(origin, newFirst))
+        assertNotEquals(first, newFirst); assertNotEquals(second, newTip)
+        assertEquals(listOf("또 하나", "새 파일"), listOf(newTip, newFirst).map { hg(origin, "log", "-r", it, "--template", "{desc|firstline}") })
+        assertEquals(listOf("포크 작성자 <fork@example.com>", "포크 작성자 <fork@example.com>"), listOf(newTip, newFirst).map { hg(origin, "log", "-r", it, "--template", "{author}") })
+        assertEquals("public", phase(origin, newTip))
+        assertTrue(HgTestSupport.verifies(dir(origin)))
+    }
+
+    @org.junit.jupiter.api.Disabled(REBUILD)
+    @Test
+    fun `리베이스를 할 수 있으면 막는 이유가 없고 충돌하면 conflict이며 병합 커밋이 섞였으면 merge-commits이다`() {
+        val (origin, fork) = originAndFork()
+        commit(fork, "새 파일", mapOf("b.txt" to "b\n"))
+        assertNull(merger.rebaseBlocked(pullRequest(origin, fork)))
+
+        val (origin2, fork2) = originAndFork()
+        commit(origin2, "원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n"))
+        commit(fork2, "포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n"))
+        assertEquals("conflict", merger.rebaseBlocked(pullRequest(origin2, fork2)))
+
+        val (origin3, fork3) = originAndFork()
+        // 포크에서 갈라진 두 줄기를 합친 병합 커밋을 만든다
+        val base = node(fork3, "main")
+        commit(fork3, "줄기 하나", mapOf("x.txt" to "x\n"))
+        HgTestSupport.hg(dir(fork3), "update", "-C", base)
+        HgTestSupport.commit(dir(fork3), "줄기 둘", mapOf("y.txt" to "y\n"), "2026-11-03 10:00 +0900")
+        HgTestSupport.hg(dir(fork3), "merge", "-r", "main"); HgTestSupport.hg(dir(fork3), "commit", "-m", "병합", "-d", "2026-11-04 10:00 +0900")
+        HgTestSupport.hg(dir(fork3), "bookmark", "-f", "-r", ".", "main")
+        assertEquals("merge-commits", merger.rebaseBlocked(pullRequest(origin3, fork3)))
+        assertNull(merger.merge(pullRequest(origin3, fork3), MergePerson("n", "e@example.com"), MergeMethod.REBASE))
+    }
+
+    @org.junit.jupiter.api.Disabled(REBUILD)
+    @Test
+    fun `스쿼시와 리베이스도 충돌하면 null이고 받는 이름표는 그대로이다`() {
+        for (method in listOf(MergeMethod.SQUASH, MergeMethod.REBASE)) {
+            val (origin, fork) = originAndFork()
+            commit(origin, "원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n"))
+            commit(fork, "포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n"))
+            val before = node(origin, "main")
+            assertNull(merger.merge(pullRequest(origin, fork), MergePerson("n", "e@example.com"), method), method.name)
+            assertEquals(before, node(origin, "main"))
+        }
     }
 }
