@@ -72,6 +72,7 @@ class HgHttpTest {
     @Autowired private lateinit var apiTokenService: dev.yona.domain.apitoken.ApiTokenService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
 
@@ -113,7 +114,7 @@ class HgHttpTest {
     @AfterEach
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다
-        apiTokenRepository.deleteAll(); tokens.clear(); tokenFailures.clear()
+        apiTokenRepository.deleteAll(); tokens.clear(); tokenFailures.clear(); auditLogs.deleteAllInBatch()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
     }
@@ -272,5 +273,17 @@ class HgHttpTest {
         assertEquals(0, hg(dir, "push", url(project, member)).first)
         assertTrue(projects.findById(project.id!!).get().lastPushedDate != null)
         assertTrue(pushedBranches.findAll().filter { it.project?.id == project.id }.any { it.name == "refs/heads/default" })
+    }
+
+    @Test
+    fun `푸시와 거부는 hg 이름으로 감사 기록에 남는다`() {
+        val dir = cloneWithBookmark("feature")
+        assertEquals(0, hg(dir, "push", "-B", "feature", url(project, member)).first)
+        protect("main") { requirePullRequest = true }
+        val blocked = cloneWithBookmark("main")
+        hg(blocked, "push", "-B", "main", url(project, member))
+        val actions = auditLogs.findAll().map { it.action }
+        assertTrue("hg.push" in actions, actions.toString())
+        assertTrue("hg.push_rejected" in actions, actions.toString())
     }
 }

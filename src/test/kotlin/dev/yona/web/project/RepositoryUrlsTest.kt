@@ -28,8 +28,18 @@ class RepositoryUrlsTest {
     }
 
     @Test
-    fun `Mercurial에는 SSH 복제 주소를 아직 주지 않는다`() {
+    fun `Mercurial의 SSH 복제 주소는 접미어 없이 ssh 형식이고 포트 22도 scp 형식을 쓰지 않는다`() {
         val ssh = RepositoryUrls(YonaProperties(ssh = YonaProperties.Ssh(enabled = true)))
-        assertNull(ssh.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Mercurial"), request(), 2222))
+        val project = Project(owner = "owner", name = "repo", vcs = "Mercurial")
+        assertEquals("ssh://git@yona.example.com:2222/owner/repo", ssh.sshUrlFor(project, request(), 2222))
+        // hg에는 scp 형식(`git@호스트:경로`)이 없어 포트 22이면 포트를 생략한 ssh 주소이다
+        assertEquals("ssh://git@yona.example.com/owner/repo", ssh.sshUrlFor(project, request(), 22))
+    }
+
+    @Test
+    fun `SSH를 켜지 않았거나 Subversion이면 SSH 복제 주소가 없다`() {
+        assertNull(urls.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Mercurial"), request(), 2222))
+        val ssh = RepositoryUrls(YonaProperties(ssh = YonaProperties.Ssh(enabled = true)))
+        assertNull(ssh.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Subversion"), request(), 2222))
     }
 }
