@@ -1375,3 +1375,8 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 hg4j 담당 세션 회신 반영
 
 `hg-da` 세션이 훅 계약(`postChangegroup`의 `nodes` 목록, pushkey의 `namespace`, `key`, `old`, `new`)과 SSH 서버의 동일한 훅 지원, 폴더 한 단계 걷기가 없음을 확인해 회신했다. `mercurial-plan.md` 4.1절에 옮겼다. 병합 커밋 공개 진입점은 선생님의 진행 결정을 기다린다.
+
+
+## 2026-11-06 hg4j 훅 실측 보충
+
+`hg-da` 세션이 재푸시 실험으로 확인했다: 이미 있는 체인지셋만 담긴 번들에서도 `postChangegroup` 훅이 불리고 `nodes`가 이미 있던 노드를 담는다(실제 hg는 훅을 실행하지 않는다). Yona의 푸시 이벤트 변환기는 `nodes`를 푸시 전후 `heads`로 걸러 쓴다. `mercurial-plan.md` 4.1절에 반영했다.

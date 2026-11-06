@@ -100,7 +100,7 @@ hg4j 담당 세션(`hg-da`)이 소스를 읽고 회신한 내용이다. 푸시 �
 
 | 훅 | context 값 | 비고 |
 |---|---|---|
-| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **이미 있는 체인지셋만 보낸 푸시("no changes found")에서 훅이 불리는지는 확인하지 못했다**(단계 0에서 확인) |
+| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **이미 서버에 있는 체인지셋만 담긴 번들을 다시 푸시하면 훅이 불리고 `nodes`에 이미 있던 노드가 전부 들어온다**(hg4j 담당 세션 실측: 번들 2개 재푸시에서 훅 2회, 저장소는 중복 저장되지 않음). 실제 hg 7.2의 `unbundle`은 새 체인지셋이 없으면 훅을 실행하지 않는다. 실제 hg 클라이언트의 일반 푸시는 "no changes found"로 끝나 이런 번들을 보내지 않으므로 보통은 영향이 없다. **Yona는 `nodes`를 새 체인지셋으로 그대로 믿지 말고 푸시 전후 `heads` 또는 체인지셋 존재 여부로 걸러 쓴다.** hg4j를 고칠지는 선생님 결정 대기 |
 | `preChangegroup`, `preTxnChangegroup` | 같은 `nodes` | 푸시 전 검사(보호 규칙, 서명)에 쓴다 |
 | `prePushkey`, `postPushkey` | `namespace`, `key`, `old`, `new`, `repository` | bookmark 생성은 `old`가 빈 문자열, 삭제는 `new`가 빈 문자열이고 null이 아니다. 값은 노드 hex. pre가 거절하면 구버전 pushkey 명령은 `0\n`, bundle2 파트는 "prepushkey hook failed"로 응답한다. post는 성공했을 때만 불리고 반환값은 무시된다. `namespace`가 `bookmarks`가 아닌 pushkey(phases 등)도 훅은 불리므로 Yona는 `namespace`를 걸러야 한다 |
 | SSH | `HgSshWireServer`에 같은 훅 다섯 종류가 있고 같은 `Wire1Commands` 경로로 부른다 | HTTP와 SSH가 같은 변환기를 쓸 수 있다 |
