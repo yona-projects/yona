@@ -13,6 +13,7 @@ import dev.yona.domain.pullrequest.PullRequestRepository
 import dev.yona.domain.pullrequest.PullRequestService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
+import dev.yona.domain.vcs.PushedCommit
 import dev.yona.domain.vcs.RefUpdate
 import dev.yona.domain.vcs.RefUpdateType
 import org.springframework.context.ApplicationEventPublisher
@@ -45,15 +46,9 @@ class PostReceiveJobs(
 ) {
 
     /** 푸시로 새로 생기거나 바뀐 ref에 들어온 커밋과 그 ref 이름이다. */
-    class PushedCommits(val commits: List<CommitDetail>, val refNames: List<String>)
+    class PushedCommits(val commits: List<PushedCommit>, val refNames: List<String>)
 
-    /** 커밋 하나의 값이다. */
-    data class CommitDetail(
-        val id: String, val shortId: String, val shortMessage: String, val message: String, val authorName: String, val authorEmail: String,
-        val committerName: String, val committerEmail: String, val commitTime: Date
-    )
-
-    private fun detail(commit: CommitInfo) = CommitDetail(
+    private fun detail(commit: CommitInfo) = PushedCommit(
         commit.id, commit.shortId, commit.shortMessage, commit.message, commit.authorName, commit.authorEmail,
         commit.committerName, commit.committerEmail, commit.commitTime
     )
@@ -68,7 +63,7 @@ class PostReceiveJobs(
 
     private fun pushedCommits(projectId: Long, pushed: List<RefUpdate>): PushedCommits {
         val project = projects.findById(projectId).orElse(null) ?: return PushedCommits(emptyList(), emptyList())
-        val details = mutableListOf<CommitDetail>()
+        val details = mutableListOf<PushedCommit>()
         val refNames = mutableListOf<String>()
         val reader = backends.commits(project.vcs)
         for (update in pushed) {

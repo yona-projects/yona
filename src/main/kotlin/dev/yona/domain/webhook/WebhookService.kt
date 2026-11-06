@@ -13,7 +13,6 @@ import dev.yona.domain.project.Webhook
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.user.User
-import dev.yona.repository.PostReceiveJobs
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
@@ -145,7 +144,7 @@ class WebhookService(
 
     /** 푸시 이벤트이다. `JSON` 형식은 커밋 내용을, 푸시를 켠 다른 형식은 한 줄 글을 받는다. */
     @Transactional(readOnly = true)
-    fun push(project: Project, sender: User, commits: List<PostReceiveJobs.CommitDetail>, refNames: List<String>) {
+    fun push(project: Project, sender: User, commits: List<dev.yona.domain.vcs.PushedCommit>, refNames: List<String>) {
         for (hook in webhooks.findByProjectId(requireNotNull(project.id))) {
             if (hook.webhookType == WebhookType.JSON) {
                 this.sender.send(hook, payloads.pushJson(project, commits, refNames, sender))

@@ -14,7 +14,6 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
-import dev.yona.repository.PostReceiveJobs
 import dev.yona.security.AvatarService
 import dev.yona.util.SiteUrls
 import org.springframework.context.MessageSource
@@ -169,7 +168,7 @@ class WebhookPayloads(
         text("notification.pushed.commits.to", project.name, commitCount, refNames.first())
 
     /** 지속적 통합 도구용 푸시 본문이다 (v1.6 `buildRequestBody(commits, refNames, sender)`). */
-    fun pushJson(project: Project, commits: List<PostReceiveJobs.CommitDetail>, refNames: List<String>, sender: User): String {
+    fun pushJson(project: Project, commits: List<dev.yona.domain.vcs.PushedCommit>, refNames: List<String>, sender: User): String {
         val body = mapper.createObjectNode()
         val refs = mapper.createArrayNode()
         refNames.forEach { refs.add(it) }
@@ -188,7 +187,7 @@ class WebhookPayloads(
         return mapper.writeValueAsString(body)
     }
 
-    private fun commitJson(project: Project, commit: PostReceiveJobs.CommitDetail): ObjectNode {
+    private fun commitJson(project: Project, commit: dev.yona.domain.vcs.PushedCommit): ObjectNode {
         val node = mapper.createObjectNode()
         node.put("id", commit.id)
         node.put("message", commit.message)

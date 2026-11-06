@@ -9,4 +9,4 @@ import dev.yona.domain.user.User
  * @property commits 푸시로 들어온 커밋
  * @property refNames 푸시한 ref 이름
  */
-data class CommitsPushedActivity(val project: Project, val sender: User, val commits: List<dev.yona.repository.PostReceiveJobs.CommitDetail>, val refNames: List<String>)
+data class CommitsPushedActivity(val project: Project, val sender: User, val commits: List<dev.yona.domain.vcs.PushedCommit>, val refNames: List<String>)
