@@ -1802,3 +1802,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-06] build | hg4j 우회 정리 뒤 전체 H2 시험
 
 15분 28초, 4,812건(건너뜀 2), 실패 0. 우회 네 가지를 hg4j 정식 기능으로 바꿨다: 태그 읽기(`TagsCommand.setReadFromHeads`), 풀 리퀘스트 번들 범위(`BundleCommand.setDestination`), 푸시 거절 사유(`HgHookAbortException`), 포크와 가져오기 뒤 dirstate 삭제(hg4j `PullCommand`가 원본처럼 dirstate를 건드리지 않게 고쳐져서 걷음, `c583a0c`). 남은 일: hg4j 1.1.2 배포 뒤 `includeBuild` 제거(D-89), PostgreSQL 시험.
+
+## [2026-11-07] build | Mercurial LFS 수명 주기 보완
+
+LFS 파일이 있는 저장소의 포크가 해시 불일치로 실패하는 것을 점검 중 찾았다(Git LFS는 처음부터 포크 시험이 있었다). hg4j 수정 jar를 임시로 얹고 본문 복사(`HgLfsBlobs`)와 `HgLfsLifecycleTest` 5건을 추가했다. 관련 시험 329건 통과(4분 23초). 전체 시험은 아직 돌리지 않았다.

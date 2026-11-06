@@ -389,10 +389,22 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 | 9c GPG | `HgSignatures`, `HgSignedCommits`, `HgCommitReader`, `HgHooks` | D-88: `.hgsigs`(보고 있는 리비전에서 보이는 것)를 읽어 `CommitInfo.signature`를 채우면 Git의 화면, REST, 판정이 그대로 Verified를 보인다(서명 원문은 `노드\n`, 서명한 키가 등록 키이고 이메일이 작성자와 같을 때 Verified). 서명 커밋 필수 규칙은 이름표 이동에서 새 커밋마다 새 머리의 `.hgsigs`로 검사하고 서명 파일만 바꾸는 커밋은 제외한다 |
 
 - **hg4j에서 찾아 고친 결함:** (1) 최상위 `data/`, `meta/` 폴더 아래 파일의 필로그를 못 찾음(`encodeFname`, hg4j `9a7560a`로 수정, 회귀 시험 `HgReservedFolderNamesTest`), (2) LFS 배치 응답의 `href`에 기준 경로가 빠짐(`9ae3eeb`로 수정).
-- **우회를 hg4j 정식 기능으로 바꿈(2026-11-06, 위의 7.12):** 태그 읽기는 `TagsCommand.setReadFromHeads(true)`(Yona가 직접 모든 머리의 `.hgtags`를 읽던 코드를 지움), 풀 리퀘스트의 번들 범위는 `BundleCommand.setDestination`(받는 저장소가 가진 가장 최근의 조상을 Yona가 직접 계산하던 코드를 지움), 푸시 거절 사유는 `HgHookAbortException`(클라이언트 화면에 `abort: protected branch: …`가 보인다, 이전에는 사유 없이 `prepushkey hook failed`였다). 이어서 포크와 가져오기 뒤 `dirstate` 삭제도 걷었다(hg4j `PullCommand`가 원본 hg처럼 dirstate를 건드리지 않게 고쳐졌다, `c583a0c`. `CloneCommand.setUpdate(false)`는 `hg clone -U`). 남긴 것: LFS 사용자 캐시 끄기(원본 hg와 같은 동작이라 설정으로 한다).
+- **우회를 hg4j 정식 기능으로 바꿈(2026-11-06, 위의 7.11):** 태그 읽기는 `TagsCommand.setReadFromHeads(true)`(Yona가 직접 모든 머리의 `.hgtags`를 읽던 코드를 지움), 풀 리퀘스트의 번들 범위는 `BundleCommand.setDestination`(받는 저장소가 가진 가장 최근의 조상을 Yona가 직접 계산하던 코드를 지움), 푸시 거절 사유는 `HgHookAbortException`(클라이언트 화면에 `abort: protected branch: …`가 보인다, 이전에는 사유 없이 `prepushkey hook failed`였다). 이어서 포크와 가져오기 뒤 `dirstate` 삭제도 걷었다(hg4j `PullCommand`가 원본 hg처럼 dirstate를 건드리지 않게 고쳐졌다, `c583a0c`. `CloneCommand.setUpdate(false)`는 `hg clone -U`). 남긴 것: LFS 사용자 캐시 끄기(원본 hg와 같은 동작이라 설정으로 한다).
 - **hg4j 보완(해결, `dd32851`):** 번들2 푸시에서 이름표 이동 훅(`prepushkey`)이 변경 그룹을 적용하기 **전에** 불려 같은 푸시로 들어온 체인지셋을 읽을 수 없었다(원본 hg는 같은 트랜잭션에서 뒤에 부른다). hg4j가 훅을 변경 그룹 적용 뒤에 부르게 고쳐서 Yona의 훅은 변경 로그를 그대로 읽는다(캐시를 비우는 우회는 필요 없었다). 그 결과 이름표 이동 종류(빨리감기와 강제)를 정확히 판정하고(진짜 강제 푸시는 막고 일반 갱신은 통과, 시험으로 확인), 서명 커밋 필수 규칙이 새 커밋을 읽어 판정한다(서명한 커밋과 서명을 담은 `.hgsigs` 커밋을 함께 올리면 허용, 서명 없는 푸시는 거절). 새 머리를 읽지 못할 때만 `unverifiable`로 거절하는 안전장치는 남겼다.
 - 알려진 한계: 한 노드에 서명이 여럿이면 앞의 것만 본다. 서명 판정은 보고 있는 리비전에 따라 달라진다(커밋 하나를 볼 때는 기본 위치 머리, 이력은 그 리비전, D-88 1번).
 - 구현 판단은 `decisions.md` A-382에 적었다.
+
+### 7.12 LFS 수명 주기 보완(2026-11-07): 포크와 풀 리퀘스트
+
+Git LFS는 본문이 저장소 밖이라 포크가 원본의 본문을 빌려 읽는다(`LfsLifecycleTest`). Mercurial은 본문이 저장소 안(`.hg/store/lfs`)에 있어서 체인지셋을 가져오는 일(`pull`, `bundle`)이 포인터만 옮기므로, 포크와 풀 리퀘스트 가져오기가 본문을 함께 옮겨야 한다. 이 점을 D-90을 정할 때 Git과 비교하지 않았다가 시험으로 찾았다(A-383).
+
+| 작업 | 동작 |
+|---|---|
+| 포크 | 본문을 먼저 옮기고(`HgLfsBlobs.copyAll`) 체인지셋을 가져온다. 같은 디스크이면 하드 링크라서 원본을 지워도 포크의 본문이 남는다. |
+| 풀 리퀘스트 가져오기 | 받는 저장소에 없는 체인지셋이 가리키는 본문만 옮긴다. 번들은 `NONE_V3`이다. |
+| 개명, 이전, 삭제 | 저장소 디렉터리와 함께 움직이거나 지워진다. |
+
+hg4j 쪽 원인과 수정: 로컬 경로 소스가 bundle2를 광고하지 않아 cg1 변경그룹으로 가면서 외부 저장(EXTSTORED) 플래그가 사라져 노드 해시가 어긋났다. 수정본 jar를 임시로 쓰며 Central 1.1.3 공개 뒤 걷는다. 시험은 `HgLfsLifecycleTest` 5건이다.
 
 ## 8. 결정이 필요한 질문
 

@@ -53,18 +53,37 @@ class HgPullRefs(private val repositories: HgRepositories) {
     /**
      * 보내는 저장소의 [node]까지의 체인지셋을 번들로 만들어 받는 저장소([target])에 적용한다. `pull`을 쓰지 않는 까닭: `pull`은 실제 `hg pull`처럼
      * 보내는 쪽의 이름표를 받는 저장소에 반영해, 받는 저장소의 `main`이 포크의 머리로 병합 전에 저절로 앞서 나가고 포크의 다른 이름표가 들어온다. 번들은
-     * 체인지셋만 옮긴다(원본 hg의 방식, `hg bundle -r HEAD <받는 저장소>`와 `hg unbundle`). 번들 범위는 받는 저장소([BundleCommand.setDestination])가
+     * 체인지셋만 옮긴다(원본 hg의 방식, `hg bundle --type none-v3 -r HEAD <받는 저장소>`와 `hg unbundle`. LFS 저장소는 v3 번들만 허용한다). 번들 범위는 받는 저장소([BundleCommand.setDestination])가
      * 이미 가진 것을 빼고 hg4j가 정한다.
      */
     private fun transfer(target: io.github.search5.hg4j.api.Hg, fromOwner: String, fromName: String, node: String, targetDir: java.io.File) {
         val file = java.io.File.createTempFile("yona-pull-", ".hg")
         try {
             repositories.open(fromOwner, fromName).use { fork ->
-                BundleCommand(fork.repository).setOutputFile(file).setRevision(node).setDestination(targetDir.path).call()
+                // 새로 들어올 체인지셋이 가리키는 LFS 본문을 먼저 받는 저장소로 옮긴다(번들은 포인터만 옮긴다, D-90)
+                copyLfsBlobs(fork, fromOwner, fromName, node, targetDir, target)
+                BundleCommand(fork.repository).setType(BundleCommand.BundleType.NONE_V3).setOutputFile(file).setRevision(node).setDestination(targetDir.path).call()
             }
             UnbundleCommand(target.repository).setBundleFile(file).call()
         } finally {
             file.delete()
+        }
+    }
+
+    /** 보내는 저장소에만 있는 체인지셋([node]까지)이 가리키는 LFS 본문을 [targetDir] 저장소로 옮긴다. */
+    private fun copyLfsBlobs(fork: io.github.search5.hg4j.api.Hg, fromOwner: String, fromName: String, node: String, targetDir: java.io.File, target: io.github.search5.hg4j.api.Hg) {
+        val source = repositories.directoryOf(fromOwner, fromName)
+        if (!HgLfsBlobs.objectsDir(source).isDirectory) return
+        val forkLog = HgRevisions.changelog(fork)
+        val targetLog = HgRevisions.changelog(target)
+        val head = HgChangesets.revOf(forkLog, node)
+        if (head < 0) return
+        for (rev in HgChangesets.ancestors(forkLog, head) + head) {
+            val changeset = HgChangesets.read(forkLog, rev) ?: continue
+            if (HgChangesets.revOf(targetLog, changeset.node) >= 0) continue
+            io.github.search5.hg4j.lfs.HgLfsFiles.changedBy(fork.repository, rev, false).values.forEach { pointer ->
+                if (pointer != null) HgLfsBlobs.copy(source, targetDir, pointer.oid)
+            }
         }
     }
 

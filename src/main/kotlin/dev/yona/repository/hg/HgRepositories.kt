@@ -36,9 +36,12 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
      * 사용자 캐시(`lfs.usercache`)는 끈다(`experimental.lfs.disableusercache`). hg4j 서버는 객체가 있는지를 저장소의 LFS 저장소와 함께 이 캐시도 보는데,
      * 캐시는 컴퓨터의 모든 저장소가 공유하므로 켜 두면 한 프로젝트가 올린 큰 파일 본문이 다른 프로젝트에도 "이미 있음"으로 보이고(저장소 사이에 새는 것),
      * 올린 본문이 그 저장소의 저장소 안에 들어가지 않는다.
+     *
+     * `lfs.url = null://`은 서버 저장소에 올려 보낼 원격이 없다는 뜻이다. hg4j `BundleCommand`는 원본 hg처럼 번들에 담는 체인지셋의 본문을 `[lfs] url`에 먼저 올리는데,
+     * 풀 리퀘스트 가져오기가 번들을 만들 때 원격이 없다는 오류가 나지 않게 하고 본문은 [HgLfsBlobs]가 직접 옮긴다(D-90).
      */
     private fun enableLfs(directory: File) {
-        File(directory, ".hg/hgrc").appendText("[extensions]\nlfs =\n\n[experimental]\nlfs.disableusercache = true\n")
+        File(directory, ".hg/hgrc").appendText("[extensions]\nlfs =\n\n[experimental]\nlfs.disableusercache = true\n\n[lfs]\nurl = null://\n")
     }
 
     /**
@@ -55,6 +58,8 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
         if (!File(source, ".hg").isDirectory) throw IOException("Mercurial 저장소가 없습니다: ${source.path}")
         create(forkOwner, forkName)
         try {
+            // LFS 본문은 저장소 안에 있고 체인지셋을 가져오는 일은 포인터만 옮기므로 본문을 먼저 옮긴다(D-90)
+            HgLfsBlobs.copyAll(source, directoryOf(forkOwner, forkName))
             open(forkOwner, forkName).use { fork ->
                 io.github.search5.hg4j.api.PullCommand(fork.repository).setSource(source.canonicalPath).call()
             }
