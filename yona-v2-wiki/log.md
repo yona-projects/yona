@@ -1788,3 +1788,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-06] build | X-7 7단계(포크, 가져오기, REST, 지표) 전체 H2 시험
 
 13분 45초, 4,754건(건너뜀 2), 실패 0. 한 번에 통과했다(6단계에서 얻은 교훈대로 구현 직후 라우트 시험 묶음을 먼저 돌렸다). 화면 확인(Playwright)에서 가져오기 화면의 문구가 Mercurial을 골라도 Git이던 결함을 찾아 고쳤고, 포크 시험에서 hg4j `tags()`가 서버 저장소에서 비어 보이는 결함을 찾아 우회와 보완 요청을 했다. PostgreSQL은 이번에도 돌리지 않았다.
+
+## [2026-11-06] build | X-7 8단계(풀 리퀘스트) 전체 H2 시험
+
+14분 28초, 4,788건(건너뜀 2), 실패 0. 한 번에 통과했다. hg4j를 `includeBuild`(D-89)로 함께 컴파일해 7단계(13분 45초)보다 40초쯤 더 걸렸다. Git 풀 리퀘스트 관련 시험 338건은 8a의 구조 분리 뒤에도 그대로 통과했다. 화면 확인(Playwright)에서 Mercurial 포크의 새 풀 리퀘스트 화면이 병합 가능 여부를 보여 주는 것을 확인했다. 작업 중 찾은 문제: `PullCommand`가 보내는 쪽 이름표를 받는 저장소에 반영해 병합 전에 `main`이 앞서 나가는 것(번들 전달로 해결), hg4j `gradleApi()` 누출(hg4j 담당 세션이 고침). PostgreSQL은 이번에도 돌리지 않았다.
