@@ -1784,3 +1784,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-06] build | X-7 6단계(Mercurial 서빙) 전체 H2 시험
 
 세 번 돌렸다. 1차 약 13분(9건 실패: HTTP 서빙을 스프링 라우트로 두어 `cmd`가 없는 요청이 라우트 없는 주소와 겹칠 때 404와 슬래시 이동 대신 500), 2차 13분 21초(1건 실패: 필터가 `request.getParameter`로 쿼리를 읽다 퍼센트 인코딩 오류에서 예외, 기존 400을 가로챔), 3차 13분 18초(전부 통과). 고친 내용: 라우트를 서블릿 필터(`HgHttpFilter`)로 바꾸고 쿼리 문자열을 직접 훑는다. 교훈: 새 경로나 필터를 더하면 라우트 시험 묶음(`TrailingSlashRedirectTest`, `SiteSecretTest`, `OptionsRequestTest`, `MalformedParametersTest`, `AttachmentControllerTest`)을 전체 시험 전에 먼저 돌린다. PostgreSQL은 이번에도 돌리지 않았다.
+
+## [2026-11-06] build | X-7 7단계(포크, 가져오기, REST, 지표) 전체 H2 시험
+
+13분 45초, 4,754건(건너뜀 2), 실패 0. 한 번에 통과했다(6단계에서 얻은 교훈대로 구현 직후 라우트 시험 묶음을 먼저 돌렸다). 화면 확인(Playwright)에서 가져오기 화면의 문구가 Mercurial을 골라도 Git이던 결함을 찾아 고쳤고, 포크 시험에서 hg4j `tags()`가 서버 저장소에서 비어 보이는 결함을 찾아 우회와 보완 요청을 했다. PostgreSQL은 이번에도 돌리지 않았다.
