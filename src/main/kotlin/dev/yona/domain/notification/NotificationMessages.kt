@@ -164,8 +164,8 @@ class NotificationMessages(
      * 앞 [WHOLE_FILE_BEFORE]줄과 뒤 [WHOLE_FILE_AFTER]줄까지만 담는다.
      */
     private fun wholeFileHunks(file: dev.yona.repository.diff.FileDiff, interest: Int): dev.yona.repository.diff.Hunks? {
-        val added = file.changeType == org.eclipse.jgit.diff.DiffEntry.ChangeType.ADD
-        val deleted = file.changeType == org.eclipse.jgit.diff.DiffEntry.ChangeType.DELETE
+        val added = file.changeType == dev.yona.domain.vcs.FileChangeType.ADD
+        val deleted = file.changeType == dev.yona.domain.vcs.FileChangeType.DELETE
         val text = (if (added) file.b else if (deleted) file.a else null) ?: return null
         if (if (added) file.isBinaryB else file.isBinaryA) return null
         val from = maxOf(0, interest - WHOLE_FILE_BEFORE)

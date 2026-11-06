@@ -1,11 +1,9 @@
 package dev.yona.repository.diff
 
 import dev.yona.domain.enumeration.Side
-import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.Edit
 import org.eclipse.jgit.diff.EditList
 import org.eclipse.jgit.diff.RawText
-import org.eclipse.jgit.lib.FileMode
 
 /** 차이 줄의 종류이다. 바뀌지 않은 앞뒤 줄(CONTEXT), 추가한 줄(ADD), 지운 줄(REMOVE). */
 enum class DiffLineType { CONTEXT, ADD, REMOVE }
@@ -63,9 +61,11 @@ class FileDiff {
     var context: Int = 3
     var isBinaryA: Boolean = false
     var isBinaryB: Boolean = false
-    var changeType: DiffEntry.ChangeType? = null
-    var oldMode: FileMode? = null
-    var newMode: FileMode? = null
+    var changeType: dev.yona.domain.vcs.FileChangeType? = null
+
+    /** 바뀌기 전과 뒤의 파일 모드 비트이다(예: `100644`는 `0x81A4`). 없으면 0이다. */
+    var oldMode: Int? = null
+    var newMode: Int? = null
 
     private val errors = LinkedHashSet<Error>()
     private var hunks: Hunks? = null
@@ -157,8 +157,8 @@ class FileDiff {
     fun isFileModeChanged(): Boolean {
         val old = oldMode ?: return false
         val new = newMode ?: return false
-        if (old.bits == FileMode.MISSING.bits || new.bits == FileMode.MISSING.bits) return false
-        return old.bits != new.bits
+        if (old == 0 || new == 0) return false
+        return old != new
     }
 
     fun addError(error: Error) { errors.add(error) }

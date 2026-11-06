@@ -161,6 +161,22 @@ interface RefReader : VcsPart {
 }
 
 /**
+ * 커밋 사이의 변경 목록을 구하는 계약이다. 글 비교(바뀐 곳, 헝크)는 하지 않는다. 그것은 종류와 무관하게 [dev.yona.repository.diff.DiffService]가
+ * 변경 목록과 파일 내용으로 한다. 결과는 쓴 뒤 닫아야 한다.
+ */
+interface DiffReader : VcsPart {
+
+    /** [revision]의 커밋이 첫 부모와 비교해 바꾼 파일들이다. 첫 커밋이면 모든 파일이 추가이다. 리비전을 풀 수 없으면 `null`이다. */
+    fun commitDiff(project: Project, revision: String): dev.yona.domain.vcs.DiffSource?
+
+    /** 같은 저장소의 [revA]에서 [revB]로 바뀐 파일들이다. */
+    fun diff(project: Project, revA: String, revB: String): dev.yona.domain.vcs.DiffSource
+
+    /** [projectA]의 [revA]에서 [projectB]의 [revB]로 바뀐 파일들이다(포크 사이의 비교). */
+    fun diff(projectA: Project, revA: String, projectB: Project, revB: String): dev.yona.domain.vcs.DiffSource
+}
+
+/**
  * 메모리에 올리지 않고 흘려보내는 큰 파일이다. 크기와 종류 감지용 앞부분, 스트림 열기를 담고, 다 쓰면 [close]로 저장소를 닫는다.
  */
 class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: AutoCloseable, private val opener: () -> java.io.InputStream) : java.io.Closeable {
@@ -169,17 +185,18 @@ class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: Aut
 }
 
 /**
- * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader], [TextReader], [RefReader])을
+ * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader], [TextReader], [RefReader], [DiffReader])을
  * 빈으로 등록하기만 하면 된다.
  */
 @Component
-class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>, text: List<TextReader>, refs: List<RefReader>) {
+class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>, text: List<TextReader>, refs: List<RefReader>, diff: List<DiffReader>) {
 
     private val lifecycles: Map<VcsType, RepositoryLifecycle> = lifecycles.associateBy { it.type }
     private val commits: Map<VcsType, CommitReader> = commits.associateBy { it.type }
     private val code: Map<VcsType, CodeReader> = code.associateBy { it.type }
     private val text: Map<VcsType, TextReader> = text.associateBy { it.type }
     private val refs: Map<VcsType, RefReader> = refs.associateBy { it.type }
+    private val diff: Map<VcsType, DiffReader> = diff.associateBy { it.type }
 
     private fun <T> pick(parts: Map<VcsType, T>, vcs: String?): T =
         VcsType.of(vcs)?.let { parts[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
@@ -203,11 +220,14 @@ class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitRea
     /** [vcs]의 브랜치와 태그 구현이다. 브랜치와 태그가 없는 종류는 지원하지 않는 VCS이다. */
     fun refs(vcs: String?): RefReader = pick(refs, vcs)
 
+    /** [vcs]의 변경 목록 구현이다. */
+    fun diff(vcs: String?): DiffReader = pick(diff, vcs)
+
     companion object {
         /** 단위 시험용으로 구현을 직접 묶는다. 필요 없는 역할은 비워 둔다. */
         fun of(
             lifecycles: List<RepositoryLifecycle> = emptyList(), commits: List<CommitReader> = emptyList(), code: List<CodeReader> = emptyList(),
-            text: List<TextReader> = emptyList(), refs: List<RefReader> = emptyList()
-        ) = VcsBackends(lifecycles, commits, code, text, refs)
+            text: List<TextReader> = emptyList(), refs: List<RefReader> = emptyList(), diff: List<DiffReader> = emptyList()
+        ) = VcsBackends(lifecycles, commits, code, text, refs, diff)
     }
 }

@@ -19,7 +19,6 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.diff.FileDiff
 import dev.yona.util.SiteUrls
 import dev.yona.util.UrlPaths
-import org.eclipse.jgit.diff.DiffEntry
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -107,8 +106,8 @@ class PullRequestJson(
         val textA = diff.a?.takeUnless { binary }
         val textB = diff.b?.takeUnless { binary }
         // 추가하거나 지운 파일은 바뀐 곳 목록이 없어 전체 줄이 추가나 삭제이다
-        val added = diff.changeType == DiffEntry.ChangeType.ADD
-        val removed = diff.changeType == DiffEntry.ChangeType.DELETE
+        val added = diff.changeType == dev.yona.domain.vcs.FileChangeType.ADD
+        val removed = diff.changeType == dev.yona.domain.vcs.FileChangeType.DELETE
         val edits = diff.editList
         val additions = if (added) textB?.size() ?: 0 else edits?.sumOf { it.endB - it.beginB } ?: 0
         val deletions = if (removed) textA?.size() ?: 0 else edits?.sumOf { it.endA - it.beginA } ?: 0
@@ -131,15 +130,15 @@ class PullRequestJson(
             }
         }
         val status = when (diff.changeType) {
-            DiffEntry.ChangeType.ADD -> "added"
-            DiffEntry.ChangeType.DELETE -> "removed"
-            DiffEntry.ChangeType.RENAME -> "renamed"
-            DiffEntry.ChangeType.COPY -> "copied"
+            dev.yona.domain.vcs.FileChangeType.ADD -> "added"
+            dev.yona.domain.vcs.FileChangeType.DELETE -> "removed"
+            dev.yona.domain.vcs.FileChangeType.RENAME -> "renamed"
+            dev.yona.domain.vcs.FileChangeType.COPY -> "copied"
             else -> "modified"
         }
-        val path = (if (diff.changeType == DiffEntry.ChangeType.DELETE) diff.pathA else diff.pathB) ?: diff.pathA
+        val path = (if (diff.changeType == dev.yona.domain.vcs.FileChangeType.DELETE) diff.pathA else diff.pathB) ?: diff.pathA
         return linkedMapOf(
-            "path" to path, "oldPath" to if (diff.changeType == DiffEntry.ChangeType.RENAME || diff.changeType == DiffEntry.ChangeType.COPY) diff.pathA else null,
+            "path" to path, "oldPath" to if (diff.changeType == dev.yona.domain.vcs.FileChangeType.RENAME || diff.changeType == dev.yona.domain.vcs.FileChangeType.COPY) diff.pathA else null,
             "status" to status, "additions" to additions, "deletions" to deletions, "binary" to binary, "patch" to patch, "truncated" to tooLarge
         )
     }

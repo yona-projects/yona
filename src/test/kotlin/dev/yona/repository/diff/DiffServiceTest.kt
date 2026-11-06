@@ -8,7 +8,7 @@ import dev.yona.repository.RepositoryService
 import dev.yona.support.AbstractIntegrationTest
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
-import org.eclipse.jgit.diff.DiffEntry
+import dev.yona.domain.vcs.FileChangeType
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
@@ -50,7 +50,7 @@ class DiffServiceTest : AbstractIntegrationTest() {
         GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to lines("1", "2").toByteArray(), "dir/b.txt" to "b".toByteArray())))
         val diffs = service.commitDiff(p, "master")!!
         assertEquals(setOf("a.txt", "dir/b.txt"), diffs.mapNotNull { it.pathB }.toSet())
-        assertTrue(diffs.all { it.changeType == DiffEntry.ChangeType.ADD && it.pathA == null && it.commitA == null })
+        assertTrue(diffs.all { it.changeType == FileChangeType.ADD && it.pathA == null && it.commitA == null })
         assertNull(diffs.first().hunks())
         assertNotNull(diffs.first { it.pathB == "a.txt" }.b)
     }
@@ -62,7 +62,7 @@ class DiffServiceTest : AbstractIntegrationTest() {
         val after = before.copyOf().also { it[9] = "줄 10 수정" }
         GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to lines(*before).toByteArray())), TestCommit("수정", mapOf("a.txt" to lines(*after).toByteArray())))
         val diff = service.commitDiff(p, "master")!!.single()
-        assertEquals(DiffEntry.ChangeType.MODIFY, diff.changeType)
+        assertEquals(FileChangeType.MODIFY, diff.changeType)
         val hunks = diff.hunks()!!
         assertEquals(1, hunks.size)
         val hunk = hunks.single()
@@ -92,8 +92,8 @@ class DiffServiceTest : AbstractIntegrationTest() {
             TestCommit("처음", mapOf("gone.txt" to "x".toByteArray(), "old.txt" to lines("가", "나", "다", "라").toByteArray(), "bin.dat" to binary)),
             TestCommit("정리", mapOf("new.txt" to lines("가", "나", "다", "라").toByteArray(), "bin.dat" to byteArrayOf(0, 9, 9, 0)), deleted = listOf("gone.txt", "old.txt")))
         val byPath = service.commitDiff(p, "master")!!.associateBy { it.pathB ?: it.pathA }
-        assertEquals(DiffEntry.ChangeType.DELETE, byPath["gone.txt"]!!.changeType); assertNull(byPath["gone.txt"]!!.pathB)
-        assertEquals(DiffEntry.ChangeType.RENAME, byPath["new.txt"]!!.changeType); assertEquals("old.txt", byPath["new.txt"]!!.pathA)
+        assertEquals(FileChangeType.DELETE, byPath["gone.txt"]!!.changeType); assertNull(byPath["gone.txt"]!!.pathB)
+        assertEquals(FileChangeType.RENAME, byPath["new.txt"]!!.changeType); assertEquals("old.txt", byPath["new.txt"]!!.pathA)
         val bin = byPath["bin.dat"]!!
         assertTrue(bin.isBinaryA && bin.isBinaryB); assertNull(bin.a); assertNull(bin.editList)
     }
@@ -116,8 +116,8 @@ class DiffServiceTest : AbstractIntegrationTest() {
         GitTestSupport.pushCommits(repositories, fork, TestCommit("포크만", mapOf("only-in-fork.txt" to lines("x", "y").toByteArray())))
         val diffs = service.diff(base, "master", fork, "master")
         val added = diffs.first { it.pathB == "only-in-fork.txt" }
-        assertEquals(DiffEntry.ChangeType.ADD, added.changeType); assertNotNull(added.b)
-        assertEquals(DiffEntry.ChangeType.DELETE, diffs.first { it.pathA == "a.txt" }.changeType)
+        assertEquals(FileChangeType.ADD, added.changeType); assertNotNull(added.b)
+        assertEquals(FileChangeType.DELETE, diffs.first { it.pathA == "a.txt" }.changeType)
     }
 
     @Test

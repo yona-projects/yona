@@ -9,7 +9,6 @@ import dev.yona.repository.diff.DiffService
 import dev.yona.repository.diff.FileDiff
 import dev.yona.util.SiteUrls
 import dev.yona.util.UrlPaths
-import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.RawText
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -61,27 +60,27 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
     private fun file(diff: FileDiff, threads: Map<String, List<CodeCommentThread>>, projectA: Project, projectB: Project, renderer: ThreadRenderer): String {
         val binA = diff.isBinaryA
         val binB = diff.isBinaryB
-        fun header(type: DiffEntry.ChangeType) = fileHeader(type, diff)
+        fun header(type: dev.yona.domain.vcs.FileChangeType) = fileHeader(type, diff)
         return when (diff.changeType) {
-            DiffEntry.ChangeType.MODIFY -> when {
-                binA && binB -> frame(diff, header(DiffEntry.ChangeType.MODIFY), codeIsBinary("", ""), projectA, projectB)
-                binA -> frame(diff, header(DiffEntry.ChangeType.MODIFY), addedLines(diff, threads, true, renderer), projectA, projectB)
-                binB -> frame(diff, header(DiffEntry.ChangeType.MODIFY), removedLines(diff, threads, true, renderer), projectA, projectB)
+            dev.yona.domain.vcs.FileChangeType.MODIFY -> when {
+                binA && binB -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.MODIFY), codeIsBinary("", ""), projectA, projectB)
+                binA -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.MODIFY), addedLines(diff, threads, true, renderer), projectA, projectB)
+                binB -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.MODIFY), removedLines(diff, threads, true, renderer), projectA, projectB)
                 else -> frame(diff, diff.pathB, diffLines(diff, threads, renderer), projectA, projectB)
             }
-            DiffEntry.ChangeType.ADD ->
-                frame(diff, header(DiffEntry.ChangeType.ADD), if (binB) codeIsBinary("", "") else addedLines(diff, threads, false, renderer), projectA, projectB)
-            DiffEntry.ChangeType.DELETE ->
-                if (binA) frame(diff, header(DiffEntry.ChangeType.DELETE), codeIsBinary("", ""), projectA, projectB)
+            dev.yona.domain.vcs.FileChangeType.ADD ->
+                frame(diff, header(dev.yona.domain.vcs.FileChangeType.ADD), if (binB) codeIsBinary("", "") else addedLines(diff, threads, false, renderer), projectA, projectB)
+            dev.yona.domain.vcs.FileChangeType.DELETE ->
+                if (binA) frame(diff, header(dev.yona.domain.vcs.FileChangeType.DELETE), codeIsBinary("", ""), projectA, projectB)
                 else frame(diff, text("code.deletedPath", diff.pathA.orEmpty()), removedLines(diff, threads, false, renderer), projectA, projectB)
-            DiffEntry.ChangeType.RENAME -> when {
-                binA && binB -> frame(diff, header(DiffEntry.ChangeType.RENAME), codeIsBinary("", ""), projectA, projectB)
-                binA -> frame(diff, header(DiffEntry.ChangeType.RENAME), addedLines(diff, threads, true, renderer), projectA, projectB)
-                binB -> frame(diff, header(DiffEntry.ChangeType.RENAME), removedLines(diff, threads, true, renderer), projectA, projectB)
+            dev.yona.domain.vcs.FileChangeType.RENAME -> when {
+                binA && binB -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.RENAME), codeIsBinary("", ""), projectA, projectB)
+                binA -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.RENAME), addedLines(diff, threads, true, renderer), projectA, projectB)
+                binB -> frame(diff, header(dev.yona.domain.vcs.FileChangeType.RENAME), removedLines(diff, threads, true, renderer), projectA, projectB)
                 else -> frame(diff, text("code.renamedPath", diff.pathA.orEmpty(), diff.pathB.orEmpty()), diffLines(diff, threads, renderer), projectA, projectB)
             }
-            DiffEntry.ChangeType.COPY ->
-                if (binB) frame(diff, header(DiffEntry.ChangeType.COPY), codeIsBinary("", ""), projectA, projectB)
+            dev.yona.domain.vcs.FileChangeType.COPY ->
+                if (binB) frame(diff, header(dev.yona.domain.vcs.FileChangeType.COPY), codeIsBinary("", ""), projectA, projectB)
                 else frame(diff, text("code.copiedPath", diff.pathA.orEmpty(), diff.pathB.orEmpty()), addedLines(diff, threads, false, renderer), projectA, projectB)
             else -> ""
         }
@@ -89,12 +88,12 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
 
     private fun postfixed(path: String?, binary: Boolean) = path.orEmpty() + if (binary) " (Binary)" else ""
 
-    private fun fileHeader(type: DiffEntry.ChangeType, diff: FileDiff): String = when (type) {
-        DiffEntry.ChangeType.MODIFY -> postfixed(diff.pathB, diff.isBinaryB)
-        DiffEntry.ChangeType.ADD -> text("code.addedPath", postfixed(diff.pathB, diff.isBinaryB))
-        DiffEntry.ChangeType.DELETE -> text("code.deletedPath", postfixed(diff.pathA, diff.isBinaryA))
-        DiffEntry.ChangeType.RENAME -> text("code.renamedPath", postfixed(diff.pathA, diff.isBinaryA), postfixed(diff.pathB, diff.isBinaryB))
-        DiffEntry.ChangeType.COPY -> text("code.copiedPath", postfixed(diff.pathA, diff.isBinaryA), postfixed(diff.pathB, diff.isBinaryB))
+    private fun fileHeader(type: dev.yona.domain.vcs.FileChangeType, diff: FileDiff): String = when (type) {
+        dev.yona.domain.vcs.FileChangeType.MODIFY -> postfixed(diff.pathB, diff.isBinaryB)
+        dev.yona.domain.vcs.FileChangeType.ADD -> text("code.addedPath", postfixed(diff.pathB, diff.isBinaryB))
+        dev.yona.domain.vcs.FileChangeType.DELETE -> text("code.deletedPath", postfixed(diff.pathA, diff.isBinaryA))
+        dev.yona.domain.vcs.FileChangeType.RENAME -> text("code.renamedPath", postfixed(diff.pathA, diff.isBinaryA), postfixed(diff.pathB, diff.isBinaryB))
+        dev.yona.domain.vcs.FileChangeType.COPY -> text("code.copiedPath", postfixed(diff.pathA, diff.isBinaryA), postfixed(diff.pathB, diff.isBinaryB))
         else -> ""
     }
 
@@ -137,7 +136,7 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
     private fun diffLines(diff: FileDiff, threads: Map<String, List<CodeCommentThread>>, renderer: ThreadRenderer): String {
         val out = StringBuilder()
         if (diff.isFileModeChanged()) {
-            val old = diff.oldMode.toString(); val new = diff.newMode.toString()
+            val old = Integer.toOctalString(diff.oldMode ?: 0); val new = Integer.toOctalString(diff.newMode ?: 0)
             out.append("<tr><td class=\"linenum\"><div class=\"line-number\" data-line-num=\"$old\"></div><span class=\"hidden\">$old</span></td><td class=\"linenum\"><div class=\"line-number\" data-line-num=\"$new\"></div><span class=\"hidden\">$new</span></td><td class=\"isBinary\">${text("code.fileModeChanged")}</td></tr>\n")
         }
         when {
