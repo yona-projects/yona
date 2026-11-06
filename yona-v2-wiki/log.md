@@ -1792,3 +1792,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-06] build | X-7 8단계(풀 리퀘스트) 전체 H2 시험
 
 14분 28초, 4,788건(건너뜀 2), 실패 0. 한 번에 통과했다. hg4j를 `includeBuild`(D-89)로 함께 컴파일해 7단계(13분 45초)보다 40초쯤 더 걸렸다. Git 풀 리퀘스트 관련 시험 338건은 8a의 구조 분리 뒤에도 그대로 통과했다. 화면 확인(Playwright)에서 Mercurial 포크의 새 풀 리퀘스트 화면이 병합 가능 여부를 보여 주는 것을 확인했다. 작업 중 찾은 문제: `PullCommand`가 보내는 쪽 이름표를 받는 저장소에 반영해 병합 전에 `main`이 앞서 나가는 것(번들 전달로 해결), hg4j `gradleApi()` 누출(hg4j 담당 세션이 고침). PostgreSQL은 이번에도 돌리지 않았다.
+
+## [2026-11-06] build | X-7 9단계(LFS, 데이터 교환, GPG) 전체 H2 시험
+
+1차 15분 24초, 실패 1건(`LegacyBootstrapLintTest`: 새 LFS 화면 템플릿이 Bootstrap 2의 `well` 표기를 써서 낡은 표기 점검에 걸림 → BS5 표기로 고침). 이어서 hg4j 훅 순서 수정(`dd32851`)을 반영하고 이름표 이동 종류 판정을 정확한 판정으로 되돌렸다(진짜 강제 푸시 시험 추가). 최종 전체 시험은 아래에 기록한다. hg4j는 아직 `includeBuild`(D-89). PostgreSQL은 이번 X-7 전체에서 돌리지 않았다.

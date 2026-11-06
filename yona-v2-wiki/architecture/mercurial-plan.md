@@ -389,7 +389,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 | 9c GPG | `HgSignatures`, `HgSignedCommits`, `HgCommitReader`, `HgHooks` | D-88: `.hgsigs`(보고 있는 리비전에서 보이는 것)를 읽어 `CommitInfo.signature`를 채우면 Git의 화면, REST, 판정이 그대로 Verified를 보인다(서명 원문은 `노드\n`, 서명한 키가 등록 키이고 이메일이 작성자와 같을 때 Verified). 서명 커밋 필수 규칙은 이름표 이동에서 새 커밋마다 새 머리의 `.hgsigs`로 검사하고 서명 파일만 바꾸는 커밋은 제외한다 |
 
 - **hg4j에서 찾아 고친 결함:** (1) 최상위 `data/`, `meta/` 폴더 아래 파일의 필로그를 못 찾음(`encodeFname`, hg4j `9a7560a`로 수정, 회귀 시험 `HgReservedFolderNamesTest`), (2) LFS 배치 응답의 `href`에 기준 경로가 빠짐(`9ae3eeb`로 수정).
-- **hg4j 보완 대기 중(`hg-da`에 요청):** 이름표 이동 훅(`prepushkey`)에서 같은 푸시로 들어온 체인지셋을 변경 로그에서 읽을 수 없다(원본 hg의 pending 가시성). 그래서 (a) 이름표 이동 종류를 판정할 수 없으면 일반 갱신으로 보고(`HgPushUpdates.bookmarkType`), (b) 서명 커밋 필수 규칙은 새 머리를 읽지 못하면 `unverifiable`로 **거절**한다(안전한 쪽). 따라서 지금은 서명을 요구하는 이름표로 새 체인지셋을 푸시하면 서명이 있어도 거절된다. `HgHttpTest`의 "서명한 커밋과 서명을 담은 hgsigs 커밋을 함께 올리면 허용한다"는 비활성이며 수정되면 켠다.
+- **hg4j 보완(해결, `dd32851`):** 번들2 푸시에서 이름표 이동 훅(`prepushkey`)이 변경 그룹을 적용하기 **전에** 불려 같은 푸시로 들어온 체인지셋을 읽을 수 없었다(원본 hg는 같은 트랜잭션에서 뒤에 부른다). hg4j가 훅을 변경 그룹 적용 뒤에 부르게 고쳤고, Yona는 훅 안에서 저장소 객체의 캐시를 한 번 비운다. 그 결과 이름표 이동 종류(빨리감기와 강제)를 정확히 판정하고(진짜 강제 푸시는 막고 일반 갱신은 통과, 시험으로 확인), 서명 커밋 필수 규칙이 새 커밋을 읽어 판정한다(서명한 커밋과 서명을 담은 `.hgsigs` 커밋을 함께 올리면 허용, 서명 없는 푸시는 거절). 새 머리를 읽지 못할 때만 `unverifiable`로 거절하는 안전장치는 남겼다.
 - 알려진 한계: 한 노드에 서명이 여럿이면 앞의 것만 본다. 서명 판정은 보고 있는 리비전에 따라 달라진다(커밋 하나를 볼 때는 기본 위치 머리, 이력은 그 리비전, D-88 1번).
 - 구현 판단은 `decisions.md` A-382에 적었다.
 
