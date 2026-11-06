@@ -30,7 +30,7 @@ class RepositoryStorageMetrics(
 ) : MeterBinder {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val sizes = mapOf("git" to AtomicLong(), "svn" to AtomicLong())
+    private val sizes = mapOf("git" to AtomicLong(), "svn" to AtomicLong(), "hg" to AtomicLong())
 
     override fun bindTo(registry: MeterRegistry) {
         if (!properties.observabilityStorageScan) return
@@ -48,7 +48,7 @@ class RepositoryStorageMetrics(
         }
     }
 
-    /** git과 svn 저장소 디렉터리의 총 바이트를 다시 계산한다. */
+    /** git, svn, hg 저장소 디렉터리의 총 바이트를 다시 계산한다. */
     fun scan() {
         val root = File(dataDirectory.root(), "repo")
         sizes.forEach { (vcs, size) -> size.set(directorySize(File(root, vcs))) }

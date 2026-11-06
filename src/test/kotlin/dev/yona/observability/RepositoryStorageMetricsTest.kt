@@ -34,18 +34,19 @@ class RepositoryStorageMetricsTest {
     }
 
     @Test
-    fun `켜면 git과 svn 저장소의 총 바이트를 센다`() {
+    fun `켜면 git과 svn과 hg 저장소의 총 바이트를 센다`() {
         write("repo/git/alice/demo.git/objects/aa", 100); write("repo/git/alice/demo.git/HEAD", 20); write("repo/git/bob/other.wiki.git/x", 5)
         write("repo/svn/alice/demo/db/rev", 1000)
+        write("repo/hg/alice/demo/.hg/store/00changelog.i", 300); write("repo/hg/bob/other/.hg/store/data/a.i", 50)
         val m = metrics(true); m.bindTo(registry); m.scan()
-        assertEquals(125.0, gauge("git")!!.value()); assertEquals(1000.0, gauge("svn")!!.value())
+        assertEquals(125.0, gauge("git")!!.value()); assertEquals(1000.0, gauge("svn")!!.value()); assertEquals(350.0, gauge("hg")!!.value())
         assertEquals("bytes", gauge("git")!!.id.baseUnit)
     }
 
     @Test
     fun `저장소 디렉터리가 없으면 0이다`() {
         val m = metrics(true); m.bindTo(registry); m.scan()
-        assertEquals(0.0, gauge("git")!!.value()); assertEquals(0.0, gauge("svn")!!.value())
+        assertEquals(0.0, gauge("git")!!.value()); assertEquals(0.0, gauge("svn")!!.value()); assertEquals(0.0, gauge("hg")!!.value())
     }
 
     @Test
