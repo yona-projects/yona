@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class PullRequestChangesService(
     private val diffs: DiffService,
-    private val repositories: RepositoryService,
+    private val backends: dev.yona.repository.VcsBackends,
     private val threads: CommentThreadRepository,
     private val commits: PullRequestCommitRepository
 ) {
@@ -55,12 +55,16 @@ class PullRequestChangesService(
         if (commitId != null) return all.filter { it.commitId == commitId }
         val from = pullRequest.mergedCommitIdFrom
         val to = pullRequest.mergedCommitIdTo
-        return repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { repository ->
-            all.filter { thread ->
-                when {
-                    thread.prevCommitId.isNullOrEmpty() -> false
-                    from == thread.prevCommitId && to == thread.commitId -> true
-                    else -> noChangesBetween(repository, from, thread.prevCommitId, thread.path) && noChangesBetween(repository, to, thread.commitId, thread.path)
+        val project = requireNotNull(pullRequest.toProject)
+        return all.filter { thread ->
+            when {
+                thread.prevCommitId.isNullOrEmpty() -> false
+                from == thread.prevCommitId && to == thread.commitId -> true
+                // 커밋이 저장소에 없으면 같다고 확신할 수 없으므로 최신이 아닌 것으로 본다
+                else -> try {
+                    noChangesBetween(project, from, thread.prevCommitId, thread.path) && noChangesBetween(project, to, thread.commitId, thread.path)
+                } catch (e: MissingCommitException) {
+                    false
                 }
             }
         }
@@ -86,12 +90,11 @@ class PullRequestChangesService(
             return commits.findByPullRequestId(requireNotNull(pullRequest.id)).none { it.commitId == thread.commitId }
         }
         val path = thread.path.orEmpty().removePrefix("/")
-        return repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { repository ->
-            try {
-                !noChangesBetween(repository, from, thread.prevCommitId, path) || !noChangesBetween(repository, to, thread.commitId, path)
-            } catch (e: MissingObjectException) {
-                true
-            }
+        val project = requireNotNull(pullRequest.toProject)
+        return try {
+            !noChangesBetween(project, from, thread.prevCommitId, path) || !noChangesBetween(project, to, thread.commitId, path)
+        } catch (e: MissingCommitException) {
+            true
         }
     }
 
@@ -99,12 +102,20 @@ class PullRequestChangesService(
     fun currentCommitIds(pullRequest: PullRequest): List<String> =
         commits.findByPullRequestIdAndStateOrderByCreatedDesc(requireNotNull(pullRequest.id), PullRequestCommitState.CURRENT).mapNotNull { it.commitId }
 
-    private fun noChangesBetween(repository: Repository, rev1: String?, rev2: String?, path: String?): Boolean =
-        blobId(repository, rev1, path.orEmpty().removePrefix("/")) == blobId(repository, rev2, path.orEmpty().removePrefix("/"))
+    /** 비교할 커밋이 받는 프로젝트의 저장소에 없다. */
+    private class MissingCommitException(rev: String?) : RuntimeException("commit not found: $rev")
 
-    private fun blobId(repository: Repository, rev: String?, path: String): ObjectId? {
-        require(!rev.isNullOrEmpty()) { "rev must not be empty" }
-        val tree = RevWalk(repository).use { it.parseTree(repository.resolve(rev)) }
-        return TreeWalk.forPath(repository, path, tree)?.use { it.getObjectId(0) }
+    /** [rev1]과 [rev2] 커밋에서 [path] 파일의 내용이 같으면 `true`이다(둘 다 없어도 같다). 커밋이 저장소에 없으면 [MissingCommitException]이다. */
+    private fun noChangesBetween(project: dev.yona.domain.project.Project, rev1: String?, rev2: String?, path: String?): Boolean {
+        require(!rev1.isNullOrEmpty()) { "rev must not be empty" }
+        require(!rev2.isNullOrEmpty()) { "rev must not be empty" }
+        val commits = backends.commits(project.vcs)
+        if (commits.commit(project, rev1) == null) throw MissingCommitException(rev1)
+        if (commits.commit(project, rev2) == null) throw MissingCommitException(rev2)
+        val code = backends.code(project.vcs)
+        val file = path.orEmpty().removePrefix("/")
+        val a = code.rawFile(project, rev1, file)
+        val b = code.rawFile(project, rev2, file)
+        return if (a == null || b == null) a == null && b == null else a.contentEquals(b)
     }
 }

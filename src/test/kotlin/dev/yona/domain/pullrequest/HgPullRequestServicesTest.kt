@@ -135,10 +135,11 @@ class HgPullRequestServicesTest : AbstractIntegrationTest() {
         merged(origin, fork, second)
         val pr = pullRequest(origin, fork, "feature").also { it.mergedCommitIdFrom = base; it.mergedCommitIdTo = second }
         fun thread(path: String, prev: String, commit: String) = CodeCommentThread(prevCommitId = prev, commitId = commit, path = path, startLine = 1).also { it.pullRequest = pr }
-        // 기준 쌍(base, second)에 단 스레드는 그대로 최신이다. a.txt는 base와 first 사이에서는 같지만 first와 second 사이에서 바뀌었다
-        assertFalse(changes.isOutdated(thread("a.txt", base, second)))
-        assertFalse(changes.isOutdated(thread("b.txt", first, second)))
-        assertTrue(changes.isOutdated(thread("a.txt", first, second)))
+        // 스레드가 최신이려면 병합 기준(from, to)의 파일 내용이 스레드가 달린 쌍(prev, commit)의 파일 내용과 같아야 한다
+        assertFalse(changes.isOutdated(thread("a.txt", base, second)), "기준 쌍과 같은 쌍에 단 스레드는 최신이다")
+        assertFalse(changes.isOutdated(thread("a.txt", first, second)), "a.txt는 base와 first에서 같고 to와 commit이 같다")
+        assertTrue(changes.isOutdated(thread("b.txt", first, second)), "b.txt는 base에 없고 first에 있다")
+        assertTrue(changes.isOutdated(thread("a.txt", second, second)), "a.txt는 base와 second에서 다르다")
         // 없는 커밋이 가리키면 어긋난 것으로 본다
         assertTrue(changes.isOutdated(thread("a.txt", base, "0".repeat(39) + "1")))
     }

@@ -147,6 +147,10 @@ interface RefReader : VcsPart {
     /** 브랜치를 지운다(병합 여부와 관계없이 강제로). */
     fun deleteBranch(project: Project, branchName: String)
 
+    /** [startPoint](커밋 번호)에서 [branchName](`refs/heads/`를 뺀 짧은 이름) 브랜치를 만든다. 지운 풀 리퀘스트 브랜치를 되살릴 때 쓴다. */
+    fun createBranch(project: Project, branchName: String, startPoint: String): Unit =
+        throw UnsupportedOperationException("지원하지 않는 VCS입니다: ${type.columnValue}")
+
     /** 태그를 태그 시각이 최근인 순서로 모은다. 같으면 이름순이고, 시각을 알 수 없는 태그는 맨 뒤이다. */
     fun tags(project: Project): List<TagInfo>
 

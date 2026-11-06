@@ -29,7 +29,7 @@ class GitDependencyGuardTest {
             // Git 서빙(4단계). 푸시 전후 처리는 3단계에서 종류와 무관하게 바뀌었다
             "GitHttpService.kt", "GitSshHandler.kt",
             // 풀 리퀘스트(8단계)
-            "GitPullRequestBackend.kt", "PullRequestBranchService.kt", "PullRequestChangesService.kt", "NotificationReceivers.kt",
+            "GitPullRequestBackend.kt", "NotificationReceivers.kt",
             // 커밋 해시 자동 링크
             "AutoLinkRenderer.kt"
         )

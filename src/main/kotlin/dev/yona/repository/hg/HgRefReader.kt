@@ -40,6 +40,10 @@ class HgRefReader(private val hg: HgRepositories) : RefReader {
         open(project).use { h -> h.bookmark().setBookmarkName(branchName.removePrefix(HgRepositories.HEADS)).setDelete(true).call() }
     }
 
+    override fun createBranch(project: Project, branchName: String, startPoint: String) {
+        open(project).use { h -> h.bookmark().setBookmarkName(branchName).setRevision(startPoint).call() }
+    }
+
     private fun head(changelog: io.github.search5.hg4j.storage.Revlog, name: String, node: String): RefHead? {
         val rev = HgChangesets.revOf(changelog, node)
         val changeset = (if (rev < 0) null else HgChangesets.read(changelog, rev)) ?: return null

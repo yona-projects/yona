@@ -47,6 +47,10 @@ class GitRefReader(private val git: GitRepositories) : RefReader {
         }
     }
 
+    override fun createBranch(project: Project, branchName: String, startPoint: String) {
+        open(project).use { repository -> Git(repository).branchCreate().setName(branchName).setStartPoint(startPoint).call() }
+    }
+
     private fun head(name: String, commit: RevCommit) = RefHead(name, commit.name, commit.abbreviate(7).name(), commit.committerIdent.`when`)
 
     override fun tags(project: Project): List<TagInfo> = open(project).use { repository ->
