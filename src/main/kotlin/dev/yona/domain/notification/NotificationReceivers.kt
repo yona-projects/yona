@@ -188,7 +188,8 @@ class NotificationReceivers(
         val group = Group().also { it.addAll(pullRequestWatchers(pullRequest)); it.addAll(mentions.mentionedUsers(pullRequest.body.orEmpty())) }
         val from = pullRequest.mergedCommitIdFrom
         val to = pullRequest.mergedCommitIdTo
-        if (from != null && to != null) {
+        // 변경한 줄의 작성자 추정(blame)은 Git(JGit)만 한다. 다른 종류는 이 수신자 집합을 더하지 않는다(X-7, `decisions.md` A-381)
+        if (from != null && to != null && pullRequest.toProject?.vcs == dev.yona.domain.vcs.VcsType.GIT.columnValue) {
             try {
                 repositories.openGitRepository(requireNotNull(pullRequest.toProject)).use { group.addAll(relatedAuthors.find(it, from, to)) }
             } catch (e: dev.yona.repository.LimitExceededException) {
