@@ -208,6 +208,9 @@ class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitRea
      */
     fun lifecycle(vcs: String?): RepositoryLifecycle = pick(lifecycles, vcs)
 
+    /** 저장소를 만들 수 있는(수명 구현이 등록된) 종류의 `project.vcs` 열 값이다. 종류를 선언한 순서이다. */
+    fun creatableTypes(): List<String> = VcsType.entries.filter { it in lifecycles }.map { it.columnValue }
+
     /** [vcs]의 커밋 읽기 구현이다. */
     fun commits(vcs: String?): CommitReader = pick(commits, vcs)
 

@@ -21,12 +21,28 @@ class ProjectVcsService(
     private val postingService: dev.yona.domain.board.PostingService,
     private val readme: ProjectReadmeService,
     private val repositories: RepositoryService,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val backends: dev.yona.repository.VcsBackends
 ) {
 
-    /** [project]의 저장소 종류를 다음 종류로 바꾼다. */
+    /**
+     * [project]의 저장소 종류로 바꿀 수 있는 종류이다: 저장소를 만들 수 있게 등록된 종류에서 지금 종류를 뺀 것이다. 둘뿐일 때는 하나이고
+     * (v1.6처럼 번갈아 바꾼다), 종류가 셋 이상이면 화면이 고르게 한다(Mercurial 도입을 위한 공통화 4단계, D-86 6번).
+     */
+    fun targets(project: Project): List<String> = backends.creatableTypes().filter { it != project.vcs }
+
+    /** [project]의 저장소 종류를 다음 종류(Git이면 Subversion, 아니면 Git)로 바꾼다. v1.6 `changeVCS`와 같다. */
     @Transactional
-    fun change(project: Project) {
+    fun change(project: Project) = change(project, null)
+
+    /**
+     * [project]의 저장소 종류를 [target]으로 바꾼다. [target]을 주지 않으면 v1.6처럼 번갈아 바꾼다([Project.nextVcs]).
+     *
+     * @throws IllegalArgumentException [target]이 지금 종류이거나 [targets]에 없을 때. 아무것도 바꾸지 않는다
+     */
+    @Transactional
+    fun change(project: Project, target: String?) {
+        val chosen = if (target == null) project.nextVcs() else target.also { require(it in targets(project)) { "바꿀 수 없는 저장소 종류입니다: $it" } }
         val projectId = requireNotNull(project.id)
         if (readme.read(project) != null) {
             postings.findFirstByProjectIdAndReadmeTrue(projectId)?.let { postingService.unmarkReadmeOnVcsChange(it) }
@@ -38,7 +54,7 @@ class ProjectVcsService(
         }
 
         val previous = project.vcs
-        project.vcs = project.nextVcs()
+        project.vcs = chosen
         try {
             repositories.createRepository(project)
         } catch (e: Exception) {

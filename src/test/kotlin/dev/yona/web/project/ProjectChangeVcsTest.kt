@@ -135,6 +135,29 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `대상을 정해 요청하면 그 종류로 바꾸고 지금 종류나 모르는 종류는 400이며 아무것도 바꾸지 않는다`() {
+        val project = newProject("Subversion")
+        val session = login(manager(project))
+        val url = "/${project.owner}/${project.name}/changeVCS"
+        mockMvc.perform(post(url).session(session).param("targetVcs", "Subversion")).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url).session(session).param("targetVcs", "Mercurial")).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url).session(session).param("targetVcs", "")).andExpect(status().isBadRequest)
+        projects.flush()
+        assertEquals("Subversion", projects.findById(project.id!!).get().vcs)
+        mockMvc.perform(post(url).session(session).param("targetVcs", "GIT")).andExpect(status().isNoContent)
+        projects.flush()
+        assertEquals("GIT", projects.findById(project.id!!).get().vcs)
+    }
+
+    @Test
+    fun `바꿀 수 있는 종류가 하나뿐이면 화면에 선택 상자가 없다`() {
+        val project = newProject()
+        val html = page(project, login(manager(project)))
+        assertEquals(0, html.select("select#targetVcs").size)
+        assertEquals("Changing the repository to Subversion.", html.select("li.notice")[0].text())
+    }
+
+    @Test
     fun `README 글의 표시를 풀 때 v1_6 posting_save처럼 제목 머리말을 더하고 멘션을 맞춘다`() {
         val project = newProject()
         dev.yona.support.GitTestSupport.pushCommits(repositories, project, dev.yona.support.GitTestSupport.TestCommit("readme", mapOf("README.md" to "# hi".toByteArray())))

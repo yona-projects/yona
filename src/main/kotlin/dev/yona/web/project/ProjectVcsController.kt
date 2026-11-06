@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.ModelAndView
 
 /**
@@ -36,14 +37,21 @@ class ProjectVcsController(
         return ModelAndView("project/change-vcs")
             .addObject("title", "title.projectChangeVCS")
             .addObject("projectView", views.of(project))
+            // 바꿀 수 있는 종류가 하나뿐이면 v1.6 화면 그대로이고, 둘 이상이면 고르게 한다
+            .addObject("targets", vcsService.targets(project))
     }
 
     @PostMapping("/{user}/{project}/changeVCS")
     @IsAllowed(Operation.UPDATE)
-    fun change(@PathVariable("user") ownerId: String, @PathVariable("project") projectName: String): Any {
+    fun change(
+        @PathVariable("user") ownerId: String, @PathVariable("project") projectName: String,
+        @RequestParam(required = false) targetVcs: String?
+    ): Any {
         val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound("error.notfound")
+        // 대상을 주지 않으면 v1.6처럼 번갈아 바꾼다. 지금 종류이거나 바꿀 수 없는 종류를 주면 아무것도 바꾸지 않고 400이다
+        if (targetVcs != null && targetVcs !in vcsService.targets(project)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build<Void>()
         return try {
-            vcsService.change(project)
+            vcsService.change(project, targetVcs)
             ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, "/$ownerId/$projectName").build<Void>()
         } catch (e: Exception) {
             // v1.6은 오류를 기록하고 본문 없는 500을 돌려준다.

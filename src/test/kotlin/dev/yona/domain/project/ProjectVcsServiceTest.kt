@@ -28,7 +28,18 @@ class ProjectVcsServiceTest {
     private val postingService = mock(dev.yona.domain.board.PostingService::class.java)
     private val readme = mock(ProjectReadmeService::class.java)
     private val repositories = mock(RepositoryService::class.java)
-    private val service = ProjectVcsService(projects, postings, postingService, readme, repositories, mock(dev.yona.domain.audit.AuditRecorder::class.java))
+    private val backends = dev.yona.repository.VcsBackends.of(lifecycles = listOf(FakeLifecycle(dev.yona.domain.vcs.VcsType.GIT), FakeLifecycle(dev.yona.domain.vcs.VcsType.SUBVERSION)))
+    private val service = ProjectVcsService(projects, postings, postingService, readme, repositories, mock(dev.yona.domain.audit.AuditRecorder::class.java), backends)
+
+    /** 등록부에 어떤 종류가 있는지만 보는 자리 표시 구현이다. */
+    private class FakeLifecycle(override val type: dev.yona.domain.vcs.VcsType) : dev.yona.repository.RepositoryLifecycle {
+        override fun create(owner: String, name: String) = Unit
+        override fun delete(owner: String, name: String) = Unit
+        override fun move(owner: String, name: String, newOwner: String, newName: String) = true
+        override fun refNames(owner: String, name: String) = emptyList<String>()
+        override fun defaultBranch(owner: String, name: String) = "HEAD"
+        override fun setDefaultBranch(owner: String, name: String, target: String) = Unit
+    }
 
     @Test
     fun `변경은 트랜잭션으로 묶여 있다 (R-74)`() {
@@ -63,5 +74,38 @@ class ProjectVcsServiceTest {
         assertEquals(listOf("create:Subversion", "delete:GIT"), vcsAtCall, "새 종류로 만들고, 기존 종류로 지운다")
         assertEquals("Subversion", project.vcs)
         verify(projects).save(project)
+    }
+
+    @Test
+    fun `바꿀 수 있는 종류는 등록된 종류에서 지금 종류를 뺀 것이다`() {
+        assertEquals(listOf("Subversion"), service.targets(Project(vcs = "GIT")))
+        assertEquals(listOf("GIT"), service.targets(Project(vcs = "Subversion")))
+    }
+
+    @Test
+    fun `대상을 정해 바꾸면 그 종류로 만들고 기존 저장소를 지운다`() {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        `when`(readme.read(project)).thenReturn(null)
+        `when`(projects.findByOriginalProjectId(1L)).thenReturn(emptyList())
+        service.change(project, "Subversion")
+        assertEquals("Subversion", project.vcs)
+        verify(repositories).createRepository(project)
+        verify(repositories).deleteRepository(project)
+    }
+
+    @Test
+    fun `대상이 지금 종류이거나 등록되지 않은 종류이면 아무것도 바꾸지 않는다`() {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        assertFailsWith<IllegalArgumentException> { service.change(project, "GIT") }
+        assertFailsWith<IllegalArgumentException> { service.change(project, "Mercurial") }
+        assertFailsWith<IllegalArgumentException> { service.change(project, "") }
+        verify(repositories, never()).createRepository(project)
+        verify(repositories, never()).deleteRepository(project)
+        assertEquals("GIT", project.vcs)
+    }
+
+    @Test
+    fun `대상을 주는 변경도 트랜잭션으로 묶여 있다`() {
+        assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java, String::class.java).getAnnotation(Transactional::class.java))
     }
 }
