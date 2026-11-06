@@ -47,7 +47,7 @@ class ExternalTagApiController(
 ) {
 
     /** 태그 목록이다. 태그 시각이 최근인 순서이다. 결과: `{"tags": [...]}`. */
-    @ApiOperation(operationId = "listTags", tags = [ApiTags.PROJECT], summary = "Git 태그 목록", description = "저장소의 태그를 태그 시각이 최근인 순서로 돌려준다. 코드를 읽을 수 있어야 한다(코드를 구성원에게만 여는 프로젝트는 구성원). Git 프로젝트만 된다.")
+    @ApiOperation(operationId = "listTags", tags = [ApiTags.PROJECT], summary = "태그 목록", description = "저장소의 태그를 태그 시각이 최근인 순서로 돌려준다. 코드를 읽을 수 있어야 한다(코드를 구성원에게만 여는 프로젝트는 구성원). Git과 Mercurial 프로젝트만 된다.")
     @ApiResponse(responseCode = "200", description = "태그 목록", content = [Content(schema = Schema(implementation = TagList::class))])
     @ApiResponse(responseCode = "400", description = "Git 프로젝트가 아니다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/tags")
@@ -56,7 +56,7 @@ class ExternalTagApiController(
         val target = support.target(owner, projectName, null, request)
         target.error?.let { return it }
         val project = requireNotNull(target.project)
-        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAGS)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects have tags")
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAGS)) return requests.message(HttpStatus.BAD_REQUEST, "only Git and Mercurial projects have tags")
         return support.ok(linkedMapOf("tags" to tagService.tags(project).map { node(it) }))
     }
 

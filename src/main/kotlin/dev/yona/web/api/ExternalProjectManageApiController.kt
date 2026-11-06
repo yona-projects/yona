@@ -70,7 +70,7 @@ class ExternalProjectManageApiController(
 
     /**
      * 내 계정에 프로젝트를 만든다. 본문 `{"name"(필수), "description", "scope", "vcs", "menus"}`이다. `scope`는 `PUBLIC`, `PROTECTED`, `PRIVATE`이고 없으면 사이트 설정의
-     * 기본값, `vcs`는 `GIT`(기본)이나 `Subversion`, `menus`는 `{"code", "issue", "pullRequest", "review", "milestone", "board", "wiki": 불리언}` 중 보낸 항목만 바꾼
+     * 기본값, `vcs`는 `GIT`(기본)과 `Subversion`, `Mercurial`, `menus`는 `{"code", "issue", "pullRequest", "review", "milestone", "board", "wiki": 불리언}` 중 보낸 항목만 바꾼
      * 기본 메뉴이다. 이름 규칙 위반은 400, 같은 이름(대소문자 무시)이 있으면 409이다. 만든 사람이 프로젝트 관리자이다. 성공하면 201과 만든 프로젝트이다.
      */
     @ApiOperation(operationId = "createMyProject", tags = [ApiTags.PROJECT], summary = "내 계정에 프로젝트 만들기", description = "로그인한 토큰 주인의 계정에 프로젝트를 만들고 만든 사람을 프로젝트 관리자로 둔다. 공개 범위와 저장소 종류와 메뉴는 생략하면 사이트 설정의 기본값이다. 이름 규칙을 어기면 400이고 같은 이름이 있으면 409이다. 공개 범위를 가리지 않는 일이라 `repo` 범위가 필요하다(`public_repo`로는 안 된다). 사이트 관리자가 다른 사람의 이슈를 옮기려고 쓰는 `POST /owners/{owner}/projects`(v1.6 호환)와 다르다.")
@@ -106,7 +106,7 @@ class ExternalProjectManageApiController(
         val name = json.get("name")?.takeIf { it.isString }?.asString("") ?: return requests.message(HttpStatus.BAD_REQUEST, "name is required")
         val overview = optionalString(json, "description") { return it }
         val scope = scopeOf(json) { return it } ?: ProjectScope.entries.firstOrNull { it.name.equals(properties.projectDefaultScope, ignoreCase = true) } ?: ProjectScope.PUBLIC
-        val vcs = optionalString(json, "vcs") { return it }?.also { if (dev.yona.domain.vcs.VcsType.of(it) == null) return requests.message(HttpStatus.BAD_REQUEST, "vcs must be GIT or Subversion") }
+        val vcs = optionalString(json, "vcs") { return it }?.also { if (dev.yona.domain.vcs.VcsType.of(it) == null) return requests.message(HttpStatus.BAD_REQUEST, "vcs must be GIT, Subversion or Mercurial") }
             ?: dev.yona.domain.vcs.VcsType.GIT.columnValue
         val defaults = properties.projectDefaultMenus.replace(" ", "").split(",").filter { it in ProjectForm.MENU_NAMES }.toSet()
         val menus = menusOf(json, defaults) { return it }

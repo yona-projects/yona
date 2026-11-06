@@ -80,7 +80,7 @@ class ExternalTrackerActivityApiController(
     /**
      * 사람이 쓴 커밋이다(Magpie `list_authored_commits`). 사람의 대표 이메일과 인증한 추가 이메일(대소문자 무시)로 기본 브랜치의 이력에서 찾고 최근 순으로 `limit`개(1에서 100, 기본 30)를 돌려준다.
      * 이력은 최근 3000개까지만 훑으며 그 안에서 `limit`개를 다 채우지 못하고 이력이 더 있으면 `capped`가 `true`이다. 이메일은 찾는 열쇠이고 응답의 `authorEmail`은 커밋에 적힌 값이다.
-     * Git 프로젝트만 다루고 Subversion은 빈 목록이다.
+     * Git과 Mercurial 프로젝트만 다루고 Subversion은 빈 목록이다.
      */
     @io.swagger.v3.oas.annotations.Operation(operationId = "listAuthoredCommits", tags = [ApiTags.ISSUE], summary = "사람이 쓴 커밋", description = "사람의 이메일로 기본 브랜치의 커밋을 최근 순으로 찾는다(Magpie 연동).")
     @io.swagger.v3.oas.annotations.Parameter(name = "author", description = "로그인 ID(필수)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, required = true)
