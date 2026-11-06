@@ -26,8 +26,8 @@ class GitDependencyGuardTest {
             "RepositoryService.kt",
             // 온라인 커밋(ONLINE_EDITING)
             "OnlineCommit.kt",
-            // 푸시 뒤 처리와 Git 서빙(3단계, 4단계)
-            "PostReceiveJobs.kt", "GitHttpService.kt", "GitSshHandler.kt",
+            // Git 서빙(4단계). 푸시 전후 처리는 3단계에서 종류와 무관하게 바뀌었다
+            "GitHttpService.kt", "GitSshHandler.kt",
             // diff(4단계)
             "DiffService.kt",
             // 풀 리퀘스트(8단계)

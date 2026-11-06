@@ -38,7 +38,8 @@ import dev.yona.support.AbstractIntegrationTest
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.eclipse.jgit.lib.ObjectId
-import org.eclipse.jgit.transport.ReceiveCommand
+import dev.yona.domain.vcs.RefUpdate
+import dev.yona.domain.vcs.RefUpdateType
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
@@ -103,13 +104,17 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         return Setup(origin, forks.fork(origin, contributor.loginId!!, "pjf$n", ProjectScope.PUBLIC, contributor), contributor, manager)
     }
 
+    /** 푸시한 ref의 변경이다. 옛 번호가 영(0)이면 만들기이고 아니면 빨리 감기 갱신이다. */
+    private fun update(old: ObjectId, new: ObjectId, ref: String) =
+        RefUpdate(ref, old.name, new.name, if (old == ObjectId.zeroId()) RefUpdateType.CREATE else RefUpdateType.UPDATE)
+
     private fun head(project: Project, branch: String = "master"): ObjectId? = repositories.openGitRepository(project).use { it.resolve("refs/heads/$branch") }
 
     /** 포크의 [branch]에 커밋을 더한 뒤 푸시 명령을 만든다. */
-    private fun push(s: Setup, message: String, file: String, content: String, branch: String = "master"): ReceiveCommand {
+    private fun push(s: Setup, message: String, file: String, content: String, branch: String = "master"): RefUpdate {
         val before = head(s.fork, branch)
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit(message, mapOf(file to content.toByteArray())), branch = branch)
-        return ReceiveCommand(before ?: ObjectId.zeroId(), head(s.fork, branch), "refs/heads/$branch")
+        return update(before ?: ObjectId.zeroId(), head(s.fork, branch)!!, "refs/heads/$branch")
     }
 
     private fun openPullRequest(s: Setup, fromBranch: String = "refs/heads/master") =
@@ -136,7 +141,7 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         val outsider = user(); watchService.watch(outsider, ResourceType.PROJECT, s.origin.id.toString())
         GitTestSupport.appendCommits(repositories, s.origin, TestCommit("첫 푸시", mapOf("b.txt" to "b".toByteArray())), TestCommit("둘째 푸시", mapOf("c.txt" to "c".toByteArray())))
         val old = ObjectId.fromString(head(s.origin)!!.name).let { _ -> repositories.openGitRepository(s.origin).use { it.resolve("refs/heads/master~2") } }
-        val command = ReceiveCommand(old, head(s.origin), "refs/heads/master")
+        val command = update(old, head(s.origin)!!, "refs/heads/master")
         jobs.afterPush(s.origin, s.contributor, listOf(command))
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_COMMIT }
         assertEquals(messages.getMessage("notification.pushed.commits.to", arrayOf<Any>(s.origin.name!!, 2, "refs/heads/master"), java.util.Locale.getDefault()), note.title)
@@ -202,7 +207,7 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         threads.save(NonRangedCodeCommentThread(commitId = "c").also { it.project = s.origin; it.pullRequest = withThread; it.state = ThreadState.OPEN; it.createdDate = Date() })
         threads.flush()
         val id = ObjectId.zeroId()
-        jobs.afterPush(s.fork, s.contributor, listOf(ReceiveCommand(head(s.fork, "other"), id, "refs/heads/other", ReceiveCommand.Type.DELETE)))
+        jobs.afterPush(s.fork, s.contributor, listOf(RefUpdate("refs/heads/other", head(s.fork, "other")!!.name, ObjectId.zeroId().name, RefUpdateType.DELETE)))
         assertNull(pullRequests.findById(plain.id!!).orElse(null)); assertEquals(0, pullRequestCommits.findByPullRequestId(plain.id!!).size)
         assertEquals(0, pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(plain.id!!).size)
         assertEquals(State.OPEN, pullRequests.findById(withThread.id!!).get().state)

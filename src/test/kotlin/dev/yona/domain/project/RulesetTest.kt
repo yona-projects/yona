@@ -14,7 +14,7 @@ import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.reviewed
 import dev.yona.domain.user.User
-import org.eclipse.jgit.transport.ReceiveCommand.Type
+import dev.yona.domain.vcs.RefUpdateType as Type
 import org.junit.jupiter.api.Test
 import java.util.Date
 import kotlin.test.assertEquals
@@ -189,7 +189,7 @@ class RulesetTest {
     @Test
     fun `기본 규칙 묶음은 삭제와 강제 푸시를 막고 생성과 빨리 감기 푸시는 막지 않는다`() {
         val rule = Ruleset(pattern = "master")
-        assertEquals("deletion", rule.pushViolation(Type.DELETE)); assertEquals("force", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
+        assertEquals("deletion", rule.pushViolation(Type.DELETE)); assertEquals("force", rule.pushViolation(Type.FORCE_UPDATE))
         assertNull(rule.pushViolation(Type.UPDATE)); assertNull(rule.pushViolation(Type.CREATE))
     }
 
@@ -202,7 +202,7 @@ class RulesetTest {
     @Test
     fun `풀 리퀘스트를 요구하면 직접 갱신을 막지만 생성은 막지 않고 삭제는 삭제 제한을 따른다`() {
         val rule = Ruleset(pattern = "master", requirePullRequest = true, restrictDeletions = false, blockForcePushes = false)
-        assertEquals("pull-request", rule.pushViolation(Type.UPDATE)); assertEquals("pull-request", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
+        assertEquals("pull-request", rule.pushViolation(Type.UPDATE)); assertEquals("pull-request", rule.pushViolation(Type.FORCE_UPDATE))
         assertNull(rule.pushViolation(Type.CREATE)); assertNull(rule.pushViolation(Type.DELETE))
     }
 
@@ -211,13 +211,13 @@ class RulesetTest {
     @Test
     fun `갱신 제한은 빨리 감기와 강제 갱신을 막고 생성과 삭제는 각자 규칙을 따른다`() {
         val rule = Ruleset(pattern = "master", restrictUpdates = true, restrictDeletions = false, blockForcePushes = false)
-        assertEquals("update", rule.pushViolation(Type.UPDATE)); assertEquals("update", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
+        assertEquals("update", rule.pushViolation(Type.UPDATE)); assertEquals("update", rule.pushViolation(Type.FORCE_UPDATE))
         assertNull(rule.pushViolation(Type.CREATE)); assertNull(rule.pushViolation(Type.DELETE))
     }
 
     @Test
     fun `강제 푸시 차단이 켜져 있으면 강제 푸시는 그 이유로 거절한다`() {
-        assertEquals("force", Ruleset(pattern = "master", restrictUpdates = true, blockForcePushes = true).pushViolation(Type.UPDATE_NONFASTFORWARD))
+        assertEquals("force", Ruleset(pattern = "master", restrictUpdates = true, blockForcePushes = true).pushViolation(Type.FORCE_UPDATE))
     }
 
     @Test

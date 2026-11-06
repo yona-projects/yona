@@ -64,6 +64,12 @@ interface CommitReader : VcsPart {
 
     /** 커밋의 첫 부모이다. 부모가 없으면 `null`이다. */
     fun parentOf(project: Project, revision: String): CommitInfo?
+
+    /**
+     * 푸시로 새로 생기거나 바뀐 ref([oldId]에서 [newId]로)가 가져온 커밋이다(최근 것이 앞). [newId]까지의 이력에서 [oldId]까지를 뺀 것이고,
+     * [oldId]가 [dev.yona.domain.vcs.RefUpdate.NULL_ID]이면 [newId] 하나뿐이다. 푸시가 없는 종류(Subversion)는 빈 목록이다.
+     */
+    fun pushedCommits(project: Project, oldId: String, newId: String): List<CommitInfo> = emptyList()
 }
 
 /**

@@ -13,10 +13,8 @@ import dev.yona.domain.pullrequest.PullRequestRepository
 import dev.yona.domain.pullrequest.PullRequestService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
-import org.eclipse.jgit.lib.ObjectId
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.transport.ReceiveCommand
+import dev.yona.domain.vcs.RefUpdate
+import dev.yona.domain.vcs.RefUpdateType
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.util.Date
@@ -34,7 +32,7 @@ import java.util.Date
  */
 @Component
 class PostReceiveJobs(
-    private val repositories: RepositoryService,
+    private val backends: VcsBackends,
     private val projects: ProjectRepository,
     private val users: UserRepository,
     private val issues: IssueRepository,
@@ -55,45 +53,35 @@ class PostReceiveJobs(
         val committerName: String, val committerEmail: String, val commitTime: Date
     )
 
-    private fun parse(repository: org.eclipse.jgit.lib.Repository, start: ObjectId, end: ObjectId): List<CommitDetail> = RevWalk(repository).use { walk ->
-        walk.markStart(walk.parseCommit(end))
-        if (start == ObjectId.zeroId()) return listOf(detail(walk.parseCommit(end)))
-        walk.markUninteresting(walk.parseCommit(start))
-        walk.map { detail(it) }
-    }
-
-    private fun detail(commit: RevCommit) = CommitDetail(
-        commit.name, commit.abbreviate(SHORT_ID).name(), commit.shortMessage, commit.fullMessage, commit.authorIdent.name, commit.authorIdent.emailAddress,
-        commit.committerIdent.name, commit.committerIdent.emailAddress, Date(commit.commitTime * 1000L)
+    private fun detail(commit: CommitInfo) = CommitDetail(
+        commit.id, commit.shortId, commit.shortMessage, commit.message, commit.authorName, commit.authorEmail,
+        commit.committerName, commit.committerEmail, commit.commitTime
     )
 
-    /** 푸시 뒤 일을 시작한다. 명령 정보는 푸시가 끝나면 쓸 수 없으므로 필요한 값만 복사해 넘긴다. */
-    fun afterPush(project: Project, sender: User?, commands: Collection<ReceiveCommand>) {
+    /** 푸시 뒤 일을 시작한다. 푸시가 끝나면 쓸 수 없는 정보가 없도록 [updates]는 값 복사본이다. */
+    fun afterPush(project: Project, sender: User?, updates: List<RefUpdate>) {
         val projectId = requireNotNull(project.id)
         val senderId = sender?.id
-        val pushed = commands.map { Command(it.type, it.refName, it.oldId, it.newId) }
+        val pushed = updates.toList()
         runner.run("after pushing to ${project.owner}/${project.name}", { referToIssues(projectId, senderId, pushed) }, { checkPullRequests(projectId, senderId, pushed) }, { notifyCommits(projectId, senderId, pushed) })
     }
 
-    private class Command(val type: ReceiveCommand.Type, val refName: String, val oldId: ObjectId, val newId: ObjectId)
-
-    private fun pushedCommits(projectId: Long, pushed: List<Command>): PushedCommits {
+    private fun pushedCommits(projectId: Long, pushed: List<RefUpdate>): PushedCommits {
         val project = projects.findById(projectId).orElse(null) ?: return PushedCommits(emptyList(), emptyList())
         val details = mutableListOf<CommitDetail>()
         val refNames = mutableListOf<String>()
-        repositories.openGitRepository(project).use { repository ->
-            for (command in pushed) {
-                if (command.type == ReceiveCommand.Type.CREATE || command.type == ReceiveCommand.Type.UPDATE || command.type == ReceiveCommand.Type.UPDATE_NONFASTFORWARD) {
-                    details += parse(repository, command.oldId, command.newId)
-                    refNames += command.refName
-                }
+        val reader = backends.commits(project.vcs)
+        for (update in pushed) {
+            if (update.type == RefUpdateType.CREATE || update.type == RefUpdateType.UPDATE || update.type == RefUpdateType.FORCE_UPDATE) {
+                details += reader.pushedCommits(project, update.old, update.new).map { detail(it) }
+                refNames += update.ref
             }
         }
         return PushedCommits(details, refNames)
     }
 
     /** 커밋 메시지의 `#번호`가 가리키는 이슈마다 "커밋에서 언급됨" 이벤트를 남긴다 (v1.6 `IssueReferredFromCommitEventActor`). */
-    private fun referToIssues(projectId: Long, senderId: Long?, pushed: List<Command>) {
+    private fun referToIssues(projectId: Long, senderId: Long?, pushed: List<RefUpdate>) {
         val sender = senderId?.let { users.findById(it).orElse(null) } ?: return
         for (commit in pushedCommits(projectId, pushed).commits) {
             ISSUE_PATTERN.findAll(commit.message).mapNotNull { it.value.substring(1).toLongOrNull() }.distinct()
@@ -112,14 +100,14 @@ class PostReceiveJobs(
      * 갱신한 브랜치와 관련된 열린 풀 리퀘스트의 병합 검사를 다시 하고, 지운 브랜치와 관련된 풀 리퀘스트는 지운다 (v1.6 `PullRequestCheck`).
      * 풀 리퀘스트를 지우다 실패하면(리뷰 스레드가 달려 있는 경우 등) 로그만 남기고 다음 풀 리퀘스트를 계속 처리한다.
      */
-    private fun checkPullRequests(projectId: Long, senderId: Long?, pushed: List<Command>) {
+    private fun checkPullRequests(projectId: Long, senderId: Long?, pushed: List<RefUpdate>) {
         val sender = senderId ?: return
-        val updated = pushed.filter { it.type == ReceiveCommand.Type.UPDATE || it.type == ReceiveCommand.Type.UPDATE_NONFASTFORWARD }.map { it.refName }.toSet()
+        val updated = dev.yona.domain.vcs.RefUpdates.updated(pushed)
         val ids = updated.flatMap { branch -> pullRequests.findRelated(projectId, branch).mapNotNull { it.id } }
         if (ids.isNotEmpty()) {
             runner.run("merging of pull requests related to the pushed branches", { ids.forEach { processor.start(it) } }, { ids.forEach { processor.process(it, sender, false) } })
         }
-        val deleted = pushed.filter { it.type == ReceiveCommand.Type.DELETE }.map { it.refName }.toSet()
+        val deleted = dev.yona.domain.vcs.RefUpdates.deleted(pushed)
         for (branch in deleted) {
             // 요청마다 따로 지운다. 하나가 실패해도(리뷰 스레드가 달려 있는 경우 등) 로그만 남고 나머지는 계속 지운다.
             for (id in pullRequests.findRelated(projectId, branch).mapNotNull { it.id }) {
@@ -129,7 +117,7 @@ class PostReceiveJobs(
     }
 
     /** 새 커밋 알림을 낸다 (v1.6 `CommitsNotificationActor`). */
-    private fun notifyCommits(projectId: Long, senderId: Long?, pushed: List<Command>) {
+    private fun notifyCommits(projectId: Long, senderId: Long?, pushed: List<RefUpdate>) {
         val project = projects.findById(projectId).orElse(null) ?: return
         val sender = senderId?.let { users.findById(it).orElse(null) } ?: return
         val result = pushedCommits(projectId, pushed)
@@ -137,7 +125,6 @@ class PostReceiveJobs(
     }
 
     private companion object {
-        const val SHORT_ID = 7
         val ISSUE_PATTERN = Regex("#\\d+")
     }
 }

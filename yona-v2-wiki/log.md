@@ -1420,3 +1420,8 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 Mercurial 공통화 2단계(2a~2e)와 QR 시험 불안정 수정
 
 종류별 구현 등록부 `VcsBackends`를 두고 수명(2a), 커밋 읽기(2b), 코드 읽기(2c), 파일 텍스트와 README(2d), 브랜치와 태그(2e)를 역할별 계약과 Git, Subversion 구현으로 나눴다. `openRepository`는 `openGitRepository`로 이름을 바꿔 Git 전용 하위 시스템만 쓰게 하고 남은 호출 지점을 `GitDependencyGuardTest`로 지킨다. 새 시험: `VcsBackendsTest`, `GitDependencyGuardTest`. 전체 H2 시험(`cleanTest test`)은 4,610건(건너뜀 2) 중 1건이 실패했고 **11분 45초**였다. 실패는 2단계와 무관한 `QrCodeTest`(무작위 비밀값 500회 중 가끔 1차원 바코드로 잘못 읽힘)였다. 원인은 시험의 판독기가 모든 형식을 시도한 것이고, `MultiFormatReader.decode(image)`가 미리 준 형식 설정을 지우므로 판독 때마다 `POSSIBLE_FORMATS=QR_CODE`를 넘기도록 고쳤다. 고친 뒤 15회 연속 통과했다. 전체를 다시 돌리지는 않았다.
+
+
+## 2026-11-06 Mercurial 공통화 3단계(푸시 이벤트 중립화)
+
+푸시 전 검사(`PushPolicy`)와 푸시 뒤 처리(`PushEvents`)를 JGit 타입에서 떼어 `RefUpdate` 목록만 받게 했다. `GitHooks`는 JGit 훅을 연결하는 어댑터로 줄었고, `Ruleset.pushViolation`과 `PostReceiveJobs`도 종류와 무관한 타입을 쓴다. 새 시험 `RefUpdateTest`, `PushPolicyTest`, `PushEventsTest`(`hg` 이름의 감사 기록 확인). 전체 H2 시험(`cleanTest test`): 4,620건 실패 0(건너뜀 2), **11분 42초**.

@@ -59,6 +59,16 @@ class GitCommitReader(private val git: GitRepositories) : CommitReader {
         }
     }
 
+    override fun pushedCommits(project: Project, oldId: String, newId: String): List<CommitInfo> = open(project).use { repository ->
+        RevWalk(repository).use { walk ->
+            val end = org.eclipse.jgit.lib.ObjectId.fromString(newId)
+            walk.markStart(walk.parseCommit(end))
+            if (oldId == dev.yona.domain.vcs.RefUpdate.NULL_ID) return listOf(info(walk.parseCommit(end)))
+            walk.markUninteresting(walk.parseCommit(org.eclipse.jgit.lib.ObjectId.fromString(oldId)))
+            walk.map { info(it) }
+        }
+    }
+
     private fun info(commit: RevCommit): CommitInfo = CommitInfo(
         id = commit.name, shortId = commit.abbreviate(7).name(), shortMessage = commit.shortMessage, message = commit.fullMessage,
         authorName = commit.authorIdent.name, authorEmail = commit.authorIdent.emailAddress, authorDate = commit.authorIdent.`when`,

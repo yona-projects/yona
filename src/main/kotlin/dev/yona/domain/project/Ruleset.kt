@@ -86,15 +86,15 @@ class Ruleset(
      * 푸시 명령 [type]이 이 규칙 묶음에 어긋나면 그 이유를 돌려주고, 어긋나지 않으면 `null`이다(푸시 검사, `decisions.md` D-45, D-46). 이유는 `deletion`(삭제),
      * `force`(강제 푸시), `update`(갱신 제한), `pull-request`(풀 리퀘스트를 요구하는데 직접 푸시)이다. 브랜치를 새로 만드는 푸시는 막지 않는다.
      */
-    fun pushViolation(type: org.eclipse.jgit.transport.ReceiveCommand.Type): String? = when (type) {
-        org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE -> if (restrictDeletions == true) "deletion" else null
-        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD -> when {
+    fun pushViolation(type: dev.yona.domain.vcs.RefUpdateType): String? = when (type) {
+        dev.yona.domain.vcs.RefUpdateType.DELETE -> if (restrictDeletions == true) "deletion" else null
+        dev.yona.domain.vcs.RefUpdateType.FORCE_UPDATE -> when {
             blockForcePushes == true -> "force"
             restrictUpdates == true -> "update"
             requirePullRequest == true -> "pull-request"
             else -> null
         }
-        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE -> when {
+        dev.yona.domain.vcs.RefUpdateType.UPDATE -> when {
             restrictUpdates == true -> "update"
             requirePullRequest == true -> "pull-request"
             else -> null

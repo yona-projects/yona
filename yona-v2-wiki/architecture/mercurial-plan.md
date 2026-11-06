@@ -268,6 +268,25 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - **`openRepository`를 `openGitRepository`로 이름을 바꿨다.** JGit 저장소를 그대로 돌려주므로 Git 전용 하위 시스템만 쓰고, 종류와 무관한 읽기는 모두 계약을 거친다. 남은 호출 지점은 `GitDependencyGuardTest`가 목록으로 지킨다(온라인 커밋, 푸시 뒤 처리, Git 서빙, diff, 풀 리퀘스트, 자동 링크). 이 목록은 3단계, 4단계와 풀 리퀘스트 단계에서 하나씩 줄인다.
 - 시험: 등록부가 종류로 구현을 고르는지, 빈 저장소의 동작이 Git과 Subversion에서 어떻게 다른지(`VcsBackendsTest`), Git 의존 지점이 늘지 않는지(`GitDependencyGuardTest`)를 새로 추가했다.
 
+### 7.3 3단계 진행 기록(2026-11-06)
+
+푸시 전 검사와 푸시 뒤 처리를 JGit 타입에서 떼어 저장소 종류와 무관하게 만들었다.
+
+| 구성 | 위치 | 역할 |
+|---|---|---|
+| `RefUpdate`, `RefUpdateType`(`CREATE`, `UPDATE`, `FORCE_UPDATE`, `DELETE`), `RefUpdates` | `domain/vcs/RefUpdate.kt` | 푸시로 ref 하나가 바뀐 일. 옛 번호와 새 번호는 40자 16진수이고 없으면 영 40개(`NULL_ID`, Git의 영 번호이자 Mercurial의 null 노드) |
+| `GitRefUpdates` | `repository/GitRefUpdates.kt` | JGit `ReceiveCommand` → `RefUpdate` 변환(Git 쪽에 남은 유일한 변환) |
+| `PushPolicy` | `repository/PushPolicy.kt` | 푸시 전 검사의 본문: 예약된 `refs/yobi` 거부, 규칙 묶음(삭제, 강제 푸시, 갱신 제한, 풀 리퀘스트 요구), 서명 커밋 요구. 서명 확인할 커밋을 구하는 일은 호출한 쪽이 람다로 넘긴다. 지표와 감사 기록은 종류 이름(`git`, `hg`)으로 남는다 |
+| `PushEvents` | `repository/PushEvents.kt` | 푸시 뒤 처리의 본문: 마지막 푸시 시각, 최근 푸시한 브랜치, 새 커밋 작업(`PostReceiveJobs`), 감사 기록(`<종류>.push`, `.force_push`, `.ref_deleted`) |
+| `GitHooks` | `repository/GitHooks.kt` | JGit 훅을 위 둘에 연결하는 얇은 어댑터. 서명 확인할 새 커밋을 JGit으로 구하는 일만 한다 |
+| `CommitReader.pushedCommits` | `VcsBackend.kt`, `GitCommitReader` | 푸시가 가져온 커밋을 구한다. 푸시가 없는 Subversion은 빈 목록 |
+
+- `Ruleset.pushViolation`이 JGit 타입 대신 `RefUpdateType`을 받는다. 풀 리퀘스트 브랜치 삭제와 브랜치 화면의 삭제 가능 판정도 같은 타입을 쓴다.
+- `PostReceiveJobs.afterPush`는 `RefUpdate` 목록을 받고, 새 커밋은 `VcsBackends`의 커밋 읽기 구현에서 구한다. 그래서 `PostReceiveJobs`가 `openGitRepository`를 더는 부르지 않아 `GitDependencyGuardTest` 목록에서 뺐다.
+- 감사 기록의 모양은 그대로다. 강제 푸시의 `type`은 Git의 `UPDATE_NONFASTFORWARD` 이름을 유지한다.
+- **Mercurial 연결 방법.** Mercurial 서빙(6단계)은 `postChangegroup`의 새 노드 목록과 `pushkey`의 bookmark 이동을 `RefUpdate` 목록으로 바꿔 `PushPolicy`와 `PushEvents`에 넘기기만 하면 된다. 푸시 전 검사는 `preTxnChangegroup`과 `prePushkey` 훅에서 같은 방식으로 부른다.
+- 새 시험: `RefUpdateTest`(도우미와 Git 변환), `PushPolicyTest`(`hg` 이름으로 규칙과 서명 검사), `PushEventsTest`(`hg.push` 등 감사 기록, 마지막 푸시 시각, 최근 브랜치). 기존 푸시 시험(`GitHttpTest`, SSH 시험, `PostReceiveJobsTest`, `RulesetTest`)은 새 타입에 맞춰 고쳤다.
+
 ### 7.6 시험 전략
 
 - 종류별로 같은 시나리오를 도는 **공통 계약 시험**을 만든다(수명, 읽기, 푸시 이벤트). Git, Subversion, Mercurial이 모두 통과해야 한다.

@@ -105,7 +105,7 @@ class BranchController(
      */
     private fun deletable(project: Project, branch: String): Boolean {
         val user = currentUserProvider.get().user
-        return project.rulesetsFor(branch).filter { it.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) != null }
+        return project.rulesetsFor(branch).filter { it.pushViolation(dev.yona.domain.vcs.RefUpdateType.DELETE) != null }
             .all { accessControl.canBypass(user, project, listOf(it)) }
     }
 
