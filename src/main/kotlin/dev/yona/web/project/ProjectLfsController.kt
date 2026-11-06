@@ -70,7 +70,7 @@ class ProjectLfsController(
         val owner = requireNotNull(project.owner); val name = requireNotNull(project.name)
         val usage = hgLfs.usage(owner, name)
         val files = hgLfs.trackedFiles(owner, name).map { HgFileRow(it.path, readable(it.size), it.oid) }
-        return ModelAndView("project/lfs-hg").addObject("title", "project.lfs").addObject("projectView", views.of(project))
+        return ModelAndView("project/lfs-hg").addObject("title", "project.lfs.hg").addObject("projectView", views.of(project))
             .addObject("objectCount", usage.objects).addObject("usageText", readable(usage.bytes)).addObject("files", files)
     }
 

@@ -60,7 +60,7 @@ class MessageParityTest {
         // X-7 7b: 가져오기 화면의 Mercurial 문구
         "project.import.from.hg", "project.hg.repository.url", "project.hg.url.alert", "project.import.error.empty.url.hg", "project.import.error.wrong.url.hg", "project.import.error.transport.unauthorized.hg",
         // X-7 9a: Mercurial LFS 화면
-        "lfs.hg.description", "lfs.hg.limits", "lfs.hg.files.title", "lfs.hg.files.empty", "lfs.hg.files.path", "lfs.hg.files.size", "lfs.hg.files.oid", "lfs.hg.guide.title", "lfs.hg.guide.intro", "lfs.hg.guide.url")
+        "lfs.hg.description", "lfs.hg.limits", "lfs.hg.files.title", "lfs.hg.files.empty", "lfs.hg.files.path", "lfs.hg.files.size", "lfs.hg.files.oid", "lfs.hg.guide.title", "lfs.hg.guide.intro", "lfs.hg.guide.url", "project.lfs.hg")
 
     private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구

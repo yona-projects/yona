@@ -32,6 +32,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -90,7 +91,10 @@ class HgLfsProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `프로젝트 설정 탭에 LFS 탭이 있다`() {
         val p = project(); val manager = user(); join(p, manager, RoleType.MANAGER)
-        assertNotNull(page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("ul.nav-tabs a[href\$=/setting/lfs]"))
+        val tab = page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("ul.nav-tabs a[href\$=/setting/lfs]")
+        assertNotNull(tab)
+        // Git 전용 이름이 아니라 그냥 "LFS"이다
+        assertEquals("LFS", tab.text().trim())
     }
 
     @Test
