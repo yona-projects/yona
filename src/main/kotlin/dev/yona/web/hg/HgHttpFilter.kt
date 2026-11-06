@@ -40,13 +40,23 @@ class HgHttpFilter(
     private val metrics: VcsMetrics
 ) : OncePerRequestFilter() {
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.getParameter("cmd") == null || segments(request) == null
+    /**
+     * `cmd`가 없거나 주소가 두 단계가 아니면 건드리지 않는다. 쿼리 문자열은 직접 훑는다: 컨테이너의 매개변수 해석은 퍼센트 인코딩이 잘못되면 예외를 던지는데,
+     * 그런 요청은 건드리지 않고 넘겨 [dev.yona.web.LenientParametersFilter]와 기존 처리(400)가 그대로 답하게 한다.
+     */
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean = commandOf(request) == null || segments(request) == null
+
+    /** 쿼리 문자열에서 `cmd`의 값이다. 없으면 `null`이다. 값은 와이어 프로토콜 명령 이름이라 퍼센트 해석 없이 그대로 읽는다. */
+    private fun commandOf(request: HttpServletRequest): String? =
+        request.queryString?.split('&')?.firstOrNull { it.startsWith("cmd=") }?.substring(4)
 
     /** 컨텍스트 경로를 뺀 요청 경로가 `소유자/이름`(끝 슬래시는 있어도 된다)이면 그 둘이고 아니면 `null`이다. */
     private fun segments(request: HttpServletRequest): Pair<String, String>? {
         val path = request.requestURI.removePrefix(request.contextPath.orEmpty()).trim('/')
         val parts = path.split('/')
-        return if (parts.size == 2 && parts.none { it.isEmpty() }) java.net.URLDecoder.decode(parts[0], Charsets.UTF_8) to java.net.URLDecoder.decode(parts[1], Charsets.UTF_8) else null
+        if (parts.size != 2 || parts.any { it.isEmpty() }) return null
+        // 경로의 퍼센트 인코딩이 잘못되면 이 필터의 일이 아니다
+        return try { java.net.URLDecoder.decode(parts[0], Charsets.UTF_8) to java.net.URLDecoder.decode(parts[1], Charsets.UTF_8) } catch (e: IllegalArgumentException) { null }
     }
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
@@ -59,7 +69,7 @@ class HgHttpFilter(
             is VcsServingGate.Entry.Passed -> entry.identity
             is VcsServingGate.Entry.Stopped -> { write(entry.response, response); return }
         }
-        val cmd = request.getParameter("cmd").orEmpty()
+        val cmd = commandOf(request).orEmpty()
         // 명령 이름은 요청 매개변수라 지표 태그로는 알려진 명령만 쓴다(카디널리티)
         val service = if (Wire1Commands.isKnownCommand(cmd)) cmd else "other"
         metrics.request("hg", service) { measured ->
