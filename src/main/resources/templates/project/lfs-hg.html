@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  v1.6에 없는 추가 화면이다(X-7 9a, decisions.md D-90). 프로젝트 설정의 Mercurial LFS: 저장 사용량, 기본 위치 머리의 LFS 파일 목록, 클라이언트 설정 안내.
+  Mercurial의 큰 파일 본문은 저장소 안에 hg4j가 두므로 Git LFS와 달리 용량 제한과 잠금이 없다.
+  모델: title, projectView, objectCount, usageText, files(HgFileRow 목록: path, sizeText, oid)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::lfsPage})}">
+<th:block th:fragment="lfsPage" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap" id="lfsPage">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/lfs'})}"></th:block>
+        <p class="form-text mt10" th:text="#{lfs.hg.description}"></p>
+
+        <h4 th:text="#{lfs.usage.title}"></h4>
+        <p id="lfs-usage">
+            <th:block th:text="#{lfs.usage(${objectCount}, ${usageText})}"></th:block>
+            <br><span id="lfs-limits" class="text-body-secondary" th:text="#{lfs.hg.limits}"></span>
+        </p>
+
+        <h4 th:text="#{lfs.hg.files.title}"></h4>
+        <p id="lfs-files-empty" class="empty" th:if="${#lists.isEmpty(files)}" th:text="#{lfs.hg.files.empty}"></p>
+        <table id="lfs-files" class="table table-striped" th:if="${!#lists.isEmpty(files)}">
+            <thead><tr><th th:text="#{lfs.hg.files.path}"></th><th th:text="#{lfs.hg.files.size}"></th><th th:text="#{lfs.hg.files.oid}"></th></tr></thead>
+            <tbody>
+            <tr th:each="f : ${files}" class="lfs-file-row">
+                <td><code th:text="${f.path}"></code></td>
+                <td th:text="${f.sizeText}"></td>
+                <td><code th:text="${#strings.substring(f.oid, 0, 12)}" th:title="${f.oid}"></code></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h4 th:text="#{lfs.hg.guide.title}"></h4>
+        <div id="lfs-guide" class="form-text">
+            <p th:text="#{lfs.hg.guide.intro}"></p>
+            <pre class="well"><code>[extensions]
+lfs =
+
+[lfs]
+track = size("&gt;10MB")</code></pre>
+            <p th:text="#{lfs.hg.guide.url}"></p>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

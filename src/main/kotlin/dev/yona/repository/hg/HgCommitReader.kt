@@ -29,27 +29,31 @@ class HgCommitReader(private val hg: HgRepositories) : CommitReader {
         if (start < 0) return null
         // 최근 리비전 순으로 조상을 걷고, 경로로 거른 뒤 앞 쪽만큼 건너뛰고 한 쪽만 읽는다
         val wanted = path?.trim('/')?.takeIf { it.isNotEmpty() }
+        // 보고 있는 리비전에서 보이는 `.hgsigs`의 서명으로 조상 커밋을 판정한다(D-88 1번)
+        val signatures = HgSignatures.visibleAt(h, node)
         HgChangesets.ancestors(changelog, start).sortedDescending().asSequence()
             .mapNotNull { HgChangesets.read(changelog, it) }
             .filter { wanted == null || it.files.any { file -> file == wanted || file.startsWith("$wanted/") } }
-            .drop(page * size).take(size).map { info(it) }.toList()
+            .drop(page * size).take(size).map { info(it, signatures) }.toList()
     }
 
     override fun commit(project: Project, revision: String): CommitInfo? = open(project).use { h ->
         val node = HgRevisions.resolve(h, revision) ?: return null
         val changelog = HgRevisions.changelog(h)
         val rev = HgChangesets.revOf(changelog, node)
-        if (rev < 0) null else HgChangesets.read(changelog, rev)?.let { info(it) }
+        // 커밋 하나를 볼 때는 기본 위치(이름표 main 등)의 머리에서 보이는 서명을 쓴다(서명은 서명한 커밋의 후손에 있다)
+        if (rev < 0) null else HgChangesets.read(changelog, rev)?.let { info(it, HgSignatures.visibleAt(h, HgRevisions.head(h))) }
     }
 
     override fun commits(project: Project, ids: Collection<String>): Map<String, CommitInfo> {
         if (ids.isEmpty()) return emptyMap()
         return open(project).use { h ->
             val changelog = HgRevisions.changelog(h)
+            val signatures = HgSignatures.visibleAt(h, HgRevisions.head(h))
             ids.distinct().mapNotNull { id ->
                 val node = runCatching { HgRevisions.resolve(h, id) }.getOrNull() ?: return@mapNotNull null
                 val rev = HgChangesets.revOf(changelog, node)
-                if (rev < 0) null else HgChangesets.read(changelog, rev)?.let { id to info(it) }
+                if (rev < 0) null else HgChangesets.read(changelog, rev)?.let { id to info(it, signatures) }
             }.toMap()
         }
     }
@@ -89,14 +93,15 @@ class HgCommitReader(private val hg: HgRepositories) : CommitReader {
         HgChangesets.read(changelog, first)?.let { info(it) }
     }
 
-    private fun info(changeset: HgChangeset): CommitInfo {
+    /** 커밋 정보이다. [signatures]는 보고 있는 리비전에서 보이는 `.hgsigs`의 서명이다(노드 → 서명, [HgSignatures.visibleAt]). 없으면 서명 없음이다. */
+    private fun info(changeset: HgChangeset, signatures: Map<String, dev.yona.domain.gpgkey.SignedPayload> = emptyMap()): CommitInfo {
         val (name, email) = HgAuthors.parse(changeset.author)
         val time = Date(changeset.timestamp * 1000L)
         val message = changeset.message
         return CommitInfo(
             id = changeset.node, shortId = changeset.node.take(SHORT_ID), shortMessage = shortMessage(message), message = message,
             authorName = name, authorEmail = email, authorDate = time, committerName = name, committerEmail = email, commitTime = time,
-            parentCount = changeset.parents.size
+            parentCount = changeset.parents.size, signature = signatures[changeset.node]
         )
     }
 

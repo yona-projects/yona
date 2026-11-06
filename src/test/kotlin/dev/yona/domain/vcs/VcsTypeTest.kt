@@ -88,7 +88,7 @@ class VcsTypeTest {
         assertThat(VcsType.of("Mercurial")).isEqualTo(VcsType.MERCURIAL)
         assertThat(VcsType.MERCURIAL.columnValue).isEqualTo("Mercurial")
         // 이름표를 브랜치로 보이고, 태그와 내려받기를 지원하며, 커밋 작성자는 이메일로 식별한다
-        for (capability in listOf(VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING, VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS)) {
+        for (capability in listOf(VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING, VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.LFS_SCREEN)) {
             assertThat(VcsType.MERCURIAL.supports(capability)).describedAs("Mercurial의 $capability").isTrue()
         }
         // 서빙의 배포 키와 보호 규칙은 6단계, 포크는 7a, 풀 리퀘스트는 8단계에서 더했다., 풀 리퀘스트(8단계), LFS와 서명(9단계)은 구현이 끝난 단계에서 더한다

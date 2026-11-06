@@ -16,7 +16,7 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
         "GIT",
         setOf(
             VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS,
-            VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.PROTECTED_REFS,
+            VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.LFS_SCREEN, VcsCapability.PROTECTED_REFS,
             VcsCapability.DEFAULT_BRANCH, VcsCapability.README_POSTING, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.ONLINE_EDITING,
             VcsCapability.LINE_COMMENT_THREADS, VcsCapability.COMMIT_EMAILS, VcsCapability.TAG_MANAGEMENT
         )
@@ -33,7 +33,7 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
         "Mercurial",
         setOf(
             VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING,
-            VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS
+            VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.LFS_SCREEN
         )
     );
 
@@ -70,6 +70,9 @@ enum class VcsCapability {
 
     /** Git LFS. */
     LFS,
+
+    /** 프로젝트 설정의 LFS 화면. Git은 Git LFS 화면(사용량, 잠금)이고 Mercurial은 저장소 안 LFS(hg4j 내장)의 사용량과 파일 목록이다(D-90). */
+    LFS_SCREEN,
 
     /** 브랜치 보호 규칙. */
     PROTECTED_REFS,
@@ -125,6 +128,7 @@ class VcsSupport(columnValue: String?) {
     val pullRequests: Boolean get() = has(VcsCapability.PULL_REQUESTS)
     val deployKeys: Boolean get() = has(VcsCapability.DEPLOY_KEYS)
     val lfs: Boolean get() = has(VcsCapability.LFS)
+    val lfsScreen: Boolean get() = has(VcsCapability.LFS_SCREEN)
     val protectedRefs: Boolean get() = has(VcsCapability.PROTECTED_REFS)
     val defaultBranch: Boolean get() = has(VcsCapability.DEFAULT_BRANCH)
     val readmePosting: Boolean get() = has(VcsCapability.README_POSTING)
