@@ -1806,3 +1806,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-07] build | Mercurial LFS 수명 주기 보완
 
 LFS 파일이 있는 저장소의 포크가 해시 불일치로 실패하는 것을 점검 중 찾았다(Git LFS는 처음부터 포크 시험이 있었다). hg4j 수정 jar를 임시로 얹고 본문 복사(`HgLfsBlobs`)와 `HgLfsLifecycleTest` 5건을 추가했다. 관련 시험 329건 통과(4분 23초). 전체 H2 시험은 15분 24초, 4,817건(건너뜀 2) 전부 통과.
+
+## [2026-11-07] build | 사이트 LFS 끄기를 Mercurial에 적용
+
+원본 hg 7.2.4 `lfs`에는 서버 쪽 끄기(`experimental.lfs.serve`)만 있고 최대 크기와 용량 한도는 없어(hg4j 세션 확인), 선생님이 "끄기만 적용"을 고르셨다. hg4j에 `HgHttpWireServer.setLfsServing` 추가를 요청해 받은 임시 jar로 `HgHttpFilter`에 연결했고 사이트 LFS 화면에 안내 문구를 더했다(A-384). 전체 시험은 이어서 실행한다.

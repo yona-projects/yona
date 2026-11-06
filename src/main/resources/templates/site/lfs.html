@@ -26,6 +26,7 @@
         <input id="lfs-quota" type="number" min="0" name="quotaMb" class="form-control tf-wide" th:value="${quotaMb}">
         <div class="form-text" th:text="#{site.lfs.quota.help}"></div>
     </div>
+    <p class="form-text" th:text="#{site.lfs.mercurialNote}"></p>
     <button type="submit" class="btn btn-success" th:text="#{site.lfs.save}"></button>
 </form>
 <h4 class="mt-4" th:text="#{site.lfs.usage}"></h4>

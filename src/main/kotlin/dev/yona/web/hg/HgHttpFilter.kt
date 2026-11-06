@@ -37,7 +37,8 @@ class HgHttpFilter(
     private val hgRepositories: HgRepositories,
     private val hooks: HgHooks,
     private val recentVisits: RecentVisitService,
-    private val metrics: VcsMetrics
+    private val metrics: VcsMetrics,
+    private val siteSettings: dev.yona.domain.site.SiteSettingService
 ) : OncePerRequestFilter() {
 
     /**
@@ -109,7 +110,10 @@ class HgHttpFilter(
         try {
             // 프로젝트의 읽기와 쓰기는 위 앞단이 정했으므로 서블릿의 `[web]` 규칙은 쓰지 않는다(설정 파일을 직접 고쳐 푸시를 허용하는 일을 막는다). 기준 경로로
             // 이 저장소의 주소(`/소유자/이름`) 아래에서만 처리하게 한다(LFS 경로 판정이 저장소 상대 경로로 이루어진다)
-            session.attachTo(HgHttpWireServer(hg.repository).setEnforceWebPermissions(false).setBasePath(target.basePath)).service(request, response)
+            session.attachTo(HgHttpWireServer(hg.repository).setEnforceWebPermissions(false).setBasePath(target.basePath)
+                // 사이트의 LFS 사용 설정이 꺼져 있으면 LFS 경로를 처리하지 않는다(원본 hg의 `experimental.lfs.serve = false`와 같다). 객체 최대 크기와 프로젝트 용량 한도는
+                // 원본에 없어 Mercurial에는 적용하지 않는다(A-384)
+                .setLfsServing(if (siteSettings.lfsEnabled()) null else false)).service(request, response)
             // 푸시 뒤 처리는 요청이 끝난 뒤 한 번 한다(체인지그룹과 이름표 이동을 합쳐야 해서)
             if (write && target.rest.isEmpty()) session.finish(HgRevisions.changelog(hg))
         } finally {

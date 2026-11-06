@@ -77,6 +77,7 @@ class HgHttpTest {
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
+    @Autowired private lateinit var siteSettings: dev.yona.domain.site.SiteSettingService
 
     @TempDir lateinit var work: File
 
@@ -115,6 +116,7 @@ class HgHttpTest {
 
     @AfterEach
     fun tearDown() {
+        siteSettings.setLfsEnabled(true)
         // 토큰은 사용자를 참조하므로 먼저 지운다
         gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }; gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
         apiTokenRepository.deleteAll(); tokens.clear(); tokenFailures.clear(); auditLogs.deleteAllInBatch()
@@ -369,6 +371,22 @@ class HgHttpTest {
         // 기준 경로 아래의 batch는 hg4j가 답하고(405나 400이어도 404는 아니다), 다른 프로젝트 이름으로는 404이다
         val ok = HttpClient.newHttpClient().send(HttpRequest.newBuilder(URI.create("http://localhost:$port/${project.owner}/${project.name}/.git/info/lfs/objects/batch")).POST(HttpRequest.BodyPublishers.ofString("{}")).header("Content-Type", "application/vnd.git-lfs+json").build(), HttpResponse.BodyHandlers.ofString())
         assertTrue(ok.statusCode() != 404, "batch가 처리되지 않았다: ${ok.statusCode()} ${ok.body()}")
+    }
+
+    @Test
+    fun `사이트의 LFS를 끄면 Mercurial LFS 경로도 원본의 lfs serve false처럼 처리하지 않는다`() {
+        val batch = URI.create("http://localhost:$port/${project.owner}/${project.name}/.git/info/lfs/objects/batch")
+        val objects = URI.create("http://localhost:$port/${project.owner}/${project.name}/.hg/lfs/objects/" + "a".repeat(64))
+        fun post() = HttpClient.newHttpClient().send(HttpRequest.newBuilder(batch).POST(HttpRequest.BodyPublishers.ofString("{}")).header("Content-Type", "application/vnd.git-lfs+json").build(), HttpResponse.BodyHandlers.ofString())
+        fun get() = HttpClient.newHttpClient().send(HttpRequest.newBuilder(objects).GET().build(), HttpResponse.BodyHandlers.ofString())
+        assertTrue(post().statusCode() != 404, "켜 두면 batch를 처리한다")
+        siteSettings.setLfsEnabled(false)
+        assertEquals(404, post().statusCode())
+        assertEquals(404, get().statusCode())
+        // 와이어 프로토콜(복제와 푸시)은 사이트 LFS 설정과 무관하다
+        assertEquals(0, clone(project).second.first)
+        siteSettings.setLfsEnabled(true)
+        assertTrue(post().statusCode() != 404, "다시 켜면 처리한다")
     }
 
     // --- 서명 커밋 필수 규칙(X-7 9c, D-88 3번) ---
