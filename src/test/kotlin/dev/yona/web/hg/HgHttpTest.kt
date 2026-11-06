@@ -263,6 +263,26 @@ class HgHttpTest {
     }
 
     @Test
+    fun `후손이 아닌 곳으로 이름표를 옮기는 진짜 강제 푸시는 막힌다`() {
+        protect("main")
+        HgTestSupport.hg(serverDir(project), "bookmark", "main")
+        // 서버의 main 위에 커밋을 하나 더 올려 둔다. 클라이언트는 그 앞(첫 커밋)에서 갈라진 커밋으로 main을 옮긴다
+        HgTestSupport.commit(serverDir(project), "서버가 앞선다", mapOf("s.txt" to "s\n"), "2026-11-02 10:00 +0900")
+        HgTestSupport.hg(serverDir(project), "bookmark", "-f", "-r", "tip", "main")
+        val serverMain = HgTestSupport.hg(serverDir(project), "log", "-r", "main", "--template", "{node}")
+        val (dir, cloned) = clone(project, member)
+        assertEquals(0, cloned.first, cloned.second)
+        hg(dir, "update", "-r", "0")
+        File(dir, "d.txt").writeText("diverged\n"); hg(dir, "add", "d.txt")
+        assertEquals(0, hg(dir, "commit", "-m", "갈라진 커밋", "-d", "2026-11-04 10:00 +0900").first)
+        hg(dir, "bookmark", "-f", "main")
+        val pushed = hg(dir, "push", "-f", "-B", "main", url(project, member))
+        assertFalse(pushed.first == 0, "강제 푸시가 성공했다: ${pushed.second}")
+        assertEquals(serverMain, HgTestSupport.hg(serverDir(project), "log", "-r", "main", "--template", "{node}"))
+        assertFalse("갈라진 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+    }
+
+    @Test
     fun `이름표 삭제는 삭제를 막는 규칙에 걸린다`() {
         protect("main") { restrictDeletions = true }
         HgTestSupport.hg(serverDir(project), "bookmark", "main")
@@ -381,7 +401,6 @@ class HgHttpTest {
         assertFalse("서명 없는 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
     }
 
-    @org.junit.jupiter.api.Disabled("hg4j가 같은 푸시로 들어온 체인지셋을 prepushkey 훅에서 읽게 되면 켠다(hg-da에 요청함, D-88)")
     @Test
     fun `서명한 커밋과 서명을 담은 hgsigs 커밋을 함께 올리면 허용한다`() {
         protect("main") { requireSignedCommits = true }

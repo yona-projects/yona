@@ -45,8 +45,8 @@ class HgPushUpdatesTest {
         assertThat(HgPushUpdates.bookmarkType(log, c2, c0)).isEqualTo(RefUpdateType.FORCE_UPDATE)
         assertThat(HgPushUpdates.bookmarkType(log, "", c1)).isEqualTo(RefUpdateType.CREATE)
         assertThat(HgPushUpdates.bookmarkType(log, c1, "")).isEqualTo(RefUpdateType.DELETE)
-        // 새 값이 이 변경 로그에 아직 없으면(같은 푸시로 막 들어온 체인지셋) 일반 갱신으로 본다
-        assertThat(HgPushUpdates.bookmarkType(log, c0, "f".repeat(40))).isEqualTo(RefUpdateType.UPDATE)
+        // 새 값이 이 변경 로그에 없으면 후손인지 확인할 수 없으므로 강제 갱신이다(훅은 같은 푸시로 들어온 체인지셋을 읽을 수 있다, hg4j 수정 dd32851)
+        assertThat(HgPushUpdates.bookmarkType(log, c0, "f".repeat(40))).isEqualTo(RefUpdateType.FORCE_UPDATE)
     }
 
     @Test
