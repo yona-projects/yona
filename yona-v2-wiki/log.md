@@ -1796,3 +1796,5 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ## [2026-11-06] build | X-7 9단계(LFS, 데이터 교환, GPG) 전체 H2 시험
 
 1차 15분 24초, 실패 1건(`LegacyBootstrapLintTest`: 새 LFS 화면 템플릿이 Bootstrap 2의 `well` 표기를 써서 낡은 표기 점검에 걸림 → BS5 표기로 고침). 이어서 hg4j 훅 순서 수정(`dd32851`)을 반영하고 이름표 이동 종류 판정을 정확한 판정으로 되돌렸다(진짜 강제 푸시 시험 추가). 최종 전체 시험은 아래에 기록한다. hg4j는 아직 `includeBuild`(D-89). PostgreSQL은 이번 X-7 전체에서 돌리지 않았다.
+
+최종 전체 H2 시험(X-7 9단계, hg4j 훅 순서 수정 반영): 15분 33초, 4,812건(건너뜀 2), 실패 0. 단계별 전체 시험은 5단계 13분, 6단계 13분 18초, 7단계 13분 45초, 8단계 14분 28초, 9단계 15분 33초로 늘었다(시험과 hg4j 함께 컴파일). PostgreSQL은 X-7 전체에서 돌리지 않았다.
