@@ -14,7 +14,10 @@ import io.github.search5.hg4j.lib.NodeId
 object HgRevisions {
 
     /** 이름표와 그 노드(40자)이다. */
-    fun bookmarks(hg: Hg): Map<String, String> = hg.bookmark().list()
+    fun bookmarks(hg: Hg): Map<String, String> = allBookmarks(hg).filterKeys { !it.startsWith(HgRepositories.RESERVED_BOOKMARK_PREFIX) }
+
+    /** 예약 이름표(`yobi/…`, 풀 리퀘스트의 숨은 참조, D-87)까지 모두 읽는다. 풀 리퀘스트 처리만 쓴다. */
+    fun allBookmarks(hg: Hg): Map<String, String> = hg.bookmark().list()
 
     /**
      * 태그와 그 노드(40자)이다. 가상 태그 `tip`은 뺀다.

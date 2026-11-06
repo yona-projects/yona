@@ -18,7 +18,14 @@ object HgPushUpdates {
 
     /** 이름표 [name]이 [old]에서 [new]로 옮겨진 것의 [RefUpdate]이다. 값이 빈 문자열이면 만들거나 지운 것이고 영 번호로 바뀐다. */
     fun bookmark(changelog: Revlog, name: String, old: String, new: String): RefUpdate =
-        RefUpdate("refs/heads/$name", old.ifEmpty { RefUpdate.NULL_ID }, new.ifEmpty { RefUpdate.NULL_ID }, bookmarkType(changelog, old, new))
+        RefUpdate(refOf(name), old.ifEmpty { RefUpdate.NULL_ID }, new.ifEmpty { RefUpdate.NULL_ID }, bookmarkType(changelog, old, new))
+
+    /**
+     * 이름표 [name]의 ref 이름이다. 예약 이름표(`yobi/…`, 풀 리퀘스트의 숨은 참조)는 Git의 `refs/yobi/…`처럼 취급해 [dev.yona.repository.PushPolicy]가
+     * 예약된 이름으로 거부하게 한다. 나머지는 `refs/heads/<이름표>`이다.
+     */
+    fun refOf(name: String): String =
+        if (name.startsWith(HgRepositories.RESERVED_BOOKMARK_PREFIX)) "refs/$name" else "refs/heads/$name"
 
     /** 이름표의 이동 종류이다. 새 값이 옛 값의 후손이 아니면 강제 갱신이다. 옛 값을 이 저장소에서 찾지 못해도 강제 갱신으로 본다. */
     fun bookmarkType(changelog: Revlog, old: String, new: String): RefUpdateType = when {
