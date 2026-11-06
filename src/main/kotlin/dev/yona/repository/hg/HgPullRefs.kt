@@ -24,16 +24,18 @@ class HgPullRefs(private val repositories: HgRepositories) {
 
     /**
      * 보내는 저장소([fromOwner]/[fromName])의 체인지셋 [node]까지를 받는 저장소([toOwner]/[toName])로 가져오고, **이번에 새로 들어온** 체인지셋을
-     * secret 단계로 바꾸고, 예약 이름표 [ref]가 [node]를 가리키게 한다(있으면 옮긴다). 받는 저장소에 이미 있던 체인지셋의 단계는 바꾸지 않는다.
+     * secret 단계로 바꾸고, 예약 이름표 [ref]가 [node]를 가리키게 한다(있으면 옮긴다. [ref]가 `null`이면 이름표를 두지 않는다, 병합 가능 여부만 볼 때). 받는 저장소에 이미 있던 체인지셋의 단계는 바꾸지 않는다.
      *
      * @return 가져온 체인지셋의 노드(40자)
      * @throws java.io.IOException 보내는 저장소를 읽거나 가져오지 못했을 때
      */
-    fun fetch(toOwner: String, toName: String, fromOwner: String, fromName: String, node: String, ref: String): String {
+    fun fetch(toOwner: String, toName: String, fromOwner: String, fromName: String, node: String, ref: String?): String {
         val source = repositories.directoryOf(fromOwner, fromName).canonicalPath
         repositories.open(toOwner, toName).use { hg ->
             val before = HgRevisions.changelog(hg).revisionCount
+            val bookmarksBefore = HgRevisions.allBookmarks(hg)
             PullCommand(hg.repository).setSource(source).setRevisions(listOf(node)).call()
+            restoreBookmarks(hg, bookmarksBefore)
             val changelog = HgRevisions.changelog(hg)
             // 이번에 새로 들어온 체인지셋 가운데 새 체인지셋 안에 부모가 없는 것(뿌리)만 secret으로 한다. 후손은 따라서 secret이 된다
             val added = (before until changelog.revisionCount).toSet()
@@ -43,9 +45,29 @@ class HgPullRefs(private val repositories: HgRepositories) {
                     PhaseCommand(hg.repository).setRevision(changeset.node).setPhase(PHASE_SECRET).setForce(true).call()
                 }
             }
-            BookmarkCommand(hg.repository).setBookmarkName(ref).setRevision(node).setForce(true).call()
+            if (ref != null) BookmarkCommand(hg.repository).setBookmarkName(ref).setRevision(node).setForce(true).call()
         }
         return node
+    }
+
+    /**
+     * 가져오기 전의 이름표 [before]로 되돌린다. `PullCommand`는 실제 `hg pull`처럼 보내는 쪽의 이름표를 반영해서, 받는 저장소의 `main`이 포크의 머리로
+     * 저절로 앞서 나가고 포크의 다른 이름표가 들어온다. 병합하기 전에 받는 브랜치가 움직이면 안 되므로 가져오기마다 되돌린다(저장소는 받는 프로젝트 단위
+     * 잠금 안에서만 이 도구로 바뀐다).
+     */
+    private fun restoreBookmarks(hg: io.github.search5.hg4j.api.Hg, before: Map<String, String>) {
+        val now = HgRevisions.allBookmarks(hg)
+        for ((name, node) in before) if (now[name] != node) BookmarkCommand(hg.repository).setBookmarkName(name).setRevision(node).setForce(true).call()
+        for (name in now.keys - before.keys) BookmarkCommand(hg.repository).setBookmarkName(name).setDelete(true).call()
+    }
+
+    /** 예약 이름표 [ref]가 가리키는 노드이다. 없으면 `null`이다. */
+    fun resolve(owner: String, name: String, ref: String): String? =
+        repositories.open(owner, name).use { hg -> HgRevisions.allBookmarks(hg)[ref] }
+
+    /** 예약 이름표 [ref]를 [node]로 옮긴다(없으면 만든다). */
+    fun point(owner: String, name: String, ref: String, node: String) {
+        repositories.open(owner, name).use { hg -> BookmarkCommand(hg.repository).setBookmarkName(ref).setRevision(node).setForce(true).call() }
     }
 
     /** 예약 이름표 [ref]를 지운다. 체인지셋은 지우지 않는다(D-87 2번). 없는 이름표를 지워도 오류가 없다. */

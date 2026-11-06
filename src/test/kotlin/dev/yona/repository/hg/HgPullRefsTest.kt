@@ -134,4 +134,20 @@ class HgPullRefsTest {
             assertThat(HgPushUpdates.bookmark(log, "feature", "", base).ref).isEqualTo("refs/heads/feature")
         }
     }
+
+    @Test
+    fun `가져오기가 받는 저장소의 이름표를 옮기거나 보내는 쪽의 다른 이름표를 들여오지 않는다`() {
+        // 포크에서 이름표 main을 활성으로 두고 커밋하면 main이 따라 움직이고, 다른 이름표도 만든다
+        HgTestSupport.hg(fork, "update", "-C", "main")
+        val head = HgTestSupport.commit(fork, "기능", mapOf("f.txt" to "f\n"), "2026-11-02 10:00 +0900")
+        HgTestSupport.bookmark(fork, "feature", head)
+        val mainBefore = HgTestSupport.hg(origin, "log", "-r", "main", "--template", "{node}")
+
+        refs.fetch("tester", "origin", "alice", "fork", head, refs.headRef(7))
+
+        val bookmarks = HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")
+        // 받는 쪽 main은 그대로이고(병합 전에 움직이면 안 된다), 포크의 feature는 들어오지 않으며, 숨은 이름표만 늘었다
+        assertThat(bookmarks).contains("main=$mainBefore").doesNotContain("feature").contains("yobi/pull/7/head=$head")
+        assertThat(repos.refNames("tester", "origin")).containsExactly("refs/heads/main")
+    }
 }

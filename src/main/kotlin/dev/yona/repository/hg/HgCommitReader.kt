@@ -65,6 +65,21 @@ class HgCommitReader(private val hg: HgRepositories) : CommitReader {
         (HgChangesets.ancestors(changelog, end) - known).sortedDescending().mapNotNull { HgChangesets.read(changelog, it)?.let { c -> info(c) } }
     }
 
+    /**
+     * [to]에서 [from]의 조상을 뺀 커밋을 최근 순으로 돌려준다(Git의 `log from..to`). [from]과 [to]는 이름표, 태그, 노드 등 [HgRevisions.resolve]가 푸는
+     * 값이다. 풀 수 없으면 빈 목록이다. 풀 리퀘스트가 가져오는 커밋을 모을 때 쓴다.
+     */
+    fun range(project: Project, from: String, to: String): List<CommitInfo> = open(project).use { h ->
+        val fromNode = HgRevisions.resolve(h, from) ?: return emptyList()
+        val toNode = HgRevisions.resolve(h, to) ?: return emptyList()
+        val changelog = HgRevisions.changelog(h)
+        val end = HgChangesets.revOf(changelog, toNode)
+        val start = HgChangesets.revOf(changelog, fromNode)
+        if (end < 0) return emptyList()
+        val known = if (start < 0) emptySet() else HgChangesets.ancestors(changelog, start)
+        (HgChangesets.ancestors(changelog, end) - known).sortedDescending().mapNotNull { HgChangesets.read(changelog, it)?.let { c -> info(c) } }
+    }
+
     override fun parentOf(project: Project, revision: String): CommitInfo? = open(project).use { h ->
         val node = HgRevisions.resolve(h, revision) ?: return null
         val changelog = HgRevisions.changelog(h)
