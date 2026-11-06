@@ -1414,4 +1414,4 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 
 ## 2026-11-06 Mercurial 공통화 1단계(1a, 1b)
 
-`@IsOnlyGitAvailable`을 `@RequiresVcs(능력)`으로 바꾸고(1a) 웹과 도메인의 기능 확인용 `vcs ==` 비교를 `VcsType`/`VcsCapability` 질의와 템플릿용 `VcsSupport`로 바꿨다(1b). 새 시험 `VcsTypeTest`(능력 선언), 접근 검사 시험의 어노테이션 이름 갱신. 전체 H2 시험(`cleanTest test`): 4,596건 이상 실패 0(세부 수는 아래 기록), **11분 57초**. 백엔드 호출 분기는 2단계의 몫으로 남겼다.
+`@IsOnlyGitAvailable`을 `@RequiresVcs(능력)`으로 바꾸고(1a) 웹과 도메인의 기능 확인용 `vcs ==` 비교를 `VcsType`/`VcsCapability` 질의와 템플릿용 `VcsSupport`로 바꿨다(1b). 새 시험 `VcsTypeTest`(능력 선언), 접근 검사 시험의 어노테이션 이름 갱신. 전체 H2 시험(`cleanTest test`): 4,598건(건너뜀 2) 실패 0, **11분 57초**. 백엔드 호출 분기는 2단계의 몫으로 남겼다.
