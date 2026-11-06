@@ -91,7 +91,7 @@ object HgAuthors {
     /** `(이름, 이메일)`이다. 이메일이 없으면 이름은 문자열 전체이고 이메일은 비어 있다. 이메일 주소만 있으면 이름과 이메일이 모두 그 주소이다. */
     fun parse(author: String): Pair<String, String> {
         val named = NAMED.find(author)
-        if (named != null) return named.groupValues[1].ifEmpty { named.groupValues[2] } to named.groupValues[2]
+        if (named != null) return named.groupValues[1].trim().ifEmpty { named.groupValues[2] } to named.groupValues[2]
         val bare = author.trim()
         return bare to if (bare.contains('@') && !bare.contains(' ')) bare else ""
     }
