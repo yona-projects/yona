@@ -1778,3 +1778,5 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 2. 답에 따라 단계와 일정을 확정하고 로드맵 X-7을 갱신한다.
 3. 1단계(능력 선언)부터 시험 먼저로 시작한다.
 ) 실패 0, **13분 0초**. 구현 판단은 A-378. 다음은 6단계(HTTP와 SSH 서빙, 푸시 전후 처리).
+
+5단계 화면 확인(Playwright, 한 번): 실제 서버(포트 19300)에서 `tester`로 Mercurial 프로젝트를 만들고 빈 저장소 안내(`hg clone`, `hg push`), 실제 `hg`로 만든 커밋의 코드 목록, 커밋 보기(diff), 태그(지우기 단추 없음), 종류 변경 선택 상자를 확인했다. 선택 상자가 안내 목록과 겹쳐 같은 상자 안으로 옮겼고, 선택을 바꾸면 안내 문구가 갈아 끼워지는 것을 확인했다.

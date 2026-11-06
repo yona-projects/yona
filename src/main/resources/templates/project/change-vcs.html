@@ -17,14 +17,14 @@
         <div class="bubble-wrap gray wp">
             <div class="">
                 <h3><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <span class="next-vcs" th:text="${nextVcs}"></span></h3>
-                <!--/* 바꿀 수 있는 종류가 둘 이상일 때만 보인다(Mercurial 도입, D-86 6번). 기본 선택은 v1.6처럼 번갈아 바꾸는 종류이다 */-->
-                <div class="cu-desc" th:if="${#lists.size(targets) > 1}">
-                    <label for="targetVcs" th:text="#{project.changeVCS.target}"></label>
-                    <select id="targetVcs" name="targetVcs" class="form-select d-inline-block w-auto ms-2">
-                        <option th:each="t : ${targets}" th:value="${t}" th:text="${t}" th:selected="${t == nextVcs}"></option>
-                    </select>
-                </div>
                 <div class="cu-desc">
+                    <!--/* 바꿀 수 있는 종류가 둘 이상일 때만 보인다(Mercurial 도입, D-86 6번). 기본 선택은 v1.6처럼 번갈아 바꾸는 종류이다 */-->
+                    <p th:if="${#lists.size(targets) > 1}">
+                        <label for="targetVcs" th:text="#{project.changeVCS.target}"></label>
+                        <select id="targetVcs" name="targetVcs" class="form-select d-inline-block w-auto ms-2">
+                            <option th:each="t : ${targets}" th:value="${t}" th:text="${t}" th:selected="${t == nextVcs}"></option>
+                        </select>
+                    </p>
                     <ul>
                         <li class="notice"><strong class="vcs-description" th:text="#{project.changeVCS.description1(${nextVcs})}"></strong></li>
                         <li class="notice"><strong th:text="#{project.changeVCS.description2}"></strong></li>
