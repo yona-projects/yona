@@ -86,7 +86,7 @@ updated: 2026-11-06
 
 **없거나 한계가 있는 것**(CHANGELOG의 알려진 문제와 소스 확인):
 
-- **병합 커밋을 디스크 없이 저장하는 기능은 hg4j 안에 이미 있으나 공개되어 있지 않다.** `GraftInMemory.commit(트랜잭션, 변경로그, 부모1, 부모2, 원본, 원본 리비전, 병합 결과, 메타데이터 채우기)`가 두 번째 부모를 받아 파일 리비전, 매니페스트, 체인지셋을 쓰고, `RebaseCommand`가 병합 커밋을 다시 적용할 때 이것을 쓴다. 다만 패키지 전용이라 Yona가 부를 수 없다. `next`의 P3-33이 제안한 `MergeCommitCommand`를 새로 만들 필요는 없고, **이 경로를 부르는 공개 진입점 하나(잠금과 트랜잭션 포함)를 더하면 된다**(2026-11-06 재확인. 처음 조사에서는 이름 몇 개로만 검색해 "없다"고 잘못 적었다).
+- **병합 커밋 공개 진입점은 hg4j 담당 세션이 구현했다(2026-11-06). 아직 커밋, 버전 올리기, Maven Central 게시는 하지 않았고 로컬 작업 트리에만 있다(버전 1.2.0 후보, 선생님 확인 대기).** 자세한 계약은 4.2절에 있다.
 - Mercurial 7.2와 7.2.4만 시험되었고, wire protocol v2, `largefiles`, `upgrade`는 없다.
 - `TransportE2EMatrixInteropTest`의 "머리를 만드는 푸시 거절" 시험이 전체 실행에서 가끔 실패한다는 보고가 있다(원인 미상).
 - 폴더 트리는 평평한 매니페스트로 주어진다. `TreeWalk.setRecursive(false)`와 `PathFilter`로 한 단계씩 걷는 것은 가능하나 하위 폴더 항목 자체는 내주지 않으므로, 코드 보기용 폴더 목록은 서버가 경로 앞부분으로 묶는다(작은 코드).
@@ -100,13 +100,40 @@ hg4j 담당 세션(`hg-da`)이 소스를 읽고 회신한 내용이다. 푸시 �
 
 | 훅 | context 값 | 비고 |
 |---|---|---|
-| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **이미 서버에 있는 체인지셋만 담긴 번들을 다시 푸시하면 훅이 불리고 `nodes`에 이미 있던 노드가 전부 들어온다**(hg4j 담당 세션 실측: 번들 2개 재푸시에서 훅 2회, 저장소는 중복 저장되지 않음). 실제 hg 7.2의 `unbundle`은 새 체인지셋이 없으면 훅을 실행하지 않는다. 실제 hg 클라이언트의 일반 푸시는 "no changes found"로 끝나 이런 번들을 보내지 않으므로 보통은 영향이 없다. **Yona는 `nodes`를 새 체인지셋으로 그대로 믿지 말고 푸시 전후 `heads` 또는 체인지셋 존재 여부로 걸러 쓴다.** hg4j를 고칠지는 선생님 결정 대기 |
+| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **hg4j 1.2.0 후보(작업 트리)에서 고쳐졌다: 새 체인지셋이 하나라도 있을 때만 훅이 불리고 `nodes`에는 새 체인지셋만 담긴다(실제 hg와 같다).** 1.1.0까지는 이미 있는 체인지셋만 담긴 번들을 재푸시해도 훅이 불리고 `nodes`에 기존 노드가 들어왔다. 따라서 **1.2.0을 쓰면 별도 걸러내기가 필요 없다.** 1.1.0을 써야 한다면 푸시 전후 `heads`로 걸러 쓴다 |
 | `preChangegroup`, `preTxnChangegroup` | 같은 `nodes` | 푸시 전 검사(보호 규칙, 서명)에 쓴다 |
 | `prePushkey`, `postPushkey` | `namespace`, `key`, `old`, `new`, `repository` | bookmark 생성은 `old`가 빈 문자열, 삭제는 `new`가 빈 문자열이고 null이 아니다. 값은 노드 hex. pre가 거절하면 구버전 pushkey 명령은 `0\n`, bundle2 파트는 "prepushkey hook failed"로 응답한다. post는 성공했을 때만 불리고 반환값은 무시된다. `namespace`가 `bookmarks`가 아닌 pushkey(phases 등)도 훅은 불리므로 Yona는 `namespace`를 걸러야 한다 |
 | SSH | `HgSshWireServer`에 같은 훅 다섯 종류가 있고 같은 `Wire1Commands` 경로로 부른다 | HTTP와 SSH가 같은 변환기를 쓸 수 있다 |
 
 - 폴더 한 단계 걷기는 hg4j에 **없다**. `ManifestWalk`와 `TreeCommand`는 파일 항목 전체를 경로 오름차순으로 평평하게 돌려주므로(treemanifest 하위 폴더도 펼친다) 폴더 목록은 Yona가 경로 앞부분으로 묶는 방식이 맞다.
-- 병합 커밋 공개 진입점은 요청서를 보냈고, hg4j 담당 세션은 **선생님의 진행 결정을 기다리고 있다**(구현 미착수).
+
+### 4.2 병합 커밋 공개 진입점 `MergeCommitCommand`(hg4j 1.2.0 후보)
+
+패키지 `io.github.search5.hg4j.api`. `new MergeCommitCommand(HgRepository)` 또는 `Hg.mergeCommit()`.
+
+| 설정 | 설명 |
+|---|---|
+| `setP1(byte[] 또는 String)` | 받는 쪽 머리. 필수 |
+| `setP2(byte[] 또는 String)` | 보내는 쪽 머리. 필수 |
+| `setBase(...)` | 선택. 기본은 `hg merge`와 같은 공통 조상 |
+| `setUser`, `setMessage` | 필수(메시지는 `hg commit`처럼 줄 끝 공백과 앞뒤 빈 줄을 제거) |
+| `setDate("<unix초> <오프셋>")` | 선택. 기본은 현재 시각. 형식이 틀리면 `HgValidationException` |
+| `setBranch(String)` | 선택. 기본은 p1의 브랜치 |
+| `putExtra(키, 값)` | 선택. 키 `branch`는 `IllegalArgumentException` |
+| `setAllowAncestorMerge(boolean)` | 기본 `false`. 한쪽이 다른 쪽의 조상이면 기본은 `hg`처럼 "nothing to merge"로 거절하고, `true`이면 Git `--no-ff` 식 병합 체인지셋을 만든다(트리는 후손 쪽, `hg verify` 통과) |
+| `call()` → `MergeCommitResult` | `isConflicted()`, `getConflicts()`(정렬된 경로), `getNode()`(20바이트, 충돌이면 null), `getNodeHex()` |
+
+- 충돌은 예외가 아니라 **결과 값**이고 이때 아무것도 쓰지 않는다. 오류는 예외다(`HgValidationException`: 사용자나 메시지 누락, 날짜 형식, p1과 p2가 같음, 조상 관계(허용하지 않은 경우), treemanifest 저장소. `HgRevisionNotFoundException`: 노드 없음. `HgLockException`).
+- 잠금은 저장소 잠금(`lockStore`)과 롤백 트랜잭션만 쓰고 `wlock`과 dirstate는 건드리지 않는다. 실패하면 롤백한다.
+- 부모 순서는 p1이 받는 쪽, p2가 보내는 쪽이다(실제 `hg`로 확인).
+- changelog-v2와 sidedata 저장소에서 changed-files sidedata가 실제 hg와 같게 붙는다.
+- **시험:** 같은 두 머리, 사용자, 날짜, 메시지로 실제 `hg`의 merge와 commit이 만든 체인지셋과 hg4j가 만든 체인지셋의 **노드 해시가 같다**(깨끗한 병합, 삭제와 실행권한과 심볼릭 링크 변경, 같은 파일의 다른 줄 편집, 한쪽 이름 바꿈과 다른 파일 변경). 병합 뒤 `hg verify`, `hg update`, `hg push`가 된다. 실제 `hg push`가 트랜잭션을 연 동안 병합이 기다리고, 두 병합이 동시에 실행돼도 저장소가 검증된다.
+
+**한계(Yona 설계에 영향):**
+- **이름 바꿈 추적이 없다.** 한쪽이 파일 이름을 바꾸고 다른 쪽이 같은 파일을 수정하면 충돌로 보고한다(실제 `hg`는 따라간다). 한쪽 이름 바꿈과 다른 파일 변경은 정상 병합된다. 풀 리퀘스트의 "병합할 수 있음" 판정이 실제 `hg`보다 보수적이다.
+- 한쪽이 삭제하고 다른 쪽이 수정한 파일은 충돌이다.
+- treemanifest 저장소는 거부한다. LFS 대용량 파일은 포인터가 아니라 실제 내용으로 기록한다. 외부 병합 도구는 없고 줄 단위 병합이다.
+- **기존 동작 변경:** 이 작업 중 `TreeMergeCommand`의 버그가 고쳐졌다. 한쪽 삭제와 다른 쪽 수정이 겹치면 삭제가 조용히 이기고 수정이 사라졌으나 이제 충돌로 보고한다(실제 hg와 같음). `GraftInMemory`와 `rebase --dry-run`도 같이 바뀌었고 `graft --to` 충돌 안내 문구를 실제 hg와 같게 맞췄다.
 
 ## 5. 이전 시도(`next` 브랜치, P3-12)의 교훈
 
@@ -232,7 +259,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - **리팩터링의 폭이 크다.** 37개 파일, 41곳의 저장소 열기, 75줄의 비교를 바꾸므로 한 번에 하지 않고 1~4단계로 나눠 각 단계마다 H2 전체와 PostgreSQL 관련 시험을 돌린다. v1.6 동일성이 원칙이므로 응답 바이트와 거절 응답을 시험으로 고정한다.
 - **중립 계약이 최소 공통분모로 얇아질 위험.** 능력 선언으로 종류별 차이를 드러내고, 계약에 없는 기능은 억지로 맞추지 않는다.
 - **hg4j 성숙도.** 7.2만 시험되었고 일부 불안정한 시험이 있다. 상호운용 시험으로 먼저 확인하고, 문제는 hg4j에 되돌려 보낸다.
-- **병합 비용.** 병합 커밋 공개 진입점이 생기기 전에는 임시 복제로 병합해야 해서 저장소가 클수록 느리다. 진입점을 먼저 더하면 이 위험은 없다.
+- **병합 판정이 실제 `hg`보다 보수적이다.** 이름 바꿈을 따라가지 못해 한쪽이 파일 이름을 바꾸고 다른 쪽이 같은 파일을 고친 풀 리퀘스트가 충돌로 나온다(4.2절). 풀 리퀘스트 화면에서 충돌 안내와 함께 "로컬에서 `hg merge`로 해결"하라고 안내하는 쪽이 맞다. 병합 비용 문제는 디스크 없는 병합 진입점으로 해소되었다.
 - **이름과 해시 표기.** Mercurial의 짧은 해시는 12자, 리비전 번호는 로컬 번호라 공유되지 않는다. 화면과 API는 전체 40자 노드 해시를 기준으로 하고 링크와 자동 링크(`AutoLinkRenderer`)는 40자와 12자 두 길이를 받도록 한다.
 - **데이터 위치.** `repo/hg/<소유자>/<이름>`(Subversion의 `repo/svn`과 같은 방식). 위키는 계속 Git이다.
 - **프로젝트 이전과 이름 바꾸기.** 종류별 경로를 `RepositoryService`가 계속 맡도록 하고, `next`에서 나온 `.git` 접미사 문제를 확인하는 시험을 둔다.
