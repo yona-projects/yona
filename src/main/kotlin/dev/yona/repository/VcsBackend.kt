@@ -95,6 +95,27 @@ interface CodeReader : VcsPart {
 }
 
 /**
+ * 저장소의 파일을 텍스트로 읽는 계약이다(README, 설정 파일 등). 읽다가 생긴 오류는 호출하는 쪽([dev.yona.repository.RepositoryFileReader],
+ * [dev.yona.repository.ProjectReadmeService])이 "없는 것"으로 본다(v1.6과 같다).
+ */
+interface TextReader : VcsPart {
+
+    /** 기본 위치(`HEAD`, 최신)의 [path] 파일 내용이다. 파일이 없거나 폴더이면 `null`이다. */
+    fun readText(project: Project, path: String): String?
+
+    /** README 파일 이름이다. 없으면 `null`이다. */
+    fun readmeFileName(project: Project): String?
+
+    /** README 내용이다. 파일이 없으면 `null`이다. */
+    fun readme(project: Project): String?
+
+    /**
+     * 게시글 화면이 README 글의 본문으로 보여 주는 README이다(v1.6 `BareRepository.readREADME`). 지원하지 않는 종류는 `null`이다.
+     */
+    fun readmeForPosting(project: Project): String? = null
+}
+
+/**
  * 메모리에 올리지 않고 흘려보내는 큰 파일이다. 크기와 종류 감지용 앞부분, 스트림 열기를 담고, 다 쓰면 [close]로 저장소를 닫는다.
  */
 class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: AutoCloseable, private val opener: () -> java.io.InputStream) : java.io.Closeable {
@@ -103,15 +124,16 @@ class LargeRawFile(val size: Long, val prefix: ByteArray, private val owner: Aut
 }
 
 /**
- * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader])을
+ * 저장소 종류별 구현을 `project.vcs` 열 값으로 찾는 등록부이다. 새 종류는 역할별 구현([RepositoryLifecycle], [CommitReader], [CodeReader], [TextReader])을
  * 빈으로 등록하기만 하면 된다.
  */
 @Component
-class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>) {
+class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitReader>, code: List<CodeReader>, text: List<TextReader>) {
 
     private val lifecycles: Map<VcsType, RepositoryLifecycle> = lifecycles.associateBy { it.type }
     private val commits: Map<VcsType, CommitReader> = commits.associateBy { it.type }
     private val code: Map<VcsType, CodeReader> = code.associateBy { it.type }
+    private val text: Map<VcsType, TextReader> = text.associateBy { it.type }
 
     private fun <T> pick(parts: Map<VcsType, T>, vcs: String?): T =
         VcsType.of(vcs)?.let { parts[it] } ?: throw UnsupportedOperationException("지원하지 않는 VCS입니다: $vcs")
@@ -129,9 +151,14 @@ class VcsBackends(lifecycles: List<RepositoryLifecycle>, commits: List<CommitRea
     /** [vcs]의 코드 읽기 구현이다. */
     fun code(vcs: String?): CodeReader = pick(code, vcs)
 
+    /** [vcs]의 파일 텍스트 읽기 구현이다. */
+    fun text(vcs: String?): TextReader = pick(text, vcs)
+
     companion object {
         /** 단위 시험용으로 구현을 직접 묶는다. 필요 없는 역할은 비워 둔다. */
-        fun of(lifecycles: List<RepositoryLifecycle> = emptyList(), commits: List<CommitReader> = emptyList(), code: List<CodeReader> = emptyList()) =
-            VcsBackends(lifecycles, commits, code)
+        fun of(
+            lifecycles: List<RepositoryLifecycle> = emptyList(), commits: List<CommitReader> = emptyList(), code: List<CodeReader> = emptyList(),
+            text: List<TextReader> = emptyList()
+        ) = VcsBackends(lifecycles, commits, code, text)
     }
 }

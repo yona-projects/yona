@@ -33,8 +33,9 @@ class SvnReadmeTest {
         val directory = DataDirectory(YonaProperties(dataDir = dataDir.path))
         svn = SvnRepositories(directory)
         val repositories = RepositoryService(GitRepositories(directory), svn, dev.yona.repository.WikiRepositories(directory), dev.yona.domain.lfs.LfsStorage(directory))
-        readme = ProjectReadmeService(repositories, svn)
-        reader = RepositoryFileReader(repositories, svn)
+        val backends = dev.yona.repository.VcsBackends.of(text = listOf(dev.yona.repository.GitTextReader(GitRepositories(directory)), SvnTextReader(svn)))
+        readme = ProjectReadmeService(backends)
+        reader = RepositoryFileReader(backends)
         repositories.createRepository(project)
     }
 
