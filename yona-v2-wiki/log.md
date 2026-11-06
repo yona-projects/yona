@@ -1780,3 +1780,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 ) 실패 0, **13분 0초**. 구현 판단은 A-378. 다음은 6단계(HTTP와 SSH 서빙, 푸시 전후 처리).
 
 5단계 화면 확인(Playwright, 한 번): 실제 서버(포트 19300)에서 `tester`로 Mercurial 프로젝트를 만들고 빈 저장소 안내(`hg clone`, `hg push`), 실제 `hg`로 만든 커밋의 코드 목록, 커밋 보기(diff), 태그(지우기 단추 없음), 종류 변경 선택 상자를 확인했다. 선택 상자가 안내 목록과 겹쳐 같은 상자 안으로 옮겼고, 선택을 바꾸면 안내 문구가 갈아 끼워지는 것을 확인했다.
+
+## [2026-11-06] build | X-7 6단계(Mercurial 서빙) 전체 H2 시험
+
+세 번 돌렸다. 1차 약 13분(9건 실패: HTTP 서빙을 스프링 라우트로 두어 `cmd`가 없는 요청이 라우트 없는 주소와 겹칠 때 404와 슬래시 이동 대신 500), 2차 13분 21초(1건 실패: 필터가 `request.getParameter`로 쿼리를 읽다 퍼센트 인코딩 오류에서 예외, 기존 400을 가로챔), 3차 13분 18초(전부 통과). 고친 내용: 라우트를 서블릿 필터(`HgHttpFilter`)로 바꾸고 쿼리 문자열을 직접 훑는다. 교훈: 새 경로나 필터를 더하면 라우트 시험 묶음(`TrailingSlashRedirectTest`, `SiteSecretTest`, `OptionsRequestTest`, `MalformedParametersTest`, `AttachmentControllerTest`)을 전체 시험 전에 먼저 돌린다. PostgreSQL은 이번에도 돌리지 않았다.
