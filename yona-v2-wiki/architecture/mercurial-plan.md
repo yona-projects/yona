@@ -94,6 +94,20 @@ updated: 2026-11-06
 
 hg4j는 선생님이 직접 관리하시므로 위 한계는 **hg4j에 요청하거나 직접 보완하는 선택지**가 있다. 로드맵에는 "hg4j를 먼저 보완한 뒤 착수"로 적혀 있다. 재확인 결과 보완이 꼭 필요한 것은 **병합 커밋 공개 진입점 하나**이고, 폴더 목록 묶기와 bookmark 변경 처리(`registerPrePushkeyHook`, `registerPostPushkeyHook`가 이미 있다)는 Yona 쪽에서 해결된다.
 
+### 4.1 hg4j 담당 세션이 확인해 준 훅 계약(2026-11-06)
+
+hg4j 담당 세션(`hg-da`)이 소스를 읽고 회신한 내용이다. 푸시 이벤트 중립화(6.3절)의 근거로 쓴다.
+
+| 훅 | context 값 | 비고 |
+|---|---|---|
+| `postChangegroup` | `repository`, `nodes`(새로 들어온 체인지셋의 40자 hex 목록, 적용된 순서) | 노드 범위가 아니라 **목록**이다. 첫 노드, 마지막 노드, 개수는 목록에서 구한다. bundle1과 bundle2 푸시가 같은 경로라 키가 같다. 저장소 잠금을 놓은 뒤 실행된다. **이미 있는 체인지셋만 보낸 푸시("no changes found")에서 훅이 불리는지는 확인하지 못했다**(단계 0에서 확인) |
+| `preChangegroup`, `preTxnChangegroup` | 같은 `nodes` | 푸시 전 검사(보호 규칙, 서명)에 쓴다 |
+| `prePushkey`, `postPushkey` | `namespace`, `key`, `old`, `new`, `repository` | bookmark 생성은 `old`가 빈 문자열, 삭제는 `new`가 빈 문자열이고 null이 아니다. 값은 노드 hex. pre가 거절하면 구버전 pushkey 명령은 `0\n`, bundle2 파트는 "prepushkey hook failed"로 응답한다. post는 성공했을 때만 불리고 반환값은 무시된다. `namespace`가 `bookmarks`가 아닌 pushkey(phases 등)도 훅은 불리므로 Yona는 `namespace`를 걸러야 한다 |
+| SSH | `HgSshWireServer`에 같은 훅 다섯 종류가 있고 같은 `Wire1Commands` 경로로 부른다 | HTTP와 SSH가 같은 변환기를 쓸 수 있다 |
+
+- 폴더 한 단계 걷기는 hg4j에 **없다**. `ManifestWalk`와 `TreeCommand`는 파일 항목 전체를 경로 오름차순으로 평평하게 돌려주므로(treemanifest 하위 폴더도 펼친다) 폴더 목록은 Yona가 경로 앞부분으로 묶는 방식이 맞다.
+- 병합 커밋 공개 진입점은 요청서를 보냈고, hg4j 담당 세션은 **선생님의 진행 결정을 기다리고 있다**(구현 미착수).
+
 ## 5. 이전 시도(`next` 브랜치, P3-12)의 교훈
 
 `next`에는 hg4j를 쓴 구현이 있다(`HgRepository`, `HgController`, `HgAuthorizationFilter`, `HgSshProtocolHandler`, `HgPushHooks`, `HgPostReceiveEventListener`, 병합 시험 등). 이 저장소(`next2`)와 구조가 달라 그대로 옮기지는 못하지만 판단의 근거로 쓴다.

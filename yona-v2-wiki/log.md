@@ -1370,3 +1370,8 @@ Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41�
 ## 2026-11-06 Mercurial 설계 보고서 정정
 
 선생님이 hg4j에 있다고 지적해 다시 확인했다. 병합 커밋 저장은 `GraftInMemory.commit`(두 번째 부모 지원, `RebaseCommand`가 사용)에 이미 구현되어 있고 공개 진입점만 없다. bookmark 변경은 `registerPrePushkeyHook`, `registerPostPushkeyHook`가 이미 있다. 처음 조사에서 이름 몇 개로만 검색해 "없다"고 쓴 것이 오류였다. `mercurial-plan.md`와 D-86, 아티팩트를 고쳤다.
+
+
+## 2026-11-06 hg4j 담당 세션 회신 반영
+
+`hg-da` 세션이 훅 계약(`postChangegroup`의 `nodes` 목록, pushkey의 `namespace`, `key`, `old`, `new`)과 SSH 서버의 동일한 훅 지원, 폴더 한 단계 걷기가 없음을 확인해 회신했다. `mercurial-plan.md` 4.1절에 옮겼다. 병합 커밋 공개 진입점은 선생님의 진행 결정을 기다린다.
