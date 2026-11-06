@@ -93,8 +93,8 @@ class ProjectImportService(
             return ImportResult.Forbidden
         }
         if (owner != null && name != null && projects.existsByOwnerIgnoreCaseAndNameIgnoreCase(owner, name)) errors.reject("name", "project.name.duplicate")
-        if (LegacyText.isBlank(form.url)) errors.reject("url", "project.import.error.empty.url")
-        else if (!isAllowedSource(form.url.orEmpty())) errors.reject("url", "project.import.error.wrong.url")
+        if (LegacyText.isBlank(form.url)) errors.reject("url", key("project.import.error.empty.url", vcs))
+        else if (!isAllowedSource(form.url.orEmpty())) errors.reject("url", key("project.import.error.wrong.url", vcs))
         if (errors.hasErrors()) {
             // v1.6은 어떤 오류가 있어도 이름 규칙 안내를 더 붙였다(R-46-5). 이름 규칙을 어긴 경우에만 붙인다
             if (ProjectNameRules.violations(name).isNotEmpty()) errors.reject("name", "project.name.alert")
@@ -120,24 +120,24 @@ class ProjectImportService(
             audit.record(dev.yona.domain.audit.auditProject("project.created", project, mapOf("via" to "import", "source" to dev.yona.domain.audit.AuditDetails.safeUrl(form.url), "scope" to project.projectScope?.name)))
             return ImportResult.Created(project)
         } catch (e: InvalidRemoteException) {
-            errors.reject("url", "project.import.error.wrong.url")
+            errors.reject("url", key("project.import.error.wrong.url", vcs))
         } catch (e: JGitInternalException) {
-            errors.reject("url", "project.import.error.wrong.url")
+            errors.reject("url", key("project.import.error.wrong.url", vcs))
         } catch (e: TransportException) {
             transportError(errors, e, form.authId.isNullOrEmpty() && form.authPw.isNullOrEmpty())
         } catch (e: io.github.search5.hg4j.errors.HgAuthException) {
             // Mercurial: 인증이 필요하거나 틀렸다. Git의 안내와 같은 문구를 쓴다
             if (form.authId.isNullOrEmpty() && form.authPw.isNullOrEmpty()) {
                 errors.reject("repoAuth", "required")
-                errors.reject("url", "project.import.error.transport.unauthorized")
+                errors.reject("url", key("project.import.error.transport.unauthorized", vcs))
             } else {
                 errors.reject("authId", "project.import.error.transport.failedToAuth")
             }
         } catch (e: java.io.IOException) {
             // Mercurial: 주소를 읽을 수 없거나 저장소가 아니거나 전송에 실패했다
-            errors.reject("url", "project.import.error.wrong.url")
+            errors.reject("url", key("project.import.error.wrong.url", vcs))
         } catch (e: IllegalArgumentException) {
-            errors.reject("url", "project.import.error.wrong.url")
+            errors.reject("url", key("project.import.error.wrong.url", vcs))
         }
         repositories.deleteRepository(project)
         return ImportResult.Rejected(errors)
@@ -182,6 +182,9 @@ class ProjectImportService(
             errors.reject("url", messages.getMessage("project.import.error.transport", arrayOf<Any>(parts.getOrElse(1) { message }), org.springframework.context.i18n.LocaleContextHolder.getLocale()))
         }
     }
+
+    /** Mercurial이면 문구에 Mercurial이 들어가는 `.hg` 키를, 아니면 [base] 그대로(v1.6의 Git 문구)를 쓴다. */
+    private fun key(base: String, vcs: String?) = if (vcs == VcsType.MERCURIAL.columnValue) "$base.hg" else base
 
     private companion object {
         /** 가져올 수 있는 저장소 종류이다. Subversion은 가져오지 못한다. */

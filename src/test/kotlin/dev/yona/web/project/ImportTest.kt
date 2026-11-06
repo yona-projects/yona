@@ -237,4 +237,22 @@ class ImportTest : AbstractIntegrationTest() {
             .andExpect(status().isSeeOther)
         assertEquals("GIT", projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "novcs")!!.vcs)
     }
+
+    @Test
+    fun `Mercurial을 고르면 오류 문구와 폼 문구가 Git이 아니라 Mercurial을 말한다`() {
+        val me = user()
+        // 주소 오류와 빈 주소 오류
+        val wrong = mockMvc.perform(send(login(me), me.loginId!!, "hgmsg1", "/no/such/hg/repository", mapOf("vcs" to "Mercurial"))).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(wrong.contains("Mercurial") && !wrong.contains("Git 저장소 URL이"), wrong)
+        val empty = mockMvc.perform(send(login(me), me.loginId!!, "hgmsg2", "", mapOf("vcs" to "Mercurial"))).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(empty.contains("Mercurial"), empty)
+        // 다시 그린 폼의 제목과 주소 칸 이름, 선택된 종류
+        val doc = Jsoup.parse(mockMvc.perform(send(login(me), me.loginId!!, "hgmsg3", "", mapOf("vcs" to "Mercurial"))).andReturn().response.contentAsString)
+        assertTrue(doc.selectFirst("form#importGit legend")!!.text().contains("Mercurial"), doc.selectFirst("form#importGit legend")!!.text())
+        assertTrue(doc.selectFirst("label[for=url]")!!.text().contains("Mercurial"))
+        assertEquals("Mercurial", doc.selectFirst("select#vcs option[selected]")!!.attr("value"))
+        // Git은 그대로이다
+        val git = Jsoup.parse(mockMvc.perform(get("/_import").session(login(me))).andReturn().response.contentAsString)
+        assertTrue(git.selectFirst("form#importGit legend")!!.text().contains("Git"))
+    }
 }

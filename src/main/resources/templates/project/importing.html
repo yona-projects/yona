@@ -16,7 +16,8 @@
     <div class="form-wrap new-project">
       <form id="importGit" th:action="@{/_import}" method="post" class="frm-wrap">
         <legend>
-          <th:block th:text="#{project.import.from.git}"></th:block>
+          <!--/* 종류를 Mercurial로 고르면 제목, 주소 칸 이름, 안내 문구가 Mercurial을 말한다(아래 스크립트가 선택을 바꿀 때 같은 문구로 바꾼다) */-->
+          <span id="importTitle" th:attr="data-git=#{project.import.from.git},data-hg=#{project.import.from.hg}" th:text="${form.vcs == 'Mercurial'} ? #{project.import.from.hg} : #{project.import.from.git}"></span>
           <span>
             <small><th:block th:text="#{project.import.or}"></th:block> &nbsp; </small>
             <a th:href="'/projectform?owner=' + ${form.owner ?: ''}" class="ybtn ybtn-small nm">
@@ -29,12 +30,12 @@
           <!-- Old Repository -->
           <dt>
             <label for="url">
-              <th:block th:text="#{project.git.repository.url}"></th:block>
+              <span id="importUrlLabel" th:attr="data-git=#{project.git.repository.url},data-hg=#{project.hg.repository.url}" th:text="${form.vcs == 'Mercurial'} ? #{project.hg.repository.url} : #{project.git.repository.url}"></span>
               <strong class="orange-txt">*</strong>
             </label>
           </dt>
           <dd>
-            <input id="url" type="text" name="url" class="text form-control" th:placeholder="#{project.git.url.alert}" th:value="${form.url}">
+            <input id="url" type="text" name="url" class="text form-control" th:placeholder="${form.vcs == 'Mercurial'} ? #{project.hg.url.alert} : #{project.git.url.alert}" th:attr="data-git=#{project.git.url.alert},data-hg=#{project.hg.url.alert}" th:value="${form.url}">
           </dd>
           <dd>
             <div class="form-check"><label class="form-check-label">
@@ -211,6 +212,20 @@
 </div>
 
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script>
+  // 저장소 종류를 바꾸면 제목, 주소 칸 이름, 안내 문구를 그 종류의 문구로 바꾼다
+  (function () {
+    var select = document.getElementById("vcs");
+    if (!select) return;
+    select.addEventListener("change", function () {
+      var key = select.value === "Mercurial" ? "hg" : "git";
+      var title = document.getElementById("importTitle"), label = document.getElementById("importUrlLabel"), url = document.getElementById("url");
+      if (title) title.textContent = title.getAttribute("data-" + key);
+      if (label) label.textContent = label.getAttribute("data-" + key);
+      if (url) url.setAttribute("placeholder", url.getAttribute("data-" + key));
+    });
+  })();
+</script>
 <script type="text/javascript" th:inline="javascript">
     $(function() {
         $yobi.loadModule("project.New", {

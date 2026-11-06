@@ -56,7 +56,9 @@ class MessageParityTest {
      * `common.comment.created`는 한국어 번들에만 v1.6에 있었으므로 그 번들에서는 더한 키로 세지 않는다.
      */
     /** X-7 Mercurial(D-86): 프로젝트 만들기의 종류, 빈 저장소 안내, 종류 변경 선택 상자의 글. 영어 이외 번들(일본어, 러시아어, 우즈베크어)은 영어와 같다. */
-    private val mercurialKeys = setOf("project.new.vcsType.mercurial", "code.nohead.hg.clone", "code.nohead.hg.init", "code.nohead.hg.pull.push", "project.changeVCS.target")
+    private val mercurialKeys = setOf("project.new.vcsType.mercurial", "code.nohead.hg.clone", "code.nohead.hg.init", "code.nohead.hg.pull.push", "project.changeVCS.target",
+        // X-7 7b: 가져오기 화면의 Mercurial 문구
+        "project.import.from.hg", "project.hg.repository.url", "project.hg.url.alert", "project.import.error.empty.url.hg", "project.import.error.wrong.url.hg", "project.import.error.transport.unauthorized.hg")
 
     private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구
