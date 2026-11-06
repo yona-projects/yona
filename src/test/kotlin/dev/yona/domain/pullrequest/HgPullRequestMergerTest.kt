@@ -36,11 +36,6 @@ import kotlin.test.assertTrue
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-hg-pull-request"])
 class HgPullRequestMergerTest : AbstractIntegrationTest() {
 
-    private companion object {
-        /** 8e 시험은 hg4j 1.1.2의 새 기능이 필요하다. 배포되거나 includeBuild가 복구되면(D-89) 해제한다. */
-        const val REBUILD = "hg4j 1.1.2(스쿼시, 그래프트 결과)가 빌드에 들어오면 해제한다. D-89"
-    }
-
     @Autowired private lateinit var merger: PullRequestMerger
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var projects: ProjectRepository
@@ -224,7 +219,6 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
 
     private fun parents(p: Project, rev: String) = hg(p, "log", "-r", rev, "--template", "{p1node} {p2node}").split(" ").filter { it.isNotBlank() && !it.all { c -> c == '0' } }
 
-    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
     fun `스쿼시는 병합 결과 트리를 받는 머리 하나만 부모로 갖는 커밋 하나로 만들고 작성자는 요청자이다`() {
         val (origin, fork) = originAndFork()
@@ -238,14 +232,12 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         assertEquals(listOf(result.attempt.leftParent), parents(origin, squash))
         assertEquals("public", phase(origin, squash))
         // 병합 결과 트리: 원본과 포크의 파일이 모두 있다
-        assertEquals("o\nb\nc\n".replace("\n", "").length, hg(origin, "files", "-r", squash, "-T", "{path}").length - "a.txt".length)
         assertEquals(setOf("a.txt", "o.txt", "b.txt", "c.txt"), hg(origin, "files", "-r", squash, "-T", "{path}\\n").lines().filter { it.isNotBlank() }.toSet())
         assertEquals("${pr.contributor!!.name} <${pr.contributor!!.email}>", hg(origin, "log", "-r", squash, "--template", "{author}"))
         assertTrue(hg(origin, "log", "-r", squash, "--template", "{desc}").startsWith("요청 (#1)\n\n* 새 파일\n* 또 하나"), hg(origin, "log", "-r", squash, "--template", "{desc}"))
         assertTrue(HgTestSupport.verifies(dir(origin)))
     }
 
-    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
     fun `스쿼시는 제목과 본문을 직접 정할 수 있다`() {
         val (origin, fork) = originAndFork()
@@ -254,7 +246,6 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         assertTrue(hg(origin, "log", "-r", result.mergeCommitId!!, "--template", "{desc}").startsWith("내 제목\n\n내 본문"))
     }
 
-    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
     fun `리베이스는 원래 커밋을 받는 머리 위에 순서대로 다시 적용하고 작성자와 메시지는 그대로이다`() {
         val (origin, fork) = originAndFork()
@@ -275,7 +266,6 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         assertTrue(HgTestSupport.verifies(dir(origin)))
     }
 
-    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
     fun `리베이스를 할 수 있으면 막는 이유가 없고 충돌하면 conflict이며 병합 커밋이 섞였으면 merge-commits이다`() {
         val (origin, fork) = originAndFork()
@@ -299,7 +289,6 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         assertNull(merger.merge(pullRequest(origin3, fork3), MergePerson("n", "e@example.com"), MergeMethod.REBASE))
     }
 
-    @org.junit.jupiter.api.Disabled(REBUILD)
     @Test
     fun `스쿼시와 리베이스도 충돌하면 null이고 받는 이름표는 그대로이다`() {
         for (method in listOf(MergeMethod.SQUASH, MergeMethod.REBASE)) {

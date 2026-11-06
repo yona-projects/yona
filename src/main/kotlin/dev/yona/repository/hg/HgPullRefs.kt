@@ -2,7 +2,8 @@ package dev.yona.repository.hg
 
 import io.github.search5.hg4j.api.BookmarkCommand
 import io.github.search5.hg4j.api.PhaseCommand
-import io.github.search5.hg4j.api.PullCommand
+import io.github.search5.hg4j.api.BundleCommand
+import io.github.search5.hg4j.api.UnbundleCommand
 import org.springframework.stereotype.Component
 
 /**
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component
  * 가리키는 이름표를 `clone`, `pull`에서 숨긴다) **예약 이름표** `yobi/pull/<번호>/head`, `merged`로 가리킨다. 예약 이름표는 브랜치 목록에 나오지
  * 않고 푸시도 거부한다([HgRepositories.RESERVED_BOOKMARK_PREFIX]).
  *
- * 풀 리퀘스트를 닫아도 secret 체인지셋은 지우지 않는다(이름표만 지운다). 병합하면 [publish]로 공개 단계로 올린다.
+ * 체인지셋은 번들로만 옮긴다(`pull`은 보내는 쪽의 이름표까지 받는 저장소에 반영하므로 쓰지 않는다, [transfer]). 풀 리퀘스트를 닫아도 secret 체인지셋은 지우지 않는다(이름표만 지운다). 병합하면 [publish]로 공개 단계로 올린다.
  */
 @Component
 class HgPullRefs(private val repositories: HgRepositories) {
@@ -30,12 +31,11 @@ class HgPullRefs(private val repositories: HgRepositories) {
      * @throws java.io.IOException 보내는 저장소를 읽거나 가져오지 못했을 때
      */
     fun fetch(toOwner: String, toName: String, fromOwner: String, fromName: String, node: String, ref: String?): String {
-        val source = repositories.directoryOf(fromOwner, fromName).canonicalPath
         repositories.open(toOwner, toName).use { hg ->
-            val before = HgRevisions.changelog(hg).revisionCount
-            val bookmarksBefore = HgRevisions.allBookmarks(hg)
-            PullCommand(hg.repository).setSource(source).setRevisions(listOf(node)).call()
-            restoreBookmarks(hg, bookmarksBefore)
+            val target = HgRevisions.changelog(hg)
+            val before = target.revisionCount
+            // 받는 저장소에 이미 있는 체인지셋이면 가져올 것이 없다
+            if (HgChangesets.revOf(target, node) < 0) transfer(hg, target, fromOwner, fromName, node)
             val changelog = HgRevisions.changelog(hg)
             // 이번에 새로 들어온 체인지셋 가운데 새 체인지셋 안에 부모가 없는 것(뿌리)만 secret으로 한다. 후손은 따라서 secret이 된다
             val added = (before until changelog.revisionCount).toSet()
@@ -51,14 +51,26 @@ class HgPullRefs(private val repositories: HgRepositories) {
     }
 
     /**
-     * 가져오기 전의 이름표 [before]로 되돌린다. `PullCommand`는 실제 `hg pull`처럼 보내는 쪽의 이름표를 반영해서, 받는 저장소의 `main`이 포크의 머리로
-     * 저절로 앞서 나가고 포크의 다른 이름표가 들어온다. 병합하기 전에 받는 브랜치가 움직이면 안 되므로 가져오기마다 되돌린다(저장소는 받는 프로젝트 단위
-     * 잠금 안에서만 이 도구로 바뀐다).
+     * 보내는 저장소의 [node]까지의 체인지셋을 번들로 만들어 받는 저장소([target])에 적용한다. `pull`을 쓰지 않는 까닭: `pull`은 실제 `hg pull`처럼
+     * 보내는 쪽의 이름표를 받는 저장소에 반영해, 받는 저장소의 `main`이 포크의 머리로 병합 전에 저절로 앞서 나가고 포크의 다른 이름표가 들어온다. 번들은
+     * 체인지셋만 옮긴다(hg4j 담당 세션이 알려 준 원본 hg의 방식, `hg bundle --base BASE -r HEAD`와 `hg unbundle`). BASE는 받는 저장소가 이미 가진
+     * 가장 최근의 조상이고, 없으면(관련 없는 저장소) 모두 옮긴다(`null`).
      */
-    private fun restoreBookmarks(hg: io.github.search5.hg4j.api.Hg, before: Map<String, String>) {
-        val now = HgRevisions.allBookmarks(hg)
-        for ((name, node) in before) if (now[name] != node) BookmarkCommand(hg.repository).setBookmarkName(name).setRevision(node).setForce(true).call()
-        for (name in now.keys - before.keys) BookmarkCommand(hg.repository).setBookmarkName(name).setDelete(true).call()
+    private fun transfer(target: io.github.search5.hg4j.api.Hg, targetLog: io.github.search5.hg4j.storage.Revlog, fromOwner: String, fromName: String, node: String) {
+        val file = java.io.File.createTempFile("yona-pull-", ".hg")
+        try {
+            repositories.open(fromOwner, fromName).use { fork ->
+                val forkLog = HgRevisions.changelog(fork)
+                val head = HgChangesets.revOf(forkLog, node)
+                require(head >= 0) { "보내는 저장소에 체인지셋이 없습니다: $node" }
+                val base = HgChangesets.ancestors(forkLog, head).sortedDescending().asSequence().mapNotNull { HgChangesets.read(forkLog, it)?.node }
+                    .firstOrNull { HgChangesets.revOf(targetLog, it) >= 0 }
+                BundleCommand(fork.repository).setOutputFile(file).setRevision(node).setBaseRevision(base ?: "null").call()
+            }
+            UnbundleCommand(target.repository).setBundleFile(file).call()
+        } finally {
+            file.delete()
+        }
     }
 
     /** 예약 이름표 [ref]가 가리키는 노드이다. 없으면 `null`이다. */
