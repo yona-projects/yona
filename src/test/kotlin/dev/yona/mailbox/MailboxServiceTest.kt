@@ -200,12 +200,13 @@ class MailboxServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `처음 시작하면 UID 유효값만 기록하고 이미 있던 메일은 처리하지 않는다`() {
+    fun `처음 시작하면 UID 유효값과 지금까지의 마지막 UID를 기록하고 이미 있던 메일은 처리하지 않는다 (R-61-5)`() {
         deliver("old1", "예전 메일")
         mailbox.start()
         assertTrue(mailbox.running)
-        assertEquals(uidOfFirstFolderState().first, properties.getLong(PropertyName.MAILBOX_LAST_UID_VALIDITY))
-        assertNull(properties.getLong(PropertyName.MAILBOX_LAST_SEEN_UID))
+        val (validity, next) = uidOfFirstFolderState()
+        assertEquals(validity, properties.getLong(PropertyName.MAILBOX_LAST_UID_VALIDITY))
+        assertEquals(next - 1, properties.getLong(PropertyName.MAILBOX_LAST_SEEN_UID), "v1.6은 마지막 UID를 기록하지 않아 폴링이 영원히 메일을 처리하지 못했다")
         assertEquals(emptyList(), titles())
     }
 
@@ -242,7 +243,9 @@ class MailboxServiceTest : AbstractIntegrationTest() {
         properties.set(PropertyName.MAILBOX_LAST_SEEN_UID, 0L)
         mailbox.start()
         assertEquals(emptyList(), titles())
-        assertEquals(uidOfFirstFolderState().first, properties.getLong(PropertyName.MAILBOX_LAST_UID_VALIDITY))
+        val (validity, next) = uidOfFirstFolderState()
+        assertEquals(validity, properties.getLong(PropertyName.MAILBOX_LAST_UID_VALIDITY))
+        assertEquals(next - 1, properties.getLong(PropertyName.MAILBOX_LAST_SEEN_UID), "다른 편지함의 옛 UID가 아니라 지금 편지함의 마지막 UID로 다시 기록한다")
     }
 
     @Test
@@ -274,12 +277,13 @@ class MailboxServiceTest : AbstractIntegrationTest() {
     // --- 진단 ---
 
     @Test
-    fun `기록이 없는 새 설치에서는 폴링이 새 메일을 처리하지 않는다`() {
+    fun `기록이 없는 새 설치에서도 폴링은 시작한 뒤 도착한 메일을 처리한다 (R-61-5, v1_6은 영원히 처리하지 못했다)`() {
+        deliver("before", "시작 전 메일")
         mailbox.useIdle = false
         mailbox.start()
-        deliver("poll0", "처리되지 않는 메일")
+        deliver("poll0", "시작 뒤 메일")
         mailbox.pollOnce()
-        assertEquals(emptyList(), titles())
+        awaitTitles(listOf("시작 뒤 메일"))
     }
 
     @Test

@@ -30,38 +30,47 @@ v1.6에서 온 동작을 의도적으로 그대로 두었거나 고친 결과, �
 - **결정:** 결함이 아니다(A-374). 파일들은 원래 개별 백업 대상이다. 데이터 화면에 이 안내(`site.data.warning4`)를 더했다.
 - **옮길 때:** DB 파일과 함께 데이터 디렉터리(`yona.data-dir`) 전체를 따로 복사한다.
 
-## R-56-2: 내보내기와 가져오기에서 빠진 테이블과 컬럼 (2026-11-05 확인)
+## R-56-2: 내보내기와 가져오기에 더한 테이블과 컬럼 (2026-11-05, A-375)
 
-현재 스키마(Hibernate가 만드는 테이블)와 `DataTables`(내보내기와 가져오기 표, 69개)를 비교한 결과이다.
+현재 스키마와 `DataTables`(내보내기와 가져오기 표)를 비교해 빠진 테이블 18개와 컬럼이 빠진 테이블을 찾았고, 선생님이 정하신 범위를 더했다. 표는 69개에서 83개가 되었다.
 
-**표에 없는 테이블 17개**
+**더한 테이블 14개**
 
 | 구분 | 테이블 | 내용 |
 |---|---|---|
 | 사용자 편의 | `favorite_project`, `favorite_issue`, `favorite_organization` | 즐겨찾기 |
-| | `recent_project`, `recent_issue` | 최근 방문한 프로젝트와 최근 본 이슈 |
+| | `recent_project`, `recent_issue` | 최근 방문한 프로젝트, 최근 본 이슈 |
 | | `user_setting` | 로그인 후 첫 화면 설정 |
-| 이슈와 글 | `issue_sharer` | 이슈 공유자 |
-| | `title_head` | 제목 머리말 빈도 |
-| | `posting_issue_label` | 게시글에 붙은 라벨 |
-| 연동 | `webhook`, `webhook_thread` | 웹훅과 웹훅 스레드(Hangouts Chat 등) |
-| 계정 | `linked_account`, `user_credential` | 소셜 로그인 연결, 사용자 자격(소셜 가입) |
-| | `user_verification` | 이메일 인증 코드 |
-| | `device_authorization` | 기기 인증(CLI 로그인) 진행 상태 |
-| 감사 | `audit_log`, `audit_chain_head`, `audit_stream_cursor` | 감사 로그와 해시 체인, 외부 전송 위치 |
+| 이슈와 글 | `issue_sharer`, `title_head`, `posting_issue_label` | 이슈 공유자, 제목 머리말 빈도, 글에 붙은 라벨 |
+| 연동 | `webhook`, `webhook_thread` | 웹훅(비밀 값 포함)과 웹훅 스레드 |
+| 감사 | `audit_log`, `audit_chain_head`, `audit_stream_cursor` | 감사 로그, 해시 체인 머리, 외부 전송 위치 |
 
-**표에는 있지만 컬럼이 빠진 테이블**
+**더한 컬럼**
 
-| 테이블 | 빠진 컬럼 |
+| 테이블 | 컬럼 |
 |---|---|
-| `n4user` | `is_guest`, `english_name`, `token` (R-56-1에서 더했다) |
-| `issue` | `is_draft`, `weight`, `parent_id`, `updated_by_author_id`, `history` (R-56-1에서 더했다) |
-| `issue_comment` | `parent_comment_id` (댓글에 단 답글의 부모) |
+| `issue_comment` | `parent_comment_id` |
 | `posting` | `parent_id`, `updated_by_author_id`, `history` |
-| `posting_comment` | `parent_comment_id`, `project_id` |
-| `project` | `is_code_accessible_member_only`, `previous_name`, `previous_owner_login_id`, `previous_name_changed_time` (코드 공개 범위, 이전 이름 기록) |
+| `posting_comment` | `parent_comment_id`, `project_id`(내보내지 않고 가져올 때 글의 프로젝트로 채운다) |
+| `project` | `is_code_accessible_member_only`, `previous_name`, `previous_owner_login_id`, `previous_name_changed_time` |
 | `attachment` | `owner_login_id` |
-| `review_comment` | `edited_date` (고친 시각) |
-| `comment_thread`, `review_comment` | `pending_date` (임시 저장 리뷰라 일부러 내보내지 않는다, X-26) |
+| `review_comment` | `edited_date` |
 
-위 두 표가 R-56-2의 실제 범위이다. 즐겨찾기와 웹훅 등을 넣기로 하셨고, 어느 테이블을 넣을지는 선생님 확인을 기다린다.
+**넣지 않은 테이블 4개:** `linked_account`, `user_credential`(소셜 로그인 연결과 소셜 가입 자격), `user_verification`(이메일 인증 코드), `device_authorization`(CLI 기기 로그인 진행 상태). 임시 저장 리뷰의 `pending_date`도 공개되지 않은 값이라 내보내지 않는다(X-26). 스키마에 새 테이블이 생기고 표에 빠지면 `DataTablesTest`가 실패해 알려 준다.
+
+**주의 사항**
+
+- **웹훅의 `secret`은 평문으로 내보내기 파일에 들어간다.** 사용자의 비밀번호 해시와 `n4user.token`도 이미 들어 있으므로 내보내기 파일은 비밀 정보로 다룬다(접근을 제한하고 안전하게 보관한다).
+- **감사 로그는 해시 체인이라 세 테이블(`audit_log`, `audit_chain_head`, `audit_stream_cursor`)을 함께 가져와야 검증이 이어진다.** 감사 로그가 많으면 파일이 크다.
+- **옛(v1.6) 파일을 가져오면** 파일에 없는 새 테이블은 건드리지 않되, 부모 테이블(프로젝트, 이슈, 사용자 등)이 파일에 있으면 남아 있던 행은 번호가 바뀌어 엉뚱한 곳에 붙을 수 있어 비우고 없는 부모를 가리키는 행은 지운다.
+
+## R-61-2: 한 메일을 여러 프로젝트 주소로 보내는 사용은 허용하지 않는다
+
+- **동작:** 메일 수신(이메일로 이슈와 댓글 만들기)은 한 메일을 `yona+소유자/프로젝트A@...`와 `yona+소유자/프로젝트B@...`처럼 여러 프로젝트로 보내면 프로젝트마다 이슈를 만든다. 그런데 원본 메일 기록(`original_email`)은 메시지 ID당 한 행만 허용하므로(v1.6과 같은 유일 제약) 두 번째 프로젝트부터는 기록이 실패하고 오류 회신이 가며, 그 이슈로 오는 메일 답장은 이슈에 연결되지 않는다.
+- **결정:** 이런 사용은 지원하지 않는다(A-375). 유일 제약을 바꾸지 않는다(DB 테이블은 v1.6과 같아야 한다).
+- **권장 사용:** 프로젝트마다 메일을 따로 보낸다.
+
+## R-57-4: 처음 정한 뒤에는 재시작이 필요하다
+
+- **동작:** 서버를 처음 띄우면 기본 관리자 계정과 비밀 키를 정하는 화면이 나온다. 정하고 나면 새 비밀 키를 설정 파일에 쓰고, 서버를 다시 시작할 때까지 모든 요청이 재시작 안내 화면이다.
+- **결정:** 결함이 아니다(A-375). 비밀 키는 서버가 시작할 때 읽어 쿠키 서명 등에 쓰므로 실행 중에 바꾸지 않는다. systemd나 Docker의 자동 재시작을 쓰면 체감이 거의 없다.

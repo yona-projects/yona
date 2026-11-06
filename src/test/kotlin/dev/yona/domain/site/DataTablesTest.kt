@@ -14,18 +14,31 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 69개이고(v1_6의 47개와 추가한 테이블 22개) 이름 순서로 정렬되어 있다`() {
-        assertEquals(69, DataTables.all.size)
+    fun `테이블은 83개이고(v1_6의 47개와 추가한 테이블 36개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(83, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("API_TOKEN", DataTables.all.first().name)
-        assertEquals("WATCH", DataTables.all.last().name)
+        assertEquals("WEBHOOK_THREAD", DataTables.all.last().name)
+    }
+
+    @Test
+    fun `스키마의 모든 테이블이 교환 표에 있거나 일부러 뺀 목록에 있다 (R-56-2, 새 테이블을 만들고 표에 빠뜨리는 일을 막는다)`() {
+        // 일부러 뺀 테이블이다. 계정 연결과 일회성 값은 이전하지 않는다(A-375)
+        val excluded = setOf("linked_account", "user_credential", "user_verification", "device_authorization")
+        val known = DataTables.all.map { it.sqlName }.toSet()
+        val schema = mutableSetOf<String>()
+        dataSource.connection.use { c ->
+            c.metaData.getTables(c.catalog, c.schema, null, arrayOf("TABLE")).use { rs -> while (rs.next()) schema += rs.getString("TABLE_NAME").lowercase() }
+        }
+        val missing = schema.filter { it !in known && it !in excluded && !it.startsWith("flyway") && !it.startsWith("databasechange") }
+        assertEquals(emptyList(), missing.sorted(), "교환 표에 없는 테이블이 있다. 표에 더하거나 이 시험의 목록에 이유와 함께 더한다")
     }
 
     @Test
     fun `조인 테이블과 한 행짜리 설정 테이블과 사이트 설정과 OAuth 인가만 시퀀스가 없다`() {
         assertEquals(
             setOf(
-                "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "LDAP_SETTINGS", "NOTIFICATION_EVENT_N4USER",
+                "AUDIT_STREAM_CURSOR", "POSTING_ISSUE_LABEL", "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "LDAP_SETTINGS", "NOTIFICATION_EVENT_N4USER",
                 "OAUTH_AUTHORIZATION", "OIDC_SSO_SETTINGS", "ORGANIZATION_OAUTH_POLICY", "SAML2_SSO_SETTINGS", "PROJECT_LABEL", "PULL_REQUEST_ASSIGNEE", "PULL_REQUEST_ISSUE_LABEL", "PULL_REQUEST_REVIEWERS", "PULL_REQUEST_REVIEW_REQUEST", "SITE_SETTING", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
             ),
             DataTables.all.filter { !it.hasSequence }.map { it.name }.toSet()
@@ -44,7 +57,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals(14, DataTables.find("N4USER")!!.columns.size)
         // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
         assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
-        assertEquals(36, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
+        assertEquals(65, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
     @Test

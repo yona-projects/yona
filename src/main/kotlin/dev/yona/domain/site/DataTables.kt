@@ -115,9 +115,106 @@ object DataTables {
             DataColumn("mime_type", STRING),
             DataColumn("size", LONG),
             DataColumn("container_id", STRING_LONG),
-            DataColumn("created_date", DATE)
+            DataColumn("created_date", DATE),
+            // v1.6 교환기가 다루지 않던 컬럼이다(R-56-2)
+            DataColumn("owner_login_id", STRING, absentNull = true)
         ),
         // 추가 개발 항목 X-34(D-46)의 규칙 묶음이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
+        DataTable(
+            "AUDIT_CHAIN_HEAD", true,
+            DataColumn("id", LONG),
+            DataColumn("last_id", LONG),
+            DataColumn("pruned_through_id", LONG),
+            DataColumn("last_hash", STRING),
+            DataColumn("pruned_hash", STRING)
+        ),
+        DataTable(
+            "AUDIT_LOG", true,
+            // 감사 로그와 해시 체인(R-56-2). 세 테이블을 함께 가져와야 해시 검증이 이어진다
+            DataColumn("id", LONG),
+            DataColumn("actor_type", INT),
+            DataColumn("outcome", INT),
+            DataColumn("actor_id", LONG, nullableLong = true),
+            DataColumn("created_at", LONG),
+            DataColumn("organization_id", LONG, nullableLong = true),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("redacted_at", LONG, nullableLong = true),
+            DataColumn("token_id", LONG, nullableLong = true),
+            DataColumn("target_type", STRING),
+            DataColumn("content_hash", STRING),
+            DataColumn("hash", STRING),
+            DataColumn("ip", STRING),
+            DataColumn("prev_hash", STRING),
+            DataColumn("request_id", STRING),
+            DataColumn("action", STRING),
+            DataColumn("user_agent", STRING),
+            DataColumn("token_scopes", STRING),
+            DataColumn("actor_login", STRING),
+            DataColumn("target_id", STRING),
+            DataColumn("target_label", STRING),
+            DataColumn("details", CLOB)
+        ),
+        DataTable(
+            "AUDIT_STREAM_CURSOR", false,
+            DataColumn("name", STRING),
+            DataColumn("failures", INT),
+            DataColumn("last_error_at", LONG, nullableLong = true),
+            DataColumn("last_id", LONG),
+            DataColumn("last_sent_at", LONG, nullableLong = true),
+            DataColumn("last_error", STRING)
+        ),
+        DataTable(
+            "FAVORITE_ISSUE", true,
+            DataColumn("id", LONG),
+            DataColumn("issue_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "FAVORITE_ORGANIZATION", true,
+            DataColumn("id", LONG),
+            DataColumn("organization_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("organization_name", STRING)
+        ),
+        DataTable(
+            "FAVORITE_PROJECT", true,
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("owner", STRING),
+            DataColumn("project_name", STRING)
+        ),
+        DataTable(
+            "ISSUE_SHARER", true,
+            DataColumn("id", LONG),
+            DataColumn("created", DATE),
+            DataColumn("issue_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("login_id", STRING)
+        ),
+        DataTable(
+            "POSTING_ISSUE_LABEL", false,
+            DataColumn("posting_id", LONG),
+            DataColumn("issue_label_id", LONG)
+        ),
+        DataTable(
+            "RECENT_ISSUE", true,
+            DataColumn("id", LONG),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("issue_id", LONG, nullableLong = true),
+            DataColumn("posting_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("title", STRING),
+            DataColumn("url", STRING)
+        ),
+        DataTable(
+            "RECENT_PROJECT", true,
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("owner", STRING),
+            DataColumn("project_name", STRING)
+        ),
         DataTable(
             "RULESET", true,
             DataColumn("id", LONG),
@@ -192,6 +289,13 @@ object DataTables {
             DataColumn("setting_value", STRING)
         ),
         // 추가 개발 항목 X-2(D-69)의 2단계 인증이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다. 비밀 값은 암호화되어 있으나 사이트 비밀 키(`yona.secret`)가 다르면 읽을 수 없다.
+        DataTable(
+            "TITLE_HEAD", true,
+            DataColumn("id", LONG),
+            DataColumn("frequency", INT),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("head_keyword", STRING)
+        ),
         DataTable(
             "TWO_FACTOR_CREDENTIAL", true,
             DataColumn("id", LONG),
@@ -299,7 +403,9 @@ object DataTables {
             DataColumn("issue_id", LONG),
             DataColumn("contents", CLOB),
             // v1.6 파일에는 없고 이후 진화 9가 `NOT NULL`로 더한 컬럼이다. 내보내지 않고 가져올 때 이슈의 프로젝트로 채운다(R-130).
-            DataColumn("project_id", LONG, derivedFrom = DerivedColumn("ISSUE", "project_id", "issue_id"))
+            DataColumn("project_id", LONG, derivedFrom = DerivedColumn("ISSUE", "project_id", "issue_id")),
+            // v1.6 교환기가 다루지 않던 컬럼이다(R-56-2)
+            DataColumn("parent_comment_id", LONG, nullableLong = true, absentNull = true)
         ),
         DataTable(
             "ISSUE_COMMENT_VOTER", false,
@@ -495,7 +601,11 @@ object DataTables {
             DataColumn("number", LONG),
             DataColumn("notice", BOOLEAN),
             DataColumn("updated_date", TIMESTAMP),
-            DataColumn("readme", BOOLEAN)
+            DataColumn("readme", BOOLEAN),
+            // v1.6 교환기가 다루지 않던 컬럼이다(R-56-2)
+            DataColumn("parent_id", LONG, nullableLong = true, absentNull = true),
+            DataColumn("updated_by_author_id", LONG, nullableLong = true, absentNull = true),
+            DataColumn("history", CLOB, absentNull = true)
         ),
         DataTable(
             "POSTING_COMMENT", true,
@@ -505,7 +615,10 @@ object DataTables {
             DataColumn("author_login_id", STRING),
             DataColumn("author_name", STRING),
             DataColumn("posting_id", LONG, nullableLong = true),
-            DataColumn("contents", CLOB)
+            DataColumn("contents", CLOB),
+            // 이후 진화 9가 `NOT NULL`로 더한 컬럼이다. 내보내지 않고 가져올 때 글의 프로젝트로 채운다(ISSUE_COMMENT와 같다, R-56-2)
+            DataColumn("project_id", LONG, derivedFrom = DerivedColumn("POSTING", "project_id", "posting_id")),
+            DataColumn("parent_comment_id", LONG, nullableLong = true, absentNull = true)
         ),
         DataTable(
             "PROJECT", true,
@@ -529,7 +642,12 @@ object DataTables {
             DataColumn("default_merge_method", STRING, absentString = "merge"),
             DataColumn("default_reviewer_count", LONG),
             DataColumn("organization_id", LONG, nullableLong = true),
-            DataColumn("project_scope", STRING)
+            DataColumn("project_scope", STRING),
+            // v1.6 교환기가 다루지 않던 컬럼이다(R-56-2)
+            DataColumn("is_code_accessible_member_only", BOOLEAN, absentBoolean = false),
+            DataColumn("previous_name", STRING, absentNull = true),
+            DataColumn("previous_owner_login_id", STRING, absentNull = true),
+            DataColumn("previous_name_changed_time", LONG, nullableLong = true, absentNull = true)
         ),
         DataTable(
             "PROJECT_LABEL", false,
@@ -679,7 +797,9 @@ object DataTables {
             DataColumn("author_id", LONG, nullableLong = true),
             DataColumn("author_login_id", STRING),
             DataColumn("author_name", STRING),
-            DataColumn("thread_id", LONG, nullableLong = true)
+            DataColumn("thread_id", LONG, nullableLong = true),
+            // 임시 저장 리뷰의 `pending_date`는 공개되지 않은 댓글이라 내보내지 않는다(X-26). 고친 시각만 더한다(R-56-2)
+            DataColumn("edited_date", TIMESTAMP, absentNull = true)
         ),
         DataTable(
             "ROLE", true,
@@ -716,6 +836,12 @@ object DataTables {
             DataColumn("project_id", LONG),
             DataColumn("notification_type", STRING),
             DataColumn("allowed", BOOLEAN)
+        ),
+        DataTable(
+            "USER_SETTING", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("login_default_page", STRING)
         ),
         DataTable(
             "WATCH", true,
@@ -822,6 +948,25 @@ object DataTables {
             DataColumn("sp_previous_certificate", CLOB),
             DataColumn("sp_key_created_date", TIMESTAMP),
             DataColumn("updated_date", TIMESTAMP)
+        ),
+        DataTable(
+            "WEBHOOK", true,
+            DataColumn("id", LONG),
+            DataColumn("git_push", BOOLEAN),
+            DataColumn("webhook_type", INT),
+            DataColumn("created_at", TIMESTAMP),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("secret", STRING),
+            DataColumn("payload_url", STRING)
+        ),
+        DataTable(
+            "WEBHOOK_THREAD", true,
+            DataColumn("id", LONG),
+            DataColumn("created_at", TIMESTAMP),
+            DataColumn("webhook_id", LONG, nullableLong = true),
+            DataColumn("resource_type", STRING),
+            DataColumn("thread_id", STRING),
+            DataColumn("resource_id", STRING)
         )
     ).sortedBy { it.name }
 

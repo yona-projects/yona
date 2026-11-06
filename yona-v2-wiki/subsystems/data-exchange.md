@@ -7,7 +7,7 @@ updated: 2026-10-29
 
 # 데이터 내보내기와 가져오기
 
-코드: `domain/site/DataTables`(69개 테이블 명세: v1.6의 47개와 추가 항목의 테이블 22개, 아래 "추가 항목의 테이블" 절), `DataService`, `web/site/SiteDataController`.
+코드: `domain/site/DataTables`(83개 테이블 명세: v1.6의 47개와 추가 항목의 테이블 22개, 사용자 데이터 테이블 14개, 아래 "추가 항목의 테이블" 절과 [데이터 교정 스크립트와 알려진 한계](../architecture/data-fix-and-known-limits.md)의 R-56-2 절), `DataService`, `web/site/SiteDataController`.
 
 ## 파일 모양
 

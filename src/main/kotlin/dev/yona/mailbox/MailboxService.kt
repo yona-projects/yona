@@ -148,6 +148,10 @@ class MailboxService(
         if (lastValidity != null && lastValidity == validity && lastSeen != null) {
             // 폴더의 마지막 UID가 아니라 다음 UID를 쓴다. 마지막 UID는 lastSeen + 1보다 작을 수 있다.
             handleMessages(target, target.getMessagesByUID(lastSeen + 1, target.uidNext).filterNotNull())
+        } else {
+            // 처음 연결했거나 폴더가 바뀌었으면 지난 메일은 처리하지 않고 지금까지의 마지막 UID를 기록한다. v1.6은 마지막 UID를 기록하지 않아, 기록이 있어야
+            // 처리하는 폴링은 기록이 메일을 처리해야 생기는 탓에 영원히 하나도 처리하지 못했다(R-61-5)
+            propertyService.set(PropertyName.MAILBOX_LAST_SEEN_UID, target.uidNext - 1)
         }
         propertyService.set(PropertyName.MAILBOX_LAST_UID_VALIDITY, validity)
     }

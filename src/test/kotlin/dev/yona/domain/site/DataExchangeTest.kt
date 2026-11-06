@@ -287,6 +287,77 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `즐겨찾기, 웹훅, 감사 같은 사용자 데이터 테이블도 내보내고 가져온다 (R-56-2)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        val json = """{
+          "PROJECT": [{"id": 880100, "name": "dxp", "overview": "o", "vcs": "GIT", "siteurl": "s", "owner": "dxo", "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0,
+            "original_project_id": null, "last_pushed_date": null, "is_using_reviewer_count": false, "default_reviewer_count": 0, "organization_id": null, "project_scope": "PUBLIC"}],
+          "FAVORITE_PROJECT": [{"id": 880101, "project_id": 880100, "user_id": 1, "owner": "dxo", "project_name": "dxp"}],
+          "RECENT_PROJECT": [{"id": 880102, "project_id": 880100, "user_id": 1, "owner": "dxo", "project_name": "dxp"}],
+          "USER_SETTING": [{"id": 880103, "user_id": 1, "login_default_page": "/"}],
+          "TITLE_HEAD": [{"id": 880104, "frequency": 3, "project_id": 880100, "head_keyword": "버그"}],
+          "WEBHOOK": [{"id": 880105, "git_push": true, "webhook_type": 1, "created_at": 1700000000000, "project_id": 880100, "secret": "s3cret", "payload_url": "https://example.test/hook"}],
+          "WEBHOOK_THREAD": [{"id": 880106, "created_at": 1700000000000, "webhook_id": 880105, "resource_type": "ISSUE_POST", "thread_id": "t1", "resource_id": "9"}],
+          "AUDIT_LOG": [{"id": 880107, "actor_type": 0, "outcome": 0, "actor_id": 1, "created_at": 1700000000000, "organization_id": null, "project_id": null, "redacted_at": null, "token_id": null,
+            "target_type": "project", "content_hash": "c", "hash": "h2", "ip": "127.0.0.1", "prev_hash": "h1", "request_id": "r", "action": "project.created", "user_agent": "ua", "token_scopes": null,
+            "actor_login": "admin", "target_id": "880100", "target_label": "dxo/dxp", "details": "{}"}],
+          "AUDIT_CHAIN_HEAD": [{"id": 1, "last_id": 880107, "pruned_through_id": 0, "last_hash": "h2", "pruned_hash": ""}],
+          "AUDIT_STREAM_CURSOR": [{"name": "stream1", "failures": 2, "last_error_at": null, "last_id": 5, "last_sent_at": 1700000000000, "last_error": null}]
+        }"""
+        val result = import(json)
+        assertTrue(result.failed.isEmpty(), "실패한 테이블: ${result.failed}")
+        val exported = exported()
+        fun row(table: String, key: String, value: Long) = exported[table].first { it[key].asLong() == value }
+        assertEquals("dxp", row("FAVORITE_PROJECT", "id", 880101)["project_name"].asString())
+        assertEquals("/", row("USER_SETTING", "id", 880103)["login_default_page"].asString())
+        assertEquals(3, row("TITLE_HEAD", "id", 880104)["frequency"].asInt())
+        val hook = row("WEBHOOK", "id", 880105)
+        assertEquals("s3cret", hook["secret"].asString(), "웹훅 비밀 값도 내보낸다(백업에는 비밀 값이 있어야 이전한 사이트에서 서명 검증이 이어진다)")
+        assertEquals("https://example.test/hook", hook["payload_url"].asString()); assertTrue(hook["git_push"].asBoolean())
+        assertEquals("t1", row("WEBHOOK_THREAD", "id", 880106)["thread_id"].asString())
+        assertEquals("h2", row("AUDIT_LOG", "id", 880107)["hash"].asString())
+        assertEquals("{}", row("AUDIT_LOG", "id", 880107)["details"].asString())
+        assertEquals(880107L, row("AUDIT_CHAIN_HEAD", "id", 1)["last_id"].asLong())
+        assertEquals(2, exported["AUDIT_STREAM_CURSOR"].first { it["name"].asString() == "stream1" }["failures"].asInt())
+    }
+
+    @Test
+    fun `부모 테이블은 있고 사용자 데이터 테이블이 없는 v1_6 파일을 가져오면 남아 있던 행을 비운다 (R-56-2)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        val first = """{"PROJECT": [{"id": 880109, "name": "dxz", "overview": "o", "vcs": "GIT", "siteurl": "s", "owner": "dxo", "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0,
+            "original_project_id": null, "last_pushed_date": null, "is_using_reviewer_count": false, "default_reviewer_count": 0, "organization_id": null, "project_scope": "PUBLIC"}]}"""
+        import(first)
+        jdbc.update("insert into favorite_project(project_id, user_id, owner, project_name) values (880109, 1, 'o', 'p')")
+        jdbc.update("insert into title_head(project_id, frequency, head_keyword) values (880109, 1, 'k')")
+        assertEquals(1, count("favorite_project"))
+        import("""{"PROJECT": [{"id": 880110, "name": "dxq", "overview": "o", "vcs": "GIT", "siteurl": "s", "owner": "dxo", "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0,
+            "original_project_id": null, "last_pushed_date": null, "is_using_reviewer_count": false, "default_reviewer_count": 0, "organization_id": null, "project_scope": "PUBLIC"}]}""")
+        assertEquals(0, count("favorite_project"), "바뀐 프로젝트 번호에 엉뚱하게 붙지 않도록 비운다")
+        assertEquals(0, count("title_head"))
+    }
+
+    @Test
+    fun `빠졌던 컬럼도 내보내고 옛 파일에 없으면 기본값으로 가져온다 (R-56-2)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        val project = """{"id": 880120, "name": "dxr", "overview": "o", "vcs": "GIT", "siteurl": "s", "owner": "dxo", "created_date": 1700000000000, "last_issue_number": 0, "last_posting_number": 0,
+            "original_project_id": null, "last_pushed_date": null, "is_using_reviewer_count": false, "default_reviewer_count": 0, "organization_id": null, "project_scope": "PUBLIC"%s}"""
+        import("""{"PROJECT": [${project.format("")}, ${project.format(""","is_code_accessible_member_only": true, "previous_name": "old", "previous_owner_login_id": "oo", "previous_name_changed_time": 1700000000000""").replace("880120", "880121").replace("dxr", "dxs")}]}""")
+        assertEquals(false, jdbc.queryForObject("select is_code_accessible_member_only from project where id = 880120", Boolean::class.java))
+        assertEquals(null, jdbc.queryForObject("select previous_name from project where id = 880120", String::class.java))
+        assertEquals(true, jdbc.queryForObject("select is_code_accessible_member_only from project where id = 880121", Boolean::class.java))
+        assertEquals("old", jdbc.queryForObject("select previous_name from project where id = 880121", String::class.java))
+        assertEquals(1_700_000_000_000L, jdbc.queryForObject("select previous_name_changed_time from project where id = 880121", Long::class.java))
+        val exported = exported()["PROJECT"].first { it["id"].asLong() == 880121L }
+        listOf("is_code_accessible_member_only", "previous_name", "previous_owner_login_id", "previous_name_changed_time").forEach { assertTrue(exported.has(it), it) }
+        // 글 댓글의 project_id는 글의 프로젝트로 채운다(이슈 댓글과 같다). 안 채우면 NOT NULL 위반으로 테이블이 실패했다
+        val posting = """{"id": 880130, "title": "p", "body": "b", "created_date": 1700000000000, "num_of_comments": 1, "author_id": 1, "author_login_id": "a", "author_name": "A", "project_id": 880120, "number": 1, "notice": false, "updated_date": 1700000000000, "readme": false}"""
+        val comment = """{"id": 880131, "created_date": 1700000000000, "author_id": 1, "author_login_id": "a", "author_name": "A", "posting_id": 880130, "contents": "c"}"""
+        val result = import("""{"POSTING": [$posting], "POSTING_COMMENT": [$comment]}""")
+        assertTrue(result.failed.isEmpty(), "실패한 테이블: ${result.failed}")
+        assertEquals(880120L, jdbc.queryForObject("select project_id from posting_comment where id = 880131", Long::class.java))
+    }
+
+    @Test
     fun `첨부의 컨테이너 종류는 container_type 키로 쓰고 옛 content_type 키도 읽는다 (R-56-8)`() {
         TestDatabase.assumeOrphanRowsSurviveImport()
         fun row(id: Long, key: String) = """{"id": $id, "name": "a$id.txt", "hash": "h$id", "$key": "ISSUE_POST", "mime_type": "text/plain", "size": 1, "container_id": "7", "created_date": 1700000000000}"""
@@ -298,7 +369,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     fun `내보내기는 v1_6과 같이 이슈 댓글에 project_id 키를 쓰지 않는다 (R-130)`() {
         val first = exported()["ISSUE_COMMENT"].firstOrNull()
         if (first != null) assertFalse(first.propertyNames().toList().contains("project_id"), first.propertyNames().toList().toString())
-        assertEquals(listOf("id", "created_date", "author_id", "author_login_id", "author_name", "issue_id", "contents"), DataTables.find("ISSUE_COMMENT")!!.columns.filter { it.derivedFrom == null }.map { it.name })
+        assertEquals(listOf("id", "created_date", "author_id", "author_login_id", "author_name", "issue_id", "contents", "parent_comment_id"), DataTables.find("ISSUE_COMMENT")!!.columns.filter { it.derivedFrom == null }.map { it.name })
     }
 
     @Test

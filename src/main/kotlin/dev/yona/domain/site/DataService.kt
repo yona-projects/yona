@@ -186,6 +186,7 @@ class DataService(
                     cleanOAuthClients(connection, imported)
                     cleanLfsLocks(connection, imported)
                     cleanProtectionRules(connection, imported)
+                    cleanUserDataTables(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
@@ -341,6 +342,27 @@ class DataService(
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }
+
+    /**
+     * 즐겨찾기, 최근 방문, 이슈 공유자, 제목 머리말, 웹훅 같은 사용자 데이터 테이블(R-56-2)을 가져온 뒤 바로잡는다. 파일에 부모 테이블(프로젝트, 이슈, 사용자 등)은 있는데
+     * 이 테이블이 없으면(v1.6 파일) 남아 있던 행은 바뀐 번호에 엉뚱하게 붙을 수 있으므로 비우고, 없는 부모를 가리키는 행은 지운다.
+     */
+    private fun cleanUserDataTables(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                for ((table, links) in USER_DATA_LINKS) {
+                    if (table.uppercase() !in imported && links.any { it.parentTable.uppercase() in imported }) statement.executeUpdate("delete from $table")
+                    for (link in links) statement.executeUpdate("delete from $table where ${link.column} is not null and ${link.column} not in (select id from ${link.parentTable})")
+                }
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean user data tables after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    private data class ParentLink(val column: String, val parentTable: String)
 
     /**
      * 브랜치 보호 규칙 테이블(추가 개발 항목 X-32, `decisions.md` D-42)을 가져온 뒤 바로잡는다. 파일에 프로젝트가 있는데 이 테이블이 없으면(v1.6 파일) 남아 있던
@@ -718,5 +740,20 @@ class DataService(
         val LOCK_BASED_REPEATABLE_READ = listOf("Microsoft SQL Server", "CUBRID")
 
         /** 배치로 묶어 넣는 행 수이다 (v1.6 `data.batch.size` 기본값). */
+
+        /** 사용자 데이터 테이블과 부모를 가리키는 컬럼이다(R-56-2). 감사 테이블은 부모가 없다. */
+        val USER_DATA_LINKS: Map<String, List<ParentLink>> = linkedMapOf(
+            "favorite_project" to listOf(ParentLink("project_id", "project"), ParentLink("user_id", "n4user")),
+            "favorite_issue" to listOf(ParentLink("issue_id", "issue"), ParentLink("user_id", "n4user")),
+            "favorite_organization" to listOf(ParentLink("organization_id", "organization"), ParentLink("user_id", "n4user")),
+            "recent_project" to listOf(ParentLink("project_id", "project"), ParentLink("user_id", "n4user")),
+            "recent_issue" to listOf(ParentLink("issue_id", "issue"), ParentLink("posting_id", "posting"), ParentLink("user_id", "n4user")),
+            "user_setting" to listOf(ParentLink("user_id", "n4user")),
+            "issue_sharer" to listOf(ParentLink("issue_id", "issue"), ParentLink("user_id", "n4user")),
+            "title_head" to listOf(ParentLink("project_id", "project")),
+            "posting_issue_label" to listOf(ParentLink("posting_id", "posting"), ParentLink("issue_label_id", "issue_label")),
+            "webhook" to listOf(ParentLink("project_id", "project")),
+            "webhook_thread" to listOf(ParentLink("webhook_id", "webhook"))
+        )
     }
 }
