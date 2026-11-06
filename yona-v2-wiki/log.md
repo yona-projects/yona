@@ -1365,3 +1365,8 @@ R-83(조직 검색의 `!isMemberOf || !isAdminOf`)은 R-50-7과 같은 결함인
 ## 2026-11-06 Mercurial(X-7) 설계 보고서
 
 Git이 닿는 곳을 전수 조사했다(JGit 파일 37개, 저장소 열기 41곳, 종류 비교 39개 파일 75줄, `@IsOnlyGitAvailable` 37곳). hg4j 1.1.0의 기능과 `next` 브랜치의 이전 시도(P3-12, P3-33)를 읽고 [architecture/mercurial-plan.md](architecture/mercurial-plan.md)에 공통화 계획과 단계, 위험을 적었다. 결정 질문 7개는 D-86(대기)에 올렸다. 구현은 시작하지 않았다.
+
+
+## 2026-11-06 Mercurial 설계 보고서 정정
+
+선생님이 hg4j에 있다고 지적해 다시 확인했다. 병합 커밋 저장은 `GraftInMemory.commit`(두 번째 부모 지원, `RebaseCommand`가 사용)에 이미 구현되어 있고 공개 진입점만 없다. bookmark 변경은 `registerPrePushkeyHook`, `registerPostPushkeyHook`가 이미 있다. 처음 조사에서 이름 몇 개로만 검색해 "없다"고 쓴 것이 오류였다. `mercurial-plan.md`와 D-86, 아티팩트를 고쳤다.

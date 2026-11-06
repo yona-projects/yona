@@ -47,7 +47,7 @@ updated: 2026-11-06
 | 인가(HTTP 기본 인증, 접근 권한, 시도 횟수 제한) | `GitHttpController.handle`, `SshAccess`, `ProjectCheckStage` | 종류와 무관한 부분이 대부분 | 별도 DAV 인가 | 공통. 컨트롤러에서 종류와 무관한 부분을 뽑아야 한다 |
 | 푸시 전 검사(보호 규칙, 서명 검증) | `GitHooks.preReceive`, `Ruleset.pushViolation` | JGit `ReceiveCommand` 형태로 정의됨 | 없음 | 부분 가능. `registerPreTxnChangegroupHook`, `registerPrePushkeyHook`로 같은 일을 할 수 있다 |
 | 푸시 뒤 처리(알림, 웹훅, 이슈 참조, PR 검사, 마지막 푸시 시각) | `GitHooks.postReceive`, `PostReceiveJobs` | `ReceiveCommand`, `RevWalk`로 새 커밋을 구한다 | 없음 | 부분 가능. `registerPostChangegroupHook`에서 노드 범위를 얻는다 |
-| 풀 리퀘스트(병합 시도, 병합, 스쿼시, 리베이스, 브랜치 삭제와 복원, 변경 목록) | `PullRequestMerger`, `PullRequestChangesService`, `PullRequestBranchService`, `V16RecursiveMerger` | `refs/yobi/pull/<번호>/head, merged` 숨은 ref, JGit RECURSIVE 병합 | Git 전용(`@IsOnlyGitAvailable`) | **가장 어렵다**. 병합 엔진(`Merge3`, `TreeMergeCommand`, `GraftInMemory`)은 있으나 숨은 ref와 병합 방식 세 가지의 대응이 필요하다(8절 질문 3) |
+| 풀 리퀘스트(병합 시도, 병합, 스쿼시, 리베이스, 브랜치 삭제와 복원, 변경 목록) | `PullRequestMerger`, `PullRequestChangesService`, `PullRequestBranchService`, `V16RecursiveMerger` | `refs/yobi/pull/<번호>/head, merged` 숨은 ref, JGit RECURSIVE 병합 | Git 전용(`@IsOnlyGitAvailable`) | **가장 어렵다**. 병합 엔진과 디스크 없는 병합 커밋(`TreeMergeCommand`, `GraftInMemory.commit`)은 있으나 숨은 ref와 병합 방식 세 가지의 대응이 필요하다(8절 질문 3) |
 | 규칙(브랜치 보호) | `Ruleset`, `RulesetService`, `RulesetController` | 브랜치 이름 패턴, 푸시 종류(생성, 갱신, 삭제, 강제 갱신) | 해당 없음 | 개념 대응이 필요(8절 질문 1) |
 | LFS | `LfsSupport`, `ProjectLfsController`, `LfsSshHandler` | 서버 쪽은 이미 VCS 중립(D-79 15번), 포인터 판별만 Git 전용 | 해당 없음 | 가능. hg4j에 `lfs` 패키지와 서버가 있다. 주소 규칙은 실제 `hg`로 확인해야 한다 |
 | 위키 | `WikiService`, `WikiRepositories` | 항상 Git(D-60) | 같음 | **바꾸지 않는다**. 프로젝트 종류와 무관 |
@@ -86,13 +86,13 @@ updated: 2026-11-06
 
 **없거나 한계가 있는 것**(CHANGELOG의 알려진 문제와 소스 확인):
 
-- `TreeMergeCommand`의 결과를 **병합 커밋 하나로 저장하는 API가 hg4j에 없다**. `next`의 P3-33 설계가 `MergeCommitCommand`를 제안했으나 이번 소스에서는 찾을 수 없었다. 이전 구현은 임시 디렉터리에 복제해 병합하고 push했다(비용이 저장소 크기에 비례). 병합 속도를 얻으려면 hg4j에 API를 더해야 한다.
+- **병합 커밋을 디스크 없이 저장하는 기능은 hg4j 안에 이미 있으나 공개되어 있지 않다.** `GraftInMemory.commit(트랜잭션, 변경로그, 부모1, 부모2, 원본, 원본 리비전, 병합 결과, 메타데이터 채우기)`가 두 번째 부모를 받아 파일 리비전, 매니페스트, 체인지셋을 쓰고, `RebaseCommand`가 병합 커밋을 다시 적용할 때 이것을 쓴다. 다만 패키지 전용이라 Yona가 부를 수 없다. `next`의 P3-33이 제안한 `MergeCommitCommand`를 새로 만들 필요는 없고, **이 경로를 부르는 공개 진입점 하나(잠금과 트랜잭션 포함)를 더하면 된다**(2026-11-06 재확인. 처음 조사에서는 이름 몇 개로만 검색해 "없다"고 잘못 적었다).
 - Mercurial 7.2와 7.2.4만 시험되었고, wire protocol v2, `largefiles`, `upgrade`는 없다.
 - `TransportE2EMatrixInteropTest`의 "머리를 만드는 푸시 거절" 시험이 전체 실행에서 가끔 실패한다는 보고가 있다(원인 미상).
-- 코드 보기용 폴더 트리는 평평한 매니페스트로 주어져 서버가 경로로 묶어야 한다.
+- 폴더 트리는 평평한 매니페스트로 주어진다. `TreeWalk.setRecursive(false)`와 `PathFilter`로 한 단계씩 걷는 것은 가능하나 하위 폴더 항목 자체는 내주지 않으므로, 코드 보기용 폴더 목록은 서버가 경로 앞부분으로 묶는다(작은 코드).
 - Java 21 필요. 이 프로젝트의 JDK와 맞는지 단계 0에서 확인한다.
 
-hg4j는 선생님이 직접 관리하시므로 위 한계는 **hg4j에 요청하거나 직접 보완하는 선택지**가 있다. 로드맵에는 "hg4j를 먼저 보완한 뒤 착수"로 적혀 있다.
+hg4j는 선생님이 직접 관리하시므로 위 한계는 **hg4j에 요청하거나 직접 보완하는 선택지**가 있다. 로드맵에는 "hg4j를 먼저 보완한 뒤 착수"로 적혀 있다. 재확인 결과 보완이 꼭 필요한 것은 **병합 커밋 공개 진입점 하나**이고, 폴더 목록 묶기와 bookmark 변경 처리(`registerPrePushkeyHook`, `registerPostPushkeyHook`가 이미 있다)는 Yona 쪽에서 해결된다.
 
 ## 5. 이전 시도(`next` 브랜치, P3-12)의 교훈
 
@@ -207,9 +207,9 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 
 1. **브랜치 개념을 무엇으로 대응할까.** 선택지: (A) bookmark를 "브랜치"로 보이고 named branch는 보이지 않는다. (B) named branch를 "브랜치"로 보인다. (C) 둘 다 보이고 종류를 표시한다. 권장은 (A)이다. 이유: bookmark는 Git 브랜치처럼 이동하고 지울 수 있어 보호 규칙, PR, 삭제와 복원이 그대로 맞고, `next`에서도 같은 결론이었다. 대신 `default` named branch를 쓰는 기존 Mercurial 사용자는 bookmark를 새로 써야 한다. 이 경우 기본 브랜치는 `default` 위의 bookmark(예: `main`)로 두는지도 정해야 한다.
 2. **`project.vcs` 열에 넣을 값.** v1.6은 `"GIT"`, `"Subversion"`이다. 선택지: `"Mercurial"`(Subversion과 같은 표기), `"MERCURIAL"`(`next`와 같다). 권장은 `"Mercurial"`이다. 이유: v1.6이 Git 외에는 고유명사 표기를 써서 기존 데이터와 화면 문구가 어긋나지 않는다. `next`의 값(`MERCURIAL`)으로 이미 만든 데이터는 없다(이 저장소에는 Mercurial이 없었다).
-3. **풀 리퀘스트 범위.** 선택지: (A) 병합 커밋부터 시작하고 스쿼시와 리베이스는 뒤로 미룬다. (B) 처음부터 세 방식 전부. (C) Mercurial은 풀 리퀘스트를 지원하지 않는다. 권장은 (A)이다. 이유: hg4j에 디스크 없는 병합 커밋 저장 API가 아직 없으므로(4절), 병합 커밋 하나를 먼저 확실히 만들고 나머지는 같은 위에서 확장하는 편이 안전하다. (C)는 X-7의 범위에 어긋난다.
+3. **풀 리퀘스트 범위.** 선택지: (A) 병합 커밋부터 시작하고 스쿼시와 리베이스는 뒤로 미룬다. (B) 처음부터 세 방식 전부. (C) Mercurial은 풀 리퀘스트를 지원하지 않는다. 권장은 (A)이다. 이유: 병합 커밋은 hg4j 안에 구현이 있고 공개 진입점만 없으므로(4절), 병합 커밋 하나를 먼저 확실히 만들고 스쿼시와 리베이스(`RebaseCommand`와 `GraftInMemory`)는 같은 위에서 확장하는 편이 안전하다. (C)는 X-7의 범위에 어긋난다.
 4. **hg4j 의존 방식.** 선택지: (A) Maven Central의 `1.1.0`을 쓴다. (B) 형제 디렉터리를 `includeBuild`로 붙여 개발 중인 소스를 쓴다. 권장은 (A)이다. 이유: 재현 가능한 빌드이고 CI, 다른 개발자의 환경이 단순하다. hg4j를 같이 고칠 때만 임시로 (B)를 쓴다.
-5. **hg4j 보완을 먼저 할지.** 로드맵은 "hg4j를 먼저 보완한 뒤 착수"로 적혀 있다. 이번 조사로 확인한 보완 요청은 (가) 디스크 없는 병합 커밋 저장 API, (나) 폴더 트리 조회 편의, (다) 푸시 이벤트에서 bookmark 변경을 한 번에 얻는 훅이다. 1~4단계는 hg4j와 무관하게 먼저 할 수 있으므로 **권장은 1~4단계를 지금 시작하고 hg4j 보완은 5단계 전에 마치는 것**이다.
+5. **hg4j 보완을 먼저 할지.** 로드맵은 "hg4j를 먼저 보완한 뒤 착수"로 적혀 있다. 이번 조사로 확인한 보완 요청은 병합 커밋의 공개 진입점 하나(내부 구현은 `GraftInMemory.commit`에 있다)이다. 폴더 목록 묶기와 bookmark 변경 처리는 Yona 쪽에서 해결되므로 요청하지 않는다. 1~4단계는 hg4j와 무관하게 먼저 할 수 있으므로 **권장은 1~4단계를 지금 시작하고 hg4j 보완은 5단계 전에 마치는 것**이다.
 6. **종류 변경(`changeVCS`)의 대상 선택.** v1.6은 Git과 Subversion을 번갈아 바꾼다. 종류가 셋이 되면 (A) 대상을 고르는 선택 상자를 더한다. (B) 순환(`GIT`, `Subversion`, `Mercurial`)으로 둔다. 권장은 (A)이다. 이유: 순환은 원하는 종류로 가려면 여러 번 바꾸어 저장소를 계속 지우고 만들게 된다. 또 v1.6의 두 종류 사이 동작(Git과 Subversion을 번갈아)은 그대로 유지한다.
 7. **Mercurial의 GPG 서명.** 이번 범위에 넣을지. 권장은 **9단계 뒤로 미룬다**이다. 이유: 서명 방식이 Git과 달라(`.hgsigs` 파일에 서명을 커밋) 검증 흐름(푸시 전 `unverifiedCommits`)을 따로 설계해야 한다.
 
@@ -218,7 +218,7 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - **리팩터링의 폭이 크다.** 37개 파일, 41곳의 저장소 열기, 75줄의 비교를 바꾸므로 한 번에 하지 않고 1~4단계로 나눠 각 단계마다 H2 전체와 PostgreSQL 관련 시험을 돌린다. v1.6 동일성이 원칙이므로 응답 바이트와 거절 응답을 시험으로 고정한다.
 - **중립 계약이 최소 공통분모로 얇아질 위험.** 능력 선언으로 종류별 차이를 드러내고, 계약에 없는 기능은 억지로 맞추지 않는다.
 - **hg4j 성숙도.** 7.2만 시험되었고 일부 불안정한 시험이 있다. 상호운용 시험으로 먼저 확인하고, 문제는 hg4j에 되돌려 보낸다.
-- **병합 비용.** 임시 복제로 병합하면 저장소가 클수록 느려진다. 병합 커밋 API 확보 전에는 기능 제한(작은 저장소)으로 둔다.
+- **병합 비용.** 병합 커밋 공개 진입점이 생기기 전에는 임시 복제로 병합해야 해서 저장소가 클수록 느리다. 진입점을 먼저 더하면 이 위험은 없다.
 - **이름과 해시 표기.** Mercurial의 짧은 해시는 12자, 리비전 번호는 로컬 번호라 공유되지 않는다. 화면과 API는 전체 40자 노드 해시를 기준으로 하고 링크와 자동 링크(`AutoLinkRenderer`)는 40자와 12자 두 길이를 받도록 한다.
 - **데이터 위치.** `repo/hg/<소유자>/<이름>`(Subversion의 `repo/svn`과 같은 방식). 위키는 계속 Git이다.
 - **프로젝트 이전과 이름 바꾸기.** 종류별 경로를 `RepositoryService`가 계속 맡도록 하고, `next`에서 나온 `.git` 접미사 문제를 확인하는 시험을 둔다.
