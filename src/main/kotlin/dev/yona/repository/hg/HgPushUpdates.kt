@@ -27,14 +27,20 @@ object HgPushUpdates {
     fun refOf(name: String): String =
         if (name.startsWith(HgRepositories.RESERVED_BOOKMARK_PREFIX)) "refs/$name" else "refs/heads/$name"
 
-    /** 이름표의 이동 종류이다. 새 값이 옛 값의 후손이 아니면 강제 갱신이다. 옛 값을 이 저장소에서 찾지 못해도 강제 갱신으로 본다. */
+    /** 이름표의 이동 종류이다. 새 값이 옛 값의 후손이 아니면 강제 갱신이다. 새 값을 이 변경 로그에서 찾지 못하면(같은 푸시로 막 들어온 것) 일반 갱신이다. 옛 값을 이 저장소에서 찾지 못해도 강제 갱신으로 본다. */
     fun bookmarkType(changelog: Revlog, old: String, new: String): RefUpdateType = when {
         old.isEmpty() -> RefUpdateType.CREATE
         new.isEmpty() -> RefUpdateType.DELETE
         else -> {
             val oldRev = HgChangesets.revOf(changelog, old)
             val newRev = HgChangesets.revOf(changelog, new)
-            if (oldRev >= 0 && newRev >= 0 && oldRev in HgChangesets.ancestors(changelog, newRev)) RefUpdateType.UPDATE else RefUpdateType.FORCE_UPDATE
+            when {
+                // 이름표 이동 훅은 같은 푸시의 체인지셋이 반영되는 도중에 불려 방금 들어온 새 체인지셋을 변경 로그에서 못 찾는다(hg4j 보완 요청 중). 판정할 수 없으면
+                // 일반 갱신으로 본다: 서버의 이름표 검증과 클라이언트의 `--force` 요구가 비빨리감기를 따로 막는다
+                newRev < 0 -> RefUpdateType.UPDATE
+                oldRev >= 0 && oldRev in HgChangesets.ancestors(changelog, newRev) -> RefUpdateType.UPDATE
+                else -> RefUpdateType.FORCE_UPDATE
+            }
         }
     }
 

@@ -72,6 +72,8 @@ class HgHttpTest {
     @Autowired private lateinit var apiTokenService: dev.yona.domain.apitoken.ApiTokenService
     @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var gpgKeyService: dev.yona.domain.gpgkey.GpgKeyService
+    @Autowired private lateinit var gpgKeyRepository: dev.yona.domain.gpgkey.GpgKeyRepository
     @Autowired private lateinit var auditLogs: dev.yona.domain.audit.AuditLogRepository
     @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
@@ -114,6 +116,7 @@ class HgHttpTest {
     @AfterEach
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다
+        gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }; gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
         apiTokenRepository.deleteAll(); tokens.clear(); tokenFailures.clear(); auditLogs.deleteAllInBatch()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
@@ -249,6 +252,17 @@ class HgHttpTest {
     }
 
     @Test
+    fun `보호 규칙이 있는 이름표라도 일반 갱신은 강제 갱신으로 보지 않고 강제 푸시만 막는다`() {
+        // 규칙 기본값은 삭제와 강제 푸시를 막는다. 새 체인지셋을 얹는 갱신(빨리감기)은 강제가 아니다
+        protect("main")
+        val dir = cloneWithBookmark("main")
+        val pushed = hg(dir, "push", "-B", "main", url(project, member))
+        assertEquals(0, pushed.first, pushed.second)
+        assertTrue("더한 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+        assertTrue(HgTestSupport.verifies(serverDir(project)))
+    }
+
+    @Test
     fun `이름표 삭제는 삭제를 막는 규칙에 걸린다`() {
         protect("main") { restrictDeletions = true }
         HgTestSupport.hg(serverDir(project), "bookmark", "main")
@@ -333,5 +347,65 @@ class HgHttpTest {
         // 기준 경로 아래의 batch는 hg4j가 답하고(405나 400이어도 404는 아니다), 다른 프로젝트 이름으로는 404이다
         val ok = HttpClient.newHttpClient().send(HttpRequest.newBuilder(URI.create("http://localhost:$port/${project.owner}/${project.name}/.git/info/lfs/objects/batch")).POST(HttpRequest.BodyPublishers.ofString("{}")).header("Content-Type", "application/vnd.git-lfs+json").build(), HttpResponse.BodyHandlers.ofString())
         assertTrue(ok.statusCode() != 404, "batch가 처리되지 않았다: ${ok.statusCode()} ${ok.body()}")
+    }
+
+    // --- 서명 커밋 필수 규칙(X-7 9c, D-88 3번) ---
+
+    /** 일반 구성원(관리자 우회가 없다)과 그 이메일로 서명하는 키를 만든다. */
+    private fun signer(): Pair<User, dev.yona.domain.gpgkey.TestGpgKey> {
+        val plain = user("hs")
+        projectUsers.save(ProjectUser(user = plain, project = project, role = roles.findById(RoleType.MEMBER.id).get()))
+        val key = dev.yona.domain.gpgkey.TestGpgKey.generate(userId = "Signer <${plain.email}>")
+        gpgKeyService.add(plain, "k", key.publicArmored)
+        return plain to key
+    }
+
+    /** `.hgsigs`의 한 줄이다: `<노드> 0 <서명 base64>`. */
+    private fun sigLine(key: dev.yona.domain.gpgkey.TestGpgKey, node: String): String {
+        val binary = org.bouncycastle.openpgp.PGPUtil.getDecoderStream(java.io.ByteArrayInputStream(key.sign("$node\n".toByteArray(Charsets.US_ASCII)).toByteArray())).readAllBytes()
+        return "$node 0 ${java.util.Base64.getEncoder().encodeToString(binary)}"
+    }
+
+    @Test
+    fun `서명을 요구하는 이름표로 서명 없는 커밋은 푸시하지 못한다`() {
+        protect("main") { requireSignedCommits = true }
+        HgTestSupport.hg(serverDir(project), "bookmark", "main")
+        val (plain, _) = signer()
+        val (dir, cloned) = clone(project, plain)
+        assertEquals(0, cloned.first, cloned.second)
+        hg(dir, "update", "main")
+        File(dir, "u.txt").writeText("unsigned\n"); hg(dir, "add", "u.txt")
+        assertEquals(0, hg(dir, "commit", "-m", "서명 없는 커밋", "-u", "Signer <${plain.email}>", "-d", "2026-11-04 10:00 +0900").first)
+        val pushed = hg(dir, "push", "-B", "main", url(project, plain))
+        assertFalse(pushed.first == 0, "서명 없는 푸시가 성공했다: ${pushed.second}")
+        assertFalse("서명 없는 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+    }
+
+    @org.junit.jupiter.api.Disabled("hg4j가 같은 푸시로 들어온 체인지셋을 prepushkey 훅에서 읽게 되면 켠다(hg-da에 요청함, D-88)")
+    @Test
+    fun `서명한 커밋과 서명을 담은 hgsigs 커밋을 함께 올리면 허용한다`() {
+        protect("main") { requireSignedCommits = true }
+        HgTestSupport.hg(serverDir(project), "bookmark", "main")
+        val (plain, key) = signer()
+        val (dir, cloned) = clone(project, plain)
+        assertEquals(0, cloned.first, cloned.second)
+        hg(dir, "update", "main")
+        File(dir, "s.txt").writeText("signed\n"); hg(dir, "add", "s.txt")
+        assertEquals(0, hg(dir, "commit", "-m", "서명할 커밋", "-u", "Signer <${plain.email}>", "-d", "2026-11-04 10:00 +0900").first)
+        val node = hg(dir, "log", "-r", ".", "--template", "{node}").second
+        // 서명은 다음 커밋의 .hgsigs에 담는다. 이 커밋은 서명 파일만 바꾸므로 서명을 요구하지 않는다
+        File(dir, ".hgsigs").writeText(sigLine(key, node) + "\n"); hg(dir, "add", ".hgsigs")
+        assertEquals(0, hg(dir, "commit", "-m", "서명 추가", "-u", "Signer <${plain.email}>", "-d", "2026-11-05 10:00 +0900").first)
+        // 서버 저장소의 첫 커밋(일반 푸시 이전부터 있던 것)은 새 커밋이 아니므로 검사하지 않는다
+        val pushed = hg(dir, "push", "-B", "main", url(project, plain))
+        assertEquals(0, pushed.first, pushed.second)
+        assertTrue("서명할 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
+    }
+
+    @Test
+    fun `서명을 요구해도 프로젝트 관리자나 다른 이름표나 규칙이 없으면 막지 않는다`() {
+        protect("main") { requireSignedCommits = true }
+        val dir = cloneWithBookmark("feature")
+        assertEquals(0, hg(dir, "push", "-B", "feature", url(project, member)).first)
     }
 }

@@ -45,6 +45,8 @@ class HgPushUpdatesTest {
         assertThat(HgPushUpdates.bookmarkType(log, c2, c0)).isEqualTo(RefUpdateType.FORCE_UPDATE)
         assertThat(HgPushUpdates.bookmarkType(log, "", c1)).isEqualTo(RefUpdateType.CREATE)
         assertThat(HgPushUpdates.bookmarkType(log, c1, "")).isEqualTo(RefUpdateType.DELETE)
+        // 새 값이 이 변경 로그에 아직 없으면(같은 푸시로 막 들어온 체인지셋) 일반 갱신으로 본다
+        assertThat(HgPushUpdates.bookmarkType(log, c0, "f".repeat(40))).isEqualTo(RefUpdateType.UPDATE)
     }
 
     @Test

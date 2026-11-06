@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
  * - **푸시 뒤**: 요청 하나 동안의 체인지그룹(`changegroup`)과 이름표 이동(`pushkey`)을 모았다가 요청이 끝난 뒤 한 번에 [PushEvents.afterPush]로 넘긴다.
  */
 @Component
-class HgHooks(private val policy: PushPolicy, private val events: PushEvents) {
+class HgHooks(private val policy: PushPolicy, private val events: PushEvents, private val signed: HgSignedCommits) {
 
     /**
      * 요청 하나의 푸시를 다루는 훅 묶음이다. 요청마다 새로 만들고, [attachTo]로 서버에 걸고, 서블릿이 끝난 뒤 [finish]를 부른다.
@@ -47,6 +47,8 @@ class HgHooks(private val policy: PushPolicy, private val events: PushEvents) {
 
         private fun update(context: Map<String, Any?>): RefUpdate {
             val repository = context["repository"] as HgRepository
+            // 이 훅은 푸시가 체인지셋을 반영하는 도중에 불린다. 캐시한 변경 로그에는 방금 들어온 체인지셋이 없어, 그대로 읽으면 새 값을 찾지 못해 일반 갱신이 강제
+            // 갱신으로 분류된다. 캐시를 비워 디스크의 변경 로그를 새로 읽는다
             return HgPushUpdates.bookmark(HgRevisions.changelog(repository), context["key"] as String, context["old"] as String, context["new"] as String)
         }
 
@@ -54,7 +56,7 @@ class HgHooks(private val policy: PushPolicy, private val events: PushEvents) {
             if (!isBookmark(context)) return true
             val update = update(context)
             // 서명 커밋 요구는 Mercurial에서 아직 지원하지 않는다(D-86 7번): 서명 검사 목록은 비워 둔다
-            return policy.evaluate(project, sender, VCS_TAG, listOf(update)) { emptyList() }.isEmpty()
+            return policy.evaluate(project, sender, VCS_TAG, listOf(update)) { signed.unverified(project, it) }.isEmpty()
         }
 
         private fun collectMove(context: Map<String, Any?>) {

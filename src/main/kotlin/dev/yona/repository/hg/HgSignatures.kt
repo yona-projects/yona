@@ -32,7 +32,7 @@ object HgSignatures {
     }
 
     /** 체인지셋이 서명 파일(`.hgsigs`)만 바꾸는 커밋이면 `true`이다. 이런 커밋은 자기 자신을 서명할 수 없다(D-88 3번). */
-    fun onlySignsOrIsEmpty(files: List<String>): Boolean = files.isNotEmpty() && files.all { it == SIGS_FILE }
+    fun onlySigns(files: List<String>): Boolean = files.isNotEmpty() && files.all { it == SIGS_FILE }
 
     /** 서명 파일의 이름이다. */
     const val SIGS_FILE = ".hgsigs"
