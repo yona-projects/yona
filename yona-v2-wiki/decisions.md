@@ -1148,6 +1148,15 @@ updated: 2026-10-29
 - **상태**: 확정(2026-11-06). 되돌리는 일은 mercurial-plan.md 7.8절에 적어 둔다.
 
 
+### D-90. Mercurial LFS는 hg4j 내장 처리를 쓴다 (2026-11-06, **확정**)
+
+- **배경**: X-7 9a(LFS)이다. Yona에는 Git LFS 하위 시스템이 있다(`domain/lfs`, `web/lfs`, 프로젝트와 사이트의 LFS 관리 화면, 용량 제한, 잠금, tus 업로드). Mercurial의 lfs 확장은 Git LFS와 같은 배치 API를 쓰고, hg4j의 `HgHttpWireServer`가 같은 API를 처리한다(`.git/info/lfs/objects/batch`, 객체는 저장소 안 `.hg/store/lfs`). 확인한 사실(hg4j 소스): 병합과 그래프트는 LFS 파일의 포인터를 그대로 두고 내용을 읽을 때 저장소의 LFS 저장소를 쓴다.
+- **결정자**: 선생님(2026-11-06).
+- **질문과 권장안**: (A) hg4j 내장 LFS를 쓴다 (B) Yona의 Git LFS 서비스를 재사용한다. **권장 (A).** 이유: (A)는 큰 파일 본문이 저장소 안에 있어 풀 리퀘스트의 서버 쪽 병합과 그래프트가 LFS 파일 내용을 읽을 수 있고 구현이 작다. (B)는 용량 제한, 잠금, 관리 화면을 공유하지만 본문이 저장소 밖이라 양쪽이 고친 LFS 파일의 서버 쪽 병합이 실패하거나 제한되고 경로 연결과 hg 클라이언트 호환 확인이 더 든다.
+- **확정 내용**: (A). 따라 정해지는 것: Mercurial 저장소를 만들 때 `.hg/hgrc`에 `[extensions] lfs =`를 써서 hg4j가 LFS 요청을 처리하게 한다(포크와 가져오기로 만든 저장소도 같다). Yona의 LFS 능력(`VcsCapability.LFS`, Git LFS의 화면, 용량 제한, 잠금)은 Mercurial에 켜지 않는다. 인가는 다른 Mercurial 요청과 같은 앞단이고(`batch`는 읽기, 객체 올리기(`PUT`)는 쓰기, 실제 hg와 같다) 경로는 hg4j의 기준 경로(`setBasePath`)로 맞춘다. Mercurial LFS의 용량 제한과 잠금, 관리 화면은 이후 단계로 미룬다.
+- **상태**: 확정(2026-11-06). 진행은 [architecture/mercurial-plan.md](architecture/mercurial-plan.md) 7.8절 9a.
+
+
 ## 정책 결정
 
 ### P-01. v1.6을 그대로 따른다 (AGENTS.md)
