@@ -380,6 +380,19 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 - 알려진 한계: (1) 병합 알림 수신자 가운데 "변경한 줄의 작성자 추정"은 Git(JGit blame)만 한다. (2) 병합은 폴더 이름 바꿈, 한쪽 삭제와 다른 쪽 수정, 파일 단위 병합 도구가 필요한 경우를 충돌로 본다(4.2절). (3) 풀 리퀘스트를 닫아도 secret 체인지셋은 남는다(D-87). (4) 가져오는 동안 같은 받는 저장소의 다른 풀 리퀘스트 병합은 저장소 단위 잠금으로 기다린다.
 - 구현 판단은 `decisions.md` A-381에 적었다.
 
+### 7.11 9단계 진행 기록(2026-11-06): LFS, 데이터 교환, GPG
+
+| 소단계 | 산출 | 내용 |
+|---|---|---|
+| 9a LFS | `HgRepositories.enableLfs`, `HgHttpFilter`, `HgLfsStore`, `project/lfs-hg.html` | D-90: hg4j 내장 LFS. 저장소를 만들 때 `.hg/hgrc`에 `[extensions] lfs =`와 `[experimental] lfs.disableusercache = true`를 쓴다(사용자 캐시를 끄는 까닭: hg4j 서버가 객체 존재를 캐시도 보는데 캐시는 컴퓨터의 모든 저장소가 공유해 프로젝트 사이에 본문이 새고, 올린 본문이 저장소 안에 들어가지 않는다). HTTP 필터가 LFS 경로(`/소유자/이름/.git/info/lfs/objects/batch`, `.hg/lfs/objects/<oid>`)도 맡아 `HgHttpWireServer.setBasePath`로 넘기고 인가는 다른 요청과 같다(객체 `PUT`만 쓰기, 실제 hg와 같다). 프로젝트 설정의 LFS 화면은 새 능력 `LFS_SCREEN`으로 같은 주소 `/setting/lfs`를 Git(Git LFS 화면)과 Mercurial(사용량, LFS 파일 목록, 클라이언트 설정 안내, 용량 제한과 잠금은 없음)이 나눈다 |
+| 9b 데이터 교환 | (코드 변경 없음) | 사이트의 내보내기와 가져오기는 DB 테이블 52개만 다루고 저장소 디렉터리는 원래 포함하지 않는다. Mercurial은 새 테이블이 없고 `project.vcs` 값(`Mercurial`)이 그대로 오간다(시험으로 확인). 문서의 "포함하지 않는 것"에 `repo/hg`를 더했다 |
+| 9c GPG | `HgSignatures`, `HgSignedCommits`, `HgCommitReader`, `HgHooks` | D-88: `.hgsigs`(보고 있는 리비전에서 보이는 것)를 읽어 `CommitInfo.signature`를 채우면 Git의 화면, REST, 판정이 그대로 Verified를 보인다(서명 원문은 `노드\n`, 서명한 키가 등록 키이고 이메일이 작성자와 같을 때 Verified). 서명 커밋 필수 규칙은 이름표 이동에서 새 커밋마다 새 머리의 `.hgsigs`로 검사하고 서명 파일만 바꾸는 커밋은 제외한다 |
+
+- **hg4j에서 찾아 고친 결함:** (1) 최상위 `data/`, `meta/` 폴더 아래 파일의 필로그를 못 찾음(`encodeFname`, hg4j `9a7560a`로 수정, 회귀 시험 `HgReservedFolderNamesTest`), (2) LFS 배치 응답의 `href`에 기준 경로가 빠짐(`9ae3eeb`로 수정).
+- **hg4j 보완 대기 중(`hg-da`에 요청):** 이름표 이동 훅(`prepushkey`)에서 같은 푸시로 들어온 체인지셋을 변경 로그에서 읽을 수 없다(원본 hg의 pending 가시성). 그래서 (a) 이름표 이동 종류를 판정할 수 없으면 일반 갱신으로 보고(`HgPushUpdates.bookmarkType`), (b) 서명 커밋 필수 규칙은 새 머리를 읽지 못하면 `unverifiable`로 **거절**한다(안전한 쪽). 따라서 지금은 서명을 요구하는 이름표로 새 체인지셋을 푸시하면 서명이 있어도 거절된다. `HgHttpTest`의 "서명한 커밋과 서명을 담은 hgsigs 커밋을 함께 올리면 허용한다"는 비활성이며 수정되면 켠다.
+- 알려진 한계: 한 노드에 서명이 여럿이면 앞의 것만 본다. 서명 판정은 보고 있는 리비전에 따라 달라진다(커밋 하나를 볼 때는 기본 위치 머리, 이력은 그 리비전, D-88 1번).
+- 구현 판단은 `decisions.md` A-382에 적었다.
+
 ## 8. 결정이 필요한 질문
 
 [decisions.md](../decisions.md) D-86에 같은 내용을 권장안과 이유와 함께 올렸다.
