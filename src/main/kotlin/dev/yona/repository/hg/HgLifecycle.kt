@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 /**
  * Mercurial 저장소의 수명을 [HgRepositories]에 맡기는 [RepositoryLifecycle] 구현이다. 기본 위치는 이름표로 정하고 바꾸는 설정이 없으므로
- * 바꾸기는 아무 일도 하지 않는다. 포크와 원격 가져오기는 7단계에서 더한다.
+ * 바꾸기는 아무 일도 하지 않는다. 포크는 [HgRepositories.cloneLocal]이고 원격 가져오기는 7b에서 더한다.
  */
 @Component
 class HgLifecycle(private val hg: HgRepositories) : RepositoryLifecycle {
@@ -24,4 +24,6 @@ class HgLifecycle(private val hg: HgRepositories) : RepositoryLifecycle {
     override fun defaultBranch(owner: String, name: String): String = hg.defaultBranch(owner, name)
 
     override fun setDefaultBranch(owner: String, name: String, target: String) = Unit
+
+    override fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) = hg.cloneLocal(owner, name, forkOwner, forkName)
 }

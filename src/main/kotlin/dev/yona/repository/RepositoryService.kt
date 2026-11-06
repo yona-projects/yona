@@ -84,13 +84,14 @@ class RepositoryService @Autowired constructor(
     }
 
     /**
-     * [original]의 Git 저장소를 [fork]의 위치로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`).
+     * [original]의 저장소를 [fork]의 위치로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`). 포크를 지원하는 종류(Git, Mercurial)이고 두
+     * 프로젝트의 종류가 같아야 한다.
      *
-     * @throws UnsupportedOperationException Git이 아닌 프로젝트일 때
+     * @throws UnsupportedOperationException 포크를 지원하지 않는 종류(Subversion)이거나 두 종류가 다를 때
      */
     fun cloneRepository(original: Project, fork: Project) {
-        if (original.vcs != VCS_GIT) throw unsupported(original)
-        if (fork.vcs != VCS_GIT) throw unsupported(fork)
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(original.vcs, dev.yona.domain.vcs.VcsCapability.FORK)) throw unsupported(original)
+        if (fork.vcs != original.vcs) throw unsupported(fork)
         backends.lifecycle(fork.vcs).cloneLocal(owner(original), name(original), owner(fork), name(fork))
     }
 

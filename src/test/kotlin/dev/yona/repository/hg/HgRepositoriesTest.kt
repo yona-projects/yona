@@ -87,4 +87,78 @@ class HgRepositoriesTest {
     fun `없는 저장소를 열면 예외이다`() {
         assertThatThrownBy { hg.open("tester", "none") }.isInstanceOf(java.io.IOException::class.java)
     }
+
+    // --- 포크(X-7 7a) ---
+
+    private fun logOf(dir: File) = HgTestSupport.hg(dir, "log", "--template", "{desc|firstline}\\n")
+
+    @Test
+    fun `포크는 체인지셋과 이름표와 태그를 그대로 복제하고 실제 hg가 검증한다`() {
+        hg.create("tester", "origin")
+        val origin = hg.directoryOf("tester", "origin")
+        val c0 = HgTestSupport.commit(origin, "첫 커밋", mapOf("a.txt" to "one\n"))
+        HgTestSupport.commit(origin, "둘째 커밋", mapOf("a.txt" to "one\ntwo\n"), "2026-11-02 10:00 +0900")
+        HgTestSupport.bookmark(origin, "main")
+        HgTestSupport.tag(origin, "v1", c0)
+
+        hg.cloneLocal("tester", "origin", "alice", "forked")
+
+        val fork = hg.directoryOf("alice", "forked")
+        // 실패하면 hg verify의 출력이 메시지에 실린다
+        HgTestSupport.hg(fork, "verify")
+        assertThat(logOf(fork)).isEqualTo(logOf(origin))
+        assertThat(HgTestSupport.hg(fork, "bookmarks", "--template", "{bookmark}\\n")).contains("main")
+        assertThat(HgTestSupport.hg(fork, "tags", "--template", "{tag}\\n")).contains("v1")
+        // 서버 저장소에는 작업 파일이 없어도 태그와 이름표가 목록에 나온다(태그는 머리의 .hgtags에서 읽는다)
+        assertThat(hg.refNames("alice", "forked")).containsExactly("refs/heads/main", "refs/tags/v1")
+        // 원본은 그대로이다
+        assertThat(HgTestSupport.verifies(origin)).isTrue()
+    }
+
+    @Test
+    fun `포크 저장소는 서버 저장소라 작업 파일이 없다`() {
+        hg.create("tester", "origin")
+        HgTestSupport.commit(hg.directoryOf("tester", "origin"), "첫 커밋", mapOf("a.txt" to "one\n"))
+        hg.cloneLocal("tester", "origin", "alice", "forked")
+        assertThat(File(hg.directoryOf("alice", "forked"), "a.txt")).doesNotExist()
+    }
+
+    @Test
+    fun `secret 체인지셋은 포크로 복제하지 않는다`() {
+        hg.create("tester", "origin")
+        val origin = hg.directoryOf("tester", "origin")
+        HgTestSupport.commit(origin, "공개 커밋", mapOf("a.txt" to "one\n"))
+        File(origin, "s.txt").writeText("s\n")
+        HgTestSupport.hg(origin, "add", "s.txt")
+        HgTestSupport.hg(origin, "--config", "phases.new-commit=secret", "commit", "-m", "비공개 커밋", "-d", "2026-11-02 10:00 +0900")
+        assertThat(logOf(origin)).contains("비공개 커밋")
+
+        hg.cloneLocal("tester", "origin", "alice", "forked")
+
+        assertThat(logOf(hg.directoryOf("alice", "forked"))).doesNotContain("비공개 커밋").contains("공개 커밋")
+    }
+
+    @Test
+    fun `원본이 없으면 포크는 예외이고 만들다 만 디렉터리를 남기지 않는다`() {
+        assertThatThrownBy { hg.cloneLocal("tester", "nothing", "alice", "forked") }.isInstanceOf(java.io.IOException::class.java)
+        assertThat(hg.directoryOf("alice", "forked")).doesNotExist()
+    }
+
+    @Test
+    fun `태그는 작업 파일이 없는 저장소에서도 머리의 hgtags로 읽고 지운 태그와 옮긴 태그를 반영한다`() {
+        hg.create("tester", "origin")
+        val origin = hg.directoryOf("tester", "origin")
+        val c0 = HgTestSupport.commit(origin, "첫 커밋", mapOf("a.txt" to "one\n"))
+        val c1 = HgTestSupport.commit(origin, "둘째 커밋", mapOf("a.txt" to "one\ntwo\n"), "2026-11-02 10:00 +0900")
+        HgTestSupport.tag(origin, "v1", c0)
+        HgTestSupport.tag(origin, "moved", c0, "2026-11-04 10:00 +0900")
+        HgTestSupport.hg(origin, "tag", "--local", "-r", c1, "localtag")
+        HgTestSupport.hg(origin, "tag", "-f", "-r", c1, "-d", "2026-11-05 10:00 +0900", "-m", "옮김", "moved")
+        HgTestSupport.hg(origin, "tag", "--remove", "-d", "2026-11-06 10:00 +0900", "-m", "지움", "v1")
+        hg.cloneLocal("tester", "origin", "alice", "forked")
+
+        val tags = hg.open("alice", "forked").use { HgRevisions.tags(it) }
+        assertThat(tags.keys).containsExactlyInAnyOrder("moved")
+        assertThat(tags["moved"]).isEqualTo(c1)
+    }
 }

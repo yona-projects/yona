@@ -59,6 +59,7 @@ class ForkTest : AbstractIntegrationTest() {
     @Autowired private lateinit var organizations: OrganizationRepository
     @Autowired private lateinit var organizationUsers: OrganizationUserRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
 
     private var sequence = 0
 
@@ -220,5 +221,41 @@ class ForkTest : AbstractIntegrationTest() {
         val json = mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(session).param("owner", me.loginId!!).param("name", "twice").param("projectScope", "PUBLIC")).andReturn().response.contentAsString
         assertEquals("""{"status":"failed","url":"/${p.owner}/${p.name}/pullRequests"}""", json)
         assertEquals(listOf("refs/heads/feature", "refs/heads/master"), repositories.refNames(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "twice")!!))
+    }
+
+    // --- Mercurial 포크(X-7 7a) ---
+
+    /** Mercurial 원본 프로젝트이다. 실제 `hg`로 커밋 둘, 이름표 `main`, 태그 `v1`을 만든다. */
+    private fun hgProject(): Project {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
+        val n = ++sequence
+        val p = projects.save(Project(owner = "fko$n", name = "fkh$n", overview = "원본 설명", vcs = "Mercurial", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = false, pullRequest = true, review = false, milestone = true, board = true))
+        repositories.createRepository(p)
+        val dir = hgRepositories.directoryOf(p.owner!!, p.name!!)
+        val c0 = dev.yona.support.HgTestSupport.commit(dir, "첫 커밋", mapOf("a.txt" to "a\n"))
+        dev.yona.support.HgTestSupport.commit(dir, "기능", mapOf("b.txt" to "b\n"), "2026-11-02 10:00 +0900")
+        dev.yona.support.HgTestSupport.bookmark(dir, "main")
+        dev.yona.support.HgTestSupport.tag(dir, "v1", c0)
+        return p
+    }
+
+    @Test
+    fun `Mercurial 프로젝트도 포크하면 같은 종류의 프로젝트와 저장소가 생기고 이름표와 태그가 같다`() {
+        val p = hgProject(); val me = user()
+        val json = mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "hgfork").param("projectScope", "PRIVATE"))
+            .andExpect(status().isOk).andReturn().response.contentAsString
+        assertEquals("""{"status":"success","url":"/${me.loginId}/hgfork"}""", json)
+        val fork = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "hgfork")!!
+        assertEquals("Mercurial", fork.vcs); assertEquals(p.id, fork.originalProject?.id)
+        assertEquals(repositories.refNames(p), repositories.refNames(fork))
+        assertEquals(listOf("refs/heads/main", "refs/tags/v1"), repositories.refNames(fork))
+        assertTrue(dev.yona.support.HgTestSupport.verifies(hgRepositories.directoryOf(fork.owner!!, fork.name!!)))
+    }
+
+    @Test
+    fun `Mercurial 프로젝트의 포크 폼도 열린다`() {
+        val p = hgProject(); val me = user()
+        mockMvc.perform(get("/${p.owner}/${p.name}/newFork").session(login(me))).andExpect(status().isOk)
     }
 }

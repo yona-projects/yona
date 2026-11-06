@@ -28,6 +28,32 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
         Hg.init().setDirectory(directory).call().close()
     }
 
+    /**
+     * 원본 저장소를 포크 저장소로 복제한다(X-7 7a). 빈 저장소를 만들어 원본에서 체인지셋을 가져온다: 이름표는 함께 오고 태그는 `.hgtags`로 오며, 원본의
+     * secret 체인지셋은 hg4j가 원본을 읽을 때 숨기므로 오지 않는다(풀 리퀘스트가 가져온 숨은 체인지셋, D-87). hg4j의 `CloneCommand`는 작업 파일을 꺼내
+     * 두므로 쓰지 않는다. 서버 저장소는 작업 파일이 없다.
+     *
+     * 복제하다 실패하면 만들다 만 포크 디렉터리를 지운다.
+     *
+     * @throws IOException 원본이 없거나 복제하지 못했을 때
+     */
+    fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) {
+        val source = directoryOf(owner, name)
+        if (!File(source, ".hg").isDirectory) throw IOException("Mercurial 저장소가 없습니다: ${source.path}")
+        create(forkOwner, forkName)
+        try {
+            open(forkOwner, forkName).use { fork ->
+                io.github.search5.hg4j.api.PullCommand(fork.repository).setSource(source.canonicalPath).call()
+            }
+            // 가져오기가 작업 디렉터리의 부모를 새 끝으로 옮기는데 서버 저장소에는 추적하는 파일이 없다. `hg verify`가 어긋남으로 보므로 비워 둔다
+            // (dirstate가 없으면 부모는 null 체인지셋이다)
+            File(directoryOf(forkOwner, forkName), ".hg/dirstate").delete()
+        } catch (e: Exception) {
+            delete(forkOwner, forkName)
+            throw if (e is IOException) e else IOException("포크하지 못했습니다: ${e.message}", e)
+        }
+    }
+
     /** 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
     fun delete(owner: String, name: String) {
         directoryOf(owner, name).deleteRecursively()
