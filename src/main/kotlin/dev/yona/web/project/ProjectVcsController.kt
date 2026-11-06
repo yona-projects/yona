@@ -26,7 +26,8 @@ import org.springframework.web.servlet.ModelAndView
 class ProjectVcsController(
     private val projectService: ProjectService,
     private val vcsService: ProjectVcsService,
-    private val views: ProjectViewFactory
+    private val views: ProjectViewFactory,
+    private val messages: org.springframework.context.MessageSource
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,6 +40,18 @@ class ProjectVcsController(
             .addObject("projectView", views.of(project))
             // 바꿀 수 있는 종류가 하나뿐이면 v1.6 화면 그대로이고, 둘 이상이면 고르게 한다
             .addObject("targets", vcsService.targets(project))
+            .addObject("texts", texts(vcsService.targets(project)))
+    }
+
+    /** 종류마다의 안내와 확인 문구이다. 선택을 바꾸면 화면이 갈아 끼운다(요청한 언어로 만든다). */
+    private fun texts(targets: List<String>): Map<String, Map<String, String>> {
+        val locale = org.springframework.context.i18n.LocaleContextHolder.getLocale()
+        return targets.associateWith { target ->
+            mapOf(
+                "description" to messages.getMessage("project.changeVCS.description1", arrayOf<Any>(target), locale),
+                "requestion" to messages.getMessage("project.changeVCS.requestion", arrayOf<Any>(target), locale)
+            )
+        }
     }
 
     @PostMapping("/{user}/{project}/changeVCS")

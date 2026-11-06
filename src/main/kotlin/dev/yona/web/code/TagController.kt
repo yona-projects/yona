@@ -64,7 +64,9 @@ class TagController(
     @Transactional(readOnly = true)
     fun tags(@PathVariable("user") owner: String, @PathVariable("project") name: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val canDelete = accessControl.isAllowed(currentUserProvider.get().user, project.asResource(), Operation.DELETE)
+        // 태그를 지우는 단추는 태그를 관리할 수 있는 종류(Git)에서만 보인다
+        val canDelete = dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAG_MANAGEMENT) &&
+            accessControl.isAllowed(currentUserProvider.get().user, project.asResource(), Operation.DELETE)
         val base = siteUrls.path(UrlPaths.projectPath(owner, name))
         return ModelAndView("code/tags")
             .addObject("title", "title.tags")
@@ -92,6 +94,7 @@ class TagController(
     @Transactional
     fun deleteTag(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable tag: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAG_MANAGEMENT)) return ErrorViews.badRequest("error.badrequest.only.available.for.git")
         if (!tagService.delete(project, UrlPaths.decodeSegmentOrSelf(tag))) return ErrorViews.notFound()
         return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/tags"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }

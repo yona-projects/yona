@@ -39,7 +39,8 @@ class NoheadViews(
         val siteManager = viewer?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
         val loginId = if (!siteManager && (role == RoleType.MANAGER.id || role == RoleType.MEMBER.id)) viewer?.loginId else null
         val subversion = project.vcs == "Subversion"
-        return ModelAndView(if (subversion) "code/nohead-svn" else "code/nohead")
+        val mercurial = project.vcs == "Mercurial"
+        return ModelAndView(if (subversion) "code/nohead-svn" else if (mercurial) "code/nohead-hg" else "code/nohead")
             // v1.6의 Subversion 안내 화면은 제목에 "커밋 이력"을 쓴다.
             .addObject("title", if (subversion) "title.commitHistory" else "${project.name} - " + messages.getMessage("menu.code", null, LocaleContextHolder.getLocale()))
             .addObject("projectView", views.of(project))

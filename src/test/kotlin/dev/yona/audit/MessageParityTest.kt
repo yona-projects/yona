@@ -55,6 +55,9 @@ class MessageParityTest {
      * v1.6 번들에 빠져 있어 화면에 키 이름이 그대로 나오던 키를 고치려고 더한 키이다(`architecture/v16-safe-fix-candidates.md`).
      * `common.comment.created`는 한국어 번들에만 v1.6에 있었으므로 그 번들에서는 더한 키로 세지 않는다.
      */
+    /** X-7 Mercurial(D-86): 프로젝트 만들기의 종류, 빈 저장소 안내, 종류 변경 선택 상자의 글. 영어 이외 번들(일본어, 러시아어, 우즈베크어)은 영어와 같다. */
+    private val mercurialKeys = setOf("project.new.vcsType.mercurial", "code.nohead.hg.clone", "code.nohead.hg.init", "code.nohead.hg.pull.push", "project.changeVCS.target")
+
     private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구
         "site.userList.deletedLock", "site.mail.failReason", "site.data.import.confirm",
@@ -78,7 +81,7 @@ class MessageParityTest {
         ).forEach { (tag, file) ->
             val v16 = snapshot(tag); val v2 = bundleKeys(file)
             assertEquals(emptySet(), v16 - v2, "$file: v1.6에 있고 v2에 없는 키")
-            assertEquals(addedKeys + (defectFixKeys - v16), v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
+            assertEquals(addedKeys + (defectFixKeys - v16) + mercurialKeys, v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
         }
     }
 

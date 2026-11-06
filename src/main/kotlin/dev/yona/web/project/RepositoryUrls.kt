@@ -58,7 +58,8 @@ class RepositoryUrls(private val properties: YonaProperties) {
      */
     fun urlFor(project: Project, request: HttpServletRequest, loginId: String? = null): String? {
         val segments = when (project.vcs) {
-            "GIT" -> listOf(encode(project.owner), encode(project.name))
+            // Mercurial 클라이언트도 프로젝트 주소(`/소유자/이름`)로 복제한다
+            "GIT", "Mercurial" -> listOf(encode(project.owner), encode(project.name))
             "Subversion" -> listOf("svn", project.owner.orEmpty(), project.name.orEmpty())
             else -> return null
         }

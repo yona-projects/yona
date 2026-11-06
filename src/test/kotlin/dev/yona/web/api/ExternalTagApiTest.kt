@@ -48,6 +48,7 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
     @Autowired private lateinit var tagService: TagService
     @Autowired private lateinit var gpgKeys: dev.yona.domain.gpgkey.GpgKeyService
 
@@ -130,6 +131,19 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
         val svn = newProject(vcs = "Subversion"); roleOn(svn, member, RoleType.MEMBER)
         json(post(api(svn)), token, """{"name":"v1"}""").andExpect(status().isBadRequest)
         json(get(api(svn)), token, null).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `Mercurial 프로젝트의 태그는 읽을 수 있지만 만들고 지우지는 못한다`() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
+        val project = newProject(vcs = "Mercurial", withCommits = false); repositories.createRepository(project)
+        val hgDir = hgRepositories.directoryOf(project.owner!!, project.name!!)
+        dev.yona.support.HgTestSupport.commit(hgDir, "첫 커밋", mapOf("a.txt" to "a\n"))
+        dev.yona.support.HgTestSupport.tag(hgDir, "v1", "0")
+        val member = newUser(); roleOn(project, member, RoleType.MANAGER); val token = tokenOf(member)
+        json(get(api(project)), token, null).andExpect(status().isOk).andExpect(jsonPath("$.tags.length()").value(1)).andExpect(jsonPath("$.tags[0].name").value("v1"))
+        json(post(api(project)), token, """{"name":"v2"}""").andExpect(status().isBadRequest)
+        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(api(project, "tags/v1")), token, null).andExpect(status().isBadRequest)
     }
 
     // --- 읽기 ---

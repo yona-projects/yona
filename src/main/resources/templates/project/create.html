@@ -128,7 +128,7 @@
               </select>
 
               <span id="svn" class="ml10 notice"
-                    th:style="${form.vcs == null or form.vcs == 'GIT'} ? 'display: none;' : ''"
+                    th:style="${form.vcs != 'Subversion'} ? 'display: none;' : ''"
                     th:text="#{project.svn.warning}">
               </span>
             </div>

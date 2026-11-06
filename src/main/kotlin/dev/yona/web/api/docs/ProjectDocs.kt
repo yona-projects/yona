@@ -20,7 +20,7 @@ class ProjectDetail(
     @get:Schema(description = "소유자(사용자 로그인 ID나 조직 이름)", example = "alice") val owner: String,
     @get:Schema(description = "프로젝트 이름", example = "demo") val name: String,
     @get:Schema(description = "설명") val overview: String?,
-    @get:Schema(description = "저장소 종류", allowableValues = ["GIT", "Subversion"], example = "GIT") val vcs: String?,
+    @get:Schema(description = "저장소 종류", allowableValues = ["GIT", "Subversion", "Mercurial"], example = "GIT") val vcs: String?,
     @get:Schema(description = "공개 범위", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"], example = "PUBLIC") val scope: String?,
     @get:Schema(description = "만든 시각", example = "2026-10-30T10:15:30+0900") val createdAt: String?,
     @get:Schema(description = "웹 화면의 주소") val url: String,
@@ -114,7 +114,7 @@ class IssueListResponse(
 class ProjectCreateRequest(
     @get:Schema(description = "프로젝트 이름", requiredMode = Schema.RequiredMode.REQUIRED) val projectName: String,
     @get:Schema(description = "설명") val projectDescription: String? = null,
-    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion"]) val projectVcs: String? = null,
+    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion", "Mercurial"]) val projectVcs: String? = null,
     @get:Schema(description = "공개 범위. 기본 `PRIVATE`", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"]) val projectScope: String? = null,
     @get:Schema(description = "구성원. 이메일로 찾고 못 찾으면 건너뛴다") val members: List<ProjectMemberRequest>? = null
 )
@@ -236,7 +236,7 @@ class ProjectManageCreateRequest(
     @get:Schema(description = "프로젝트 이름. 영문, 숫자, `-`, `_`, `.`, 한글만 쓰고 `.`, `..`, `.git`은 쓸 수 없다. 같은 소유자에게 같은 이름(대소문자 무시)이 있으면 409", requiredMode = Schema.RequiredMode.REQUIRED) val name: String,
     @get:Schema(description = "설명") val description: String? = null,
     @get:Schema(description = "공개 범위. 없으면 사이트 설정의 기본값", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"]) val scope: String? = null,
-    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion"]) val vcs: String? = null,
+    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion", "Mercurial"]) val vcs: String? = null,
     @get:Schema(description = "켜 둘 메뉴. 보낸 메뉴만 기본 메뉴에서 바꾼다") val menus: ProjectMenuChanges? = null
 )
 

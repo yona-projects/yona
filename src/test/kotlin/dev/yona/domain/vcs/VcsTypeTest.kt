@@ -92,7 +92,7 @@ class VcsTypeTest {
             assertThat(VcsType.MERCURIAL.supports(capability)).describedAs("Mercurial의 $capability").isTrue()
         }
         // 서빙(6단계), 포크(7단계), 풀 리퀘스트(8단계), LFS와 서명(9단계)은 구현이 끝난 단계에서 더한다
-        for (capability in listOf(VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.PROTECTED_REFS, VcsCapability.ONLINE_EDITING)) {
+        for (capability in listOf(VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.PROTECTED_REFS, VcsCapability.ONLINE_EDITING, VcsCapability.TAG_MANAGEMENT)) {
             assertThat(VcsType.MERCURIAL.supports(capability)).describedAs("Mercurial의 $capability").isFalse()
         }
         assertThat(VcsType.MERCURIAL.supports(VcsCapability.NUMERIC_REVISIONS)).isFalse()
@@ -103,7 +103,7 @@ class VcsTypeTest {
         /** v1.6에서 `project.isGit` 등으로 Git에서만 열던 나머지 기능이다. */
         val OTHER_GIT_FEATURES = listOf(
             VcsCapability.DEFAULT_BRANCH, VcsCapability.README_POSTING, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.ONLINE_EDITING,
-            VcsCapability.LINE_COMMENT_THREADS, VcsCapability.COMMIT_EMAILS
+            VcsCapability.LINE_COMMENT_THREADS, VcsCapability.COMMIT_EMAILS, VcsCapability.TAG_MANAGEMENT
         )
 
 

@@ -140,6 +140,19 @@ class HgCodeWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `빈 저장소의 안내는 hg 명령이고 git 명령이 아니다`() {
+        val n = ++sequence
+        val empty = projects.save(Project(owner = "hwe$n", name = "hwq$n", vcs = "Mercurial", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = empty, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(empty)
+        val html = Jsoup.parse(mockMvc.perform(get(java.net.URI.create("/${empty.owner}/${empty.name}/code"))).andExpect(status().isOk).andReturn().response.contentAsString)
+        val commands = html.select("pre code").joinToString("\n") { it.text() }
+        // 수정 권한이 없는 익명에게는 명령이 보이지 않으므로 안내 상자만 확인한다
+        assertTrue("The repository is empty!" in html.text(), html.text().take(200))
+        assertTrue("git " !in commands)
+    }
+
+    @Test
     fun `프로젝트 홈이 열린다`() {
         val html = page("").html()
         assertTrue(html.isNotEmpty())

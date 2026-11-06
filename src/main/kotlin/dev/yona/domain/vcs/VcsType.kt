@@ -18,7 +18,7 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
             VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS,
             VcsCapability.DEPLOY_KEYS, VcsCapability.LFS, VcsCapability.PROTECTED_REFS,
             VcsCapability.DEFAULT_BRANCH, VcsCapability.README_POSTING, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.ONLINE_EDITING,
-            VcsCapability.LINE_COMMENT_THREADS, VcsCapability.COMMIT_EMAILS
+            VcsCapability.LINE_COMMENT_THREADS, VcsCapability.COMMIT_EMAILS, VcsCapability.TAG_MANAGEMENT
         )
     ),
 
@@ -86,6 +86,9 @@ enum class VcsCapability {
     /** 커밋 작성자가 이메일로 식별된다. 없으면 작성자 로그인 ID로 사용자를 찾는다. */
     COMMIT_EMAILS,
 
+    /** 태그를 만들고 지우는 기능(REST와 화면). 읽기만 하는 종류는 없다. */
+    TAG_MANAGEMENT,
+
     /** 커밋을 리비전 번호로 가리킨다(Subversion). 없으면 커밋 ID(해시)와 브랜치 이름으로 가리킨다. */
     NUMERIC_REVISIONS,
 
@@ -111,6 +114,7 @@ class VcsSupport(columnValue: String?) {
 
     val branches: Boolean get() = has(VcsCapability.BRANCHES)
     val tags: Boolean get() = has(VcsCapability.TAGS)
+    val tagManagement: Boolean get() = has(VcsCapability.TAG_MANAGEMENT)
     val fork: Boolean get() = has(VcsCapability.FORK)
     val pullRequests: Boolean get() = has(VcsCapability.PULL_REQUESTS)
     val deployKeys: Boolean get() = has(VcsCapability.DEPLOY_KEYS)

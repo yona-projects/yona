@@ -138,7 +138,8 @@ class ProjectCreateController(
         const val DEFAULT_ORGANIZATION_LOGO = "/assets/images/group_default.png"
         val VCS_TYPES = listOf(
             VcsOption("GIT", "project.new.vcsType.git"),
-            VcsOption("Subversion", "project.new.vcsType.subversion")
+            VcsOption("Subversion", "project.new.vcsType.subversion"),
+            VcsOption("Mercurial", "project.new.vcsType.mercurial")
         )
     }
 }

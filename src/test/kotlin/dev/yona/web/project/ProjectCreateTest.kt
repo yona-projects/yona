@@ -164,7 +164,8 @@ class ProjectCreateTest : AbstractIntegrationTest() {
         val user = newUser()
         val page = doc(mockMvc.perform(get("/projectform").session(login(user))).andReturn())
         val vcs = page.select("select#vcs option")
-        assertEquals(setOf("GIT", "Subversion"), vcs.map { it.attr("value") }.toSet())
+        assertEquals(setOf("GIT", "Subversion", "Mercurial"), vcs.map { it.attr("value") }.toSet())
+        assertEquals("Mercurial", vcs.first { it.attr("value") == "Mercurial" }.text().trim())
         assertEquals("Git", vcs.first { it.attr("value") == "GIT" }.text().trim())
         assertTrue(vcs.first { it.attr("value") == "GIT" }.hasAttr("selected"))
         assertEquals("display: none;", page.selectFirst("#svn")?.attr("style"))
@@ -224,6 +225,17 @@ class ProjectCreateTest : AbstractIntegrationTest() {
         assertEquals("Subversion", project.vcs)
         assertTrue(File("build/tmp/it-project-create/repo/svn/${user.loginId}/svnproj/format").isFile)
         assertTrue(!File("build/tmp/it-project-create/repo/git/${user.loginId}/svnproj.git").exists())
+    }
+
+    @Test
+    fun `Mercurial 프로젝트를 만들면 Mercurial 저장소를 만든다`() {
+        val user = newUser()
+        val result = submit(login(user), user.loginId!!, "hgproj", "projectScope" to "PUBLIC", "vcs" to "Mercurial", "code" to "true")
+        assertEquals(303, result.response.status)
+        val project = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(user.loginId!!, "hgproj")!!
+        assertEquals("Mercurial", project.vcs)
+        assertTrue(File("build/tmp/it-project-create/repo/hg/${user.loginId}/hgproj/.hg").isDirectory)
+        assertTrue(!File("build/tmp/it-project-create/repo/git/${user.loginId}/hgproj.git").exists())
     }
 
     @Test

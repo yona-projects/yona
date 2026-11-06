@@ -150,11 +150,39 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `바꿀 수 있는 종류가 하나뿐이면 화면에 선택 상자가 없다`() {
+    fun `선택 상자는 바꿀 수 있는 종류를 보여 주고 기본은 v1_6처럼 번갈아 바꾸는 종류이다`() {
+        val git = newProject()
+        val gitPage = page(git, login(manager(git)))
+        assertEquals(listOf("Subversion", "Mercurial"), gitPage.select("select#targetVcs option").map { it.attr("value") })
+        assertEquals("Subversion", gitPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+        val svn = newProject("Subversion")
+        val svnPage = page(svn, login(manager(svn)))
+        assertEquals(listOf("GIT", "Mercurial"), svnPage.select("select#targetVcs option").map { it.attr("value") })
+        assertEquals("GIT", svnPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+    }
+
+    @Test
+    fun `종류마다 안내와 확인 문구를 스크립트에 실어 선택을 바꾸면 갈아 끼운다`() {
         val project = newProject()
-        val html = page(project, login(manager(project)))
-        assertEquals(0, html.select("select#targetVcs").size)
-        assertEquals("Changing the repository to Subversion.", html.select("li.notice")[0].text())
+        val script = page(project, login(manager(project))).select("script").map { it.data().replace("\\/", "/") }.first { "project.ChangeVCS" in it }
+        assertTrue("\"oTexts\"" in script && "Changing the repository to Mercurial." in script && "Do you want to change the repository to Mercurial?" in script, script)
+    }
+
+    @Test
+    fun `Mercurial 프로젝트의 화면은 Git과 Subversion을 고르게 한다`() {
+        val project = newProject("Mercurial")
+        val page = page(project, login(manager(project)))
+        assertEquals(listOf("GIT", "Subversion"), page.select("select#targetVcs option").map { it.attr("value") })
+    }
+
+    @Test
+    fun `Git 프로젝트를 Mercurial로 바꾸면 Mercurial 저장소를 만들고 Git 저장소를 지운다`() {
+        val project = newProject()
+        mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project))).param("targetVcs", "Mercurial")).andExpect(status().isNoContent)
+        projects.flush()
+        assertEquals("Mercurial", projects.findById(project.id!!).get().vcs)
+        assertTrue(File("build/tmp/it-project-vcs/repo/hg/${project.owner}/${project.name}/.hg").isDirectory)
+        assertTrue(!File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
     }
 
     @Test
