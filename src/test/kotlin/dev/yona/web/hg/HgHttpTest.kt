@@ -237,6 +237,8 @@ class HgHttpTest {
         val before = serverBookmarks()
         val pushed = hg(dir, "push", "-B", "main", url(project, member))
         assertFalse(pushed.first == 0, "보호된 이름표로 푸시가 성공했다: ${pushed.second}")
+        // 거절 사유가 클라이언트 화면에 보인다(hg4j `HgHookAbortException`)
+        assertTrue("protected branch" in pushed.second && "pull request" in pushed.second, pushed.second)
         assertEquals(before, serverBookmarks())
         assertFalse("더한 커밋" in HgTestSupport.hg(serverDir(project), "log", "--template", "{desc|firstline}\\n"))
         assertTrue(HgTestSupport.verifies(serverDir(project)))

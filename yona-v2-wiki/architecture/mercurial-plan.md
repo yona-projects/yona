@@ -389,7 +389,8 @@ data class PushedCommit(val id: String, val shortId: String, val message: String
 | 9c GPG | `HgSignatures`, `HgSignedCommits`, `HgCommitReader`, `HgHooks` | D-88: `.hgsigs`(보고 있는 리비전에서 보이는 것)를 읽어 `CommitInfo.signature`를 채우면 Git의 화면, REST, 판정이 그대로 Verified를 보인다(서명 원문은 `노드\n`, 서명한 키가 등록 키이고 이메일이 작성자와 같을 때 Verified). 서명 커밋 필수 규칙은 이름표 이동에서 새 커밋마다 새 머리의 `.hgsigs`로 검사하고 서명 파일만 바꾸는 커밋은 제외한다 |
 
 - **hg4j에서 찾아 고친 결함:** (1) 최상위 `data/`, `meta/` 폴더 아래 파일의 필로그를 못 찾음(`encodeFname`, hg4j `9a7560a`로 수정, 회귀 시험 `HgReservedFolderNamesTest`), (2) LFS 배치 응답의 `href`에 기준 경로가 빠짐(`9ae3eeb`로 수정).
-- **hg4j 보완(해결, `dd32851`):** 번들2 푸시에서 이름표 이동 훅(`prepushkey`)이 변경 그룹을 적용하기 **전에** 불려 같은 푸시로 들어온 체인지셋을 읽을 수 없었다(원본 hg는 같은 트랜잭션에서 뒤에 부른다). hg4j가 훅을 변경 그룹 적용 뒤에 부르게 고쳤고, Yona는 훅 안에서 저장소 객체의 캐시를 한 번 비운다. 그 결과 이름표 이동 종류(빨리감기와 강제)를 정확히 판정하고(진짜 강제 푸시는 막고 일반 갱신은 통과, 시험으로 확인), 서명 커밋 필수 규칙이 새 커밋을 읽어 판정한다(서명한 커밋과 서명을 담은 `.hgsigs` 커밋을 함께 올리면 허용, 서명 없는 푸시는 거절). 새 머리를 읽지 못할 때만 `unverifiable`로 거절하는 안전장치는 남겼다.
+- **우회를 hg4j 정식 기능으로 바꿈(2026-11-06):** 태그 읽기는 `TagsCommand.setReadFromHeads(true)`(Yona가 직접 모든 머리의 `.hgtags`를 읽던 코드를 지움), 풀 리퀘스트의 번들 범위는 `BundleCommand.setDestination`(받는 저장소가 가진 가장 최근의 조상을 Yona가 직접 계산하던 코드를 지움), 푸시 거절 사유는 `HgHookAbortException`(클라이언트 화면에 `abort: protected branch: …`가 보인다, 이전에는 사유 없이 `prepushkey hook failed`였다). 남긴 것: 포크 뒤 `dirstate` 삭제(hg4j `CloneCommand`에 작업 파일을 만들지 않는 옵션이 없다), LFS 사용자 캐시 끄기(원본 hg와 같은 동작이라 설정으로 한다).
+- **hg4j 보완(해결, `dd32851`):** 번들2 푸시에서 이름표 이동 훅(`prepushkey`)이 변경 그룹을 적용하기 **전에** 불려 같은 푸시로 들어온 체인지셋을 읽을 수 없었다(원본 hg는 같은 트랜잭션에서 뒤에 부른다). hg4j가 훅을 변경 그룹 적용 뒤에 부르게 고쳐서 Yona의 훅은 변경 로그를 그대로 읽는다(캐시를 비우는 우회는 필요 없었다). 그 결과 이름표 이동 종류(빨리감기와 강제)를 정확히 판정하고(진짜 강제 푸시는 막고 일반 갱신은 통과, 시험으로 확인), 서명 커밋 필수 규칙이 새 커밋을 읽어 판정한다(서명한 커밋과 서명을 담은 `.hgsigs` 커밋을 함께 올리면 허용, 서명 없는 푸시는 거절). 새 머리를 읽지 못할 때만 `unverifiable`로 거절하는 안전장치는 남겼다.
 - 알려진 한계: 한 노드에 서명이 여럿이면 앞의 것만 본다. 서명 판정은 보고 있는 리비전에 따라 달라진다(커밋 하나를 볼 때는 기본 위치 머리, 이력은 그 리비전, D-88 1번).
 - 구현 판단은 `decisions.md` A-382에 적었다.
 

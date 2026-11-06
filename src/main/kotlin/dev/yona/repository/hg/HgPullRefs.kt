@@ -35,7 +35,7 @@ class HgPullRefs(private val repositories: HgRepositories) {
             val target = HgRevisions.changelog(hg)
             val before = target.revisionCount
             // 받는 저장소에 이미 있는 체인지셋이면 가져올 것이 없다
-            if (HgChangesets.revOf(target, node) < 0) transfer(hg, target, fromOwner, fromName, node)
+            if (HgChangesets.revOf(target, node) < 0) transfer(hg, fromOwner, fromName, node, repositories.directoryOf(toOwner, toName))
             val changelog = HgRevisions.changelog(hg)
             // 이번에 새로 들어온 체인지셋 가운데 새 체인지셋 안에 부모가 없는 것(뿌리)만 secret으로 한다. 후손은 따라서 secret이 된다
             val added = (before until changelog.revisionCount).toSet()
@@ -53,22 +53,14 @@ class HgPullRefs(private val repositories: HgRepositories) {
     /**
      * 보내는 저장소의 [node]까지의 체인지셋을 번들로 만들어 받는 저장소([target])에 적용한다. `pull`을 쓰지 않는 까닭: `pull`은 실제 `hg pull`처럼
      * 보내는 쪽의 이름표를 받는 저장소에 반영해, 받는 저장소의 `main`이 포크의 머리로 병합 전에 저절로 앞서 나가고 포크의 다른 이름표가 들어온다. 번들은
-     * 체인지셋만 옮긴다(hg4j 담당 세션이 알려 준 원본 hg의 방식, `hg bundle --base BASE -r HEAD`와 `hg unbundle`). BASE는 받는 저장소가 이미 가진
-     * 가장 최근의 조상이고, 없으면(관련 없는 저장소) 모두 옮긴다(`null`).
+     * 체인지셋만 옮긴다(원본 hg의 방식, `hg bundle -r HEAD <받는 저장소>`와 `hg unbundle`). 번들 범위는 받는 저장소([BundleCommand.setDestination])가
+     * 이미 가진 것을 빼고 hg4j가 정한다.
      */
-    private fun transfer(target: io.github.search5.hg4j.api.Hg, targetLog: io.github.search5.hg4j.storage.Revlog, fromOwner: String, fromName: String, node: String) {
+    private fun transfer(target: io.github.search5.hg4j.api.Hg, fromOwner: String, fromName: String, node: String, targetDir: java.io.File) {
         val file = java.io.File.createTempFile("yona-pull-", ".hg")
         try {
             repositories.open(fromOwner, fromName).use { fork ->
-                val forkLog = HgRevisions.changelog(fork)
-                val head = HgChangesets.revOf(forkLog, node)
-                require(head >= 0) { "보내는 저장소에 체인지셋이 없습니다: $node" }
-                val base = HgChangesets.ancestors(forkLog, head).sortedDescending().asSequence().mapNotNull { HgChangesets.read(forkLog, it)?.node }
-                    .firstOrNull { HgChangesets.revOf(targetLog, it) >= 0 }
-                val bundle = BundleCommand(fork.repository).setOutputFile(file).setRevision(node)
-                // 공통 조상이 없으면 모두 옮긴다(`hg bundle -a`와 같다)
-                if (base != null) bundle.setBaseRevision(base) else bundle.setAll(true)
-                bundle.call()
+                BundleCommand(fork.repository).setOutputFile(file).setRevision(node).setDestination(targetDir.path).call()
             }
             UnbundleCommand(target.repository).setBundleFile(file).call()
         } finally {

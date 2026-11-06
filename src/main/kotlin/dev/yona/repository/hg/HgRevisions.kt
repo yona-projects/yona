@@ -20,42 +20,11 @@ object HgRevisions {
     fun allBookmarks(hg: Hg): Map<String, String> = hg.bookmark().list()
 
     /**
-     * 태그와 그 노드(40자)이다. 가상 태그 `tip`은 뺀다.
-     *
-     * hg4j의 `tags()`는 **작업 디렉터리의** `.hgtags`와 로컬 태그만 읽는다. 서버 저장소에는 작업 파일이 없으므로(푸시나 포크로 만든 저장소) 거기에서는
-     * 태그가 비어 보인다. 그래서 실제 `hg tags`처럼 **모든 머리의** `.hgtags`를 읽어 합치고(머리를 리비전 순으로, 뒤의 줄이 앞의 줄을 이기며, 영 노드는
-     * 지운 태그이다), 로컬 태그는 hg4j의 결과를 바탕으로 둔다. 이 저장소에 없는 노드를 가리키는 태그는 뺀다.
+     * 태그와 그 노드(40자)이다. 가상 태그 `tip`은 뺀다. 실제 `hg tags`처럼 **모든 머리의** `.hgtags`와 로컬 태그를 합친다(hg4j `setReadFromHeads`). 서버 저장소에는
+     * 작업 파일이 없어 hg4j의 기본 읽기(작업 디렉터리의 `.hgtags`)로는 태그가 비어 보이기 때문이다(hg4j 수정 `963bc8b`).
      */
-    fun tags(hg: Hg): Map<String, String> {
-        val result = LinkedHashMap<String, String>()
-        hg.tags().call().filter { it.name != "tip" }.forEach { result[it.name] = NodeId(it.node).toHex() }
-        val changelog = changelog(hg)
-        for (head in headNodes(changelog)) {
-            val text = try { String(hg.cat().setFile(".hgtags").setRevision(head).call(), Charsets.UTF_8) } catch (e: Exception) { continue }
-            for (line in text.lines()) {
-                val space = line.indexOf(' ')
-                if (space != 40) continue
-                val node = line.substring(0, space)
-                val name = line.substring(space + 1).trim()
-                if (name.isEmpty() || name == "tip") continue
-                if (node.all { it == '0' }) result.remove(name)
-                else if (HgChangesets.revOf(changelog, node) >= 0) result[name] = node
-            }
-        }
-        return result
-    }
-
-    /** 변경 로그의 머리(자식이 없는 체인지셋)의 노드를 리비전 순으로 돌려준다. */
-    private fun headNodes(changelog: io.github.search5.hg4j.storage.Revlog): List<String> {
-        val count = changelog.revisionCount
-        val isParent = BooleanArray(count)
-        for (rev in 0 until count) {
-            val record = changelog.getIndexRecord(rev)
-            if (record.parent1 >= 0) isParent[record.parent1] = true
-            if (record.parent2 >= 0) isParent[record.parent2] = true
-        }
-        return (0 until count).filter { !isParent[it] }.map { NodeId(changelog.getIndexRecord(it).nodeId.copyOf(20)).toHex() }
-    }
+    fun tags(hg: Hg): Map<String, String> =
+        hg.tags().setReadFromHeads(true).call().filter { it.name != "tip" }.associate { it.name to NodeId(it.node).toHex() }
 
     /**
      * 기본 위치의 노드이다. `main`, `master`, `@` 이름표 가운데 먼저 있는 것이고, 없으면 `default` 브랜치의 끝, 그것도 없으면 저장소 전체의 끝이다.
