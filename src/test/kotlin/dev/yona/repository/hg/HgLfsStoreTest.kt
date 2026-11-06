@@ -60,7 +60,6 @@ class HgLfsStoreTest {
         assertThat(files.all { it.oid.length == 64 }).isTrue()
     }
 
-    @org.junit.jupiter.api.Disabled("hg4j가 최상위 data/ 폴더 아래 파일의 filelog를 못 찾는 결함(hg-da에 보고). 고쳐지면 켠다")
     @Test
     fun `최상위 data 폴더 아래의 LFS 파일도 목록에 나온다`() {
         HgTestSupport.commit(dir, "일반 파일", mapOf("a.txt" to "one\n"))
