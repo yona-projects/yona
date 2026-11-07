@@ -19,6 +19,7 @@ updated: 2026-10-29
 | DB | MariaDB | H2(기본), PostgreSQL(컨테이너), 이후 MariaDB 등 | 다중 백엔드 요구사항 |
 | 개발 인프라 | 없음 | `docker-compose.yml` (PostgreSQL 16, mailpit) | 메일 확인과 DB 구성 |
 | JS 라이브러리 | jQuery 3.3.1(주 화면)과 1.9.0(이전 화면, 첫 설정 화면), jQuery UI 1.10.4, autosize 4.0.2, NProgress 0.1.6, Popper 2.4.2, Tippy 6.2.3, video.js 7.8.2, moment 2.4.0 | jQuery 3.7.1 한 벌, jQuery UI 1.14.2(효과만), autosize 6.0.1, NProgress 0.2.0, Popper 2.11.8, Tippy 6.3.7, video.js 7.21.2, moment 2.31.0(`moment-with-locales`, `moment.locale`) | 선생님 요청(`decisions.md` D-91, `A-392`)으로 최신 버전으로 올렸다. 화면 동작은 같다(전 화면 순회 비교에서 새 문제 0). v1.6 화면 구조를 고정한 `MigrationPageTest`의 스크립트 목록은 jQuery 1.9.0에서 3.7.1로 바꾸었다. Yona가 v1.6에서 고친 벤더 파일(pageslide, At.js 등)은 아직 올리지 않았고 패치 이식이 필요하다(`architecture/js-upgrade-plan.md`) |
+| 복사 단추 | clipboard.js, 지원하지 않으면 Flash(zclip). 코드 이력의 커밋 번호 복사는 `new Clipboard`가 실패해 동작하지 않았다(R-132) | `yona.Clipboard.copy`: 보안 연결이면 `navigator.clipboard`, 아니면 `execCommand`. 두 복사 단추(커밋 번호, 저장소 주소) 모두 동작하고 Flash는 없다 | 선생님 요청(`A-394`). Flash는 브라우저에서 사라졌고, 커밋 번호 복사의 v1.6 결함을 고쳤다 |
 
 테이블 구조는 v1.6의 `conf/evolutions/default/*.sql`과 같게 유지한다.
 

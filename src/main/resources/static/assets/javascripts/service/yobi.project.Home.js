@@ -42,7 +42,6 @@
             htVar.nProjectId = htOptions.nProjectId;
             htVar.sRepoURL = htOptions.sRepoURL;
             htVar.sURLProject = htOptions.sURLProject;
-            htVar.sURLZeroClipboard = htOptions.sURLZeroClipboard;
         }
 
         /**
@@ -68,26 +67,14 @@
         function _attachEvent(){
             htElement.welRepoURL.click(_onClickRepoURL);
 
-            if (ClipboardJS && ClipboardJS.isSupported() && htElement.welBtnCopy.length > 0) {
-                // Using clipboard.min.js if supports clipboard api.
-                new ClipboardJS(htElement.welBtnCopy[0], {
-                    target: function() {
-                        return document.getElementById('cloneURL');
-                    }
-                }).on('success', function(e) {
-                    yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
-                    e.clearSelection();
-                });
-            } else {
-                // Use zclipboard(Flash based) if not support clipboard api.
-                htElement.welBtnCopy.zclip({
-                    "path": htVar.sURLZeroClipboard,
-                    "copy": htElement.welInputCloneURL.val(),
-                    "afterCopy": function () {
+            // 저장소 주소 복사(Flash 대체 경로는 없앴다, yona.Clipboard)
+            htElement.welBtnCopy.on("click", function () {
+                yona.Clipboard.copy(htElement.welInputCloneURL.val()).then(function (copied) {
+                    if (copied) {
                         yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
                     }
                 });
-            }
+            });
 
             htElement.welInputCloneURL.on('click',function(){
                 $(this).select();

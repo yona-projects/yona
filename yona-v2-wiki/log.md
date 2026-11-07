@@ -1860,3 +1860,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-07] build | JS 벤더 파일 정리(A-393)
 
 선생님 지시로 옛 파일과 쓰이지 않는 벤더 파일을 지웠다. 지우기 전에 후보마다 참조를 모두 검사했고 참조가 0곳인 14개만 `git rm`했다. 앞서 "호출 없음"이라 적었던 zclip(복사 버튼 2곳), cookie(템플릿 3곳이 로드), validation과 placeholder(번들 입력)는 검사에서 일부가 틀린 것으로 드러나 지우지 않았다. 지운 파일은 `JsLibraryVersionsTest`가 지킨다(먼저 실패를 확인한 뒤 삭제). 관련 시험 50건 통과(전체 H2 시험은 다시 돌리지 않았다: 참조 0곳을 `src/main`과 `src/test`까지 검색해 확인했다).
+
+## [2026-11-07] build | 복사 단추 현대화와 zclip 제거(A-394)
+
+선생님 지시로 Flash 기반 zclip 파일(`jquery.zclip.min.js`, `ZeroClipboard.swf`)을 지우고 복사 코드를 `navigator.clipboard`와 `execCommand` 대체 경로를 쓰는 도우미 `yona.Clipboard`로 바꿨다(번들은 지시대로 건드리지 않음). 코드 이력의 커밋 번호 복사 단추가 v1.6부터 `new Clipboard`의 `Illegal constructor`로 실패해 온 결함을 옛 jar에서 재현하고 함께 고쳤다(R-132). 관련 시험 116건과 Playwright 직접 확인을 통과했다. 전체 H2 시험은 돌리지 않았다.
