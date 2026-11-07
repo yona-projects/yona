@@ -14,6 +14,27 @@ updated: 2026-11-07
 
 선생님 요청(2026-11-07)으로 세운 **계획**이다. 코드는 아직 바꾸지 않았다. 결정이 필요한 곳은 7절에 모았고, 결정이 나면 `decisions.md`에 선택지, 권장안과 이유, 결정자를 적고 시작한다.
 
+## 0. 구현 현황 (2026-11-07 갱신)
+
+**첫 묶음 완료**(`D-91`, `A-392`): jQuery 3.7.1(주 화면 번들과 첫 설정, 마이그레이션 화면 3개), jQuery UI 1.14.2 효과 묶음, autosize 6.0.1, NProgress 0.2.0(JS), Popper 2.11.8, Tippy.js 6.3.7, video.js 7.21.2, moment 2.31.0. 확인: `JsLibraryVersionsTest`, 전 화면 순회 비교(`jq331`과 `jqall`, 새 문제 0), Playwright 직접 확인 22개 항목.
+
+**Yona가 v1.6에서 고친 벤더 파일**(v1.6 `git log`와 공식 파일 대조): 아래는 새 버전으로 덮어쓰면 수정이 사라지므로 **패치 이식이 필요**해 이번에 올리지 않았다.
+
+| 파일 | 고친 내용(v1.6 커밋 제목) |
+|---|---|
+| jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과 |
+| At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch |
+| jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
+| jquery.scrollTo | 최근 댓글로 스크롤 |
+| Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
+| Pikaday | 마감일 추가, import 경로 이동 |
+| js-xss | XSS 방어 수정 5건 |
+| select2 | 공식과 860자 차이 |
+| marked | 사용자 지정 패치(37건) |
+| mention.js | Yona 자체 코드(10건) |
+
+jquery-pjax는 공식 2.0.1과 같고, jquery.event.drag는 어느 템플릿도 불러오지 않아 쓰이지 않는다(패치도 죽은 코드). clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
+
 ## 1. 현재 상태
 
 화면이 실제로 읽는 위치는 `src/main/resources/static/assets/`이다(`public/`은 v1.6 원본 사본이라 서빙하지 않는다). 이 저장소에는 Node와 npm 파일이 없고(`components` 저장소 원칙) 라이브러리는 **파일을 직접 복사해 커밋**하는 방식이다. 번들 세 개(`yona-layout.js`, `yona-common.js`, `yona-lib.js`)는 `build-tools/minify-js.sh`가 Closure Compiler(`compiler.jar`)로 합쳐 만든다.

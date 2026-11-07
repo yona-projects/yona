@@ -1852,3 +1852,7 @@ jQuery 플러그인의 제거 대상 API 사용을 세어 jQuery 4가 플러그�
 ## [2026-11-07] ingest | JS 라이브러리 대체 후보 조사
 
 선생님 요청으로 없어지는 라이브러리의 대체와 유틸리티성 라이브러리의 경량 대체를 조사해 `architecture/js-library-alternatives.md`에 저장했다(코드는 바꾸지 않음, 미결정). jquery.tmpl은 템플릿 18블록의 `${}` 63개가 모두 단순 변수 참조라 문법을 유지한 채 바꿀 수 있고, underscore는 앱이 직접 호출하지 않는다는 것을 확인했다.
+
+## [2026-11-07] build | JS 라이브러리 첫 묶음 업그레이드(D-91, A-392)
+
+jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(autosize 6.0.1, NProgress 0.2.0 JS, Popper 2.11.8, Tippy.js 6.3.7, video.js 7.21.2, moment 2.31.0)을 올렸다. 확인: 전 화면 순회 비교(`jq331` 옛 상태 약 29분, `jqall` 새 상태 약 30분, 136화면, 새 문제 0, 실패 1건은 옛 상태에도 있던 `help-uikit` 404), Playwright 직접 확인 22개 항목(마이그레이션 화면의 AngularJS 1.5.8과 jQuery 3.7.1 조합 포함, 처음 시험은 화면이 GitHub로 이동해 잘못 실패했고 외부 이동을 막아 바로잡음). 전체 H2 시험 16분 20초, 4,856건(건너뜀 2): 첫 실행에서 `MigrationPageTest` 1건이 v1.6의 jQuery 1.9.0을 고정한 기대값 때문에 실패해 3.7.1로 고치고(의도된 차이로 `differences-from-v16.md`에 기록) 관련 66건을 다시 통과했다. 커밋은 둘로 나눴다(jQuery와 jQuery UI, 나머지 벤더 파일). 첫 커밋은 중간 상태(`yona-layout.js`를 옛 NProgress로 만든 것)에서 시험 42건을 통과한 것을 확인했다. 이번에 올리지 않은 것과 다음 단계는 `architecture/js-upgrade-plan.md` 0절에 있다.
