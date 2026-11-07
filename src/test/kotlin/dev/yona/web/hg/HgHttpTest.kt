@@ -78,6 +78,9 @@ class HgHttpTest {
     @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
     @Autowired private lateinit var siteSettings: dev.yona.domain.site.SiteSettingService
+    @Autowired private lateinit var notificationEvents: dev.yona.domain.notification.NotificationEventRepository
+    @Autowired private lateinit var watchService: dev.yona.domain.misc.WatchService
+    @Autowired private lateinit var notificationMails: dev.yona.domain.notification.NotificationMailRepository
 
     @TempDir lateinit var work: File
 
@@ -120,6 +123,8 @@ class HgHttpTest {
         // 토큰은 사용자를 참조하므로 먼저 지운다
         gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }; gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
         apiTokenRepository.deleteAll(); tokens.clear(); tokenFailures.clear(); auditLogs.deleteAllInBatch()
+        // 알림은 받는 사용자를, 알림 메일은 알림을 참조하므로 순서대로 먼저 지운다
+        notificationMails.deleteAllInBatch(); notificationEvents.deleteAll()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
     }
@@ -304,6 +309,26 @@ class HgHttpTest {
         val saved = projects.findById(project.id!!).get()
         assertTrue(saved.lastPushedDate != null)
         assertTrue(pushedBranches.findAll().filter { it.project?.id == project.id }.any { it.name == "refs/heads/feature" })
+    }
+
+    @Test
+    fun `푸시하면 새 커밋 알림이 Mercurial의 12자 커밋 번호로 만들어진다`() {
+        // 새 커밋 알림은 프로젝트를 구독한 **구성원**이 받는다(Git과 같다)
+        val watcher = user("hwatch")
+        projectUsers.save(ProjectUser(user = watcher, project = project, role = roles.findById(RoleType.MEMBER.id).get()))
+        watchService.watch(watcher, dev.yona.domain.enumeration.ResourceType.PROJECT, project.id.toString())
+        val dir = cloneWithBookmark("feature")
+        File(dir, "n.txt").writeText("n\n")
+        assertEquals(0, hg(dir, "add", "n.txt").first)
+        assertEquals(0, hg(dir, "commit", "-m", "알림 확인", "-d", "2026-11-03 10:00 +0900").first)
+        val node = HgTestSupport.hg(dir, "log", "-r", ".", "--template", "{node}")
+        assertEquals(0, hg(dir, "push", "-B", "feature", url(project, member)).first)
+        // 푸시 뒤 일은 백그라운드에서 돌므로 알림이 생길 때까지 잠시 기다린다
+        fun events() = notificationEvents.findAll().filter { it.eventType == dev.yona.domain.enumeration.EventType.NEW_COMMIT && it.resourceId == project.id.toString() }
+        for (i in 1..50) { if (events().isNotEmpty()) break; Thread.sleep(200) }
+        val note = events().single()
+        assertTrue(note.newValue!!.contains("${node.take(12)} 알림 확인"), note.newValue)
+        assertTrue(note.newValue!!.contains("/${project.owner}/${project.name}/commits/"), note.newValue)
     }
 
     @Test

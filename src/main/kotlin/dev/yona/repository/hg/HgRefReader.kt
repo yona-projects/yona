@@ -66,7 +66,7 @@ class HgRefReader(private val hg: HgRepositories, private val tagWriter: HgTagWr
         val changeset = if (rev < 0) null else HgChangesets.read(changelog, rev)
         return TagInfo(
             name = HgRepositories.TAGS + name, shortName = name, annotated = false, message = null, taggerName = null, taggerDate = null,
-            commitId = changeset?.node, commitDate = changeset?.let { Date(it.timestamp * 1000L) }
+            commitId = changeset?.node, commitDate = changeset?.let { Date(it.timestamp * 1000L) }, shortIdLength = SHORT_ID
         )
     }
 

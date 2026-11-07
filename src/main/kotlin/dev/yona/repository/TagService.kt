@@ -17,13 +17,15 @@ import java.util.Date
  * @property commitDate 그 커밋의 커밋 시각. 커밋이 아니면 `null`
  * @property taggerEmail 주석 태그를 단 사람의 이메일. 없으면 `null`
  * @property signature 주석 태그의 GPG 서명과 서명 대상 바이트(X-4). 서명이 없으면 `null`
+ * @property shortIdLength 짧은 커밋 번호의 길이
  */
 data class TagInfo(
     val name: String, val shortName: String, val annotated: Boolean, val message: String?, val taggerName: String?, val taggerDate: Date?,
-    val commitId: String?, val commitDate: Date?, val taggerEmail: String? = null, val signature: dev.yona.domain.gpgkey.SignedPayload? = null
+    val commitId: String?, val commitDate: Date?, val taggerEmail: String? = null, val signature: dev.yona.domain.gpgkey.SignedPayload? = null,
+    val shortIdLength: Int = 7
 ) {
-    /** 7자리 커밋 번호이다. */
-    val commitShortId: String? get() = commitId?.take(7)
+    /** 짧은 커밋 번호이다. 길이는 저장소 종류에 따른다(Git 7자, Mercurial 12자, [dev.yona.domain.vcs.VcsType.shortIdLength]). */
+    val commitShortId: String? get() = commitId?.take(shortIdLength)
 
     /** 커밋이 아닌 대상(트리, 블롭)을 가리키는 태그이면 `true`이다. */
     val notCommit: Boolean get() = commitId == null

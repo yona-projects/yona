@@ -97,12 +97,12 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
         else -> ""
     }
 
-    private fun shortId(commit: String) = if (commit.length < 7) commit else commit.substring(0, 7)
+    private fun shortId(project: Project, commit: String) = commit.take(dev.yona.domain.vcs.VcsType.of(project.vcs)?.shortIdLength ?: 7)
 
     private fun commitLink(project: Project, commit: String?, path: String?): String {
         if (commit == null || path == null) return "&nbsp;"
         val href = siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/code/${UrlPaths.encode(commit)}/$path")  // 역방향 라우트의 `*path`는 인코딩하지 않는다
-        return "<a href=\"${esc(href)}\" title=\"${esc(commit)}\" target=\"_blank\">${esc(shortId(commit))}</a>"
+        return "<a href=\"${esc(href)}\" title=\"${esc(commit)}\" target=\"_blank\">${esc(shortId(project, commit))}</a>"
     }
 
     private fun frame(diff: FileDiff, header: String?, rows: String, projectA: Project, projectB: Project): String {

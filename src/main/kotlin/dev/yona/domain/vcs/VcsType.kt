@@ -38,10 +38,17 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
         )
     );
 
+    /** 화면에 보이는 짧은 커밋 번호의 길이이다. Git은 7자, Mercurial은 관례인 12자이다(`decisions.md` A-378). */
+    val shortIdLength: Int get() = if (this == MERCURIAL) MERCURIAL_SHORT_ID_LENGTH else DEFAULT_SHORT_ID_LENGTH
+
     /** [capability]를 지원하면 `true`이다. */
     fun supports(capability: VcsCapability): Boolean = capability in capabilities
 
     companion object {
+        private const val DEFAULT_SHORT_ID_LENGTH = 7
+        private const val MERCURIAL_SHORT_ID_LENGTH = 12
+
+
         /**
          * `project.vcs` 열 값에 해당하는 종류이다. 모르는 값이나 비어 있는 값이면 `null`이다. v1.6처럼 대소문자를 구분한다
          * (`"GIT".equals(vcs)`).

@@ -190,6 +190,8 @@ class TagsTest : AbstractIntegrationTest() {
         dev.yona.support.HgTestSupport.bookmark(dir, "main", "tip")
         assertNull(page("/${p.owner}/${p.name}/tags", login(plain)).selectFirst("a[data-request-method=delete]"))
         assertEquals(1, page("/${p.owner}/${p.name}/tags", login(manager)).select("a[data-request-method=delete]").size)
+        // 태그 목록의 짧은 커밋 번호는 Mercurial의 12자이다(A-378)
+        assertEquals(12, page("/${p.owner}/${p.name}/tags").selectFirst("a.commitId")!!.text().trim().length)
         mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1").session(login(manager))).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${p.owner}/${p.name}/tags"))
         assertTrue("refs/tags/v1" !in repositories.refNames(p))
         mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1").session(login(manager))).andExpect(status().isNotFound)

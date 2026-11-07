@@ -201,4 +201,15 @@ class HgCodeWebTest : AbstractIntegrationTest() {
         val doc = page("/commit/$c1")
         assertTrue(doc.selectFirst("#thread-$id .comment-body")!!.text().contains("리뷰 내용 $id"), doc.select("[id^=thread-]").toString().take(300))
     }
+
+    @Test
+    fun `프로젝트 홈의 최근 이력에 Mercurial 커밋이 12자 번호로 나온다`() {
+        val html = mockMvc.perform(get(java.net.URI.create(base() + "?tabId=history"))).andExpect(status().isOk).andReturn().response.contentAsString
+        val doc = Jsoup.parse(html)
+        val link = doc.selectFirst("a[href\$=/commit/$c1]")
+        assertTrue(link != null, "최근 이력에 커밋 링크가 있어야 한다: " + doc.select("a[href*=/commit/]").map { it.attr("href") })
+        assertEquals(c1.take(12), link!!.text().trim(), "짧은 번호는 12자이다")
+        // 대시보드 탭도 Mercurial 프로젝트에서 열린다
+        mockMvc.perform(get(java.net.URI.create(base() + "?tabId=dashboard"))).andExpect(status().isOk)
+    }
 }
