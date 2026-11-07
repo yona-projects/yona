@@ -2,6 +2,7 @@ package dev.yona.web
 
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.security.MessageDigest
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -65,5 +66,32 @@ class JsLibraryVersionsTest {
             .filter { (_, path) -> !File(assets, path).isFile }
             .distinct()
         assertEquals(emptyList(), missing, "템플릿이 가리키지만 없는 JS 파일")
+    }
+
+    @Test
+    fun `벤더 파일은 기준 목록의 공식 배포 파일과 byte 단위로 같다`() {
+        val manifest = File("src/test/resources/js-vendor-manifest.tsv").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.map { it.split('\t') }
+        assertTrue(manifest.size >= 10, "기준 목록이 비어 있다")
+        val wrong = manifest.filter { (path, _, _, sha) ->
+            val file = File(assets, "javascripts/lib/$path")
+            !file.isFile || MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) } != sha
+        }.map { "${it[0]} (${it[1]} ${it[2]})" }
+        assertEquals(emptyList(), wrong, "기준 목록과 다른 벤더 파일(올렸다면 기준 목록도 고친다)")
+    }
+
+    @Test
+    fun `레이아웃 번들의 NProgress는 0_2_0이다`() {
+        val bundle = asset("javascripts/yona-layout.js").readText()
+        assertTrue(bundle.contains("{version:\"0.2.0\"}"), "번들에 NProgress 0.2.0 표기가 있어야 한다")
+        assertTrue(!bundle.contains("0.1.6"), "옛 NProgress 0.1.6이 남아 있으면 안 된다")
+    }
+
+    @Test
+    fun `moment는 모든 로케일 묶음 2_31_0을 쓰고 옛 lang 호출이 없다`() {
+        val users = templateFiles().filter { it.readText().contains("moment") }
+        assertTrue(users.isNotEmpty())
+        users.forEach { assertTrue(!it.readText().contains("moment-with-langs"), "${it.name}이 옛 moment 파일을 가리킨다") }
+        assertTrue(templateFiles().none { it.readText().contains("moment.lang(") }, "moment 2.8부터 lang은 locale로 바뀌었다")
+        assertTrue(templateFiles().any { it.readText().contains("moment-with-locales.min.js") })
     }
 }
