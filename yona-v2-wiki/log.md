@@ -1809,4 +1809,8 @@ LFS 파일이 있는 저장소의 포크가 해시 불일치로 실패하는 것
 
 ## [2026-11-07] build | 사이트 LFS 끄기를 Mercurial에 적용
 
-원본 hg 7.2.4 `lfs`에는 서버 쪽 끄기(`experimental.lfs.serve`)만 있고 최대 크기와 용량 한도는 없어(hg4j 세션 확인), 선생님이 "끄기만 적용"을 고르셨다. hg4j에 `HgHttpWireServer.setLfsServing` 추가를 요청해 받은 임시 jar로 `HgHttpFilter`에 연결했고 사이트 LFS 화면에 안내 문구를 더했다(A-384). 전체 시험은 이어서 실행한다.
+원본 hg 7.2.4 `lfs`에는 서버 쪽 끄기(`experimental.lfs.serve`)만 있고 최대 크기와 용량 한도는 없어(hg4j 세션 확인), 선생님이 "끄기만 적용"을 고르셨다. hg4j에 `HgHttpWireServer.setLfsServing` 추가를 요청해 받은 임시 jar로 `HgHttpFilter`에 연결했고 사이트 LFS 화면에 안내 문구를 더했다(A-384). 전체 H2 시험은 15분 28초, 4,818건(건너뜀 2) 전부 통과.
+
+## [2026-11-07] build | Mercurial LFS 코드 화면 점검
+
+Git LFS 15개 기능을 hg4j 세션이 원본 hg와 대조했다(hg4j에 빠진 부분 없음). 코드 화면의 LFS 안내는 처음에 빠진 부분으로 보았으나, 시험으로 Mercurial 파일 읽기가 본문을 풀어서 보여 주는 것을 확인해 만들지 않았고 `HgLfsCodeBrowserTest` 2건으로 지킨다(A-385).
