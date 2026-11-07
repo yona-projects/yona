@@ -77,7 +77,7 @@ class PullRequestMergerTest : AbstractIntegrationTest() {
         val attempt = merger.attempt(pullRequest(origin, fork))
         assertFalse(attempt.conflict)
         assertEquals(listOf("또 하나", "새 파일"), attempt.commits.map { it.shortMessage })
-        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
+        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yona/pull-check/")) }
     }
 
     @Test

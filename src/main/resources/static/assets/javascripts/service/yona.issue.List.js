@@ -22,7 +22,7 @@
 
     "use strict";
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htElement = {};
@@ -191,11 +191,11 @@
         /**
          * update Pagination
          *
-         * @requires yobi.Pagination
+         * @requires yona.Pagination
          * @private
          */
         function _initPagination(){
-            yobi.Pagination.update(htElement.welPagination, htElement.welPagination.data("total"));
+            yona.Pagination.update(htElement.welPagination, htElement.welPagination.data("total"));
         }
 
         /**
@@ -292,9 +292,9 @@
          * @private
          */
         function _initSelect2(){
-            if(typeof yobi.ui.Select2 === "function"){
+            if(typeof yona.ui.Select2 === "function"){
                 $('[data-toggle="select2"]').each(function(i, el){
-                    yobi.ui.Select2(el);
+                    yona.ui.Select2(el);
                 });
             }
         }
@@ -306,9 +306,9 @@
          * @private
          */
         function _initCalendar(){
-           if(typeof yobi.ui.Calendar === "function"){
+           if(typeof yona.ui.Calendar === "function"){
                $('[data-toggle="calendar"]').each(function(i, el){
-                   yobi.ui.Calendar(el, {
+                   yona.ui.Calendar(el, {
                        "silent": true
                    });
                });
@@ -319,10 +319,10 @@
             var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
 
             if(elDueDate.length > 0) {
-                var sDueDate = $yobi.getTrim($(elDueDate).val());
+                var sDueDate = $yona.getTrim($(elDueDate).val());
 
                 if(sDueDate && !moment(sDueDate).isValid()){
-                    $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                    $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
                     elDueDate.focus();
                     return false;
                 }
@@ -336,4 +336,4 @@
         _init(htOptions);
     };
 
-})("yobi.issue.List");
+})("yona.issue.List");

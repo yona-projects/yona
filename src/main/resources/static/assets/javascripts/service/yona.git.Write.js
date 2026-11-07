@@ -6,7 +6,7 @@
  **/
 
 (function(ns){
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
         var vars = {};
@@ -233,13 +233,13 @@
         function _validateForm(){
             // Check whether is commit exists to send
             if(!vars.mergeResult.numOfCommits){
-                $yobi.alert(Messages("pullRequest.diff.noChanges"));
+                $yona.alert(Messages("pullRequest.diff.noChanges"));
                 return false;
             }
 
             // Show confirm dialog in case of conflict
             if(vars.mergeResult.isConflict && !vars.mergeResult.forceSubmit){
-                $yobi.confirm(Messages("pullRequest.ignore.conflict"), function(data){
+                $yona.confirm(Messages("pullRequest.ignore.conflict"), function(data){
                     if(data.nButtonIndex === 1){
                         vars.mergeResult.forceSubmit = true;
                         elements.form.submit();
@@ -253,7 +253,7 @@
 
             for(var fieldName in requiredField){
                 if(requiredField[fieldName].length === 0){
-                    $yobi.alert(Messages("pullRequest." + fieldName + ".required"));
+                    $yona.alert(Messages("pullRequest." + fieldName + ".required"));
                     return false;
                 }
             }
@@ -267,15 +267,15 @@
         function _initFileUploader(){
             if(vars.uploaderId){
                 vars.attachments.destroy();
-                yobi.Files.destroyUploader(vars.uploaderId);
+                yona.Files.destroyUploader(vars.uploaderId);
                 vars.uploaderId = null;
             }
 
-            var oUploader = yobi.Files.getUploader(elements.uploader, elements.body);
+            var oUploader = yona.Files.getUploader(elements.uploader, elements.body);
 
             if(oUploader){
                 vars.uploaderId = oUploader.attr("data-namespace");
-                vars.attachments = new yobi.Attachments({
+                vars.attachments = new yona.Attachments({
                     "elContainer"  : elements.uploader,
                     "elTextarea"   : elements.body,
                     "sTplFileItem" : vars.tplFileItem,
@@ -296,4 +296,4 @@
 
         _init(options || {});
     };
-})("yobi.git.Write");
+})("yona.git.Write");

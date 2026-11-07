@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -266,7 +266,7 @@
                 if(htSortedData[sType] instanceof Array){
                     htSortedData[sType].forEach(function(htFile){
                         htFile = _getFileInfoForTpl(htFile, sTargetPath);
-                        aHTML.push($yobi.tmpl(htVar.sTplListItem, htFile));
+                        aHTML.push($yona.tmpl(htVar.sTplListItem, htFile));
                     });
                 }
             });
@@ -304,7 +304,7 @@
             htFile.commitDate = (typeof htFile.createdDate !=='undefined') ? (moment(new Date(htFile.createdDate)).fromNow()) : '';
             htFile.fileClass = (htFile.fileName ==='..') ? 'updir' : (htFile.type === "folder" ? 'dynatree-ico-cf' : 'dynatree-ico-c');
             htFile.avatarImg = (typeof htFile.avatar !== 'undefined') ? '<a href="'+ sAuthorURL + '" class="avatar-wrap smaller"><img src="' + htFile.avatar + '"></a>' : '';
-            htFile.commitMsg = $yobi.htmlspecialchars(htFile.msg || '');
+            htFile.commitMsg = $yona.htmlspecialchars(htFile.msg || '');
             htFile.listPath = sTargetPath;
             htFile.targetPath = _getCorrectedPath(sTargetPath, htFile.fileName);
             htFile.path = _getCorrectedPath(htVar.sBasePathURL, htFile.targetPath);
@@ -540,7 +540,7 @@
                 aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');
             });
 
-            var breadcrumb = $yobi.xssClean(aCrumbs.join(""));
+            var breadcrumb = $yona.xssClean(aCrumbs.join(""));
 
             htElement.welBreadCrumbs.html(breadcrumb);
 
@@ -567,4 +567,4 @@
 
         _init(htOptions || {});
     };
-})("yobi.code.Browser");
+})("yona.code.Browser");

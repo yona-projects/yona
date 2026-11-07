@@ -13,7 +13,7 @@ import java.io.File
 
 /**
  * 풀 리퀘스트의 숨은 참조(D-87)를 실제 `hg` 저장소에서 확인한다(X-7 8a). 보내는 쪽(포크) 체인지셋을 받는 저장소로 가져와 secret 단계로 두고
- * 예약 이름표 `yobi/pull/<번호>/head`, `merged`로 가리키며, 병합하면 공개 단계로 올린다.
+ * 예약 이름표 `yona/pull/<번호>/head`, `merged`로 가리키며, 병합하면 공개 단계로 올린다.
  */
 class HgPullRefsTest {
 
@@ -60,7 +60,7 @@ class HgPullRefsTest {
         assertThat(phase(origin, head)).isEqualTo("secret")
         // 받는 저장소에 이미 있던 체인지셋의 단계는 바꾸지 않는다
         assertThat(phase(origin, base)).isEqualTo(baseBefore).isNotEqualTo("secret")
-        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")).contains("yobi/pull/7/head=$head")
+        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")).contains("yona/pull/7/head=$head")
         assertThat(HgTestSupport.verifies(origin)).isTrue()
     }
 
@@ -71,7 +71,7 @@ class HgPullRefsTest {
 
         val cloned = clonedPullOnly()
         assertThat(HgTestSupport.hg(cloned, "log", "--template", "{node}\\n")).doesNotContain(head)
-        assertThat(HgTestSupport.hg(cloned, "bookmarks", "--template", "{bookmark}\\n")).doesNotContain("yobi")
+        assertThat(HgTestSupport.hg(cloned, "bookmarks", "--template", "{bookmark}\\n")).doesNotContain("yona")
     }
 
     @Test
@@ -82,7 +82,7 @@ class HgPullRefsTest {
         assertThat(repos.refNames("tester", "origin")).containsExactly("refs/heads/main")
         repos.open("tester", "origin").use { hg ->
             assertThat(HgRevisions.bookmarks(hg).keys).containsExactly("main")
-            assertThat(HgRevisions.resolve(hg, "refs/heads/yobi/pull/7/head")).isNull()
+            assertThat(HgRevisions.resolve(hg, "refs/heads/yona/pull/7/head")).isNull()
         }
     }
 
@@ -94,7 +94,7 @@ class HgPullRefsTest {
 
         val second = forkCommit("기능 둘", "g.txt")
         refs.fetch("tester", "origin", "alice", "fork", second, refs.headRef(7))
-        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")).contains("yobi/pull/7/head=$second").doesNotContain("=$first")
+        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")).contains("yona/pull/7/head=$second").doesNotContain("=$first")
         assertThat(phase(origin, second)).isEqualTo("secret")
         assertThat(phase(origin, first)).isEqualTo("secret")
     }
@@ -105,7 +105,7 @@ class HgPullRefsTest {
         refs.fetch("tester", "origin", "alice", "fork", head, refs.headRef(7))
         refs.delete("tester", "origin", refs.headRef(7))
 
-        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}\\n")).doesNotContain("yobi")
+        assertThat(HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}\\n")).doesNotContain("yona")
         assertThat(phase(origin, head)).isEqualTo("secret")
         assertThat(HgTestSupport.verifies(origin)).isTrue()
     }
@@ -125,11 +125,11 @@ class HgPullRefsTest {
     }
 
     @Test
-    fun `예약 이름표 푸시는 refs yobi 아래 ref로 바뀌어 예약된 이름으로 거부된다`() {
+    fun `예약 이름표 푸시는 refs yona 아래 ref로 바뀌어 예약된 이름으로 거부된다`() {
         repos.open("tester", "origin").use { hg ->
             val log = HgRevisions.changelog(hg)
-            val update = HgPushUpdates.bookmark(log, "yobi/pull/7/head", "", base)
-            assertThat(update.ref).isEqualTo("refs/yobi/pull/7/head")
+            val update = HgPushUpdates.bookmark(log, "yona/pull/7/head", "", base)
+            assertThat(update.ref).isEqualTo("refs/yona/pull/7/head")
             assertThat(update.type).isEqualTo(dev.yona.domain.vcs.RefUpdateType.CREATE)
             assertThat(HgPushUpdates.bookmark(log, "feature", "", base).ref).isEqualTo("refs/heads/feature")
         }
@@ -147,7 +147,7 @@ class HgPullRefsTest {
 
         val bookmarks = HgTestSupport.hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")
         // 받는 쪽 main은 그대로이고(병합 전에 움직이면 안 된다), 포크의 feature는 들어오지 않으며, 숨은 이름표만 늘었다
-        assertThat(bookmarks).contains("main=$mainBefore").doesNotContain("feature").contains("yobi/pull/7/head=$head")
+        assertThat(bookmarks).contains("main=$mainBefore").doesNotContain("feature").contains("yona/pull/7/head=$head")
         assertThat(repos.refNames("tester", "origin")).containsExactly("refs/heads/main")
     }
 }

@@ -131,7 +131,7 @@ class CommitViewTest : AbstractIntegrationTest() {
         val (_, second) = twoCommits(p)
         thread(p, user("reviewer2"), second, ThreadState.OPEN, true)
         val json = page("/${p.owner}/${p.name}/commit/$second").selectFirst(".comment-thread-wrap .attachments")!!.attr("data-attachments")
-        // yobi.Attachments._updateAttachments는 oRes.attachments를 읽는다
+        // yona.Attachments._updateAttachments는 oRes.attachments를 읽는다
         assertEquals("""{"attachments":[]}""", json)
     }
 

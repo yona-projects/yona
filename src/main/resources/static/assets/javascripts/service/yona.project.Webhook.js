@@ -21,7 +21,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
         var elements = {};
@@ -74,7 +74,7 @@
          */
         function _isFormValid(){
             if (elements.payloadUrl.val().length === 0) {
-                $yobi.alert(Messages("project.webhook.payloadUrl.empty"));
+                $yona.alert(Messages("project.webhook.payloadUrl.empty"));
                 return false;
             }
             return true;
@@ -83,4 +83,4 @@
         _init(options || {});
     };
 
-})("yobi.project.Webhook");
+})("yona.project.Webhook");

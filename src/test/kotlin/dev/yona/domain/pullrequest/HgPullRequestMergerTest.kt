@@ -131,7 +131,7 @@ class HgPullRequestMergerTest : AbstractIntegrationTest() {
         val update = merger.update(pr)
         val merged = assertNotNull(update.mergeCommitId)
 
-        assertEquals("yobi/pull/${pr.id}/head", merger.headRef(pr)); assertEquals("yobi/pull/${pr.id}/merged", merger.mergedRef(pr))
+        assertEquals("yona/pull/${pr.id}/head", merger.headRef(pr)); assertEquals("yona/pull/${pr.id}/merged", merger.mergedRef(pr))
         val bookmarks = hg(origin, "bookmarks", "--template", "{bookmark}={node}\\n")
         assertTrue("${merger.headRef(pr)}=${update.attempt.rightParent}" in bookmarks, bookmarks)
         assertTrue("${merger.mergedRef(pr)}=$merged" in bookmarks, bookmarks)

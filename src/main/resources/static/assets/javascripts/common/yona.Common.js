@@ -18,9 +18,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-window.yobi = (typeof yobi == "undefined") ? {} : yobi;
+window.yona = (typeof yona == "undefined") ? {} : yona;
 
-$yobi = yobi.Common = (function(){
+$yona = yona.Common = (function(){
 
     var htVar = {
         "sScriptPath":"",
@@ -38,12 +38,12 @@ $yobi = yobi.Common = (function(){
 
     /**
      * Create namespace object from String
-     * @param {String} sName namespace string like 'yobi.module.Name'
+     * @param {String} sName namespace string like 'yona.module.Name'
      * @returns {Hash Table} container object and last name of argument
      * @example
-     * var oNS = createNamespace("yobi.module.Name");
+     * var oNS = createNamespace("yona.module.Name");
      * oNS.container[oNS.name] = { ... };
-     * // oNS.container === yobi.module
+     * // oNS.container === yona.module
      * // oNS.name === "Name"
      */
     function createNamespace(sNamespace) {
@@ -86,7 +86,7 @@ $yobi = yobi.Common = (function(){
                 return false;
             }
 
-            var sURL = htVar.sScriptPath + "service/yobi." + sName + ".js";
+            var sURL = htVar.sScriptPath + "service/yona." + sName + ".js";
             var fOnLoad = function(){
                 loadModule(sName, htOptions, fCallback);
             };
@@ -106,7 +106,7 @@ $yobi = yobi.Common = (function(){
     function registerModule(sName, htOptions){
         var aNames = sName.split(".");
         var sDepth = aNames.shift();
-        var oModule = yobi[sDepth];
+        var oModule = yona[sDepth];
 
         while(aNames.length && oModule){
             sDepth = aNames.shift();
@@ -266,7 +266,7 @@ $yobi = yobi.Common = (function(){
      */
     function showAlert(sMessage, fOnAfterHide, sDescription){
         if(!htVar.oAlertDialog){
-            htVar.oAlertDialog = new yobi.ui.Dialog("#yobiDialog");
+            htVar.oAlertDialog = new yona.ui.Dialog("#yobiDialog");
         }
 
         htVar.oAlertDialog.show(sMessage, sDescription, {
@@ -285,7 +285,7 @@ $yobi = yobi.Common = (function(){
      */
     function showConfirm(sMessage, fCallback, sDescription, htOptions){
         if(!htVar.oConfirmDialog){
-            htVar.oConfirmDialog = new yobi.ui.Dialog("#yobiDialog");
+            htVar.oConfirmDialog = new yona.ui.Dialog("#yobiDialog");
         }
 
         htOptions = htOptions || {};
@@ -322,7 +322,7 @@ $yobi = yobi.Common = (function(){
      */
     function notify(sMessage, nDuration, sTitle){
         if(!htVar.oToast){
-            htVar.oToast = new yobi.ui.Toast("#yobiToasts", {
+            htVar.oToast = new yona.ui.Toast("#yobiToasts", {
                 "sTplToast": $("#tplYobiToast").text()
             });
         }

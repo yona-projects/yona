@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -63,7 +63,7 @@
             htElement.welInputProject.keypress(_onKeyPressInputProject);
             htElement.welBtnSelectProject.click(_onClickSelectProject);
             htElement.welBtnWriteEmail.click(_onClickWriteEmail);
-            new yobi.ui.Typeahead(htElement.welInputProject, {
+            new yona.ui.Typeahead(htElement.welInputProject, {
                 "sActionURL": htVar.sURLProjects
             });
 
@@ -98,7 +98,7 @@
             // launch user's mail client with them using mailto scheme.
             _setLoading(htElement.welBtnWriteEmail, true);
 
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL"      : htVar.sURLMailList,
                 "htOptForm": {"method":"POST"},
                 "htData"    : aProjects,
@@ -195,4 +195,4 @@
         _init(htOptions);
     };
 
-})("yobi.site.MassMail");
+})("yona.site.MassMail");

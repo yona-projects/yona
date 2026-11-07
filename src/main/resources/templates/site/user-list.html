@@ -125,16 +125,16 @@
                     if(data && data.isSuccess === true){
                         $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
                     } else {
-                        $yobi.alert("password change failed: " + data.reason);
+                        $yona.alert("password change failed: " + data.reason);
                     }
                 })
                 .fail(function(data){
-                    $yobi.alert("password change failed: " + JSON.parse(data.responseText).reason);
+                    $yona.alert("password change failed: " + JSON.parse(data.responseText).reason);
                 });
 
         });
 
-        yobi.Pagination.update($("#pagination"), [[${totalPageCount}]]);
+        yona.Pagination.update($("#pagination"), [[${totalPageCount}]]);
     });
     </script>
     <script type="text/x-jquery-tmpl" id="dismissable-alerts">

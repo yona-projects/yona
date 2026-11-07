@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -53,7 +53,7 @@
                 "sHref"   : htOptions.sDeleteURL,
                 "fOnError": function(){
                     bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).hide();
-                    $yobi.alert(Messages("project.delete.error"));
+                    $yona.alert(Messages("project.delete.error"));
                     return false;
                 }
             });
@@ -61,7 +61,7 @@
 
         function _onClickBtnDeletePrj(){
             if(htElement.welChkAccept.is(":checked") === false){
-                $yobi.alert(Messages("project.delete.alert"));
+                $yona.alert(Messages("project.delete.alert"));
                 return false;
             }
             return true;
@@ -70,4 +70,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.project.Delete");
+})("yona.project.Delete");

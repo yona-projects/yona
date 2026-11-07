@@ -78,7 +78,7 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/validate.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
-        $yobi.loadModule("user.SignUp", {
+        $yona.loadModule("user.SignUp", {
             "sLogindIdCheckUrl" : "/user/isUsed?name=",
             "sEmailCheckUrl" : "/user/isEmailExist?email="
         });

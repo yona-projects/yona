@@ -1,7 +1,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htElement = {};
@@ -96,10 +96,10 @@
         }
 
         function _initPagination(htOptions){
-            yobi.Pagination.update(htElement.welPagination, htOptions.nTotalPages);
+            yona.Pagination.update(htElement.welPagination, htOptions.nTotalPages);
         }
 
         _init(htOptions);
     };
 
-})("yobi.board.List");
+})("yona.board.List");

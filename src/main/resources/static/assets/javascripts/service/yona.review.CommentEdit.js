@@ -38,7 +38,7 @@
         $form.on("click", ".comment-edit-save", function () {
             var contents = $form.find(".comment-edit-text").val();
             if ($.trim(contents) === "") {
-                $yobi.notify(Messages("post.comment.empty"), 3000);
+                $yona.notify(Messages("post.comment.empty"), 3000);
                 return;
             }
             $.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done(function (response) {
@@ -49,7 +49,7 @@
                 }
                 close($comment);
             }).fail(function (xhr) {
-                $yobi.notify(Messages("error.failedTo", Messages("common.comment.edit"), xhr.status, xhr.statusText));
+                $yona.notify(Messages("error.failedTo", Messages("common.comment.edit"), xhr.status, xhr.statusText));
             });
         });
     });

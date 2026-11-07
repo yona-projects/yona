@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock
 /**
  * Mercurial 저장소의 풀 리퀘스트 병합 구현이다([PullRequestBackend], X-7 8b와 8c, `decisions.md` D-86, D-87). Git의 [GitPullRequestBackend]와 같은 일을 한다.
  *
- * - **가져오기**: 보내는 프로젝트(포크)의 체인지셋을 받는 저장소로 가져와 secret 단계로 두고 예약 이름표 `yobi/pull/<번호>/head`로 가리킨다([HgPullRefs]).
+ * - **가져오기**: 보내는 프로젝트(포크)의 체인지셋을 받는 저장소로 가져와 secret 단계로 두고 예약 이름표 `yona/pull/<번호>/head`로 가리킨다([HgPullRefs]).
  * - **병합 가능 여부**: 저장소를 쓰지 않는 hg4j `TreeMergeCommand`로 계산한다. 파일 이름 바꿈과 복사는 따라가고, 폴더 이름 바꿈과 한쪽 삭제와 다른 쪽
  *   수정과 파일 단위 병합 도구가 필요한 병합은 충돌로 본다(`mercurial-plan.md` 4.2절).
  * - **병합 커밋**: hg4j `MergeCommitCommand`로 부모가 둘인 체인지셋을 만든다(p1은 받는 쪽 머리, p2는 보내는 쪽 머리, Git의 `--no-ff`처럼 한쪽이

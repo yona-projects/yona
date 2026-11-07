@@ -27,7 +27,7 @@ $(function () {
             parentId.prop("disabled", true);
             $('#s2id_parentId').hide();
             parentId.trigger('change.select2');
-            $yobi.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
+            $yona.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
         }
     });
 });

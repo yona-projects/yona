@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -45,7 +45,7 @@
             htVar.htData = htOptions.htData || {};
             htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
 
-            htVar.oTypeahead = new yobi.ui.Typeahead("#loginId", {
+            htVar.oTypeahead = new yona.ui.Typeahead("#loginId", {
                 "htData" : {
                     "minLength" : 1,
                     "updater" : _updater,
@@ -86,7 +86,7 @@
                 fProcess(htVar.htCachedUsers);
             } else {
                 htVar.htData.query = sQuery;
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL"      : htVar.sActionURL,
                     "htOptForm" : {"method":"get"},
                     "htData"    : htVar.htData,
@@ -165,7 +165,7 @@
                 location.reload();
             }).fail(function(res){
                 var error = JSON.parse(res.responseText);
-                $yobi.notify(error.loginId.pop(), 3000);
+                $yona.notify(error.loginId.pop(), 3000);
             });
 
             evt.preventDefault();
@@ -188,7 +188,7 @@
         function _onClickDelete(){
             var sURL = $(this).attr("data-href");
 
-            $yobi.ajaxConfirm(Messages("project.member.deleteConfirm"),
+            $yona.ajaxConfirm(Messages("project.member.deleteConfirm"),
                 {
                     "url"     : sURL,
                     "method"  : "delete",
@@ -229,7 +229,7 @@
                     break;
             }
 
-            $yobi.alert(sErrorMsg);
+            $yona.alert(sErrorMsg);
         }
 
         /**
@@ -246,7 +246,7 @@
             }
 
             // send request
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL"   : sURL,
                 "htData" : {"id": sRoleId}
             });
@@ -255,4 +255,4 @@
         _init(htOptions);
     };
 
-})("yobi.project.Member");
+})("yona.project.Member");

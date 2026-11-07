@@ -257,10 +257,10 @@ class GitHttpTest {
 
     @Test
     fun `예약된 ref로 거부된 푸시는 거부 기록으로 남는다 (X-9 B3)`() {
-        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yobi/test") }
+        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yona/test") }
         val event = gitEvents("git.push_rejected").single()
         assertEquals(dev.yona.domain.audit.AuditOutcome.DENIED, event.outcome)
-        assertTrue(event.details!!.contains("refs/yobi/test") && event.details!!.contains("reserved"), event.details)
+        assertTrue(event.details!!.contains("refs/yona/test") && event.details!!.contains("reserved"), event.details)
         assertTrue(gitEvents("git.push").isEmpty())
     }
 
@@ -318,7 +318,7 @@ class GitHttpTest {
     @Test
     fun `거부된 푸시는 이유와 함께 센다 (X-10 C5c)`() {
         val before = counterValue("yona.vcs.pushes", "vcs", "git", "result", "rejected", "reason", "reserved")
-        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yobi/test") }
+        assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yona/test") }
         assertEquals(before + 1, counterValue("yona.vcs.pushes", "vcs", "git", "result", "rejected", "reason", "reserved"))
     }
 
@@ -339,7 +339,7 @@ class GitHttpTest {
 
     @Test
     fun `예약된 ref에는 푸시할 수 없다`() {
-        val error = assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yobi/test") }
+        val error = assertFailsWith<IllegalStateException> { push(project, member, ref = "refs/yona/test") }
         assertTrue(error.message!!.contains("reserved"), error.message)
     }
 

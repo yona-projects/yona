@@ -170,7 +170,7 @@ class LfsApiTest : AbstractIntegrationTest() {
     @Test
     fun `비공개 프로젝트는 인증이 없으면 401과 인증 요청이고 구성원이 아니면 403이다`() {
         val member = user(); val outsider = user(); val p = project(member = member); val item = listOf("a".repeat(64) to 1L)
-        mockMvc.perform(batch(p, "download", item)).andExpect(status().isUnauthorized).andExpect(header().string("WWW-Authenticate", "Basic realm=\"Yobi\""))
+        mockMvc.perform(batch(p, "download", item)).andExpect(status().isUnauthorized).andExpect(header().string("WWW-Authenticate", "Basic realm=\"Yona\""))
             .andExpect(content().contentTypeCompatibleWith(lfsJson)).andExpect(jsonPath("$.message").exists())
         mockMvc.perform(batch(p, "download", item, basic(outsider))).andExpect(status().isForbidden)
         mockMvc.perform(batch(p, "download", item, basic(member))).andExpect(status().isOk)

@@ -22,17 +22,17 @@
     <script type="text/javascript" th:src="@{/assets/javascripts/service/yona.showSubtask.js}"></script>
     <script type="text/javascript" th:inline="javascript">
       $(function(){
-          $yobi.loadModule("issue.List");
+          $yona.loadModule("issue.List");
 
           var $setDefaultLoginPage = $("#setDefaultLoginPage");
           $setDefaultLoginPage.on('click', function(){
               $.post("/user/defultLoginPage?path=" + $setDefaultLoginPage.data("url"))
                       .done(function (data) {
-                          $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
+                          $yona.notify("Set to default: " + data.defaultLoginPage, 3000);
                           $setDefaultLoginPage.hide();
                       })
                       .fail(function (data) {
-                          $yobi.alert("set Default page failed: " + data);
+                          $yona.alert("set Default page failed: " + data);
                       });
           });
 
@@ -44,7 +44,7 @@
               $(".title-cell > .label").each(function () {
                   var $this = $(this);
                   $this.removeClass("dimgray white")
-                          .addClass($yobi.getContrastColor($this.css('background-color')))
+                          .addClass($yona.getContrastColor($this.css('background-color')))
               });
           }
 

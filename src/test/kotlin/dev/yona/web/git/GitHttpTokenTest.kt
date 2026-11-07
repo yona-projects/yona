@@ -158,7 +158,7 @@ class GitHttpTokenTest : AbstractIntegrationTest() {
         val owner = user(); val p = project(owner, ProjectScope.PRIVATE)
         val result = refs(p, basic(owner.loginId!!, "1234")).andExpect(status().isUnauthorized).andReturn()
         assertEquals(true, result.response.contentAsString.contains("personal access token"), result.response.contentAsString)
-        assertEquals("Basic realm=\"Yobi\"", result.response.getHeader("WWW-Authenticate"))
+        assertEquals("Basic realm=\"Yona\"", result.response.getHeader("WWW-Authenticate"))
         assertNull(result.request.getSession(false), "비밀번호로는 웹 세션을 만들지 않는다")
     }
 

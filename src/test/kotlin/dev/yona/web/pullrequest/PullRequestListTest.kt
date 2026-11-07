@@ -180,7 +180,7 @@ class PullRequestListTest : AbstractIntegrationTest() {
         (1L..16L).forEach { pr(p, number = it) }
         assertEquals(15, titles(page("/${p.owner}/${p.name}/pullRequests")).size)
         assertEquals(listOf("요청 1"), titles(page("/${p.owner}/${p.name}/pullRequests?pageNum=2")))
-        assertTrue(page("/${p.owner}/${p.name}/pullRequests").html().contains("yobi.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertTrue(page("/${p.owner}/${p.name}/pullRequests").html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
     }
 
     @Test

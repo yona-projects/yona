@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -93,7 +93,7 @@
                     var bOnWatching = welTarget.hasClass("blue");
                     var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
 
-                    $yobi.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
+                    $yona.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
                 }
             });
 
@@ -154,4 +154,4 @@
 
         _init(htOptions || {});
     };
-})("yobi.user.View");
+})("yona.user.View");

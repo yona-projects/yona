@@ -144,7 +144,7 @@
 <th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
-    $yobi.loadModule("project.Home", {
+    $yona.loadModule("project.Home", {
         "sURLProjectLabels": [[${#paths.project(projectView.project.owner, projectView.project.name) + '/labels'}]],
         "sURLLabels"       : "/labels",
         "sURLLabelCategories": "/categories",

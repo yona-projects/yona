@@ -5,7 +5,7 @@
  * https://yona.io
  **/
 
-yobi.Comment = (function(){
+yona.Comment = (function(){
     var htElement = {};
 
     /**

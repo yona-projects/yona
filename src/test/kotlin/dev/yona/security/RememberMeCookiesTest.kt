@@ -12,7 +12,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 로그인 유지 쿠키(`yobi.token`)를 검증한다. v1.6은 값이 `로그인ID:해시된 비밀번호`라 쿠키가 새면 해시가 그대로 드러났고(R-05), 잠기거나 지워진 계정도 쿠키로 통했다(R-107).
+ * 로그인 유지 쿠키(`yona.token`)를 검증한다. v1.6은 값이 `로그인ID:해시된 비밀번호`라 쿠키가 새면 해시가 그대로 드러났고(R-05), 잠기거나 지워진 계정도 쿠키로 통했다(R-107).
  * 지금은 서명한 값이며 비밀번호 해시를 담지 않고 비밀번호가 바뀌면 무효이다.
  */
 class RememberMeCookiesTest {

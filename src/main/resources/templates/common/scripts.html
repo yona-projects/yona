@@ -6,7 +6,7 @@
   이식 원본: app/views/common/scripts.scala.html
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="scripts">
-<!-- yobi.ui.Dialog -->
+<!-- yona.ui.Dialog -->
 <div id="yobiDialog" class="modal yobiDialog" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="btn-dismiss"><button type="button" class="btn-transparent" data-bs-dismiss="modal">&times;</button></div>
     <div class="message">
@@ -21,7 +21,7 @@
 </div></div></div>
 <!-- //yobi.ui.Dialog -->
 
-<!-- yobi.ui.Toast -->
+<!-- yona.ui.Toast -->
 <div id="yobiToasts" class="yobiToasts"></div>
 <script type="text/x-jquery-tmpl" id="tplYobiToast">
 <div class="toast" tabindex="-1">
@@ -56,7 +56,7 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/tippy/tippy-bundle.umd.min.js}"></script>
 
 <script type="text/javascript" th:inline="javascript">
-    $yobi.setScriptPath([[@{/assets/javascripts/}]]);
+    $yona.setScriptPath([[@{/assets/javascripts/}]]);
 
     $(document).ready(function(){
         // tooltip
@@ -72,34 +72,34 @@
             moment.locale([[${#locale.language}]]);
         }
 
-     	// yobi.Dropdown
+     	// yona.Dropdown
      	var sActivation;
         $(".btn-group[data-name]").each(function(i, el){
         	sActivation = $(el).attr("data-activate");
         	if(typeof sActivation == "undefined" || sActivation != "manual"){
-        		(new yobi.ui.Dropdown({"elContainer":el}));
+        		(new yona.ui.Dropdown({"elContainer":el}));
         	}
         });
 
-        // yobi.ShortcutKey
+        // yona.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
-        yobi.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+        yona.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
             if(htInfo.bFormInput){
                 $(htInfo.welTarget.parents("form").get(0)).submit();
             }
         });
         /*[# th:if="${currentUser.sessionLoginId != null}"]*/
-        yobi.ShortcutKey.setKeymapLink({
+        yona.ShortcutKey.setKeymapLink({
             "U": [[@{'/' + ${currentUser.sessionLoginId}}]]
         });
         /*[/]*/
 
-        yobi.ShortcutKey.setKeymapLink({
+        yona.ShortcutKey.setKeymapLink({
             "A": [[@{/user/issues}]]
         });
 
-        // yobi.Files
-        yobi.Files.init({
+        // yona.Files
+        yona.Files.init({
             "sListURL"  : [[@{/files}]],
             "sUploadURL": [[@{/files}]],
             "maxFileSize": "[[${site.maxFileSize}]]"  // 2Gb
@@ -126,10 +126,10 @@
 
         // notify flash messages
         /*[# th:each="notice : ${flashMessages.notices}"]*/
-        $yobi.notify("[(${notice})]", 5000);
+        $yona.notify("[(${notice})]", 5000);
         /*[/]*/
         /*[# th:if="${flashMessages.alertTitle != null}"]*/
-        $yobi.alert("[(${flashMessages.alertTitle})]", null,
+        $yona.alert("[(${flashMessages.alertTitle})]", null,
                     "[(${flashMessages.alertDescription})]");
         /*[/]*/
 
@@ -138,7 +138,7 @@
             $('#gnb-search-scope-title').text($(this).text());
         });
 
-        yobi.OriginalMessage.hide($("[data-via-email]"));
+        yona.OriginalMessage.hide($("[data-via-email]"));
 
         $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function () {
             NProgress.set(0.7);

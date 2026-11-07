@@ -20,7 +20,7 @@ import java.util.zip.GZIPInputStream
  * Git 클라이언트(`git clone`, `fetch`, `push`)가 쓰는 smart-HTTP 주소이다. v1.6 `GitApp`(`app/controllers/GitApp.java`)에 해당한다.
  *
  * 인증은 HTTP Basic(`loginId:토큰`)이다. 비밀번호 칸에는 개인용 API 토큰만 받는다(D-70). 자격이 없거나 틀리면 익명으로 본다. 익명이 권한이 없으면 `401`로 로그인을 요구하고
- * (`WWW-Authenticate: Basic realm="Yobi"`), 로그인한 사용자가 권한이 없으면 `403`과 안내 문구이다.
+ * (`WWW-Authenticate: Basic realm="Yona"`), 로그인한 사용자가 권한이 없으면 `403`과 안내 문구이다.
  * 복제와 가져오기는 읽기 권한, 푸시는 수정 권한이 필요하다. 코드를 구성원에게만 여는 프로젝트는 읽기도 수정 권한을 요구한다.
  * 프로젝트 이름이 바뀌었으면 이전 이름으로도 찾는다.
  */

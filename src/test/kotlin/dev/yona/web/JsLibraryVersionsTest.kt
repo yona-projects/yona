@@ -32,8 +32,9 @@ class JsLibraryVersionsTest {
     @Test
     fun `레이아웃 번들 yona-layout_js의 jQuery는 3_7_1이다`() {
         val bundle = asset("javascripts/yona-layout.js").readText()
-        assertTrue(bundle.contains("\"3.7.1\""), "번들에 jQuery 3.7.1의 버전 문자열이 있어야 한다")
-        assertTrue(!bundle.contains("\"3.3.1\""), "옛 jQuery 3.3.1이 번들에 남아 있으면 안 된다")
+        // 압축기에 따라 따옴표 종류(", ', `)가 달라지므로 종류를 가리지 않고 버전 문자열을 찾는다.
+        assertTrue(Regex("[\"'`]3\\.7\\.1[\"'`]").containsMatchIn(bundle), "번들에 jQuery 3.7.1의 버전 문자열이 있어야 한다")
+        assertTrue(!Regex("[\"'`]3\\.3\\.1[\"'`]").containsMatchIn(bundle), "옛 jQuery 3.3.1이 번들에 남아 있으면 안 된다")
     }
 
     @Test
@@ -82,7 +83,7 @@ class JsLibraryVersionsTest {
     @Test
     fun `레이아웃 번들의 NProgress는 0_2_0이다`() {
         val bundle = asset("javascripts/yona-layout.js").readText()
-        assertTrue(bundle.contains("{version:\"0.2.0\"}"), "번들에 NProgress 0.2.0 표기가 있어야 한다")
+        assertTrue(Regex("version\\s*[:=]\\s*[\"'`]0\\.2\\.0[\"'`]").containsMatchIn(bundle), "번들에 NProgress 0.2.0 표기가 있어야 한다")
         assertTrue(!bundle.contains("0.1.6"), "옛 NProgress 0.1.6이 남아 있으면 안 된다")
     }
 
@@ -124,6 +125,17 @@ class JsLibraryVersionsTest {
         assertTrue(text.contains("navigator.clipboard") && text.contains("isSecureContext") && text.contains("execCommand"), "클립보드 API를 먼저 쓰고 보안 연결이 아니면 대체 수단을 쓴다")
         assertTrue(File(templates, "common/scripts.html").readText().contains("common/yona.Clipboard.js"), "scripts.html이 도우미를 불러와야 한다")
         assertTrue(File(templates, "code/history.html").readText().contains("yona.Clipboard.copy"), "커밋 번호 복사가 도우미를 써야 한다")
-        assertTrue(File(assets, "javascripts/service/yobi.project.Home.js").readText().contains("yona.Clipboard.copy"), "저장소 주소 복사가 도우미를 써야 한다")
+        assertTrue(File(assets, "javascripts/service/yona.project.Home.js").readText().contains("yona.Clipboard.copy"), "저장소 주소 복사가 도우미를 써야 한다")
+    }
+
+    @Test
+    fun `번들 입력 목록 bundles_mjs의 파일이 모두 있다`() {
+        val text = java.io.File("build-tools/js-bundle/bundles.mjs").readText()
+        val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
+            (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
+        }.toList()
+        assertTrue(inputs.size >= 30, "입력이 너무 적다: ${inputs.size}")
+        assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
+        assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
 }

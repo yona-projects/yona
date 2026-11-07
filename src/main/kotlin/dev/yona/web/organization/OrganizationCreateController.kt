@@ -56,7 +56,7 @@ class OrganizationCreateController(
             .addObject("name", name)
             .addObject("descr", descr)
         // v1.6 `create.scala.html`은 `requestHeader.flash.get("warning")`, 곧 앞 요청이 남긴 안내를 폼 위에 보인다.
-        // 이번 요청의 안내는 알림(`$yobi.notify`)으로 보이고 다음 요청의 폼 위에 보인다.
+        // 이번 요청의 안내는 알림(`$yona.notify`)으로 보이고 다음 요청의 폼 위에 보인다.
         val previous = RedirectSupport.incomingFlash()[RedirectSupport.WARNING]?.toString()
         if (previous != null) {
             view.addObject("warning", messages.getMessage(previous, null, previous, LocaleContextHolder.getLocale()))

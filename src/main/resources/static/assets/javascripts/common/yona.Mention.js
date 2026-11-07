@@ -18,7 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yobi.Mention = function(htOptions) {
+yona.Mention = function(htOptions) {
 
     var htVar = {};
     var htElement = {};

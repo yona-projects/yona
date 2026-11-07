@@ -7,9 +7,9 @@ import io.github.search5.hg4j.api.UnbundleCommand
 import org.springframework.stereotype.Component
 
 /**
- * 풀 리퀘스트의 숨은 참조를 Mercurial 저장소에 두는 도구이다(X-7 8a, `decisions.md` D-87). Git은 받는 저장소 안에 `refs/yobi/pull/<번호>/head`,
+ * 풀 리퀘스트의 숨은 참조를 Mercurial 저장소에 두는 도구이다(X-7 8a, `decisions.md` D-87). Git은 받는 저장소 안에 `refs/yona/pull/<번호>/head`,
  * `merged`를 두지만 Mercurial에는 ref가 없다. 그래서 보내는 쪽 체인지셋을 받는 저장소로 가져와 **secret 단계**로 두고(hg4j가 secret과 그것을
- * 가리키는 이름표를 `clone`, `pull`에서 숨긴다) **예약 이름표** `yobi/pull/<번호>/head`, `merged`로 가리킨다. 예약 이름표는 브랜치 목록에 나오지
+ * 가리키는 이름표를 `clone`, `pull`에서 숨긴다) **예약 이름표** `yona/pull/<번호>/head`, `merged`로 가리킨다. 예약 이름표는 브랜치 목록에 나오지
  * 않고 푸시도 거부한다([HgRepositories.RESERVED_BOOKMARK_PREFIX]).
  *
  * 체인지셋은 번들로만 옮긴다(`pull`은 보내는 쪽의 이름표까지 받는 저장소에 반영하므로 쓰지 않는다, [transfer]). 풀 리퀘스트를 닫아도 secret 체인지셋은 지우지 않는다(이름표만 지운다). 병합하면 [publish]로 공개 단계로 올린다.

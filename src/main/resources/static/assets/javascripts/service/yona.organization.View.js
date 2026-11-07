@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(){
 
         var htElement = {};
@@ -84,9 +84,9 @@
             }
 
             bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).hide();
-            $yobi.notify(sErrorMsg, 3000);
+            $yona.notify(sErrorMsg, 3000);
         }
 
         _init();
     };
-})("yobi.organization.View");
+})("yona.organization.View");

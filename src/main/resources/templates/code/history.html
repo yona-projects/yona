@@ -112,7 +112,7 @@ $(document).ready(function(){
     $("#history").on("click", ".btn-copy-commitId", function(){
         yona.Clipboard.copy($(this).data("commitid")).then(function(copied){
             if (copied) {
-                $yobi.notify("[(${helper.escapedMessage('code.copyCommitId.copied')})]", 1000);
+                $yona.notify("[(${helper.escapedMessage('code.copyCommitId.copied')})]", 1000);
             }
         });
     });
@@ -125,7 +125,7 @@ $(document).ready(function(){
     htKeyMap.S = "[(${olderUrl})]";
     [/]
     if(htKeyMap.A || htKeyMap.S){
-        yobi.ShortcutKey.setKeymapLink(htKeyMap);
+        yona.ShortcutKey.setKeymapLink(htKeyMap);
     }
 });
 </script>

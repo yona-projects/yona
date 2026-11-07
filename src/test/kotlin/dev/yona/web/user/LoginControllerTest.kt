@@ -196,11 +196,11 @@ class LoginControllerTest : AbstractIntegrationTest() {
     // --- remember me -----------------------------------------------------------------------
 
     @Test
-    fun `로그인 유지를 선택하면 30일짜리 yobi_token 쿠키를 만든다`() {
+    fun `로그인 유지를 선택하면 30일짜리 yona_token 쿠키를 만든다`() {
         val user = newUser("gina")
         mockMvc.perform(
             post("/users/login").param("loginIdOrEmail", "gina").param("password", "1234").param("rememberMe", "true")
-        ).andExpect(cookie().maxAge("yobi.token", 30 * 24 * 60 * 60)).andExpect(cookie().httpOnly("yobi.token", true)).andReturn().response.getCookie("yobi.token")!!.also {
+        ).andExpect(cookie().maxAge("yona.token", 30 * 24 * 60 * 60)).andExpect(cookie().httpOnly("yona.token", true)).andReturn().response.getCookie("yona.token")!!.also {
             // v1.6은 값이 `로그인ID:해시된 비밀번호`라 쿠키가 새면 해시가 그대로 드러났다(R-05)
             assertTrue(it.value.startsWith("gina:") && !it.value.contains(user.password!!), it.value)
         }
@@ -210,34 +210,34 @@ class LoginControllerTest : AbstractIntegrationTest() {
     fun `체크박스가 보내는 on도 로그인 유지로 읽는다 (Play 폼 바인딩)`() {
         newUser("gina2")
         mockMvc.perform(post("/users/login").param("loginIdOrEmail", "gina2").param("password", "1234").param("rememberMe", "on"))
-            .andExpect(cookie().exists("yobi.token"))
+            .andExpect(cookie().exists("yona.token"))
     }
 
     @Test
     fun `로그인 유지를 선택하지 않으면 쿠키를 만들지 않는다`() {
         newUser("hank")
         mockMvc.perform(post("/users/login").param("loginIdOrEmail", "hank").param("password", "1234"))
-            .andExpect(cookie().doesNotExist("yobi.token"))
+            .andExpect(cookie().doesNotExist("yona.token"))
     }
 
     @Test
-    fun `yobi_token 쿠키로 사용자가 복원된다`() {
+    fun `yona_token 쿠키로 사용자가 복원된다`() {
         newUser("ivan")
         assertEquals("ivan", whoAmI(null, issued("ivan")))
     }
 
     /** 로그인 유지를 골라 로그인하고 받은 쿠키를 돌려준다. */
     private fun issued(loginId: String): Cookie =
-        mockMvc.perform(post("/users/login").param("loginIdOrEmail", loginId).param("password", "1234").param("rememberMe", "true")).andReturn().response.getCookie("yobi.token")!!
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", loginId).param("password", "1234").param("rememberMe", "true")).andReturn().response.getCookie("yona.token")!!
 
     @Test
     fun `옛 형식이나 바뀐 쿠키는 통하지 않고 지워진다 (R-05)`() {
         val user = newUser("olga")
         // v1.6 형식(로그인ID:해시된 비밀번호)과 값을 바꾼 쿠키
-        for (bad in listOf(Cookie("yobi.token", "olga:${user.password}"), Cookie("yobi.token", issued("olga").value.dropLast(3) + "abc"))) {
+        for (bad in listOf(Cookie("yona.token", "olga:${user.password}"), Cookie("yona.token", issued("olga").value.dropLast(3) + "abc"))) {
             val result = mockMvc.perform(get("/__test/whoami").cookie(bad)).andReturn()
             assertEquals("anonymous", result.response.contentAsString)
-            assertEquals(0, result.response.getCookie("yobi.token")?.maxAge)
+            assertEquals(0, result.response.getCookie("yona.token")?.maxAge)
         }
     }
 
@@ -290,7 +290,7 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `잠기거나 지워진 계정은 yobi_token 쿠키로 로그인되지 않고 쿠키가 지워진다 (R-107)`() {
+    fun `잠기거나 지워진 계정은 yona_token 쿠키로 로그인되지 않고 쿠키가 지워진다 (R-107)`() {
         // v1.6은 요청마다 쿠키 사용자를 캐시에 넣고 잠금 검사 없이 돌려주어, 잠기거나 지워진 계정이 쿠키로 계속 로그인 상태였다
         val locked = newUser("lara"); val deleted = newUser("dora")
         val lockedCookie = issued("lara"); val deletedCookie = issued("dora")
@@ -299,7 +299,7 @@ class LoginControllerTest : AbstractIntegrationTest() {
         for (cookie in listOf(lockedCookie, deletedCookie)) {
             val result = mockMvc.perform(get("/__test/whoami").cookie(cookie)).andReturn()
             assertEquals("anonymous", result.response.contentAsString)
-            assertEquals(0, result.response.getCookie("yobi.token")?.maxAge)
+            assertEquals(0, result.response.getCookie("yona.token")?.maxAge)
         }
     }
 
@@ -325,10 +325,10 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `잘못된 yobi_token 쿠키는 버려진다`() {
+    fun `잘못된 yona_token 쿠키는 버려진다`() {
         newUser("judy")
-        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yobi.token", "judy:wrong")))
-            .andExpect(cookie().maxAge("yobi.token", 0)).andReturn()
+        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yona.token", "judy:wrong")))
+            .andExpect(cookie().maxAge("yona.token", 0)).andReturn()
         assertEquals("anonymous", result.response.contentAsString)
     }
 
@@ -360,10 +360,10 @@ class LoginControllerTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "mia").param("password", "1234"))
         mockMvc.perform(
             get("/users/logout").session(session).header("Referer", "http://localhost/mia/proj")
-                .cookie(Cookie("yobi.token", "mia:${user.password}"))
+                .cookie(Cookie("yona.token", "mia:${user.password}"))
         ).andExpect(redirectedUrl("http://localhost/mia/proj"))
             .andExpect(flash().attribute("success", "user.logout.success"))
-            .andExpect(cookie().maxAge("yobi.token", 0))
+            .andExpect(cookie().maxAge("yona.token", 0))
         assertEquals("anonymous", whoAmI(session))
     }
 

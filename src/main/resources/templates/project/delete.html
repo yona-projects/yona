@@ -50,7 +50,7 @@
 </div>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
-        $yobi.loadModule("project.Delete", {
+        $yona.loadModule("project.Delete", {
             "sDeleteURL": [[${#paths.project(project.owner, project.name) + '/delete'}]]
         });
     });

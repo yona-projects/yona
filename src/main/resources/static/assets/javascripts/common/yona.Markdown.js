@@ -5,7 +5,7 @@
  * https://yona.io
  **/
 
-yobi.Markdown = (function(htOptions){
+yona.Markdown = (function(htOptions){
 
     var htVar = {};
 
@@ -55,7 +55,7 @@ yobi.Markdown = (function(htOptions){
      * @return {String}
      */
     function _renderMarkdown(sText) {
-        return $yobi.xssClean(marked(sText, htVar.htMarkedOption));
+        return $yona.xssClean(marked(sText, htVar.htMarkedOption));
     }
 
     /**

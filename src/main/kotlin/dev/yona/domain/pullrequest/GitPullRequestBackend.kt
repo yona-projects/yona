@@ -22,8 +22,8 @@ import java.util.concurrent.locks.ReentrantLock
  * `fetchSourceBranch`(`app/models/PullRequest.java:356-570,872-950`)에 해당한다.
  *
  * 병합은 모두 받는 프로젝트의 저장소 안에서 일어난다. 보내는 프로젝트의 브랜치를 가져온(fetch) 뒤 JGit의 RECURSIVE 전략으로 작업 트리 없이 병합한다.
- * - 새 요청의 충돌 확인: 임시 참조 `refs/yobi/pull-check/<소유자>/<이름>/<브랜치>`로 가져와 확인한 뒤 지운다
- * - 요청이 있는 동안의 병합 결과: 보내는 브랜치를 `refs/yobi/pull/<번호>/head`, 병합 커밋을 `refs/yobi/pull/<번호>/merged`에 둔다
+ * - 새 요청의 충돌 확인: 임시 참조 `refs/yona/pull-check/<소유자>/<이름>/<브랜치>`로 가져와 확인한 뒤 지운다
+ * - 요청이 있는 동안의 병합 결과: 보내는 브랜치를 `refs/yona/pull/<번호>/head`, 병합 커밋을 `refs/yona/pull/<번호>/merged`에 둔다
  *
  * 가져오기와 참조 갱신은 저장소 단위로 한 번에 하나씩만 실행한다(v1.6 주석 "locking this repository is required because of fetch and update").
  */
@@ -36,7 +36,7 @@ class GitPullRequestBackend(private val repositories: RepositoryService, private
 
     /** [pullRequest]의 보내는 브랜치를 받는 브랜치에 병합할 수 있는지 시험한다. 저장소를 바꾸지 않는다(임시 참조는 지운다). */
     override fun attempt(pullRequest: PullRequest): MergeAttempt = locked(pullRequest) { repository ->
-        val temp = "refs/yobi/pull-check/${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}/${pullRequest.fromBranch}"
+        val temp = "refs/yona/pull-check/${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}/${pullRequest.fromBranch}"
         fetch(repository, pullRequest, temp)
         try {
             merge(repository, requireNotNull(pullRequest.toBranch), temp).first
@@ -46,7 +46,7 @@ class GitPullRequestBackend(private val repositories: RepositoryService, private
     }
 
     /**
-     * 보내는 브랜치를 `refs/yobi/pull/<번호>/head`로 가져와 병합하고, 충돌하지 않으면 병합 커밋을 만들어 `refs/yobi/pull/<번호>/merged`에 둔다.
+     * 보내는 브랜치를 `refs/yona/pull/<번호>/head`로 가져와 병합하고, 충돌하지 않으면 병합 커밋을 만들어 `refs/yona/pull/<번호>/merged`에 둔다.
      * 병합 커밋은 사이트 이름과 시스템 메일 주소로 만든다.
      */
     override fun update(pullRequest: PullRequest): MergeUpdate = locked(pullRequest) { repository ->
@@ -95,7 +95,7 @@ class GitPullRequestBackend(private val repositories: RepositoryService, private
      * (`decisions.md` D-41 7번).
      */
     override fun rebaseBlocked(pullRequest: PullRequest): String? = locked(pullRequest) { repository ->
-        val temp = "refs/yobi/pull-check/${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}/${pullRequest.fromBranch}"
+        val temp = "refs/yona/pull-check/${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}/${pullRequest.fromBranch}"
         fetch(repository, pullRequest, temp)
         try {
             val (attempt, _) = merge(repository, requireNotNull(pullRequest.toBranch), temp)
@@ -176,10 +176,10 @@ class GitPullRequestBackend(private val repositories: RepositoryService, private
         }
 
     /** 이 풀 리퀘스트 보내는 브랜치의 참조 이름이다 (v1.6 `getRefNameToFetchedSource`). */
-    override fun headRef(pullRequest: PullRequest) = "refs/yobi/pull/${pullRequest.id}/head"
+    override fun headRef(pullRequest: PullRequest) = "refs/yona/pull/${pullRequest.id}/head"
 
     /** 이 풀 리퀘스트 병합 결과의 참조 이름이다 (v1.6 `getNameOfRefToMerged`). */
-    override fun mergedRef(pullRequest: PullRequest) = "refs/yobi/pull/${pullRequest.id}/merged"
+    override fun mergedRef(pullRequest: PullRequest) = "refs/yona/pull/${pullRequest.id}/merged"
 
     private fun <T> locked(pullRequest: PullRequest, action: (Repository) -> T): T {
         val lock = locks.computeIfAbsent(requireNotNull(pullRequest.toProject?.id)) { ReentrantLock() }

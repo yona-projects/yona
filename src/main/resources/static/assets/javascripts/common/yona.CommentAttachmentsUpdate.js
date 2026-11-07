@@ -60,7 +60,7 @@ $(function () {
                     NProgress.done();
                 }
             }).fail(function (data) {
-                $yobi.notify(data);
+                $yona.notify(data);
             });
         }
     });
@@ -118,7 +118,7 @@ $(function () {
                         caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
                         NProgress.done();
                     }).fail(function (data) {
-                        $yobi.notify(data);
+                        $yona.notify(data);
                     });
 
                 }

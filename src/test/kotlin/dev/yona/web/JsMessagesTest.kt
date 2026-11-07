@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 /**
  * `GET /messages.js`(v1.6 `Application.jsMessages`)가 브라우저 스크립트용 메시지 함수를 제공하는지 검증한다.
  *
- * v1.6은 play-jsmessages 라이브러리로 `Messages(키, 인자...)` 전역 함수를 만들어 `yobi.*.js`가 그대로 쓴다.
+ * v1.6은 play-jsmessages 라이브러리로 `Messages(키, 인자...)` 전역 함수를 만들어 `yona.*.js`가 그대로 쓴다.
  * 함수의 이름과 호출 방식이 같아야 기존 JS가 동작한다.
  */
 @AutoConfigureMockMvc

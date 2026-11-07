@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -71,7 +71,7 @@
             htElement.welBtnCopy.on("click", function () {
                 yona.Clipboard.copy(htElement.welInputCloneURL.val()).then(function (copied) {
                     if (copied) {
-                        yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
+                        yona.Common.notify(Messages("code.copyUrl.copied"), 1000);
                     }
                 });
             });
@@ -99,7 +99,7 @@
                                             ? data.overview
                                             : $("#project-description-input").attr('placeholder');
 
-                        yobi.Markdown.render($("#project-description"), sDescription);
+                        yona.Markdown.render($("#project-description"), sDescription);
 
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
 
@@ -138,7 +138,7 @@
                                 break;
                         }
 
-                        $yobi.alert(sErrorMsg);
+                        $yona.alert(sErrorMsg);
                     });
                 });
             });
@@ -200,7 +200,7 @@
 
             htElement.welInputLabel.val("");
 
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL"   : htVar.sURLProjectLabels,
                 "htData" : htLabel,
                 "fOnLoad": _appendLabels
@@ -217,7 +217,7 @@
         * Get list of tags from the server and show them in #tags div.
         */
         function _initLabels() {
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL"     : htVar.sURLProjectLabels,
                 "htOptForm": {"method":"get"},
                 "fOnLoad"  : function(data) {
@@ -258,7 +258,7 @@
             };
 
             var fOnClickDelete = function() {
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL"   : htVar.sURLProjectLabels + '/' + sInstanceId,
                     "htData" : {"_method":"DELETE"},
                     "fOnLoad": fOnLoadAfterDeleteLabel
@@ -400,7 +400,7 @@
 
             htElement.welInputLabel.data('category', $(this).data('category'));
 
-            new yobi.ui.Typeahead(htElement.welInputLabel, {
+            new yona.ui.Typeahead(htElement.welInputLabel, {
                 "sActionURL": htVar.sURLLabels,
                 "htData": {
                     "category":  $(this).data('category'),
@@ -474,4 +474,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.project.Home");
+})("yona.project.Home");

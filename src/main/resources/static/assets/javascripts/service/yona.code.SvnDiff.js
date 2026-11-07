@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -58,7 +58,7 @@
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
 
-            // yobi.Attachments
+            // yona.Attachments
             htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 
@@ -100,7 +100,7 @@
                 var welTarget = $(weEvt.target);
                 var bWatched = welTarget.hasClass("active");
 
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
                         welTarget.toggleClass("active");
@@ -143,10 +143,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -161,7 +161,7 @@
         function _initFileDownloader(){
             $(".attachments").each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
-                    (new yobi.Attachments({"elContainer": elContainer}));
+                    (new yona.Attachments({"elContainer": elContainer}));
                 }
             });
         }
@@ -536,4 +536,4 @@
 
         _init(htOptions || {});
     };
-})("yobi.code.SvnDiff");
+})("yona.code.SvnDiff");

@@ -15,7 +15,7 @@ import java.util.ResourceBundle
 /**
  * 브라우저 스크립트가 쓰는 메시지 함수를 만든다. v1.6 `Application.jsMessages`(`GET /messages.js`)에 해당한다.
  *
- * v1.6은 play-jsmessages 라이브러리로 전역 함수 `Messages(키, 인자...)`를 만들고 `yobi.*.js`가
+ * v1.6은 play-jsmessages 라이브러리로 전역 함수 `Messages(키, 인자...)`를 만들고 `yona.*.js`가
  * 그대로 호출한다. 이름과 호출 방식이 같은 함수를 만든다.
  *
  * 함수의 모양도 play-jsmessages와 같다.

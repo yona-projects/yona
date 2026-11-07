@@ -5,7 +5,7 @@
  * https://yona.io
  **/
 
-yobi.Attachments = function(htOptions) {
+yona.Attachments = function(htOptions) {
     var htVar = {};
     var htElements = {};
 
@@ -82,7 +82,7 @@ yobi.Attachments = function(htOptions) {
         htElements.welFileListHelp = htElements.welContainer.find("p.help");
 
         // -- help messages for additional uploader features
-        var htEnv = yobi.Files.getEnv();
+        var htEnv = yona.Files.getEnv();
         htElements.welHelpDroppable = htElements.welContainer.find(".help-droppable");
         htElements.welHelpPastable  = htElements.welContainer.find(".help-pastable");
         htElements.welHelpDroppable[htEnv.bDroppable ? "show" : "hide"]();
@@ -96,7 +96,7 @@ yobi.Attachments = function(htOptions) {
      * @param {String} sUploaderId
      */
     function _attachUploaderEvent(sUploaderId){
-        yobi.Files.attach({
+        yona.Files.attach({
             "beforeUpload"  : _onBeforeUpload,
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
@@ -113,7 +113,7 @@ yobi.Attachments = function(htOptions) {
      * @param {String} sUploaderId
      */
     function _detachUploaderEvent(sUploaderId){
-        yobi.Files.detach({
+        yona.Files.detach({
             "beforeUpload"  : _onBeforeUpload,
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
@@ -347,7 +347,7 @@ yobi.Attachments = function(htOptions) {
             htElements.welFileListHelp.hide();
         }
 
-        $yobi.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
+        $yona.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
         // v1.6은 `.png`를 붙여 지워서 삽입한 임시 주석(접미 없음)이 남았다(C005)
         _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId));
     }
@@ -374,7 +374,7 @@ yobi.Attachments = function(htOptions) {
     function _deleteAttachedFile(welItem){
        var sURL = welItem.attr("data-href");
 
-        yobi.Files.deleteFile({
+        yona.Files.deleteFile({
            "sURL"   : sURL,
            "fOnLoad": function(){
                 _removeDeletedFileIdFromListAndForm(welItem.data("id"))
@@ -387,7 +387,7 @@ yobi.Attachments = function(htOptions) {
                 }
             },
             "fOnError": function(oRes){
-                $yobi.notify(Messages("common.attach.error.delete", oRes.status, oRes.statusText));
+                $yona.notify(Messages("common.attach.error.delete", oRes.status, oRes.statusText));
             }
        });
     }
@@ -569,7 +569,7 @@ yobi.Attachments = function(htOptions) {
      * request attached file list
      */
     function _requestList(){
-        yobi.Files.getList({
+        yona.Files.getList({
             "fOnLoad"      : _updateAttachments,
             "sResourceType": htVar.sResourceType,
             "sResourceId"  : htVar.sResourceId

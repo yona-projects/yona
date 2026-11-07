@@ -22,7 +22,7 @@
 // Usage: Pagiation.updatePagination(target, totalPages);
 // For more details, see docs/technical/pagination.md
 
-yobi.Pagination = (function(window, document) {
+yona.Pagination = (function(window, document) {
     var htRegEx = {};
     var rxDigit = /^.[0-9]*$/;
     // $.isNumeric determines hex, point or negative numbers as numeric.
@@ -270,11 +270,11 @@ yobi.Pagination = (function(window, document) {
             welPageLink.html(htData.sLinkHTMLOff);
         }
 
-        // if yobi.ShortcutKey exists
-        if(yobi.ShortcutKey){
+        // if yona.ShortcutKey exists
+        if(yona.ShortcutKey){
             var htKeyOpt = {};
             htKeyOpt[htData.sShortcutKey] = htData.sLinkHref;
-            yobi.ShortcutKey.setKeymapLink(htKeyOpt);
+            yona.ShortcutKey.setKeymapLink(htKeyOpt);
         }
 
         return welPageLink;

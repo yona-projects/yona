@@ -81,7 +81,7 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
-        $yobi.loadModule("board.List", {
+        $yona.loadModule("board.List", {
             "elPagination": $('#pagination'),
             "nTotalPages" : /*[[${totalPageCount}]]*/ 0
         });

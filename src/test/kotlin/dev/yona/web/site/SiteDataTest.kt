@@ -119,7 +119,7 @@ class SiteDataTest : AbstractIntegrationTest() {
         val started = mockMvc.perform(get("/sites/export").session(admin())).andExpect(request().asyncStarted()).andReturn()
         val result = mockMvc.perform(asyncDispatch(started)).andExpect(status().isOk)
             .andExpect(header().string("Content-Type", "application/x-download")).andReturn()
-        assertTrue(Regex("attachment; filename=yobi-data-\\d{12}\\.json").matches(result.response.getHeader("Content-disposition")!!), result.response.getHeader("Content-disposition"))
+        assertTrue(Regex("attachment; filename=yona-data-\\d{12}\\.json").matches(result.response.getHeader("Content-disposition")!!), result.response.getHeader("Content-disposition"))
         val body = result.response.contentAsString
         assertTrue(body.trimStart().startsWith("{") && body.contains("\"N4USER\""))
     }

@@ -59,7 +59,7 @@ class AttachmentService(
 
     /** 스트림의 내용을 임시 파일로 받아 [store]와 같이 저장한다. */
     fun store(input: InputStream, name: String?, containerType: ResourceType, containerId: Long, ownerLoginId: String?): Stored {
-        val temp = File.createTempFile("yobi", null)
+        val temp = File.createTempFile("yona", null)
         try {
             input.use { source -> temp.outputStream().use { source.copyTo(it) } }
             return store(temp, name, containerType, containerId, ownerLoginId)

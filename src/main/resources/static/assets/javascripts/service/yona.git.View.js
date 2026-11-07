@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -84,7 +84,7 @@
                 var welTarget = $(weEvt.target);
                 var bWatched = (welTarget.attr("data-watching") === "true");
 
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
                         welTarget
@@ -92,7 +92,7 @@
                             .toggleClass('ybtn-watching')
                             .html(Messages(!bWatched ? "project.unwatch" : "project.watch")).blur();
                             
-                        $yobi.notify(Messages(bWatched ? "pullRequest.unwatch.start" : "pullRequest.watch.start"), 3000);
+                        $yona.notify(Messages(bWatched ? "pullRequest.unwatch.start" : "pullRequest.watch.start"), 3000);
                     }
                 });
             });
@@ -111,7 +111,7 @@
             });
 
             if (htVar.bCommentable) {
-                yobi.CodeCommentBox.init({
+                yona.CodeCommentBox.init({
                     fCallbackAfterHideCommentBox: function(welCommentBox) {
                         $('ul#comments').after(welCommentBox);
                     },
@@ -131,10 +131,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -150,7 +150,7 @@
             htElement.welAttachments.each(function(n, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
                     if(!$(elContainer).data("isYobiAttachment")){
-                        (new yobi.Attachments({"elContainer": elContainer}));
+                        (new yona.Attachments({"elContainer": elContainer}));
                     }
                 }
             });
@@ -188,11 +188,11 @@
          */
         function _setStateUpdateTimer(){
             if(htVar.nStateUpdateTimer != null){
-                yobi.Interval.clear(htVar.nStateUpdateTimer);
+                yona.Interval.clear(htVar.nStateUpdateTimer);
                 htVar.nStateUpdateTimer = null;
             }
 
-            htVar.nStateUpdateTimer = yobi.Interval.set(function(){
+            htVar.nStateUpdateTimer = yona.Interval.set(function(){
                 if(htVar.bStateUpdating !== true){
                     _updateState();
                 }
@@ -202,4 +202,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.git.View");
+})("yona.git.View");

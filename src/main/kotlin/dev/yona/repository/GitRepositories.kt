@@ -88,7 +88,7 @@ class GitRepositories @Autowired constructor(private val dataDirectory: DataDire
      * v1.6은 먼저 객체 파일을 하드 링크로 거는 방법을 시도하지만, `Repository.create()`(= `create(false)`)가 이름이 `.git`으로 끝나지 않는
      * 디렉터리에서 작업 트리가 없어 항상 `NoWorkTreeException`을 던진다. 그래서 모든 포크는 실제로는 폴백인 복제(`Git.cloneRepository()`,
      * bare, 모든 브랜치)로 만들어진다. 결과는 `remote.origin`(원본의 canonical 절대 경로)과 원본 HEAD 브랜치의 `branch.<이름>` 설정이 붙은
-     * bare 저장소이고, `refs/heads/` 아래의 브랜치와 태그만 복사한다. `refs/yobi/` 아래의 PR용 ref는 복사하지 않는다 (2026-10-27 P-10 결정 4, S1 명세 8번).
+     * bare 저장소이고, `refs/heads/` 아래의 브랜치와 태그만 복사한다. `refs/yona/` 아래의 PR용 ref는 복사하지 않는다 (2026-10-27 P-10 결정 4, S1 명세 8번).
      * 하드 링크 시도는 실행된 적이 없는 코드이므로 옮기지 않는다.
      */
     fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) {

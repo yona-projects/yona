@@ -20,7 +20,7 @@
  */
 (function(ns){
     
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
                 
         var htElement = {};
@@ -63,7 +63,7 @@
                     },
                     "error": function(){
                         bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertTransfer")).hide();
-                        $yobi.alert(Messages("project.transfer.error"));
+                        $yona.alert(Messages("project.transfer.error"));
                         return false;
                     }
                 });
@@ -72,7 +72,7 @@
         
         function _onClickBtnTransferPop(){
             if(htElement.welChkAccept.is(":checked") === false){
-                $yobi.alert(Messages("project.transfer.alert"));
+                $yona.alert(Messages("project.transfer.alert"));
                 return false;
             }
             return true;
@@ -81,4 +81,4 @@
         _init(htOptions || {});
     };
     
-})("yobi.project.Transfer");
+})("yona.project.Transfer");

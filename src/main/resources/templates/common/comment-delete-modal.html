@@ -20,10 +20,10 @@
     <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
   </div>
 </div></div></div>
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.Comment.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Comment.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(function () {
-        yobi.Comment.init({'sContainer' : '[(${#strings.escapeXml(commentsContainer)})]'});
+        yona.Comment.init({'sContainer' : '[(${#strings.escapeXml(commentsContainer)})]'});
     });
 </script>
 </th:block>

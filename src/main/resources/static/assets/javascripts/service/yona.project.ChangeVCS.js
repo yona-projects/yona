@@ -21,7 +21,7 @@
 (function(ns){
 
     var NO_CONTENT = 204;
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
                 
         var elements = {};
@@ -67,7 +67,7 @@
         
         function showConfirmPopup() {
             if(elements.acceptChangeVCS.is(":checked") === false){
-                $yobi.alert(Messages("project.changeVCS.alert"));
+                $yona.alert(Messages("project.changeVCS.alert"));
                 return false;
             }
             return true;
@@ -88,7 +88,7 @@
                 },
                 "error": function(){
                     bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertChangeVCS")).hide();
-                    $yobi.alert(Messages("project.changeVCS.error"));
+                    $yona.alert(Messages("project.changeVCS.error"));
                 }
             };
             // 바꿀 종류를 고르게 한 화면이면 고른 종류를 보낸다. 없으면 v1.6처럼 번갈아 바꾼다
@@ -101,4 +101,4 @@
         _init(options || {});
     };
     
-})("yobi.project.ChangeVCS");
+})("yona.project.ChangeVCS");

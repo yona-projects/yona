@@ -144,7 +144,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
         assertEquals("옥토$sequence", user.name)
         assertEquals(UserState.ACTIVE, user.state)
         // 소셜 로그인은 로그인 유지를 고르는 화면이 없으므로 로그인 유지 쿠키를 남기지 않는다. v1.6은 항상 남겼다(R-59-4)
-        assertNull(result.response.getCookie("yobi.token"))
+        assertNull(result.response.getCookie("yona.token"))
         assertTrue(isLoggedIn(session))
     }
 
@@ -166,10 +166,10 @@ class SocialLoginTest : AbstractIntegrationTest() {
         val secret = enableTwoFactor(user)
         val session = MockHttpSession()
         val first = signIn("github", session).andExpect(status().isSeeOther).andExpect(header().string("Location", "/users/login/2fa")).andReturn()
-        assertEquals(null, first.response.getCookie("yobi.token"), "코드를 확인하기 전에는 쿠키가 없다")
+        assertEquals(null, first.response.getCookie("yona.token"), "코드를 확인하기 전에는 쿠키가 없다")
         assertTrue(!isLoggedIn(session))
         val done = mockMvc.perform(post("/users/login/2fa").session(session).param("code", nowCode(secret))).andExpect(status().isSeeOther).andReturn()
-        assertNull(done.response.getCookie("yobi.token"))
+        assertNull(done.response.getCookie("yona.token"))
         assertTrue(isLoggedIn(session))
     }
 
@@ -376,7 +376,7 @@ class SocialLoginTest : AbstractIntegrationTest() {
         assertNull(session.getAttribute("pa.u.id"))
         assertNull(session.getAttribute("pa.url.orig"))
         assertFalse(isLoggedIn(session))
-        assertEquals(0, result.response.getCookie("yobi.token")?.maxAge)
+        assertEquals(0, result.response.getCookie("yona.token")?.maxAge)
     }
 
     @Test

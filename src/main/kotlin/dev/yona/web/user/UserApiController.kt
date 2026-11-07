@@ -49,7 +49,7 @@ class UserApiController(
     }
 
     private companion object {
-        /** 자동 완성 입력란이 한 번에 보여 주는 개수와 같다 (`yobi.ui.Typeaheds.js`). */
+        /** 자동 완성 입력란이 한 번에 보여 주는 개수와 같다 (`yona.ui.Typeaheds.js`). */
         const val MAX_FETCH_USERS = 10
         const val MENTION_AVATAR_SIZE = 64
     }

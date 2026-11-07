@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -63,8 +63,8 @@
         function _onChangeLogoPath(){
             var welTarget = $(this);
 
-            if($yobi.isImageFile(welTarget) === false){
-                $yobi.showAlert(Messages("project.logo.alert"));
+            if($yona.isImageFile(welTarget) === false){
+                $yona.showAlert(Messages("project.logo.alert"));
                 welTarget.val('');
                 return;
             }
@@ -111,4 +111,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.organization.Setting");
+})("yona.organization.Setting");

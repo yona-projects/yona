@@ -7,7 +7,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -76,17 +76,17 @@
             var sDueDate = $.trim(htElement.welInputDueDate.val());
 
             if(sTitle.length === 0){
-                $yobi.showAlert(Messages("milestone.error.title"));
+                $yona.showAlert(Messages("milestone.error.title"));
                 return false;
             }
 
             if(sContent.length === 0){
-                $yobi.showAlert(Messages("milestone.error.content"));
+                $yona.showAlert(Messages("milestone.error.content"));
                 return false;
             }
 
             if(sDueDate.length > 0 && htVar.rxDateFormat.test(sDueDate) === false){
-                $yobi.showAlert(Messages("milestone.error.duedateFormat"));
+                $yona.showAlert(Messages("milestone.error.duedateFormat"));
                 return false;
             }
 
@@ -129,10 +129,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputContent);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welInputContent);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welInputContent,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -144,4 +144,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.milestone.Write");
+})("yona.milestone.Write");

@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 (function(ns) {
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions) {
         var htElement = {};
 
@@ -56,7 +56,7 @@
                     document.location.reload();
                 },
                 "error": function(){
-                    $yobi.notify("Server Error");
+                    $yona.notify("Server Error");
                 }
             })
 
@@ -66,4 +66,4 @@
 
         _init(htOptions || {});
     };
-})("yobi.organization.Global");
+})("yona.organization.Global");

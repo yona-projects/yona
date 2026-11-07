@@ -150,7 +150,7 @@
                 </ul>
                 <script type="text/javascript" th:inline="javascript">
                     $(function(){
-                        yobi.Pagination.update($("#pagination"), /*[[${totalPages}]]*/ 0);
+                        yona.Pagination.update($("#pagination"), /*[[${totalPages}]]*/ 0);
 
                         (function _initImplicitTitlePrefix() {
                             $(".title-prefix").on("click", function(){
@@ -172,7 +172,7 @@
               return false;
             });
 
-            yobi.ui.Select2("#contributors").on("change", function(){
+            yona.ui.Select2("#contributors").on("change", function(){
                 $('#search').submit();
             });
         });

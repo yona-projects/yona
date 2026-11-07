@@ -84,14 +84,14 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/pikaday/pikaday.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
-        // yobi.milestone.Write
-        $yobi.loadModule("milestone.Write", {
+        // yona.milestone.Write
+        $yona.loadModule("milestone.Write", {
             "elDueDate"   : $("#dueDate"),
             "elDatePicker": $("#datepicker")
         });
 
-        // yobi.Mention
-        yobi.Mention({
+        // yona.Mention
+        yona.Mention({
             "target": "textarea[id^=editor-]",
             "url"   : /*[[${#paths.project(projectView.project.owner, projectView.project.name) + '/mentionList'}]]*/ ""
         });

@@ -28,7 +28,7 @@
     }
 
     function failed(xhr) {
-        $yobi.notify(Messages("error.failedTo", Messages("pullRequest.review.area.title"), xhr.status, xhr.statusText));
+        $yona.notify(Messages("error.failedTo", Messages("pullRequest.review.area.title"), xhr.status, xhr.statusText));
     }
 
     /** 변경 뒤 리뷰 영역과 타임라인만 다시 읽는다. */
@@ -84,7 +84,7 @@
                 return;
             }
             send($box.data("request-url"), {reviewer: loginId}, function () {
-                $yobi.notify(Messages("pullRequest.review.request.done"), 3000);
+                $yona.notify(Messages("pullRequest.review.request.done"), 3000);
                 refresh(timelineUrl());
             });
         });
@@ -99,13 +99,13 @@
         // 취소와 다시 요청 단추는 영역을 다시 읽어도 동작하도록 문서에 위임한다
         $(document).on("click", "#review-area .review-cancel", function () {
             send($(this).data("url"), {}, function () {
-                $yobi.notify(Messages("pullRequest.review.request.cancelled"), 3000);
+                $yona.notify(Messages("pullRequest.review.request.cancelled"), 3000);
                 refresh(timelineUrl());
             });
         });
         $(document).on("click", "#review-area .review-rerequest", function () {
             send($(this).data("url"), {reviewer: $(this).data("reviewer")}, function () {
-                $yobi.notify(Messages("pullRequest.review.request.done"), 3000);
+                $yona.notify(Messages("pullRequest.review.request.done"), 3000);
                 refresh(timelineUrl());
             });
         });

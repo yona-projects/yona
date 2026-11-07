@@ -165,13 +165,13 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.CommentAttachmentsUpdate.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
-        $yobi.loadModule("board.View", {
+        $yona.loadModule("board.View", {
             "sWatchUrl"  : "[(${'/watch?resource.type=board_post&amp;resource.id=' + post.id})]",
             "sUnwatchUrl": "[(${'/unwatch?resource.type=board_post&amp;resource.id=' + post.id})]"
         });
 
-        // yobi.ShortcutKey
-        yobi.ShortcutKey.setKeymapLink({
+        // yona.ShortcutKey
+        yona.ShortcutKey.setKeymapLink({
             "L": /*[[${listUrl}]]*/ ""
             /*[# th:if="${projectView.menuSetting.board}"]*/
             ,"N": /*[[${base + '/postform'}]]*/ ""
@@ -181,8 +181,8 @@
             /*[/]*/
         });
 
-        // yobi.Mention
-        yobi.Mention({
+        // yona.Mention
+        yona.Mention({
             "target": 'textarea[id^=editor-], .editorSeries',
             "url"   : /*[[${base + '/mentionList?number=' + post.number + '&resourceType=board_post'}]]*/ ""
         });

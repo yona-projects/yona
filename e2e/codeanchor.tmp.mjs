@@ -6,7 +6,7 @@ import { ADMIN, ROOT, startServer } from './lib/server.mjs';
 import { Session } from './lib/http.mjs';
 import { seed } from './seed.mjs';
 
-const REL = 'src/main/resources/static/assets/javascripts/service/yobi.code.Browser.js';
+const REL = 'src/main/resources/static/assets/javascripts/service/yona.code.Browser.js';
 const oldJs = execFileSync('git', ['show', `HEAD:${REL}`], { cwd: join(ROOT, '..'), encoding: 'utf8' });
 const fx = await seed({ port: 19191 });
 const P = `/${fx.project.owner}/${fx.project.name}`;

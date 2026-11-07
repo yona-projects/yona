@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 
-yobi = yobi || {};
+yona = yona || {};
 
-yobi.CodeCommentBlock = (function(){
+yona.CodeCommentBlock = (function(){
     var htVar = {};
     var htElement = {};
     var htBlockInfo = {};

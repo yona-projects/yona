@@ -127,7 +127,7 @@ class UserFilesTest : AbstractIntegrationTest() {
         assertEquals(50, first.select(".attachment-file-detail").size)
         assertEquals(5, second.select(".attachment-file-detail").size)
         assertEquals("f5.txt", second.select(".attachment-file-detail").first()!!.selectFirst(".file-name")!!.text().trim())
-        assertTrue(first.html().contains("yobi.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
     }
 
     @Test

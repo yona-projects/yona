@@ -58,14 +58,14 @@ class SiteDataController(
     fun data(): ModelAndView = ModelAndView("site/data").addObject("title", "title.siteSetting")
 
     /**
-     * DB 전체를 `yobi-data-<yyyyMMddHHmm>.json` 파일로 보낸다. 쓰는 동안 오류가 나면 로그를 남기고 예외를 그대로 전해 응답이 중단되게 한다.
+     * DB 전체를 `yona-data-<yyyyMMddHHmm>.json` 파일로 보낸다. 쓰는 동안 오류가 나면 로그를 남기고 예외를 그대로 전해 응답이 중단되게 한다.
      * v1.6은 오류를 로그로만 남겨 잘린 파일이 정상 응답으로 갔다(R-56-5).
      */
     @GetMapping("/sites/export")
     fun export(): ResponseEntity<StreamingResponseBody> {
         // 스트림은 다른 스레드에서 쓰여 요청 문맥(행위자)을 잃으므로 요청 스레드에서 먼저 남긴다
         audit.record(dev.yona.domain.audit.AuditEvent("site.data_exported", targetType = "site", details = mapOf("via" to "web")))
-        val filename = "yobi-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
+        val filename = "yona-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
         val body = StreamingResponseBody { out ->
             try {
                 data.export(out)

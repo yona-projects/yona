@@ -8,7 +8,7 @@
 
     "use strict";
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
         var vars = {};
@@ -104,7 +104,7 @@
                     location.reload();
                 },
                 "error" : function(res){
-                    $yobi.notify(Messages(res.responseText), 3000);
+                    $yona.notify(Messages(res.responseText), 3000);
                 }
             });
         }
@@ -137,7 +137,7 @@
 
             // if dueDate is not empty and invalid
             if(dueDate && !moment(dueDate).isValid()){
-                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
                 element.focus();
                 return;
             }
@@ -188,7 +188,7 @@
             .done(function(res){
                 _updateTimeline();
 
-                $yobi.notify(Messages("issue.update." + fieldName), 3000);
+                $yona.notify(Messages("issue.update." + fieldName), 3000);
 
                 if(field.data("select2")){
                     field.data("select2").val(fieldValue);
@@ -199,7 +199,7 @@
                 }
             })
             .fail(function(res){
-                $yobi.notify(Messages("error.failedTo",
+                $yona.notify(Messages("error.failedTo",
                     Messages("issue.update." + fieldName),
                     res.status, res.statusText));
             });
@@ -293,7 +293,7 @@
                     .html(Messages(!watching ? "issue.unwatch" : "issue.watch"))
                     .blur();
 
-                $yobi.notify(Messages(watching ? "issue.unwatch.start" : "issue.watch.start"), 3000);
+                $yona.notify(Messages(watching ? "issue.unwatch.start" : "issue.watch.start"), 3000);
             });
         }
 
@@ -303,10 +303,10 @@
          * @private
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(elements.uploader, elements.textarea);
+            var oUploader = yona.Files.getUploader(elements.uploader, elements.textarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : elements.uploader,
                     "elTextarea"   : elements.textarea,
                     "sTplFileItem" : vars.tplFileItem,
@@ -324,7 +324,7 @@
         function _initFileDownloader(target){
             (target || $(".attachments")).each(function(i, container){
                 if(!$(container).data("isYobiAttachment")){
-                    (new yobi.Attachments({"elContainer": container}));
+                    (new yona.Attachments({"elContainer": container}));
                 }
             });
         }
@@ -412,7 +412,7 @@
             timelineList.html(timelineHTML);
 
             _initFileDownloader(timelineList.find(".attachments"));
-            yobi.Markdown.enableMarkdown(timelineList.find("[markdown]"));
+            yona.Markdown.enableMarkdown(timelineList.find("[markdown]"));
             timelineList.find("[data-request-method]").requestAs(); // delete button
 
             return timelineList;
@@ -499,9 +499,9 @@
                 }
             });
 
-            // if yobi.ShortcutKey exists
-            if(yobi.ShortcutKey){
-                yobi.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
+            // if yona.ShortcutKey exists
+            if(yona.ShortcutKey){
+                yona.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
                     if(htInfo.welTarget.is(elements.textarea)){
                         dynamicCommentBtn.click();
                     }
@@ -513,4 +513,4 @@
         // initialize
         _init(options || {});
     };
-})("yobi.issue.View");
+})("yona.issue.View");

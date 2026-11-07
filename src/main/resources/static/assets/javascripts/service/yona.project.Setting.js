@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -78,8 +78,8 @@
         function _onChangeLogoPath(){
             var welTarget = $(this);
 
-            if($yobi.isImageFile(welTarget) === false){
-                $yobi.showAlert(Messages("project.logo.alert"));
+            if($yona.isImageFile(welTarget) === false){
+                $yona.showAlert(Messages("project.logo.alert"));
                 welTarget.val('');
                 return;
             }
@@ -90,11 +90,11 @@
         function _onClickBtnSave(){
             var sPrjName = htElement.welInputName.val();
             if(!htVar.rxPrjName.test(sPrjName)){
-                $yobi.showAlert(Messages("project.name.alert"));
+                $yona.showAlert(Messages("project.name.alert"));
                 return false;
             }
             if(htVar.aReservedWords.indexOf(sPrjName) >= 0){
-                $yobi.showAlert(Messages("project.name.reserved.alert"));
+                $yona.showAlert(Messages("project.name.reserved.alert"));
                 return false;
             }
 
@@ -137,4 +137,4 @@
         _init(htOptions);
     };
 
-})("yobi.project.Setting");
+})("yona.project.Setting");

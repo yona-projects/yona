@@ -80,12 +80,12 @@
 <script type="text/jAvascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
 <script type="text/javascript" th:inline="javascript">
 $(function(){
-    $yobi.loadModule("board.Write", {
+    $yona.loadModule("board.Write", {
         "sMode"     : "new",
         "elTextarea": 'textarea[data-editor-mode="content-body"]'
     });
 
-    yobi.Mention({
+    yona.Mention({
         "target": 'textarea[id^=editor-]',
         "url"   : /*[[${base + '/mentionList'}]]*/ ""
     });

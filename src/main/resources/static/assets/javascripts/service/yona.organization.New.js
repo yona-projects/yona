@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -96,4 +96,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.organization.New");
+})("yona.organization.New");

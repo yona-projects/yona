@@ -164,7 +164,7 @@ function yonaTitleHeadModule(htOptions){
                             issueLabels.push($selectedLabel.val());
                             $("#labelIds").select2("val", issueLabels);
 
-                            $yobi.notify('Label: ' + selectedValueOnly, 3000);
+                            $yona.notify('Label: ' + selectedValueOnly, 3000);
                             return "";
                         } else {
                             return value;

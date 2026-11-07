@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -72,7 +72,7 @@
 
         function _onBlurInputLoginId(){
             var welInput = $(this);
-            var sLoginId = $yobi.getTrim(welInput.val()).toLowerCase();
+            var sLoginId = $yona.getTrim(welInput.val()).toLowerCase();
             welInput.val(sLoginId);
 
             if(_onValidateLoginId(sLoginId) === false){
@@ -193,16 +193,16 @@
         }
 
         function showErrorMessage(welInput, sMessage){
-            $yobi.showPopover(welInput, {
+            $yona.showPopover(welInput, {
                 "placement": "left",
                 "content": sMessage
             });
         }
 
         function hideErrorMessage(welInput){
-            $yobi.hidePopover(welInput);
+            $yona.hidePopover(welInput);
         }
 
         _init(htOptions || {});
     };
-})("yobi.user.SignUp");
+})("yona.user.SignUp");

@@ -70,12 +70,12 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
 <script type="text/javascript" th:inline="javascript">
 $(function(){
-    $yobi.loadModule("board.Write", {
+    $yona.loadModule("board.Write", {
         "sMode"     : "edit",
         "elTextarea": 'textarea[data-editor-mode="content-body"]'
     });
 
-    yobi.Mention({
+    yona.Mention({
         "target": 'textarea[id^=editor-]',
         "url"   : /*[[${base + '/mentionList?number=' + number + '&resourceType=board_post'}]]*/ ""
     });

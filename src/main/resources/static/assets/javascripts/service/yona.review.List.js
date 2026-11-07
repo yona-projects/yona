@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
         var htVar = {};
         var htElement = {};
@@ -88,13 +88,13 @@
 
         /**
          * update Pagination
-         * @requires yobi.Pagination
+         * @requires yona.Pagination
          */
         function _initPagination(){
-            yobi.Pagination.update(htElement.welPagination, htVar.nTotalPages);
+            yona.Pagination.update(htElement.welPagination, htVar.nTotalPages);
         }
 
         _init(htOptions);
     }
-})("yobi.review.List");
+})("yona.review.List");
 

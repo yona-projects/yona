@@ -50,7 +50,7 @@ $(document).ready(function(){
             welLink = $(waItems[nIndex]);
 
             if(welLink && welLink.data("toggle" == "tab")){
-                $yobi.showTab(welLink);
+                $yona.showTab(welLink);
             }
         }
 

@@ -111,8 +111,8 @@ class LayoutModelAdvice(private val layoutModelFactory: LayoutModelFactory) {
 /**
  * 화면 맨 아래 스크립트가 알림으로 보여 줄 일회성 메시지이다. 번역은 끝난 상태이다.
  *
- * @property notices 짧게 나타났다 사라지는 알림(`$yobi.notify`)
- * @property alertTitle 있으면 확인 대화상자(`$yobi.alert`)로 보여 줄 제목
+ * @property notices 짧게 나타났다 사라지는 알림(`$yona.notify`)
+ * @property alertTitle 있으면 확인 대화상자(`$yona.alert`)로 보여 줄 제목
  * @property alertDescription 확인 대화상자의 설명
  */
 data class FlashMessages(val notices: List<String>, val alertTitle: String?, val alertDescription: String)
@@ -121,7 +121,7 @@ data class FlashMessages(val notices: List<String>, val alertTitle: String?, val
  * 일회성(flash) 메시지를 화면에 보일 문구로 바꾼다.
  *
  * v1.6 `common/scripts.scala.html`은 flash의 값을 메시지 키로 보고 번역한 뒤 HTML 이스케이프한다.
- * 키 `title`이 있으면 확인 대화상자(`$yobi.alert`)로, 나머지는 알림(`$yobi.notify`)으로 보여 준다.
+ * 키 `title`이 있으면 확인 대화상자(`$yona.alert`)로, 나머지는 알림(`$yona.notify`)으로 보여 준다.
  */
 @Component
 class FlashMessageTranslator(private val messages: MessageSource) {

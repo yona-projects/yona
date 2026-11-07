@@ -155,8 +155,8 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
         /** 태그의 접두어이다. */
         const val TAGS = "refs/tags/"
 
-        /** 풀 리퀘스트의 숨은 참조로 예약한 이름표 접두어이다(D-87). 브랜치 목록과 이름 풀이에서 빼고 푸시를 거부한다. Git의 `refs/yobi/`에 해당한다. */
-        const val RESERVED_BOOKMARK_PREFIX = "yobi/"
+        /** 풀 리퀘스트의 숨은 참조로 예약한 이름표 접두어이다(D-87). 브랜치 목록과 이름 풀이에서 빼고 푸시를 거부한다. Git의 `refs/yona/`에 해당한다. */
+        const val RESERVED_BOOKMARK_PREFIX = "yona/"
 
         /** 기본 위치로 삼는 이름표이다. 앞에 있을수록 우선한다(`@`는 Mercurial의 관례적인 기본 이름표). */
         val DEFAULT_BOOKMARKS = listOf("main", "master", "@")

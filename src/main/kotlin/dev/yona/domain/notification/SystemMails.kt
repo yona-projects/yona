@@ -131,7 +131,7 @@ class SystemMails(
         helper.setFrom(InternetAddress(from(), sender.name, "UTF-8"))
         // v1.6은 받는 사람(To)을 발신 주소의 "Yobi"로 고정하고 실제 수신자를 모두 숨은참조에 넣었다. 실제 수신자를 받는 사람으로 넣는다(R-34).
         // 받을 사람이 없으면 보낼 곳이 없지만, 메일 조립이 실패하지 않도록 v1.6처럼 발신 주소를 받는 사람으로 둔다.
-        if (bccUsers.isEmpty()) helper.addTo(InternetAddress(from(), "Yobi", "UTF-8"))
+        if (bccUsers.isEmpty()) helper.addTo(InternetAddress(from(), "Yona", "UTF-8"))
         bccUsers.forEach { helper.addTo(InternetAddress(requireNotNull(it.email), it.name, "UTF-8")) }
         helper.setSubject("[${project.name}] @${sender.loginId} wants to transfer project")
         helper.setText(message, markdown.render(message))

@@ -19,13 +19,13 @@
  * limitations under the License.
  */
 /**
- * yobi.ui.Calendar
+ * yona.ui.Calendar
  *
  * @requires Pikaday.js (https://github.com/dbushell/Pikaday/)
  */
 
 (function(ns){
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(element, userOptions){
 
         var targetElement;
@@ -70,10 +70,10 @@
         };
     };
 
-})("yobi.ui.Calendar");
+})("yona.ui.Calendar");
 
 $(function(){
     $('[data-toggle="calendar"]').each(function(i, el){
-        yobi.ui.Calendar(el, $(el).data());
+        yona.ui.Calendar(el, $(el).data());
     });
 });

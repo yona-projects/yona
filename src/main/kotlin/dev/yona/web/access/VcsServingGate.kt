@@ -83,7 +83,7 @@ class VcsServingGate(
         val tags = if (access.wiki) arrayOf("vcs" to vcsTag, "target" to "wiki") else arrayOf("vcs" to vcsTag)
         if (metrics.span("vcs.authorize", *tags) { isAllowed(project, user, access) }) return null
         if (user == null) {
-            response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
+            response.setHeader("WWW-Authenticate", "Basic realm=\"Yona\"")
             return text(HttpStatus.UNAUTHORIZED, unauthorizedMessage(identity))
         }
         return forbidden(user, ownerName, repositoryName, request.getHeader("User-Agent"), charsetByUserAgent)

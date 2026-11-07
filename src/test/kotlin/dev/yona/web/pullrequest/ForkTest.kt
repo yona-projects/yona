@@ -168,7 +168,7 @@ class ForkTest : AbstractIntegrationTest() {
         // PR 가져오기용 비표준 ref를 원본에 하나 둔다. v1.6 폴백 복제는 refs/heads/*와 태그만 가져온다.
         val originDirectory = repositories.openGitRepository(p).use { origin ->
             val head = origin.resolve("HEAD")
-            origin.updateRef("refs/yobi/pull/1/head").apply { setNewObjectId(head); update() }
+            origin.updateRef("refs/yona/pull/1/head").apply { setNewObjectId(head); update() }
             origin.directory.canonicalPath
         }
         mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "barefork").param("projectScope", "PUBLIC")).andExpect(status().isOk)
@@ -176,7 +176,7 @@ class ForkTest : AbstractIntegrationTest() {
         repositories.openGitRepository(fork).use { forked ->
             assertTrue(forked.isBare)
             assertEquals(setOf("refs/heads/master", "refs/heads/feature"), forked.refDatabase.getRefsByPrefix("refs/heads/").map { it.name }.toSet())
-            assertTrue(forked.refDatabase.getRefsByPrefix("refs/yobi/").isEmpty())
+            assertTrue(forked.refDatabase.getRefsByPrefix("refs/yona/").isEmpty())
             val config = forked.config
             // remote.origin은 file: URI가 아니라 원본 디렉터리의 canonical 절대 경로이다
             assertEquals(originDirectory, config.getString("remote", "origin", "url"))

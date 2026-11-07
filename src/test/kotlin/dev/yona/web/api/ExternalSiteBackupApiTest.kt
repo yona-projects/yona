@@ -70,7 +70,7 @@ class ExternalSiteBackupApiTest : AbstractIntegrationTest() {
     fun `내려받기는 사이트 관리자에게 날짜가 붙은 JSON 파일을 보낸다`() {
         val (_, token) = newUser(siteAdmin = true)
         val result = mockMvc.perform(get("/-_-api/v1/admin/export").header("Authorization", "token $token")).andExpect(status().isOk).andReturn()
-        assertTrue(Regex("attachment; filename=yobi-data-\\d{12}\\.json").matches(result.response.getHeader("Content-disposition")!!), result.response.getHeader("Content-disposition"))
+        assertTrue(Regex("attachment; filename=yona-data-\\d{12}\\.json").matches(result.response.getHeader("Content-disposition")!!), result.response.getHeader("Content-disposition"))
         val body = result.response.contentAsString
         assertTrue(body.trimStart().startsWith("{") && body.contains("\"N4USER\""))
     }

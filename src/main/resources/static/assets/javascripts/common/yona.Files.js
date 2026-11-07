@@ -4,7 +4,7 @@
  * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
-yobi.Files = (function(){
+yona.Files = (function(){
     var htVar = {};
     var htElements = {};
     var htHandlers = {};
@@ -262,7 +262,7 @@ yobi.Files = (function(){
      * @param {Function} htOptions.fOnError
      */
     function _deleteFile(htOptions){
-        $yobi.sendForm({
+        $yona.sendForm({
             "sURL"     : htOptions.sURL,
             "fOnLoad"  : htOptions.fOnLoad,
             "fOnError" : htOptions.fOnError,
@@ -696,9 +696,9 @@ yobi.Files = (function(){
      * @param {Function} fHandler
      * @param {String} sNamespace
      * @example
-     * yobi.Files.attach("eventName", function(){}, "namespace");
+     * yona.Files.attach("eventName", function(){}, "namespace");
      * // or
-     * yobi.Files.attach({
+     * yona.Files.attach({
      *    "event1st": function(){},
      *    "event2nd": function(){}
      * }, "namespace");

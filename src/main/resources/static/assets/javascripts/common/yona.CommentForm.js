@@ -52,7 +52,7 @@ $(function(){
         var that = this;
 
         if(isCommentBodyEmpty()){
-            $yobi.notify(Messages("post.comment.empty"), 3000);
+            $yona.notify(Messages("post.comment.empty"), 3000);
             elements.textarea.focus();
             return false;
         }

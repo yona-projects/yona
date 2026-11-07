@@ -478,7 +478,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     // --- 저장 검증 ---
 
     private fun warningOf(result: MvcResult): String? = Jsoup.parse(result.response.contentAsString)
-        .select("script").map { it.data() }.firstOrNull { "yobi.notify" in it || "yobi.alert" in it }
+        .select("script").map { it.data() }.firstOrNull { "yona.notify" in it || "yona.alert" in it }
 
     @Test
     fun `같은 소유자에 같은 이름이 있으면 거부하고 안내한다`() {

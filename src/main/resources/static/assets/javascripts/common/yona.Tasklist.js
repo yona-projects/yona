@@ -50,7 +50,7 @@ $(function () {
         .fail(function(jqXHR, textStatus){
             var response = JSON.parse(jqXHR.responseText);
             var message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
-            $yobi.showAlert(message);
+            $yona.showAlert(message);
             NProgress.done();
         });
 

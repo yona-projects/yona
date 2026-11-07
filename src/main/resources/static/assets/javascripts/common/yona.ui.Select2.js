@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 /**
- * yobi.ui.Select2
+ * yona.ui.Select2
  *
  * @requires select2.js (http://ivaynberg.github.io/select2/)
  */
@@ -28,7 +28,7 @@
 
     "use strict";
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(element, options){
         var targetElement = $(element);
 
@@ -314,10 +314,10 @@
 
         return targetElement.select2(select2Option);
     };
-})("yobi.ui.Select2");
+})("yona.ui.Select2");
 
 $(function(){
     $('[data-toggle="select2"]').each(function(i, el){
-        yobi.ui.Select2(el);
+        yona.ui.Select2(el);
     });
 });

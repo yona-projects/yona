@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(sContainer, htOptions){
 
         var htVar = {};
@@ -77,7 +77,7 @@
 
             welToast.css("opacity", "0");
             welToast.click(_onClickClose);
-            welMessage.html($yobi.nl2br(sMessage));
+            welMessage.html($yona.nl2br(sMessage));
 
             return welToast;
         }
@@ -111,4 +111,4 @@
         };
     };
 
-})("yobi.ui.Toast");
+})("yona.ui.Toast");

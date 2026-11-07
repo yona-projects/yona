@@ -55,7 +55,7 @@ class LfsRequestSupport(
     }
 
     private fun resolveBearer(owner: String, rawProject: String, token: String, write: Boolean): Context {
-        val claims = tokens.verify(token) ?: return Context(null, BasicIdentity(null), error(HttpStatus.UNAUTHORIZED, "Invalid or expired LFS token", "WWW-Authenticate" to "Basic realm=\"Yobi\""))
+        val claims = tokens.verify(token) ?: return Context(null, BasicIdentity(null), error(HttpStatus.UNAUTHORIZED, "Invalid or expired LFS token", "WWW-Authenticate" to "Basic realm=\"Yona\""))
         val project = projectService.findByOwnerAndProjectName(owner, rawProject.removeSuffix(".git"))?.takeIf { lfs.available(it) }
             ?: return Context(null, BasicIdentity(null), error(HttpStatus.NOT_FOUND, "Repository or object not found"))
         val user = users.findById(claims.userId).orElse(null)
@@ -72,7 +72,7 @@ class LfsRequestSupport(
         val allowed = accessControl.isAllowed(identity.user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)
         if (allowed) return null
         if (identity.user == null) {
-            return error(HttpStatus.UNAUTHORIZED, if (identity.passwordRefused) BasicIdentity.PASSWORD_REFUSED_MESSAGE else "Invalid username or password", "WWW-Authenticate" to "Basic realm=\"Yobi\"")
+            return error(HttpStatus.UNAUTHORIZED, if (identity.passwordRefused) BasicIdentity.PASSWORD_REFUSED_MESSAGE else "Invalid username or password", "WWW-Authenticate" to "Basic realm=\"Yona\"")
         }
         return error(HttpStatus.FORBIDDEN, "You do not have permission for this repository")
     }

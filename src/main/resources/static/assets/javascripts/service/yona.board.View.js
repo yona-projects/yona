@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -69,7 +69,7 @@
                 var welTarget = $(weEvt.target);
                 var bWatched = (welTarget.attr("data-watching") === "true");
                 
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
                         welTarget
@@ -77,7 +77,7 @@
                             .toggleClass('ybtn-watching')
                             .html(Messages(!bWatched ? "post.unwatch" : "post.watch")).blur();
                         
-                        $yobi.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
+                        $yona.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
                     }
                 });
             });
@@ -87,10 +87,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -105,7 +105,7 @@
         function _initFileDownloader(){
             htElement.welAttachments.each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
-                    (new yobi.Attachments({"elContainer": elContainer}));
+                    (new yona.Attachments({"elContainer": elContainer}));
                 }
             });
         }
@@ -114,4 +114,4 @@
         _init(htOptions);
     };
 
-})("yobi.board.View");
+})("yona.board.View");

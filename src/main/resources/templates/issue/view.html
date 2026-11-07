@@ -304,8 +304,8 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.ReceiverList.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(function(){
-        // yobi.issue.View
-        $yobi.loadModule("issue.View", {
+        // yona.issue.View
+        $yona.loadModule("issue.View", {
             "issueId"  : /*[[${#strings.toString(issue.id)}]]*/ "",
             "nextState": /*[[${nextState}]]*/ "",
             "urls"     : {
@@ -317,8 +317,8 @@
             }
         });
 
-        // yobi.ShortcutKey
-        yobi.ShortcutKey.setKeymapLink({
+        // yona.ShortcutKey
+        yona.ShortcutKey.setKeymapLink({
             "L": /*[[${listUrl}]]*/ ""
             /*[# th:if="${projectView.menuSetting.issue}"]*/
             ,"N": /*[[${base + '/issueform'}]]*/ ""
@@ -328,8 +328,8 @@
             /*[/]*/
         });
 
-        // yobi.Mention
-        yobi.Mention({
+        // yona.Mention
+        yona.Mention({
             "target": 'textarea[id^=editor-], .editorSeries',
             "url"   : /*[[${base + '/mentionList?number=' + issue.number + '&resourceType=issue_post'}]]*/ ""
         });
@@ -404,17 +404,17 @@
             var clipboard = new ClipboardJS('#copyEmailBtn');
 
             clipboard.on('success', function(e) {
-                $yobi.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
+                $yona.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
             });
         } else {
-            $yobi.notify('[(${helper.escapedMessage('site.features.error.clipboard')})]', 1500);
+            $yona.notify('[(${helper.escapedMessage('site.features.error.clipboard')})]', 1500);
         }
 
         // timeline label text color adjusting
         $(".event > .label").each(function() {
             var $this = $(this);
             $this.removeClass("dimgray white")
-                    .addClass($yobi.getContrastColor($this.css('background-color')))
+                    .addClass($yona.getContrastColor($this.css('background-color')))
         });
 
         $.elevator({

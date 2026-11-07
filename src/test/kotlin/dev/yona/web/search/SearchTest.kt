@@ -246,7 +246,7 @@ class SearchTest : AbstractIntegrationTest() {
         (1..25).forEach { issue(p, "pagingneedle$it", owner) }
         val first = all(null, "issue", "pagingneedle"); val second = all(null, "issue", "pagingneedle", "pageNum" to "2")
         assertEquals(20, titles(first).size); assertEquals(5, titles(second).size)
-        assertTrue(first.html().contains("yobi.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
         assertEquals("pagingneedle5", titles(second).first())
     }
 
@@ -283,7 +283,7 @@ class SearchTest : AbstractIntegrationTest() {
         (1..25).forEach { project(owner, "pjpaging-needle%02d".format(it)) }
         val first = all(null, "project", "pjpaging-needle"); val second = all(null, "project", "pjpaging-needle", "pageNum" to "2")
         assertEquals(20, first.select("a.title.project-link").size); assertEquals(5, second.select("a.title.project-link").size)
-        assertTrue(first.html().contains("yobi.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
     }
 
     @Test

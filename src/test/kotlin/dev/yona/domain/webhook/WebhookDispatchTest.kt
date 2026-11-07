@@ -124,7 +124,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         assertTrue(message.endsWith(" <http://localhost:9000/${p.owner}/${p.name}/issue/7|#7: 제목>"), message)
         assertTrue(json().path("attachments").isMissingNode)
         assertEquals(listOf("token abc"), received[0].headers["Authorization"])  // 서버가 값의 끝 공백을 잘라 낸다
-        assertEquals(listOf("Yobi-Hookshot"), received[0].headers["User-agent"])
+        assertEquals(listOf("Yona-Hookshot"), received[0].headers["User-agent"])
         assertEquals(listOf("application/json; charset=utf-8"), received[0].headers["Content-type"]) // Play WS가 문자열 본문을 보낼 때 붙이는 값이다
     }
 

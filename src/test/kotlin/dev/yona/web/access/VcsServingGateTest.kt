@@ -73,7 +73,7 @@ class VcsServingGateTest : AbstractIntegrationTest() {
         val writeResponse = MockHttpServletResponse()
         val denied = gate.admit(open, anonymous, VcsServingGate.Access(write = true), "hg", request(), writeResponse)
         assertNotNull(denied); assertEquals(HttpStatus.UNAUTHORIZED, denied.statusCode)
-        assertEquals("Basic realm=\"Yobi\"", writeResponse.getHeader("WWW-Authenticate"))
+        assertEquals("Basic realm=\"Yona\"", writeResponse.getHeader("WWW-Authenticate"))
         val closed = project(owner, ProjectScope.PRIVATE)
         assertEquals(HttpStatus.UNAUTHORIZED, gate.admit(closed, anonymous, VcsServingGate.Access(write = false), "hg", request(), MockHttpServletResponse())!!.statusCode)
     }

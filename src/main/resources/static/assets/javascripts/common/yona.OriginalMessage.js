@@ -18,7 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yobi.OriginalMessage = (function(htOptions){
+yona.OriginalMessage = (function(htOptions){
     function _setToggle(elem, f1, f2) {
         var a;
         var b;

@@ -373,7 +373,7 @@ class SvnDavTest {
     fun `비공개 프로젝트는 익명에게 인증을 요구하고 구성원은 읽는다`() {
         val response = raw("PROPFIND", "/svn/${privateProject.owner}/${privateProject.name}")
         assertEquals(401, response.statusCode())
-        assertEquals("Basic realm=\"Yobi\"", response.headers().firstValue("WWW-Authenticate").get())
+        assertEquals("Basic realm=\"Yona\"", response.headers().firstValue("WWW-Authenticate").get())
         assertEquals("Invalid username or password", response.body())
         assertFailsWith<SVNException> { client(privateProject).latestRevision }
         assertEquals(0L, client(privateProject, member).latestRevision)

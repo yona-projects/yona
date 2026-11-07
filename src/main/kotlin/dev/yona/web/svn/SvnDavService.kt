@@ -77,7 +77,7 @@ class SvnDavService(
         if (!basicAuth.allowsRepository(identity, project, write = operation == Operation.UPDATE)) return text(response, 403, "The token scope does not allow repository access")
         if (!metrics.span("vcs.authorize", "vcs" to "svn") { accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation) }) {
             if (user == null) {
-                response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
+                response.setHeader("WWW-Authenticate", "Basic realm=\"Yona\"")
                 return text(response, 401, if (identity.passwordRefused) dev.yona.web.access.BasicIdentity.PASSWORD_REFUSED_MESSAGE else "Invalid username or password")
             }
             return text(response, 403, "You have no permission to access this repository.")

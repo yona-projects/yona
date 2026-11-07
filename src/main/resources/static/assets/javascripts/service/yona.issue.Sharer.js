@@ -15,7 +15,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     var tplUserItem = "<div class='usf-group' title='${name} ${loginId}'>" +
         "<strong class='name'>${name}</strong>";
 
-    var formattedResult = $yobi.tmpl(tplUserItem, {
+    var formattedResult = $yona.tmpl(tplUserItem, {
       "avatarURL": result.avatarUrl,
       "name"     : result.name,
       "loginId"  : result.loginId
@@ -87,7 +87,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
             contentType: "application/json",
             data: JSON.stringify(data)
         }).done(function(response){
-            $yobi.notify(response.action + ": " + response.sharer, 3000);
+            $yona.notify(response.action + ": " + response.sharer, 3000);
         });
     }
   });
@@ -102,7 +102,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         contentType: "application/json",
         data: JSON.stringify(data)
       }).done(function(response){
-        $yobi.notify(response.action + ": " + response.sharer, 3000);
+        $yona.notify(response.action + ": " + response.sharer, 3000);
       });
     }
   });

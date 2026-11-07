@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -43,7 +43,7 @@
             htVar.htData = htOptions.htData || {};
             htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
 
-            htVar.oTypeahead = new yobi.ui.Typeahead("#loginId", {
+            htVar.oTypeahead = new yona.ui.Typeahead("#loginId", {
                 "htData" : {
                     "minLength" : 1,
                     "updater" : _updater,
@@ -83,7 +83,7 @@
                 fProcess(htVar.htCachedUsers);
             } else {
                 htVar.htData.query = sQuery;
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL"        : htVar.sActionURL,
                     "htOptForm"    : {"method":"get"},
                     "htData"    : htVar.htData,
@@ -202,7 +202,7 @@
                     break;
             }
 
-            $yobi.alert(sErrorMsg);
+            $yona.alert(sErrorMsg);
             bootstrap.Modal.getOrCreateInstance(htElement.welAlertDelete[0]).hide();
         }
 
@@ -227,7 +227,7 @@
             }
 
             // send request
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL"   : sURL,
                 "htData" : {"id": sRoleId},
                 "fOnLoad" : function(oData, oStatus, oXHR) {
@@ -243,4 +243,4 @@
         _init(htOptions);
     };
 
-})("yobi.organization.Member");
+})("yona.organization.Member");

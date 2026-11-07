@@ -244,7 +244,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         assertEquals(commits.single().id.toString(), pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).last().newValue)
         assertNull(pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).last().oldValue)
 
-        repositories.openGitRepository(s.origin).use { assertNotNull(it.resolve("refs/yobi/pull/${pr.id}/merged")) }
+        repositories.openGitRepository(s.origin).use { assertNotNull(it.resolve("refs/yona/pull/${pr.id}/merged")) }
         assertNull(pushedBranches.findFirstByProjectIdAndName(s.fork.id!!, "refs/heads/master"))
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_PULL_REQUEST }
         assertEquals("[${s.origin.name}] 요청 제목 (#1)", note.title); assertEquals(pr.id.toString(), note.resourceId)

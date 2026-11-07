@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  *
  * 검사와 뒤처리의 본문은 저장소 종류와 무관한 [PushPolicy]와 [PushEvents]에 있다. 이 클래스는 JGit의 푸시 명령(`ReceiveCommand`)을
  * [dev.yona.domain.vcs.RefUpdate]로 바꿔 넘기고, 거부 결과를 명령에 적고, 서명 확인할 커밋을 JGit으로 구하는 일만 한다(Mercurial 도입을 위한 공통화 3단계, D-86).
- * 푸시 전에는 내부용 `refs/yobi` 아래 ref와 규칙 묶음이 막는 푸시를 거부하고, 푸시 뒤에는 마지막 푸시 시각, 최근 푸시한 브랜치, 이슈 언급 이벤트,
+ * 푸시 전에는 내부용 `refs/yona` 아래 ref와 규칙 묶음이 막는 푸시를 거부하고, 푸시 뒤에는 마지막 푸시 시각, 최근 푸시한 브랜치, 이슈 언급 이벤트,
  * 풀 리퀘스트 확인, 새 커밋 알림, 감사 기록을 처리한다.
  */
 @Component
@@ -42,7 +42,7 @@ class GitHooks(
             if (command.oldId != org.eclipse.jgit.lib.ObjectId.zeroId()) runCatching { walk.markUninteresting(walk.parseCommit(command.oldId)) }
             repository.refDatabase.refs.forEach { ref ->
                 val id = ref.objectId
-                if (id != null && ref.name != command.refName && !ref.name.startsWith("refs/yobi")) runCatching { walk.markUninteresting(walk.parseCommit(id)) }
+                if (id != null && ref.name != command.refName && !ref.name.startsWith("refs/yona")) runCatching { walk.markUninteresting(walk.parseCommit(id)) }
             }
             walk.mapNotNull { commit ->
                 val signed = if (commit.rawGpgSignature != null) dev.yona.domain.gpgkey.GitSignatures.ofCommit(commit.rawBuffer) else null

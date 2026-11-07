@@ -23,7 +23,7 @@
  * projectMenu.scala.html 에서 호출함
  */
 (function(ns) {
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions) {
         var htVar = {};
         var htElement = {};
@@ -84,7 +84,7 @@
                     document.location.reload();
                 },
                 "error": function(){
-                    $yobi.notify("Server Error");
+                    $yona.notify("Server Error");
                 }
             })
 
@@ -105,20 +105,20 @@
                 },
                 "error": function(oXHR){
                     if(oXHR.readyState == networkErrorStatus){
-                        $yobi.notify(Messages("user.enroll.failed.network"), 3000);
+                        $yona.notify(Messages("user.enroll.failed.network"), 3000);
                     }else{
                         switch(true){
                             case oXHR.status == 403:
-                                $yobi.notify(Messages("error.forbidden"), 3000);
+                                $yona.notify(Messages("error.forbidden"), 3000);
                                 break;
                             case clientErrorStatus.test(oXHR.status):
-                                $yobi.notify(Messages("user.enroll.failed.client"), 3000);
+                                $yona.notify(Messages("user.enroll.failed.client"), 3000);
                                 break;
                             case serverErrorStatus.test(oXHR.status):
-                                $yobi.notify(Messages("user.enroll.failed.server"), 3000);
+                                $yona.notify(Messages("user.enroll.failed.server"), 3000);
                                 break;
                             default:
-                                $yobi.notify(Messages("user.enroll.failed"), 3000);
+                                $yona.notify(Messages("user.enroll.failed"), 3000);
                                 break;
                         }
                     }
@@ -131,12 +131,12 @@
 
         /**
          * @param {Hash Table} htKeyMap
-         * @require yobi.ShortcutKey
+         * @require yona.ShortcutKey
          */
         function _initShortcutKey(htKeyMap){
-            yobi.ShortcutKey.setKeymapLink(htKeyMap);
+            yona.ShortcutKey.setKeymapLink(htKeyMap);
         }
 
         _init(htOptions || {});
     };
-})("yobi.project.Global");
+})("yona.project.Global");

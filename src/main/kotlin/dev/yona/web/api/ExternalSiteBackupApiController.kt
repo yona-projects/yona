@@ -41,14 +41,14 @@ class ExternalSiteBackupApiController(
     private val log = LoggerFactory.getLogger(javaClass)
 
     /**
-     * DB 전체를 `yobi-data-<yyyyMMddHHmm>.json` 파일로 내려준다. 웹 내려받기와 같은 내용이다. 웹은 비동기 스트림을 쓰지만 토큰 인증은 비동기 재전달에서 인증 정보를 잃어
+     * DB 전체를 `yona-data-<yyyyMMddHHmm>.json` 파일로 내려준다. 웹 내려받기와 같은 내용이다. 웹은 비동기 스트림을 쓰지만 토큰 인증은 비동기 재전달에서 인증 정보를 잃어
      * 뒤늦게 403 화면이 이어 붙으므로, 여기서는 요청 스레드에서 바로 응답에 쓴다. 쓰는 동안의 오류는 로그만 남아 파일이 잘릴 수 있다.
      */
-    @ApiOperation(operationId = "exportSiteData", tags = [ApiTags.USER], summary = "사이트 데이터 내려받기(사이트 관리자)", description = "DB 전체를 `yobi-data-<yyyyMMddHHmm>.json` 파일로 내려준다. 웹 `/sites/export`와 같은 내용이다. Git 저장소 디렉터리와 첨부 파일 본문은 들어 있지 않다. 사이트 관리자이면서 `site_admin` 범위가 있는 토큰만 쓸 수 있다.")
+    @ApiOperation(operationId = "exportSiteData", tags = [ApiTags.USER], summary = "사이트 데이터 내려받기(사이트 관리자)", description = "DB 전체를 `yona-data-<yyyyMMddHHmm>.json` 파일로 내려준다. 웹 `/sites/export`와 같은 내용이다. Git 저장소 디렉터리와 첨부 파일 본문은 들어 있지 않다. 사이트 관리자이면서 `site_admin` 범위가 있는 토큰만 쓸 수 있다.")
     @ApiResponse(responseCode = "200", description = "JSON 파일(`application/x-download`)", content = [Content(mediaType = "application/x-download", schema = Schema(type = "string", format = "binary"))])
     @GetMapping("/-_-api/v1/admin/export")
     fun export(response: HttpServletResponse) {
-        val filename = "yobi-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
+        val filename = "yona-data-" + SimpleDateFormat("yyyyMMddHHmm").format(Date()) + ".json"
         audit.record(dev.yona.domain.audit.AuditEvent("site.data_exported", targetType = "site", details = mapOf("via" to "api")))
         response.status = HttpStatus.OK.value()
         response.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-download")

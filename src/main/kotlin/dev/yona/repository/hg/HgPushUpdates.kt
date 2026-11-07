@@ -21,7 +21,7 @@ object HgPushUpdates {
         RefUpdate(refOf(name), old.ifEmpty { RefUpdate.NULL_ID }, new.ifEmpty { RefUpdate.NULL_ID }, bookmarkType(changelog, old, new))
 
     /**
-     * 이름표 [name]의 ref 이름이다. 예약 이름표(`yobi/…`, 풀 리퀘스트의 숨은 참조)는 Git의 `refs/yobi/…`처럼 취급해 [dev.yona.repository.PushPolicy]가
+     * 이름표 [name]의 ref 이름이다. 예약 이름표(`yona/…`, 풀 리퀘스트의 숨은 참조)는 Git의 `refs/yona/…`처럼 취급해 [dev.yona.repository.PushPolicy]가
      * 예약된 이름으로 거부하게 한다. 나머지는 `refs/heads/<이름표>`이다.
      */
     fun refOf(name: String): String =

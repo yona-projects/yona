@@ -41,7 +41,7 @@ import kotlin.test.assertTrue
  * 사이트 관리의 메일 쓰기(`/sites/mail`)와 대량 메일(`/sites/massmail`, `POST /sites/mailList`)을 검증한다.
  *
  * 원본: `app/controllers/SiteApp.java:87-123, 277-313`, `app/views/site/mail.scala.html`, `app/views/site/massMail.scala.html`,
- * `public/javascripts/service/yobi.site.MassMail.js`.
+ * `public/javascripts/service/yona.site.MassMail.js`.
  */
 @AutoConfigureMockMvc
 @Transactional

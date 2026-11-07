@@ -194,8 +194,8 @@ class LoginFormPageTest : AbstractIntegrationTest() {
     fun `flash 경고 메시지는 번역되어 알림 스크립트로 출력된다`() {
         val html = mockMvc.perform(get("/users/loginform").flashAttr("warning", "user.login.invalid"))
             .andReturn().response.contentAsString
-        assertTrue(html.contains("\$yobi.notify(\"") && html.contains("5000"), "알림 호출 누락")
-        assertTrue(Regex("""\${'$'}yobi\.notify\("[^"]+", 5000\)""").containsMatchIn(html), html.lines().filter { "notify" in it }.toString())
+        assertTrue(html.contains("\$yona.notify(\"") && html.contains("5000"), "알림 호출 누락")
+        assertTrue(Regex("""\${'$'}yona\.notify\("[^"]+", 5000\)""").containsMatchIn(html), html.lines().filter { "notify" in it }.toString())
     }
 
     @Test
@@ -234,7 +234,7 @@ class LoginFormPageTest : AbstractIntegrationTest() {
             .andExpect(status().isBadRequest).andReturn()
         val doc = Jsoup.parse(result.response.contentAsString)
         assertEquals("Log in", doc.title())
-        assertTrue(result.response.contentAsString.contains("\$yobi.notify("), "경고 알림")
+        assertTrue(result.response.contentAsString.contains("\$yona.notify("), "경고 알림")
     }
 
     @Test

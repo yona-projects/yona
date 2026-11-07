@@ -6,7 +6,7 @@
  **/
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -76,7 +76,7 @@
         }
 
         function _onChangeRepoAuthCheck(){
-            $yobi.hidePopover($("input"));
+            $yona.hidePopover($("input"));
             htElement.welRepoAuthWrap.toggle("slide");
             htElement.waRepoAuthInput.attr("disabled", !htElement.welRepoAuthCheck.is(":checked"));
         }
@@ -182,7 +182,7 @@
                 targetElement = htElement.welForm.find("[name=" + target + "]");
 
                 if(targetElement.length > 0) {
-                    $yobi.showPopover(targetElement, {
+                    $yona.showPopover(targetElement, {
                         "placement": "left",
                         "content"  : error[target].shift()
                     });
@@ -225,4 +225,4 @@
         _init(htOptions || {});
     };
 
-})("yobi.project.New");
+})("yona.project.New");

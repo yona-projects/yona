@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 
-yobi = yobi || {};
+yona = yona || {};
 
-yobi.CodeCommentBox = (function(){
+yona.CodeCommentBox = (function(){
     "use strict";
 
     var htVar = {};
@@ -263,10 +263,10 @@ yobi.CodeCommentBox = (function(){
      * @private
      */
     function _initFileUploader(){
-        var oUploader = yobi.Files.getUploader(htElement.welCommentUploader, htElement.welCommentTextarea);
+        var oUploader = yona.Files.getUploader(htElement.welCommentUploader, htElement.welCommentTextarea);
 
         if(oUploader){
-            (new yobi.Attachments({
+            (new yona.Attachments({
                 "elContainer"  : htElement.welCommentUploader,
                 "elTextarea"   : htElement.welCommentTextarea,
                 "sTplFileItem" : htVar.sTplFileItem,

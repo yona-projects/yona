@@ -49,7 +49,7 @@ class PushPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `내부용 ref에는 밀어 넣지 못하고 감사 기록에 종류 이름이 붙는다`() {
         val project = project()
-        val rejections = policy.evaluate(project, null, "hg", listOf(update("refs/yobi/pull/1/head", RefUpdateType.UPDATE)), noCommits())
+        val rejections = policy.evaluate(project, null, "hg", listOf(update("refs/yona/pull/1/head", RefUpdateType.UPDATE)), noCommits())
         assertEquals(listOf("reserved"), rejections.map { it.kind })
         assertTrue(rejections.single().message.contains("reserved for internal use"))
         assertTrue(audits.findAll().any { it.action == "hg.push_rejected" && it.projectId == project.id })

@@ -7,7 +7,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -88,7 +88,7 @@
         }
 
         function _onBeforeUnload(){
-            if($yobi.getTrim(htElement.welTextarea.val()).length > 0){
+            if($yona.getTrim(htElement.welTextarea.val()).length > 0){
                 return Messages("issue.error.beforeunload");
             }
         }
@@ -98,7 +98,7 @@
                 var context = data.replace("<!DOCTYPE html>", "").trim();
                 var milestoneOptionDiv = $("#milestoneOption", context);
                 $("#milestoneOption").html(milestoneOptionDiv.html());
-                (new yobi.ui.Dropdown({"elContainer":"#milestoneId"}));
+                (new yona.ui.Dropdown({"elContainer":"#milestoneId"}));
             });
         }
 
@@ -106,10 +106,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -119,19 +119,19 @@
         }
 
         function _onSubmitForm(){
-            var sTitle = $yobi.getTrim(htElement.welInputTitle.val());
+            var sTitle = $yona.getTrim(htElement.welInputTitle.val());
 
             if(sTitle.length < 1){
-                $yobi.alert(Messages("issue.error.emptyTitle"), function(){
+                $yona.alert(Messages("issue.error.emptyTitle"), function(){
                     htElement.welInputTitle.focus();
                 });
                 return false;
             }
 
-            var sDueDate = $yobi.getTrim(htElement.welDueDate.val());
+            var sDueDate = $yona.getTrim(htElement.welDueDate.val());
 
             if (sDueDate && !moment(sDueDate).isValid()) {
-                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
                 htElement.welDueDate.focus();
                 return false;
             }
@@ -145,4 +145,4 @@
 
         _init(htOptions);
     };
-})("yobi.issue.Write");
+})("yona.issue.Write");

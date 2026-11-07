@@ -1864,3 +1864,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-07] build | 복사 단추 현대화와 zclip 제거(A-394)
 
 선생님 지시로 Flash 기반 zclip 파일(`jquery.zclip.min.js`, `ZeroClipboard.swf`)을 지우고 복사 코드를 `navigator.clipboard`와 `execCommand` 대체 경로를 쓰는 도우미 `yona.Clipboard`로 바꿨다(번들은 지시대로 건드리지 않음). 코드 이력의 커밋 번호 복사 단추가 v1.6부터 `new Clipboard`의 `Illegal constructor`로 실패해 온 결함을 옛 jar에서 재현하고 함께 고쳤다(R-132). 관련 시험 116건과 Playwright 직접 확인을 통과했다. 전체 H2 시험은 돌리지 않았다.
+
+## [2026-11-07] build | JS 번들 도구를 vite로 교체하고 yobi 이름을 yona로 변경(D-92, D-93, A-395~A-397)
+
+선생님 지시로 (1) 번들 3개를 만드는 도구를 Closure Compiler에서 vite 8.3.0(이어 붙이기 플러그인)으로 바꾸고(`build-tools/js-bundle/`, 재현성 확보, 번들 크기 `yona-layout.js` 121KB에서 104KB, `yona-common.js` 113KB에서 90KB), (2) JS 전역 이름 `yobi`, `$yobi`와 `yobi.*.js` 파일 84개를 `yona`로 바꾸고, (3) 서버 쪽 쿠키, 인증 영역, 웹훅 User-Agent, 백업 파일명, Mercurial 예약 이름표, Git 숨은 참조를 `yona`로 바꾸었다(Git 이전은 `tools/migrate-git-refs.sh`). 시험을 먼저 만들어 실패를 확인했다(Node 시험 7건, `YobiNamespaceRemovedTest`, `GitRefsMigrationScriptTest`). 확인: 전체 H2 시험 4871건 통과(19:11~19:27, 16분 12초), 전 화면 순회(`yonarename`, 약 3분) 옛 상태 `jqall`과 비교해 새 문제 0, 상호작용 순회(`yonarename-i`, 29분 45초) 135/136(실패 1건은 옛 상태에도 있던 `help-uikit` 404). 해결한 실수: 시험 코드의 Kotlin 문자열 보간으로 컴파일 오류 1회, 기대 파일(`yobi.css`)이 소스 트리에 없다는 시험 가정 오류 1회.

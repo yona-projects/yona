@@ -203,7 +203,7 @@ class ProjectListTest : AbstractIntegrationTest() {
         val first = page("/projects?filter=pg-")
         assertEquals(10, names(first).size)
         assertNotNull(first.selectFirst("#pagination"))
-        assertTrue(first.html().contains("yobi.Pagination.update(\$(\"#pagination\"), 3)"), "총 3쪽")
+        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 3)"), "총 3쪽")
         assertEquals(10, names(page("/projects?filter=pg-&pageNum=2")).size)
         assertEquals(5, names(page("/projects?filter=pg-&pageNum=3")).size)
     }

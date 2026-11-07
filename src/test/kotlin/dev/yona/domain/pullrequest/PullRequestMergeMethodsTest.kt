@@ -171,7 +171,7 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
         val before = head(origin)
         merger.rebaseBlocked(pullRequest(origin, fork))
         assertEquals(before, head(origin))
-        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yobi/pull-check/")) }
+        repositories.openGitRepository(origin).use { assertEquals(emptyList(), it.refDatabase.getRefsByPrefix("refs/yona/pull-check/")) }
     }
 
     @Test

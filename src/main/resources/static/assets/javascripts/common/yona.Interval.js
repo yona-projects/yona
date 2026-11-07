@@ -18,14 +18,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yobi = yobi || {};
-yobi.Interval = (function(htOptions){
+yona = yona || {};
+yona.Interval = (function(htOptions){
 
     var htVar = {};
     var htTimers = {};
 
     /**
-     * Initialize yobi.Interval
+     * Initialize yona.Interval
      */
     function _init(htOptions){
         htVar.bSleep = false;

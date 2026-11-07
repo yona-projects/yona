@@ -17,7 +17,7 @@ data class PushRejection(val update: RefUpdate, val message: String, val kind: S
  * 푸시 전 검사이다. v1.6 `RepositoryService.createPreReceiveHook`(`app/playRepository/RepositoryService.java:253-270`)에 해당한다. 저장소 종류와
  * 무관하며, 종류마다 다른 것은 서명을 확인할 커밋을 구하는 일뿐이라 호출한 쪽이 넘긴다(Mercurial 도입을 위한 공통화 3단계, D-86).
  *
- * 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부하고, 규칙 묶음(`decisions.md` D-45, D-46)이 막는 푸시를 거부한다.
+ * 내부용으로 예약된 `refs/yona` 아래 ref에는 밀어 넣지 못하게 거부하고, 규칙 묶음(`decisions.md` D-45, D-46)이 막는 푸시를 거부한다.
  * 거부한 푸시는 지표와 감사 기록(`<종류>.push_rejected`)에 남긴다.
  */
 @Component
@@ -43,8 +43,8 @@ class PushPolicy(
         val rejections = mutableListOf<PushRejection>()
         for (update in updates) {
             val ref = update.ref
-            if (ref == "refs/yobi" || ref.startsWith("refs/yobi/")) {
-                rejections += reject(project, vcsTag, update, "refs/yobi/* is reserved for internal use", "reserved")
+            if (ref == "refs/yona" || ref.startsWith("refs/yona/")) {
+                rejections += reject(project, vcsTag, update, "refs/yona/* is reserved for internal use", "reserved")
                 continue
             }
             if (!ref.startsWith(HEADS)) continue

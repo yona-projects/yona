@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -63,11 +63,11 @@
             htVar.htExclusiveLabels = {};
             htVar.detachingLabelName = htOptions.welDetachingLabel.data('name') + '[]';
 
-            htVar.oState     = new yobi.ui.Dropdown({"elContainer": htOptions.welState});
-            htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
-            htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
-            htVar.oAttachingLabel = new yobi.ui.Dropdown({"elContainer": htOptions.welAttachingLabel});
-            htVar.oDetachingLabel = new yobi.ui.Dropdown({"elContainer": htOptions.welDetachingLabel});
+            htVar.oState     = new yona.ui.Dropdown({"elContainer": htOptions.welState});
+            htVar.oAssignee  = new yona.ui.Dropdown({"elContainer": htOptions.welAssignee});
+            htVar.oMilestone = new yona.ui.Dropdown({"elContainer": htOptions.welMilestone});
+            htVar.oAttachingLabel = new yona.ui.Dropdown({"elContainer": htOptions.welAttachingLabel});
+            htVar.oDetachingLabel = new yona.ui.Dropdown({"elContainer": htOptions.welDetachingLabel});
         }
 
         /**
@@ -113,7 +113,7 @@
                 $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked).change();
                 _onCheckIssue();
             });
-            yobi.ShortcutKey.attach("CTRL+A", function(htInfo){
+            yona.ShortcutKey.attach("CTRL+A", function(htInfo){
                 if(!htInfo.bFormInput){
                     htInfo.weEvt.preventDefault();
                     $(htElement.weAllCheckbox).trigger('click');
@@ -254,7 +254,7 @@
                 // Label
                 for(sLabelId in htLabels[sCategory]){
                     htLabel = htLabels[sCategory][sLabelId];
-                    aHTML.push($yobi.tmpl(sTpl, htLabel));
+                    aHTML.push($yona.tmpl(sTpl, htLabel));
                 }
 
                 aHTML.push('<li class="divider"></li>');
@@ -360,4 +360,4 @@
         _init(htOptions);
     };
 
-})("yobi.issue.MassUpdate");
+})("yona.issue.MassUpdate");

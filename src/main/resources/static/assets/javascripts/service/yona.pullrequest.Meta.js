@@ -10,7 +10,7 @@
  *
  * 이슈 화면처럼 선택하는 즉시 Ajax로 보내고 화면을 다시 불러오지 않는다. 알림창(toast)으로 알리고 타임라인만 다시 불러온다.
  * - 담당자: `yona.issue.Assginee.js`와 같은 원격 검색 선택 상자(후보는 프로젝트 단위 API). 지우면 담당자를 해제한다.
- * - 라벨: `yobi.issue.View.js`의 일괄 변경처럼 붙인 라벨과 뗀 라벨의 번호만 보낸다.
+ * - 라벨: `yona.issue.View.js`의 일괄 변경처럼 붙인 라벨과 뗀 라벨의 번호만 보낸다.
  *
  * 생성 폼(`data-mode="form"`)에서는 아직 풀 리퀘스트가 없으므로 선택 상자만 꾸미고 고른 값은 폼과 함께 보낸다.
  *
@@ -70,13 +70,13 @@
                 $comments.html(html);
                 $comments.find(".event > .badge").each(function () {
                     var $label = $(this);
-                    $label.removeClass("dimgray white").addClass($yobi.getContrastColor($label.css("background-color")));
+                    $label.removeClass("dimgray white").addClass($yona.getContrastColor($label.css("background-color")));
                 });
             });
         }
 
         function failed(title, xhr) {
-            $yobi.notify(Messages("error.failedTo", title, xhr.status, xhr.statusText));
+            $yona.notify(Messages("error.failedTo", title, xhr.status, xhr.statusText));
         }
 
         // 담당자
@@ -115,7 +115,7 @@
                     contentType: "application/json",
                     data: JSON.stringify({assignees: loginId ? [loginId] : []})
                 }).done(function (response) {
-                    $yobi.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
+                    $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
                     refreshTimeline();
                 }).fail(function (xhr) {
                     failed(Messages("issue.assignee"), xhr);
@@ -132,7 +132,7 @@
             if (added) { data.attachingLabelIds = added; }
             if (removed) { data.detachingLabelIds = removed; }
             $.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(function () {
-                $yobi.notify(Messages("issue.update.labelIds"), 3000);
+                $yona.notify(Messages("issue.update.labelIds"), 3000);
                 refreshTimeline();
             }).fail(function (xhr) {
                 failed(Messages("issue.update.labelIds"), xhr);

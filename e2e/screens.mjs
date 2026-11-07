@@ -80,7 +80,7 @@ export function screens(fx) {
   add('commits', `${P}/commits`);
   add('commits-path', `${P}/commits/master/src`);
   add('commit', `${P}/commit/${fx.featureACommit}`, { note: '커밋 보기(diff)' });
-  add('compare', `${P}/compare/master..feature-a`, { knownErrors: ["reading 'top'"], note: 'v1.6 코드(yobi.code.Diff.js)의 알려진 JS 오류: 리뷰 목록이 없는 화면에서 높이를 계산한다' });
+  add('compare', `${P}/compare/master..feature-a`, { knownErrors: ["reading 'top'"], note: 'v1.6 코드(yona.code.Diff.js)의 알려진 JS 오류: 리뷰 목록이 없는 화면에서 높이를 계산한다' });
   add('branches', `${P}/branches`);
   add('tags', `${P}/tags`, { note: 'X-18 태그' });
 

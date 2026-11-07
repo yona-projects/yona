@@ -20,7 +20,7 @@
  */
 /**
  * @example
- * new yobi.ui.Typeahead(htElement.welInputAddTag, {
+ * new yona.ui.Typeahead(htElement.welInputAddTag, {
  *      "sActionURL": htVar.sURLTags,
  *      "htData": {
  *          "context": "PROJECT_TAGGING_TYPEAHEAD",
@@ -34,7 +34,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(sQuery, htOptions){
 
         var htVar = {};
@@ -110,7 +110,7 @@
                 fProcess(htVar.htCachedUsers);
             } else {
                 htVar.htData.query = sQuery;
-                $yobi.sendForm({
+                $yona.sendForm({
                     "sURL"        : htVar.sActionURL,
                     "htOptForm"    : {"method":"get"},
                     "htData"    : htVar.htData,
@@ -145,4 +145,4 @@
         _init(sQuery, htOptions || {});
     };
 
-})("yobi.ui.Typeahead");
+})("yona.ui.Typeahead");

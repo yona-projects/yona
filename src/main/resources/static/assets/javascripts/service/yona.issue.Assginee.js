@@ -88,7 +88,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
             contentType: "application/json",
             data: JSON.stringify(data)
         }).done(function(response){
-            $yobi.notify(message + ": " + response.assignee.name, 3000);
+            $yona.notify(message + ": " + response.assignee.name, 3000);
         });
     }
   });

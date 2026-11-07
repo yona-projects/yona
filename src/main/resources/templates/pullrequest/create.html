@@ -94,7 +94,7 @@
 
                 <div class="tab-content">
                     <div id="__commits" class="code-browse-wrap tab-pane active">
-                    <!--/* 이 영역은 페이지를 불러온 뒤 yobi.git.Write.js가 병합 결과로 비동기로 바꾼다. */-->
+                    <!--/* 이 영역은 페이지를 불러온 뒤 yona.git.Write.js가 병합 결과로 비동기로 바꾼다. */-->
                     </div>
                 </div>
             </form>
@@ -113,7 +113,7 @@
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
 <script type="text/javascript" th:inline="javascript">
 $(function(){
-    $yobi.loadModule("git.Write", {
+    $yona.loadModule("git.Write", {
         "mergeResultURL": /*[[${mergeResultUrl}]]*/ "",
         "fromProject" : $("#fromProjectId"),
         "toProject"   : $("#toProjectId"),
@@ -122,8 +122,8 @@ $(function(){
         "state"       : $("#pullRequestState").data("value")
     });
 
-    // yobi.Mention
-    yobi.Mention({
+    // yona.Mention
+    yona.Mention({
         "target": "textarea[id^=editor-]",
         "url"   : /*[[${mentionUrl}]]*/ ""
     });

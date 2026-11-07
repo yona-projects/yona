@@ -74,9 +74,9 @@ class OrganizationCreateTest : AbstractIntegrationTest() {
     private fun warningOnNextForm(session: MockHttpSession): String? =
         Jsoup.parse(mockMvc.perform(get("/organizations/new").session(session)).andReturn().response.contentAsString).selectFirst(".n-alert .warning")?.text()
 
-    /** 이번 응답이 알림(`$yobi.notify`)으로 보이는 안내이다. */
+    /** 이번 응답이 알림(`$yona.notify`)으로 보이는 안내이다. */
     private fun notified(result: MvcResult): String? =
-        Regex("\\\$yobi\\.notify\\(\"([^\"]*)\"").find(result.response.contentAsString)?.groupValues?.get(1)
+        Regex("\\\$yona\\.notify\\(\"([^\"]*)\"").find(result.response.contentAsString)?.groupValues?.get(1)
 
     // --- 폼 ---
 

@@ -141,8 +141,8 @@
 <script type="text/jAvascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(function(){
-        // yobi.issue.Write
-        $yobi.loadModule("issue.Write", {
+        // yona.issue.Write
+        $yona.loadModule("issue.Write", {
             "sMode"             : "edit",
             "sIssueId"          : /*[[${#strings.toString(issueNumber)}]]*/ "",
             "sIssueFormURL"     : /*[[${base + '/issueform'}]]*/ "",
@@ -152,8 +152,8 @@
             "elDueDate"         : $("#issueDueDate")
         });
 
-        // yobi.Mention
-        yobi.Mention({
+        // yona.Mention
+        yona.Mention({
             "target": "textarea[id^=editor-]",
             "url"   : /*[[${base + '/mentionList'}]]*/ ""
         });

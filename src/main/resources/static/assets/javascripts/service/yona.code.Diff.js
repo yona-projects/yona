@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -59,7 +59,7 @@
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
 
-            // yobi.Attachments
+            // yona.Attachments
             htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 
@@ -225,7 +225,7 @@
         function _showReviewCardsTabByState(state){
             if(["open", "closed"].indexOf(state) > -1) {
                 // v1.6은 따옴표 없는 속성 선택자(`a[href=#reviewcards-...]`)를 써서 번들된 jQuery가 구문 오류를 낸다(R-129). 따옴표를 붙인다
-                $yobi.showTab($('a[href="#reviewcards-' + state + '"]'));
+                $yona.showTab($('a[href="#reviewcards-' + state + '"]'));
             }
         }
 
@@ -255,7 +255,7 @@
             var welTarget = $(weEvt.target);
             var bWatched = welTarget.hasClass("active");
 
-            $yobi.sendForm({
+            $yona.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
                     welTarget.toggleClass("active ybtn-watching");
@@ -268,10 +268,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -283,10 +283,10 @@
                 var form = $(el);
                 var container = form.find(".upload-wrap");
                 var textarea = form.find("textarea");
-                var uploader = yobi.Files.getUploader(container, textarea);
+                var uploader = yona.Files.getUploader(container, textarea);
 
                 if(uploader){
-                    (new yobi.Attachments({
+                    (new yona.Attachments({
                         "elTextarea"   : textarea,
                         "elContainer"  : container,
                         "sTplFileItem" : htVar.sTplFileItem,
@@ -303,7 +303,7 @@
         function _initFileDownloader(){
             $(".attachments").each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
-                    (new yobi.Attachments({"elContainer": elContainer}));
+                    (new yona.Attachments({"elContainer": elContainer}));
                 }
             });
         }
@@ -346,7 +346,7 @@
          * @private
          */
         function _initCodeCommentBox() {
-            yobi.CodeCommentBox.init({
+            yona.CodeCommentBox.init({
                 "sTplFileItem": htVar.sTplFileItem
             });
 
@@ -354,7 +354,7 @@
                 "CodeCommentBox:aftershow": _updateMiniMap,
                 "CodeCommentBox:afterhide": function(){
                     _updateMiniMap();
-                    yobi.CodeCommentBlock.unblock();
+                    yona.CodeCommentBlock.unblock();
                     htVar.htBlockInfo = null;
                 }
             });
@@ -372,7 +372,7 @@
                 welActions.show();
                 $(window).off("CodeCommentBox:afterhide", arguments.callee);
             });
-            yobi.CodeCommentBox.show(welButton);
+            yona.CodeCommentBox.show(welButton);
 
             welActions.hide();
         }
@@ -381,7 +381,7 @@
          * @private
          */
         function _initCodeCommentBlock(){
-            yobi.CodeCommentBlock.init({
+            yona.CodeCommentBlock.init({
                 "welContainer"       : htElement.welDiffBody,
                 "welPopButtonOnBlock": htElement.welDiffBody.find(".btnPop")
             });
@@ -404,7 +404,7 @@
             }
 
             if(!_isSelectionExists()){
-                yobi.CodeCommentBox.hide();
+                yona.CodeCommentBox.hide();
                 htVar.htBlockInfo = null;
             }
         }
@@ -440,8 +440,8 @@
          * @private
          */
         function _onClickBtnAddBlockComment(){
-            var htBlockInfo = yobi.CodeCommentBlock.getData();
-            yobi.CodeCommentBlock.block(htBlockInfo);
+            var htBlockInfo = yona.CodeCommentBlock.getData();
+            yona.CodeCommentBlock.block(htBlockInfo);
 
             var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
             var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
@@ -449,7 +449,7 @@
             var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
             welTR.data("blockInfo", htBlockInfo);
 
-            yobi.CodeCommentBox.show(welTR, {
+            yona.CodeCommentBox.show(welTR, {
                 "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom",
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
@@ -457,11 +457,11 @@
             var nMarginFromBorder = 20;
 
             if(!htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
-                window.scrollTo(0, yobi.CodeCommentBox.offset().top + yobi.CodeCommentBox.height() - window.innerHeight + nMarginFromBorder);
+                window.scrollTo(0, yona.CodeCommentBox.offset().top + yona.CodeCommentBox.height() - window.innerHeight + nMarginFromBorder);
             }
 
             if(htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
-                window.scrollTo(0, yobi.CodeCommentBox.offset().top - nMarginFromBorder);
+                window.scrollTo(0, yona.CodeCommentBox.offset().top - nMarginFromBorder);
             }
 
             htVar.htBlockInfo = htBlockInfo;
@@ -473,10 +473,10 @@
          */
         function _doesCommentBoxOutOfWindow(){
             var nScrollTop = $(document.body).scrollTop();
-            var nOffsetTop = yobi.CodeCommentBox.offset().top;
+            var nOffsetTop = yona.CodeCommentBox.offset().top;
 
             return (nScrollTop + window.innerHeight < nOffsetTop) ||
-                   (nOffsetTop + yobi.CodeCommentBox.height() > nScrollTop + window.innerHeight);
+                   (nOffsetTop + yona.CodeCommentBox.height() > nScrollTop + window.innerHeight);
         }
 
         /**
@@ -576,7 +576,7 @@
                 "nEndLine"    : parseInt(welThread.data("range-endline"), 10),
                 "nEndColumn"  : parseInt(welThread.data("range-endcolumn"), 10)
             };
-            yobi.CodeCommentBlock.block(htBlockInfo);
+            yona.CodeCommentBlock.block(htBlockInfo);
         }
 
         /**
@@ -595,10 +595,10 @@
          * @private
          */
         function _onMouseLeaveCodeCommentThread(){
-            yobi.CodeCommentBlock.unblock();
+            yona.CodeCommentBlock.unblock();
 
-            if(yobi.CodeCommentBox.isVisible() && htVar.htBlockInfo){
-                yobi.CodeCommentBlock.block(htVar.htBlockInfo);
+            if(yona.CodeCommentBox.isVisible() && htVar.htBlockInfo){
+                yona.CodeCommentBlock.block(htVar.htBlockInfo);
             }
         }
 
@@ -682,4 +682,4 @@
 
         _init(htOptions || {});
     };
-})("yobi.code.Diff");
+})("yona.code.Diff");

@@ -20,7 +20,7 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -83,24 +83,24 @@
          */
         function _initAvatarUploader(){
             // 아바타 기본 업로더 설정
-            yobi.Files.attach({
+            yona.Files.attach({
                 "beforeUpload"  : _onAvatarBeforeUpload,
                 "successUpload" : _onAvatarUploaded,
                 "errorUpload"   : _onAvatarUploadError,
                 "uploadProgress": _onAvatarUploading
             });
-            yobi.Files.getUploader(".avatar-frm");
+            yona.Files.getUploader(".avatar-frm");
 
             htVar.nMaxFileSizeInNoCrop = 1024 * 1000 * 1; // 1Mb
 
-            htVar.bUseJCrop = yobi.Files.getEnv().bXHR2;
+            htVar.bUseJCrop = yona.Files.getEnv().bXHR2;
 
             if(htVar.bUseJCrop){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
                 htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearJcrop);
 
-                yobi.Files.attach({
+                yona.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,
                    "errorUpload"  : _onAvatarUploadError
                 }, "jCropUpload");
@@ -113,7 +113,7 @@
          * @return {Boolean}
          */
         function _onAvatarBeforeUpload(htData){
-            if($yobi.isImageFile(htData.oFile) === false){
+            if($yona.isImageFile(htData.oFile) === false){
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
                 return false;
             }
@@ -127,7 +127,7 @@
 
             if(oRes.mimeType.indexOf("image/") !== 0){
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
-                yobi.Files.deleteFile({"sURL": oRes.url});
+                yona.Files.deleteFile({"sURL": oRes.url});
                 return false;
             }
 
@@ -140,7 +140,7 @@
 
             if(oRes.size > htVar.nMaxFileSizeInNoCrop){
                 _onAvatarUploadError(Messages("user.avatar.fileSizeAlert"));
-                yobi.Files.deleteFile({"sURL": oRes.url});
+                yona.Files.deleteFile({"sURL": oRes.url});
                 return false;
             }
 
@@ -256,7 +256,7 @@
 
                 // canvas-to-blob.js
                 htElement.elAvatarCropCanvas.toBlob(function(oFile){
-                    yobi.Files.uploadFile(oFile, "jCropUpload");
+                    yona.Files.uploadFile(oFile, "jCropUpload");
                 }, elImage.mimeType, 100);
             };
 
@@ -276,7 +276,7 @@
             var sMessage = (vParam.oRes) ? Messages("user.avatar.uploadError") +
                 "<br>(" + vParam.oRes.status + " " + vParam.oRes.statusText + ")" : vParam;
 
-            $yobi.alert(sMessage);
+            $yona.alert(sMessage);
             _setAvatarProgressBar(0);
         }
 
@@ -367,11 +367,11 @@
          * @param {String} sMessage
          */
         function _showPopover(welInput, sMessage){
-            $yobi.showPopover(welInput, {"placement": "right", "content": sMessage});
+            $yona.showPopover(welInput, {"placement": "right", "content": sMessage});
         }
 
         function _clearPopovers(){
-            $yobi.hidePopover(htElement.welFormPswd.find("input"));
+            $yona.hidePopover(htElement.welFormPswd.find("input"));
         }
 
         function _onChangeNotiSwitch(){
@@ -386,7 +386,7 @@
                 },
                 "error"  : function(oRes){
                     welTarget.prop("checked", !bChecked);
-                    $yobi.alert(Messages("error.failedTo",
+                    $yona.alert(Messages("error.failedTo",
                         Messages("userinfo.changeNotifications"),
                         oRes.status, oRes.statusText));
                 }
@@ -394,9 +394,9 @@
         }
 
         function _showNotificationTab(){
-            $yobi.showTab($('#notification-projects a[href="' + location.hash + '"]'));
+            $yona.showTab($('#notification-projects a[href="' + location.hash + '"]'));
         }
 
         _init(htOptions || {});
     };
-})("yobi.user.Setting");
+})("yona.user.Setting");

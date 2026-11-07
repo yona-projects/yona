@@ -20,14 +20,14 @@
  */
 /**
  * @example
- * var oDialog = new yobi.ui.Dialog("#yobiDialog")
+ * var oDialog = new yona.ui.Dialog("#yobiDialog")
  * oDialog.show("메시지");
  *
  * @require bootstrap-modal.js
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(sContainer, htOptions){
 
         var htVar = {};
@@ -83,8 +83,8 @@
                 _getCustomButtons(htOptions) : htVar.sDefaultButton;
 
             htElement.welButtons.html(sButtonHTML);
-            htElement.welMessage.html($yobi.nl2br(sMessage));
-            htElement.welDescription.html($yobi.nl2br(sDescription || ""));
+            htElement.welMessage.html($yona.nl2br(sMessage));
+            htElement.welDescription.html($yona.nl2br(sDescription || ""));
             bootstrap.Modal.getOrCreateInstance(htElement.welContainer[0]).show();
         }
 
@@ -99,7 +99,7 @@
             var aButtonStyles = htOptions.aButtonStyles || [];
 
             for(var i = 0, nLength = aButtonLabels.length; i < nLength; i++){
-                aButtonsHTML.push($yobi.tmpl(htVar.sTplCustomButton, {
+                aButtonsHTML.push($yona.tmpl(htVar.sTplCustomButton, {
                     "text" : aButtonLabels[i],
                     "class": aButtonStyles[i] || (aButtonStyles.length === 0 && i === nLength-1 ? "ybtn-primary" : "ybtn-default")
                 }));
@@ -157,4 +157,4 @@
         };
     };
 
-})("yobi.ui.Dialog");
+})("yona.ui.Dialog");

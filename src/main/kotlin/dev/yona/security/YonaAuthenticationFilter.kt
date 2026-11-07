@@ -19,7 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  *    (v1.6 `getUserFromSession`이 캐시에 없는 사용자를 무효 세션으로 처리한다).
  * 2. API 토큰: `/-_-api` 아래 경로에서만 `Authorization: token`, `Bearer`, `Yona-Token` 헤더를 본다(추가 개발 항목 X-5, D-36). 이 경로에서는 세션과 쿠키를 무시하고
  *    토큰만 본다. 세션에는 기록하지 않는다. 그 밖의 경로는 토큰을 인정하지 않는다.
- * 3. remember-me 쿠키 `yobi.token`(`로그인ID:해시된패스워드`). 성공하면 세션에도 기록한다.
+ * 3. remember-me 쿠키 `yona.token`(`로그인ID:해시된패스워드`). 성공하면 세션에도 기록한다.
  *    값이 잘못되었으면 쿠키를 지운다. 잠기거나 지워진 계정은 v1.6처럼 쿠키가 유효한 동안 로그인 상태로 두되 세션에는 기록하지 않는다.
  *
  * 쿠키는 서명한 값이며 비밀번호 해시를 담지 않는다([RememberMeCookies]). v1.6은 해시된 비밀번호를 그대로 담았다(R-05).
@@ -138,7 +138,7 @@ class YonaAuthenticationFilter(
 
     companion object {
         /** remember-me 쿠키 이름이다 (v1.6 `UserApp.TOKEN`). */
-        const val REMEMBER_ME_COOKIE = "yobi.token"
+        const val REMEMBER_ME_COOKIE = "yona.token"
 
         /** 쿠키 값의 구분자이다 (v1.6 `TOKEN_SEPARATOR`). */
         const val TOKEN_SEPARATOR = ":"

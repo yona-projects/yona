@@ -22,7 +22,7 @@
 
     "use strict";
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
         var vars = {};
@@ -200,12 +200,12 @@
             if(elements.inputCategory.val().length === 0 ||
                 elements.inputName.val().length === 0 ||
                 elements.inputColor.val().length === 0){
-                $yobi.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.empty"));
+                $yona.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.empty"));
                 return false;
             }
 
             if(_getRefinedHexColor(elements.inputColor.val()) === false){
-                $yobi.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.color", elements.inputColor.val()));
+                $yona.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.color", elements.inputColor.val()));
                 return false;
             }
 
@@ -230,7 +230,7 @@
          * @private
          */
         function _submitFormAfterConfirmNewCategoryOption(categoryName){
-            $yobi.confirm(Messages("label.category.new.confirm", categoryName), function(evt){
+            $yona.confirm(Messages("label.category.new.confirm", categoryName), function(evt){
                     vars.isNewCategoryExclusive = (evt.nButtonIndex === 1);
                     elements.form.submit();
                 }, "", {
@@ -250,12 +250,12 @@
                         errorText += "\n" + error[key];
                     }
 
-                    $yobi.alert(errorText);
+                    $yona.alert(errorText);
                 }catch(e){
-                    $yobi.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
+                    $yona.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
                 }
             }else{
-                $yobi.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
+                $yona.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
             }
         }
 
@@ -268,7 +268,7 @@
          */
         function _requestAddLabel(requestData){
             if(_isLabelExists(requestData.categoryName, requestData.labelName)){
-                $yobi.alert(Messages("label.error.duplicated"));
+                $yona.alert(Messages("label.error.duplicated"));
                 return false;
             }
 
@@ -283,7 +283,7 @@
                     return;
                 }
 
-                $yobi.alert(Messages("label.error.creationFailed"));
+                $yona.alert(Messages("label.error.creationFailed"));
             })
             .fail(function(res){
                 _showError(res, "label.add");
@@ -420,7 +420,7 @@
             }
 
             if(!_isValidColorExpr(typedColor)){
-                $yobi.alert(Messages("label.error.color", typedColor), function(){
+                $yona.alert(Messages("label.error.color", typedColor), function(){
                     elements.inputColor.focus();
                 });
                 return;
@@ -458,7 +458,7 @@
         /**
          * Update inputColor and inputName style with given color expression
          *
-         * @require common/yobi.Common.js
+         * @require common/yona.Common.js
          * @param color
          * @private
          */
@@ -471,7 +471,7 @@
 
             inputColor.css("cssText", boxShadowCSS);
             inputName.css("background-color", color);
-            inputName.removeClass("dimgray white").addClass($yobi.getContrastColor(color));
+            inputName.removeClass("dimgray white").addClass($yona.getContrastColor(color));
         }
 
         /**
@@ -506,7 +506,7 @@
          * @private
          */
         function _onClickBtnDeleteLabel(evt){
-            $yobi.confirm(Messages("label.confirm.delete"), function(data){
+            $yona.confirm(Messages("label.confirm.delete"), function(data){
                 if(data.nButtonIndex === 1){
                     _requestRemoveLabel(evt.target);
                 }
@@ -760,7 +760,7 @@
          * @private
          */
         function _popoverMessageOn(message, element){
-            $yobi.showPopover(element, {
+            $yona.showPopover(element, {
                 "placement": "bottom",
                 "content"  : message
             });
@@ -769,4 +769,4 @@
         _init(options || {});
     };
 
-})("yobi.issue.LabelEditor");
+})("yona.issue.LabelEditor");

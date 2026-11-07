@@ -7,7 +7,7 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
+    var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
@@ -66,7 +66,7 @@
         }
 
         function _onBeforeUnload(){
-            if($yobi.getTrim(htElement.welTextarea.val()).length > 0){
+            if($yona.getTrim(htElement.welTextarea.val()).length > 0){
                 return Messages("post.error.beforeunload");
             }
         }
@@ -76,7 +76,7 @@
          */
         function _onSubmitForm(){
             if(htElement.welInputTitle.val() == ""){
-                $yobi.showAlert(Messages("post.error.emptyTitle"), function() {
+                $yona.showAlert(Messages("post.error.emptyTitle"), function() {
                     $("#title").focus();
                 });
                 return false;
@@ -93,10 +93,10 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                (new yobi.Attachments({
+                (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
@@ -108,4 +108,4 @@
         _init(htOptions);
     };
 
-})("yobi.board.Write");
+})("yona.board.Write");

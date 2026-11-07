@@ -18,6 +18,8 @@ updated: 2026-11-07
 
 **첫 묶음 완료**(`D-91`, `A-392`): jQuery 3.7.1(주 화면 번들과 첫 설정, 마이그레이션 화면 3개), jQuery UI 1.14.2 효과 묶음, autosize 6.0.1, NProgress 0.2.0(JS), Popper 2.11.8, Tippy.js 6.3.7, video.js 7.21.2, moment 2.31.0. 확인: `JsLibraryVersionsTest`, 전 화면 순회 비교(`jq331`과 `jqall`, 새 문제 0), Playwright 직접 확인 22개 항목.
 
+**번들 도구 교체 완료**(`D-92`, `A-395`, 2026-11-07): Closure Compiler(`compiler.jar`)를 vite 8.3.0으로 바꿨다(`build-tools/js-bundle/`, 이어 붙이기 플러그인). 같은 입력이면 byte 단위로 같은 결과가 나와 `yona-common.js`와 `yona-lib.js`의 재현성 문제가 풀렸다. 이제 clipboard.js 2.0.11 교체와 번들 안의 쓰이지 않는 validate, placeholder 코드 제거를 할 수 있다(다음 단계). 파일을 ES 모듈로 바꾸는 일은 별도 단계이다.
+
 **Yona가 v1.6에서 고친 벤더 파일**(v1.6 `git log`와 공식 파일 대조): 아래는 새 버전으로 덮어쓰면 수정이 사라지므로 **패치 이식이 필요**해 이번에 올리지 않았다.
 
 | 파일 | 고친 내용(v1.6 커밋 제목) |

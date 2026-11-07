@@ -25,7 +25,7 @@ data class MergePerson(val name: String, val email: String)
 
 /**
  * 한 종류의 저장소에서 풀 리퀘스트를 병합하는 계약이다(Mercurial 도입을 위한 8a, `decisions.md` D-86, D-87). [PullRequestMerger]가 받는 프로젝트의 `vcs`
- * 값으로 구현을 골라 쓴다. 병합은 모두 받는 프로젝트의 저장소 안에서 일어나고, 보내는 브랜치는 숨은 참조로 받는 저장소에 가져온다(Git은 `refs/yobi/pull/…`,
+ * 값으로 구현을 골라 쓴다. 병합은 모두 받는 프로젝트의 저장소 안에서 일어나고, 보내는 브랜치는 숨은 참조로 받는 저장소에 가져온다(Git은 `refs/yona/pull/…`,
  * Mercurial은 secret 체인지셋과 예약 이름표).
  *
  * 가져오기와 참조 갱신은 저장소 단위로 한 번에 하나씩만 실행한다(v1.6 주석 "locking this repository is required because of fetch and update").
