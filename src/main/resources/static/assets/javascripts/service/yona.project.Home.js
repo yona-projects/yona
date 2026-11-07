@@ -48,7 +48,7 @@
          * initialize element
          */
         function _initElement(htOptions) {
-            var welBtnPlus = $('#plus-button-template').tmpl();
+            var welBtnPlus = $yona.renderElement('#plus-button-template');
 
             htElement.welRepoURL = $("#repositoryURL");
 
@@ -265,12 +265,10 @@
                 });
             };
 
-            var welDeleteButton = $('#label-delete-button-template')
-                .tmpl()
+            var welDeleteButton = $yona.renderElement('#label-delete-button-template')
                 .click(fOnClickDelete);
 
-            var welLabel = $('#label-template')
-                .tmpl({'name': sName})
+            var welLabel = $yona.renderElement('#label-template', {'name': sName})
                 .append(welDeleteButton);
 
             welLabel.setRemovability = function(bFlag) {
@@ -326,8 +324,7 @@
                 .data('category', sCategory)
                 .click(_onClickPlusLabel);
 
-            var welCategory = $('#category-template')
-                .tmpl({'category': sCategory})
+            var welCategory = $yona.renderElement('#category-template', {'category': sCategory})
                 .append(welBtnPlusLabel);
 
             welCategory.welBtnPlusLabel = welBtnPlusLabel;

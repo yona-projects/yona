@@ -15,7 +15,7 @@ export const bundles = {
     `${JS}/common/yona.Common.js`,
   ],
   "yona-common.js": [
-    `${JS}/lib/jquery/jquery.tmpl.js`,
+    `${JS}/lib/mustache.js`,
     `${JS}/lib/jquery/jquery.form.js`,
     `${JS}/lib/jquery/jquery.requestAs.js`,
     `${JS}/lib/jquery/jquery.search.js`,

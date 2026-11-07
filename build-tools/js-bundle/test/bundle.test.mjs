@@ -60,6 +60,10 @@ test("쓰이지 않는 zclip 코드는 번들에 들어가지 않는다", () => 
   for (const n of expected.removedStatic) assert.ok(!(n in r.window.jQuery), `jQuery.${n}이 남아 있다`);
   assert.equal(typeof r.window.ClipboardJS, "function");
   assert.equal(r.window.FormValidator !== undefined, true, "lib/validate.js의 FormValidator는 계속 있다");
+  // jquery.tmpl 대신 Mustache를 쓴다(D-94): 전역 Mustache와 $yona.render가 있다
+  assert.equal(typeof r.window.Mustache.render, "function");
+  assert.equal(typeof r.window.$yona.render, "function");
+  assert.equal(typeof r.window.$yona.renderElement, "function");
 });
 
 test("같은 입력으로 다시 만들면 byte 단위로 같다(재현성)", () => {
@@ -67,6 +71,14 @@ test("같은 입력으로 다시 만들면 byte 단위로 같다(재현성)", ()
   build(again);
   for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
     assert.ok(readFileSync(join(out, name)).equals(readFileSync(join(again, name))), `${name}이 다르다`);
+  }
+});
+
+test("저장소에 들어 있는 번들은 지금의 입력 파일로 만든 결과와 같다(입력을 고치고 번들을 다시 만들지 않은 실수를 막는다)", () => {
+  const committed = join(root, "../../src/main/resources/static/assets/javascripts");
+  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+    assert.ok(readFileSync(join(committed, name)).equals(readFileSync(join(out, name))),
+      `${name}이 입력과 다르다. build-tools/minify-js.sh로 다시 만든다`);
   }
 });
 

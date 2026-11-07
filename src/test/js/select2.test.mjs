@@ -15,7 +15,7 @@ function templateBlocks() {
 async function open(html, { wait = true } = {}) {
   const page = await pageWith({
     html: `${templateBlocks()}<form id="f">${html}</form>`,
-    scripts: ['lib/select2/select2.js', 'lib/jquery/jquery.tmpl.js'],
+    scripts: ['lib/select2/select2.js'],
   });
   await page.addScriptTag({ content: 'window.Messages = function (k) { return k; };' });
   await page.addScriptTag({ path: path.join(JS, 'common/yona.ui.Select2.js') });

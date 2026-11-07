@@ -44,8 +44,8 @@ yona.Attachments = function(htOptions) {
      * @param {Hash Table} htOptions
      */
     function _initVar(htOptions){
-        var sFileLink = '<a href="${fileHref}" class="vmiddle" target="_blank"><i class="yobicon-paperclip"></i><span class="filename">${fileName}</span><span class="filesize">(${fileSizeReadable})</span></a>';
-        var sFileDownloadLink = '<a href="${fileHref}?action=download" class="download ybtn ybtn-mini" title="' + Messages("button.download") + ' ${fileName}"><i class="yobicon-download"></i></a>';
+        var sFileLink = '<a href="{{fileHref}}" class="vmiddle" target="_blank"><i class="yobicon-paperclip"></i><span class="filename">{{fileName}}</span><span class="filesize">({{fileSizeReadable}})</span></a>';
+        var sFileDownloadLink = '<a href="{{fileHref}}?action=download" class="download ybtn ybtn-mini" title="' + Messages("button.download") + ' {{fileName}}"><i class="yobicon-download"></i></a>';
         htVar.sTplFileList = htOptions.sTplFileList || '<ul class="attaches wm">';
         htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach">'+ sFileDownloadLink + sFileLink + '</li>';
         htVar.sResourceId = htOptions.sResourceId; // ResId: Optional
@@ -195,7 +195,7 @@ yona.Attachments = function(htOptions) {
      * @return {Wrapped Element}
      */
     function _getFileItem(htFile, bTemp) {
-        var welItem = $.tmpl(htVar.sTplFileItem, {
+        var welItem = $yona.render(htVar.sTplFileItem, {
             "fileId"  : htFile.id,
             "fileName": htFile.name,
             "fileHref": htFile.url,

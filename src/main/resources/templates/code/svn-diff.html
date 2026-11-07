@@ -97,13 +97,13 @@
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#code-browse-wrap')}"></th:block>
 
-<script type="text/x-jquery-tmpl" id="comment-icon-template">
+<script type="text/x-mustache" id="comment-icon-template">
     <i class="yobicon-comments"></i>
 </script>
-<script type="text/x-jquery-tmpl" id="linenum-column-template">
+<script type="text/x-mustache" id="linenum-column-template">
     <td class="linenum"></td>
 </script>
-<script type="text/x-jquery-tmpl" id="comment-button-template">
+<script type="text/x-mustache" id="comment-button-template">
     <button class="ybtn medium btn-thread"></button>
 </script>
 

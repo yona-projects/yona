@@ -365,6 +365,49 @@ $yona = yona.Common = (function(){
     }
 
     /**
+     * HTML 이스케이프. v1.6이 쓰던 jquery.tmpl 1.0.0의 `${}`와 같게 `<`, `>`, `"`, `'`만 바꾼다(`&`는 바꾸지 않는다).
+     * Mustache의 기본 이스케이프(`&`, `/`, `` ` ``, `=`까지 바꿈) 대신 쓰려고 `Mustache.escape`에 건다.
+     *
+     * @param {*} value
+     * @return {String}
+     */
+    function escapeTemplateValue(value) {
+        return ("" + value).split("<").join("&lt;").split(">").join("&gt;").split('"').join("&#34;").split("'").join("&#39;");
+    }
+
+    /**
+     * Mustache 템플릿으로 HTML 조각을 만들어 jQuery 객체로 돌려준다. v1.6의 `$.tmpl(템플릿, 자료)`(jquery.tmpl)를 대신한다(decisions.md D-94).
+     *
+     * `{{이름}}`은 이스케이프해서, `{{{이름}}}`은 그대로 넣는다. 없는 값은 빈 글자이고 `a.b` 같은 중첩 속성도 된다.
+     * 앞뒤 공백은 버린다. 글자만 있는 템플릿은 글자 노드를, 뿌리가 둘이면 둘을 돌려준다.
+     *
+     * @param {String} sTemplate Mustache 템플릿 문자열
+     * @param {Object} htData 자료 (생략 가능)
+     * @return {jQuery} 만들어진 노드들
+     * @example
+     * $yona.render('<li title="{{name}}">{{name}}</li>', {name: 'a & b'});
+     */
+    function render(sTemplate, htData) {
+        // 요소를 찾지 못하면 `$(el).html()`이 undefined이다. jquery.tmpl처럼 빈 집합을 돌려준다
+        if (typeof sTemplate !== "string") {
+            return $();
+        }
+        Mustache.escape = escapeTemplateValue;
+        return $($.parseHTML(Mustache.render(sTemplate, htData == null ? {} : htData).trim()));
+    }
+
+    /**
+     * 요소 안에 적힌 Mustache 템플릿(`<script type="text/x-mustache" id="...">`)으로 그린다. v1.6의 `$('#id').tmpl(자료)`를 대신한다.
+     *
+     * @param {String|Element|jQuery} elTemplate 템플릿이 든 요소
+     * @param {Object} htData 자료 (생략 가능)
+     * @return {jQuery} 만들어진 노드들
+     */
+    function renderElement(elTemplate, htData) {
+        return render($(elTemplate).html(), htData);
+    }
+
+    /**
      * Convert special characters to HTML entities
      * @param {String} sHTML
      * @return {String}
@@ -480,6 +523,8 @@ $yona = yona.Common = (function(){
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
+        "render"    : render,
+        "renderElement": renderElement,
         "htmlspecialchars": htmlspecialchars,
         "isImageFile": isImageFile,
         "xssClean" : xssClean,

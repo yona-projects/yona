@@ -75,4 +75,4 @@ underscore가 쉽게 바꿔 주는 다른 일은 확인되지 않았다(앱이 `
 
 ## 4. 진행 순서 (선생님 지시, 2026-11-07)
 
-jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더 파일의 패치 이식 등, `js-upgrade-plan.md`)를 먼저 끝낸 뒤**에 한다. 템플릿 엔진은 **Mustache로 결정**되었다(`decisions.md` D-94, 2026-11-07). underscore는 이 앱에서 `_.` 호출이 없어 다른 용도가 없다. 지금 작업하라는 지시는 아니다. 참고 확인: jquery.tmpl 1.0.0은 jQuery 3.7.1에서 동작한다(문자열, 배열, 요소 템플릿, `{{if}}`, `appendTo`를 jsdom에서 실행해 확인). jQuery 4에서는 `jQuery.trim`(`jquery.tmpl.js` 325번째 줄) 한 줄이 걸린다.
+jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더 파일의 패치 이식 등, `js-upgrade-plan.md`)를 먼저 끝낸 뒤**에 한다. 템플릿 엔진은 **Mustache로 결정되어 교체를 마쳤다**(`decisions.md` D-94와 A-400, 2026-11-07, select2 4.1.0 업데이트 뒤). underscore는 이 앱에서 `_.` 호출이 없어 다른 용도가 없다. 지금 작업하라는 지시는 아니다. 참고 확인: jquery.tmpl 1.0.0은 jQuery 3.7.1에서 동작한다(문자열, 배열, 요소 템플릿, `{{if}}`, `appendTo`를 jsdom에서 실행해 확인). jQuery 4에서는 `jQuery.trim`(`jquery.tmpl.js` 325번째 줄) 한 줄이 걸린다.

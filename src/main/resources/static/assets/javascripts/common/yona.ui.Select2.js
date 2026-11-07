@@ -250,12 +250,12 @@
 
                 var owner = itemElement.data("owner") ? itemElement.data("owner") : "";
                 if(_doesntHaveProjectAvatar()){
-                    return $.tmpl($("#tplSelect2ProjectsWithoutAvatar").text(), {
+                    return $yona.render($("#tplSelect2ProjectsWithoutAvatar").text(), {
                         "name"     : itemObject.text,
                         "owner"    : owner
                     });
                 } else {
-                    return $.tmpl($("#tplSelect2Projects").text(), {
+                    return $yona.render($("#tplSelect2Projects").text(), {
                         "avatarURL": avatarURL,
                         "name"     : itemObject.text.trim(),
                         "owner"    : owner
@@ -263,7 +263,7 @@
                 }
             },
             "issues": function(itemObject){
-                return $.tmpl($("#tplSelect2FormatIssues").text(), {
+                return $yona.render($("#tplSelect2FormatIssues").text(), {
                     "name"     : itemObject.text
                 });
             },
@@ -276,14 +276,14 @@
                 }
 
                 // Template text
-                var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="${name} ${loginId}">' +
-                    '<span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>' +
-                    '<strong class="name">${name}</strong>' +
-                    '<span class="loginid">${loginId}</span></div>';
+                var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
+                    '<span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>' +
+                    '<strong class="name">{{name}}</strong>' +
+                    '<span class="loginid">{{loginId}}</span></div>';
 
                 var loginId = itemElement.data("loginId") ? "@" + itemElement.data("loginId") : "";
 
-                var formattedResult = $.tmpl(tplUserItem, {
+                var formattedResult = $yona.render(tplUserItem, {
                     "avatarURL": avatarURL,
                     "name"     : itemObject.text.trim(),
                     "loginId"  : loginId
@@ -302,9 +302,9 @@
                 milestoneState = milestoneState.toLowerCase();
                 var milestoneStateLabel = Messages("milestone.state." + milestoneState);
                 var tplMilestoneItem = $("#tplSElect2FormatMilestone").text()
-                                    || '<div title="[${stateLabel}] ${name}">${name}</div>';
+                                    || '<div title="[{{stateLabel}}] {{name}}">{{name}}</div>';
 
-                var formattedResult = $.tmpl(tplMilestoneItem, {
+                var formattedResult = $yona.render(tplMilestoneItem, {
                     "name" : itemObject.text.trim().replace('<', '&lt;'),
                     "state": milestoneState,
                     "stateLabel": milestoneStateLabel
@@ -327,9 +327,9 @@
                         "css"  : isCategoryExclusive ? 'yobicon-tag  category-exclusive single'
                                                      : 'yobicon-tags category-exclusive multiple'
                     };
-                    var tpl = '<i class="${css}" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right" title="${title}"></i><span>${text}</span>';
+                    var tpl = '<i class="{{css}}" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right" title="{{title}}"></i><span>{{text}}</span>';
 
-                    return $.tmpl(tpl, data);
+                    return $yona.render(tpl, data);
                 }
 
                 return '<a class="badge issue-label active static" data-label-id="' + labelId + '">' + text + '</a>';
@@ -359,11 +359,11 @@
                 }
 
                 var tplBranchItem = $("#tplSelect2FormatBranch").text()
-                                  || '<strong class="branch-label ${branchType}">${branchType}</strong> ${branchName}';
+                                  || '<strong class="branch-label {{branchType}}">{{branchType}}</strong> {{branchName}}';
 
                 // branchType will be "unknown"
                 // if selected branch name doesn't starts with /refs
-                var formattedResult = $.tmpl(tplBranchItem, {
+                var formattedResult = $yona.render(tplBranchItem, {
                     "branchType": branchType,
                     "branchName": branchName
                 });

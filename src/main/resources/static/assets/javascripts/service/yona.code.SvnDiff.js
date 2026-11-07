@@ -56,7 +56,7 @@
 
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
-            htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+            htVar.sTplMiniMapLink = '<a href="#{{id}}" style="top:{{top}}px; height:{{height}}px;"></a>';
 
             // yona.Attachments
             htVar.sTplFileItem = $('#tplAttachedFile').text();
@@ -79,10 +79,10 @@
             htElement.welComments = $('ul.comments');
 
             if (htVar.bCommentable) {
-                htElement.welIcon = $('#comment-icon-template').tmpl();
+                htElement.welIcon = $yona.renderElement('#comment-icon-template');
             }
-            htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
-            htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();
+            htElement.welEmptyLineNumColumn = $yona.renderElement('#linenum-column-template');
+            htElement.welEmptyCommentButton = $yona.renderElement('#comment-button-template');
 
             htElement.welBtnWatch = $('#watch-button');
 
@@ -521,7 +521,7 @@
                 waTargets.each(function(i, el){
                     welTarget = $(el);
 
-                    aLinks.push($.tmpl(htVar.sTplMiniMapLink, {
+                    aLinks.push($yona.render(htVar.sTplMiniMapLink, {
                         "id"    : welTarget.attr("id"),
                         "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
                         "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)

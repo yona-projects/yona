@@ -99,7 +99,7 @@
     $(function(){
         function _showRequestWaitingMessage(that){
             $(".alert").remove();
-            $.tmpl (document.getElementById("dismissable-alerts-request" ).text, {}).appendTo(that.parent());
+            $yona.render(document.getElementById("dismissable-alerts-request").text, {}).appendTo(that.parent());
         }
 
         $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
@@ -123,7 +123,7 @@
                 .done(function(data){
                     $(".alert").remove();
                     if(data && data.isSuccess === true){
-                        $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
+                        $yona.render($('#dismissable-alerts').text(), data).appendTo(that.parent());
                     } else {
                         $yona.alert("password change failed: " + data.reason);
                     }
@@ -137,13 +137,13 @@
         yona.Pagination.update($("#pagination"), [[${totalPageCount}]]);
     });
     </script>
-    <script type="text/x-jquery-tmpl" id="dismissable-alerts">
+    <script type="text/x-mustache" id="dismissable-alerts">
         <div class="alert alert-success alert-dismissible">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <h4>[[#{user.newPassword}]]: ${newPassword}</h4>
+            <h4>[[#{user.newPassword}]]: {{newPassword}}</h4>
         </div>
     </script>
-    <script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
+    <script type="text/x-mustache" id="dismissable-alerts-request">
         <div class="alert alert-fail alert-warning alert-dismissible">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             <h4>sending requestHeader...</h4>

@@ -27,6 +27,10 @@ export const COMMON_STUBS = `
     alert: function (m) { (window.__alerts = window.__alerts || []).push(m); },
     showAlert: function (m) { (window.__alerts = window.__alerts || []).push(m); }
   };
+  // 실제 yona.Common.js의 render, renderElement와 같은 동작의 대역이다(실제 구현은 template.test.mjs가 검증한다)
+  Mustache.escape = function (v) { return ('' + v).split('<').join('&lt;').split('>').join('&gt;').split('"').join('&#34;').split("'").join('&#39;'); };
+  window.$yona.render = function (t, d) { if (typeof t !== 'string') return $(); return $($.parseHTML(Mustache.render(t, d == null ? {} : d).trim())); };
+  window.$yona.renderElement = function (el, d) { return window.$yona.render($(el).html(), d); };
   window.Messages = function (key) { return key; };
   window.bootstrap = { Modal: { getOrCreateInstance: function () { return { show: function () { (window.__modal = window.__modal || []).push('show'); }, hide: function () {} }; } } };
   window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.Typeahead = function () {};
@@ -43,7 +47,10 @@ export async function pageWith({ html = '', scripts = [], stubs = true } = {}) {
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`);
   await page.addScriptTag({ path: path.join(JS, 'lib/jquery/jquery-3.7.1.js') });
-  if (stubs) await page.addScriptTag({ content: COMMON_STUBS });
+  if (stubs) {
+    await page.addScriptTag({ path: path.join(JS, 'lib/mustache.js') });
+    await page.addScriptTag({ content: COMMON_STUBS });
+  }
   for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? { path: path.join(JS, s) } : s);
   return page;
 }

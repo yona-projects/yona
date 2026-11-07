@@ -72,7 +72,7 @@ jquery-pjax는 공식 2.0.1과 같다. jquery.event.drag와 jquery.scrollTo는 �
 
 **앱 코드(13개 파일)**: `$.trim` 21곳, `$.parseJSON` 6곳, `$.isNumeric` 1곳이다. `String.prototype.trim`, `JSON.parse`, `Number.isFinite`로 치환하면 된다.
 
-**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1), jquery.tmpl(`trim` 1, `isArray` 4), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
+**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1), jquery.tmpl(`trim` 1, `isArray` 4. **Mustache 교체로 사라짐, D-94**), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
 
 **올릴 새 버전의 실제 배포 파일을 같은 목록으로 검사한 결과** (npm 선언과 함께):
 

@@ -57,7 +57,7 @@
 
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
-            htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+            htVar.sTplMiniMapLink = '<a href="#{{id}}" style="top:{{top}}px; height:{{height}}px;"></a>';
 
             // yona.Attachments
             htVar.sTplFileItem = $('#tplAttachedFile').text();
@@ -632,7 +632,7 @@
                 waTargets.each(function(i, el){
                     welTarget = $(el);
 
-                    aLinks.push($.tmpl(htVar.sTplMiniMapLink, {
+                    aLinks.push($yona.render(htVar.sTplMiniMapLink, {
                         "id"    : welTarget.attr("id"),
                         "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
                         "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)
