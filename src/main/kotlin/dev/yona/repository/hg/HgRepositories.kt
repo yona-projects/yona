@@ -19,6 +19,9 @@ import java.io.IOException
 class HgRepositories(private val dataDirectory: DataDirectory) {
 
     /** 저장소 디렉터리이다. 소유자와 이름은 URL 디코딩이 끝난 값이다. */
+    /** 임시 작업 사본을 두는 폴더이다(태그 만들기와 지우기가 쓴다). 저장소 폴더(`repo/hg`) 밖이라 저장소 목록에 섞이지 않는다. */
+    fun scratchDirectory(): File = File(dataDirectory.root(), "tmp/hg")
+
     /** Mercurial 저장소들이 모여 있는 폴더이다(`repo/hg`). */
     fun rootDirectory(): File = File(dataDirectory.root(), REPO_PREFIX)
 

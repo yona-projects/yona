@@ -95,7 +95,9 @@ class TagController(
     fun deleteTag(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable tag: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAG_MANAGEMENT)) return ErrorViews.badRequest("error.badrequest.only.available.for.git")
-        if (!tagService.delete(project, UrlPaths.decodeSegmentOrSelf(tag))) return ErrorViews.notFound()
+        val user = requireNotNull(currentUserProvider.get().user) { "삭제 권한 검사를 통과했으면 사용자가 있다" }
+        val remover = dev.yona.repository.TagAuthor(user.name.orEmpty().ifBlank { user.loginId.orEmpty() }, user.email.orEmpty().ifBlank { "${user.loginId}@localhost" })
+        if (!tagService.delete(project, UrlPaths.decodeSegmentOrSelf(tag), remover)) return ErrorViews.notFound()
         return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/tags"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
 }

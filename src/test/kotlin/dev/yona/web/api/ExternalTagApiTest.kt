@@ -134,16 +134,21 @@ class ExternalTagApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Mercurial 프로젝트의 태그는 읽을 수 있지만 만들고 지우지는 못한다`() {
+    fun `Mercurial 프로젝트도 태그를 읽고 만들고 지울 수 있다 (A-389)`() {
         org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
         val project = newProject(vcs = "Mercurial", withCommits = false); repositories.createRepository(project)
         val hgDir = hgRepositories.directoryOf(project.owner!!, project.name!!)
-        dev.yona.support.HgTestSupport.commit(hgDir, "첫 커밋", mapOf("a.txt" to "a\n"))
-        dev.yona.support.HgTestSupport.tag(hgDir, "v1", "0")
+        val first = dev.yona.support.HgTestSupport.commit(hgDir, "첫 커밋", mapOf("a.txt" to "a\n"))
+        dev.yona.support.HgTestSupport.bookmark(hgDir, "main")
         val member = newUser(); roleOn(project, member, RoleType.MANAGER); val token = tokenOf(member)
+        json(post(api(project)), token, """{"name":"v1"}""").andExpect(status().isCreated).andExpect(jsonPath("$.result.commit.id").value(first))
+        json(post(api(project)), token, """{"name":"v1"}""").andExpect(status().isConflict)
+        json(post(api(project)), token, """{"name":"tip"}""").andExpect(status().isBadRequest)
         json(get(api(project)), token, null).andExpect(status().isOk).andExpect(jsonPath("$.tags.length()").value(1)).andExpect(jsonPath("$.tags[0].name").value("v1"))
-        json(post(api(project)), token, """{"name":"v2"}""").andExpect(status().isBadRequest)
-        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(api(project, "tags/v1")), token, null).andExpect(status().isBadRequest)
+        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(api(project, "tags/v1")), token, null).andExpect(status().isNoContent)
+        json(get(api(project)), token, null).andExpect(jsonPath("$.tags.length()").value(0))
+        // 지운 사용자가 태그 체인지셋의 작성자이다
+        assertEquals(member.name + " <" + member.email + ">", dev.yona.support.HgTestSupport.hg(hgDir, "log", "-r", "main", "--template", "{author}"))
     }
 
     // --- 읽기 ---

@@ -16,10 +16,10 @@ import java.util.Date
  *
  * - 브랜치 이름은 `refs/heads/<이름표>`이다. 기본 브랜치는 `main`, `master`, `@` 이름표 가운데 먼저 있는 것이고 없으면 없다.
  * - 태그는 `refs/tags/<태그>`이다. Mercurial 태그는 `.hgtags` 파일의 한 줄이라 주석 태그의 메시지와 태그 단 사람이 없다(경량 태그로 본다).
- * - 이름표는 지울 수 있다. 태그 만들기와 지우기는 작업 파일이 없는 서버 저장소에서 쓸 수 없어(`.hgtags`를 커밋해야 한다) 아직 지원하지 않는다.
+ * - 태그 만들기와 지우기는 `.hgtags`를 고친 체인지셋을 만들어 한다([HgTagWriter], A-389).
  */
 @Component
-class HgRefReader(private val hg: HgRepositories) : RefReader {
+class HgRefReader(private val hg: HgRepositories, private val tagWriter: HgTagWriter) : RefReader {
 
     override val type: VcsType get() = VcsType.MERCURIAL
 
@@ -70,13 +70,20 @@ class HgRefReader(private val hg: HgRepositories) : RefReader {
         )
     }
 
-    override fun createTag(project: Project, name: String, target: String?, message: String?, tagger: TagAuthor): TagCreation =
-        throw UnsupportedOperationException("Mercurial 저장소의 태그 만들기는 아직 지원하지 않습니다.")
+    /** 태그 체인지셋을 만들어 태그를 단다. [message]가 있으면 그 체인지셋의 설명이다(Mercurial에는 주석 태그가 없다). 자세한 방식은 [HgTagWriter]이다. */
+    override fun createTag(project: Project, name: String, target: String?, message: String?, tagger: TagAuthor): TagCreation {
+        val error = tagWriter.create(requireNotNull(project.owner), requireNotNull(project.name), name, target, message, tagger)
+        return TagCreation(if (error == null) findTag(project, name) else null, error)
+    }
 
-    override fun deleteTag(project: Project, shortName: String): Boolean =
-        throw UnsupportedOperationException("Mercurial 저장소의 태그 지우기는 아직 지원하지 않습니다.")
+    /** 태그 체인지셋을 만들어 태그를 지운다(작성자는 [remover], 없으면 [TAG_REMOVER]이다. `.hgtags`에 영 노드 줄이 남는다). 그런 태그가 없으면 `false`이다. */
+    override fun deleteTag(project: Project, shortName: String, remover: TagAuthor?): Boolean =
+        tagWriter.delete(requireNotNull(project.owner), requireNotNull(project.name), shortName, remover ?: TAG_REMOVER)
 
     private companion object {
         const val SHORT_ID = 12
+
+        /** 지우는 사용자를 알 수 없을 때(내부 호출) 쓰는 작성자이다. */
+        val TAG_REMOVER = TagAuthor("Yona", "yona@localhost")
     }
 }

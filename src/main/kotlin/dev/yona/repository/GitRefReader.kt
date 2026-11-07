@@ -77,7 +77,7 @@ class GitRefReader(private val git: GitRepositories) : RefReader {
         TagCreation(findTag(project, name), null)
     }
 
-    override fun deleteTag(project: Project, shortName: String): Boolean = open(project).use { repository ->
+    override fun deleteTag(project: Project, shortName: String, remover: TagAuthor?): Boolean = open(project).use { repository ->
         if (repository.exactRef(Constants.R_TAGS + shortName) == null) return false
         Git(repository).tagDelete().setTags(Constants.R_TAGS + shortName).call()
         true

@@ -53,6 +53,7 @@ class TagsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
 
     private var sequence = 0
 
@@ -70,7 +71,7 @@ class TagsTest : AbstractIntegrationTest() {
         val n = ++sequence
         val p = projects.save(Project(owner = "tgo$n", name = "tgp$n", vcs = vcs, projectScope = ProjectScope.PUBLIC))
         menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
-        if (vcs == "GIT") repositories.createRepository(p)
+        if (vcs == "GIT" || vcs == "Mercurial") repositories.createRepository(p)
         return p
     }
 
@@ -175,6 +176,24 @@ class TagsTest : AbstractIntegrationTest() {
         // 익명도 403이다(v1.6 브랜치 삭제와 같다)
         mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1.0")).andExpect(status().isForbidden)
         assertTrue("refs/tags/v1.0" in repositories.refNames(p))
+    }
+
+    // --- Mercurial(X-7 9단계 보완, A-389): 태그를 지우는 일은 `.hgtags`를 고친 체인지셋을 만든다 ---
+
+    @Test
+    fun `Mercurial 프로젝트의 삭제 단추는 매니저에게만 나오고 지우면 목록에서 사라진다`() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
+        val p = project(vcs = "Mercurial"); val manager = member(p); val plain = member(p, RoleType.MEMBER)
+        val dir = hgRepositories.directoryOf(p.owner!!, p.name!!)
+        dev.yona.support.HgTestSupport.commit(dir, "첫 커밋", mapOf("a.txt" to "a\n")); dev.yona.support.HgTestSupport.bookmark(dir, "main")
+        dev.yona.support.HgTestSupport.tag(dir, "v1", "0")
+        dev.yona.support.HgTestSupport.bookmark(dir, "main", "tip")
+        assertNull(page("/${p.owner}/${p.name}/tags", login(plain)).selectFirst("a[data-request-method=delete]"))
+        assertEquals(1, page("/${p.owner}/${p.name}/tags", login(manager)).select("a[data-request-method=delete]").size)
+        mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1").session(login(manager))).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${p.owner}/${p.name}/tags"))
+        assertTrue("refs/tags/v1" !in repositories.refNames(p))
+        mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1").session(login(manager))).andExpect(status().isNotFound)
+        mockMvc.perform(delete("/${p.owner}/${p.name}/tags/v1").session(login(plain))).andExpect(status().isForbidden)
     }
 
     @Test

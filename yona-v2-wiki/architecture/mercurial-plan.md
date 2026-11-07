@@ -431,6 +431,19 @@ hg4j 세션이 Git LFS 15개 기능을 원본 hg 7.2.4 `lfs` 확장과 hg4j에 �
 
 코드 화면의 LFS 안내와 내려받기는 만들지 않는다: Mercurial의 파일 읽기는 LFS 본문을 풀어서 돌려주어 코드 화면과 rawcode가 이미 실제 본문을 보여 주기 때문이다(`HgLfsCodeBrowserTest`, A-385).
 
+### 7.15 지원 누락 점검 보완(2026-11-07)
+
+Playwright 확인 중 사이트 LFS 화면의 이름과 사용량 집계 누락을 찾았고, 코드를 훑어 Git에만 있던 것을 더 찾아 Mercurial에도 만들었다. 결정은 `decisions.md` A-386부터 A-389이다.
+
+| 항목 | 동작 | 시험 |
+|---|---|---|
+| 사이트 LFS 화면 | 이름을 "LFS"로 바꾸고 사용량에 Mercurial 저장소 안의 본문을 합산 | `SiteLfsTest` |
+| 마크다운 커밋 번호 링크 | `SHA`, `@SHA`를 12자 링크로(북마크 이름은 링크하지 않음) | `AutoLinkRendererTest` |
+| 줄 코멘트 스레드 | 파일 보기와 커밋 이력의 댓글 수, 커밋 보기의 스레드 | `HgCodeWebTest` |
+| 태그 만들기와 지우기 | 임시 작업 사본에서 `.hgtags` 체인지셋을 만들어 서버로 가져옴 | `HgRefReaderTest`, `ExternalTagApiTest`, `TagsTest` |
+
+Git에 있고 Mercurial에 없는 능력은 이제 온라인 편집(v1.6도 Git 전용), 기본 브랜치 설정(이름 순서로 정함, A-378), LFS 능력(Mercurial은 hg4j 내장 LFS, D-90)이다.
+
 ## 8. 결정이 필요한 질문
 
 [decisions.md](../decisions.md) D-86에 같은 내용을 권장안과 이유와 함께 올렸다.

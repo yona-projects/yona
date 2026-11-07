@@ -160,8 +160,8 @@ interface RefReader : VcsPart {
     /** 태그를 만든다. [message]가 있으면 주석 태그(태그 단 사람은 [tagger])이고 없으면 경량 태그이다. */
     fun createTag(project: Project, name: String, target: String?, message: String?, tagger: TagAuthor): TagCreation
 
-    /** 태그를 지운다. 그런 태그가 없으면 `false`이다. */
-    fun deleteTag(project: Project, shortName: String): Boolean
+    /** 태그를 지운다. 그런 태그가 없으면 `false`이다. [remover]는 지우는 사람이며, 태그를 지우는 일이 체인지셋을 만드는 종류(Mercurial)가 작성자로 쓴다. */
+    fun deleteTag(project: Project, shortName: String, remover: TagAuthor? = null): Boolean
 }
 
 /**

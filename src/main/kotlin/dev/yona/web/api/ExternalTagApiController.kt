@@ -108,7 +108,8 @@ class ExternalTagApiController(
         val project = requireNotNull(target.project)
         if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.TAG_MANAGEMENT)) return requests.message(HttpStatus.BAD_REQUEST, "only Git projects can delete tags")
         if (!accessControl.isAllowed(requireNotNull(target.user), project.asResource(), Operation.DELETE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
-        if (!tagService.delete(project, name.removePrefix("/"))) return requests.message(HttpStatus.NOT_FOUND, "no tag by request")
+        val remover = requireNotNull(target.user).let { u -> dev.yona.repository.TagAuthor(u.name.orEmpty().ifBlank { u.loginId.orEmpty() }, u.email.orEmpty().ifBlank { "${u.loginId}@localhost" }) }
+        if (!tagService.delete(project, name.removePrefix("/"), remover)) return requests.message(HttpStatus.NOT_FOUND, "no tag by request")
         return ResponseEntity.noContent().build<Void>()
     }
 

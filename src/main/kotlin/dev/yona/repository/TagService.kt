@@ -68,5 +68,5 @@ class TagService(private val backends: VcsBackends, private val metrics: dev.yon
     fun create(project: Project, name: String, target: String?, message: String?, tagger: TagAuthor): TagCreation = refs(project).createTag(project, name, target, message, tagger)
 
     /** 태그를 지운다. 그런 태그가 없으면 `false`이다. 브랜치나 다른 참조는 이름이 같아도 지우지 않는다. */
-    fun delete(project: Project, shortName: String): Boolean = refs(project).deleteTag(project, shortName)
+    fun delete(project: Project, shortName: String, remover: TagAuthor? = null): Boolean = refs(project).deleteTag(project, shortName, remover)
 }
