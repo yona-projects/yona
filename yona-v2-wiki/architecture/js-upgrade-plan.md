@@ -28,7 +28,7 @@ updated: 2026-11-07
 | Tippy.js | 6.x | 6.3.7 | 이슈 작성 | 작음 |
 | select2 | 3.4.5 | 4.1.0 | 7개 파일 | **큼**(마크업과 API가 다름) |
 | moment(`with-langs`) | 2.4.0 | 2.31.0 | 4개 파일 | 작음 |
-| marked | 오래된 0.x | 18.x | 마크다운 미리보기(`yobi.Markdown.js`) | **큼**(서버 렌더와 같아야 함) |
+| marked | 0.8대(2021년판) | 18.x | **서버 렌더(Nashorn)와 브라우저 미리보기**(`yobi.Markdown.js`) | **매우 큼**(아래 "marked는 세 벌이다") |
 | highlight.js | 9.11.0 | 11.x | 코드 강조 1개 파일 | 중간(API 이름이 바뀜) |
 | Ace | 1.x(파일 174개) | 1.45.2 | 코드 보기의 편집기 | 작음 |
 | Pikaday | 1.x | 1.8.2 | 날짜 선택 2개 파일 | 작음 |
@@ -40,9 +40,35 @@ updated: 2026-11-07
 | At.js(멘션) | 1.5.3 | 1.5.4(유지 중단) | 멘션 | 거의 없음 |
 | `vendor.js`(Angular 1.x와 lodash 묶음) | 1.5.8 | 없음(AngularJS는 지원 종료) | **마이그레이션 화면 하나** | 업그레이드 불가 |
 
-jQuery 플러그인(`pjax`, `browser`, `tmpl`, `form`, `validate`, `requestAs`, `search`, `placeholder`, `cookie`, `Jcrop`, `dynatree`, `event.drag`, `scrollTo`)은 대부분 유지가 끝난 것이라 **jQuery를 올릴 때 호환을 시험으로 확인해야** 한다. `jquery.zclip`과 `ZeroClipboard.swf`(Flash)는 이미 쓸모가 없다.
+### jQuery 플러그인과 jQuery 4의 거리 (2026-11-07 조사)
 
-jQuery 4에서 영향을 받을 앱 코드의 단서: `$.trim` 21곳, `$.parseJSON` 6곳, `.bind`와 `.unbind` 4곳(정확한 제거 목록은 공식 4.0 업그레이드 가이드와 `jquery-migrate`로 확인한다).
+jQuery 4에서 제거되었다고 알려진 API를 플러그인 파일에서 세었다. **앱 코드**(`common`, `service`)는 `$.trim` 21곳, `$.parseJSON` 6곳, `.bind`와 `.unbind` 4곳으로 적다. 반면 **플러그인**이 많다.
+
+| 플러그인(현재 버전) | 제거 대상 API 사용 | 상태 |
+|---|---|---|
+| select2 3.4.5 | `.bind` 32, `$.isFunction` 11, `$.trim` 3, `$.isArray` 3 | 4.x로 올려야 함(단계 6) |
+| jquery.validate 1.9.0(2011) | `$.trim` 7, `$.isFunction` 2, `.bind` 3 | 최신 1.20대 |
+| jquery.dynatree 1.2.4 | `$.trim` 3, `$.isArray` 2, `$.browser` 4, `.bind` 5 | **유지 끝**(후속은 fancytree) |
+| jquery.Jcrop 0.9.12 | `.bind` 11, `.unbind` 4 | 유지 끝 |
+| jquery.form 3.09 | `$.trim` 1, `$.isFunction` 1 | 최신 4.3 |
+| jquery.pjax | `$.isArray` 2, `$.isFunction` 2, `$.trim` 1 | 최신 2.0 |
+| jquery.tmpl 1.0.0, jquery.browser 0.0.6 | `$.isArray` 4, `$.browser` | **유지 끝**(앱이 쓰는 곳 확인 필요) |
+| jquery.cookie 1.4.0 | `$.isFunction` 2 | 후속은 js-cookie |
+| magnific-popup, event.drag 2.2, At.js, placeholder 2.0.7 | `$.isFunction` 등 소수 | 각각 확인 |
+
+합계로 `$.trim` 17, `$.isArray` 15, `$.isFunction` 23, `.bind` 63, `.unbind` 10, `$.browser` 6곳이다. **jQuery 3.7.1에서는 모두 그대로 동작한다**(지원 중단 경고만 있다). jQuery 4는 위 플러그인 약 열 개를 올리거나 대체해야 하므로 select2 4.x와 묶인 별도 큰 일이다.
+
+### marked는 세 벌이다 (중요)
+
+`marked.js`는 byte 단위로 같은 파일이 **세 곳**에 있다.
+
+| 위치 | 쓰임 |
+|---|---|
+| `src/main/resources/markdown/marked.js` | **서버**가 Nashorn(독립 배포판)에서 실행해 README, 이슈, 게시글, 댓글, 알림 메일을 렌더한다(`MarkedEngine`). D-17 되돌림(A-151, A-154)으로 v1.6의 결과를 그대로 내려고 일부러 같은 파일을 쓴다. |
+| `src/main/resources/static/assets/javascripts/lib/marked.js` | 브라우저의 `yobi.Markdown.js`(`marked(text, options)` 후 `$yobi.xssClean`) |
+| `src/test/resources/marked.js` | `MarkdownRendererTest`의 v1.6 비교 기준 |
+
+그러므로 marked를 올리는 일은 단순한 라이브러리 교체가 아니라 **서버 렌더 결과가 v1.6과 달라지는 일**이다. 또 브라우저만 올리면 같은 글이 미리보기와 저장 뒤 화면에서 다르게 보일 수 있다. 17년 사이에 바뀐 점: `sanitize`, `smartLists`, `tables`, `highlight` 옵션이 없어지거나 확장(`marked-highlight`)으로 옮겨졌고, 렌더러 사용자 정의가 토큰 객체를 받도록 바뀌었으며, 서버의 Nashorn 독립 배포판이 새 문법(ES2020 이상)을 읽는지도 확인해야 한다.
 
 `components` 저장소의 Vue 3와 CodeMirror 6 위젯은 아직 이 저장소에 들어오지 않았고 이미 최신 계열이라 이번 범위 밖이다.
 
@@ -67,41 +93,47 @@ jQuery 4에서 영향을 받을 앱 코드의 단서: `$.trim` 21곳, `$.parseJS
 
 ## 4. 단계
 
-크기는 작업량의 어림이다(S: 한나절 안, M: 하루 안팎, L: 이틀 이상).
+크기는 작업량의 어림이다(S: 한나절 안, M: 하루 안팎, L: 이틀 이상). 순서는 위험이 작은 것부터이며 선생님 결정(2026-11-07)으로 **select2는 마지막에 단독 단계**이다.
 
 ### 단계 1. 같은 계열의 안전한 묶음 (S)
 
-API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy 6.3.7, clipboard 2.0.11, NProgress 0.2.0, autosize 6.0.1, Viewer.js 1.15.2, magnific-popup 1.2.0, underscore 1.13.8(1개 파일의 `_` 사용 확인), js-xss 1.0.17, Pikaday 1.8.2, video.js **7.21.2**(7계열 마지막, 8로는 가지 않는다). 각 라이브러리의 배포 파일과 CSS를 교체하고 `yona-lib.js` 번들에 들어가는 것은 번들을 다시 만든다.
+API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2.0.11, NProgress 0.2.0, autosize 6.0.1, Viewer.js 1.15.2, magnific-popup 1.2.0, underscore 1.13.8(1개 파일의 `_` 사용 확인), js-xss 1.0.17, Pikaday 1.8.2, video.js 7.21.2(7계열 마지막). 배포 파일과 CSS를 교체하고 번들(`yona-lib.js`)에 들어가는 것은 다시 만든다.
 
 ### 단계 2. Ace 1.45.2 (S)
 
-폴더 전체(174개 파일)를 `ace-builds`의 `src-min-noconflict`로 바꾼다. 모드와 테마는 `ace.js`가 기준 경로에서 동적으로 읽으므로 경로 설정이 그대로 맞는지, 코드 보기의 편집 화면이 열리는지 확인한다.
+폴더 전체(174개 파일)를 `ace-builds`의 `src-min-noconflict`로 바꾼다. 모드와 테마는 `ace.js`가 기준 경로에서 읽으므로 경로 설정이 맞는지, 코드 보기의 편집 화면이 열리는지 확인한다.
 
 ### 단계 3. jQuery 3.3.1 → 3.7.1 과 jQuery UI 효과 (M)
 
-1. `build-tools/minify-js.sh`의 입력을 새 jQuery로 바꿔 `yona-layout.js`를 다시 만든다(Closure Compiler가 ES5인 3.7.1은 처리한다).
-2. 마이그레이션과 첫 설정 화면이 쓰는 **1.9.0도 같은 버전으로 합친다**(jQuery가 두 벌이면 플러그인도 두 벌이 된다). 이 세 화면은 사용하는 플러그인이 적어 영향이 작다.
-3. `jquery-migrate`를 일시적으로 붙여 크롤링하고, 경고가 나오는 플러그인과 앱 코드를 고친다.
-4. jQuery UI는 효과만 쓰는 맞춤 빌드이므로 필요한 효과만 담아 1.14.2로 다시 받는다(쓰는 효과를 먼저 확인).
+1. `build-tools/minify-js.sh`의 입력을 새 jQuery로 바꿔 `yona-layout.js`를 다시 만든다(ES5인 3.7.1은 Closure Compiler가 처리한다).
+2. 마이그레이션과 첫 설정 화면의 **1.9.0도 같은 버전으로 합친다**(jQuery가 두 벌이면 플러그인도 두 벌이 된다).
+3. `jquery-migrate`를 일시적으로 붙여 크롤링하고 경고가 나오는 곳을 고친다.
+4. jQuery UI는 효과만 쓰는 맞춤 빌드이므로 쓰는 효과를 먼저 확인하고 1.14.2로 다시 받는다.
 
 ### 단계 4. moment 2.31 과 highlight.js 11 (M)
 
-- **moment**: `moment-with-langs`는 `moment-with-locales`로 이름이 바뀌었다. 쓰는 곳 4개(`isValid`와 날짜 서식)를 시험한다. 날짜 문자열이 ISO 형식이 아니면 2.4.0과 동작이 달라질 수 있으므로 입력 형식을 확인한다.
-- **highlight.js**: `hljs.highlight(lang, code)`는 `hljs.highlight(code, {language})`로, `highlightBlock`은 `highlightElement`로 바뀌었다. 쓰는 곳은 `yobi.Markdown.js` 하나이다. 지금의 맞춤 묶음(언어 목록)과 같은 언어를 담아 다시 만들고 CSS 테마 파일을 교체한다.
+- **moment**: `moment-with-langs`는 `moment-with-locales`로 이름이 바뀌었다. 쓰는 곳 4개(`isValid`와 날짜 서식)를 시험한다. ISO가 아닌 날짜 문자열의 동작 차이를 확인한다.
+- **highlight.js**: `hljs.highlight(lang, code)`는 `hljs.highlight(code, {language})`로, `highlightBlock`은 `highlightElement`로 바뀌었다. 쓰는 곳은 `yobi.Markdown.js` 하나이다. 지금 맞춤 묶음의 언어 목록과 같게 다시 만들고 CSS 테마를 교체한다. 서버의 코드 강조는 별개이다.
 
-### 단계 5. select2 3.4.5 → 4.1.0 (L, 가장 위험)
+### 단계 5. marked 18 (L, 선생님이 올리기로 하심, 범위 결정 대기)
 
-4.x는 숨은 입력(`<input>`) 대신 `<select>`를 기대하고 옵션 이름과 이벤트가 다르다. 쓰는 곳은 `yobi.ui.Select2.js`와 7개 파일이다. 앞서 Bootstrap 5 전환에서 이 항목을 **보류**했던 것(`X-38` 메모)과 같은 일이므로, 선생님 결정이 있을 때 시작한다. 한국어와 일본어 로케일 파일(`select2_locale_*`)도 4.x 형식으로 바뀐다.
+1. **먼저 비교 시험을 만든다**: 같은 입력 모음(README, 이슈, 댓글 실제 모양, 표, 작업 목록, 코드 블록, 이미지와 자동 링크, 제목 앵커, 강조 겹침, 줄바꿈)을 옛 marked와 새 marked에 넣어 결과를 **항목별로 비교**한다(`MarkdownRendererTest`의 v1.6 비교 기준을 그대로 둔다).
+2. 서버의 Nashorn 독립 배포판이 새 marked를 실행하는지 확인한다. 못 읽으면 서버는 올릴 수 없다.
+3. 옵션과 `highlight`를 새 방식(`marked-highlight` 확장 또는 렌더 뒤 `hljs.highlightElement`)으로 옮기고 `smartLists`처럼 없어진 동작은 같은 결과가 나도록 보정한다.
+4. 차이는 목록으로 만들어 선생님이 항목별로 승인한다(D-17의 방식과 같다).
+범위(브라우저만, 서버까지, 올리지 않음)는 7절 결정 1이다.
 
-### 단계 6. 선택 항목 (결정 후)
+### 단계 6. select2 3.4.5 → 4.1.0 (L, 단독 단계, 마지막)
 
-- **jQuery 4.0.0**: 3.7.1에서 경고가 모두 없어진 뒤에만 한다. 플러그인 가운데 유지가 끝난 것은 대체나 수정이 필요하다.
-- **marked**: 미리보기가 서버 렌더와 같아야 한다는 v1.6 동일성 때문에 위험하다(7절 결정 2).
-- **`vendor.js`**: AngularJS는 업그레이드할 대상이 없다. 마이그레이션 화면을 다시 쓸지는 별개의 일이다.
+4.x는 숨은 입력(`<input>`) 대신 `<select>`를 기대하고 옵션 이름과 이벤트가 다르다. 쓰는 곳은 `yobi.ui.Select2.js`와 7개 파일이다. 한국어와 일본어 로케일 파일(`select2_locale_*`)도 4.x 형식으로 바뀐다. 다른 변경과 섞지 않는다.
 
-### 단계 7. 정리 (선생님 확인 뒤)
+### 단계 7. (선택) jQuery 4.0.0 과 플러그인 교체 (L)
 
-쓰지 않는 파일의 목록을 만들어 **확인을 받은 뒤에** 지운다: `jquery.zclip`과 `ZeroClipboard.swf`, `jquery-1.7.2*`, 새 jQuery로 대체된 옛 파일, 참조가 없는 `public/`의 `less-1.3.0.min.js`. 참조 여부는 `TemplateScriptReferencesTest`가 근거가 된다.
+단계 6이 끝난 뒤에만 한다. 1절의 플러그인 표에서 유지가 끝난 것(dynatree, Jcrop, tmpl, browser)은 대체나 수정이 필요하고, validate, form, pjax, cookie는 새 버전으로 올린다. Closure Compiler가 새 jQuery를 읽을 수 있는지도 확인한다. 얻는 것이 작아 보이므로 3.7.1에 머무는 것이 권장이다.
+
+### 단계 8. 정리 (선생님 확인 뒤)
+
+쓰지 않는 파일의 목록을 만들어 **목록을 먼저 보여 드리고 확인을 받은 뒤에** 지운다: `jquery.zclip`과 `ZeroClipboard.swf`, `jquery-1.7.2*`, 새 jQuery로 대체된 옛 파일, 참조가 없는 `public/`의 `less-1.3.0.min.js`. 참조 여부는 `TemplateScriptReferencesTest`가 근거가 된다.
 
 ## 5. 묶음마다 하는 일 (공통 절차)
 
@@ -118,14 +150,20 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy 6.3.7, clipboard 2.0.
 |---|---|
 | 오래된 jQuery 플러그인이 새 jQuery에서 깨진다 | 단계 3에서 `jquery-migrate` 경고와 전 화면 순회로 찾는다. 안 되면 해당 플러그인만 고치거나 대체한다. |
 | Closure Compiler(`compiler.jar`)가 낡아 새 라이브러리의 문법을 못 읽는다 | 3.7.1은 ES5라 가능하다. 그 이상(jQuery 4 등)은 컴파일러를 올리거나 이미 압축된 파일을 따로 불러오는 방식(Bootstrap 5 번들과 같은 방식)으로 한다. |
-| 마크다운 미리보기와 서버 렌더의 차이 | marked는 결정 전에는 올리지 않는다. 올린다면 같은 입력을 양쪽에 넣어 결과를 비교하는 시험을 먼저 만든다. |
+| marked를 올리면 서버 렌더 결과가 v1.6과 달라진다(세 벌이 같은 파일) | 단계 5의 비교 시험을 먼저 만들고, 차이를 항목별로 승인받는다. 서버의 Nashorn이 새 문법을 읽는지 먼저 본다. 브라우저만 올리면 미리보기와 저장 뒤 화면이 달라질 수 있다. |
 | 모듈 경로나 파일 이름이 바뀌어 404가 난다 | `TemplateScriptReferencesTest`가 막는다. |
 | 한 번에 많이 올려 원인을 못 찾는다 | 단계와 묶음을 나누고 묶음마다 커밋한다. |
 
-## 7. 결정이 필요한 것
+## 7. 결정
 
-1. **jQuery를 어디까지 올릴지**: (A) 3.7.1에서 멈춘다(권장), (B) 4.0.0까지 간다. 권장 이유: 4.0은 제거된 API가 있고 유지가 끝난 플러그인이 많아 얻는 것에 비해 비용이 크며, 3.7.1은 같은 계열이라 위험이 작다.
-2. **marked를 올릴지**: (A) 올리지 않는다(권장), (B) 최신으로 올리고 서버 렌더와 비교 시험을 만든다. 권장 이유: v1.6 동일성이 원칙이고 18.x는 API가 크게 달라 미리보기 결과가 달라질 위험이 크다.
-3. **select2 4.x를 이번에 할지**: (A) 이번에 한다, (B) 보류를 유지한다(권장은 마지막에 단독 단계로 하는 것). 이유: 위험이 가장 크고 Bootstrap 5 전환에서도 따로 미뤘다.
-4. **video.js**: (A) 7.21.2(권장), (B) 8.24.1. 이유: 8은 ES 모듈 중심으로 바뀌었고 이 사이트의 사용처가 하나라 얻는 것이 작다.
-5. **쓰지 않는 파일 정리**(단계 7)를 할지와 대상 목록.
+### 정해진 것 (선생님, 2026-11-07)
+
+- **select2 4.x**: 마지막에 단독 단계로 한다(단계 6).
+- **쓰지 않는 파일 정리**: 목록을 먼저 보여 드리고 확인을 받은 뒤에 지운다(단계 8).
+- **marked**: 최신으로 올린다. 다만 위 "세 벌이다"의 사실은 답하실 때 알려지지 않았으므로 **범위를 다시 확인한다**(결정 1).
+
+### 대기 중
+
+1. **marked를 어디까지 올릴지**: (A) 브라우저와 서버를 함께 올리고 차이를 항목별로 승인받는다, (B) 브라우저만 올린다(서버는 v1.6 파일을 유지), (C) 올리지 않는다. 권장 (C)에 가깝지만 최신으로 올리기로 하셨으므로 **(A)를 권장**한다. 이유: (B)는 같은 글이 미리보기와 저장 뒤에 다르게 보이는 새 불일치를 만들고, 서버가 v1.6 결과를 그대로 내는 것이 D-17 되돌림의 이유였다. (A)는 비교 시험과 항목별 승인으로 차이를 드러내 통제할 수 있다. 단 서버의 Nashorn이 새 문법을 읽어야 한다.
+2. **jQuery를 어디까지 올릴지**: (A) 3.7.1에서 멈춘다(**권장**), (B) 4.0.0까지 간다. 위 플러그인 조사로 근거가 분명해졌다: 3.7.1은 모든 플러그인이 그대로 동작하고, 4.0은 플러그인 약 열 개를 올리거나 대체해야 하며(유지가 끝난 것 포함) select2 4.x와 겹친다. B는 단계 7로 남겨 둘 수 있다.
+3. **video.js**: 7.21.2(권장)와 8.24.1 중. 기본값은 7.21.2로 진행한다.
