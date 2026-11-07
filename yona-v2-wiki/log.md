@@ -1832,3 +1832,7 @@ Git LFS 15개 기능을 hg4j 세션이 원본 hg와 대조했다(hg4j에 빠진 
 ## [2026-11-07] ingest | JS 라이브러리 업그레이드 계획
 
 선생님 요청으로 서빙되는 JS 라이브러리(`static/assets`)의 현재 버전과 npm 최신 버전을 조사해 계획서(`architecture/js-upgrade-plan.md`)를 썼다. 코드는 바꾸지 않았다. Bootstrap 5.3.8은 이미 최신이고, 위험이 큰 것은 select2 4.x, marked, jQuery 4이다. 결정 질문은 계획서 7절에 있다.
+
+## [2026-11-07] build | Mercurial 병합 방식 세 가지 화면 수준 확인
+
+선생님이 Git에 있던 병합 방식 세 가지와 가능 여부 표시가 Mercurial에도 있는지 확인하라고 하셨다. 도메인 시험은 이미 있었고 화면, REST, 설정 시험이 없어 `HgMergeMethodWebTest` 11건을 더했다. 모두 통과했고 고칠 코드는 없었다(A-391). 전체 시험은 다음 실행에 포함된다.
