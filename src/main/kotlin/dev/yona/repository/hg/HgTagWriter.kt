@@ -15,10 +15,11 @@ import java.nio.file.Files
  * head`), 원본이 하는 방식 그대로 **임시 작업 사본에서** 태그 체인지셋을 만들어 서버 저장소로 가져온다.
  *
  * 1. 기본 위치(`HgRevisions.head`)의 노드를 부모로 삼아 임시 작업 사본을 만든다(서버 저장소를 가져온 뒤 그 노드로 갱신한다).
- * 2. 원본 `hg tag`와 같은 형식으로 `.hgtags`를 쓰고(옮기거나 지울 때는 이전 노드 줄을 먼저 쓴다) 지정한 작성자로 커밋한다.
+ * 2. hg4j `TagCommand`(커밋은 하지 않는다)로 `.hgtags`를 쓰고, 지정한 작성자와 메시지로 `CommitCommand`가 커밋한다. 쓰는 형식과 이름 검사는 hg4j가 원본 `hg tag`와
+ *    같게 맡는다.
  * 3. 새 체인지셋을 서버 저장소로 가져오고, 기본 위치가 이름표였다면 그 이름표를 새 체인지셋으로 옮긴다(원본에서 활성 이름표 위에 커밋하면 이름표가 따라오는 것과 같다).
  *
- * hg4j `TagCommand`는 쓰지 않는다. 이동과 삭제 때 이전 노드 줄을 쓰지 않아 `.hgtags`가 원본과 달라지고, 예약 이름 같은 원본의 검사가 없기 때문이다(hg4j 세션 확인).
+ * 커밋을 `TagCommand`에 맡기지 않는 것은 그 커밋의 작성자가 `hg4j <hg4j@google.com>`로 고정되어 있어서이다(작성자는 태그를 다는 사용자여야 한다).
  */
 @Component
 class HgTagWriter(private val repositories: HgRepositories) {
@@ -28,15 +29,21 @@ class HgTagWriter(private val repositories: HgRepositories) {
      * (Mercurial에는 주석 태그가 없다). 성공하면 `null`, 아니면 오류이다.
      */
     fun create(owner: String, name: String, tag: String, target: String?, message: String?, author: TagAuthor): TagCreateError? {
-        if (!validName(tag)) return TagCreateError.INVALID_NAME
+        // 빈 이름은 hg4j `TagCommand`에서 태그 목록 모드이고, 앞뒤 공백은 hg4j가 지운 이름으로 만들므로(원본 `hg tag`와 같다) 요청한 이름과 달라진다. 둘 다 여기서 거절한다
+        if (tag.isBlank() || tag != tag.trim()) return TagCreateError.INVALID_NAME
         val (base, node) = repositories.open(owner, name).use { hg ->
             val base = HgRevisions.head(hg) ?: return TagCreateError.EMPTY_REPOSITORY
             if (tag in HgRevisions.tags(hg)) return TagCreateError.ALREADY_EXISTS
             val node = (if (target == null) base else resolveCommit(hg, target)) ?: return TagCreateError.NO_TARGET
             base to node
         }
-        commitTag(owner, name, base, tag, node, message ?: "Added tag $tag for changeset ${node.take(SHORT_ID)}", author)
-        return null
+        return try {
+            commitTag(owner, name, base, tag, node, message ?: "Added tag $tag for changeset ${node.take(SHORT_ID)}", author)
+            null
+        } catch (e: io.github.search5.hg4j.errors.HgValidationException) {
+            // 이미 있는 이름은 위에서 걸렀고, 갓 만든 사본은 기본 위치의 머리라서 hg4j가 거절할 수 있는 것은 이름의 형식(원본 `hg tag`의 규칙)뿐이다
+            TagCreateError.INVALID_NAME
+        }
     }
 
     /** 태그를 지운다. 그런 태그가 없으면 `false`이다. */
@@ -68,10 +75,9 @@ class HgTagWriter(private val repositories: HgRepositories) {
             val created = Hg.open(work).use { w ->
                 io.github.search5.hg4j.api.PullCommand(w.repository).setSource(server.canonicalPath).call()
                 w.update().setRevision(base).call()
-                val tagsFile = File(work, ".hgtags")
-                val previous = HgRevisions.tags(w)[tag]
-                writeTagLine(tagsFile, tag, previous, node ?: NULL_NODE)
-                w.add().addFile(".hgtags").call()
+                // `.hgtags`를 쓰고 추적 대상에 올리는 것까지 hg4j가 한다(`setCommit(false)`라 커밋은 하지 않는다)
+                io.github.search5.hg4j.api.TagCommand(w.repository).setTagName(tag).setCommit(false)
+                    .let { if (node == null) it.setRemove(true) else it.setNodeId(io.github.search5.hg4j.util.NodeIdUtil.fromHex(node)) }.call()
                 NodeId(w.commit().setAuthor("${author.name} <${author.email}>").setMessage(message).call()).toHex()
             }
             repositories.open(owner, name).use { hg ->
@@ -87,25 +93,7 @@ class HgTagWriter(private val repositories: HgRepositories) {
         }
     }
 
-    /** 원본 `hg tag`와 같이 `.hgtags` 끝에 줄을 더한다: 이미 있는 이름이면 이전 노드 줄을 먼저 쓰고, 끝에 줄바꿈이 없으면 먼저 줄바꿈을 쓴다. */
-    private fun writeTagLine(file: File, tag: String, previous: String?, node: String) {
-        val existing = if (file.isFile) file.readBytes() else ByteArray(0)
-        val out = java.io.ByteArrayOutputStream()
-        out.write(existing)
-        if (existing.isNotEmpty() && existing.last() != '\n'.code.toByte()) out.write('\n'.code)
-        if (previous != null) out.write("$previous $tag\n".toByteArray(Charsets.UTF_8))
-        out.write("$node $tag\n".toByteArray(Charsets.UTF_8))
-        file.writeBytes(out.toByteArray())
-    }
-
-    companion object {
-        private const val SHORT_ID = 12
-        private val NULL_NODE = "0".repeat(40)
-
-        /** 원본 `hg tag`가 거절하는 이름: 비어 있음, 예약 이름(`tip`, `null`, `.`), 숫자뿐인 이름, `:`나 줄바꿈 포함, 앞뒤 공백이다. */
-        fun validName(tag: String): Boolean =
-            tag.isNotEmpty() && tag !in RESERVED && !tag.all { it.isDigit() } && tag == tag.trim() && tag.none { it == ':' || it == '\n' || it == '\r' }
-
-        private val RESERVED = setOf("tip", "null", ".")
+    private companion object {
+        const val SHORT_ID = 12
     }
 }
