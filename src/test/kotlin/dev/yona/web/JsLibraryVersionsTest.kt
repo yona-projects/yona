@@ -1,0 +1,69 @@
+package dev.yona.web
+
+import org.junit.jupiter.api.Test
+import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+/**
+ * 화면이 쓰는 JS 라이브러리의 버전과 템플릿의 참조를 고정한다(JS 라이브러리 업그레이드, `decisions.md` D-91, `architecture/js-upgrade-plan.md`).
+ * 라이브러리를 올리고 이 시험의 기준을 고치지 않거나, 올리지 않은 라이브러리가 몰래 바뀌면 실패한다.
+ *
+ * - jQuery는 3.7.1이다(4.0은 하지 않기로 했다). 주 화면의 `yona-layout.js` 번들, 마이그레이션과 첫 설정 화면의 단독 파일이 모두 같은 버전이다.
+ * - jQuery UI는 효과만 담은 1.14.2 맞춤 묶음이다.
+ */
+class JsLibraryVersionsTest {
+
+    private val assets = File("src/main/resources/static/assets")
+    private val templates = File("src/main/resources/templates")
+
+    private fun asset(path: String) = File(assets, path)
+
+    private fun templateFiles() = templates.walkTopDown().filter { it.isFile && it.extension == "html" }.toList()
+
+    @Test
+    fun `jQuery는 3_7_1 파일이다`() {
+        val file = asset("javascripts/lib/jquery/jquery-3.7.1.js")
+        assertTrue(file.isFile, "jquery-3.7.1.js가 있어야 한다")
+        assertTrue(file.readText().take(400).contains("jQuery JavaScript Library v3.7.1"), file.readText().take(200))
+    }
+
+    @Test
+    fun `레이아웃 번들 yona-layout_js의 jQuery는 3_7_1이다`() {
+        val bundle = asset("javascripts/yona-layout.js").readText()
+        assertTrue(bundle.contains("\"3.7.1\""), "번들에 jQuery 3.7.1의 버전 문자열이 있어야 한다")
+        assertTrue(!bundle.contains("\"3.3.1\""), "옛 jQuery 3.3.1이 번들에 남아 있으면 안 된다")
+    }
+
+    @Test
+    fun `jQuery를 불러오는 템플릿은 모두 3_7_1 파일을 쓴다`() {
+        val pattern = Regex("""jquery-(\d+\.\d+\.\d+)\.js""")
+        val refs = templateFiles().flatMap { f -> pattern.findAll(f.readText()).map { f.name to it.groupValues[1] }.toList() }
+        assertTrue(refs.isNotEmpty(), "jQuery를 단독으로 불러오는 템플릿이 있어야 한다(마이그레이션과 첫 설정 화면)")
+        assertEquals(emptyList(), refs.filter { it.second != "3.7.1" }, "3.7.1이 아닌 jQuery를 불러오는 템플릿")
+    }
+
+    @Test
+    fun `jQuery UI는 1_14_2 효과 묶음이고 템플릿은 그것만 쓴다`() {
+        val file = asset("javascripts/lib/jquery/jquery-ui-1.14.2.custom.min.js")
+        assertTrue(file.isFile, "jquery-ui-1.14.2.custom.min.js가 있어야 한다")
+        val head = file.readText().take(600)
+        assertTrue(head.contains("jQuery UI - v1.14.2"), head)
+        for (effect in listOf("effect.js", "effect-blind.js", "effect-bounce.js", "effect-drop.js", "effect-fade.js", "effect-fold.js", "effect-highlight.js", "effect-shake.js", "effect-transfer.js")) {
+            assertTrue(head.contains(effect), "효과 묶음에 $effect 가 들어 있어야 한다: $head")
+        }
+        val users = templateFiles().filter { it.readText().contains("jquery-ui") }
+        assertTrue(users.isNotEmpty())
+        users.forEach { assertTrue(it.readText().contains("jquery-ui-1.14.2.custom.min.js") && !it.readText().contains("jquery-ui-1.10.4"), "${it.name}이 1.14.2 묶음을 쓰지 않는다") }
+    }
+
+    @Test
+    fun `템플릿이 참조하는 JS 파일은 모두 실제로 있다`() {
+        // 스타일시트는 빌드에서 SCSS로 만들어지고 이미지는 별도이므로 JS(`javascripts/`, `bootstrap/js/`)만 본다. 파일 이름을 바꿀 때 404가 나는 것을 막는다
+        val pattern = Regex("""@\{/assets/((?:javascripts|bootstrap/js)/[^}]+\.js)}""")
+        val missing = templateFiles().flatMap { f -> pattern.findAll(f.readText()).map { f.name to it.groupValues[1] }.toList() }
+            .filter { (_, path) -> !File(assets, path).isFile }
+            .distinct()
+        assertEquals(emptyList(), missing, "템플릿이 가리키지만 없는 JS 파일")
+    }
+}

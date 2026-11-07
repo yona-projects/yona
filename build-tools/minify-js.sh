@@ -11,7 +11,7 @@ COMPILER="$ASSETS/compiler.jar"
 JS="$ASSETS/javascripts"
 BS="$ASSETS/bootstrap/js"
 
-java -jar "$COMPILER" --js $JS/lib/nprogress/nprogress.js $JS/lib/jquery/jquery-3.3.1.js $JS/lib/jquery/jquery.browser.js $JS/lib/jquery/jquery.pjax.js $JS/common/yobi.Common.js --js_output_file $JS/yona-layout.js
+java -jar "$COMPILER" --js $JS/lib/nprogress/nprogress.js $JS/lib/jquery/jquery-3.7.1.js $JS/lib/jquery/jquery.browser.js $JS/lib/jquery/jquery.pjax.js $JS/common/yobi.Common.js --js_output_file $JS/yona-layout.js
 
 java -jar "$COMPILER" --js $JS/lib/jquery/jquery.tmpl.js $JS/lib/jquery/jquery.form.js $JS/lib/jquery/jquery.validate.js $JS/lib/jquery/jquery.requestAs.js $JS/lib/jquery/jquery.search.js $JS/lib/jquery/jquery.zclip.min.js $JS/lib/jquery/jquery.placeholder.min.js $BS/bootstrap-typeahead.js $JS/lib/rgbcolor.js $JS/lib/humanize.js $JS/lib/validate.js $JS/lib/xss.js $JS/lib/clipboard.js --js_output_file $JS/yona-common.js
 

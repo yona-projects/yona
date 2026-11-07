@@ -86,9 +86,9 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertEquals("width=device-width, initial-scale=1.0", doc.selectFirst("meta[name=viewport]")!!.attr("content"))
         assertEquals("no-cache", doc.selectFirst("meta[http-equiv=cache-control]")!!.attr("content"))
         assertEquals(listOf("Montserrat", "Indie+Flower", "Muli"), doc.select("link[href^=https://fonts.googleapis.com]").map { it.attr("href").substringAfter("family=") })
-        // head: jquery 1.9.0, vendor.js, yona.Migration.js (본문 안이 아니다)
+        // head: jquery, vendor.js, yona.Migration.js (본문 안이 아니다). v1.6은 jQuery 1.9.0이었으나 JS 라이브러리 업그레이드(D-91)로 다른 화면과 같은 3.7.1을 쓴다
         val headScripts = doc.head().select("script[src]").map { it.attr("src") }
-        assertTrue("/assets/javascripts/lib/jquery/jquery-1.9.0.js" in headScripts && "/assets/javascripts/lib/vendor.js" in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
+        assertTrue("/assets/javascripts/lib/jquery/jquery-3.7.1.js" in headScripts && "/assets/javascripts/lib/vendor.js" in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
         // CSS 순서: yobi.css 다음에 usermenu.css
         val css = doc.head().select("link[rel=stylesheet]").map { it.attr("href") }
         assertTrue(css.indexOf("/assets/stylesheets/yobi.css") < css.indexOf("/assets/stylesheets/usermenu.css"), css.toString())
