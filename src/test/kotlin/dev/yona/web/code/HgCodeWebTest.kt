@@ -17,6 +17,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.TestPropertySource
+import dev.yona.domain.comment.CodeCommentThread
+import dev.yona.domain.comment.CommentThreadRepository
+import dev.yona.domain.comment.NonRangedCodeCommentThread
+import dev.yona.domain.comment.ReviewComment
+import dev.yona.domain.comment.ReviewCommentRepository
+import dev.yona.domain.enumeration.Side
+import dev.yona.domain.enumeration.ThreadState
+import java.util.Date
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -40,6 +48,9 @@ class HgCodeWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var hgRepositories: HgRepositories
+    @Autowired private lateinit var threads: CommentThreadRepository
+    @Autowired private lateinit var reviewComments: ReviewCommentRepository
+    @Autowired private lateinit var users: dev.yona.domain.user.UserRepository
 
     private var sequence = 0
     private lateinit var project: Project
@@ -156,5 +167,38 @@ class HgCodeWebTest : AbstractIntegrationTest() {
     fun `프로젝트 홈이 열린다`() {
         val html = page("").html()
         assertTrue(html.isNotEmpty())
+    }
+
+    // --- 줄 코멘트 스레드(X-7 9단계 보완, A-388): Git과 같은 화면과 개수 ---
+
+    private fun thread(commitId: String, ranged: Boolean): Long {
+        val salt = dev.yona.security.LegacyPasswordHasher.generateSalt()
+        val author = users.save(dev.yona.domain.user.User(loginId = "hrv${System.nanoTime()}", name = "리뷰어", email = "hrv${System.nanoTime()}@example.com", state = dev.yona.domain.enumeration.UserState.ACTIVE, passwordSalt = salt, password = dev.yona.security.LegacyPasswordHasher.hash("1234", salt)))
+        val t = if (ranged) CodeCommentThread(commitId = commitId, path = "src/main.txt", startSide = Side.B, startLine = 2, startColumn = 0, endSide = Side.B, endLine = 2, endColumn = 3)
+        else NonRangedCodeCommentThread(commitId = commitId)
+        t.project = project; t.state = ThreadState.OPEN; t.authorId = author.id; t.authorLoginId = author.loginId; t.authorName = author.name; t.createdDate = Date()
+        threads.save(t)
+        reviewComments.save(ReviewComment(contents = "리뷰 내용 ${t.id}", createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name, thread = t))
+        t.reviewComments.add(reviewComments.findAll().last())
+        return requireNotNull(t.id)
+    }
+
+    @Test
+    fun `파일 보기의 댓글 수는 코드 범위 스레드도 센다`() {
+        thread(c1, true); thread(c1, false)
+        assertEquals("2", page("/code/main/src/main.txt").selectFirst(".number-of-comments")!!.text().trim())
+    }
+
+    @Test
+    fun `커밋 이력에는 댓글 수가 나온다`() {
+        thread(c1, true); thread(c1, false)
+        assertEquals("2", page("/commits").selectFirst("tbody tr .number-of-comments")!!.text().trim())
+    }
+
+    @Test
+    fun `커밋 보기에는 그 커밋의 리뷰 스레드가 나온다`() {
+        val id = thread(c1, true)
+        val doc = page("/commit/$c1")
+        assertTrue(doc.selectFirst("#thread-$id .comment-body")!!.text().contains("리뷰 내용 $id"), doc.select("[id^=thread-]").toString().take(300))
     }
 }

@@ -33,7 +33,8 @@ enum class VcsType(val columnValue: String, val capabilities: Set<VcsCapability>
         "Mercurial",
         setOf(
             VcsCapability.BRANCHES, VcsCapability.TAGS, VcsCapability.ARCHIVE_DOWNLOAD, VcsCapability.COMMIT_EMAILS, VcsCapability.README_POSTING,
-            VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.LFS_SCREEN
+            VcsCapability.DEPLOY_KEYS, VcsCapability.PROTECTED_REFS, VcsCapability.FORK, VcsCapability.PULL_REQUESTS, VcsCapability.LFS_SCREEN,
+            VcsCapability.LINE_COMMENT_THREADS
         )
     );
 
