@@ -20,11 +20,13 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 @SiteManagerOnly
 @AnonymousCheck
-class SiteLfsController(private val settings: SiteSettingService, private val storage: LfsStorage) {
+class SiteLfsController(private val settings: SiteSettingService, private val storage: LfsStorage, private val hgLfs: dev.yona.repository.hg.HgLfsStore) {
 
     @GetMapping("/sites/lfs")
     fun form(): ModelAndView {
-        val usage = storage.siteUsage()
+        // Git은 사이트 LFS 저장소에, Mercurial은 저장소 안에 본문이 있어 둘을 합친다(A-386)
+        val git = storage.siteUsage(); val hg = hgLfs.siteUsage()
+        val usage = LfsStorage.Usage(git.objects + hg.objects, git.bytes + hg.bytes)
         return ModelAndView("site/lfs").addObject("title", "site.sidebar.lfs").addObject("enabled", settings.lfsEnabled())
             .addObject("maxObjectMb", settings.lfsMaxObjectSize() / MIB).addObject("quotaMb", settings.lfsProjectQuota() / MIB)
             .addObject("objectCount", usage.objects).addObject("usageText", readable(usage.bytes))

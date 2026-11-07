@@ -25,6 +25,14 @@ class HgLfsStore(private val repositories: HgRepositories) {
         return Usage(files.size, files.sumOf { it.length() })
     }
 
+    /** 사이트 전체 Mercurial 저장소의 LFS 저장소 사용량이다(`repo/hg/<소유자>/<이름>/.hg/store/lfs/objects` 아래 본문). 저장소가 없으면 0이다. */
+    fun siteUsage(): Usage {
+        val root = repositories.rootDirectory()
+        if (!root.isDirectory) return Usage(0, 0)
+        val files = root.walkTopDown().onEnter { it == root || it.name != ".git" }.filter { it.isFile && it.parentFile.parentFile.invariantSeparatorsPath.endsWith(".hg/store/lfs/objects") }.toList()
+        return Usage(files.size, files.sumOf { it.length() })
+    }
+
     /** 기본 위치(이름표 `main` 등)의 머리에서 LFS로 저장된 파일을 경로순으로 돌려준다. 커밋이 없으면 비어 있다. */
     fun trackedFiles(owner: String, name: String): List<TrackedFile> = repositories.open(owner, name).use { hg ->
         val head = HgRevisions.head(hg) ?: return emptyList()

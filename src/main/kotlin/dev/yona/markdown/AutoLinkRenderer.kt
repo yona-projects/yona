@@ -47,6 +47,7 @@ class AutoLinkRenderer(
     private val users: UserRepository,
     private val organizations: OrganizationRepository,
     private val repositories: RepositoryService,
+    private val hgRepositories: dev.yona.repository.hg.HgRepositories,
     private val avatars: AvatarService,
     private val currentUserProvider: CurrentUserProvider,
     private val messages: MessageSource,
@@ -141,7 +142,9 @@ class AutoLinkRenderer(
     private fun shaLink(prefix: String, project: Project?, sha: String): Link? {
         project ?: return null
         val codeAvailable = menuSettings.findFirstByProjectId(requireNotNull(project.id))?.code != false
-        if (!codeAvailable || project.vcs != RepositoryService.VCS_GIT) return null
+        if (!codeAvailable) return null
+        if (project.vcs == "Mercurial") return hgShaLink(prefix, project, sha)
+        if (project.vcs != RepositoryService.VCS_GIT) return null
         return try {
             repositories.openGitRepository(project).use { repository ->
                 val id = repository.resolve(sha) ?: return null
@@ -153,6 +156,26 @@ class AutoLinkRenderer(
                 }
             }
         } catch (e: java.io.IOException) {
+            null
+        }
+    }
+
+    /**
+     * Mercurial 저장소에서 [sha]로 시작하는 커밋을 찾아 12자 링크로 만든다(Mercurial의 짧은 커밋 번호는 12자이다, `decisions.md` A-378). 북마크나 태그 이름이 아니라 커밋 노드의
+     * 접두어만 인정한다(이름이 16진수처럼 읽혀도 링크하지 않는다). 둘 이상에 맞거나 없으면 `null`이다.
+     */
+    private fun hgShaLink(prefix: String, project: Project, sha: String): Link? {
+        val owner = project.owner ?: return null; val name = project.name ?: return null
+        return try {
+            hgRepositories.open(owner, name).use { hg ->
+                val node = io.github.search5.hg4j.util.NodeIdUtil.resolveRevision(dev.yona.repository.hg.HgRevisions.changelog(hg), sha.lowercase())
+                    ?.let { io.github.search5.hg4j.lib.NodeId(it.copyOf(20)).toHex() }?.takeIf { it.startsWith(sha.lowercase()) } ?: return null
+                val shortId = node.substring(0, HG_SHORT_ID_LENGTH)
+                Link("${projectUrl(project)}/commit/$node", null, if (prefix.isEmpty()) shortId else "$prefix@$shortId")
+            }
+        } catch (e: java.io.IOException) {
+            null
+        } catch (e: RuntimeException) {
             null
         }
     }
@@ -224,6 +247,9 @@ class AutoLinkRenderer(
         const val PATH = "[a-zA-Z0-9-_.가-힣/]+"
         const val ISSUE = "\\d+"
         const val SHA = "[a-f0-9]{7,40}"
+
+        /** Mercurial의 짧은 커밋 번호 길이이다. */
+        const val HG_SHORT_ID_LENGTH = 12
         const val SHORT_ID_LENGTH = 7
         const val AVATAR_SIZE = 64
         const val DEFAULT_LANG = "ko-KR"

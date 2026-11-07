@@ -19,6 +19,9 @@ import java.io.IOException
 class HgRepositories(private val dataDirectory: DataDirectory) {
 
     /** 저장소 디렉터리이다. 소유자와 이름은 URL 디코딩이 끝난 값이다. */
+    /** Mercurial 저장소들이 모여 있는 폴더이다(`repo/hg`). */
+    fun rootDirectory(): File = File(dataDirectory.root(), REPO_PREFIX)
+
     fun directoryOf(owner: String, name: String): File = File(File(dataDirectory.root(), REPO_PREFIX), "$owner/$name")
 
     /** 저장소를 만든다. 이미 있으면 hg4j가 예외를 던진다. */

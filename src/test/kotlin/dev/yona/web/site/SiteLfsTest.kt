@@ -92,4 +92,22 @@ class SiteLfsTest : AbstractIntegrationTest() {
         assertTrue(settings.lfsEnabled()); assertEquals(0L, settings.lfsProjectQuota())
         for ((max, quota) in listOf("abc" to "0", "0" to "0", "-1" to "0", "10" to "-5", "10" to "x")) mockMvc.perform(post("/sites/lfs").session(s).param("maxObjectMb", max).param("quotaMb", quota)).andExpect(status().isBadRequest)
     }
+
+    @Test
+    fun `사이트 전체 사용량은 Mercurial 저장소 안의 LFS 본문도 합친다`() {
+        val a = Project(id = 1, owner = "slo", name = "a", vcs = "GIT")
+        "aaa".toByteArray().let { data -> storage.store(a, java.security.MessageDigest.getInstance("SHA-256").digest(data).joinToString("") { "%02x".format(it) }, data.inputStream(), Long.MAX_VALUE) }
+        // Mercurial의 본문은 저장소 안(`repo/hg/<소유자>/<이름>/.hg/store/lfs/objects`)에 있다
+        val blob = File("build/tmp/it-site-lfs/repo/hg/slh/m/.hg/store/lfs/objects/ab/" + "c".repeat(62)); blob.parentFile.mkdirs(); blob.writeText("0123456789")
+        val text = Jsoup.parse(mockMvc.perform(get("/sites/lfs").session(login(user(admin = true)))).andReturn().response.contentAsString).selectFirst("#lfs-site-usage")!!.text()
+        assertTrue(text.contains("2") && text.contains("13"), "Git 3바이트와 Mercurial 10바이트 객체 2개가 합쳐져야 한다: $text")
+    }
+
+    @Test
+    fun `화면의 이름은 Git 전용이 아니라 LFS이다`() {
+        val doc = Jsoup.parse(mockMvc.perform(get("/sites/lfs").session(login(user(admin = true)))).andReturn().response.contentAsString)
+        assertEquals("LFS", doc.selectFirst(".two-factor-page h3")!!.text().trim())
+        assertEquals("LFS", doc.selectFirst("ul li a[href\$=/sites/lfs]")!!.text().trim())
+        assertTrue(!doc.selectFirst(".option-text strong")!!.text().contains("Git"), doc.selectFirst(".option-text strong")!!.text())
+    }
 }

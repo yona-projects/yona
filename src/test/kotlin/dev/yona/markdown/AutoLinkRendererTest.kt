@@ -45,6 +45,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var organizations: OrganizationRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
 
     private var sequence = 0
 
@@ -62,7 +63,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     private fun project(owner: String = "al${++sequence}", name: String = "pj$sequence", code: Boolean = true, vcs: String = "GIT"): Project {
         val project = projects.save(Project(owner = owner, name = name, vcs = vcs, projectScope = ProjectScope.PUBLIC))
         menuSettings.save(ProjectMenuSetting(project = project, code = code, issue = true, pullRequest = true, review = true, milestone = true, board = true))
-        if (vcs == "GIT") repositories.createRepository(project)
+        if (vcs == "GIT" || vcs == "Mercurial") repositories.createRepository(project)
         return project
     }
 
@@ -189,6 +190,23 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
         GitTestSupport.commitFiles(repositories, noCode, mapOf("a.txt" to "a".toByteArray()))
         val full = repositories.openGitRepository(noCode).use { it.resolve("HEAD").name }
         assertEquals("<p>${full.substring(0, 9)}</p>", render("<p>${full.substring(0, 9)}</p>", noCode))
+    }
+
+    @Test
+    fun `Mercurial 커밋 번호도 12자 링크로 바꾸고 없는 번호와 북마크 이름은 건드리지 않는다`() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
+        val project = project(vcs = "Mercurial")
+        val dir = hgRepositories.directoryOf(project.owner!!, project.name!!)
+        dev.yona.support.HgTestSupport.commit(dir, "첫 커밋", mapOf("a.txt" to "a\n"))
+        dev.yona.support.HgTestSupport.hg(dir, "bookmark", "deadbeef")
+        val full = dev.yona.support.HgTestSupport.hg(dir, "log", "-r", ".", "--template", "{node}")
+        val html = render("<p>${full.substring(0, 10)} @${full.substring(0, 8)}</p>", project)
+        assertTrue(html.contains(">${full.substring(0, 12)}</a>"), html)
+        assertTrue(html.contains("/${project.owner}/${project.name}/commit/$full"), html)
+        assertEquals("<p>abcdef123456</p>", render("<p>abcdef123456</p>", project))
+        // 16진수로 읽히는 북마크 이름이라도 커밋 번호가 아니면 링크하지 않는다(접두어가 맞지 않는다)
+        val bookmarkLike = render("<p>deadbeef</p>", project)
+        assertTrue(!bookmarkLike.contains("/commit/"), bookmarkLike)
     }
 
     // --- 사용자, 조직, 프로젝트 ---
