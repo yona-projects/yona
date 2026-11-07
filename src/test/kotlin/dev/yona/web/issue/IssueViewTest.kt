@@ -364,7 +364,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         val i = issue(project)
         entityManager.persist(IssueSharer(loginId = shared.loginId, user = shared, issue = i)); entityManager.flush()
         val editable = view(project, session = login(member))
-        assertEquals(shared.loginId, editable.selectFirst("input#issueSharer")!!.attr("value"))
+        assertEquals(listOf(shared.loginId), editable.select("select#issueSharer[multiple] option[selected]").map { it.attr("value") })
         assertEquals("1", editable.selectFirst(".issue-sharer-count")!!.text())
         val readonly = view(project)
         assertEquals(listOf("공유받음"), readonly.select("#sharer-list .sharer-item .name").map { it.text() })
@@ -572,7 +572,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         val editable = view(project, session = login(member)).selectFirst("form#issueUpdateForm")!!
         assertEquals("${base(project)}/issues", editable.attr("action"))
         assertEquals(i.id.toString(), editable.selectFirst("input[name=issues[0].id]")!!.attr("value"))
-        assertEquals(assignee.loginId, editable.selectFirst("input#assignee[name=assigneeLoginId]")!!.attr("value"))
+        assertEquals(assignee.loginId, editable.selectFirst("select#assignee[name=assigneeLoginId] option[selected]")!!.attr("value"))
         assertEquals(milestone.id.toString(), editable.selectFirst("select#milestone[name=milestone.id] option[selected]")!!.attr("value"))
         assertTrue(editable.select("input[name=dueDate][data-toggle=calendar]").isNotEmpty())
         assertTrue(editable.selectFirst("select#labelIds option[value=${label.id}]")!!.hasAttr("selected"))
@@ -581,7 +581,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         assertEquals("담당자", readonly.selectFirst("a.usf-group .name")!!.text())
         assertEquals("v1", readonly.select("a[href*=/milestone/]").text().trim())
         assertEquals(1, readonly.select("a.issue-label.static").size)
-        assertTrue(readonly.select("input#assignee, select#milestone, select#labelIds").isEmpty())
+        assertTrue(readonly.select("select#assignee, select#milestone, select#labelIds").isEmpty())
     }
 
     @Test

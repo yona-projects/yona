@@ -16,7 +16,7 @@
             data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
             data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
             th:attr="data-placeholder=#{label.select}, data-close-on-select=${closeOnSelect == false ? 'false' : null}" class="hide form-select">
-      <option></option>
+      <!--/* 4.x의 다중 선택은 빈 option이 필요 없다. 두면 모두 해제될 때 브라우저가 빈 option을 선택해 폼에 빈 값이 실린다(D-95) */-->
       <optgroup th:each="group : ${groups}" th:label="${group.name}"
                 th:attr="data-category-id=${group.id}, data-category-is-exclusive=${group.exclusive}">
         <option th:each="label : ${group.labels}" th:value="${label.id}"

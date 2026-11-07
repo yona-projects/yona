@@ -65,17 +65,9 @@
         $box.select2({
             minimumInputLength: 1,
             allowClear: true,
-            id: function (obj) { return obj.loginId; },
-            ajax: {
-                url: $box.data("candidates-url"),
-                dataType: "json",
-                quietMillis: 300,
-                data: function (term) { return {query: term}; },
-                results: function (data) { return {results: data}; },
-                cache: false
-            },
-            formatResult: formatter,
-            formatSelection: formatter,
+            ajax: yona.ui.Select2.userSearch($box.data("candidates-url"), false),
+            templateResult: yona.ui.Select2.userTemplate(formatter),
+            templateSelection: yona.ui.Select2.userTemplate(formatter),
             escapeMarkup: function (m) { return m; }
         });
         $box.on("change", function (evt) {

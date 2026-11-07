@@ -111,8 +111,10 @@
                         </dd>
                         <!--/* 리뷰 요청 선택 상자: 수정 권한이 있고 열린 풀 리퀘스트일 때만. 고르는 즉시 Ajax로 보낸다(yona.pullrequest.Reviewers.js) */-->
                         <dd th:if="${reviewArea.requestUrl != null}" class="review-request-box">
-                            <input type="hidden" class="bigdrop" id="review-request" th:placeholder="#{pullRequest.review.request.placeholder}" style="width:100%"
-                                   th:attr="data-request-url=${reviewArea.requestUrl}, data-candidates-url=${reviewArea.candidatesUrl}, data-timeline-url=${assigneeArea != null ? assigneeArea.timelineUrl : ''}">
+                            <select class="bigdrop form-select" id="review-request" style="width:100%"
+                                   th:attr="data-placeholder=#{pullRequest.review.request.placeholder}, data-request-url=${reviewArea.requestUrl}, data-candidates-url=${reviewArea.candidatesUrl}, data-timeline-url=${assigneeArea != null ? assigneeArea.timelineUrl : ''}">
+                                <option value=""></option>
+                            </select>
                         </dd>
                     </dl>
                 </div>
@@ -122,8 +124,11 @@
                     <dl class="pr-assignee">
                         <dt th:text="#{issue.assignee}"></dt>
                         <dd>
-                            <input th:if="${assigneeArea.canEdit}" type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}"
-                                   th:value="${assigneeArea.current?.loginId}" th:attr="data-name=${assigneeArea.current?.name}, data-avatar-url=${assigneeArea.current?.avatarUrl}" style="width: 100%" title="">
+                            <select th:if="${assigneeArea.canEdit}" class="bigdrop form-select" id="assignee" name="assigneeLoginId" th:attr="data-placeholder=#{issue.noAssignee}" style="width: 100%" title="">
+                                <option value=""></option>
+                                <option th:if="${assigneeArea.current != null}" th:value="${assigneeArea.current.loginId}" th:text="${assigneeArea.current.name}" selected
+                                        th:attr="data-name=${assigneeArea.current.name}, data-avatar-url=${assigneeArea.current.avatarUrl}"></option>
+                            </select>
                             <th:block th:unless="${assigneeArea.canEdit}">
                                 <a th:if="${assigneeArea.current != null}" th:href="${assigneeArea.current.href}" class="usf-group">
                                     <span class="avatar-wrap smaller"><img th:src="${assigneeArea.current.avatarUrl}" width="20" height="20"></span>

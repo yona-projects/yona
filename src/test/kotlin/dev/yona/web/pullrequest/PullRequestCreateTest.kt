@@ -324,7 +324,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     fun `받는 프로젝트에 수정 권한이 있으면 생성 폼에 담당자와 라벨 선택이 보인다`() {
         val s = withMemberOwner(); label(s.origin, "bug")
         val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
-        assertNotNull(doc.selectFirst("input#assignee[name=assigneeLoginId]")); assertTrue(doc.select("select#labelIds option").any { it.text() == "bug" })
+        assertNotNull(doc.selectFirst("select#assignee[name=assigneeLoginId]")); assertTrue(doc.select("select#labelIds option").any { it.text() == "bug" })
         assertEquals("/${s.origin.owner}/${s.origin.name}/assignableUsers", doc.selectFirst("#pr-meta")!!.attr("data-candidates-url"))
         // v1.6 이슈 작성 폼과 같은 배치: 제목, 본문은 왼쪽 col-md-9, 담당자와 라벨은 오른쪽 col-md-3 열(세로로 쌓음)
         assertNotNull(doc.selectFirst(".row > .col-lg-9.span-left-pane #title")); assertNotNull(doc.selectFirst(".row > .col-lg-9.span-left-pane textarea[name=body]"))

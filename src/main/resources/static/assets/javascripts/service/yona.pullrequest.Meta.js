@@ -30,20 +30,18 @@
         return $.tmpl(tplUserItem, {"avatarURL": result.avatarUrl, "name": result.name, "loginId": result.loginId});
     }
 
-    function matcher(term, text, result) {
-        term = term.toLowerCase();
-        var loginId = (typeof result.loginId !== "undefined") ? result.loginId.toLowerCase() : "";
-        return (loginId.indexOf(term) > -1) || (text.toLowerCase().indexOf(term) > -1);
+    function matcher(params, data) {
+        var term = (params.term || "").trim().toLowerCase();
+        if (term === "") {
+            return data;
+        }
+        var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
+        return ((loginId.indexOf(term) > -1) || ((data.text || "").toLowerCase().indexOf(term) > -1)) ? data : null;
     }
 
-    /** select2의 change 이벤트가 알려 주는 선택 항목들의 `id`만 모은다. 없으면 `undefined`이다. */
-    function idsOf(source) {
-        var ids = [];
-        if (source instanceof Array) {
-            source.forEach(function (obj) { if (obj && obj.id) { ids.push(obj.id); } });
-        } else if (source && source.id) {
-            ids.push(source.id);
-        }
+    /** 바뀐 선택 항목들의 `id`만 모은다. 없으면 `undefined`이다. */
+    function idsOf(items) {
+        var ids = items.map(function (item) { return item.id; }).filter(Boolean);
         return ids.length > 0 ? ids : undefined;
     }
 
@@ -85,23 +83,9 @@
             $assignee.select2({
                 minimumInputLength: 0,
                 allowClear: true,
-                id: function (obj) { return obj.loginId; },
-                ajax: {
-                    url: urls.candidates,
-                    dataType: "json",
-                    quietMillis: 300,
-                    data: function (term) { return {query: term}; },
-                    results: function (data) { return {results: data}; },
-                    cache: true
-                },
-                initSelection: function (element, callback) {
-                    var loginId = $(element).val();
-                    if (loginId !== "") {
-                        callback({loginId: loginId, name: $(element).data("name"), avatarUrl: $(element).data("avatar-url")});
-                    }
-                },
-                formatResult: formatter,
-                formatSelection: formatter,
+                ajax: yona.ui.Select2.userSearch(urls.candidates),
+                templateResult: yona.ui.Select2.userTemplate(formatter),
+                templateSelection: yona.ui.Select2.userTemplate(formatter),
                 matcher: matcher,
                 escapeMarkup: function (m) { return m; }
             });
@@ -127,8 +111,9 @@
         $("#labelIds").on("change", function (evt) {
             if (formMode) { return; }
             var data = {};
-            var added = idsOf(evt.added);
-            var removed = idsOf(evt.removed);
+            var changes = yona.ui.Select2.selectionChanges(evt.target);
+            var added = idsOf(changes.added);
+            var removed = idsOf(changes.removed);
             if (added) { data.attachingLabelIds = added; }
             if (removed) { data.detachingLabelIds = removed; }
             $.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(function () {

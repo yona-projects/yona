@@ -3,347 +3,123 @@
     @include opacity(50); /** default backdrop opacity is 80% **/
 }
 
-/** override select2.css **/
-$select2-border-radius: 3px;
-$select2-image-path: "../javascripts/lib/select2";
-
+/**
+ * select2 4.x 덮어쓰기 (decisions.md D-95).
+ * 바탕은 공식 Bootstrap 5 테마(`select2-bootstrap-5-theme`)이고, 여기에는 Yona 화면에만 있는 것을 둔다.
+ * 3.x 규칙(`.select2-choice`, `.select2-drop`, `.select2-result-label` 등)은 4.x에 없는 클래스라 모두 걷었다.
+ **/
 .select2-container {
-    .avatar-wrap { margin-top:0; }
+    text-align: left;
 
-    text-align:left;
-    background-color:#fff;
-    border:1px solid rgba(0,0,0,0.15);
+    .avatar-wrap { margin-top: 0; }
 
-    @include border-radius($select2-border-radius);
-    @include box-shadow(0 1px 0 rgba(0,0,0,0.05));
-    @include transition(all 0.3s ease);
+    // v1.6(3.x)의 컨테이너는 인라인 블록이었다. 테마는 블록이라, 한 줄에 나란히 놓인 선택 상자가 줄을 바꾸지 않게 되돌린다.
+    &.select2-container--bootstrap-5 { display: inline-block; }
 
-    &:hover {
-        background-color: #fafafa;
-        @include transition(all 0.1s linear);
-    }
-
-    .select2-choice {
-        padding:1px 0 1px 12px;
-        border:none;
-        @include border-radius($select2-border-radius);
-
-        background-color:transparent;
-        background-image:none;
-        filter:none;
-
-        > .select2-chosen {
-            white-space: nowrap;
-        }
-
-        .select2-arrow {
-            width:auto;
-            padding:4px 9px;
-            @include border-radius(0 $select2-border-radius $select2-border-radius 0);
-            border-left:none;
-            background:transparent;
-            background-image:none;
-            filter:none;
-
-            b {
-                display: inline-block;
-                width: 0;
-                height: 0;
-                vertical-align: top;
-                border-top: 4px solid #4f4f4f;
-                border-right: 4px solid transparent;
-                border-left: 4px solid transparent;
-                content: "";
-                margin-top: 8px;
-                margin-left: 0;
-            }
-        }
-
-        abbr {
-            top:7px;
-        }
-    }
-
-    &.select2-drop-above {
-        .select2-choice {
-            @include border-radius(0 0 $select2-border-radius $select2-border-radius);
-        }
-    }
-
-    &.select2-container-disabled {
-        color:#333 !important;
-        border:1px solid rgba(0,0,0,0.22);
-
-        &:hover {
-            background-color:#e6e6e6;
-        }
-
-        @include box-shadow(none);
-        @include opacity(35);
-
-        .select2-choice {
-            background-color:#e6e6e6;
-            border:none;
-
-            .select2-arrow {
-                background-color:#e6e6e6;
-                b { border-top-color:#aaa; }
-            }
-        }
-    }
-
-    &.select2-dropdown-open {
-        .select2-choice {
-            @include border-radius($select2-border-radius $select2-border-radius 0 0);
-        }
-    }
-
-    &.fullsize {
-        width:100% !important;
-    }
+    &.fullsize { width: 100% !important; }
 }
 
-.select2-results {
+// 목록: 3.x와 같은 높이 상한과 한 줄 항목
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options:not(.select2-results__options--nested) {
     max-height: 350px;
-    padding:4px; margin:4px 0 0 0;
+}
+.select2-results__option {
+    white-space: nowrap;
 
-    li { margin-bottom:1px; }
-
-    .avatar-wrap { margin-top:0; }
-
-    .select2-highlighted {
-        background: $secondary;
-        color: #fff;
-
-        .loginid { color:#fff; }
-    }
-
-    .select2-result-label {
-        padding:3px 7px 4px 8px;
-        white-space: nowrap;
-    }
-
-    .select2-no-results,
-    .select2-searching,
-    .select2-selection-limit {
-        padding:3px 7px 4px 8px;
-        background:#fafafa; color:#aaa;
-    }
-
-    .select2-result-with-children {
-        border-top:1px solid #eee;
-        padding-top:4px; margin-top:4px;
-    }
+    .avatar-wrap { margin-top: 0; }
+}
+.select2-results__option--highlighted .loginid { color: inherit; }
+.select2-results__message {
+    background: #fafafa;
+    color: #aaa;
 }
 
-
-.select2-drop {
-    border:1px solid rgba(0,0,0,0.15);
-    border-top: none;
-    @include border-radius(0 0 $select2-border-radius $select2-border-radius);
-    @include box-shadow(0 1px 0 rgba(0,0,0,.05));
-
-    &.select2-drop-above {
-        border-top:1px solid rgba(0,0,0,0.15);
-        @include border-radius($select2-border-radius $select2-border-radius 0 0);
-        @include box-shadow(0 -2px 0 rgba(0,0,0,0.05));
-
-        &.select2-drop-active {
-            border:1px solid rgba(0,0,0,0.15);
-            border-top:0; border-bottom:0;
-        }
-    }
-
-    &.select2-drop-active {
-        border:1px solid rgba(0,0,0,0.15);
-        border-top:0;
-    }
+// 구역(optgroup) 제목 위 가름선 (3.x의 `.select2-result-with-children`)
+.select2-results__option--group + .select2-results__option--group {
+    border-top: 1px solid #eee;
+    margin-top: 4px;
+    padding-top: 4px;
 }
 
-.select2-drop-auto-width {
-    border-top:1px solid rgba(0,0,0,0.15);
-}
-
-.select2-search {
-    margin-top:4px;
-
-    input {
-        background: #fff url('#{$select2-image-path}/select2.png') no-repeat 100% -22px;
-
-        &.select2-active {
-            background: #fff url('#{$select2-image-path}/select2-spinner.gif') no-repeat 100%;
-        }
-    }
-}
-
-.select2-container-active .select2-choices {
-    border: 1px solid rgba(0,0,0,0.15);
-    outline: none;
-    @include box-shadow(none);
-}
-
+// 이슈 보기의 공유자 목록: 테두리 없이 아래 선만 둔 칸
 .sharer-list {
-    .select2-container{
+    .select2-container {
         border: none;
         box-shadow: none;
         border-radius: 0 !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.15);
     }
-    .select2-container-multi {
-        .select2-choices {
-            .select2-search-choice {
-                background-color: #ececec;
-                border: 1px solid #dfdfdf;
-            }
-        }
+    .select2-selection__choice {
+        background-color: #ececec;
+        border: 1px solid #dfdfdf;
     }
 }
 
-.select2-dropdown-open {
-    .select2-choice {
-        border-bottom-color: transparent;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-        background-color:inherit;
-        background-image:none;
-        filter:none;
-        @include box-shadow(none);
-    }
-
-    &.select2-drop-above {
-        border-top:1px solid transparent;
-        @include border-radius(0 0 $select2-border-radius $select2-border-radius);
-
-        .select2-choice, .select2-choices {
-            border: none;
-            background-color:transparent;
-            background-image:none;
-            filter:none;
-        }
-    }
-}
-
-.select2-container-multi {
-    .select2-choices {
-        background: none;
-        filter: none;
+// 라벨 선택 상자: 테두리 없이 라벨 배지만 보이고, 지우기(×)는 위에 올렸을 때만 보인다
+.select2-container.issue-labels {
+    .select2-selection--multiple {
         border: none;
-
-        .select2-search-choice {
-            border: none;
-            background-image:none;
-            filter:none;
-        }
-
-        .select2-search-field input {
-            font-family:$base-font-family !important;
-            padding:3px 5px;
-        }
+        box-shadow: none;
+        background: transparent;
     }
 
-    &.issue-labels {
-        border:none;
-        @include box-shadow(none);
+    &.bordered .select2-selection--multiple { border: 1px solid #ddd; }
 
-        &.bordered {
-            border:1px solid #ddd;
-
-            &:hover,
-            &.select2-container-active {
-                border:1px solid #ddd;
-            }
-        }
-
-        .select2-choices {
-            .select2-search-choice {
-                background:transparent;
-                filter:none;
-                border:none;
-                @include box-shadow(none);
-                padding:3px 18px 3px 5px;
-            }
-
-            .select2-search-choice-close {
-                top:6px; right:3px; left:auto;
-                @include opacity(0);
-            }
-        }
-
-        &:hover,
-        &.select2-container-active {
-            border:none;
-            background:transparent;
-
-            .select2-choices {
-                border:none;
-            }
-            .select2-choices .select2-search-choice-close {
-                @include opacity(100);
-            }
-
-            .select2-search-choice:hover {
-                background:#e6e6e6;
-            }
-        }
-        .select2-search-choice-focus .select2-search-choice-close {
-            @include opacity(100);
-        }
+    .select2-selection__choice {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 3px 18px 3px 5px;
+        position: relative;
     }
 
-    &.select2-container-active {
-        .select2-choices {
-            border: 1px solid $primary;
-            background-image:none;
-            outline:none;
-            @include box-shadow(none);
-        }
+    .select2-selection__choice__remove {
+        position: absolute;
+        top: 6px;
+        right: 3px;
+        left: auto;
+        opacity: 0;
     }
 
-    &.select2-container-disabled {
-        .select2-choices {
-            border:none;
-        }
+    &:hover,
+    &.select2-container--focus,
+    &.select2-container--open {
+        .select2-selection__choice__remove { opacity: 1; }
+        .select2-selection__choice:hover { background: #e6e6e6; }
     }
 }
-.select2-drop.issue-labels {
-    min-width:220px;
-    border-top:1px solid rgba(0,0,0,0.15);
-    @include box-shadow(0 2px 4px rgba(0,0,0,0.2));
+
+// 라벨 목록(드롭다운)
+.select2-dropdown.issue-labels {
+    min-width: 220px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    @include box-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     @include border-radius(3px);
 
-    .select2-results {
-        min-width: 200px;
-    }
-    .select2-result-with-children > .select2-result-label {
-        padding: 10px 7px;
-    }
-    .select2-result-with-children > .select2-result-label:first-of-type {
-        padding-top: 0;
-    }
-    .select2-result-with-children > .select2-result-sub > li:last-of-type {
-        margin-bottom: 10px;
-    }
-}
-li.select2-result-with-children:first-of-type {
-    border-top: 0;
-    margin-top: 0;
-    padding-top: 0;
+    .select2-results__options { min-width: 200px; }
+
+    .select2-results__group { padding: 10px 7px; }
+
+    .select2-results__option--group:first-of-type > .select2-results__group { padding-top: 0; }
+
+    .select2-results__options--nested > .select2-results__option:last-of-type { margin-bottom: 10px; }
 }
 
-.select2-without-searchbox .select2-search {
-    display: none;
-}
-.select2-drop.branches {
+// 검색 칸이 없는 선택 상자(예: 저장소 종류): 목록의 검색 칸을 숨긴다
+.select2-without-searchbox .select2-search { display: none; }
+
+// 브랜치 목록: 이름 길이에 맞춰 넓어진다
+.select2-dropdown.branches {
     width: auto !important;
+    min-width: 220px;
     border-top: 1px solid rgba(0, 0, 0, 0.15);
     @include box-shadow(2px 2px 0 rgba(0, 0, 0, 0.05));
     @include border-radius(3px);
 
-    .select2-results {
-        width: auto;
-    }
+    .select2-results__options { width: auto; }
 }
-.select2-result-label .issue-label {
+
+.select2-results__option .issue-label {
     display: block;
     margin-right: 15px;
 }
@@ -352,7 +128,7 @@ li.select2-result-with-children:first-of-type {
     cursor: default;
 }
 
-.select2-chosen .branch-label {
+.select2-selection__rendered .branch-label {
     margin-top:-2px;
 }
 

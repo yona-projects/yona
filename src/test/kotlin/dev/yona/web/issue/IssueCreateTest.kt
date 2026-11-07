@@ -188,7 +188,7 @@ class IssueCreateTest : AbstractIntegrationTest() {
         val category = categories.save(IssueLabelCategory(project = project, name = "종류", isExclusive = false))
         val label = labels.save(IssueLabel(project = project, category = category, name = "버그", color = "#f00"))
         val doc = form(project, session = login(member))
-        assertTrue(doc.select("input#assignee[name=assigneeLoginId]").isNotEmpty())
+        assertTrue(doc.select("select#assignee[name=assigneeLoginId]").isNotEmpty())
         val select = doc.selectFirst("select#milestoneId")!!
         assertEquals(listOf("-1", milestone.id.toString()), select.select("option").map { it.attr("value") })
         assertTrue(doc.select("input#issueDueDate[name=dueDate]").isNotEmpty())

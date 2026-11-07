@@ -26,60 +26,43 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
     return formattedResult;
   }
 
-  function matcher(term, formattedResult, result){
-    term = term.toLowerCase();
-    formattedResult = formattedResult.toLowerCase();
+  function matcher(params, data){
+    var term = (params.term || "").trim().toLowerCase();
+    if(term === ""){
+      return data;
+    }
 
-    var loginId = (typeof result.loginId !== "undefined") ? result.loginId.toLowerCase() : "";
+    var formattedResult = (data.text || "").toLowerCase();
+    var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
 
-    return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
+    return ((loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1)) ? data : null;
   }
 
   var $assignee = $("#assignee");
   $assignee.select2({
     minimumInputLength: 0,
-    id: function(obj) {
-      return obj.loginId; // use slug field for id
-    },
-    ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
-      url: findAssignableUsersApiUrl,
-      dataType: 'json',
-      quietMillis: 300,
-      data: function (term, page) {
-        return {
-          query: term, // search term
-        };
-      },
-      results: function (data, page) { // parse the results into the format expected by Select2.
-        // since we are using custom formatting functions we do not need to alter the remote JSON data
-        return { results: data };
-      },
-      cache: true
-    },
-    initSelection: function(element, callback) {
-      // the input tag has a value attribute preloaded that points to a preselected repository's id
-      // this function resolves that id attribute to an object that select2 can render
-      // using its formatResult renderer - that way the repository name is shown preselected
-      var id = $(element).val();
-
-      if (id !== "") {
-        $.ajax(findAssignableUsersApiUrl + "?query=" + id + "&type=loginId", {
-          dataType: "json"
-        }).done(function(data) {
-          if(data && data.length > 0) {
-            callback(data[0]);
-          }
-        });
-      }
-    },
-    formatResult: formatter, // omitted for brevity, see the source of this page
-    formatSelection: formatter,  // omitted for brevity, see the source of this page
+    ajax: yona.ui.Select2.userSearch(findAssignableUsersApiUrl),
+    templateResult: yona.ui.Select2.userTemplate(formatter),
+    templateSelection: yona.ui.Select2.userTemplate(formatter),
     matcher: matcher,
     escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
   });
 
-  $assignee.on("select2-selecting", function(selected) {
-    var data = { assignees: [selected.val] };
+  // the select tag has a preselected option that points to a preselected user's loginId.
+  // this resolves that loginId to a user object so that the user is shown with the avatar (3.x initSelection)
+  var selectedLoginId = $assignee.val();
+  if (selectedLoginId) {
+    $.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
+      dataType: "json"
+    }).done(function(data) {
+      if(data && data.length > 0) {
+        yona.ui.Select2.selectUsers($assignee, [data[0]]);
+      }
+    });
+  }
+
+  $assignee.on("select2:selecting", function(selected) {
+    var data = { assignees: [selected.params.args.data.id] };
 
     if(updateAssgineesApiUrl){
         $.ajax(updateAssgineesApiUrl, {

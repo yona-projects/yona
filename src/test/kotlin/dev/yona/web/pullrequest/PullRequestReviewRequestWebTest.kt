@@ -184,7 +184,7 @@ class PullRequestReviewRequestWebTest : AbstractIntegrationTest() {
     @Test
     fun `편집 권한자에게는 리뷰 요청 선택 상자가 있고 주소는 데이터 속성에 담긴다`() {
         val s = setup()
-        val box = page(s.url, login(s.manager)).selectFirst("#review-area input#review-request")!!
+        val box = page(s.url, login(s.manager)).selectFirst("#review-area select#review-request")!!
         assertEquals("${s.url}/reviewRequests", box.attr("data-request-url"))
         assertEquals("${s.url}/reviewRequestCandidates", box.attr("data-candidates-url"))
         assertNull(page(s.url).selectFirst("#review-request"), "읽기만 하는 방문자에게는 선택 상자가 없다")

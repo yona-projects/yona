@@ -151,7 +151,7 @@
                 newValue = labelId;
             }
 
-            target.data("select2").val(newValue, true); // triggerChange=true
+            target.val(newValue).trigger("change");
         }
 
         /**

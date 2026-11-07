@@ -4,11 +4,12 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="select2">
 <script th:src="@{/assets/javascripts/lib/select2/select2.js}"></script>
-<!--/* select2 3.x는 원본 요소의 클래스를 컨테이너에 복사한다. BS5 `form-select`가 복사되면 컨테이너에 화살표 배경이 겹쳐 그려지므로 복사에서 뺀다(X-38i, D-56). */-->
-<script>$.fn.select2.defaults.adaptContainerCssClass = function (c) { return (c === "form-select" || c === "form-control") ? null : c; };</script>
+<!--/* select2 4.x는 원본 요소의 클래스를 컨테이너에 복사하지 않는다. v1.6(3.x)의 복사는 yona.ui.Select2.js가 같은 규칙으로 한다(D-95). */-->
 <script th:src="@{/assets/javascripts/common/yona.ui.Select2.js}"></script>
+<!--/* 문구는 v1.6(3.4.5)과 같게 두려고 공식 i18n 대신 Yona 파일을 쓴다. 한국어와 일본어가 아니면 영어 문구를 쓴다. */-->
 <script th:if="${#locale.language == 'ko'}" th:src="@{/assets/javascripts/lib/select2/select2_locale_ko.js}"></script>
 <script th:if="${#locale.language == 'ja'}" th:src="@{/assets/javascripts/lib/select2/select2_locale_ja.js}"></script>
+<script th:if="${#locale.language != 'ko' and #locale.language != 'ja'}" th:src="@{/assets/javascripts/lib/select2/select2_locale_en.js}"></script>
 <script id="tplSelect2FormatUser" type="text/x-jquery-tmpl">
 <div class="usf-group" title="${name} ${loginId}">
     <span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>

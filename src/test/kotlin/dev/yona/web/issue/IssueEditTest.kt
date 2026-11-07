@@ -155,7 +155,7 @@ class IssueEditTest : AbstractIntegrationTest() {
         issue(project, author = author, state = State.CLOSED, assignee = assignee, milestone = milestone, issueLabels = setOf(label))
         val form = form(project, session = login(author)).selectFirst("form#issue-form")!!
         assertEquals("closed", form.select("#state li.active").single().attr("data-value").lowercase())
-        assertEquals(assignee.loginId, form.selectFirst("input#assignee[name=assigneeLoginId]")!!.attr("value"))
+        assertEquals(assignee.loginId, form.selectFirst("select#assignee[name=assigneeLoginId] option[selected]")!!.attr("value"))
         assertEquals(milestone.id.toString(), form.selectFirst("select#milestoneId option[selected]")!!.attr("value"))
         assertTrue(form.selectFirst("select#labelIds option[value=${label.id}]")!!.hasAttr("selected"))
         assertEquals("false", form.selectFirst("select#labelIds")!!.attr("data-close-on-select"))
@@ -183,7 +183,7 @@ class IssueEditTest : AbstractIntegrationTest() {
         issue(project, author = join(newUser(), project))
         val doc = form(project, session = login(newUser()))
         assertTrue(doc.select("button#button-save, button#button-draft-publish").isEmpty())
-        assertTrue(doc.select("#state, input#assignee").isEmpty())
+        assertTrue(doc.select("#state, select#assignee").isEmpty())
     }
 
     @Test

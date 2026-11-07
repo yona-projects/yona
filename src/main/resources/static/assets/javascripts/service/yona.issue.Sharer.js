@@ -6,6 +6,8 @@
  **/
 
 function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message){
+  var userOf = function(state){ return yona.ui.Select2.userOf(state); };
+
   function formatter(result){
     if(!result.avatarUrl){
       return "<div>" + result.name + "</div>";
@@ -24,61 +26,44 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     return formattedResult;
   }
 
-  function matcher(term, formattedResult, result){
-    term = term.toLowerCase();
-    formattedResult = formattedResult.toLowerCase();
+  function matcher(params, data){
+    var term = (params.term || "").trim().toLowerCase();
+    if(term === ""){
+      return data;
+    }
 
-    var loginId = (typeof result.loginId !== "undefined") ? result.loginId.toLowerCase() : "";
+    var formattedResult = (data.text || "").toLowerCase();
+    var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
 
-    return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
+    return ((loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1)) ? data : null;
   }
 
   var $issueSharer = $("#issueSharer");
   $issueSharer.select2({
     minimumInputLength: 1,
-    multiple: true,
-    id: function(obj) {
-      return obj.loginId; // use slug field for id
-    },
-    ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
-      url: findSharableUsersApiUrl,
-      dataType: "json",
-      quietMillis: 300,
-      data: function (term, page) {
-        return {
-          query: term, // search term
-        };
-      },
-      results: function (data, page) { // parse the results into the format expected by Select2.
-        // since we are using custom formatting functions we do not need to alter the remote JSON data
-        return { results: data };
-      },
-      cache: true
-    },
-    initSelection: function(element, callback) {
-      // the input tag has a value attribute preloaded that points to a preselected repository's id
-      // this function resolves that id attribute to an object that select2 can render
-      // using its formatResult renderer - that way the repository name is shown preselected
-
-      var ids = $(element).val();
-      if (ids !== "") {
-        $.ajax(findUsersByloginIdsApiUrl+ "?query=" + ids, {
-          dataType: "json"
-        }).done(function(data) {
-          if(data && data.length > 0) {
-            callback(data);
-          }
-        });
-      }
-    },
-    formatResult: formatter, // omitted for brevity, see the source of this page
-    formatSelection: formatter,  // omitted for brevity, see the source of this page
+    ajax: yona.ui.Select2.userSearch(findSharableUsersApiUrl),
+    templateResult: yona.ui.Select2.userTemplate(formatter),
+    templateSelection: yona.ui.Select2.userTemplate(formatter),
     matcher: matcher,
     escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
   });
 
-  $issueSharer.on("select2-selecting", function(selected) {
-    var data = { sharer: {loginId: selected.object.loginId, type: selected.object.type}, action: 'add'};
+  // the select tag has preselected options that point to the sharers' loginIds.
+  // this resolves those loginIds to user objects so that each sharer has a type (3.x initSelection)
+  var selectedLoginIds = ($issueSharer.val() || []).join(",");
+  if (selectedLoginIds !== "") {
+    $.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
+      dataType: "json"
+    }).done(function(data) {
+      if(data && data.length > 0) {
+        yona.ui.Select2.selectUsers($issueSharer, data);
+      }
+    });
+  }
+
+  $issueSharer.on("select2:selecting", function(selected) {
+    var chosen = userOf(selected.params.args.data);
+    var data = { sharer: {loginId: chosen.loginId, type: chosen.type}, action: 'add'};
 
     if(updateSharingApiUrl){
         $.ajax(updateSharingApiUrl, {
@@ -92,8 +77,9 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     }
   });
 
-  $issueSharer.on("select2-removing", function(selected) {
-    var data = { sharer: {loginId: selected.choice.loginId, type: selected.choice.type}, action: 'delete'};
+  $issueSharer.on("select2:unselecting", function(selected) {
+    var removed = userOf(selected.params.args.data);
+    var data = { sharer: {loginId: removed.loginId, type: removed.type}, action: 'delete'};
 
     if(updateSharingApiUrl){
       $.ajax(updateSharingApiUrl, {
@@ -107,7 +93,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     }
   });
 
-  $issueSharer.on('change', function (e) {
-    $(".issue-sharer-count").text(e.val.length);
+  $issueSharer.on('change', function () {
+    $(".issue-sharer-count").text(($issueSharer.val() || []).length);
   });
 }

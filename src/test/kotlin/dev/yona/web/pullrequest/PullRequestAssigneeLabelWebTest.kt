@@ -195,8 +195,10 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         assertEquals("${s.url}/assignees", pane.attr("data-assignees-url")); assertEquals("${s.url}/labels", pane.attr("data-labels-url"))
         assertEquals("${s.url}/timeline", pane.attr("data-timeline-url"))
         assertEquals("/${s.origin.owner}/${s.origin.name}/assignableUsers", pane.attr("data-candidates-url"))
-        val assignee = pane.selectFirst("input#assignee[name=assigneeLoginId]")!!
-        assertEquals(s.member.loginId, assignee.attr("value")); assertEquals(s.member.name, assignee.attr("data-name"))
+        // select2 4.x는 숨은 input을 지원하지 않아 select이다(D-95). 선택된 option이 현재 담당자이고 이름과 아바타는 data-*로 싣는다
+        val assignee = pane.selectFirst("select#assignee[name=assigneeLoginId]")!!
+        val chosen = assignee.selectFirst("option[selected]")!!
+        assertEquals(s.member.loginId, chosen.attr("value")); assertEquals(s.member.name, chosen.attr("data-name"))
         val labelSelect = pane.selectFirst("select#labelIds[name=labelIds]")!!
         assertEquals(setOf(bug.id.toString(), doc.id.toString()), labelSelect.select("option[value]").map { it.attr("value") }.filter { it.isNotEmpty() }.toSet())
         assertEquals(listOf(bug.id.toString()), labelSelect.select("option[selected]").map { it.attr("value") })
@@ -215,7 +217,8 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
     fun `라벨과 담당자가 하나도 없어도 편집 권한자의 보기 화면이 열리고 아무것도 선택되어 있지 않다`() {
         val s = setup(); label(s.origin, "bug")
         val d = page(s.url, login(s.manager))
-        assertEquals("", d.selectFirst("#assignee")!!.attr("value"))
+        assertNotNull(d.selectFirst("select#assignee"))
+        assertTrue(d.select("#assignee option[selected]").isEmpty(), "담당자가 없으면 선택된 option이 없다(빈 option이 기본 선택이다)")
         assertTrue(d.select("#labelIds option[selected]").isEmpty())
     }
 
@@ -224,7 +227,7 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val s = setup(); val bug = label(s.origin, "bug")
         mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val d = page(s.url)
-        assertNull(d.selectFirst("#pr-meta input#assignee")); assertNull(d.selectFirst("#pr-meta select#labelIds"))
+        assertNull(d.selectFirst("#pr-meta select#assignee")); assertNull(d.selectFirst("#pr-meta select#labelIds"))
         assertEquals("/${s.member.loginId}", d.selectFirst(".span-right-pane .pr-assignee a.usf-group")!!.attr("href"))
         assertEquals("bug", d.selectFirst(".span-right-pane .pr-labels a.issue-label")!!.text())
     }

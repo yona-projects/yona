@@ -18,14 +18,14 @@ $(function () {
     initialProject.on("change", function(selected){
         var parentId = $("#parentId");
         var targetProjectName = selected.target.selectedOptions[0].innerText;
-        if(selected.val === initialProjectId){
+        if($(selected.target).val() === initialProjectId){
             parentId.prop("disabled", false);
-            $('#s2id_parentId').show();
+            parentId.next(".select2-container").show();
             parentId.trigger('change.select2');
         } else {
             parentId.val(parentId.find("option:first").val());
             parentId.prop("disabled", true);
-            $('#s2id_parentId').hide();
+            parentId.next(".select2-container").hide();
             parentId.trigger('change.select2');
             $yona.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
         }

@@ -8201,7 +8201,7 @@ textarea.editorSeries.content {
  * 폭 클래스가 없는 글 입력란(A-377): v1.6의 `input[type=text]`는 폭 206px에 안쪽 여백과 테두리가 더해진 전체 220px, 높이 30px의 인라인 상자였다.
  * BS5 `.form-control`은 블록에 폭 100%라 부모 폭을 다 채운다. 폭 클래스(`w-*`, `col-*`)나 크기 클래스(`input-*`), 제목 입력란을 쓴 곳은 그 지정을 따른다.
  */
-.page-wrap-outer input.form-control:is([type="text"], [type="email"], [type="password"], :not([type])):not(.w-25):not(.w-50):not(.w-75):not(.w-100):not(.w-auto):not([class*="col-"]):not([class*="input-"]):not(.title):not(.project-clone-url):not(.select2-input) {
+.page-wrap-outer input.form-control:is([type="text"], [type="email"], [type="password"], :not([type])):not(.w-25):not(.w-50):not(.w-75):not(.w-100):not(.w-auto):not([class*="col-"]):not([class*="input-"]):not(.title):not(.project-clone-url):not(.select2-search__field) {
   @include v16-input-box;
   display: inline-block;
   width: 206px;

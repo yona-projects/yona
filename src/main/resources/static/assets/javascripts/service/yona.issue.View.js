@@ -88,7 +88,7 @@
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
             elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeDueDate);
-            elements.issueInfoWrap.on("select2-selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
+            elements.issueInfoWrap.on("select2:selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 
             // Detect textarea events for autoUpdate timeline
             elements.textarea.on({
@@ -112,8 +112,9 @@
         function _onSelectingAssignee(evt){
             var targetElement = $(this);
             var selectedElement = targetElement.find(':selected');
-            var isValueNotChanged = (targetElement.val() === evt.val);
-            var isForceChange = $(evt.object.element).data("forceChange");
+            var selectingData = evt.params.args.data;
+            var isValueNotChanged = (targetElement.val() === selectingData.id);
+            var isForceChange = $(selectingData.element).data("forceChange");
             var isNonMember = selectedElement.data("nonMember");
 
             if (isNonMember && !isValueNotChanged) {
@@ -177,7 +178,7 @@
         function _requestUpdateIssue(evt, callback){
             var field = $(evt.target);
             var fieldName = field.data("fieldName") || field.prop("name");
-            var fieldValue = field.data("select2") ? field.data("select2").val() : field.val();
+            var fieldValue = field.val();
 
             // Send request to update issueInfo
             $.ajax(vars.urls.massUpdate, {
@@ -189,10 +190,6 @@
                 _updateTimeline();
 
                 $yona.notify(Messages("issue.update." + fieldName), 3000);
-
-                if(field.data("select2")){
-                    field.data("select2").val(fieldValue);
-                }
 
                 if(typeof callback === "function"){
                     callback(res, fieldName, fieldValue, evt);
@@ -218,8 +215,9 @@
             var requestData = {"issues[0].id": vars.issueId};
 
             if(fieldName === "labelIds"){
-                requestData["attachingLabelIds"] = _getIdProps(evt.added);
-                requestData["detachingLabelIds"] = _getIdProps(evt.removed);
+                var changes = yona.ui.Select2.selectionChanges(evt.target);
+                requestData["attachingLabelIds"] = _getIdProps(changes.added);
+                requestData["detachingLabelIds"] = _getIdProps(changes.removed);
             } else {
                 requestData[fieldName] = fieldValue;
             }

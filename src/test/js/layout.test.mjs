@@ -8,11 +8,12 @@ import { pageWith, ROOT } from './harness.mjs';
 // 줄이 부모 밖으로 나가 잘리거나 가장자리에 붙는다(v1.6과 v2 화면 비교에서 확인한 결함).
 const CSS = path.join(ROOT, 'build/generated/sass/static/assets/stylesheets');
 const SELECT2 = path.join(ROOT, 'src/main/resources/static/assets/javascripts/lib/select2/select2.css');
+const SELECT2_THEME = path.join(ROOT, 'src/main/resources/static/assets/javascripts/lib/select2/select2-bootstrap-5-theme.css');
 
 async function open(html) {
   const page = await pageWith({ html: `<div class="page-wrap-outer"><div class="project-page-wrap">${html}</div></div>`, stubs: false });
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const css of [path.join(CSS, 'bootstrap.css'), SELECT2, path.join(CSS, 'usermenu.css'), path.join(CSS, 'yobi.css')]) await page.addStyleTag({ path: css });
+  for (const css of [path.join(CSS, 'bootstrap.css'), SELECT2, SELECT2_THEME, path.join(CSS, 'usermenu.css'), path.join(CSS, 'yobi.css')]) await page.addStyleTag({ path: css });
   return page;
 }
 
@@ -23,7 +24,7 @@ export const tests = [
     name: '코드 화면의 브랜치 선택 상자는 폭 220으로 고정된다 (R-코드 목록 비교)',
     async run() {
       const page = await open(`<div class="code-browse-wrap"><div class="code-browse-header">
-        <div id="s2id_branches" class="select2-container float-start"><a class="select2-choice"><span class="select2-chosen">branch master</span></a></div>
+        <span id="s2id_branches" class="select2 select2-container select2-container--bootstrap-5 float-start"><span class="selection"><span class="select2-selection select2-selection--single"><span class="select2-selection__rendered">branch master</span></span></span></span>
         <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 float-start">proj1</div></div></div>`);
       const r = await rect(page, '#s2id_branches');
       assert.equal(Math.round(r.width), 220);

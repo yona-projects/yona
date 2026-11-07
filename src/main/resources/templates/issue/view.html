@@ -125,7 +125,10 @@
                         <th:block th:text="#{issue.sharer}"></th:block> <span class="num issue-sharer-count"><th:block th:if="${!issue.sharers.isEmpty()}" th:text="${issue.sharers.size()}"></th:block></span>
                     </dt>
                     <dd id="sharer-list" th:class="${issue.sharers.isEmpty()} ? 'hideFromDisplayOnly'">
-                        <input th:if="${issue.canUpdate}" type="hidden" class="bigdrop width100p" id="issueSharer" name="issueSharer" th:placeholder="#{issue.sharer.select}" th:value="${issue.sharerLoginIds}" title="">
+                        <!--/* select2 4.x는 숨은 input을 지원하지 않아 다중 select이다(D-95). 공유자는 option으로 그리고 유형(type)은 yona.issue.Sharer.js가 불러와 채운다 */-->
+                        <select th:if="${issue.canUpdate}" multiple class="bigdrop width100p form-select" id="issueSharer" name="issueSharer" th:attr="data-placeholder=#{issue.sharer.select}" title="">
+                            <option th:each="sharer : ${issue.sharers}" th:value="${sharer.loginId}" th:text="${sharer.displayName}" selected></option>
+                        </select>
                         <th:block th:unless="${issue.canUpdate}">
                             <div th:each="sharer : ${issue.sharers}" class="text-ellipsis sharer-item">
                                 <a th:href="'/' + ${sharer.loginId}" class="usf-group">
@@ -356,7 +359,7 @@
         $('#issue-share-button').on('click', function () {
             $('#sharer-list').show();
             $('.sharer-list').show().addClass("sharer-list-border");
-            $('#sharer-list .select2-search-field > input').focus();
+            $('#sharer-list .select2-search__field').focus();
         });
 
         $('#translate').one('click', function (e) {

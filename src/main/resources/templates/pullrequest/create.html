@@ -74,7 +74,7 @@
                         <div id="pr-meta" class="issue-info" data-mode="form" th:attr="data-candidates-url=${assigneeArea.candidatesUrl}">
                             <dl class="issue-option pr-assignee">
                                 <dt th:text="#{issue.assignee}"></dt>
-                                <dd><input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" value="" style="width: 100%" title=""></dd>
+                                <dd><select class="bigdrop form-select" id="assignee" name="assigneeLoginId" th:attr="data-placeholder=#{issue.noAssignee}" style="width: 100%" title=""><option value=""></option></select></dd>
                             </dl>
                             <th:block th:if="${labelArea.hasLabels}">
                                 <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'issue-option', false, ${projectView})}"></th:block>

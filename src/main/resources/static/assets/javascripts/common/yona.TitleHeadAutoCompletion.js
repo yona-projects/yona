@@ -21,7 +21,7 @@ function yonaTitleHeadModule(htOptions){
         _attachEvent();
 
         if($("#labelIds").length > 0 ) {
-            issueLabels = $("#labelIds").select2("val");
+            issueLabels = $("#labelIds").val();
         }
     }
 
@@ -116,7 +116,7 @@ function yonaTitleHeadModule(htOptions){
                 callbacks: {
                     remoteFilter: function(query, callback) {
                         NProgress.start();
-                        issueLabels = $("#labelIds").length > 0 && $("#labelIds").select2("val") || [];
+                        issueLabels = $("#labelIds").length > 0 && $("#labelIds").val() || [];
                         clearTimeout(searchPending);
 
                         searchPending = setTimeout(function () {
@@ -162,7 +162,7 @@ function yonaTitleHeadModule(htOptions){
                             }
 
                             issueLabels.push($selectedLabel.val());
-                            $("#labelIds").select2("val", issueLabels);
+                            $("#labelIds").val(issueLabels).trigger("change.select2");
 
                             $yona.notify('Label: ' + selectedValueOnly, 3000);
                             return "";

@@ -1872,3 +1872,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-07] build | 번들 도구 정리와 clipboard.js 2.0.11 교체(A-398)
 
 선생님 지시("1,2 진행")로 `compiler.jar`와 옛 `minify-js.sh`를 지우고, 번들 안의 clipboard.js를 2.0.0에서 2.0.11로 올리고, 쓰이지 않는 `jquery.validate.js`와 `jquery.placeholder.min.js`(와 그 초기화 호출)를 뺐다(`yona-common.js` 90,148에서 66,524 바이트). 시험을 먼저 만들어 실패를 확인했다. 확인: 전체 H2 시험 통과(20:13~20:29, 16분 17초), 전 화면 순회 `clip2`를 직전 `yonarename`과 비교해 새 문제 0, Playwright 직접 확인(ClipboardJS 2.0.11이 실제 클립보드에 쓰고 `success` 이벤트가 옴, `$.fn.placeholder`와 `$.fn.validate`는 없고 `FormValidator`는 있음, 입력 칸 placeholder 속성이 기본 지원으로 보임, 새 콘솔 오류 없음).
+
+## [2026-11-07] build | select2 3.4.5를 4.1.0으로 올림(D-95, A-399)
+
+선생님이 jquery.tmpl의 Mustache 교체(D-94) 전에 select2를 먼저 옮기라고 하셔서(D-95) 계획(`architecture/select2-upgrade-plan.md`)을 세우고 진행했다. 공식 4.1.0과 Bootstrap 5 테마로 올리고, `yona.ui.Select2.js`를 다시 쓰고, 숨은 input 5곳을 `<select>`로 바꾸고, 호출부 12개 파일과 SCSS(3.x 규칙 약 350줄)를 4.x에 맞췄다. 시험을 먼저 만들어 실패를 확인했다(정적 `Select2UpgradeTest` 6건, Playwright `select2.test.mjs`). 이름 변경과 jQuery 교체 때 놓친 `src/test/js` 53건 실패도 먼저 고쳤다. 확인: 전체 H2 시험 22:51~23:08(16분 26초, 4,876건 중 1건 실패는 `form-select` 누락을 고쳐 통과), JS 시험 75건 통과, Playwright 직접 확인 23건 통과, 전 화면 순회 `select2b` 23:16~23:18(2분 23초)이 직전 `clip2`와 비교해 새 문제 0(135/136, 기존 `help-uikit.anon` 404). 순회 첫 실행에서 `pulls-sent`의 `#contributors` 방어 오류를 찾아 시험을 먼저 만들고 고쳤다. 상호작용 순회(`--interact`)는 돌리지 않았다. 다음은 선생님 지시에 따라 Mustache 교체(D-94)이다.

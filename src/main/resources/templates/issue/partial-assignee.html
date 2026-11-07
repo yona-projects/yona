@@ -7,5 +7,9 @@
   매개변수: assigneeLoginId(현재 담당자 로그인 ID. 없으면 null)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="assignee(assigneeLoginId)">
-<input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" th:value="${assigneeLoginId}" style="width: 100%" title="">
+<!--/* select2 4.x는 숨은 input을 지원하지 않아 select이다(D-95). 선택된 option의 값이 전송되는 값이고, 이름과 아바타는 yona.issue.Assginee.js가 불러와 채운다 */-->
+<select class="bigdrop form-select" id="assignee" name="assigneeLoginId" th:attr="data-placeholder=#{issue.noAssignee}" style="width: 100%" title="">
+    <option value=""></option>
+    <option th:if="${assigneeLoginId != null and !#strings.isEmpty(assigneeLoginId)}" th:value="${assigneeLoginId}" th:text="${assigneeLoginId}" selected></option>
+</select>
 </th:block>

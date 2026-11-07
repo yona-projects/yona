@@ -592,7 +592,7 @@
 
             elements.editCategoryForm.data(target.data());
             elements.editCategoryName.val(target.data("categoryName"));
-            elements.editCategoryForm.find("[name=isExclusive]").data("select2").val(target.data("categoryIsExclusive") + "");
+            elements.editCategoryForm.find("[name=isExclusive]").val(target.data("categoryIsExclusive") + "").trigger("change.select2");
             bootstrap.Modal.getOrCreateInstance(elements.editCategoryForm[0]).show();
         }
 
@@ -638,7 +638,7 @@
             elements.editLabelForm.data(target.data());
             elements.editLabelName.val(target.data("labelName"));
             elements.editLabelColor.val(target.data("labelColor"));
-            elements.editLabelCategory.data("select2").val(target.data("categoryId"));
+            elements.editLabelCategory.val(target.data("categoryId")).trigger("change.select2");
             bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).show();
 
             _updateInputBySelectedColor(elements.editLabelName,
@@ -660,7 +660,7 @@
             };
 
             // Check is label with same name exists on new category
-            var categoryName = elements.editLabelCategory.data("select2").data().text;
+            var categoryName = elements.editLabelCategory.select2("data")[0].text;
             var initialLabelName = elements.editLabelForm.data("labelName");
             var isLabelNameChanged = (requestData.name != initialLabelName);
 
