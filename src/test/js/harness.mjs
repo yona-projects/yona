@@ -11,9 +11,9 @@ let browser;
 export async function launch() { browser ||= await chromium.launch(); return browser; }
 export async function close() { await browser?.close(); browser = null; }
 
-/** 모든 모듈이 쓰는 최소한의 공통 도우미이다(`$yobi.createNamespace` 등). 실제 yobi.Common.js는 쓰지 않는다. */
+/** 모든 모듈이 쓰는 최소한의 공통 도우미이다(`$yona.createNamespace` 등). 실제 yona.Common.js는 쓰지 않는다. */
 export const COMMON_STUBS = `
-  window.$yobi = {
+  window.$yona = {
     createNamespace: function (ns) {
       var parts = ns.split('.'), parent = window, name = null;
       for (var i = 0; i < parts.length; i++) {
@@ -29,7 +29,7 @@ export const COMMON_STUBS = `
   };
   window.Messages = function (key) { return key; };
   window.bootstrap = { Modal: { getOrCreateInstance: function () { return { show: function () { (window.__modal = window.__modal || []).push('show'); }, hide: function () {} }; } } };
-  window.yobi = window.yobi || {}; yobi.ui = yobi.ui || {}; yobi.ui.Typeahead = function () {};
+  window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.Typeahead = function () {};
 `;
 
 /**
@@ -42,7 +42,7 @@ export async function pageWith({ html = '', scripts = [], stubs = true } = {}) {
   page.errors = [];
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`);
-  await page.addScriptTag({ path: path.join(JS, 'lib/jquery/jquery-3.3.1.js') });
+  await page.addScriptTag({ path: path.join(JS, 'lib/jquery/jquery-3.7.1.js') });
   if (stubs) await page.addScriptTag({ content: COMMON_STUBS });
   for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? { path: path.join(JS, s) } : s);
   return page;

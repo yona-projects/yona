@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { pageWith } from './harness.mjs';
 
-// 코드 브라우저(yobi.code.Browser.js)의 폴더 목록 화면. `dir` 폴더를 서버가 그린 상태이다.
+// 코드 브라우저(yona.code.Browser.js)의 폴더 목록 화면. `dir` 폴더를 서버가 그린 상태이다.
 const HTML = `
   <style>.x{}</style>
   <div id="breadcrumbs"></div><select id="branches"></select><a id="new-file-link" href="/new?branch=master"></a>
@@ -16,15 +16,15 @@ const HTML = `
 const STUBS = `
   window.NProgress = { start: function () {}, done: function () {} };
   window.moment = function () { return { fromNow: function () { return ''; } }; };
-  $yobi.xssClean = function (s) { return s; };
+  $yona.xssClean = function (s) { return s; };
   window.__ajax = [];
   $.ajax = function (url) { window.__ajax.push(url); };`;
 
 async function open(hash) {
-  const page = await pageWith({ html: HTML, scripts: [{ content: STUBS }, 'service/yobi.code.Browser.js'] });
+  const page = await pageWith({ html: HTML, scripts: [{ content: STUBS }, 'service/yona.code.Browser.js'] });
   await page.evaluate((h) => {
     history.replaceState(null, '', h);
-    new yobi.code.Browser({ sProjectName: 'p', sMetaInfoURL: '/m', sBasePathURL: '/b', sInitialPath: 'dir' });
+    new yona.code.Browser({ sProjectName: 'p', sMetaInfoURL: '/m', sBasePathURL: '/b', sInitialPath: 'dir' });
   }, hash);
   return page;
 }

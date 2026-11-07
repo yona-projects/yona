@@ -5,14 +5,14 @@ const STUBS = { content: 'window.humanize = { filesize: function (n) { return n 
 
 /** 업로드 응답을 흉내 내어 [namespace]에 붙인 오류 처리기가 불리는 횟수를 센다. */
 async function upload(response, namespace) {
-  const page = await pageWith({ html: '', scripts: [STUBS, 'common/yobi.Files.js'] });
+  const page = await pageWith({ html: '', scripts: [STUBS, 'common/yona.Files.js'] });
   const r = await page.evaluate(async ([resp, ns]) => {
     $.ajax = function (o) { setTimeout(function () { o.success(resp); }, 0); };
-    yobi.Files.init({ sUploadURL: '/up' });
+    yona.Files.init({ sUploadURL: '/up' });
     var seen = { error: 0, success: 0 };
-    yobi.Files.attach({ errorUpload: function () { seen.error++; }, successUpload: function () { seen.success++; } }, ns);
-    yobi.Files.getEnv().bXHR2 = true;
-    yobi.Files.uploadFile(new File(['x'], 'a.txt'), ns);
+    yona.Files.attach({ errorUpload: function () { seen.error++; }, successUpload: function () { seen.success++; } }, ns);
+    yona.Files.getEnv().bXHR2 = true;
+    yona.Files.uploadFile(new File(['x'], 'a.txt'), ns);
     await new Promise((r) => setTimeout(r, 50));
     return seen;
   }, [response, namespace]);
@@ -30,13 +30,13 @@ export const tests = [
     assert.deepEqual(seen, { error: 0, success: 1 });
   } },
   { name: '표를 붙여넣으면 전역 window.event가 아니라 받은 이벤트로 마크다운 표를 만든다 (C010)', async run() {
-    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, 'common/yobi.Files.js'] });
+    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, 'common/yona.Files.js'] });
     const out = await page.evaluate(() => {
-      yobi.Files.init({ sUploadURL: '/up' });
+      yona.Files.init({ sUploadURL: '/up' });
       var got = null;
-      yobi.Files.attach('pasteMarkdownTable', function (d) { got = d.markdownTableText; }, 'ns');
-      yobi.Files.getEnv().bPastable = true;
-      yobi.Files.getUploader($('#c')[0], $('#t')[0], 'ns');
+      yona.Files.attach('pasteMarkdownTable', function (d) { got = d.markdownTableText; }, 'ns');
+      yona.Files.getEnv().bPastable = true;
+      yona.Files.getUploader($('#c')[0], $('#t')[0], 'ns');
       var items = [{ kind: 'string', type: 'text/plain' }, { kind: 'file', type: 'image/png', getAsFile: function () { return null; } }];
       var e = $.Event('paste'); e.originalEvent = { clipboardData: { items: items, getData: function () { return 'a\tb\n1\t2'; } }, preventDefault: function () {} };
       try { $('#t').trigger(e); } catch (err) { return 'ERR ' + err.message; }

@@ -3,7 +3,7 @@ import { pageWith, sourceSnippet } from './harness.mjs';
 
 export const tests = [
   { name: '리뷰 스레드가 하나도 없어도 높이 계산이 오류 없이 건너뛴다 (R-70)', async run() {
-    const code = sourceSnippet('service/yobi.code.Diff.js', 'function _isReviewContainerStuck()', '_init(htOptions || {});');
+    const code = sourceSnippet('service/yona.code.Diff.js', 'function _isReviewContainerStuck()', '_init(htOptions || {});');
     const page = await pageWith({ html: '<div id="wrap"></div>' });
     const out = await page.evaluate((src) => {
       var htElement = { welContainer: $('#wrap'), welReviewList: $('div.review-list'), welReviewContainer: $('#none') };
@@ -14,7 +14,7 @@ export const tests = [
     assert.equal(out, 'ok', out);
   } },
   { name: '이슈 목록을 읽은 뒤 하위 이슈 스크립트가 없는 화면에서도 오류가 나지 않는다 (R-69)', async run() {
-    const code = sourceSnippet('service/yobi.issue.List.js', 'function _onLoadIssueList(){', 'function _listHoverEffect');
+    const code = sourceSnippet('service/yona.issue.List.js', 'function _onLoadIssueList(){', 'function _listHoverEffect');
     const page = await pageWith({ html: '' });
     const out = await page.evaluate((src) => {
       var noop = 'var NProgress={done:function(){}},htInitialOptions={};' +
@@ -26,7 +26,7 @@ export const tests = [
     assert.equal(out, 'ok', out);
   } },
   { name: '붙일 라벨이 하나도 보이지 않으면 라벨 붙이기 단추를 끈다 (C011)', async run() {
-    const code = sourceSnippet('service/yobi.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
+    const code = sourceSnippet('service/yona.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
     const page = await pageWith({ html: '<ul id="attach"><li data-value="7"></li></ul><button id="btn"></button>' });
     const run = (labels, visible) => page.evaluate(([src, labels, visible]) => {
       var htVar = {}, htElement = { welAttachLabels: $('#attach'), welBtnAttachingLabel: $('#btn') };
@@ -42,7 +42,7 @@ export const tests = [
     assert.equal(disabledWhenSomeVisible, false);
   } },
   { name: '라벨 목록을 만들 때 htLabel이 전역 변수로 새지 않는다 (C113-2)', async run() {
-    const code = sourceSnippet('service/yobi.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
+    const code = sourceSnippet('service/yona.issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
     const page = await pageWith({ html: '<ul id="attach"><li data-value="7"></li></ul><button id="btn"></button>' });
     const leaked = await page.evaluate((src) => {
       var htVar = {}, htElement = { welAttachLabels: $('#attach'), welBtnAttachingLabel: $('#btn') };
@@ -57,7 +57,7 @@ export const tests = [
 
 export const labelTests = [
   { name: '프로젝트 라벨은 입력값을 글자로 넣고 HTML로 해석하지 않는다 (C027)', async run() {
-    const code = sourceSnippet('service/yobi.site.MassMail.js', 'function _createProjectLabel(sName) {', '/**\n         * Append the given projects');
+    const code = sourceSnippet('service/yona.site.MassMail.js', 'function _createProjectLabel(sName) {', '/**\n         * Append the given projects');
     const page = await pageWith({ html: '<div id="out"></div>' });
     const out = await page.evaluate((src) => {
       var make = new Function('$', src + '; return _createProjectLabel;')(window.$);

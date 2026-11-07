@@ -5,19 +5,19 @@ const HEADER = 'Index: a.txt\n==================================================
 const STUBS = { content: `
   window.NProgress = { done: function () {}, start: function () {} };
   $.fn.tmpl = function () { return $('<span/>'); };
-  $yobi.getTrim = function (s) { return $.trim(s); };
-  yobi.Files = { init: function () {}, getUploader: function () {}, attach: function () {}, getEnv: function () { return {}; } };
-  yobi.Attachments = function () { return { destroy: function () {} }; };` };
+  $yona.getTrim = function (s) { return $.trim(s); };
+  yona.Files = { init: function () {}, getUploader: function () {}, attach: function () {}, getEnv: function () { return {}; } };
+  yona.Attachments = function () { return { destroy: function () {} }; };` };
 
 /** `#commit`에 [diff]를 담아 화면 스크립트를 시작하고 그려진 표의 줄들을 돌려준다. */
 async function render(diff) {
   const page = await pageWith({
     html: '<div class="diff-wrap"><div id="commit"></div><div class="diff-body"></div></div><ul class="comments"></ul><div id="minimap"><div class="minimap-wrap"><div class="minimap-curr"></div><div class="minimap-links"></div></div></div>',
-    scripts: [STUBS, 'service/yobi.code.SvnDiff.js']
+    scripts: [STUBS, 'service/yona.code.SvnDiff.js']
   });
   await page.evaluate((d) => { $('#commit').text(d); }, diff);
   const result = await page.evaluate(() => {
-    try { new yobi.code.SvnDiff({ sCodeURL: '/c', sCommitId: '2', sParentCommitId: '1' }); } catch (e) { return { error: e.message }; }
+    try { new yona.code.SvnDiff({ sCodeURL: '/c', sCommitId: '2', sParentCommitId: '1' }); } catch (e) { return { error: e.message }; }
     return { rows: $('table.diff-container tr').map(function () { return $(this).attr('class') + '|' + $(this).find('pre').text() + '|' + $(this).find('.hidden').map(function () { return $(this).text(); }).get().join(','); }).get() };
   });
   await page.close();

@@ -13,11 +13,11 @@ const HTML = `
 export const tests = [{
   name: '구성원 삭제 확인 핸들러는 클릭마다 쌓이지 않아 마지막에 고른 구성원만 지운다 (C024, C174, C113-3)',
   async run() {
-    const page = await pageWith({ html: HTML, scripts: ['service/yobi.organization.Member.js'] });
+    const page = await pageWith({ html: HTML, scripts: ['service/yona.organization.Member.js'] });
     const calls = await page.evaluate(() => {
       window.__ajax = [];
       $.ajax = function (url) { window.__ajax.push(url); };
-      new yobi.organization.Member({ sActionURL: '/x', htData: {} });
+      new yona.organization.Member({ sActionURL: '/x', htData: {} });
       $('#del-a').click();   // A를 고른 뒤 취소하고
       $('#del-b').click();   // B를 다시 고른다
       $('#deleteBtn').click(); // 확인을 한 번 누른다
