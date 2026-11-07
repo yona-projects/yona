@@ -1856,3 +1856,7 @@ jQuery 플러그인의 제거 대상 API 사용을 세어 jQuery 4가 플러그�
 ## [2026-11-07] build | JS 라이브러리 첫 묶음 업그레이드(D-91, A-392)
 
 jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(autosize 6.0.1, NProgress 0.2.0 JS, Popper 2.11.8, Tippy.js 6.3.7, video.js 7.21.2, moment 2.31.0)을 올렸다. 확인: 전 화면 순회 비교(`jq331` 옛 상태 약 29분, `jqall` 새 상태 약 30분, 136화면, 새 문제 0, 실패 1건은 옛 상태에도 있던 `help-uikit` 404), Playwright 직접 확인 22개 항목(마이그레이션 화면의 AngularJS 1.5.8과 jQuery 3.7.1 조합 포함, 처음 시험은 화면이 GitHub로 이동해 잘못 실패했고 외부 이동을 막아 바로잡음). 전체 H2 시험 16분 20초, 4,856건(건너뜀 2): 첫 실행에서 `MigrationPageTest` 1건이 v1.6의 jQuery 1.9.0을 고정한 기대값 때문에 실패해 3.7.1로 고치고(의도된 차이로 `differences-from-v16.md`에 기록) 관련 66건을 다시 통과했다. 커밋은 둘로 나눴다(jQuery와 jQuery UI, 나머지 벤더 파일). 첫 커밋은 중간 상태(`yona-layout.js`를 옛 NProgress로 만든 것)에서 시험 42건을 통과한 것을 확인했다. 이번에 올리지 않은 것과 다음 단계는 `architecture/js-upgrade-plan.md` 0절에 있다.
+
+## [2026-11-07] build | JS 벤더 파일 정리(A-393)
+
+선생님 지시로 옛 파일과 쓰이지 않는 벤더 파일을 지웠다. 지우기 전에 후보마다 참조를 모두 검사했고 참조가 0곳인 14개만 `git rm`했다. 앞서 "호출 없음"이라 적었던 zclip(복사 버튼 2곳), cookie(템플릿 3곳이 로드), validation과 placeholder(번들 입력)는 검사에서 일부가 틀린 것으로 드러나 지우지 않았다. 지운 파일은 `JsLibraryVersionsTest`가 지킨다(먼저 실패를 확인한 뒤 삭제). 관련 시험 50건 통과(전체 H2 시험은 다시 돌리지 않았다: 참조 0곳을 `src/main`과 `src/test`까지 검색해 확인했다).

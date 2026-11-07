@@ -94,4 +94,16 @@ class JsLibraryVersionsTest {
         assertTrue(templateFiles().none { it.readText().contains("moment.lang(") }, "moment 2.8부터 lang은 locale로 바뀌었다")
         assertTrue(templateFiles().any { it.readText().contains("moment-with-locales.min.js") })
     }
+
+    @Test
+    fun `쓰이지 않는 옛 벤더 파일은 저장소에 없다`() {
+        // 참조를 검사해 지운 파일이다(D-91, A-393). 템플릿, JS, 번들 입력 목록, Kotlin 어디에서도 불러오지 않는다. v1.6 원본 사본은 `public/`에 그대로 있다
+        val removed = listOf(
+            "jquery/jquery-1.7.2.js", "jquery/jquery-1.7.2.min.js", "jquery/jquery-1.9.0.js", "jquery/jquery-3.3.1.js",
+            "jquery/jquery-ui-1.10.4.custom.min.js", "jquery/jquery-ui.custom.js", "moment-with-langs.min.js", "underscore.js",
+            "magnific-popup/jquery.magnific-popup.js", "magnific-popup/jquery.magnific-popup.min.js", "jquery/jquery.dynatree.js",
+            "jquery/jquery.event.drag-2.2.js", "jquery/jquery.validate.min.js", "jquery/jquery.scrollTo.js"
+        )
+        assertEquals(emptyList(), removed.filter { File(assets, "javascripts/lib/$it").exists() }, "지웠던 파일이 다시 들어왔다")
+    }
 }

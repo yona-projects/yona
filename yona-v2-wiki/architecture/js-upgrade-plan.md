@@ -25,7 +25,6 @@ updated: 2026-11-07
 | jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과 |
 | At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch |
 | jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
-| jquery.scrollTo | 최근 댓글로 스크롤 |
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
 | Pikaday | 마감일 추가, import 경로 이동 |
 | js-xss | XSS 방어 수정 5건 |
@@ -33,7 +32,9 @@ updated: 2026-11-07
 | marked | 사용자 지정 패치(37건) |
 | mention.js | Yona 자체 코드(10건) |
 
-jquery-pjax는 공식 2.0.1과 같고, jquery.event.drag는 어느 템플릿도 불러오지 않아 쓰이지 않는다(패치도 죽은 코드). clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
+jquery-pjax는 공식 2.0.1과 같다. jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
+
+**정리 완료**(`A-393`, 2026-11-07): 옛 파일과 참조가 없는 벤더 파일 14개를 지웠다(jQuery 1.7.2, 1.9.0, 3.3.1, jQuery UI 1.10.4와 `ui.custom`, `moment-with-langs`, underscore, magnific-popup JS, dynatree JS, event.drag, `jquery.validate.min.js`, scrollTo). 지우지 않은 것: `jquery.cookie.js`(템플릿 3곳이 불러오나 호출 없음), zclip과 `ZeroClipboard.swf`(복사 버튼이 사용), `validate`와 `placeholder`와 zclip(번들 `yona-common.js`의 입력), Jcrop, `magnific-popup.css`, dynatree CSS. 남은 정리는 번들 재현성을 해결한 뒤 번들에서 미사용 코드를 빼는 일과 `jquery.cookie`를 불러오는 템플릿 3곳이다. clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
 
 ## 1. 현재 상태
 
