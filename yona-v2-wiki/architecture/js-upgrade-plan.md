@@ -40,49 +40,37 @@ updated: 2026-11-07
 | At.js(멘션) | 1.5.3 | 1.5.4(유지 중단) | 멘션 | 거의 없음 |
 | `vendor.js`(Angular 1.x와 lodash 묶음) | 1.5.8 | 없음(AngularJS는 지원 종료) | **마이그레이션 화면 하나** | 업그레이드 불가 |
 
-### jQuery 플러그인과 jQuery 4의 거리 (2026-11-07 조사)
+### jQuery 4 지원 여부 (2026-11-07 조사, 같은 날 정정)
 
-jQuery 4에서 제거되었다고 알려진 API를 플러그인 파일에서 세었다. **앱 코드**(`common`, `service`)는 `$.trim` 21곳, `$.parseJSON` 6곳, `.bind`와 `.unbind` 4곳으로 적다. 반면 **플러그인**이 많다.
+**정정**: 계획서 초안은 `.bind`, `.unbind`를 jQuery 4의 제거 대상으로 세어 비용을 크게 잡았다. 공식 4.0 업그레이드 가이드(jquery.com/upgrade-guide/4.0)에는 `.bind`, `.unbind`, `.delegate`가 제거 목록에 없다(지원 중단 상태로 남음). 아래는 공식 제거 목록으로 다시 센 결과이다.
 
-| 플러그인(현재 버전) | 제거 대상 API 사용 | 상태 |
-|---|---|---|
-| select2 3.4.5 | `.bind` 32, `$.isFunction` 11, `$.trim` 3, `$.isArray` 3 | 4.x로 올려야 함(단계 6) |
-| jquery.validate 1.9.0(2011) | `$.trim` 7, `$.isFunction` 2, `.bind` 3 | 최신 1.20대 |
-| jquery.dynatree 1.2.4 | `$.trim` 3, `$.isArray` 2, `$.browser` 4, `.bind` 5 | **유지 끝**(후속은 fancytree) |
-| jquery.Jcrop 0.9.12 | `.bind` 11, `.unbind` 4 | 유지 끝 |
-| jquery.form 3.09 | `$.trim` 1, `$.isFunction` 1 | 최신 4.3 |
-| jquery.pjax | `$.isArray` 2, `$.isFunction` 2, `$.trim` 1 | 최신 2.0 |
-| jquery.tmpl 1.0.0, jquery.browser 0.0.6 | `$.isArray` 4, `$.browser` | **유지 끝**(앱이 쓰는 곳 확인 필요) |
-| jquery.cookie 1.4.0 | `$.isFunction` 2 | 후속은 js-cookie |
-| magnific-popup, event.drag 2.2, At.js, placeholder 2.0.7 | `$.isFunction` 등 소수 | 각각 확인 |
+**공식 제거 목록**: `jQuery.camelCase`, `cssProps`, `isArray`, `isFunction`, `isNumeric`, `isWindow`, `fx.interval`, `nodeName`, `now`, `parseJSON`, `trim`, `type`, `unique`, 문서에 없던 `fn.push`, `fn.sort`, `fn.splice`, `.toggleClass(불리언)` 형식, `opacity` CSS 훅, 인자가 있는 옛 Sizzle 사용자 정의 의사 선택자. **동작 변경**: `dataType: "json"`의 JSONP 자동 승격 제거, 같은 도메인 스크립트의 자동 실행 제거, `focusin`과 `focusout` 보정 제거(`focus`와의 순서가 달라질 수 있음), 단위 없는 숫자의 `px` 자동 추가 범위 축소, `.css("opacity")`의 분리된 요소 값.
 
-합계로 `$.trim` 17, `$.isArray` 15, `$.isFunction` 23, `.bind` 63, `.unbind` 10, `$.browser` 6곳이다. **jQuery 3.7.1에서는 모두 그대로 동작한다**(지원 중단 경고만 있다). jQuery 4는 위 플러그인 약 열 개를 올리거나 대체해야 하므로 select2 4.x와 묶인 별도 큰 일이다.
+**앱 코드(13개 파일)**: `$.trim` 21곳, `$.parseJSON` 6곳, `$.isNumeric` 1곳이다. `String.prototype.trim`, `JSON.parse`, `Number.isFinite`로 치환하면 된다.
 
-### jQuery 의존 라이브러리의 상위 버전 검토 (선생님 요청, 2026-11-07)
+**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1), jquery.tmpl(`trim` 1, `isArray` 4), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
 
-선생님이 "jQuery에 의존하는 라이브러리의 상위 버전을 검토"하라고 하셨다. npm의 최신 버전과 **jQuery 4 지원 선언**(`peerDependencies`와 `dependencies`)을 조사했다. 선언이 있다고 실제 4.0 동작이 보장되는 것은 아니므로 올릴 때 시험으로 확인한다. 사용 횟수는 앱 코드(`common`, `service`, `template`, 템플릿)에서 센 것이다.
+**올릴 새 버전의 실제 배포 파일을 같은 목록으로 검사한 결과** (npm 선언과 함께):
 
-| 라이브러리 | 현재 | npm 최신(갱신일) | jQuery 4 선언 | 앱의 사용 | 판단 |
-|---|---|---|---|---|---|
-| jquery-ui(효과만) | 1.10.4 | 1.14.2 (2026-01) | `>=1.12 <5` 지원 | 효과 | 올릴 수 있음 |
-| jquery-validation | 1.9.0 | 1.22.1 (2026-02) | `^4.0` 지원 | `.validate(` 0줄 | 쓰이지 않는 것으로 보임(정리 후보) |
-| jquery-form | 3.09 | 4.4.0 (2026-11) | `>=1.7.2` | 4줄 / 2파일 | 올릴 수 있음 |
-| select2 | 3.4.5 | 4.1.0 (2026-05) | 선언 없음 | 7파일 | 단계 6, 4.0 호환은 올릴 때 확인 |
-| magnific-popup | 1.1.0 | 1.2.0 (2024) | 선언 없음 | 앱 코드에서 호출 없음 | 단계 1에서 올리거나 정리 후보 |
-| jquery.cookie | 1.4.0 | 1.4.1 / 후속 js-cookie 3.0.8 | 해당 없음 | `$.cookie` 0줄 | 쓰이지 않는 것으로 보임(정리 후보) |
-| jquery-placeholder | 2.0.7 | 2.3.1 (2022) | `*` | 1줄 | 브라우저가 기본 지원, 제거 후보 |
-| jquery.scrollTo | 1.4.6 | 2.1.3 (2022) | `>=1.8` | 4줄 / 2파일 | 올릴 수 있음 |
-| jquery.event.drag | 2.2 | 2.2.2 (2022) | 선언 없음 | 확인 필요 | 유지 끝, 쓰는 곳 확인 |
-| jquery-pageslide | 2.0.1 | 2.0.2 (2022) | 선언 없음 | 12줄 / 8파일 | 유지 끝, 올려도 변화 작음 |
-| jquery-pjax(Yona 사본, 2012년판) | 2012 | 2.0.1 (2022) | 선언 없음 | 6줄 / 2파일(전 화면 이동) | 유지 끝, **핵심 기능**이라 4.0 호환을 직접 시험해야 함 |
-| **At.js**(멘션 자동완성) | 1.5.3 | 1.5.4 (2022) | **`<4.0.0`(4.0 제외)** | 5줄 / 2파일, 템플릿 14곳 | **jQuery 4의 걸림돌**, 대체해야 함(Tribute.js 5.1.3은 2022년 이후 갱신 없음, `components` 저장소의 CodeMirror 6 위젯이 후속 후보) |
-| jquery.dynatree | 1.2.4 | 후속 jquery.fancytree 2.38.5 (2025-04) | 해당 없음 | `.dynatree(` 0줄 | 쓰이지 않는 것으로 보임(정리 후보, 코드 보기 템플릿의 참조 확인) |
-| Jcrop | 0.9.12 | 0.9.15 재포장 (2022) / 후속 cropperjs 2.3.1 (2026-10, jQuery 불필요) | 해당 없음 | 14줄 / 2파일(프로필 이미지 자르기) | 유지 끝, jQuery 4를 하려면 cropperjs 등으로 대체 |
-| jquery.tmpl | 1.0.0 | 후속 없음(공식 폐기) | 해당 없음 | **25줄 / 12파일** | 유지 끝, jQuery 4를 하려면 템플릿 문자열 함수 등으로 12파일 교체 |
-| jquery.browser | 0.0.6 | 0.1.0 (2022) | 해당 없음 | 2줄 / 2파일 | 폐기 대상, 사용 두 곳을 제거 |
-| jquery-migrate | - | 4.0.2 (2026-01) | `>=4 <5` | - | 이행 점검용 도구 |
+| 라이브러리(올릴 버전) | npm의 jQuery 선언 | 파일의 제거 API 사용 | jQuery 4 판단 |
+|---|---|---|---|
+| jQuery UI 1.14.2(효과) | `>=1.12 <5` | 없음 | 지원 |
+| jquery-validation 1.22.1 | `^4.0` | 없음 | 지원(선언까지 있음, 앱은 쓰지 않는 것으로 보임) |
+| jquery-form 4.4.0 | `>=1.7.2` | 없음 | 지원으로 보임 |
+| select2 4.1.0 | 선언 없음 | 없음 | 지원으로 보임(올릴 때 확인) |
+| Viewer.js 1.15.2(jquery 래퍼) | 선언 없음 | 없음 | 지원으로 보임 |
+| jquery.scrollTo 2.1.3 | `>=1.8` | 없음 | 지원으로 보임 |
+| jquery-placeholder 2.3.1 | `*` | 없음 | 지원으로 보임(제거 후보) |
+| jquery-pageslide 2.0.2 | 선언 없음 | 없음 | 지원으로 보임 |
+| **jquery-pjax 2.0.1** | 선언 없음 | `trim` 1, `isArray` 2, `isFunction` 2, `type` 1 | **미지원**(치환 6줄, 전 화면 이동 기능이라 직접 시험) |
+| **At.js 1.5.4** | **`<4.0.0`(제외 선언)** | `isArray` 2 | **미지원**(치환 2줄과 시험, 2022년 이후 갱신 없음) |
+| **jquery.event.drag 2.2.2** | 선언 없음 | `isFunction` 2 | **미지원**(치환 2줄) |
+| **magnific-popup 1.2.0** | 선언 없음 | `trim` 1, `isArray` 1, `isFunction` 5, `type` 5, `parseJSON` 2 | **미지원**(앱 코드에서 호출이 없어 정리 후보) |
+| Popper, Tippy, clipboard, NProgress, autosize, underscore, js-xss, Pikaday, Ace, video.js, moment, highlight.js, marked | - | jQuery를 쓰지 않음 | **jQuery 4와 무관** |
 
-**결론**: jQuery 4로 가려면 At.js(대체), jquery.tmpl(12파일 교체), Jcrop(대체), jquery-pjax(호환 시험), select2 4.x가 필요하다. 이 중 둘 이상은 단순한 버전 상승이 아니라 **다른 라이브러리로 바꾸는 일**이다. 반면 jQuery 3.7.1은 지금 있는 플러그인이 모두 그대로 동작한다. 따라서 **3.7.1에서 멈추고 jQuery 4는 단계 7에서 따로** 다루는 것을 권장한다. `.validate(`, `$.cookie`, `.dynatree(`의 호출이 없어 보이므로 단계 8의 정리 목록에 후보로 올린다(사용처는 한 번 더 확인한다).
+**한계**: 이 검사는 API **이름**만 본다. 위 동작 변경(`focusin` 순서, ajax의 `dataType` 처리, `toggleClass`)은 실제로 돌려 봐야 알 수 있어 `jquery-migrate` 4.0.2(`>=4 <5`)로 경고를 모으고 전 화면 순회로 확인한다.
+
+**jQuery 4에 새 버전이 없어 옛 사본을 고쳐 쓰거나 정리해야 하는 것**: jquery.tmpl(후속 없음, 25줄/12파일에서 쓰고 `$.isArray` 4, `$.trim` 1만 치환하면 동작은 같음), jquery.dynatree와 jquery.cookie(앱 호출이 없어 정리 후보), Jcrop(14줄/2파일, 치환할 API 없음), jquery.browser(2줄/2파일, 사용처 제거).
 
 ### marked는 세 벌이다 (중요)
 
@@ -153,9 +141,9 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2
 
 4.x는 숨은 입력(`<input>`) 대신 `<select>`를 기대하고 옵션 이름과 이벤트가 다르다. 쓰는 곳은 `yobi.ui.Select2.js`와 7개 파일이다. 한국어와 일본어 로케일 파일(`select2_locale_*`)도 4.x 형식으로 바뀐다. 다른 변경과 섞지 않는다.
 
-### 단계 7. (선택) jQuery 4.0.0 과 플러그인 교체 (L)
+### 단계 7. jQuery 4.0.0 (M, 단계 3과 6 뒤에 이어서 가능)
 
-단계 6이 끝난 뒤에만 한다. 1절의 플러그인 표에서 유지가 끝난 것(dynatree, Jcrop, tmpl, browser)은 대체나 수정이 필요하고, validate, form, pjax, cookie는 새 버전으로 올린다. Closure Compiler가 새 jQuery를 읽을 수 있는지도 확인한다. 얻는 것이 작아 보이므로 3.7.1에 머무는 것이 권장이다.
+공식 제거 목록이 유틸 함수 몇 개라서 생각보다 작은 일이다: (1) 앱 코드 28곳(`$.trim`, `$.parseJSON`, `$.isNumeric`)을 치환한다. (2) 남기는 옛 사본의 치환(pjax, At.js, event.drag, tmpl 등)과 `.toggleClass(불리언)` 사용을 확인한다. (3) 새 버전으로 올린 것(jQuery UI, form, scrollTo, select2 4.1.0 등)은 그대로 둔다. (4) `jquery-migrate` 4.0.2로 경고를 모으고 전 화면 순회와 상호작용 점검으로 `focusin` 순서, ajax `dataType`, 단위 없는 CSS 값을 확인한다. (5) Closure Compiler가 새 jQuery를 읽는지 확인하고 못 읽으면 이미 압축된 파일을 따로 불러오는 방식(Bootstrap 5 번들과 같은 방식)으로 한다. At.js는 jQuery 4를 제외 선언한 라이브러리라 2줄 치환 뒤에도 멘션 자동완성을 직접 시험한다.
 
 ### 단계 8. 정리 (선생님 확인 뒤)
 
@@ -187,10 +175,10 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2
 - **select2 4.x**: 마지막에 단독 단계로 한다(단계 6).
 - **쓰지 않는 파일 정리**: 목록을 먼저 보여 드리고 확인을 받은 뒤에 지운다(단계 8).
 - **marked**: 브라우저와 서버를 **함께** 올린다. 서버 렌더 결과가 v1.6과 달라지므로 단계 5의 비교 시험으로 차이를 목록으로 만들어 항목별로 승인받는다. 서버의 Nashorn이 새 문법을 읽지 못하면 그 사실을 보고하고 방법을 다시 정한다.
-- **jQuery**: "jQuery에 의존하는 라이브러리의 상위 버전 검토"를 요청하셨고 위 표로 검토했다. 결론은 3.7.1 권장이다.
+- **jQuery**: "jQuery에 의존하는 라이브러리의 상위 버전 검토"를 요청하셨고 위 표로 검토했다(정정 포함). 결론은 아래 대기 1번이다.
 
 ### 대기 중
 
-1. **jQuery를 어디까지 올릴지**: (A) 3.7.1에서 멈추고 jQuery 4는 단계 7로 남긴다(**권장**), (B) 4.0.0까지 간다. 위 검토 결과를 보시고 정해 주시면 된다.
+1. **jQuery를 어디까지 올릴지**: (A) 3.7.1에서 멈춘다, (B) 3.7.1을 먼저 하고 이어서 4.0.0까지 간다(**권장**). 이유: 공식 제거 목록이 유틸 함수 몇 개라 치환으로 풀리고(앱 28곳과 옛 사본 몇 줄), 올릴 새 버전은 대부분 4.0을 지원하거나 지원하는 것으로 보인다. 미지원인 pjax, At.js, event.drag는 치환 2~6줄이다. 위험은 이름이 아닌 **동작 변경**이므로 `jquery-migrate`와 전 화면 순회로 확인한다. 3.7.1을 먼저 하면 4.0에서 문제가 나도 3.7.1로 되돌릴 수 있다.
 2. **video.js**: 7.21.2(기본값으로 진행)와 8.24.1 중.
 3. **구현 시작**: 단계 0(시험과 기준선)부터 시작해도 되는지.
