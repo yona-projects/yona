@@ -1694,6 +1694,17 @@ v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재�
 - **v1.6과의 차이**: 구현 때 `architecture/differences-from-v16.md`에 기록한다(화면 동작은 같아야 한다).
 - **상태**: 확정, 구현 대기.
 
+### D-95. select2 4.1.0 업데이트를 Mustache 교체보다 먼저 한다 (2026-11-07, **확정**, 구현 대기)
+
+- **배경**: 선생님이 Mustache 교체(D-94) 전에 다른 라이브러리 업데이트가 필요한지 물으셨다. 기술적 선행 조건은 없었으나, `common/yona.ui.Select2.js`에 `$.tmpl` 호출 7곳(전체 20곳 중 가장 많음)이 있고 select2 3.x 전용 옵션(`formatResult`, `formatSelection`, `matcher`, 이벤트 `select2-selecting`)에 맞춰져 있어, Mustache를 먼저 하면 이 파일을 두 번 고치게 된다.
+- **선택지**:
+  - A. select2 4.1.0을 먼저 하고 곧바로 Mustache를 한다(권장안). 이유: `Select2.js`를 한 번에 정리하고, jQuery 4의 가장 큰 걸림돌 두 개(select2, tmpl)를 연달아 해결한다.
+  - B. 기존 순서 유지(패치 이식 등 다음에 select2를 마지막 단독 단계로, 그다음 Mustache). `Select2.js`를 두 번 고치는 비용이 든다.
+  - C. Mustache를 먼저 한다. 같은 이유로 `Select2.js`를 두 번 고친다.
+- **결정자**: 선생님(2026-11-07, "그럼 select2부터 옮겨야겠는데?"). A안이다.
+- **바뀌는 것**: `architecture/js-upgrade-plan.md` 단계 6(select2는 마지막 단독 단계)의 순서를 바꾼다. 그 단계의 "다른 변경과 섞지 않는다"는 원칙은 유지하고, select2 뒤에 Mustache를 별도 커밋으로 잇는다.
+- **상태**: 확정, 구현 대기(범위 조사 결과를 보고하고 시작 지시를 받는다).
+
 ### D-85. Cubrid 11.4와 MSSQL 지원을 추가한다 (2026-11-03, **확정**)
 
 - **배경**: D-04에서 시험 대상 데이터베이스를 H2, PostgreSQL, MariaDB로 정하고 MySQL, Cubrid, MSSQL은 준비 비용 때문에 미뤘다. 프로젝트 목적에는 여섯 종류 지원이 적혀 있다. 선생님이 hg4j와 별개로 Cubrid와 MSSQL을 진행하라고 하셨다.
