@@ -1828,3 +1828,7 @@ Git LFS 15개 기능을 hg4j 세션이 원본 hg와 대조했다(hg4j에 빠진 
 ## [2026-11-07] build | X-7 전체 PostgreSQL 시험
 
 `-Dyona.it.db=postgres`(Testcontainers 재사용 컨테이너 `postgres:16`)로 전체 시험을 돌렸다: 17분 52초, 4,837건(건너뜀 2), 실패 0. 같은 상태의 H2 전체 시험은 16분 33초였다. 이로써 X-7(Mercurial)의 H2와 PostgreSQL 시험이 모두 통과했다. 남은 일은 hg4j 1.1.3 공개 뒤 임시 수정본 jar를 걷는 것뿐이다.
+
+## [2026-11-07] ingest | JS 라이브러리 업그레이드 계획
+
+선생님 요청으로 서빙되는 JS 라이브러리(`static/assets`)의 현재 버전과 npm 최신 버전을 조사해 계획서(`architecture/js-upgrade-plan.md`)를 썼다. 코드는 바꾸지 않았다. Bootstrap 5.3.8은 이미 최신이고, 위험이 큰 것은 select2 4.x, marked, jQuery 4이다. 결정 질문은 계획서 7절에 있다.
