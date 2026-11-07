@@ -10,3 +10,4 @@ tippy/tippy-bundle.umd.min.js	Tippy.js	6.3.7	3f0fe70eb26ccf28f6887a192e29d38dd7e
 videojs/video.min.js	video.js	7.21.2	3d231a5500cb085a1fa7bb8c9148fcbf66dac0452a525ec1d13577b313ad414d
 videojs/video-js.min.css	video.js	7.21.2	31020b3680c09d76da253d297d6d3faa98fd6b551c1c751829db8c12a9f4a1ad
 moment-with-locales.min.js	moment(모든 로케일)	2.31.0	49dcd7447ac5c61b53b68d352ac218cd2ab6a7bfa520a399f1a2c4161721cfb5
+clipboard.js	clipboard.js	2.0.11	ba5f78267d0c04e8a31aebd7860c7fd7fc236891cddd477a4c7fdc19a0eb176e

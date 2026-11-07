@@ -64,9 +64,6 @@
             bootstrap.Tooltip.getOrCreateInstance(this).show();
         });
 
-        // jquery.placeholder plugin initiator
-        $('input[type=text], textarea').placeholder();
-
         // current language set!
         if (typeof window.moment == "function" && typeof window.moment.lang == "function") {
             moment.locale([[${#locale.language}]]);

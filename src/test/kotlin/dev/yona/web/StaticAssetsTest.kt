@@ -74,9 +74,8 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `public 폴더의 compiler jar도 v1_6처럼 내려 준다`() {
-        val size = mockMvc.perform(get("/assets/compiler.jar")).andExpect(status().isOk).andReturn().response.contentAsByteArray.size
-        assertEquals(6577863, size)
+    fun `번들 도구였던 compiler jar는 더 이상 내려 주지 않는다 (D-92, A-398)`() {
+        mockMvc.perform(get("/assets/compiler.jar")).andExpect(status().isNotFound)
     }
 
     @Test

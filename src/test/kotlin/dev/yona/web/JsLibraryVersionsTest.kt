@@ -104,7 +104,9 @@ class JsLibraryVersionsTest {
             "jquery/jquery-ui-1.10.4.custom.min.js", "jquery/jquery-ui.custom.js", "moment-with-langs.min.js", "underscore.js",
             "magnific-popup/jquery.magnific-popup.js", "magnific-popup/jquery.magnific-popup.min.js", "jquery/jquery.dynatree.js",
             "jquery/jquery.event.drag-2.2.js", "jquery/jquery.validate.min.js", "jquery/jquery.scrollTo.js",
-            "jquery/jquery.zclip.min.js", "jquery/ZeroClipboard.swf"
+            "jquery/jquery.zclip.min.js", "jquery/ZeroClipboard.swf",
+            // 번들 도구 교체 뒤 쓰이지 않는 것으로 확인해 지웠다(D-92, A-398)
+            "jquery/jquery.validate.js", "jquery/jquery.placeholder.min.js"
         )
         assertEquals(emptyList(), removed.filter { File(assets, "javascripts/lib/$it").exists() }, "지웠던 파일이 다시 들어왔다")
     }
@@ -134,8 +136,23 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 30, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 28, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
+    }
+
+    @Test
+    fun `clipboard js는 2_0_11이고 쓰이지 않는 validate와 placeholder 플러그인은 번들에 없다`() {
+        assertTrue(asset("javascripts/lib/clipboard.js").readText().take(100).contains("clipboard.js v2.0.11"))
+        val inputs = java.io.File("build-tools/js-bundle/bundles.mjs").readText()
+        assertTrue(!inputs.contains("jquery.validate.js") && !inputs.contains("jquery.placeholder"), "번들 입력에서 빠져야 한다")
+        // 현대 브라우저는 placeholder 속성을 기본 지원하므로 폴리필 초기화 호출도 없다
+        assertTrue(!java.io.File("src/main/resources/templates/common/scripts.html").readText().contains(".placeholder("), "placeholder 폴리필 호출이 없어야 한다")
+    }
+
+    @Test
+    fun `번들 도구 교체 뒤 옛 Closure 도구 파일은 없다`() {
+        assertTrue(!File(assets, "compiler.jar").exists(), "static/assets/compiler.jar는 지웠다(D-92, A-398)")
+        assertTrue(!java.io.File("minify-js.sh").exists(), "저장소 루트의 옛 minify-js.sh는 지웠다")
     }
 }

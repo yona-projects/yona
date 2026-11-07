@@ -130,7 +130,6 @@
   "parents",
   "parentsUntil",
   "pjax",
-  "placeholder",
   "position",
   "prepend",
   "prependTo",
@@ -145,7 +144,6 @@
   "ready",
   "remove",
   "removeAttr",
-  "removeAttrs",
   "removeClass",
   "removeData",
   "removeProp",
@@ -154,7 +152,6 @@
   "requestAs",
   "resetForm",
   "resize",
-  "rules",
   "scroll",
   "scrollLeft",
   "scrollTop",
@@ -188,8 +185,6 @@
   "uniqueSort",
   "unwrap",
   "val",
-  "valid",
-  "validate",
   "width",
   "wrap",
   "wrapAll",
@@ -238,7 +233,6 @@
   "filter",
   "find",
   "fn",
-  "format",
   "fx",
   "get",
   "getJSON",
@@ -298,7 +292,6 @@
   "unique",
   "uniqueSort",
   "valHooks",
-  "validator",
   "when"
  ],
  "removed": [
@@ -339,5 +332,16 @@
   "stopEvent",
   "tmpl",
   "xssClean"
+ ],
+ "removedFn": [
+  "validate",
+  "valid",
+  "removeAttrs",
+  "rules",
+  "placeholder"
+ ],
+ "removedStatic": [
+  "validator",
+  "format"
  ]
 }

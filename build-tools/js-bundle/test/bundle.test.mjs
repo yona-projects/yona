@@ -55,6 +55,11 @@ test("쓰이지 않는 zclip 코드는 번들에 들어가지 않는다", () => 
   const r = loadGlobals(out);
   assert.ok(!("ZeroClipboard" in r.window));
   assert.ok(!("zclip" in r.window.jQuery.fn));
+  // 쓰이지 않던 jquery.validate와 jquery.placeholder 플러그인도 빠진다(A-398)
+  for (const n of expected.removedFn) assert.ok(!(n in r.window.jQuery.fn), `jQuery.fn.${n}이 남아 있다`);
+  for (const n of expected.removedStatic) assert.ok(!(n in r.window.jQuery), `jQuery.${n}이 남아 있다`);
+  assert.equal(typeof r.window.ClipboardJS, "function");
+  assert.equal(r.window.FormValidator !== undefined, true, "lib/validate.js의 FormValidator는 계속 있다");
 });
 
 test("같은 입력으로 다시 만들면 byte 단위로 같다(재현성)", () => {

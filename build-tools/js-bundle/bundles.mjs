@@ -17,10 +17,8 @@ export const bundles = {
   "yona-common.js": [
     `${JS}/lib/jquery/jquery.tmpl.js`,
     `${JS}/lib/jquery/jquery.form.js`,
-    `${JS}/lib/jquery/jquery.validate.js`,
     `${JS}/lib/jquery/jquery.requestAs.js`,
     `${JS}/lib/jquery/jquery.search.js`,
-    `${JS}/lib/jquery/jquery.placeholder.min.js`,
     `${BS}/bootstrap-typeahead.js`,
     `${JS}/lib/rgbcolor.js`,
     `${JS}/lib/humanize.js`,
