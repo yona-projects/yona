@@ -101,8 +101,8 @@ class PullRequestListTest : AbstractIntegrationTest() {
         )
     )
 
-    private fun page(path: String, session: MockHttpSession? = null, pjax: Boolean = false): Document = Jsoup.parse(
-        mockMvc.perform(get(path).apply { session?.let { session(it) }; if (pjax) header("X-PJAX", "true") }).andExpect(status().isOk).andReturn().response.contentAsString
+    private fun page(path: String, session: MockHttpSession? = null, htmx: Boolean = false): Document = Jsoup.parse(
+        mockMvc.perform(get(path).apply { session?.let { session(it) }; if (htmx) header("HX-Request", "true") }).andExpect(status().isOk).andReturn().response.contentAsString
     )
 
     private fun titles(doc: Document) = doc.select("li.post-item a.title").map { it.text() }
@@ -187,8 +187,8 @@ class PullRequestListTest : AbstractIntegrationTest() {
     fun `PJAX 요청에는 검색 영역 조각만 돌려준다`() {
         val p = project()
         pr(p, number = 1)
-        val doc = page("/${p.owner}/${p.name}/pullRequests", pjax = true)
-        assertNotNull(doc.selectFirst("div[pjax-container]")); assertNull(doc.selectFirst("#main-menu, nav.navbar"))
+        val doc = page("/${p.owner}/${p.name}/pullRequests", htmx = true)
+        assertNotNull(doc.selectFirst("div[list-container]")); assertNull(doc.selectFirst("#main-menu, nav.navbar"))
     }
 
     @Test

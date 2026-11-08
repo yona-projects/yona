@@ -122,7 +122,7 @@ class IssueListTest : AbstractIntegrationTest() {
         issue(project, 1); issue(project, 2); issue(project, 3, state = State.CLOSED)
         val doc = page(project)
         assertEquals("${project.name} - Issue - ${project.owner}/${project.name}", doc.title())
-        val tabs = doc.select(".issue-list-wrap ul.nav-tabs li[data-pjax]")
+        val tabs = doc.select(".issue-list-wrap ul.nav-tabs li.nav-item")
         assertEquals(listOf("Open2", "Closed1"), tabs.map { it.text().replace(" ", "") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
         assertEquals("closed", tabs[1].selectFirst("a")!!.attr("state"))
@@ -135,7 +135,7 @@ class IssueListTest : AbstractIntegrationTest() {
         issue(project, 1); issue(project, 2, state = State.CLOSED)
         val doc = page(project, "?state=closed")
         assertEquals(listOf("#2"), doc.select("li.post-item .post-id").map { it.text() })
-        assertTrue(doc.select(".issue-list-wrap ul.nav-tabs li[data-pjax]")[1].selectFirst("a")!!.hasClass("active"))
+        assertTrue(doc.select(".issue-list-wrap ul.nav-tabs li.nav-item")[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test
@@ -364,13 +364,25 @@ class IssueListTest : AbstractIntegrationTest() {
     // --- PJAX, JSON ---
 
     @Test
-    fun `PJAX 요청에는 목록 조각만 돌려준다`() {
+    fun `format=fragment 매개변수로도 목록 조각을 받고 옛 format=pjax는 전체 화면이다`() {
         val project = newProject()
         issue(project, 1)
-        val result = mockMvc.perform(get("${base(project)}/issues").header("X-Requested-With", "XMLHttpRequest").header("X-PJAX", "true"))
+        val fragment = Jsoup.parse(mockMvc.perform(get("${base(project)}/issues?format=fragment")).andExpect(status().isOk)
+            .andExpect(header().string("Cache-Control", "no-cache, no-store")).andReturn().response.contentAsString)
+        assertTrue(fragment.select("div[list-container].issue-list-wrap").isNotEmpty())
+        assertTrue(fragment.select("nav, .project-menu-outer, footer").isEmpty())
+        val old = mockMvc.perform(get("${base(project)}/issues?format=pjax")).andExpect(status().isOk).andReturn().response.contentAsString
+        assertTrue(old.contains("<html"), "format=pjax는 더 이상 조각이 아니다")
+    }
+
+    @Test
+    fun `htmx 요청에는 목록 조각만 돌려준다`() {
+        val project = newProject()
+        issue(project, 1)
+        val result = mockMvc.perform(get("${base(project)}/issues").header("HX-Request", "true"))
             .andExpect(status().isOk).andExpect(header().string("Cache-Control", "no-cache, no-store")).andReturn()
         val doc = Jsoup.parse(result.response.contentAsString)
-        assertTrue(doc.select("div[pjax-container].issue-list-wrap").isNotEmpty())
+        assertTrue(doc.select("div[list-container].issue-list-wrap").isNotEmpty())
         assertTrue(doc.select("nav, .project-menu-outer, footer").isEmpty())
     }
 

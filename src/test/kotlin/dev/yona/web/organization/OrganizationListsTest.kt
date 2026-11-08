@@ -308,17 +308,17 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `PJAX 요청은 전체 화면이 아니라 목록 조각만 받는다 (R-64-4, v1_6은 항상 전체 화면이었다)`() {
+    fun `htmx 요청은 전체 화면이 아니라 목록 조각만 받는다 (R-64-4, v1_6은 항상 전체 화면이었다)`() {
         val org = newOrg(); val a = orgProject(org)
         issue(a, "조각 이슈")
         val full = mockMvc.perform(get("/organizations/${org.name}/issues")).andExpect(status().isOk).andReturn().response.contentAsString
-        val pjax = mockMvc.perform(get("/organizations/${org.name}/issues").header("X-Requested-With", "XMLHttpRequest").header("X-PJAX", "true")).andExpect(status().isOk).andReturn().response.contentAsString
-        val doc = Jsoup.parse(pjax)
+        val fragmentHtml = mockMvc.perform(get("/organizations/${org.name}/issues").header("HX-Request", "true")).andExpect(status().isOk).andReturn().response.contentAsString
+        val doc = Jsoup.parse(fragmentHtml)
         assertEquals(listOf("조각 이슈"), issueTitles(doc))
-        assertEquals(1, doc.select("div[pjax-container]").size)
-        assertTrue(doc.select(".project-header-outer").isEmpty() && !pjax.contains("<head"), "머리말과 메뉴 없이 조각만 와야 한다")
-        assertTrue(pjax.length < full.length, "조각은 전체 화면보다 작다")
-        assertTrue(Jsoup.parse(full).select("div[pjax-container]").size == 1, "전체 화면에도 같은 컨테이너가 한 번 들어 있다")
+        assertEquals(1, doc.select("div[list-container]").size)
+        assertTrue(doc.select(".project-header-outer").isEmpty() && !fragmentHtml.contains("<head"), "머리말과 메뉴 없이 조각만 와야 한다")
+        assertTrue(fragmentHtml.length < full.length, "조각은 전체 화면보다 작다")
+        assertTrue(Jsoup.parse(full).select("div[list-container]").size == 1, "전체 화면에도 같은 컨테이너가 한 번 들어 있다")
     }
 
     @Test

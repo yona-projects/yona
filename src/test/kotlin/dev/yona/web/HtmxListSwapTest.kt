@@ -10,11 +10,11 @@ import kotlin.test.assertTrue
  * jquery-pjax를 htmx로 바꾼 결과를 정적으로 고정한다(`decisions.md` D-96, A-401).
  *
  * - 라이브러리는 공식 배포 파일 htmx 2.0.11이고 sha256이 기준 목록과 같다. `jquery.pjax.js`는 없다.
- * - 앱 코드와 템플릿에는 `$.pjax`, `pjax:` 이벤트, `jquery.pjax` 로드가 남아 있지 않다.
- *   `pjax-container`, `pjax-filter`, `pjax-page`, `data-pjax`는 Yona가 마크업에 쓰는 자체 표지이므로 이름을 그대로 둔다.
+ * - 앱 코드, 템플릿, 서버 코드에는 `pjax`라는 이름이 남아 있지 않다(D-98). 마크업 표지는 `list-container`, `list-filter`, `list-page`이고,
+ *   서버는 htmx가 보내는 `HX-Request` 헤더와 `format=fragment`로 목록 조각을 구분한다.
  * - 영역을 바꾸는 목록 화면은 컨테이너와 검색 폼에 htmx 속성을 가진다.
  */
-class PjaxToHtmxTest {
+class HtmxListSwapTest {
 
     private val assets = File("src/main/resources/static/assets")
     private val js = File(assets, "javascripts")
@@ -48,27 +48,37 @@ class PjaxToHtmxTest {
     }
 
     @Test
-    fun `앱 코드와 템플릿에 pjax 라이브러리 사용이 없다`() {
-        val banned = listOf("""\$\.pjax""", """\.pjax\(""", """jquery\.pjax""", """["']pjax:""", """\$\.support\.pjax""").map { Regex(it) }
+    fun `앱 코드, 템플릿, 서버 코드에 pjax라는 이름이 남아 있지 않다`() {
+        val kotlin = File("src/main/kotlin").walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+        val pjax = Regex("pjax", RegexOption.IGNORE_CASE)
         // 주석(옮긴 내용을 설명하는 글)은 제외하고 코드만 본다
-        val hits = (appScripts() + templateFiles()).flatMap { f ->
+        val hits = (appScripts() + templateFiles() + kotlin).flatMap { f ->
             val text = f.readLines().filterNot { line -> line.trim().let { it.startsWith("*") || it.startsWith("/*") || it.startsWith("//") || it.startsWith("<!--") } }.joinToString("\n")
-            banned.filter { it.containsMatchIn(text) }.map { "${f.path}: ${it.pattern}" }
+            if (pjax.containsMatchIn(text)) listOf(f.path) else emptyList()
         }
-        assertEquals(emptyList(), hits, "pjax 라이브러리 사용이 남은 곳")
+        assertEquals(emptyList(), hits, "pjax라는 이름이 남은 곳")
     }
 
     @Test
-    fun `목록 화면의 pjax-container는 htmx 속성으로 영역 교체를 선언한다`() {
-        // 속성 값 안의 '>'(hx-select="div[pjax-container] > *")를 견디도록 따옴표 안은 통째로 넘긴다
+    fun `마크업 표지는 list-container, list-filter, list-page이다`() {
+        val templatesText = templateFiles().joinToString("\n") { it.readText() }
+        for (mark in listOf("list-container", "list-filter")) assertTrue(templatesText.contains(mark), "템플릿에 $mark 가 없다")
+        val scripts = appScripts().joinToString("\n") { it.readText() }
+        for (mark in listOf("[list-container]", "a[list-filter]", "a[list-page]")) assertTrue(scripts.contains(mark), "스크립트에 $mark 가 없다")
+        assertTrue(!templatesText.contains("data-pjax"), "죽은 속성 data-pjax가 남아 있다")
+    }
+
+    @Test
+    fun `목록 화면의 list-container는 htmx 속성으로 영역 교체를 선언한다`() {
+        // 속성 값 안의 '>'(hx-select="div[list-container] > *")를 견디도록 따옴표 안은 통째로 넘긴다
         val attr = """(?:[^>"']|"[^"]*"|'[^']*')*"""
         // 조직 풀 리퀘스트 목록은 v1.6에서도 영역 교체 없이 전체 문서 이동이었으므로 htmx 속성이 없어야 한다(아래 별도 시험)
         val containers = templateFiles().filter { it.path != "src/main/resources/templates/organization/pullrequest-list.html" }
-            .flatMap { f -> Regex("""<div$attr\bpjax-container\b$attr>""").findAll(f.readText()).map { f.path to it.value }.toList() }
-        assertTrue(containers.size >= 4, "pjax-container가 ${containers.size}곳뿐이다")
+            .flatMap { f -> Regex("""<div$attr\blist-container\b$attr>""").findAll(f.readText()).map { f.path to it.value }.toList() }
+        assertTrue(containers.size >= 4, "list-container가 ${containers.size}곳뿐이다")
         for ((path, tag) in containers) {
             assertTrue(tag.contains("""hx-target="this""""), "$path: hx-target=\"this\"가 없다 ($tag)")
-            assertTrue(tag.contains("""hx-select="div[pjax-container] > *""""), "$path: hx-select가 없다 ($tag)")
+            assertTrue(tag.contains("""hx-select="div[list-container] > *""""), "$path: hx-select가 없다 ($tag)")
             assertTrue(tag.contains("""hx-swap="innerHTML show:window:top""""), "$path: hx-swap이 없다 ($tag)")
             assertTrue(tag.contains("""hx-push-url="true""""), "$path: hx-push-url이 없다 ($tag)")
             assertTrue(tag.contains("hx-request"), "$path: hx-request(시간 제한)가 없다 ($tag)")
@@ -96,6 +106,13 @@ class PjaxToHtmxTest {
     }
 
     @Test
+    fun `설정 파일은 옛 X-PJAX와 X-Requested-With 헤더를 붙이지 않는다`() {
+        val text = File(js, "common/yona.Htmx.js").readText()
+        val code = text.lines().filterNot { l -> l.trim().let { it.startsWith("*") || it.startsWith("/*") || it.startsWith("//") } }.joinToString("\n")
+        assertTrue(!code.contains("X-PJAX") && !code.contains("X-Requested-With"), "옛 헤더를 붙이는 코드가 남아 있다")
+    }
+
+    @Test
     fun `속성 정착을 꺼서 select2가 붙인 속성이 되돌려지지 않게 한다(공식 설정 attributesToSettle)`() {
         val text = File(js, "common/yona.Htmx.js").readText()
         assertTrue(Regex("""htmx\.config\.attributesToSettle\s*=\s*\[\s*]""").containsMatchIn(text), "attributesToSettle을 비우는 설정이 없다")
@@ -108,7 +125,7 @@ class PjaxToHtmxTest {
         }
         val bundles = File("build-tools/js-bundle/bundles.mjs").readText()
         assertTrue(bundles.contains("lib/htmx.js") && bundles.contains("common/yona.Htmx.js"), "번들 입력에 htmx와 yona.Htmx.js가 없다")
-        assertTrue(!bundles.contains("jquery.pjax"), "번들 입력에 jquery.pjax가 남아 있다")
+        assertTrue(!bundles.contains("pjax"), "번들 입력에 pjax가 남아 있다")
         assertTrue(bundles.indexOf("lib/htmx.js") < bundles.indexOf("common/yona.Htmx.js"), "htmx가 설정 파일보다 앞에 있어야 한다")
     }
 }

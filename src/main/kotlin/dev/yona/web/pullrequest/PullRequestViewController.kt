@@ -145,7 +145,7 @@ class PullRequestViewController(
         val viewer = currentUserProvider.get().user
         val (canDelete, canRestore) = branchFlags(pullRequest)
         val state = assembler.state(pullRequest, viewer, canDelete, canRestore, request)
-        val isXhr = AjaxRequests.isXhr(request) && !AjaxRequests.isPjax(request)
+        val isXhr = AjaxRequests.isXhr(request) && !AjaxRequests.isHtmx(request)
         if (!isXhr) return ModelAndView("pullrequest/partial-state-page").addObject("state", state)
 
         val body = linkedMapOf<String, Any?>(

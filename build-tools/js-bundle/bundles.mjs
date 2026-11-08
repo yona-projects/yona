@@ -1,7 +1,7 @@
 /**
  * Yona JS 번들 3개의 입력 목록. v1.6의 `minify-js.sh`와 같은 순서이다(전역 스크립트라 순서가 곧 의존 순서이다).
  * 경로는 `src/main/resources/static/assets` 기준이다.
- * v1.6과 다른 점은 `build-tools/minify-js.sh` 머리말을 따른다(`bootstrap-typeahead.js` 추가, jQuery 3.7.1, zclip 제거, pjax 대신 htmx와 `yona.Htmx.js`).
+ * v1.6과 다른 점은 `build-tools/minify-js.sh` 머리말을 따른다(`bootstrap-typeahead.js` 추가, jQuery 3.7.1, zclip 제거, 목록 영역 교체는 htmx와 `yona.Htmx.js`).
  */
 const JS = "javascripts";
 const BS = "bootstrap/js";

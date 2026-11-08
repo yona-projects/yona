@@ -46,7 +46,7 @@ import java.util.Date
 /**
  * 프로젝트의 이슈 목록이다. v1.6 `IssueApp.issues`(`app/controllers/IssueApp.java:113-247`)에 해당한다.
  *
- * `format`이 `html`(기본)이면 화면, `pjax`이거나 PJAX 요청(`X-PJAX`)이면 목록 조각, Ajax 요청(`X-Requested-With`)이면 JSON,
+ * `format`이 `html`(기본)이면 화면, `fragment`이거나 htmx 요청(`HX-Request`)이면 목록 조각, Ajax 요청(`X-Requested-With`)이면 JSON,
  * `xls`이면 엑셀이다. 한 쪽은 15개이고 `itemsPerPage`로 최대 45개까지 바꿀 수 있다.
  */
 @Controller
@@ -83,12 +83,12 @@ class IssueListController(
         val condition = IssueConditionBinder.bind(request, maxOf(pageNum - 1, 0)) ?: return ErrorViews.badRequest()
 
         var format = request.getParameter("format") ?: "html"
-        if (AjaxRequests.isXhr(request)) format = if (AjaxRequests.isPjax(request)) "pjax" else "json"
+        if (AjaxRequests.isHtmx(request)) format = "fragment" else if (AjaxRequests.isXhr(request)) format = "json"
 
         if (format == EXCEL_EXT) return excel(project, condition, viewer)
         val page = searchService.search(project, condition, viewer, itemsPerPage(request))
         return when (format) {
-            "pjax" -> {
+            "fragment" -> {
                 response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
                 listModel("issue/partial-list-wrap :: listWrap", project, condition, page, viewer, request)
             }
@@ -129,7 +129,7 @@ class IssueListController(
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)
     }
 
-    /** 목록 화면과 PJAX 조각이 함께 쓰는 모델을 만든다. */
+    /** 목록 화면과 목록 조각이 함께 쓰는 모델을 만든다. */
     private fun listModel(view: String, project: Project, condition: IssueSearchCondition, page: IssuePage, viewer: User?, request: HttpServletRequest): ModelAndView {
         val projectView = views.of(project)
         val items = assembler.assemble(project, page.items, viewer)

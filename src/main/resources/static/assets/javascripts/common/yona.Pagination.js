@@ -145,9 +145,9 @@ yona.Pagination = (function(window, document) {
     }
 
     /**
-     * `div[pjax-container]` 안에 그린 페이지 링크를 htmx로 이동하게 한다(D-96).
+     * `div[list-container]` 안에 그린 페이지 링크를 htmx로 이동하게 한다(D-96).
      * 링크는 스크립트가 만들기 때문에 htmx가 처음 문서를 훑을 때는 없다. `hx-boost`를 붙이고 `htmx.process`로 처리하게 한다.
-     * 영역을 바꾸는 방식(`hx-target` 등)은 `pjax-container`의 속성에서 이어받는다.
+     * 영역을 바꾸는 방식(`hx-target` 등)은 `list-container`의 속성에서 이어받는다.
      * `hx-boost` 링크는 Ctrl이나 Command를 누르고 누르면 htmx가 가로채지 않아 새 탭으로 열린다.
      * 영역 밖의 페이지 막대와 `submit` 함수를 쓰는 링크(`href`가 `javascript:`)는 건드리지 않는다.
      *
@@ -155,11 +155,11 @@ yona.Pagination = (function(window, document) {
      * @private
      */
     function _enableHtmxLinks(welTarget){
-        if(typeof window.htmx === "undefined" || welTarget.closest("[pjax-container]").length === 0){
+        if(typeof window.htmx === "undefined" || welTarget.closest("[list-container]").length === 0){
             return;
         }
 
-        welTarget.find("a[pjax-page]").filter(function(){
+        welTarget.find("a[list-page]").filter(function(){
             return (this.getAttribute("href") || "").indexOf("javascript:") !== 0;
         }).attr("hx-boost", "true");
 
@@ -277,7 +277,7 @@ yona.Pagination = (function(window, document) {
         var welPageLink = $('<li class="page-num ikon">');
 
         if(htData.bActive){
-            var welLink = $('<a pjax-page>');
+            var welLink = $('<a list-page>');
             welLink.html(htData.sLinkHTMLOn);
 
             if(typeof htData.submit === 'function'){

@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView
  * `app/views/issue/my_list.scala.html`, `my_partial_search`, `my_partial_list`, `my_partial_list_quicksearch`에 해당한다.
  *
  * 프로젝트를 가리지 않고 현재 사용자와 관련된 이슈(담당, 작성, 댓글, 멘션, 공유, 즐겨찾기)를 찾는다. 조건이 하나도 없으면 담당한 이슈이다.
- * 정렬 기본은 갱신 시각이다. 응답 형식은 [IssueListController]와 같다(`format`, Ajax는 JSON, PJAX는 조각). 엑셀은 없다.
+ * 정렬 기본은 갱신 시각이다. 응답 형식은 [IssueListController]와 같다(`format`, Ajax는 JSON, htmx는 조각). 엑셀은 없다.
  * 읽기 권한을 따지지 않는다(v1.6이 그렇다, R-49).
  */
 @Controller
@@ -54,11 +54,11 @@ class MyIssuesController(
 
         // v1.6 라우트가 `/user/issues`를 `userIssuesPage()`로 먼저 받아 format을 "html"로 고정하므로 `format` 쿼리는 무시한다
         var format = "html"
-        if (AjaxRequests.isXhr(request)) format = if (AjaxRequests.isPjax(request)) "pjax" else "json"
+        if (AjaxRequests.isHtmx(request)) format = "fragment" else if (AjaxRequests.isXhr(request)) format = "json"
 
         val page = searchService.searchAll(condition, viewer, itemsPerPage(request))
         return when (format) {
-            "pjax" -> {
+            "fragment" -> {
                 response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
                 listModel("issue/my-partial-search :: mySearch", condition, page, viewer)
             }

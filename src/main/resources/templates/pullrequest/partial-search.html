@@ -8,7 +8,7 @@
         newPullRequestUrl, contributors(ContributorOption), pushedBranches(PushedBranchRow), rows(PullRequestRow), totalPages
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search">
-<div pjax-container hx-target="this" hx-select="div[pjax-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row cb">
+<div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row cb">
     <div class="left-menu col-lg-2 search-wrap hide-in-mobile" style="padding-top:0;">
         <form id="search" name="search" th:action="${searchAction}" th:hx-get="${searchAction}" method="get">
             <div class="search">

@@ -7,7 +7,7 @@
   모델: projectView, cond, items, drafts, pageIndex, totalPageCount, openCount, closedCount, quick, excelUrl, search, canMassUpdate, massUpdate
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="listWrap" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<div pjax-container hx-target="this" hx-select="div[pjax-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
+<div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
     <div class=" left-menu col-lg-2 span-hard-wrap">
         <th:block th:replace="~{issue/partial-list-quicksearch :: quicksearch}"></th:block>
         <th:block th:replace="~{issue/partial-searchform :: searchform}"></th:block>
@@ -17,12 +17,12 @@
             <a th:href="${base + '/issueform'}" class="ybtn ybtn-success" th:text="#{issue.menu.new}"></a>
         </div>
         <ul class="nav nav-tabs nm mb-3">
-            <li data-pjax class="nav-item">
+            <li class="nav-item">
                 <a href="#" state="open" class="nav-link" th:classappend="${cond.state == 'open'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                     <span class="num-badge" th:text="${openCount}"></span>
                 </a>
             </li>
-            <li data-pjax class="nav-item">
+            <li class="nav-item">
                 <a href="#" state="closed" class="nav-link" th:classappend="${cond.state == 'closed'} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block>
                     <span class="num-badge" th:text="${closedCount}"></span>
                 </a>

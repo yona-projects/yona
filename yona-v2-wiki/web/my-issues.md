@@ -12,7 +12,7 @@ updated: 2026-10-25
 - 로그인이 필요하다(`@AnonymousCheck(requiresLogin, displaysFlashMessage)`).
 - 쿼리: `pageNum`(1부터), `state`(기본 `open`), `orderBy`(비었으면 `updatedDate`), `orderDir`, `filter`, `authorId`, `assigneeId`, `commenterId`, `mentionId`, `sharerId`, `favoriteId`, `itemsPerPage`(기본 15, 최대 45), `format`, `exceptId`.
 - 조건(`authorId`, `assigneeId`, `commenterId`, `mentionId`, `sharerId`, `favoriteId`)이 하나도 없으면 `assigneeId`를 현재 사용자로 채운다(담당한 이슈).
-- 응답 형식은 프로젝트 이슈 목록과 같다. `format=html`이면 화면(`my-list`), `X-Requested-With: XMLHttpRequest`이면 JSON(`X-PJAX: true`이면 조각 `my-partial-search`, `Cache-Control: no-cache, no-store`)이다. JSON에는 `link`가 없다. 엑셀은 없다.
+- 응답 형식은 프로젝트 이슈 목록과 같다. `format=html`이면 화면(`my-list`), `X-Requested-With: XMLHttpRequest`이면 JSON(`HX-Request: true`(htmx)이면 조각 `my-partial-search`, `Cache-Control: no-cache, no-store`)이다. JSON에는 `link`가 없다. 엑셀은 없다.
 
 ## 검색 규칙 (프로젝트 목록과 다른 점)
 

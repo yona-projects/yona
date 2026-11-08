@@ -16,7 +16,7 @@ updated: 2026-10-23
 | `GET /:user/:project/sentPullRequests` | 보냄(`sent`) | 보내는 프로젝트 | 전체 | `created` 내림차순 |
 | `DELETE /:user/:project/pushedBranch/:id/delete` | | | | 최근 푸시 기록 닫기(삭제 권한, 로그인 필요) |
 
-읽기 권한이 필요하다. 코드 접근을 구성원으로 제한한 프로젝트는 비구성원에게 403이다. `X-PJAX: true`이면 `div[pjax-container]` 조각(`pullrequest/partial-search :: search`)만 돌려주고 `Cache-Control: no-cache, no-store`를 붙인다.
+읽기 권한이 필요하다. 코드 접근을 구성원으로 제한한 프로젝트는 비구성원에게 403이다. `HX-Request: true`(htmx)이면 `div[list-container]` 조각(`pullrequest/partial-search :: search`)만 돌려주고 `Cache-Control: no-cache, no-store`를 붙인다.
 
 ## 검색
 

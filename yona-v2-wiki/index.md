@@ -70,7 +70,7 @@
 - [이슈 댓글과 추천](web/issue-comments.md): 댓글 등록, 수정, 삭제, 이슈와 댓글 추천
 - [이슈 수정](web/issue-edit.md): 수정 폼, 변경 이력, 초안 게시, 프로젝트 이동
 - [이슈 등록](web/issue-create.md): 등록 폼, 등록, 자동 완성 API, 타임라인 이벤트
-- [이슈 목록과 검색](web/issue-list.md): 목록, 검색 조건, PJAX와 JSON, 엑셀, 일괄 변경 막대
+- [이슈 목록과 검색](web/issue-list.md): 목록, 검색 조건, htmx 조각과 JSON, 엑셀, 일괄 변경 막대
 - [마일스톤](web/milestones.md): 목록, 만들기, 수정, 삭제, 열기와 닫기, 보기
 - [가입, 인증, 비밀번호 재설정](web/signup-and-password.md)
 - [조직](web/organization.md): 생성, 홈, 목록, 설정, 구성원, 삭제, 가입 신청

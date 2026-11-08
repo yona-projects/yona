@@ -71,7 +71,7 @@ data class ContributorOption(val value: String, val label: String, val avatarUrl
  * 풀 리퀘스트 목록(열림, 닫힘, 보냄)이다. v1.6 `PullRequestApp.pullRequests`, `closedPullRequests`, `sentPullRequests`
  * (`app/controllers/PullRequestApp.java:326-367`)와 `ProjectApp.deletePushedBranch`에 해당한다.
  *
- * 코드 접근을 구성원으로 제한한 프로젝트는 비구성원에게 403이다. PJAX 요청(`X-PJAX`)에는 검색 영역 조각만 돌려준다.
+ * 코드 접근을 구성원으로 제한한 프로젝트는 비구성원에게 403이다. htmx 요청(`HX-Request`)에는 검색 영역 조각만 돌려준다.
  */
 @Controller
 @AnonymousCheck
@@ -139,7 +139,7 @@ class PullRequestListController(
         val projectView = views.of(project)
         val sentLabel = "${search.count(condition.withCategory(PullRequestCategory.ACCEPTED))} / ${search.count(condition.withCategory(PullRequestCategory.SENT))}"
 
-        val view = if (AjaxRequests.isPjax(request)) "pullrequest/partial-search :: search" else "pullrequest/list"
+        val view = if (AjaxRequests.isHtmx(request)) "pullrequest/partial-search :: search" else "pullrequest/list"
         if (view != "pullrequest/list") response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         return ModelAndView(view)
             .addObject("title", "menu.pullRequest")

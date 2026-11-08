@@ -66,7 +66,7 @@
          */
         function _attachEvent(){
             htElement.welIssueWrap.on("click", "a[data-label-id][data-category-id]", _onClickLabelOnList);
-            htElement.welIssueWrap.on("click", "a[pjax-filter]", _onClickSearchFilter);
+            htElement.welIssueWrap.on("click", "a[list-filter]", _onClickSearchFilter);
             htElement.welIssueWrap.on("click", "a[orderBy]", _onClickListOrder);
             htElement.welIssueWrap.on("click", "a[state]", _onClickStateTab);
             htElement.welIssueWrap.on("click", "[data-submit]", _onChangeSearchField);
@@ -199,7 +199,7 @@
         }
 
         /**
-         * 목록 영역(`div[pjax-container]`)을 htmx로 바꾸는 화면의 후처리를 단다.
+         * 목록 영역(`div[list-container]`)을 htmx로 바꾸는 화면의 후처리를 단다.
          * 어떤 폼과 링크가 영역을 바꾸는지는 템플릿의 `hx-*` 속성이 정하고(`decisions.md` D-96),
          * 공통 설정(헤더, 진행 막대, 오류 대체)은 `yona.Htmx.js`가 한다.
          * htmx는 영역 안쪽만 바꾸므로 영역 안쪽에 직접 단 이벤트와 스크립트가 만든 요소는 바꾼 뒤에 다시 초기화한다.
@@ -209,7 +209,7 @@
          */
         function _initHtmx(){
             $(document).on("htmx:afterSwap", function(weEvt){
-                if($(weEvt.target).is("[pjax-container]")){
+                if($(weEvt.target).is("[list-container]")){
                     _onLoadIssueList();
                 }
             });

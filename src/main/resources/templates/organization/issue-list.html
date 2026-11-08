@@ -16,21 +16,21 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
 <th:block th:fragment="listWrap" th:with="org=${orgView}">
-        <div pjax-container hx-target="this" hx-select="div[pjax-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
+        <div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
             <div class="left-menu col-lg-2 span-hard-wrap">
                 <div class="inner advanced">
                     <ul class="lst-stacked list-unstyled" th:with="names=${cond.projectNames.isEmpty() ? '' : cond.projectNames}">
                         <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.mentionId == null} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.all}"></a>
+                            <a list-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.all}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.assigneeId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-author-id="" data-mention-id="" data-assignee-id="" data-project-names="" data-milestone-id="" th:attrappend="data-assignee-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.assignedToMe}"></a>
+                            <a list-filter href="#" data-author-id="" data-mention-id="" data-assignee-id="" data-project-names="" data-milestone-id="" th:attrappend="data-assignee-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.assignedToMe}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.authorId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-mention-id="" data-author-id="" data-project-names="" data-milestone-id="" th:attrappend="data-author-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.authoredByMe}"></a>
+                            <a list-filter href="#" data-assignee-id="" data-mention-id="" data-author-id="" data-project-names="" data-milestone-id="" th:attrappend="data-author-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.authoredByMe}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.mentionId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-mention-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.mentionedOfMe}"></a>
+                            <a list-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-mention-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.mentionedOfMe}"></a>
                         </li>
                     </ul>
 

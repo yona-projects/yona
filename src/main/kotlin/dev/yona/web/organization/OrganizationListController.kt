@@ -30,7 +30,7 @@ data class OrganizationProjectOption(val name: String, val logoUrl: String?, val
  * `OrganizationApp.organizationPullRequests`, `organizationClosedPullRequests`(`app/controllers/OrganizationApp.java:53-79`)에 해당한다.
  *
  * 조직의 프로젝트 가운데 현재 사용자가 볼 수 있는 프로젝트([OrganizationService.visibleProjects])만 대상이다. 로그인하지 않아도 볼 수 있다.
- * 이슈 목록은 PJAX, JSON을 구분하지 않고 항상 전체 화면을 그린다(`format` 매개변수는 v1.6도 쓰지 않는다). 동작은 [web/organization-lists.md]에 있다.
+ * 이슈 목록은 htmx 요청에는 목록 조각을 돌려주고 JSON을 구분하지 않는다(`format` 매개변수는 v1.6도 쓰지 않는다). 동작은 [web/organization-lists.md]에 있다.
  */
 @Controller
 @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
@@ -59,8 +59,8 @@ class OrganizationListController(
         val targets = selected(visible, names)
         val ids = targets.map { requireNotNull(it.id) }
         val page = issueSearch.searchIn(ids, condition, viewer, itemsPerPage)
-        // v1.6은 PJAX 요청에도 전체 화면을 돌려주었다(R-64-4). PJAX 요청은 목록 조각만 돌려준다
-        val view = if (AjaxRequests.isXhr(request) && AjaxRequests.isPjax(request)) "organization/issue-list :: listWrap" else "organization/issue-list"
+        // v1.6은 pjax 요청에도 전체 화면을 돌려주었다(R-64-4). htmx 요청은 목록 조각만 돌려준다
+        val view = if (AjaxRequests.isHtmx(request)) "organization/issue-list :: listWrap" else "organization/issue-list"
         return ModelAndView(view)
             .addObject("title", "title.issueList")
             .addObject("orgView", orgViews.of(organization))

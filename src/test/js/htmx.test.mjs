@@ -1,6 +1,6 @@
 // 목록 화면의 영역 교체를 htmx로 한다(decisions.md D-96, A-401). 실제 htmx.js, yona.Htmx.js, yona.Pagination.js, yona.issue.List.js를
 // http 주소(가짜 서버 http://yona.test)에서 불러 검색, 탭, 필터, 페이지 이동, 오류 대체, 뒤로 가기를 확인한다.
-// pjax를 쓰던 때와 같은 동작을 지킨다: 영역 안쪽만 바뀌고, 주소가 바뀌고, 서버 계약 헤더(X-PJAX, X-Requested-With)가 가고,
+// pjax를 쓰던 때와 같은 동작을 지킨다: 영역 안쪽만 바뀌고, 주소가 바뀌고, htmx의 HX-Request 헤더로 요청하고,
 // 오류나 목록 영역이 없는 응답은 일반 이동으로 처리하고, 뒤로 가기는 그 주소를 새로 불러온다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,12 +10,12 @@ import { launch, JS, ROOT } from './harness.mjs';
 const ORIGIN = 'http://yona.test';
 const START = '/acme/web/issues';
 
-/** 실제 템플릿의 pjax-container 여는 태그를 그대로 가져온다(속성 값이 템플릿과 같아야 한다). */
+/** 실제 템플릿의 list-container 여는 태그를 그대로 가져온다(속성 값이 템플릿과 같아야 한다). */
 function containerTag() {
   const text = fs.readFileSync(path.join(ROOT, 'src/main/resources/templates/issue/partial-list-wrap.html'), 'utf8');
   const attr = `(?:[^>"']|"[^"]*"|'[^']*')*`;
-  const tag = text.match(new RegExp(`<div${attr}\\bpjax-container\\b${attr}>`));
-  assert.ok(tag, '템플릿에서 pjax-container를 찾지 못했다');
+  const tag = text.match(new RegExp(`<div${attr}\\blist-container\\b${attr}>`));
+  assert.ok(tag, '템플릿에서 list-container를 찾지 못했다');
   return tag[0];
 }
 
@@ -31,7 +31,7 @@ function listBody(query) {
     <select id="authorId" class="form-select" data-toggle="select2"><option>전체</option></select>
   </form>
   <ul class="nav nav-tabs"><li><a href="#" state="open">열림</a></li><li><a href="#" state="closed">닫힘</a></li></ul>
-  <a pjax-filter href="#" id="mine" data-assignee-id="me">내 이슈</a>
+  <a list-filter href="#" id="mine" data-assignee-id="me">내 이슈</a>
   <ul id="rows"><li class="post-item" data-query="${query}">결과 ${query}</li></ul>
   <script>(function () { var el = document.getElementById('authorId'); if (el) { el.classList.add('script-init'); window.__scriptInits = (window.__scriptInits || 0) + 1; } })();</script>
   <div style="height:2000px"></div>
@@ -79,7 +79,7 @@ async function openList({ query = '' } = {}) {
     const headers = req.headers();
     const q = url.searchParams;
     if (url.pathname !== START && url.pathname !== `${START}/alt`) return route.fulfill({ status: 404, body: 'not found' });
-    if (headers['x-pjax']) {
+    if (headers['hx-request']) {
       page.xhr.push({ url: url.pathname + url.search, headers });
       const filter = q.get('filter');
       if (filter === 'fail') return route.fulfill({ status: 500, contentType: 'text/html; charset=utf-8', body: 'server error' });
@@ -107,16 +107,17 @@ export const tests = [
     assert.deepEqual(errors, []);
     assert.deepEqual(info, { v: '2.0.11', cache: 0, miss: true, pjax: 'undefined', indicator: false, eval: false, settle: [] });
   } },
-  { name: '검색 폼 제출은 영역 안쪽만 바꾸고 주소를 바꾸며 X-PJAX 헤더로 요청한다(문서 이동 없음)', async run() {
+  { name: '검색 폼 제출은 영역 안쪽만 바꾸고 주소를 바꾸며 HX-Request 헤더로 요청한다(문서 이동 없음)', async run() {
     const page = await openList();
-    await page.evaluate(() => { window.__container = document.querySelector('[pjax-container]'); document.querySelector('input[name=filter]').value = 'dark'; document.querySelector('#search').requestSubmit(); });
+    await page.evaluate(() => { window.__container = document.querySelector('[list-container]'); document.querySelector('input[name=filter]').value = 'dark'; document.querySelector('#search').requestSubmit(); });
     await waitRows(page, 'filter=dark');
-    const out = await page.evaluate(() => ({ same: document.querySelector('[pjax-container]') === window.__container, nested: document.querySelectorAll('[pjax-container] [pjax-container]').length, marker: window.__marker, loc: location.pathname + location.search, forms: document.querySelectorAll('form[name=search]').length }));
+    const out = await page.evaluate(() => ({ same: document.querySelector('[list-container]') === window.__container, nested: document.querySelectorAll('[list-container] [list-container]').length, marker: window.__marker, loc: location.pathname + location.search, forms: document.querySelectorAll('form[name=search]').length }));
     const xhr = page.xhr; const documents = page.documents; const errors = page.errors; await page.context().close();
     assert.deepEqual(errors, []);
     assert.equal(xhr.length, 1);
-    assert.equal(xhr[0].headers['x-pjax'], 'true');
-    assert.equal(xhr[0].headers['x-requested-with'], 'XMLHttpRequest');
+    assert.equal(xhr[0].headers['hx-request'], 'true');
+    assert.equal(xhr[0].headers['x-pjax'], undefined, '옛 X-PJAX 헤더가 갔다');
+    assert.equal(xhr[0].headers['x-requested-with'], undefined, 'X-Requested-With 헤더가 갔다');
     assert.ok(!xhr[0].url.includes('_pjax'), xhr[0].url);
     assert.ok(xhr[0].url.startsWith(`${START}?filter=dark&state=open&orderBy=createdDate&orderDir=desc`), xhr[0].url);
     assert.equal(out.loc, xhr[0].url);
@@ -163,24 +164,24 @@ export const tests = [
   } },
   { name: '페이지 링크는 htmx로 요청하고 교체 뒤 페이지 막대를 다시 그린다', async run() {
     const page = await openList();
-    const hasBoost = await page.evaluate(() => Array.from(document.querySelectorAll('#pagination a[pjax-page]')).every((a) => a.getAttribute('hx-boost') === 'true') && document.querySelectorAll('#pagination a[pjax-page]').length > 0);
+    const hasBoost = await page.evaluate(() => Array.from(document.querySelectorAll('#pagination a[list-page]')).every((a) => a.getAttribute('hx-boost') === 'true') && document.querySelectorAll('#pagination a[list-page]').length > 0);
     assert.equal(hasBoost, true, '페이지 링크에 hx-boost가 없다');
-    await page.click('#pagination li.page-num a[pjax-page] >> nth=-1');
+    await page.click('#pagination li.page-num a[list-page] >> nth=-1');
     await waitRows(page, 'pageNum=2');
     await page.waitForFunction(() => window.__twoColumn >= 2, null, { timeout: 5000 }); // 초기화는 htmx 정착(settle) 뒤에 불린다
-    const out = await page.evaluate(() => ({ marker: window.__marker, loc: location.search, links: document.querySelectorAll('#pagination a[pjax-page]').length, boosted: Array.from(document.querySelectorAll('#pagination a[pjax-page]')).every((a) => a.getAttribute('hx-boost') === 'true'), twoColumn: window.__twoColumn }));
+    const out = await page.evaluate(() => ({ marker: window.__marker, loc: location.search, links: document.querySelectorAll('#pagination a[list-page]').length, boosted: Array.from(document.querySelectorAll('#pagination a[list-page]')).every((a) => a.getAttribute('hx-boost') === 'true'), twoColumn: window.__twoColumn }));
     const xhr = page.xhr; const errors = page.errors; await page.context().close();
     assert.deepEqual(errors, []);
     assert.equal(xhr.length, 1);
     assert.ok(xhr[0].url.includes('pageNum=2'), xhr[0].url);
-    assert.equal(xhr[0].headers['x-pjax'], 'true');
+    assert.equal(xhr[0].headers['hx-request'], 'true');
     assert.equal(out.marker, 'same-document');
     assert.ok(out.links >= 2 && out.boosted, '페이지 막대가 다시 그려지지 않았다');
     assert.ok(out.twoColumn >= 2, '교체 뒤 2단 보기 초기화가 불리지 않았다');
   } },
   { name: 'Ctrl을 누르고 페이지 링크를 누르면 htmx 요청을 보내지 않는다(새 탭용)', async run() {
     const page = await openList();
-    await page.click('#pagination li.page-num a[pjax-page] >> nth=-1', { modifiers: ['Control'] });
+    await page.click('#pagination li.page-num a[list-page] >> nth=-1', { modifiers: ['Control'] });
     await page.waitForTimeout(400);
     const xhr = page.xhr; const marker = await page.evaluate(() => window.__marker); await page.context().close();
     assert.equal(xhr.length, 0, JSON.stringify(xhr));
@@ -238,7 +239,7 @@ export const tests = [
   } },
   { name: '시간 제한을 넘기면 일반 이동으로 그 주소를 다시 연다', async run() {
     const page = await openList();
-    await page.evaluate(() => { document.querySelector('[pjax-container]').setAttribute('hx-request', '{"timeout":300}'); document.querySelector('input[name=filter]').value = 'slow'; document.querySelector('#search').requestSubmit(); });
+    await page.evaluate(() => { document.querySelector('[list-container]').setAttribute('hx-request', '{"timeout":300}'); document.querySelector('input[name=filter]').value = 'slow'; document.querySelector('#search').requestSubmit(); });
     await page.waitForFunction(() => document.title === 'full-reload', null, { timeout: 5000 });
     const marker = await page.evaluate(() => window.__marker || null);
     const xhr = page.xhr; await page.context().close();

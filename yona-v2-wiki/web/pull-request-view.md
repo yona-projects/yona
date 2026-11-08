@@ -10,7 +10,7 @@ updated: 2026-10-23
 | 주소 | 설명 |
 |---|---|
 | `GET /:user/:project/pullRequest/:id` | 보기. 읽기 권한(풀 리퀘스트) |
-| `GET .../:id/state` | 상태 조각. Ajax(`X-Requested-With`, PJAX 아님)이면 JSON(`id, isOpen, isClosed, isMerged, isMerging, isConflict, canDeleteBranch, canRestoreBranch, html`), 아니면 HTML 조각 |
+| `GET .../:id/state` | 상태 조각. Ajax(`X-Requested-With`, htmx 아님)이면 JSON(`id, isOpen, isClosed, isMerged, isMerging, isConflict, canDeleteBranch, canRestoreBranch, html`), 아니면 HTML 조각 |
 | `GET .../:id/changes`, `.../changes/:commitId` | 변경 내용(전체 또는 커밋 하나) |
 | `POST .../:id/review`, `.../unreview` | 리뷰 표시와 취소. 로그인과 받아들일 권한 |
 | `GET /:user/:project/mentionListAtPullRequest` | 편집기 멘션 후보. 풀 리퀘스트가 없으면 404 |

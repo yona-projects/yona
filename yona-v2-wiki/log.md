@@ -1889,3 +1889,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 
 선생님이 select2 작업에서 남겨 둔 정리 후보를 "지워"라고 하셔서(D-97) 지웠다. v1.6 git 이력으로 생긴 때와 쓰이지 않게 된 때를 밝혔다(`forceChange`와 `nonMember`와 `assignee.user.id` 핸들러는 2017-08-05, 프로젝트 라벨 편집은 2017-01-12). `yona.project.Home.js`는 474줄에서 154줄이 되었다. 시험을 먼저 만들어 실패를 확인했다(정적 2건 실패, 살아 있는 동작 JS 4건은 전후 모두 통과). 확인: 정적과 관련 Kotlin 시험 통과, JS 시험 107건, 실제 앱 Playwright(select2 26건, 프로젝트 홈 5건). 승인 대기 후보로 `#repositoryURL`(v1.6에서도 2013년에 사라진 요소)을 새로 찾았다. 전체 H2 시험은 이어지는 표지 이름 변경, 서버 계약 변경, select2 정리까지 마친 뒤 한 번 돌린다.
 
+## [2026-11-08] build | pjax 이름을 마크업 표지와 서버 계약에서도 없앰(D-98, A-403)
+
+선생님이 "pjax 안 쓰니까 바꿔야 한다", "서버 계약도 바꿔줘"라고 하셔서(D-98) 표지 `pjax-container`, `pjax-filter`, `pjax-page`를 `list-container`, `list-filter`, `list-page`로 바꾸고 죽은 `data-pjax`는 지웠다. 서버는 `X-PJAX`와 `format=pjax` 대신 htmx의 `HX-Request`와 `format=fragment`를 쓴다(`AjaxRequests.isPjax`는 `isHtmx`). 시험을 먼저 만들어 실패를 확인했다(Kotlin 컴파일 실패, JS 시험 실패). 확인: 관련 Kotlin 시험 163건 통과, JS 107건, 번들 8건, 실제 앱 Playwright 44건(소요 약 35초), 순회 `contract`(2분 24초) 새 문제 0, 같은 데이터 사본에 이전과 이후 jar를 병렬로 돌린 순회 `pre`와 `post`(약 3분) 픽셀 비교 23장이 1~50픽셀 차이. 첫 픽셀 비교에서 이슈 보기 높이가 53px 늘어 보였으나 원인은 이름 변경이 아니라 내가 돌린 select2 확인 스크립트가 기준 데이터를 바꾼 것이었다(데이터가 다른 비교는 쓰지 않는다). 전체 H2 시험은 select2 정리까지 마친 뒤 한 번 돌린다.
+

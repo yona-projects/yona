@@ -261,7 +261,7 @@ class MyIssuesTest : AbstractIntegrationTest() {
         val me = newUser()
         val doc = page(login(me), "milestoneId" to "999")
         // v1.6은 무시하는 마일스톤 값을 빠른 검색 링크의 data-milestone-id에 그대로 남겼다
-        val values = doc.select("a[pjax-filter]").map { it.attr("data-milestone-id") }
+        val values = doc.select("a[list-filter]").map { it.attr("data-milestone-id") }
         assertTrue(values.isNotEmpty())
         assertTrue(values.all { it.isEmpty() }, values.toString())
     }
@@ -299,7 +299,7 @@ class MyIssuesTest : AbstractIntegrationTest() {
         mockMvc.perform(get("/user/issues").session(session).header("X-Requested-With", "XMLHttpRequest"))
             .andExpect(status().isOk).andExpect(jsonPath("$.${one.id}.title").value("이슈")).andExpect(jsonPath("$.${one.id}.state").value("OPEN"))
             .andExpect(jsonPath("$.${one.id}.link").doesNotExist())
-        val fragment = mockMvc.perform(get("/user/issues").session(session).header("X-Requested-With", "XMLHttpRequest").header("X-PJAX", "true"))
+        val fragment = mockMvc.perform(get("/user/issues").session(session).header("HX-Request", "true"))
             .andExpect(status().isOk).andExpect(header().string("Cache-Control", "no-cache, no-store")).andReturn().response.contentAsString
         assertFalse(fragment.contains("<html"))
         assertTrue(fragment.contains("issue-list-wrap"))

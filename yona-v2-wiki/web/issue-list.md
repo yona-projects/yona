@@ -16,7 +16,7 @@ updated: 2026-10-23
 | 조건 | 응답 |
 |---|---|
 | `format=html`(기본) | 전체 화면 |
-| `format=pjax` 또는 `X-Requested-With`와 `X-PJAX: true` | 목록 조각(`div[pjax-container].issue-list-wrap`), `Cache-Control: no-cache, no-store` |
+| `format=fragment` 또는 `HX-Request: true`(htmx) | 목록 조각(`div[list-container].issue-list-wrap`), `Cache-Control: no-cache, no-store` |
 | `X-Requested-With`만 | JSON. 이슈 번호(PK)를 키로 `{id, title, state, createdDate, link}`. `exceptId`와 같은 번호는 뺀다. `exceptId`가 숫자가 아니면 `400` |
 | `format=xls` | 엑셀 파일 |
 

@@ -8,12 +8,12 @@
 /**
  * htmx(`lib/htmx.js`)를 Yona에 맞게 설정한다. jquery-pjax를 대신한다(`decisions.md` D-96).
  *
- * 목록 화면(이슈, 내 이슈, 풀 리퀘스트, 조직 목록)은 `div[pjax-container]` 영역만 바꾼다. 어떤 요소가 어떤 영역을 어떻게 바꿀지는
+ * 목록 화면(이슈, 내 이슈, 풀 리퀘스트, 조직 목록)은 `div[list-container]` 영역만 바꾼다. 어떤 요소가 어떤 영역을 어떻게 바꿀지는
  * 템플릿의 `hx-*` 속성이 선언하고, 이 파일은 모든 htmx 요청에 공통인 동작만 정한다.
  *
  * <ul>
- *   <li>서버 계약: 요청에 `X-PJAX: true`와 `X-Requested-With: XMLHttpRequest`를 붙인다. 서버는 이 두 헤더로 목록 조각 응답을
- *       구분한다(`AjaxRequests.isPjax`, v1.6 `HttpUtil.isPJAXRequest`와 같다).</li>
+ *   <li>서버 계약: htmx가 모든 요청에 붙이는 `HX-Request: true`로 서버가 목록 조각 응답을 구분한다(`AjaxRequests.isHtmx`, D-98).
+ *       v1.6 pjax의 `X-PJAX`와 `X-Requested-With` 헤더는 더 이상 보내지 않는다.</li>
  *   <li>속성 정착 끔: 교체한 요소의 속성이 20ms 뒤에 되돌려지지 않는다(초기화가 붙인 class와 style을 지키려고).</li>
  *   <li>이동 이력: 화면 조각을 저장하지 않는다. 뒤로 가기와 앞으로 가기는 그 주소를 서버에서 새로 불러온다
  *       (`historyCacheSize`가 0이고 `refreshOnHistoryMiss`가 true이다).</li>
@@ -27,7 +27,7 @@ yona.Htmx = (function(window, document) {
     "use strict";
 
     /** 응답에 이 표지가 없으면 목록 조각이 아니라고 보고 일반 이동으로 처리한다. */
-    var CONTAINER_MARK = "pjax-container";
+    var CONTAINER_MARK = "list-container";
 
     var htmx = window.htmx;
 
@@ -49,9 +49,6 @@ yona.Htmx = (function(window, document) {
 
         document.addEventListener("htmx:configRequest", function(evt) {
             var detail = evt.detail;
-            detail.headers["X-PJAX"] = "true";
-            detail.headers["X-Requested-With"] = "XMLHttpRequest";
-
             // htmx는 `hx-get`의 값을 요소를 처리할 때 한 번만 읽는다. 풀 리퀘스트 목록의 탭은 클릭할 때 폼의 `action`을
             // 열림, 닫힘, 보냄 주소로 바꾸고 제출하므로(v1.6과 같다), 폼은 요청 시점의 `action`을 따른다.
             var action = detail.elt && detail.elt.tagName === "FORM" && detail.elt.getAttribute("action");

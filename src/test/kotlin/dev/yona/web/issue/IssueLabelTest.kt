@@ -195,10 +195,10 @@ class IssueLabelTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `PJAX 요청에는 목록 조각을 캐시하지 않게 돌려준다`() {
+    fun `htmx 요청에는 목록 조각을 캐시하지 않게 돌려준다`() {
         val project = newProject()
         newLabel(project, newCategory(project, "Area"), "api")
-        val result = mockMvc.perform(get("${base(project)}/issue/labels").header("X-PJAX", "true").header(HttpHeaders.ACCEPT, "text/html"))
+        val result = mockMvc.perform(get("${base(project)}/issue/labels").header("HX-Request", "true").header(HttpHeaders.ACCEPT, "text/html"))
             .andExpect(status().isOk).andExpect(header().string("Cache-Control", "no-cache, no-store")).andReturn()
         val fragment = Jsoup.parse(result.response.contentAsString)
         assertEquals(1, fragment.select(".category-wrap").size)

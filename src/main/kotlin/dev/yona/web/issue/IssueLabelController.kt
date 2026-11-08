@@ -60,7 +60,7 @@ class IssueLabelController(
 
     // --- 라벨 ---
 
-    /** 라벨 목록이다. PJAX 요청(`X-PJAX: true`)에는 목록 조각을, 그 밖에는 JSON을 돌려준다. */
+    /** 라벨 목록이다. htmx 요청(`HX-Request: true`)에는 목록 조각을, 그 밖에는 JSON을 돌려준다. */
     @GetMapping("/{user}/{project}/issue/labels")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
@@ -71,7 +71,7 @@ class IssueLabelController(
         response: HttpServletResponse
     ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        if (AjaxRequests.isPjax(request)) {
+        if (AjaxRequests.isHtmx(request)) {
             response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
             return ModelAndView("project/partial-issue-labels-list :: page")
                 .addObject("projectView", views.of(project)).addObject("groups", groups(project))

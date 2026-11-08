@@ -13,7 +13,7 @@ updated: 2026-10-22
 
 | 요청 | 필요 권한 |
 |---|---|
-| 라벨 목록(JSON, PJAX), 분류 조회, `labels.css` | 프로젝트 읽기 |
+| 라벨 목록(JSON, htmx 조각), 분류 조회, `labels.css` | 프로젝트 읽기 |
 | 관리 화면 | 프로젝트 수정(관리자) |
 | 라벨, 분류 만들기, 복사 | 프로젝트 안에서 라벨, 분류를 만들 권한(구성원) |
 | 라벨, 분류 수정, 삭제 | 해당 리소스의 수정, 삭제 권한(프로젝트 구성원) |
@@ -24,7 +24,7 @@ updated: 2026-10-22
 
 | 요청 | 입력 | 응답 |
 |---|---|---|
-| `GET issue/labels` | `X-PJAX: true`이면 목록 조각 | 조각은 `Cache-Control: no-cache, no-store`. 아니면 JSON `[{id, category, categoryId, color, name}]`(분류 이름, 라벨 이름순). JSON을 받지 못하는 `Accept`는 `406` |
+| `GET issue/labels` | `HX-Request: true`(htmx)이면 목록 조각 | 조각은 `Cache-Control: no-cache, no-store`. 아니면 JSON `[{id, category, categoryId, color, name}]`(분류 이름, 라벨 이름순). JSON을 받지 못하는 `Accept`는 `406` |
 | `POST issue/labels` | `labelName`, `labelColor`, `categoryName`, `categoryIsExclusive` | 항목별 오류는 `400`과 `{필드: [문구]}`. 같은 분류에 같은 이름이 있으면 `204`. 만들면 `201`(JSON을 받으면 라벨을 담는다). 분류가 이미 있으면 그대로 쓰고 `categoryIsExclusive`는 무시한다 |
 | `POST issue/label/:id/delete` | `_method=delete` | `200`. 없거나 다르면 `400`. 이슈와 게시글에서 떼고, 분류에 남은 라벨이 없으면 분류도 지운다 |
 | `PUT issue/label/:id` | `name`, `color`, `category.id` | `200`. 필수 항목이 비면 `400`과 항목별 오류 |
