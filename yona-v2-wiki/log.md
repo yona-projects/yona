@@ -1909,3 +1909,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 
 선생님이 "패치가 없어진 3건은 새 버전이 패치 효과를 그대로 가지고 있다는 건가"라고 물으셔서 공식 배포본과 직접 대조했다. select2(cdnjs 3.4.5와 공백 무시 0줄), jquery.tmpl(공식 소스와 본문 동일, AMD 래퍼만 다름), pjax 2.0.1과 Jcrop 0.9.12(공식과 바이트 동일)는 처음부터 Yona의 기능 패치가 없었다. 이전 보고의 "패치가 필요 없어진 것"과 위키 표의 select2 "860자 차이"는 부정확했다(860자는 들여쓰기 차이가 만든 숫자). 실제로 패치가 있는 At.js는 최신 1.5.4에도 IME와 iframe 패치 효과가 없다.
 
+## [2026-11-08] docs | EasyMDE 시험: 멘션 자동완성에서 At.js 패치 항목이 재현되는지(`architecture/markdown-editor-trial.md`)
+
+선생님이 EasyMDE를 Yona의 조건에서 시험해 At.js에 가했던 패치 문제들이 기본 상태에서 생기는지, 생기면 패치를 EasyMDE에 옮겨 해결할 수 있는지 검토하라고 하셨다. 이 프로젝트의 이전 기록(`p3-46.md`)에서 EasyMDE+Tribute.js를 버린 이유(CodeMirror 5의 숨은 `<textarea>`가 Backspace 뒤 비어 Tribute가 맥락을 잃음, zurb/tribute#511)를 찾았다. 임시 폴더에서 EasyMDE 2.21.0+Tribute, 2.21.0+CodeMirror 5 `show-hint`, 3.0.0-beta.1(자동완성 공식 경로 없음, 직접 만든 DOM 플러그인)을 기준(At.js)과 같은 8개 항목으로 Chromium에서 시험했다(iframe 안과 밖). 결과: At.js 패치 네 건(IME, 2단 보기, Alt, 캐럿)은 At.js의 구조에서 나온 문제라 어느 조합에서도 같은 모양으로 재현되지 않았고, EasyMDE2+Tribute 조합은 이전 기록의 결함(T2 후보가 `@alic`에서 닫힘, Enter가 줄바꿈이 됨)이 재현되었다. `show-hint`와 EasyMDE3+플러그인은 8개 항목이 기준과 같거나 허용 가능한 차이였다. 시험 방식 오류 하나를 고쳤다(CodeMirror 6은 `input`이 아니라 `beforeinput`을 처리). 코드와 템플릿은 바꾸지 않았고 Gradle과 번들 빌드도 하지 않았다. 한계(Chromium만, 실제 입력기 아님, srcdoc iframe, Yona 통합 없음)는 문서에 적었다.
+
