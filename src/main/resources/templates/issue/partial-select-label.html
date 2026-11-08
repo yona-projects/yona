@@ -14,7 +14,7 @@
   <dd>
     <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
             data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
-            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
+            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered" data-width="100%"
             th:attr="data-placeholder=#{label.select}, data-close-on-select=${closeOnSelect == false ? 'false' : null}" class="hide form-select">
       <!--/* 4.x의 다중 선택은 빈 option이 필요 없다. 두면 모두 해제될 때 브라우저가 빈 option을 선택해 폼에 빈 값이 실린다(D-95) */-->
       <optgroup th:each="group : ${groups}" th:label="${group.name}"

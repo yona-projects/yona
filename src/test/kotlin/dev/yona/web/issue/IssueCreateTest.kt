@@ -147,6 +147,23 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `select2 문구는 언어별 공식 i18n 파일을 싣고 기본 언어를 정한다 (D-99)`() {
+        val project = newProject()
+        val session = login(newUser())
+        fun load(acceptLanguage: String): Pair<List<String>, String> {
+            val html = mockMvc.perform(get("${base(project)}/issueform").session(session).header("Accept-Language", acceptLanguage))
+                .andExpect(status().isOk).andReturn().response.contentAsString
+            return Jsoup.parse(html).select("script[src*=select2/i18n/]").map { it.attr("src") } to html
+        }
+        // 공식 4.1.0에 있는 한국어, 일본어, 러시아어는 그 언어 파일을, 없는 언어(우즈베크어)와 영어는 영어 파일을 싣는다
+        for ((header, lang) in listOf("ko-KR" to "ko", "ja-JP" to "ja", "ru-RU" to "ru", "uz-UZ" to "en", "en-US" to "en")) {
+            val (srcs, html) = load(header)
+            assertEquals(listOf("/assets/javascripts/lib/select2/i18n/$lang.js"), srcs, header)
+            assertTrue(html.contains("""$.fn.select2.defaults.set("language", "$lang")"""), "$header: 기본 언어를 $lang 으로 정하는 줄이 없다")
+        }
+    }
+
+    @Test
     fun `저장소의 ISSUE_TEMPLATE_md가 본문의 처음 내용이다`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "## 재현 방법\n\n".toByteArray()))

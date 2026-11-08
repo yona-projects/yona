@@ -83,9 +83,42 @@ class Select2UpgradeTest {
         assertTrue(!text.contains("adaptContainerCssClass"))
         assertTrue(text.contains("select2-bootstrap-5-theme.css") || File(templates, "layout/layout.html").readText().contains("select2-bootstrap-5-theme.css"),
             "테마 CSS를 불러와야 한다")
-        for (locale in listOf("select2_locale_ko.js", "select2_locale_ja.js", "select2_locale_en.js")) {
-            assertTrue(File(lib, locale).isFile, "$locale 이 있어야 한다")
+    }
+
+    @Test
+    fun `문구는 공식 4_1_0 i18n 파일이고 v1_6 문구를 맞추려고 직접 쓴 locale 파일은 없다 (D-99)`() {
+        val manifest = File("src/test/resources/js-vendor-manifest.tsv").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.map { it.split('\t') }.associateBy { it[0] }
+        for (lang in listOf("ko", "ja", "ru", "en")) {
+            val file = File(lib, "i18n/$lang.js")
+            assertTrue(file.isFile, "i18n/$lang.js 가 있어야 한다")
+            assertTrue(file.readText().contains("Select2 4.1.0") && file.readText().contains("select2/i18n/$lang"), "공식 4.1.0 i18n 파일이어야 한다: $lang")
+            val row = manifest["select2/i18n/$lang.js"]
+            assertTrue(row != null, "기준 목록에 select2/i18n/$lang.js 가 없다")
+            assertEquals("4.1.0", row!![2])
+            assertEquals(row[3], sha256(file), "select2/i18n/$lang.js")
         }
-        assertTrue(File(lib, "select2_locale_ko.js").readText().contains("select2/i18n/ko"), "4.x 형식(AMD i18n)이어야 한다")
+        for (old in listOf("select2_locale_ko.js", "select2_locale_ja.js", "select2_locale_en.js")) {
+            assertTrue(!File(lib, old).exists(), "$old 가 남아 있다")
+        }
+    }
+
+    @Test
+    fun `select2의 폭은 data-width로 정하고 fullsize와 고정 폭 CSS 임시 처리는 없다 (D-100)`() {
+        val scss = File("app/assets/stylesheets/scss")
+        // 템플릿: fullsize 클래스 대신 data-width="100%"
+        val fullsize = templateFiles().filter { f -> Regex("""data-container-css-class="[^"]*fullsize""").containsMatchIn(f.readText()) }.map { it.path }
+        assertEquals(emptyList(), fullsize, "data-container-css-class에 fullsize가 남은 템플릿")
+        val widthFull = templateFiles().sumOf { f -> Regex("""data-toggle="select2"[^>]*data-width="100%"|data-width="100%"[^>]*data-toggle="select2"|data-width="100%"""").findAll(f.readText()).count() }
+        assertTrue(widthFull >= 11, "data-width=\"100%\"가 $widthFull 곳뿐이다(이전 fullsize 11곳)")
+        // 브랜치 선택 상자: CSS의 `width:220px !important` 대신 data-width="220px"
+        for (name in listOf("code/view.html", "code/history.html")) {
+            val tag = Regex("""<select id="branches"[^>]*>""").find(File(templates, name).readText())?.value ?: error("$name 에 #branches가 없다")
+            assertTrue(tag.contains("""data-width="220px""""), "$name: 브랜치 선택 상자에 data-width=\"220px\"가 없다 ($tag)")
+        }
+        // SCSS: 폭을 억지로 맞추던 규칙이 없다
+        val override = File(scss, "_override.scss").readText()
+        assertTrue(!Regex("""\.fullsize""").containsMatchIn(override.lines().filterNot { it.trim().startsWith("//") }.joinToString("\n")), "_override.scss에 .fullsize 규칙이 남아 있다")
+        val page = File(scss, "_page.scss").readText()
+        assertTrue(!Regex("""select2-container[^{]*\{\s*width\s*:\s*220px\s*!important""").containsMatchIn(page), "_page.scss에 select2 고정 폭 !important가 남아 있다")
     }
 }

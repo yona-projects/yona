@@ -21,16 +21,6 @@ const rect = (page, selector) => page.evaluate((s) => { const r = document.query
 
 export const tests = [
   {
-    name: '코드 화면의 브랜치 선택 상자는 폭 220으로 고정된다 (R-코드 목록 비교)',
-    async run() {
-      const page = await open(`<div class="code-browse-wrap"><div class="code-browse-header">
-        <span id="s2id_branches" class="select2 select2-container select2-container--bootstrap-5 float-start"><span class="selection"><span class="select2-selection select2-selection--single"><span class="select2-selection__rendered">branch master</span></span></span></span>
-        <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 float-start">proj1</div></div></div>`);
-      const r = await rect(page, '#s2id_branches');
-      assert.equal(Math.round(r.width), 220);
-    },
-  },
-  {
     name: '코드 화면의 파일 목록 줄은 부모 폭 안에 들어간다',
     async run() {
       const page = await open(`<div class="code-browse-wrap"><div class="code-viewer-wrap"><div class="list-wrap" style="display:block">

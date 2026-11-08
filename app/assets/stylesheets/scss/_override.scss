@@ -15,8 +15,6 @@
 
     // v1.6(3.x)의 컨테이너는 인라인 블록이었다. 테마는 블록이라, 한 줄에 나란히 놓인 선택 상자가 줄을 바꾸지 않게 되돌린다.
     &.select2-container--bootstrap-5 { display: inline-block; }
-
-    &.fullsize { width: 100% !important; }
 }
 
 // 목록: 3.x와 같은 높이 상한과 한 줄 항목

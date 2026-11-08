@@ -188,7 +188,7 @@
                             <dd>
                                 <a th:if="${!issue.hasMilestones}" th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
                                 <th:block th:if="${issue.hasMilestones}">
-                                    <select class="form-select" th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                    <select class="form-select" th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-width="100%">
                                         <option value="-1" th:selected="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></option>
                                         <optgroup th:label="#{milestone.state.open}">
                                             <option th:each="m : ${issue.openMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${issue.milestoneId != null and issue.milestoneId == m.id}" th:text="${m.title}"></option>

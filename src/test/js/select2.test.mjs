@@ -170,15 +170,31 @@ export const tests = [
     },
   },
   {
-    name: '한국어 문구: 결과가 없으면 v1.6 문구 "결과 없음"이 보인다',
+    name: '폭은 data-width로 정한다: 100%는 부모 폭을, 220px은 그 값을 컨테이너가 갖는다 (D-100)',
+    async run() {
+      const page = await open(`<div id="wrap" style="width:300px"><select id="full" data-toggle="select2" data-width="100%"><option>가</option></select></div>
+        <div style="width:600px"><select id="fixed" data-toggle="select2" data-width="220px"><option>나</option></select></div>`);
+      // 컨테이너 폭이 보이려면 select2 CSS가 필요하다(인라인 span은 폭을 갖지 못한다)
+      await page.addStyleTag({ path: path.join(JS, 'lib/select2/select2.css') });
+      const widths = await page.evaluate(() => ({
+        full: document.querySelector('#full + .select2-container').getBoundingClientRect().width,
+        fixed: document.querySelector('#fixed + .select2-container').getBoundingClientRect().width,
+        fullStyle: document.querySelector('#full + .select2-container').style.width,
+      }));
+      assert.deepEqual(widths, { full: 300, fixed: 220, fullStyle: '100%' });
+      assert.deepEqual(page.errors, []);
+    },
+  },
+  {
+    name: '한국어 문구: 공식 4.1.0 i18n(ko)을 싣고 기본 언어를 정하면 결과가 없을 때 "결과가 없습니다."가 보인다',
     async run() {
       const page = await open(USER_SELECT);
-      await page.addScriptTag({ path: path.join(JS, 'lib/select2/select2_locale_ko.js') });
-      await page.evaluate(() => { $('#u').select2('destroy'); yona.ui.Select2('#u'); });
+      await page.addScriptTag({ path: path.join(JS, 'lib/select2/i18n/ko.js') });
+      await page.evaluate(() => { $.fn.select2.defaults.set('language', 'ko'); $('#u').select2('destroy'); yona.ui.Select2('#u'); });
       await openList(page, '#u');
       await page.fill('.select2-search__field', 'zzz');
       await page.waitForSelector('.select2-results__message');
-      assert.equal((await page.locator('.select2-results__message').textContent()).trim(), '결과 없음');
+      assert.equal((await page.locator('.select2-results__message').textContent()).trim(), '결과가 없습니다.');
     },
   },
 ];
