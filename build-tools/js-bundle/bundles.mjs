@@ -24,7 +24,6 @@ export const bundles = {
     `${JS}/lib/humanize.js`,
     `${JS}/lib/validate.js`,
     `${JS}/lib/xss.js`,
-    `${JS}/lib/clipboard.js`,
   ],
   "yona-lib.js": [
     `${JS}/common/yona.Attachments.js`,

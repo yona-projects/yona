@@ -20,6 +20,8 @@ class JsLibraryVersionsTest {
 
     private fun asset(path: String) = File(assets, path)
 
+    private fun template(path: String) = File(templates, path).readText()
+
     private fun templateFiles() = templates.walkTopDown().filter { it.isFile && it.extension == "html" }.toList()
 
     @Test
@@ -136,16 +138,21 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 28, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 27, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
 
     @Test
-    fun `clipboard js는 2_0_11이고 쓰이지 않는 validate와 placeholder 플러그인은 번들에 없다`() {
-        assertTrue(asset("javascripts/lib/clipboard.js").readText().take(100).contains("clipboard.js v2.0.11"))
+    fun `clipboard js는 없고 복사는 yona Clipboard 도우미 하나만 쓰며 쓰이지 않는 validate와 placeholder 플러그인은 번들에 없다`() {
+        // clipboard.js 2.0.11은 이슈 보기의 메일 복사 단추만 썼다. 그 단추도 yona.Clipboard(표준 navigator.clipboard, 대체 경로 execCommand)로 옮겨 라이브러리를 뺐다(S-01).
+        assertTrue(!asset("javascripts/lib/clipboard.js").exists(), "clipboard.js는 지웠다")
         val inputs = java.io.File("build-tools/js-bundle/bundles.mjs").readText()
+        assertTrue(!inputs.contains("clipboard.js"), "번들 입력에서 빠져야 한다")
         assertTrue(!inputs.contains("jquery.validate.js") && !inputs.contains("jquery.placeholder"), "번들 입력에서 빠져야 한다")
+        val usesClipboardJs = templateFiles().filter { it.readText().contains("ClipboardJS") }.map { it.path }
+        assertEquals(emptyList(), usesClipboardJs, "ClipboardJS를 부르는 템플릿")
+        assertTrue(template("issue/view.html").contains("yona.Clipboard.copy"), "이슈 보기의 메일 복사 단추는 도우미를 쓴다")
         // 현대 브라우저는 placeholder 속성을 기본 지원하므로 폴리필 초기화 호출도 없다
         assertTrue(!java.io.File("src/main/resources/templates/common/scripts.html").readText().contains(".placeholder("), "placeholder 폴리필 호출이 없어야 한다")
     }

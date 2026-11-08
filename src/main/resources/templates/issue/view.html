@@ -403,15 +403,16 @@
             });
         });
 
-        if (ClipboardJS.isSupported()) {
-            var clipboard = new ClipboardJS('#copyEmailBtn');
-
-            clipboard.on('success', function(e) {
-                $yona.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
+        // 이메일 복사 단추: 추천한 사람 모달 안에 있어 포커스를 가두는 모달을 넘겨 복사한다(yona.Clipboard)
+        $("#copyEmailBtn").on("click", function () {
+            yona.Clipboard.copy($(this).attr("data-clipboard-text"), this.closest(".modal") || document.body).then(function (copied) {
+                if (copied) {
+                    $yona.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
+                } else {
+                    $yona.notify('[(${helper.escapedMessage('site.features.error.clipboard')})]', 1500);
+                }
             });
-        } else {
-            $yona.notify('[(${helper.escapedMessage('site.features.error.clipboard')})]', 1500);
-        }
+        });
 
         // timeline label text color adjusting
         $(".event > .label").each(function() {

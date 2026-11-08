@@ -3,7 +3,6 @@
   "globals": [
     "$",
     "$yona",
-    "ClipboardJS",
     "Filter",
     "FormValidator",
     "NProgress",

@@ -28,7 +28,7 @@ export const tests = [
     assert.equal(await translateDisables('issue/view.html', "$('#translate').one(", "$('.comment-translate').one(", '<button id="translate"></button>', '#translate'), true);
   } },
   { name: '댓글 번역 단추는 번역을 받은 뒤 비활성화된다 (C064, 이슈)', async run() {
-    assert.equal(await translateDisables('issue/view.html', "$('.comment-translate').one(", 'if (ClipboardJS.isSupported())', '<button class="comment-translate" data-comment-id="9"></button>', '.comment-translate'), true);
+    assert.equal(await translateDisables('issue/view.html', "$('.comment-translate').one(", '// 이메일 복사 단추', '<button class="comment-translate" data-comment-id="9"></button>', '.comment-translate'), true);
   } },
   { name: '게시판 라벨을 고르면 jQuery 3에 없는 .error 때문에 오류가 나지 않는다 (R-30)', async run() {
     const snippet = templateSnippet('board/view.html', "$('.board-labels select').on('change'", '// detect comment');

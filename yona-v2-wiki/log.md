@@ -1945,3 +1945,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] docs | 직접 만든 JS를 표준 브라우저 기능으로 바꾸는 검토 기록(`architecture/standard-feature-replacement.md`)
 
 선생님이 "직접 만든 것 중에 표준 브라우저가 지원하는 기능으로 바꿀 수 있는지 확인해줘"라고 하셨고, 이어서 "부품별 판단은 적어 놓고 하나씩 하자"고 하셨다. 부품 14개(S-01~S-14)의 판단과 상태를 문서로 적었고, 확인 중 발견한 것 3건(F-01 `yona.Sha1.js`가 호출 없이 로드됨, F-02 `yona.ui.Tabs.js` 복원 결함 R-139, F-03 `yona.Files.js`의 `FireFox` 대소문자 R-140)을 기록했다. 코드는 바꾸지 않았다. 첫 항목 S-01은 `yona.Clipboard.js`이다.
+
+## [2026-11-09] cleanup | S-01 복사 도구를 yona.Clipboard 하나로 합치고 clipboard.js 제거(A-413)
+
+이슈 보기의 메일 복사 단추를 clipboard.js에서 `yona.Clipboard.copy`로 옮기고 clipboard.js를 번들에서 뺐다(`yona-common.js` 66,183 → 56,865바이트). 모달 안에서 http일 때 임시 입력 칸을 모달 밖에 만들면 `copy()`가 `true`인데 클립보드가 비는 조용한 실패가 실제로 났다(Chromium과 Firefox). 도우미에 컨테이너 인자를 더해 풀었고 실제 앱에서 보안 연결과 http 두 경우를 두 브라우저로 16개 항목 확인했다. 관련 시험 460건, JS 155개, 번들 8개 통과(전체 H2는 돌리지 않음).

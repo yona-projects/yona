@@ -16,7 +16,7 @@ updated: 2026-11-09
 ## 부품별 판단 (상태: 미착수는 아직 손대지 않음)
 | 번호 | 직접 만든 것 | 표준 대체 | 판단 | 상태 |
 |---|---|---|---|---|
-| S-01 | `yona.Clipboard.js` | `navigator.clipboard.writeText` | 이미 표준을 쓰고 보안 연결이 아닐 때만 `execCommand` 대체 경로를 쓴다. 그 경로는 남겨야 한다. 이슈 보기의 메일 복사 단추가 쓰는 clipboard.js(번들 `yona-common.js` 안)를 이 도우미로 바꾸면 번들에서 뺄 수 있다 | 검토 중 |
+| S-01 | `yona.Clipboard.js` | `navigator.clipboard.writeText` | 이미 표준을 쓰고 보안 연결이 아닐 때만 `execCommand` 대체 경로를 쓴다(그 경로는 남긴다). 이슈 보기의 메일 복사 단추가 쓰던 clipboard.js를 이 도우미로 바꿔 번들에서 뺐다. 모달 안에서는 대체 경로의 입력 칸을 모달에 붙여야 한다(`A-413`) | **완료**(2026-11-09, A-413) |
 | S-02 | `yona.Interval.js`(196줄, 호출 1곳 `git.View`) | `setInterval` + `visibilitychange` | 가능. 지금은 사용자 입력이 멈추면 타이머를 멈춘다(탭이 가려지면 멈추는 표준 방식과 의미가 다름) | 미착수 |
 | S-03 | `yona.KeyControl.js`(88줄, 탭 들여쓰기) | `textarea.setRangeText()` | 가능. 지금은 값을 통째로 바꿔 되돌리기 기록이 끊긴다 | 미착수 |
 | S-04 | `yona.Csrf.js` | 없음 | 유지(XHR, fetch, 폼 제출에 토큰을 싣는 표준 기능이 없다) | 유지 |
