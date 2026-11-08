@@ -1937,3 +1937,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] verify | jQuery 4 준비, 호출 없는 파일 삭제, Ace 업그레이드의 전 화면 순회 비교
 
 커밋 직전 jar(`head.jar`)와 변경 jar를 각각 `crawl.mjs --interact`로 순회해 비교했다(136장). `compare.mjs`: 새 문제 0, 상태 변화 0. 픽셀 비교 12장 중 보안 로그 3장은 실행 중 쌓이는 로그인 시각이고 코드 보기(Ace)는 159픽셀(코드 영역은 같음), 나머지는 1~47픽셀이다. 순회 두 번과 비교 59분(각 약 30분). 같은 변경의 Gradle 전체 H2 시험(정리 직후, Ace 교체 전): 4913건 실패 0(건너뜀 2), 16분 21초. Ace 교체 뒤에는 관련 시험(`AceVendorTest`, `Jquery4ReadinessTest`, `JsLibraryVersionsTest`, `StaticAssetsTest`, `V16DeadScriptRemovalTest`, `LegacyBootstrapLintTest`, `TitleInputIntegrationTest`, `JsMessagesTest`)과 JS 전체, 번들 도구 시험을 다시 돌려 통과했다.
+
+## [2026-11-09] cleanup | canvas-to-blob.js 삭제(A-412)
+
+선생님이 "표준 canvas.toBlob이 대신 가능할지 확인 필요"라고 하셔서 확인했다. 폴리필은 `toBlob`이 없는 브라우저에서만 채우고 `dataURLtoBlob`은 아무도 부르지 않는다. Chromium과 Firefox에서 네이티브 `toBlob`이 있고 128x128 PNG를 돌려주며 폴리필은 `toBlob`을 바꾸지 않음을 실행으로 확인한 뒤 지웠다. 실제 앱에서 아바타 자르기와 업로드를 양쪽 브라우저로 16개 항목 확인했다(서버에 PNG 저장, 128x128). 시험을 먼저 확장해 실패를 확인했다.

@@ -58,6 +58,7 @@ class Jquery4ReadinessTest {
             "lib/mentionjs/mention.js", "lib/mentionjs/mention.css", "lib/jquery/jquery.cookie.js", "lib/jquery/jquery.search.js", "lib/atjs/jquery.browser.js",
             "lib/autosize/autosize.js", "lib/pikaday/pikaday.min.js", "lib/elevator/jquery.elevator.min.js", "lib/elevator/jquery.elevator.min.css",
             "lib/tasklist/gfm-task-list.js", "lib/tasklist/gfm-task-list.css", "common/yona.WatcherList.js", "common/yona.ui.Mergely.js",
+            "lib/canvas-to-blob.js",
         )
         assertEquals(emptyList(), removed.filter { File(js, it).exists() }, "지운 파일이 남아 있다")
         val themes = File(js, "lib/highlight/styles").listFiles()!!.map { it.name }.sorted()
@@ -66,13 +67,22 @@ class Jquery4ReadinessTest {
 
     @Test
     fun `지운 파일을 불러오는 템플릿이나 번들 목록은 없다`() {
-        val names = listOf("mentionjs/mention", "jquery.cookie.js", "jquery.search.js", "atjs/jquery.browser.js", "yona.WatcherList", "yona.ui.Mergely", "gfm-task-list", "jquery.elevator.min")
+        val names = listOf("mentionjs/mention", "jquery.cookie.js", "jquery.search.js", "atjs/jquery.browser.js", "yona.WatcherList", "yona.ui.Mergely", "gfm-task-list", "jquery.elevator.min", "canvas-to-blob")
         val refs = templates.walkTopDown().filter { it.isFile && it.extension == "html" }.flatMap { f ->
             val text = f.readText(); names.filter { text.contains(it) }.map { "${f.path}: $it" }
         }.toList()
         assertEquals(emptyList(), refs, "지운 파일을 가리키는 템플릿")
         val bundles = File("build-tools/js-bundle/bundles.mjs").readText()
         assertFalse(bundles.contains("jquery.search.js"), "번들 목록에 지운 jquery.search.js가 남아 있다")
+    }
+
+    @Test
+    fun `아바타 자르기는 표준 canvas toBlob을 쓰고 폴리필은 없다`() {
+        // canvas-to-blob.js(blueimp 2.0.5)는 toBlob이 없는 브라우저에서만 toBlob을 채우고 dataURLtoBlob은 어디서도 부르지 않았다.
+        // Chromium과 Firefox의 toBlob이 PNG를 돌려주는 것을 확인했고, 양쪽에서 폴리필은 아무것도 바꾸지 않았다.
+        val text = code(File(js, "service/yona.user.Setting.js")).joinToString("\n")
+        assertTrue(text.contains("elCanvas.toBlob(function(oFile)"), "자르기 결과는 표준 toBlob으로 만든다")
+        assertFalse(text.contains("dataURLtoBlob"))
     }
 
     @Test
