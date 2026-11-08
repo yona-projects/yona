@@ -1953,3 +1953,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] cleanup | 동작하지 않는 복사 속성 제거(A-414)
 
 선생님이 "동작 안 하는 data 속성은 제거"라고 하시고 복사 관련으로 범위를 좁히셨다. `project/home.html`의 `data-clipboard-target="cloneURL"`(읽는 곳 없음)을 지웠다. `data-clipboard-text`는 이슈 보기가 읽는 속성이라 두었다. 타입어헤드의 `data-provider="typeahead"`(동작하지 않는 오타 속성)는 범위 밖이라 두고 여쭙는다.
+
+## [2026-11-09] cleanup | 메일 복사 단추의 속성 이름을 data-copy-text로 변경(A-415)
+
+선생님이 "중립적으로 이름 변경"이라고 하셔서 `data-clipboard-text`를 `data-copy-text`로 바꿨다(템플릿 2곳, 시험 3곳). 시험을 먼저 바꿔 실패를 확인했고 실제 앱에서 두 브라우저와 두 경우(보안 연결, http)를 다시 확인해 16개 항목이 통과했다.

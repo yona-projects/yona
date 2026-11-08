@@ -68,13 +68,13 @@ export const tests = [
     assert.equal(await page.evaluate(() => document.getElementById('paste').value), '가둔 곳 복사');
     await page.close();
   } },
-  { name: '이슈 보기의 메일 복사 단추: 누르면 data-clipboard-text를 도우미로 복사하고 성공 알림을 띄운다', async run() {
+  { name: '이슈 보기의 메일 복사 단추: 누르면 data-copy-text를 도우미로 복사하고 성공 알림을 띄운다', async run() {
     const snippet = templateSnippet('issue/view.html', '// 이메일 복사 단추', '// timeline label text color adjusting');
     const page = await setup(`
       window.__alerts = []; window.__notes = [];
       $yona.alert = function (m) { window.__alerts.push(m); }; $yona.notify = function (m) { window.__notes.push(m); };
       yona.Clipboard.copy = function (t, c) { window.__calls.push(['copy', t, c && c.id]); return Promise.resolve(window.__result !== false); };`);
-    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal" id="voters"><button id="copyEmailBtn" data-clipboard-text="A &lt;a@x.org&gt;;B &lt;b@x.org&gt;;">e</button></div>'; });
+    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal" id="voters"><button id="copyEmailBtn" data-copy-text="A &lt;a@x.org&gt;;B &lt;b@x.org&gt;;">e</button></div>'; });
     await page.evaluate((code) => new Function(code)(), snippet.replace(/\[\(\$\{[^}]*\}\)\]/g, 'MSG'));
     await page.click('#copyEmailBtn'); await page.waitForTimeout(50);
     const r = await page.evaluate(() => [window.__calls, window.__alerts.length, window.__notes.length]);
@@ -89,7 +89,7 @@ export const tests = [
       window.__alerts = []; window.__notes = [];
       $yona.alert = function (m) { window.__alerts.push(m); }; $yona.notify = function (m) { window.__notes.push(m); };
       yona.Clipboard.copy = function () { return Promise.resolve(false); };`);
-    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal"><button id="copyEmailBtn" data-clipboard-text="x">e</button></div>'; });
+    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal"><button id="copyEmailBtn" data-copy-text="x">e</button></div>'; });
     await page.evaluate((code) => new Function(code)(), snippet.replace(/\[\(\$\{[^}]*\}\)\]/g, 'MSG'));
     await page.click('#copyEmailBtn'); await page.waitForTimeout(50);
     const r = await page.evaluate(() => [window.__alerts.length, window.__notes.length]);

@@ -153,10 +153,12 @@ class JsLibraryVersionsTest {
         val usesClipboardJs = templateFiles().filter { it.readText().contains("ClipboardJS") }.map { it.path }
         assertEquals(emptyList(), usesClipboardJs, "ClipboardJS를 부르는 템플릿")
         assertTrue(template("issue/view.html").contains("yona.Clipboard.copy"), "이슈 보기의 메일 복사 단추는 도우미를 쓴다")
-        // clipboard.js가 읽던 data-clipboard-target은 읽는 곳이 없어졌다(프로젝트 홈의 복사 단추는 yona.project.Home.js가 id로 연결한다). data-clipboard-text는 이슈 보기가 읽는다.
+        // clipboard.js가 읽던 data-clipboard-target은 읽는 곳이 없어졌다(프로젝트 홈의 복사 단추는 yona.project.Home.js가 id로 연결한다). data-copy-text는 이슈 보기가 읽는다.
         val inertTarget = templateFiles().filter { it.readText().contains("data-clipboard-target") }.map { it.path }
         assertEquals(emptyList(), inertTarget, "아무 동작도 하지 않는 data-clipboard-target이 남은 템플릿")
-        assertTrue(template("issue/partial-voter-list.html").contains("data-clipboard-text"), "메일 복사 문구는 data-clipboard-text로 넘긴다")
+        assertTrue(template("issue/partial-voter-list.html").contains("data-copy-text"), "메일 복사 문구는 data-copy-text로 넘긴다")
+        val oldName = templateFiles().filter { it.readText().contains("data-clipboard-text") }.map { it.path }
+        assertEquals(emptyList(), oldName, "clipboard.js 시절의 속성 이름 data-clipboard-text가 남은 템플릿")
         // 현대 브라우저는 placeholder 속성을 기본 지원하므로 폴리필 초기화 호출도 없다
         assertTrue(!java.io.File("src/main/resources/templates/common/scripts.html").readText().contains(".placeholder("), "placeholder 폴리필 호출이 없어야 한다")
     }
