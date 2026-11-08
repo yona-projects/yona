@@ -144,6 +144,16 @@ class JsLibraryVersionsTest {
     }
 
     @Test
+    fun `yona Interval은 없고 풀 리퀘스트 보기가 입력 없음 규칙을 직접 가진다`() {
+        val assets = java.io.File("src/main/resources/static/assets/javascripts")
+        assertTrue(!java.io.File(assets, "common/yona.Interval.js").exists(), "yona.Interval.js는 지워졌다(S-02, A-416)")
+        assertEquals(emptyList(), templateFiles().filter { it.readText().contains("yona.Interval") }.map { it.path })
+        val view = java.io.File(assets, "service/yona.git.View.js").readText()
+        assertTrue(!view.contains("yona.Interval."), "풀 리퀘스트 보기가 yona.Interval을 부르지 않는다")
+        assertTrue(view.contains("nIdleLimit"), "입력 없음 규칙이 풀 리퀘스트 보기 안에 있다")
+    }
+
+    @Test
     fun `clipboard js는 없고 복사는 yona Clipboard 도우미 하나만 쓰며 쓰이지 않는 validate와 placeholder 플러그인은 번들에 없다`() {
         // clipboard.js 2.0.11은 이슈 보기의 메일 복사 단추만 썼다. 그 단추도 yona.Clipboard(표준 navigator.clipboard, 대체 경로 execCommand)로 옮겨 라이브러리를 뺐다(S-01).
         assertTrue(!asset("javascripts/lib/clipboard.js").exists(), "clipboard.js는 지웠다")

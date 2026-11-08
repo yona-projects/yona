@@ -183,16 +183,32 @@
         }
 
         /**
-         * update current state of pullRequest automatically
-         * with interval timer
+         * 풀 리퀘스트 상태를 일정 간격으로 자동 갱신한다.
+         *
+         * v1.6의 `yona.Interval`이 하던 "사용자 입력이 60초 동안 없으면 타이머를 멈추고,
+         * 입력이 다시 오면 재개한다"는 규칙을 이 화면 안으로 옮긴 것이다(S-02, A-416).
+         * 타이머는 계속 돌되 마지막 입력 후 60초가 지났으면 요청을 보내지 않고 건너뛴다.
+         * 입력(scroll, mousedown, mousemove, keypress)이 오면 다음 간격 시각부터 다시 요청한다.
          */
         function _setStateUpdateTimer(){
+            var nIdleLimit = 60000; // 60sec
+            var nLastInput = Date.now();
+
+            function onUserInput(){
+                nLastInput = Date.now();
+            }
+            ["scroll", "mousedown", "mousemove", "keypress"].forEach(function(sType){
+                window.addEventListener(sType, onUserInput, {"passive": true});
+            });
+
             if(htVar.nStateUpdateTimer != null){
-                yona.Interval.clear(htVar.nStateUpdateTimer);
-                htVar.nStateUpdateTimer = null;
+                clearInterval(htVar.nStateUpdateTimer);
             }
 
-            htVar.nStateUpdateTimer = yona.Interval.set(function(){
+            htVar.nStateUpdateTimer = setInterval(function(){
+                if(Date.now() - nLastInput >= nIdleLimit){
+                    return;
+                }
                 if(htVar.bStateUpdating !== true){
                     _updateState();
                 }
