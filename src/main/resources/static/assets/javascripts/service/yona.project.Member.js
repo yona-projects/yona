@@ -204,7 +204,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = $.parseJSON(sResult);
+            var htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 

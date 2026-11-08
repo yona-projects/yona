@@ -167,7 +167,7 @@
                 return false;
             }
 
-            var categoryName = $.trim(elements.inputCategory.val());
+            var categoryName = (elements.inputCategory.val() || "").trim();
 
             // if categoryName is new, and no option determined,
             // show confirm before submit
@@ -178,8 +178,8 @@
 
             // send request to add label
             _requestAddLabel({
-                "labelName"   : $.trim(elements.inputName.val()),
-                "labelColor"  : _getRefinedHexColor($.trim(elements.inputColor.val())),
+                "labelName"   : (elements.inputName.val() || "").trim(),
+                "labelColor"  : _getRefinedHexColor((elements.inputColor.val() || "").trim()),
                 "categoryName": categoryName,
                 "categoryIsExclusive": vars.isNewCategoryExclusive
             });
@@ -605,7 +605,7 @@
         function _onClickBtnSubmitEditCategory(){
             var requestData = {
                 "id"  : elements.editCategoryForm.data("categoryId"),
-                "name": $.trim(elements.editCategoryName.val()),
+                "name": (elements.editCategoryName.val() || "").trim(),
                 "isExclusive": elements.editCategoryExclusive.val(),
                 "project.id" : elements.editCategoryForm.data("projectId")
             };
@@ -654,8 +654,8 @@
          */
         function _onClickBtnSubmitEditLabel(){
             var requestData = {
-                "name" : $.trim(elements.editLabelName.val()),
-                "color": $.trim(elements.editLabelColor.val()),
+                "name" : (elements.editLabelName.val() || "").trim(),
+                "color": (elements.editLabelColor.val() || "").trim(),
                 "category.id": elements.editLabelCategory.val()
             };
 

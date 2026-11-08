@@ -67,7 +67,7 @@
 
         function _onSuccessLeaveMember(oXHR){
             try{
-                var htData = $.parseJSON(oXHR);
+                var htData = JSON.parse(oXHR);
                 document.location.replace(htData.location);
             }catch(e){
                 document.location.reload();
@@ -78,7 +78,7 @@
             var sErrorMsg;
 
             try{
-                sErrorMsg = Messages($.parseJSON(oXHR.responseText).errorMsg);
+                sErrorMsg = Messages(JSON.parse(oXHR.responseText).errorMsg);
             }catch(e){
                 sErrorMsg = Messages("organization.member.leave.unknownerror");
             }

@@ -3,7 +3,6 @@
 # 라이브러리를 올릴 때 이 표도 함께 고친다. 올리지 않은 파일이 몰래 바뀌면 JsLibraryVersionsTest가 실패한다. Yona가 고친 벤더 파일(pageslide, At.js 등)은 여기에 없다.
 jquery/jquery-3.7.1.js	jQuery	3.7.1	78a85aca2f0b110c29e0d2b137e09f0a1fb7a8e554b499f740d6744dc8962cfe
 jquery/jquery-ui-1.14.2.custom.min.js	jQuery UI 효과 묶음(공식 UMD 소스를 이어 붙여 Closure로 압축)	1.14.2	117d1881bdcbd4e0f0f4935a3a46de7da5a9761f11f4c7256fe61f3a2964b4d2
-autosize/autosize.js	autosize	6.0.1	ef10236538a6306ac8d2f5c420b468179d5cb3f2d258e716c0a9e4f2356b2ba9
 autosize/autosize.min.js	autosize	6.0.1	5421f1dc60839ddd79ea608ce4433d6c94e3ee684caebc20dad01a6fd075bd0b
 nprogress/nprogress.js	NProgress	0.2.0	6b9611076ec2701c0115c4f9105fdfdc4e2fcc8ab21eb491f3bf27b1e358c3ae
 tippy/popper.min.js	Popper(@popperjs/core)	2.11.8	c212f4b505a86352aed62b24a8f16f999f821ecbe6456c7f3c8a04bc87968782

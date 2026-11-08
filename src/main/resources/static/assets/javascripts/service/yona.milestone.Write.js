@@ -71,9 +71,9 @@
         }
 
         function _validateForm(){
-            var sTitle = $.trim(htElement.welInputTitle.val());
-            var sContent = $.trim(htElement.welInputContent.val());
-            var sDueDate = $.trim(htElement.welInputDueDate.val());
+            var sTitle = (htElement.welInputTitle.val() || "").trim();
+            var sContent = (htElement.welInputContent.val() || "").trim();
+            var sDueDate = (htElement.welInputDueDate.val() || "").trim();
 
             if(sTitle.length === 0){
                 $yona.showAlert(Messages("milestone.error.title"));

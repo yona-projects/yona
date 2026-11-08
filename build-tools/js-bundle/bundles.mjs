@@ -19,7 +19,6 @@ export const bundles = {
     `${JS}/lib/mustache.js`,
     `${JS}/lib/jquery/jquery.form.js`,
     `${JS}/lib/jquery/jquery.requestAs.js`,
-    `${JS}/lib/jquery/jquery.search.js`,
     `${BS}/bootstrap-typeahead.js`,
     `${JS}/lib/rgbcolor.js`,
     `${JS}/lib/humanize.js`,

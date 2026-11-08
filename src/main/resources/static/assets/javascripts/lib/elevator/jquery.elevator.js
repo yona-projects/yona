@@ -658,7 +658,7 @@
 
                 }
 
-            } else if ( $.isNumeric(_section) && (+_section === _section && !(_section % 1)) && _section > 0 && _section <= $('.' + CLASS_ITEM_CONTAINER).children().length ){
+            } else if ( isFinite(_section) && (+_section === _section && !(_section % 1)) && _section > 0 && _section <= $('.' + CLASS_ITEM_CONTAINER).children().length ){
 
                 $('.' + CLASS_ITEM +'[data-section="' + _section + '"]').trigger('click');
 

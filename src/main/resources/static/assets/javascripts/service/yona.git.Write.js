@@ -286,11 +286,11 @@
 
         function _getFormValue(){
             return {
-                "title"      : $.trim(elements.title.val()),
-                "fromProjectId": $.trim(elements.fromProject.val()),
-                "toProjectId"  : $.trim(elements.toProject.val()),
-                "fromBranch" : $.trim(elements.fromBranch.val()),
-                "toBranch"   : $.trim(elements.toBranch.val())
+                "title"      : (elements.title.val() || "").trim(),
+                "fromProjectId": (elements.fromProject.val() || "").trim(),
+                "toProjectId"  : (elements.toProject.val() || "").trim(),
+                "fromBranch" : (elements.fromBranch.val() || "").trim(),
+                "toBranch"   : (elements.toBranch.val() || "").trim()
             };
         }
 

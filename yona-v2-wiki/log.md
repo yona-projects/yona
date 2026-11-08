@@ -1925,3 +1925,15 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-08] fix | 부모 이슈 선택의 안내 글자 정정(A-409, R-138)
 
 선생님이 이슈 수정 화면의 교체 전후 비교 이미지에서 "교체 전은 부모 이슈 선택, 교체 후는 프로젝트 선택"이라고 짚으셨다. 앞서 그 차이를 "옛 select2 차이"로만 적고 글자는 확인하지 않았는데, 실제로는 select2 4.1.0 교체(D-95)에서 생긴 회귀였다: v1.6이 `#parentId`에 잘못 단 `data-placeholder="프로젝트 선택"`을 select2 3.4.5는 가렸고 4.1.0은 드러냈다. `data-placeholder`를 첫 option의 글자와 같게 고쳤고(시험이 먼저 실패함을 확인) 4가지 상태를 실제 앱에서 확인했다.
+
+## [2026-11-09] cleanup | 호출이 없는 파일 삭제와 jQuery 4에서 지워지는 API의 표준 JS 대체(D-103, A-410)
+
+선생님이 "타입어헤드 관련해서 안 쓰면 진짜 지워", "호출이 없는 것도 확인해서 지워줘", "제거된 API 중에 표준 js로 보완되는 부분도 확인해서 업데이트 해줘"라고 하셨다. **타입어헤드는 쓰이고 있어 지우지 않았다**(구성원 추가, 대량 메일, 라벨 편집, `data-provider` 입력란 4곳). 호출이 없는 파일 92개(코드 강조 테마 79개 포함)를 지웠다. 지워질 API 37곳(`$.trim` 21, `$.parseJSON` 7, `$.isNumeric` 2, `$.isFunction` 4, `$.isArray` 2, `$.expr.filters` 1)를 앱 코드, 템플릿 인라인 스크립트, At.js, jquery.form, Viewer 래퍼, typeahead, elevator에서 표준 JS로 바꿨다. 시험을 먼저 만들었다: JS 하네스가 jQuery 3.7.1에서 지워질 API를 없앤 채 모든 시험을 돌려 기존 시험 4개가 실패했고(앱 코드의 사용처), 대체식이 원래 값과 같은지 비교하는 시험 9개와 플러그인 시험 5개(5개는 실패 확인), Kotlin `Jquery4ReadinessTest`(템플릿 인라인 스크립트 2곳은 처음 시험이 놓쳐 시험을 넓힌 뒤 고침). jQuery 4.0.0에 실제로 불러 이전에 실패하던 5곳이 모두 통과함을 확인했다. 번들 `yona-common.js`와 `yona-lib.js`를 다시 빌드했다. 별도로 선생님이 알려 주신 대로 실제 한글 입력기로 `<title-input>`이 동작함을 선생님이 확인하셨다는 사실을 기록했다(A-407, A-408, `title-input-component.md`, 컴포넌트 README). 공개 단추가 새 번호의 이슈를 만드는 것은 v1.6 `IssueApp.java:786-791`(`originalIssue.setNumber(Project.increaseLastIssueNumber(...))`)과 같은 동작이다.
+
+## [2026-11-09] build | Ace 1.45.2로 업그레이드와 jQuery 4 정리 후속 검토(D-104, A-411)
+
+선생님이 "ace 에디터 업데이트 해줘", "bootstrap-typeahead.js를 아직도 쓰는 게 맞냐", "angular 1.5.8 대신 vue3로 바꾸는 게 가능한지 확인해 줘"라고 하셨다. Ace는 1.1.3(2014, 별도 패치 없음)에서 1.45.2로 올렸다. 시험을 먼저 썼고(이전 Ace에서 3개 실패 확인) 공식 파일을 byte 그대로 들였다(215개, 9.4MB, 확장과 다른 테마 등은 제외). 기대값 3개는 추측이 틀려 실제 사용 방식에 맞게 바로잡았다(A-411). 타입어헤드는 쓰이고 있고 `data-provider`는 오타로 동작하지 않는다는 것, AngularJS를 Vue 3로 바꾸는 일은 약 1,000줄 규모로 가능하다는 것을 `js-upgrade-plan.md`에 적었다. 전체 H2 시험(정리 직후, Ace 교체 전) 4913건 실패 0, 16분 21초.
+
+## [2026-11-09] verify | jQuery 4 준비, 호출 없는 파일 삭제, Ace 업그레이드의 전 화면 순회 비교
+
+커밋 직전 jar(`head.jar`)와 변경 jar를 각각 `crawl.mjs --interact`로 순회해 비교했다(136장). `compare.mjs`: 새 문제 0, 상태 변화 0. 픽셀 비교 12장 중 보안 로그 3장은 실행 중 쌓이는 로그인 시각이고 코드 보기(Ace)는 159픽셀(코드 영역은 같음), 나머지는 1~47픽셀이다. 순회 두 번과 비교 59분(각 약 30분). 같은 변경의 Gradle 전체 H2 시험(정리 직후, Ace 교체 전): 4913건 실패 0(건너뜀 2), 16분 21초. Ace 교체 뒤에는 관련 시험(`AceVendorTest`, `Jquery4ReadinessTest`, `JsLibraryVersionsTest`, `StaticAssetsTest`, `V16DeadScriptRemovalTest`, `LegacyBootstrapLintTest`, `TitleInputIntegrationTest`, `JsMessagesTest`)과 JS 전체, 번들 도구 시험을 다시 돌려 통과했다.

@@ -464,7 +464,7 @@
 
         Controller.arrayToDefaultHash = function(data) {
             var i, item, len, results;
-            if (!$.isArray(data)) {
+            if (!Array.isArray(data)) {
                 return data;
             }
             results = [];
@@ -979,7 +979,9 @@
         };
 
         View.prototype.visible = function() {
-            return $.expr.filters.visible(this.$el[0]);
+            // Yona: jQuery 4에서 지워지는 $.expr.filters 대신 jQuery 3.7.1의 :visible 정의(크기나 클라이언트 사각형이 있으면 보임)를 그대로 쓴다.
+            var el = this.$el[0];
+            return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
         };
 
         View.prototype.highlighted = function() {
@@ -1101,7 +1103,7 @@
 
         View.prototype.render = function(list) {
             var $li, $ul, i, item, len, li, tpl;
-            if (!($.isArray(list) && list.length > 0)) {
+            if (!(Array.isArray(list) && list.length > 0)) {
                 this.hide();
                 return;
             }

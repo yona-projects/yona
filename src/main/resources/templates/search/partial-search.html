@@ -106,7 +106,7 @@ $(function(){
 
     $('.search-content-body, .title').each(function() {
         var text = $(this).text();
-        var matchKeyword = $.trim($('#searchKeyword').val())
+        var matchKeyword = ($("#searchKeyword").val() || "").trim()
                             .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
         var matchRegx = new RegExp(matchKeyword, "ig");
         var content = "";

@@ -36,17 +36,25 @@ export const COMMON_STUBS = `
   window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.Typeahead = function () {};
 `;
 
+/** jQuery 4가 지우는 API와 `$.expr.filters`를 jQuery 3.7.1에서 없앤다. */
+export const JQUERY4_REMOVALS = `
+  ['trim', 'parseJSON', 'isNumeric', 'isFunction', 'isArray', 'isWindow', 'camelCase', 'nodeName', 'type', 'now', 'unique'].forEach(function (k) { delete jQuery[k]; });
+  delete jQuery.expr.filters;
+`;
+
 /**
  * 새 페이지를 만든다. [html]을 본문으로 하고 [scripts](JS 디렉터리 기준 경로 또는 `{content}`)를 차례로 불러온다.
  * 페이지에서 난 스크립트 오류는 `page.errors`에 모인다.
  */
-export async function pageWith({ html = '', scripts = [], stubs = true } = {}) {
+export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = true } = {}) {
   const b = await launch();
   const page = await b.newPage();
   page.errors = [];
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.setContent(`<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`);
   await page.addScriptTag({ path: path.join(JS, 'lib/jquery/jquery-3.7.1.js') });
+  // jQuery 4처럼 지워지는 API를 없앤 환경에서 시험한다(`Jquery4ReadinessTest`, D-103). 앱 코드와 플러그인이 표준 JS만 쓰는지 실제로 실행해 확인한다.
+  if (jq4) await page.evaluate(JQUERY4_REMOVALS);
   if (stubs) {
     await page.addScriptTag({ path: path.join(JS, 'lib/mustache.js') });
     await page.addScriptTag({ content: COMMON_STUBS });

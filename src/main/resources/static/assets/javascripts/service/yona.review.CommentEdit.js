@@ -37,7 +37,7 @@
         $form.on("click", ".comment-edit-cancel", function () { close($comment); });
         $form.on("click", ".comment-edit-save", function () {
             var contents = $form.find(".comment-edit-text").val();
-            if ($.trim(contents) === "") {
+            if ((contents || "").trim() === "") {
                 $yona.notify(Messages("post.comment.empty"), 3000);
                 return;
             }

@@ -42,6 +42,10 @@ jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지
 
 **정리 완료**(`A-393`, 2026-11-07): 옛 파일과 참조가 없는 벤더 파일 14개를 지웠다(jQuery 1.7.2, 1.9.0, 3.3.1, jQuery UI 1.10.4와 `ui.custom`, `moment-with-langs`, underscore, magnific-popup JS, dynatree JS, event.drag, `jquery.validate.min.js`, scrollTo). 지우지 않은 것: `jquery.cookie.js`(템플릿 3곳이 불러오나 호출 없음), zclip과 `ZeroClipboard.swf`(복사 버튼이 사용), `validate`와 `placeholder`와 zclip(번들 `yona-common.js`의 입력), Jcrop, `magnific-popup.css`, dynatree CSS. 남은 정리는 번들 재현성을 해결한 뒤 번들에서 미사용 코드를 빼는 일과 `jquery.cookie`를 불러오는 템플릿 3곳이다. clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
 
+**jQuery 4 준비와 호출 없는 파일 정리 완료**(`D-103`, `A-410`, 2026-11-09): jQuery 4.0.0에 실제로 불러 실행해 4.0.0에서만 실패하던 곳(앱 스크립트 26곳, 템플릿 인라인 2곳, At.js, jquery.form, Viewer.js 래퍼, bootstrap-typeahead와 better, elevator, 모두 37곳)을 표준 JS로 바꿨고 같은 환경에서 모두 통과한다(jQuery 자체는 아직 3.7.1). 바꾼 방법과 값이 같다는 근거는 아래 "지워지는 API의 표준 JS 대체"에 있다. 호출이 없어 지운 파일: `mention.js`와 `mention.css`, `jquery.cookie.js`(템플릿 태그 3곳 포함), `jquery.search.js`(`yona-common.js` 번들에서 뺌), 참조 없는 `atjs/jquery.browser.js`, `autosize.js`, `pikaday.min.js`, `jquery.elevator.min.*`, `tasklist/gfm-task-list.*`, `yona.WatcherList.js`, `yona.ui.Mergely.js`, 코드 강조 테마 css 79개(`default.css`만 남김). **타입어헤드는 쓰이고 있어 지우지 않았다**(`yona.ui.Typeahead`: 프로젝트와 조직 구성원 추가, 사이트 대량 메일, `yona.issue.LabelEditor`, `data-provider="typeahead"` 입력란 4곳).
+
+**Ace 1.45.2 업그레이드 완료**(`D-104`, `A-411`, 2026-11-09): 코드 보기의 Ace를 1.1.3(2014)에서 1.45.2로 올렸다. 공식 `src-min-noconflict`의 `ace.js`, 모드 전부, 테마 `clouds`, 작업자만 들였다(215개, 9.4MB). 고정은 `ace-vendor-manifest.tsv`와 `AceVendorTest`, 브라우저 확인은 `ace.test.mjs`이다.
+
 ## 1. 현재 상태
 
 화면이 실제로 읽는 위치는 `src/main/resources/static/assets/`이다(`public/`은 v1.6 원본 사본이라 서빙하지 않는다). 이 저장소에는 Node와 npm 파일이 없고(`components` 저장소 원칙) 라이브러리는 **파일을 직접 복사해 커밋**하는 방식이다. 번들 세 개(`yona-layout.js`, `yona-common.js`, `yona-lib.js`)는 `build-tools/minify-js.sh`가 Closure Compiler(`compiler.jar`)로 합쳐 만든다.
@@ -68,6 +72,23 @@ jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지
 | At.js(멘션) | 1.5.3 | 1.5.4(유지 중단) | 멘션 | 거의 없음 |
 | `vendor.js`(Angular 1.x와 lodash 묶음) | 1.5.8 | 없음(AngularJS는 지원 종료) | **마이그레이션 화면 하나** | 업그레이드 불가 |
 
+### 지워지는 API의 표준 JS 대체 (2026-11-09 확인, `src/test/js/jquery4.test.mjs`)
+
+값이 같은지는 jQuery 3.7.1의 원래 함수와 대체식을 같은 값들에 넣어 비교한 시험으로 확인했다(시험이 두 식을 모두 계산한다).
+
+| 지워지는 API | 표준 JS 대체 | 원래와 같은가 | 비고 |
+|---|---|---|---|
+| `$.trim(값)` | `(값 \|\| "").trim()` | 문자열, `null`, `undefined`: **같다**(공백, NBSP, BOM, 전각 공백 포함) | `0`, `false`, `NaN`은 jQuery가 `"0"` 등으로 바꾸지만 대체식은 빈 글자가 된다. 앱은 `.val()`과 문자열 인자에만 쓰므로 문제없고, 그런 값에는 `String(값 == null ? "" : 값).trim()`을 쓴다(이 식은 모든 값에서 같다) |
+| `$.parseJSON(문자열)` | `JSON.parse(문자열)` | **같다**(jQuery 3.0부터 `parseJSON`은 `JSON.parse` 그대로이고 오류도 같다) | |
+| `$.isNumeric(값)` | `(typeof 값 === "number" \|\| typeof 값 === "string") && !isNaN(값 - parseFloat(값))` | **같다**(23개 값 비교) | 흔히 쓰는 `Number.isFinite(Number(값))`은 빈 글자, 공백, `true`, `[]`에서 값이 달라 쓰지 않는다 |
+| `$.isArray(값)` | `Array.isArray(값)` | **같다** | |
+| `$.isFunction(값)` | `typeof 값 === "function"` | **같다**(함수, 화살표, 클래스, async, 내장 함수) | jQuery는 구형 브라우저의 `<object>` 예외를 따로 걸렀지만 지금은 필요 없다 |
+| `$.expr.filters.visible(요소)` | `!!(요소.offsetWidth \|\| 요소.offsetHeight \|\| 요소.getClientRects().length)` | **같다**(jQuery 3.7.1의 `:visible` 정의 그대로) | `visibility: hidden`은 jQuery와 같이 보이는 것으로 친다 |
+| `$.now()` | `Date.now()` | 같다 | 앱 사용 없음 |
+| `$.type(값)`, `$.isWindow(값)`, `$.camelCase(글자)`, `$.nodeName(요소, 이름)`, `$.unique(배열)` | `typeof`/`Object.prototype.toString.call`, `값 != null && 값 === 값.window`, 정규식 한 줄, `요소.nodeName.toLowerCase() === 이름.toLowerCase()`, `$.uniqueSort(배열)` 또는 `[...new Set(배열)]` | 앱과 플러그인에 사용처가 없어 대체하지 않았다 | `Jquery4ReadinessTest`가 다시 쓰이는 것을 막는다 |
+
+**jQuery 4.0.0 실제 실행 결과**(2026-11-09, 저장소의 파일 그대로, `e2e/jq4compat3.tmp.mjs`): jquery.browser, jQuery UI 효과, select2 4.1.0과 i18n, pageslide, At.js(수정본)와 caret, elevator, Viewer.js 래퍼, jquery.form, bootstrap-typeahead와 better, jquery.requestAs, NProgress, highlight.js, title-input 모두 통과. 범위는 불러오기와 초기화, 대표 호출이다. jQuery 4의 동작 변경(`focusin`과 `focusout` 순서, ajax의 `dataType`, `.toggleClass(불리언)`)은 전 화면 순회로 따로 확인한다.
+
 ### jQuery 4 지원 여부 (2026-11-07 조사, 같은 날 정정)
 
 **정정**: 계획서 초안은 `.bind`, `.unbind`를 jQuery 4의 제거 대상으로 세어 비용을 크게 잡았다. 공식 4.0 업그레이드 가이드(jquery.com/upgrade-guide/4.0)에는 `.bind`, `.unbind`, `.delegate`가 제거 목록에 없다(지원 중단 상태로 남음). 아래는 공식 제거 목록으로 다시 센 결과이다.
@@ -76,7 +97,7 @@ jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지
 
 **앱 코드(13개 파일)**: `$.trim` 21곳, `$.parseJSON` 6곳, `$.isNumeric` 1곳이다. `String.prototype.trim`, `JSON.parse`, `Number.isFinite`로 치환하면 된다.
 
-**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1. **htmx 대체로 사라짐, D-96**), jquery.tmpl(`trim` 1, `isArray` 4. **Mustache 교체로 사라짐, D-94**), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
+**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1. **htmx 대체로 사라짐, D-96**), jquery.tmpl(`trim` 1, `isArray` 4. **Mustache 교체로 사라짐, D-94**), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다. **(2026-11-09 갱신: 이 문단의 At.js, jquery.form, event.drag(이미 삭제), Viewer 래퍼, typeahead, elevator는 모두 표준 JS로 바꿨고 `jquery.cookie`와 `jquery.search`는 삭제했다. 아래 표의 "미지원" 중 남은 것은 없다.)**
 
 **올릴 새 버전의 실제 배포 파일을 같은 목록으로 검사한 결과** (npm 선언과 함께):
 
@@ -210,3 +231,9 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2
 1. **jQuery를 어디까지 올릴지**: (A) 3.7.1에서 멈춘다, (B) 3.7.1을 먼저 하고 이어서 4.0.0까지 간다(**권장**). 이유: 공식 제거 목록이 유틸 함수 몇 개라 치환으로 풀리고(앱 28곳과 옛 사본 몇 줄), 올릴 새 버전은 대부분 4.0을 지원하거나 지원하는 것으로 보인다. 미지원인 pjax, At.js, event.drag는 치환 2~6줄이다. 위험은 이름이 아닌 **동작 변경**이므로 `jquery-migrate`와 전 화면 순회로 확인한다. 3.7.1을 먼저 하면 4.0에서 문제가 나도 3.7.1로 되돌릴 수 있다.
 2. **video.js**: 7.21.2(기본값으로 진행)와 8.24.1 중.
 3. **구현 시작**: 단계 0(시험과 기준선)부터 시작해도 되는지.
+
+### 쓰는 곳이 남은 BS2 플러그인과 AngularJS의 정리 가능성 (2026-11-09 검토)
+
+**bootstrap-typeahead.js**: 지금도 쓰인다. 실제 호출은 JS 4곳이다: 프로젝트 구성원 추가(`yona.project.Member.js`), 조직 구성원 추가(`yona.organization.Member.js`), 사이트 대량 메일(`yona.site.MassMail.js`), 이슈 라벨 분류 입력(`yona.issue.LabelEditor.js`). 템플릿 4곳의 `data-provider="typeahead"`는 아무 동작도 하지 않는다(플러그인의 자동 시작 선택자는 `data-provide`이고 v1.6부터 오타). Bootstrap 5에는 타입어헤드가 없어 Bootstrap 2 때의 플러그인을 계속 쓰는 상태이다. 없애려면 위 4곳을 다른 자동완성(바닐라 라이브러리나 직접 만든 요소)으로 먼저 바꿔야 한다. `bootstrap-better-typeahead.js`(빈 질의 허용)는 레이아웃에서 모든 화면에 불러온다.
+
+**AngularJS 1.5.8(`vendor.js`)을 Vue 3로 바꾸는 검토**: 쓰는 곳은 이전(Migration) 화면 하나(`migration/home.html`)뿐이다. 앱은 `yona.Migration.js`(browserify 묶음) 안에 설정, 컨트롤러(약 540줄), 지시자 1개(`importWarning`), 서비스(약 475줄, `$http` 28회)로 모두 약 1,000줄이다. 템플릿은 155줄이고 지시자가 약 65개(`ng-if` 23, `ng-cloak` 15, `ng-class` 6, `ng-click` 5, `ng-repeat` 4, `ng-show`와 `ng-model`과 `ng-init`과 `ng-disabled` 각 3, `ng-keyup` 1)이며 `{{ }}` 표현식이 32개이다. 모두 Vue의 `v-if`, `v-cloak`, `:class`, `@click`, `v-for`, `v-show`, `v-model`, `:disabled`, `@keyup`, `{{ }}`에 일대일로 대응한다. `$http`는 `fetch`, `$timeout`은 `setTimeout`으로 옮기면 되고 `$watch`와 lodash는 앱 코드가 쓰지 않는다. `vendor.js`(1.6MB)는 통째로 없앨 수 있다. 주의: 이 화면은 브라우저에서 GitHub API를 직접 호출한다(CORS를 위해 `X-Requested-With`를 지우고 `useXDomain`을 켬). `fetch`로 옮길 때 같은 방식으로 보내야 한다. 관련 시험은 `MigrationPageTest`, `MigrationExportTest`이다. **가능하며 범위가 작다.** 아직 바꾸지 않았다(Vue 3 전역 빌드의 인라인 템플릿으로 갈지 `vue-widgets` 파이프라인으로 갈지 결정이 필요하다).

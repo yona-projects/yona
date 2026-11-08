@@ -415,7 +415,7 @@ yona.Attachments = function(htOptions) {
      */
     function isHtml5Video(sMimeType) {
         return ["video/mp4", "video/ogg", "video/webm"]
-            .indexOf($.trim(sMimeType).toLowerCase()) >= 0;
+            .indexOf((sMimeType || "").trim().toLowerCase()) >= 0;
     }
 
     /**

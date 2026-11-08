@@ -50,7 +50,7 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById("alertDeletion")).hide();
                 var sErrorMsg;
                 try{
-                    sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);
+                    sErrorMsg = Messages(JSON.parse(jqXHR.responseText).errorMsg);
                 }catch(e){
                     sErrorMsg = Messages("organization.delete.error");
                 }

@@ -89,7 +89,7 @@
 
             var welInput = $(this);
 
-            if($.trim(welInput.val()) !== ""){
+            if((welInput.val() || "").trim() !== ""){
                 doesExists(welInput, htVar.sEmailCheckUrl);
             }
         }
@@ -104,7 +104,7 @@
         function checkPassword() {
           hideErrorMessage(htElement.welInputPassword);
 
-          if($.trim(htElement.welInputPassword.val()).length < 4) {
+          if((htElement.welInputPassword.val() || "").trim().length < 4) {
             showErrorMessage(htElement.welInputPassword, Messages("validation.tooShortPassword"));
           }
 

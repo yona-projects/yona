@@ -90,10 +90,21 @@ yona.Pagination = (function(window, document) {
     }
 
     /**
+     * 숫자이거나 숫자로 읽히는 글자인지 본다. jQuery 4에서 지워진 `$.isNumeric`과 같은 식이다
+     * (`Number.isFinite(Number(값))`은 빈 글자, 공백, `true`에서 값이 달라 쓰지 않는다. `jquery4.test.mjs`가 두 식을 비교한다).
+     *
+     * @param {*} value
+     * @returns {Boolean}
+     */
+    function _isNumeric(value) {
+        return (typeof value === "number" || typeof value === "string") && !isNaN(value - parseFloat(value));
+    }
+
+    /**
      * validateOptions
      */
     function validateOptions(options) {
-        if (!$.isNumeric(options.current)) {
+        if (!_isNumeric(options.current)) {
             throw new Error("options.current is not valid: " + options.current);
         }
     }

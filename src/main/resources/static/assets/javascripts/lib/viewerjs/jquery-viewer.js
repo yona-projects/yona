@@ -45,7 +45,7 @@
                 if (typeof option === 'string') {
                     var fn = viewer[option];
 
-                    if ($.isFunction(fn)) {
+                    if (typeof fn === 'function') {
                         result = fn.apply(viewer, args);
 
                         if (result === viewer) {

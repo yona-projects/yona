@@ -177,7 +177,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = $.parseJSON(sResult);
+            var htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 
@@ -233,7 +233,7 @@
                 "fOnLoad" : function(oData, oStatus, oXHR) {
                     console.log("oXHR.responseText:" + oXHR.responseText);
                     if (oXHR.responseText != "") {
-                        var htData = $.parseJSON(oXHR.responseText);
+                        var htData = JSON.parse(oXHR.responseText);
                         document.location.replace(htData.location);
                     }
                 }

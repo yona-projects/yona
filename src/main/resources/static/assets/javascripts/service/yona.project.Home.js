@@ -109,7 +109,7 @@
                         "method": "delete",
                         "dataType": "html"
                     }).done(function(sResult){
-                        var htData = $.parseJSON(sResult);
+                        var htData = JSON.parse(sResult);
                         document.location.replace(htData.location);
                     }).fail(function(oXHR){
                         var sErrorMsg;

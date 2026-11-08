@@ -116,7 +116,7 @@
          */
         function _onChangeDueDate(evt){
             var element = $(this);
-            var dueDate = $.trim(element.val());
+            var dueDate = (element.val() || "").trim();
 
             // if dueDate is not empty and invalid
             if(dueDate && !moment(dueDate).isValid()){
