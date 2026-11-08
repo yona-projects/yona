@@ -44,8 +44,6 @@
          * initialize element
          */
         function _initElement(htOptions) {
-            htElement.welRepoURL = $("#repositoryURL");
-
             // clone url
             htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
 
@@ -59,8 +57,6 @@
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welRepoURL.click(_onClickRepoURL);
-
             // 저장소 주소 복사(Flash 대체 경로는 없앴다, yona.Clipboard)
             htElement.welBtnCopy.on("click", function () {
                 yona.Clipboard.copy(htElement.welInputCloneURL.val()).then(function (copied) {
@@ -143,10 +139,6 @@
             htElement.welHomeInfo.width(htElement.welHome.width() - (htElement.welHomeLogo.width() + htElement.welHomeMember.width() + 21));
         }
         */
-
-        function _onClickRepoURL(){
-            htElement.welRepoURL.select();
-        }
 
         _init(htOptions || {});
     };

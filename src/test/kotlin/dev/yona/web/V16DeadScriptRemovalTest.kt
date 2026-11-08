@@ -9,6 +9,7 @@ import kotlin.test.assertEquals
  *
  * - 담당자 선택을 option 목록에서 비동기 검색으로 바꾼 2017-08-05 커밋(`5170f1c21`) 뒤로 `data-force-change`, `data-non-member`를
  *   달던 option과 `name="assignee.user.id"` 요소는 없다. 그 속성과 이름을 읽던 JS가 남아 있었다.
+ * - `#repositoryURL` 요소는 2013년 프로젝트 레이아웃 개편(`be199398d`)에서 사라졌는데 이를 붙잡는 코드가 남아 있었다.
  * - 프로젝트 라벨(태그) 기능은 2017-01-12 커밋(`133a42e60`)에서 화면이 사라졌다. `project.Home.js`의 라벨 편집 코드와
  *   그 템플릿(`#label-template` 등)을 가리키던 호출이 남아 있었다.
  */
@@ -39,7 +40,8 @@ class V16DeadScriptRemovalTest {
             "_initLabels", "_createLabel", "_appendLabels", "__addCategory", "_createCategory", "_submitLabel", "_labelFromInput",
             "_onKeyPressNewLabel", "_onKeyPressNewCategory", "_onClickNewCategory", "_onClickPlusCategory", "_onClickPlusLabel",
             "_setLabelsRemovability", "_hideLabelEditor", "_showLabelEditor",
-            "sURLProjectLabels", "sURLLabelCategories", "sURLLabels", "nProjectId", "welLabelBoard", "welLabelEditorToggle"
+            "sURLProjectLabels", "sURLLabelCategories", "sURLLabels", "nProjectId", "welLabelBoard", "welLabelEditorToggle",
+            "repositoryURL", "_onClickRepoURL", "welRepoURL"
         ).map { Regex(Regex.escape(it)) }
         val files = listOf(File(js, "service/yona.project.Home.js"), File(templates, "project/home.html"))
         val hits = files.flatMap { f -> code(f).let { text -> banned.filter { it.containsMatchIn(text) }.map { "${f.path}: ${it.pattern}" } } }
