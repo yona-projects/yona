@@ -1941,3 +1941,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] cleanup | canvas-to-blob.js 삭제(A-412)
 
 선생님이 "표준 canvas.toBlob이 대신 가능할지 확인 필요"라고 하셔서 확인했다. 폴리필은 `toBlob`이 없는 브라우저에서만 채우고 `dataURLtoBlob`은 아무도 부르지 않는다. Chromium과 Firefox에서 네이티브 `toBlob`이 있고 128x128 PNG를 돌려주며 폴리필은 `toBlob`을 바꾸지 않음을 실행으로 확인한 뒤 지웠다. 실제 앱에서 아바타 자르기와 업로드를 양쪽 브라우저로 16개 항목 확인했다(서버에 PNG 저장, 128x128). 시험을 먼저 확장해 실패를 확인했다.
+
+## [2026-11-09] docs | 직접 만든 JS를 표준 브라우저 기능으로 바꾸는 검토 기록(`architecture/standard-feature-replacement.md`)
+
+선생님이 "직접 만든 것 중에 표준 브라우저가 지원하는 기능으로 바꿀 수 있는지 확인해줘"라고 하셨고, 이어서 "부품별 판단은 적어 놓고 하나씩 하자"고 하셨다. 부품 14개(S-01~S-14)의 판단과 상태를 문서로 적었고, 확인 중 발견한 것 3건(F-01 `yona.Sha1.js`가 호출 없이 로드됨, F-02 `yona.ui.Tabs.js` 복원 결함 R-139, F-03 `yona.Files.js`의 `FireFox` 대소문자 R-140)을 기록했다. 코드는 바꾸지 않았다. 첫 항목 S-01은 `yona.Clipboard.js`이다.
