@@ -1949,3 +1949,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] cleanup | S-01 복사 도구를 yona.Clipboard 하나로 합치고 clipboard.js 제거(A-413)
 
 이슈 보기의 메일 복사 단추를 clipboard.js에서 `yona.Clipboard.copy`로 옮기고 clipboard.js를 번들에서 뺐다(`yona-common.js` 66,183 → 56,865바이트). 모달 안에서 http일 때 임시 입력 칸을 모달 밖에 만들면 `copy()`가 `true`인데 클립보드가 비는 조용한 실패가 실제로 났다(Chromium과 Firefox). 도우미에 컨테이너 인자를 더해 풀었고 실제 앱에서 보안 연결과 http 두 경우를 두 브라우저로 16개 항목 확인했다. 관련 시험 460건, JS 155개, 번들 8개 통과(전체 H2는 돌리지 않음).
+
+## [2026-11-09] cleanup | 동작하지 않는 복사 속성 제거(A-414)
+
+선생님이 "동작 안 하는 data 속성은 제거"라고 하시고 복사 관련으로 범위를 좁히셨다. `project/home.html`의 `data-clipboard-target="cloneURL"`(읽는 곳 없음)을 지웠다. `data-clipboard-text`는 이슈 보기가 읽는 속성이라 두었다. 타입어헤드의 `data-provider="typeahead"`(동작하지 않는 오타 속성)는 범위 밖이라 두고 여쭙는다.
