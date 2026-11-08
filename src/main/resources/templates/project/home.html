@@ -145,12 +145,6 @@
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     $yona.loadModule("project.Home", {
-        "sURLProjectLabels": [[${#paths.project(projectView.project.owner, projectView.project.name) + '/labels'}]],
-        "sURLLabels"       : "/labels",
-        "sURLLabelCategories": "/categories",
-        "welLabelBoard": $('#label-board'),
-        "welLabelEditorToggle": $('#label-editor-toggle'),
-        "nProjectId"     : [[${'' + projectView.project.id}]],
         "sURLProject"       : [[${#paths.project(projectView.project.owner, projectView.project.name)}]]
     });
 });

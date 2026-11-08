@@ -54,7 +54,6 @@
             htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
             htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
             htElement.welTplFileItem = $('#tplAttachedFile');
-            htElement.welAssignee = $("#assignee");
             htElement.welDueDate = $(htOptions.elDueDate || "#issueDueDate");
         }
 
@@ -75,12 +74,6 @@
             });
 
             temporarySaveHandler(htElement.welTextarea);
-
-            htElement.welAssignee.on("select2:selecting", function(weEvt){
-                if($(weEvt.params.args.data.element).data("forceChange")){
-                    htElement.welAssignee.trigger("change");
-                }
-            });
         }
 
         function _onBeforeUnload(){

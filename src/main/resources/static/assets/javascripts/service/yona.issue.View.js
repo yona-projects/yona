@@ -88,7 +88,6 @@
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
             elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeDueDate);
-            elements.issueInfoWrap.on("select2:selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 
             // Detect textarea events for autoUpdate timeline
             elements.textarea.on({
@@ -107,23 +106,6 @@
                     $yona.notify(Messages(res.responseText), 3000);
                 }
             });
-        }
-
-        function _onSelectingAssignee(evt){
-            var targetElement = $(this);
-            var selectedElement = targetElement.find(':selected');
-            var selectingData = evt.params.args.data;
-            var isValueNotChanged = (targetElement.val() === selectingData.id);
-            var isForceChange = $(selectingData.element).data("forceChange");
-            var isNonMember = selectedElement.data("nonMember");
-
-            if (isNonMember && !isValueNotChanged) {
-                selectedElement.remove();
-            }
-
-            if(isForceChange && isValueNotChanged){
-                targetElement.trigger("change");
-            }
         }
 
         /**
