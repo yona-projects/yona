@@ -19,7 +19,7 @@
         </select>
     </div>
     <div class="col-lg-6">
-        <select class="form-select" id="parentId" name="parentIssueId" data-format="issues" th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-width="100%" th:disabled="${!showOption}">
+        <select class="form-select" id="parentId" name="parentIssueId" data-format="issues" th:attr="data-placeholder=${hasChildIssue} ? '이미 부모 이슈입니다.' : #{issue.subtask.select}" data-toggle="select2" data-width="100%" th:disabled="${!showOption}">
             <option value="" selected th:text="${hasChildIssue} ? '이미 부모 이슈입니다.' : #{issue.subtask.select}"></option>
             <option th:if="${selectedParent != null}" th:value="${selectedParent.id}" selected th:text="'#' + ${selectedParent.number} + '. ' + ${selectedParent.title}"></option>
             <th:block th:unless="${hasChildIssue}">

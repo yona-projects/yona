@@ -197,6 +197,18 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `부모 이슈 선택의 안내 글자는 첫 빈 option의 글자와 같다 (select2 4는 placeholder로 그 글자를 덮는다)`() {
+        // v1.6은 data-placeholder에 "프로젝트 선택" 문구를 잘못 달았지만 select2 3.4.5는 선택된 첫 option의 글자("— 부모 이슈 선택 —")를 보여 줬다.
+        // select2 4.1.0은 빈 값 option을 placeholder로 덮어 "프로젝트 선택"이 보이므로, placeholder를 그 option의 글자와 같게 해 v1.6의 화면을 지킨다.
+        val doc = form(newProject(), session = login(newUser()))
+        val select = doc.selectFirst("select#parentId")!!
+        val first = select.selectFirst("option")!!
+        assertEquals("", first.attr("value"))
+        assertTrue(first.text().isNotBlank(), "첫 빈 option에 안내 글자가 있어야 한다")
+        assertEquals(first.text().trim(), select.attr("data-placeholder"))
+    }
+
+    @Test
     fun `오른쪽 메뉴의 담당자, 마일스톤, 마감일, 라벨`() {
         val project = newProject()
         val member = join(newUser(), project)

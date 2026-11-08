@@ -1921,3 +1921,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-08] build | `<title-input>`을 yona의 머리말 화면 3곳에 연동(D-102, A-408)
 
 선생님이 "yona에 붙여 달라, at.js를 쓰면서 머리말 자동완성을 쓰는 페이지에만, 이번에는 그래들 빌드까지 수용"이라고 하셨다. 이슈 작성, 이슈 수정, 게시글 작성의 제목 입력란을 `<title-input>`으로 바꾸고 본문 멘션은 At.js를 그대로 두었다. 번들은 `components/title-input`에서 빌드해 `lib/title-input/`에 복사하고 sha256을 기준 목록에 고정했다. `yona.TitleHeadAutoCompletion.js`는 이벤트 연결로 바꾸고 `_page.scss`에 호스트와 `::part(input)` 규칙을 더했다. 교체 전 모양은 옛 jar(포트 19400)에서 크롬 개발자 도구 프로토콜로 규칙과 계산값을 읽어 기준으로 삼았고, 교체 후 jar(포트 19401)와 제목 영역 픽셀을 비교해 같아지도록 고쳤다. **실제 앱 확인에서 시험이 잡지 못한 결함 여럿이 나왔다**(선택자, 전역 단축키가 제목 글자를 단축키로 받음, Enter 포커스 이동, `yona.board.Write.js`의 `input#title`, 호스트의 밑줄 중복, placeholder 색, 초기 캐럿). 모두 시험을 먼저 써서 실패를 확인한 뒤 고쳤다(`architecture/title-input-component.md` 표). 전역 단축키는 `yona-lib.js` 번들 안에 있어 번들을 다시 빌드했다(변경 전 소스로 다시 빌드하면 번들이 같음을 먼저 확인, 바뀐 번들은 `yona-lib.js` 하나). 시험: components 158개와 번들 모드 128개, JS 전체 128개, `build-tools/js-bundle` 8개, **Gradle 전체 H2 4907건(건너뜀 2, 실패 0) 16분 22초**, Playwright 실제 앱 확인 28개 항목(Chromium, Firefox). 커밋은 하지 않았다. 작업 중 확인용 앱은 `build/libs`의 jar를 건드리지 않도록 `-I` 초기화 스크립트로 `bootJar` 출력 폴더를 따로 지정해 만들었다(포트 19300의 앱이 그 jar를 쓰고 있다).
+
+## [2026-11-08] fix | 부모 이슈 선택의 안내 글자 정정(A-409, R-138)
+
+선생님이 이슈 수정 화면의 교체 전후 비교 이미지에서 "교체 전은 부모 이슈 선택, 교체 후는 프로젝트 선택"이라고 짚으셨다. 앞서 그 차이를 "옛 select2 차이"로만 적고 글자는 확인하지 않았는데, 실제로는 select2 4.1.0 교체(D-95)에서 생긴 회귀였다: v1.6이 `#parentId`에 잘못 단 `data-placeholder="프로젝트 선택"`을 select2 3.4.5는 가렸고 4.1.0은 드러냈다. `data-placeholder`를 첫 option의 글자와 같게 고쳤고(시험이 먼저 실패함을 확인) 4가지 상태를 실제 앱에서 확인했다.
