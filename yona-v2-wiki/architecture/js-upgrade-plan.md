@@ -34,11 +34,11 @@ updated: 2026-11-08
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
 | Pikaday | 마감일 추가, import 경로 이동 |
 | js-xss | XSS 방어 수정 5건 |
-| select2 | 공식과 860자 차이 |
+| select2 | **패치 없음(정정)**: 공식 3.4.5 배포본(cdnjs)과 공백 무시 0줄, 공백 포함해도 들여쓰기 한 줄 차이. "860자"는 이 들여쓰기가 바이트 비교를 밀어 만든 숫자였다. 4.1.0 교체(D-95)로 해당 없음 |
 | marked | 사용자 지정 패치(37건) |
 | mention.js | Yona 자체 코드(10건) |
 
-jquery-pjax는 공식 2.0.1과 같았고 **htmx로 대체해 지웠다**(`D-96`). jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
+jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지웠다**(`D-96`). 같은 방식(공식 배포본과 대조, 2026-11-08)으로 확인하니 **교체한 select2, jquery.tmpl, pjax, Jcrop은 모두 Yona 팀의 기능 패치가 없었다**: select2는 들여쓰기 한 줄, jquery.tmpl 1.0.0pre는 본문이 같고 공식 저장소가 나중에 덧붙인 AMD 래퍼만 다르며, pjax 2.0.1과 Jcrop 0.9.12는 공식 파일과 바이트가 같다. 그래서 이 넷은 옮길 패치가 없었고, 새 버전이 패치 효과를 "가지고 있어서" 필요 없어진 것이 아니다. 패치가 실제로 있는 라이브러리는 새 버전이 그 효과를 자동으로 갖지 않는다(At.js 1.5.4에는 IME 방어와 iframe 처리가 없고, 최신 Viewer.js는 목록 이동 계산을 다시 짜서 같은 문제가 해결되었는지 시험 전에는 알 수 없다). jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
 
 **정리 완료**(`A-393`, 2026-11-07): 옛 파일과 참조가 없는 벤더 파일 14개를 지웠다(jQuery 1.7.2, 1.9.0, 3.3.1, jQuery UI 1.10.4와 `ui.custom`, `moment-with-langs`, underscore, magnific-popup JS, dynatree JS, event.drag, `jquery.validate.min.js`, scrollTo). 지우지 않은 것: `jquery.cookie.js`(템플릿 3곳이 불러오나 호출 없음), zclip과 `ZeroClipboard.swf`(복사 버튼이 사용), `validate`와 `placeholder`와 zclip(번들 `yona-common.js`의 입력), Jcrop, `magnific-popup.css`, dynatree CSS. 남은 정리는 번들 재현성을 해결한 뒤 번들에서 미사용 코드를 빼는 일과 `jquery.cookie`를 불러오는 템플릿 3곳이다. clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
 
