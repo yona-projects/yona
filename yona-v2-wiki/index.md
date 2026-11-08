@@ -142,5 +142,6 @@
 - [JS 라이브러리 대체 후보 조사](architecture/js-library-alternatives.md): 없어지는 라이브러리의 대체, 유틸리티성 라이브러리의 경량 대체, jquery.tmpl과 underscore(미결정, 2026-11-07)
 - [select2 4.1.0 업데이트 계획](architecture/select2-upgrade-plan.md): 3.4.5에서 4.1.0으로 올리는 단계, 달라지는 API와 대응, 위험(D-95, 2026-11-07)
 - [마크다운 편집기 EasyMDE 시험](architecture/markdown-editor-trial.md): 멘션 자동완성 조건에서 At.js 패치 항목 재현 여부와 적용 가능성
+- [title-input 컴포넌트](architecture/title-input-component.md): 제목 머리말 자동완성을 Lit 요소로 대체(D-102), At.js 규칙과 패치 4건의 반영, 크기, 연동 할 일
 - [OpenAPI 문서(Swagger UI)](architecture/openapi-docs.md): `/-_-api/docs`, 구성, 모델 규칙, 구조 시험과 계약 시험(D-50)
 - [프로젝트 위키](architecture/project-wiki.md): 저장소 위치, 페이지 규칙, 서비스, 단계(X-17, D-60)

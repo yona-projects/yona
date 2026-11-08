@@ -4,11 +4,19 @@
  * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
+
+/**
+ * 제목 머리말(`[`) 자동완성을 `<title-input>`(components 저장소의 `title-input`)에 연결한다.
+ *
+ * v1.6은 `<input id="title">`에 At.js로 머리말을 붙였다. 지금은 `<title-input>`이 `[` 질의, 서버 조회, 목록, 키 처리를 맡고,
+ * 이 모듈은 yona의 일만 한다: 라벨을 고르면 `<select id="labelIds">`를 바꾸고(같은 분류에서 하나만 고르는 분류는 교체) select2를 갱신하고
+ * 알림을 띄우며, 조회의 시작과 끝에 NProgress를 보인다. 라벨이 아니거나 `#labelIds`가 없는 화면은 `[이름]` 글자를 그대로 넣는다.
+ *
+ * @param {{target: string, url?: string}} htOptions `target`은 `<title-input>`의 선택자, `url`은 머리말 후보를 묻는 주소(`src`가 없을 때만 쓴다)
+ */
 function yonaTitleHeadModule(htOptions){
     var htVar = {};
-    var htElement = {};
-    var issueLabels = [];
-    var projectLabels = getProjectLabels();
+    var welTarget = null;
 
     /**
      * Initialize
@@ -16,162 +24,63 @@ function yonaTitleHeadModule(htOptions){
      * @param {Hash Table} htOptions
      */
     function _init(htOptions){
-        _initVar(htOptions);
-        _initElement();
-        _attachEvent();
-
-        if($("#labelIds").length > 0 ) {
-            issueLabels = $("#labelIds").val();
-        }
-    }
-
-    /**
-     * Initialize Variables
-     *
-     * @param {Hash Table} htOptions
-     */
-    function _initVar(htOptions) {
-        htVar = htOptions || {}; // set htVar as htOptions
-        htVar.doesNotDataLoaded = true;
-        htVar.nKeyupEventGenerator = null;
-        htVar.sMentionText = null;
-    }
-
-    /**
-     * Initialize Element variables
-     */
-    function _initElement() {
+        htVar = htOptions || {};
         if (!htVar.target) {
             if (window.console) {
-                console.error("mention form element targeting doesn't exist!")
+                console.error("title head form element targeting doesn't exist!");
             }
             return;
         }
-        htElement.welTarget = $(htVar.target);
+        welTarget = $(htVar.target);
+        if (welTarget.length === 0) {
+            return;
+        }
+        if (htVar.url && !welTarget.attr("src")) {
+            welTarget.attr("src", htVar.url);
+        }
+        _attachEvent();
     }
+
     /**
      * attachEvent
      */
     function _attachEvent() {
-        htElement.welTarget.on("keypress", _onKeyInput);
-        if (jQuery.browser.mozilla){
-            htElement.welTarget.on("focus", _startKeyupEventGenerator);
-            htElement.welTarget.on("blur", _stopKeyupEventGenerator);
-        }
+        welTarget.on("title-input-select", _onSelect);
+        welTarget.on("title-input-loadstart", function() { NProgress.start(); });
+        welTarget.on("title-input-loadend", function() { NProgress.done(); });
     }
 
     /**
-     * Event handler on KeyInput event
+     * 후보를 골랐을 때. 라벨이면 select에서 고르고 글자는 남기지 않는다(이벤트를 취소하면 컴포넌트는 `[질의`만 지운다).
+     * 라벨이 아니거나 라벨 select가 없는 화면이면 취소하지 않아 `[이름]`이 들어간다.
      *
-     * @param {Event} eEvt
+     * @param {Event} eEvt `title-input-select`. `detail.item`은 서버가 준 후보
      */
-    function _onKeyInput(eEvt){
-        eEvt = eEvt || window.event;
+    function _onSelect(eEvt) {
+        var item = eEvt.originalEvent.detail.item;
+        var $labelField = $("#labelIds");
 
-        var charCode = eEvt.which || eEvt.keyCode;
-        if(charCode === 91) { // 91 = [
-            if(htVar.doesNotDataLoaded) {
-                _findTitleHead(eEvt);
-            }
-        }
-    }
-
-    function _startKeyupEventGenerator(){
-        if (htVar.nKeyupEventGenerator){
-            clearInterval(htVar.nKeyupEventGenerator);
+        if (!item.category || $labelField.length === 0) {
+            return;
         }
 
-        htVar.nKeyupEventGenerator = setInterval(
-            function(){
-                if (htVar.sMentionText != htElement.welTarget.val()){
-                    htElement.welTarget.trigger("keyup");
-                    htVar.sMentionText = htElement.welTarget.val();
-                }
-            }
-            ,100);
-    }
+        eEvt.originalEvent.preventDefault();
 
-    function _stopKeyupEventGenerator(){
-        if (htVar.nKeyupEventGenerator){
-            clearInterval(htVar.nKeyupEventGenerator);
-            htVar.nKeyupEventGenerator = null;
-        }
-    }
+        var issueLabels = $labelField.val() || [];
+        var $selectedLabel = $labelField.find("option[value=" + item.id + "]");
+        $selectedLabel.prop('selected', true);
 
-    function _findTitleHead(){
-        htVar.doesNotDataLoaded = false;
-
-        var searchPending;
-
-        htElement.welTarget
-            .atwho({
-                at: "[",
-                limit: 10,
-                displayTpl: "<li data-value='@${name}' data-category-id='${categoryId}' data-is-exclusive='${isExclusive}' data-id='${id}'><small style='color: #${labelColor}'>${category}</small> ${name}</li>",
-                suspendOnComposing: false,
-                searchKey: "searchText",
-                suffix: "",
-                insertTpl: "[${name}]",
-                startWithSpace: false,
-                callbacks: {
-                    remoteFilter: function(query, callback) {
-                        NProgress.start();
-                        issueLabels = $("#labelIds").length > 0 && $("#labelIds").val() || [];
-                        clearTimeout(searchPending);
-
-                        searchPending = setTimeout(function () {
-                            $.getJSON(htVar.url, { query: query }, function (data) {
-                                NProgress.done();
-                                callback(data.result);
-                            });
-                        }, 300);
-                    },
-                    sorter: function(query, items, searchKey) {
-                        var results = [];
-
-                        items.forEach(function (item) {
-                            if (item[searchKey].toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                                results.push(item);
-                            }
-                        });
-
-                        return results.sort(function(a, b) {
-                            if(b.frequency === a.frequency) {
-                                if(b.category.toLowerCase() === a.category.toLowerCase()) {
-                                    return a.name.toLowerCase() >= b.name.toLowerCase() ? 1 : -1;
-                                } else {
-                                    return a.category.toLowerCase() > b.category.toLowerCase() ? 1 : -1;
-                                }
-                            }
-                            return b.frequency - a.frequency;
-                        });
-                    },
-                    beforeInsert: function(value, $li, e) {
-                        var category = $li.find("small").text();
-                        var selectedValueOnly = value.substring(1, value.length - 1);
-                        var $labelField = $("#labelIds");
-
-                        if (category && $labelField.length > 0) {
-                            var $selectedLabel = $labelField.find("option[value=" + $li.data("id")  + "]");
-                            $selectedLabel.prop('selected', true);
-
-                            if($li.data("isExclusive")){
-                                issueLabels = issueLabels.filter(function(label){
-                                    return projectLabels[$li.data("categoryId")].indexOf(label) === -1
-                                });
-                            }
-
-                            issueLabels.push($selectedLabel.val());
-                            $("#labelIds").val(issueLabels).trigger("change.select2");
-
-                            $yona.notify('Label: ' + selectedValueOnly, 3000);
-                            return "";
-                        } else {
-                            return value;
-                        }
-                    }
-                }
+        if (item.isExclusive) {
+            var labelsOfTheCategory = getProjectLabels()[item.categoryId] || [];
+            issueLabels = issueLabels.filter(function(label){
+                return labelsOfTheCategory.indexOf(label) === -1;
             });
+        }
+
+        issueLabels.push($selectedLabel.val());
+        $labelField.val(issueLabels).trigger("change.select2");
+
+        $yona.notify('Label: ' + item.name, 3000);
     }
 
     /**
@@ -189,9 +98,9 @@ function yonaTitleHeadModule(htOptions){
             var allLabelsOfTheCategory = [];
             var categoryId;
             $(this).children().each(function(){
-                $this = $(this);
+                var $this = $(this);
                 allLabelsOfTheCategory.push($this.val());
-                categoryId = $this.data("categoryId")
+                categoryId = $this.data("categoryId");
             });
 
             allLabels[categoryId] = allLabelsOfTheCategory;

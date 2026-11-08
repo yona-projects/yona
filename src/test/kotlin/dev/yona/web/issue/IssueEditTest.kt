@@ -136,7 +136,7 @@ class IssueEditTest : AbstractIntegrationTest() {
         assertEquals("${base(project)}/issue/1/edit", form.attr("action"))
         assertEquals("multipart/form-data", form.attr("enctype"))
         assertEquals("#1", form.selectFirst("dt label strong")!!.text())
-        assertEquals("제목 1", form.selectFirst("input#title")!!.attr("value"))
+        assertEquals("제목 1", form.selectFirst("title-input#title")!!.attr("value"))
         assertEquals("본문 1", form.selectFirst("textarea[name=body]")!!.text())
         assertEquals("2030-05-06", form.selectFirst("input#issueDueDate")!!.attr("value"))
         assertEquals("false", form.selectFirst("input#isDraft")!!.attr("value")); assertEquals("false", form.selectFirst("input#isPublish")!!.attr("value"))
@@ -239,7 +239,7 @@ class IssueEditTest : AbstractIntegrationTest() {
         issue(project, author = author)
         val doc = Jsoup.parse(submit(project, login(author), 1, "title" to "", "body" to "b").andExpect(status().isBadRequest).andReturn().response.contentAsString)
         assertEquals("This field is required", doc.selectFirst("div.message div")?.text())
-        assertEquals("제목 1", doc.selectFirst("input#title")!!.attr("value"))
+        assertEquals("제목 1", doc.selectFirst("title-input#title")!!.attr("value"))
     }
 
     @Test

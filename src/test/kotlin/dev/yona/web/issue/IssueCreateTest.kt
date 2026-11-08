@@ -135,7 +135,7 @@ class IssueCreateTest : AbstractIntegrationTest() {
         assertEquals("${base(project)}/issues/latest", form.attr("action"))
         assertEquals("post", form.attr("method").lowercase())
         assertEquals("multipart/form-data", form.attr("enctype"))
-        val title = form.selectFirst("input#title[name=title]")!!
+        val title = form.selectFirst("title-input#title[name=title]")!!
         assertEquals("250", title.attr("maxlength")); assertEquals("1", title.attr("tabindex")); assertEquals("Title", title.attr("placeholder"))
         val body = form.selectFirst("textarea[name=body]")!!
         assertEquals("2", body.attr("tabindex")); assertEquals("", body.text())
@@ -347,7 +347,7 @@ class IssueCreateTest : AbstractIntegrationTest() {
     fun `제목이 없으면 오류와 함께 폼을 다시 보여 준다`() {
         val project = newProject()
         val doc = Jsoup.parse(submit(project, login(newUser()), "title" to "", "body" to "b").andExpect(status().isBadRequest).andReturn().response.contentAsString)
-        assertTrue(doc.select("input#title.error").isNotEmpty())
+        assertTrue(doc.select("title-input#title.error").isNotEmpty())
         assertEquals("This field is required", doc.selectFirst("div.message div")?.text())
         assertEquals(0, issues.findAll().count { it.project?.id == project.id })
     }

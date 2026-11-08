@@ -49,7 +49,7 @@
 
             // Validate
             htElement.welForm = $("form");
-            htElement.welInputTitle = $("input#title");
+            htElement.welInputTitle = $("#title");
         }
 
         /**

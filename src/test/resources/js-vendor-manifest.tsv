@@ -1,4 +1,5 @@
 # 공식 배포 파일 그대로 들여온 JS 벤더 파일의 기준이다(JS 라이브러리 업그레이드, decisions.md D-91, A-392). 형식: 경로(lib/ 아래)<TAB>이름<TAB>버전<TAB>sha256
+# `title-input/`은 공식 배포 파일이 아니라 components 저장소(`components/title-input`)에서 빌드한 산출물이다(D-102, A-408). 컴포넌트를 고치면 다시 빌드해 복사하고 이 줄의 sha256도 고친다.
 # 라이브러리를 올릴 때 이 표도 함께 고친다. 올리지 않은 파일이 몰래 바뀌면 JsLibraryVersionsTest가 실패한다. Yona가 고친 벤더 파일(pageslide, At.js 등)은 여기에 없다.
 jquery/jquery-3.7.1.js	jQuery	3.7.1	78a85aca2f0b110c29e0d2b137e09f0a1fb7a8e554b499f740d6744dc8962cfe
 jquery/jquery-ui-1.14.2.custom.min.js	jQuery UI 효과 묶음(공식 UMD 소스를 이어 붙여 Closure로 압축)	1.14.2	117d1881bdcbd4e0f0f4935a3a46de7da5a9761f11f4c7256fe61f3a2964b4d2
@@ -21,3 +22,4 @@ select2/i18n/ja.js	select2 i18n(ja)	4.1.0	14101b2400506ac881bcaeb71d80c28e3cfd60
 select2/i18n/ru.js	select2 i18n(ru)	4.1.0	3157080cd1da392bd61915d6ccbec6307e5fd5b542c5c22769a87afbb2549a92
 select2/i18n/en.js	select2 i18n(en)	4.1.0	b199a87f87c2e248deef33625b216cb9010999e78ab376dc089058b5af3e24e5
 cropperjs/cropper.js	Cropper.js	2.3.1	a5aa9e4ac7d12135dee2095bcd583ec37a193d78ac939bf78c306b7fe8627602
+title-input/title-input.min.js	title-input(Lit 3.2.1 포함, components 저장소 빌드)	0.1.0	f776a5cbd2fc8b29624beffefdff1d6b876abc6c2113b560eda33c7feeef2849

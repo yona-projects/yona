@@ -3804,6 +3804,45 @@ div.markdown-preview {
 		margin-bottom: 5px;
     }
 
+    // 제목 머리말 자동완성은 `<title-input>`(components 저장소의 title-input, decisions.md D-102)이다. 옛 `input.text.title`
+    // (`width: 97%`, 안쪽 여백 4px 6px, 밑줄 1px #ddd, 글자 1.125rem, 포커스 밑줄 #F36C22, 그림자 없음)과 바깥 상자와 모양이 같도록
+    // 호스트는 바깥 상자(폭, 여백, 글자 크기)를, 보이는 입력란은 안쪽 `::part(input)`을 꾸민다. Shadow DOM이라 Bootstrap의 `.form-control`은 닿지 않는다.
+    title-input.title {
+        display: inline-block;
+        width: calc(97% + 12px); // 옛 입력란의 `width: 97%`(content-box) + 좌우 안쪽 여백 6px x 2
+        margin-top: 15px;
+        margin-bottom: 15px;
+        font-size: 1.125rem;
+        line-height: 1.25rem;
+        vertical-align: baseline; // 옛 입력란과 같은 인라인 정렬
+        border: none; // 위의 `.title` 규칙이 호스트에도 밑줄을 그리므로 지운다. 보이는 밑줄은 안쪽 입력란 하나뿐이다.
+    }
+    title-input.title.error {
+        margin-bottom: 5px; // `.error`가 `.title`의 여백을 덮던 순서(옛 규칙은 둘의 우선순위가 같았다)
+    }
+    title-input.title::part(input) {
+        box-sizing: content-box;
+        width: calc(100% - 12px);
+        height: 20px;
+        padding: 4px 6px;
+        line-height: 1.25rem;
+        border: none;
+        border-bottom: 1px solid #ddd;
+        border-radius: 0;
+        color: var(--bs-body-color);
+        background-color: var(--bs-body-bg);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    title-input.title::part(input)::placeholder {
+        color: #595959; // 옛 입력란의 안내 글자 색(컴포넌트 기본은 #757575)
+        opacity: 1;
+    }
+    title-input.title::part(input):focus {
+        border-bottom-color: #F36C22;
+        box-shadow: none;
+        outline: 0;
+    }
+
 	.message {
 		margin-bottom: 15px;
 		color:red;

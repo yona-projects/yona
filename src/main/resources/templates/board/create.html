@@ -19,8 +19,8 @@
       <div class="content-wrap frm-wrap">
         <dl>
           <dd>
-            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1"
-                   th:value="${titleValue}" th:placeholder="${hasPath} ? #{code.commitMsg} : #{title}"/>
+            <title-input id="title" name="title" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1"
+                   th:value="${titleValue}" th:placeholder="${hasPath} ? #{code.commitMsg} : #{title}"></title-input>
             <div th:if="${errors['title'] != null}" class="message">
               <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
             </div>
@@ -77,6 +77,7 @@
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/lib/title-input/title-input.min.js}"></script>
 <script type="text/jAvascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
 <script type="text/javascript" th:inline="javascript">
 $(function(){
@@ -113,7 +114,7 @@ $(function(){
     /*[/]*/
 
     yonaTitleHeadModule({
-        "target": 'input[id=title]',
+        "target": 'title-input#title',
         "url"   : /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/titleHeads'}]]*/ ""
     });
 });

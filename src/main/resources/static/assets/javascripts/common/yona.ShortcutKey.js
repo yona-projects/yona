@@ -78,11 +78,26 @@ yona.ShortcutKey = (function(htOptions){
         }
     }
 
+    /**
+     * 키를 누른 실제 요소를 돌려준다.
+     * Shadow DOM 안의 입력란(`<title-input>`)에서 난 이벤트는 경계에서 대상이 호스트로 바뀌어 `weEvt.target`이 입력란이 아니다.
+     * 그러면 입력란에 글자를 치는 것을 단축키로 잘못 알아본다. `composedPath()`의 첫 요소가 실제 대상이다.
+     *
+     * @param {Wrapped Event} weEvt
+     */
+    function _getActualTarget(weEvt){
+        var oEvt = weEvt.originalEvent;
+        var aPath = (oEvt && typeof oEvt.composedPath === "function") ? oEvt.composedPath() : [];
+        var elActual = aPath[0];
+        return (elActual && elActual.nodeType === 1) ? elActual : weEvt.target;
+    }
+
     function _runEventHandler(fHandler, weEvt, sKeyInput){
-        var sTagName = weEvt.target.tagName.toUpperCase();
+        var elTarget = _getActualTarget(weEvt);
+        var sTagName = elTarget.tagName.toUpperCase();
         var htInfo = {
             "weEvt"     : weEvt,
-            "welTarget" : $(weEvt.target),
+            "welTarget" : $(elTarget),
             "sTagName"  : sTagName,
             "sKeyInput" : sKeyInput,
             "bFormInput": (htVar.aFormTags.indexOf(sTagName) > -1)
