@@ -7,7 +7,7 @@
   모델: cond(IssueSearchCondition), items(UserIssueRow 목록), pageIndex, totalPageCount, openCount, closedCount, meId, quickCounts
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="mySearch">
-<div pjax-container class="row issue-list-wrap">
+<div pjax-container hx-target="this" hx-select="div[pjax-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
     <div class="left-menu col-lg-2 span-hard-wrap">
         <div class="inner advanced">
             <ul class="lst-stacked list-unstyled">
@@ -46,7 +46,7 @@
                 </li>
             </ul>
 
-            <form id="search" name="search" th:action="@{/user/issues}" method="get">
+            <form id="search" name="search" th:action="@{/user/issues}" th:hx-get="@{/user/issues}" method="get">
                 <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
                 <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
                 <input type="hidden" name="state" th:value="${cond.state}">

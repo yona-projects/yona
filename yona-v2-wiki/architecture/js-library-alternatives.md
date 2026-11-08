@@ -4,7 +4,7 @@ type: architecture
 sources:
   - js-upgrade-plan.md
   - decisions.md
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # JS 라이브러리 대체 후보 조사 (미결정, 구현 전)
@@ -19,7 +19,7 @@ updated: 2026-11-07
 | jquery.browser 0.0.6 | 폐기 | 2줄, 2개 파일 | 제거(기능 감지) |
 | Jcrop 0.9.12 | 유지 끝 | 14줄, 2개 파일(프로필 이미지 자르기) | **Cropper.js 2**(2026-10 갱신, jQuery 불필요) |
 | At.js 1.5.3(멘션 자동완성) | 유지 끝, jQuery 4 제외 선언 | 5줄, 2개 파일, 템플릿 14곳 | Tribute.js 5.1(8.1KB, 2022년 이후 갱신 없음), Tagify 4.39(19.9KB, 2026-09 갱신, 멘션 모드), `@textcomplete/core`(2023), CodeMirror 6 자동완성(`components` 에디터가 이미 사용) |
-| jquery-pjax(2012년 사본, 전 화면 이동) | 유지 끝(2022) | 6줄, 2개 파일 | **htmx** `hx-boost`(18.4KB), **Turbo Drive**(25.4KB), **swup**(7.6KB), 모두 2026년 갱신. 이동 방식이 바뀌는 큰 일이라 별도 프로젝트 |
+| jquery-pjax(2012년 사본, 목록 영역 교체) | 유지 끝(2022). **htmx로 대체 완료**(D-96, 2026-11-08) | 6줄, 2개 파일(사용처는 목록 화면 5곳) | **htmx** `hx-boost`(18.4KB), **Turbo Drive**(25.4KB), **swup**(7.6KB), 모두 2026년 갱신. 이동 방식이 바뀌는 큰 일이라 별도 프로젝트 |
 | select2 3.4.5 | 4.1.0이 있음(결정: 마지막 단독 단계) | 7개 파일 | jQuery를 줄이려면 **Tom Select 2.6**(15.4KB, jQuery 불필요, 2026-07 갱신). select2 4.1(20.7KB)과 비교 |
 | jquery-pageslide 2.0.1 | 유지 끝 | 12줄, 8개 파일 | **Bootstrap 5 Offcanvas**(이미 포함) |
 | jquery.form 3.09 | 4.4.0이 있음 | 4줄, 2개 파일 | 올리거나 `fetch`와 `FormData` |
@@ -75,4 +75,4 @@ underscore가 쉽게 바꿔 주는 다른 일은 확인되지 않았다(앱이 `
 
 ## 4. 진행 순서 (선생님 지시, 2026-11-07)
 
-jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더 파일의 패치 이식 등, `js-upgrade-plan.md`)를 먼저 끝낸 뒤**에 한다. 템플릿 엔진은 **Mustache로 결정되어 교체를 마쳤다**(`decisions.md` D-94와 A-400, 2026-11-07, select2 4.1.0 업데이트 뒤). underscore는 이 앱에서 `_.` 호출이 없어 다른 용도가 없다. 지금 작업하라는 지시는 아니다. 참고 확인: jquery.tmpl 1.0.0은 jQuery 3.7.1에서 동작한다(문자열, 배열, 요소 템플릿, `{{if}}`, `appendTo`를 jsdom에서 실행해 확인). jQuery 4에서는 `jQuery.trim`(`jquery.tmpl.js` 325번째 줄) 한 줄이 걸린다.
+jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더 파일의 패치 이식 등, `js-upgrade-plan.md`)를 먼저 끝낸 뒤**에 한다. 템플릿 엔진은 **Mustache로 결정되어 교체를 마쳤다**(`decisions.md` D-94와 A-400, 2026-11-07, select2 4.1.0 업데이트 뒤). underscore는 이 앱에서 `_.` 호출이 없어 다른 용도가 없다. 이어서 jquery-pjax도 htmx로 대체했다(`decisions.md` D-96과 A-401, 2026-11-08). 선생님은 나중 UI 개편에서 Vue 컴포넌트 도입과 2단 보기 개선을 생각하고 계시며, 그때 이 영역은 다시 바뀔 수 있다. 지금 작업하라는 지시는 아니다. 참고 확인: jquery.tmpl 1.0.0은 jQuery 3.7.1에서 동작한다(문자열, 배열, 요소 템플릿, `{{if}}`, `appendTo`를 jsdom에서 실행해 확인). jQuery 4에서는 `jQuery.trim`(`jquery.tmpl.js` 325번째 줄) 한 줄이 걸린다.

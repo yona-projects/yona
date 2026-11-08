@@ -8,9 +8,9 @@
         newPullRequestUrl, contributors(ContributorOption), pushedBranches(PushedBranchRow), rows(PullRequestRow), totalPages
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search">
-<div pjax-container class="row cb">
+<div pjax-container hx-target="this" hx-select="div[pjax-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row cb">
     <div class="left-menu col-lg-2 search-wrap hide-in-mobile" style="padding-top:0;">
-        <form id="search" name="search" th:action="${searchAction}" method="get">
+        <form id="search" name="search" th:action="${searchAction}" th:hx-get="${searchAction}" method="get">
             <div class="search">
                 <div class="search-bar">
                     <input name="filter" class="textbox full" type="text" th:value="${filter}">
@@ -156,7 +156,7 @@
                             $(".title-prefix").on("click", function(){
                                 var filterInput = $("input[name*='filter']");
                                 filterInput.val($(this).text());
-                                filterInput.closest("form").submit();
+                                yona.Htmx.submit(filterInput.closest("form"));
                             });
                         })();
                     });
@@ -168,12 +168,12 @@
         $(function(){
             $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
               $('#search').attr('action', $(this).data('url'));
-              $('#search').submit();
+              yona.Htmx.submit('#search');
               return false;
             });
 
             yona.ui.Select2("#contributors").on("change", function(){
-                $('#search').submit();
+                yona.Htmx.submit('#search');
             });
         });
     </script>

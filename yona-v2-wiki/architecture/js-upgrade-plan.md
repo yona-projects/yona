@@ -7,7 +7,7 @@ sources:
   - ../build-tools/minify-js.sh
   - bs-migration-harness.md
   - decisions.md
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # JS 라이브러리 최신 버전 업그레이드 계획
@@ -19,6 +19,8 @@ updated: 2026-11-07
 **첫 묶음 완료**(`D-91`, `A-392`): jQuery 3.7.1(주 화면 번들과 첫 설정, 마이그레이션 화면 3개), jQuery UI 1.14.2 효과 묶음, autosize 6.0.1, NProgress 0.2.0(JS), Popper 2.11.8, Tippy.js 6.3.7, video.js 7.21.2, moment 2.31.0. 확인: `JsLibraryVersionsTest`, 전 화면 순회 비교(`jq331`과 `jqall`, 새 문제 0), Playwright 직접 확인 22개 항목.
 
 **번들 도구 교체 완료**(`D-92`, `A-395`, 2026-11-07): Closure Compiler(`compiler.jar`)를 vite 8.3.0으로 바꿨다(`build-tools/js-bundle/`, 이어 붙이기 플러그인). 같은 입력이면 byte 단위로 같은 결과가 나와 `yona-common.js`와 `yona-lib.js`의 재현성 문제가 풀렸다. clipboard.js 2.0.11 교체와 번들 안의 쓰이지 않는 validate, placeholder 제거도 마쳤다(`A-398`, 2026-11-07). 파일을 ES 모듈로 바꾸는 일은 별도 단계이다.
+
+**pjax를 htmx로 대체 완료**(`D-96`, `A-401`, 2026-11-08): jquery-pjax(jQuery 4에서 제거된 API를 쓰는 걸림돌)를 htmx 2.0.11로 바꿨다. 사용처는 이슈 목록, 내 이슈, 풀 리퀘스트 목록, 조직의 이슈와 풀 리퀘스트 목록의 영역 교체뿐이었다(전 화면 이동이 아니다. 앞서 적은 "전 화면 이동"은 잘못이었다). 서버 계약(`X-PJAX`, 조각 응답)은 바뀌지 않았다.
 
 **Yona가 v1.6에서 고친 벤더 파일**(v1.6 `git log`와 공식 파일 대조): 아래는 새 버전으로 덮어쓰면 수정이 사라지므로 **패치 이식이 필요**해 이번에 올리지 않았다.
 
@@ -34,7 +36,7 @@ updated: 2026-11-07
 | marked | 사용자 지정 패치(37건) |
 | mention.js | Yona 자체 코드(10건) |
 
-jquery-pjax는 공식 2.0.1과 같다. jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
+jquery-pjax는 공식 2.0.1과 같았고 **htmx로 대체해 지웠다**(`D-96`). jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
 
 **정리 완료**(`A-393`, 2026-11-07): 옛 파일과 참조가 없는 벤더 파일 14개를 지웠다(jQuery 1.7.2, 1.9.0, 3.3.1, jQuery UI 1.10.4와 `ui.custom`, `moment-with-langs`, underscore, magnific-popup JS, dynatree JS, event.drag, `jquery.validate.min.js`, scrollTo). 지우지 않은 것: `jquery.cookie.js`(템플릿 3곳이 불러오나 호출 없음), zclip과 `ZeroClipboard.swf`(복사 버튼이 사용), `validate`와 `placeholder`와 zclip(번들 `yona-common.js`의 입력), Jcrop, `magnific-popup.css`, dynatree CSS. 남은 정리는 번들 재현성을 해결한 뒤 번들에서 미사용 코드를 빼는 일과 `jquery.cookie`를 불러오는 템플릿 3곳이다. clipboard.js는 `yona-common.js` 번들 안에 있고 그 번들(그리고 `yona-lib.js`)이 어느 JVM으로도 byte 단위로 재현되지 않아(크기는 같고 변수 이름만 다름) 올리지 않았다. `yona-layout.js`는 재현되어 다시 만들었다.
 
@@ -72,7 +74,7 @@ jquery-pjax는 공식 2.0.1과 같다. jquery.event.drag와 jquery.scrollTo는 �
 
 **앱 코드(13개 파일)**: `$.trim` 21곳, `$.parseJSON` 6곳, `$.isNumeric` 1곳이다. `String.prototype.trim`, `JSON.parse`, `Number.isFinite`로 치환하면 된다.
 
-**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1), jquery.tmpl(`trim` 1, `isArray` 4. **Mustache 교체로 사라짐, D-94**), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
+**남기는 현재 플러그인(옛 사본)의 제거 대상 API 사용**: pjax(`trim` 1, `isArray` 2, `isFunction` 2, `type` 1. **htmx 대체로 사라짐, D-96**), jquery.tmpl(`trim` 1, `isArray` 4. **Mustache 교체로 사라짐, D-94**), dynatree(`trim` 3, `isArray` 2, `parseJSON` 1), event.drag(`isFunction` 2), At.js(`isArray` 2), jquery.form(2), jquery.cookie(2), jquery.search(1), jquery-viewer(1), jquery.elevator(1), select2 3.4.5(`isFunction` 11, `isArray` 3, `trim` 3). 모두 **치환 몇 줄**이다.
 
 **올릴 새 버전의 실제 배포 파일을 같은 목록으로 검사한 결과** (npm 선언과 함께):
 
@@ -86,7 +88,7 @@ jquery-pjax는 공식 2.0.1과 같다. jquery.event.drag와 jquery.scrollTo는 �
 | jquery.scrollTo 2.1.3 | `>=1.8` | 없음 | 지원으로 보임 |
 | jquery-placeholder 2.3.1 | `*` | 없음 | 지원으로 보임(제거 후보) |
 | jquery-pageslide 2.0.2 | 선언 없음 | 없음 | 지원으로 보임 |
-| **jquery-pjax 2.0.1** | 선언 없음 | `trim` 1, `isArray` 2, `isFunction` 2, `type` 1 | **미지원**(치환 6줄, 전 화면 이동 기능이라 직접 시험) |
+| **jquery-pjax 2.0.1** | 선언 없음 | `trim` 1, `isArray` 2, `isFunction` 2, `type` 1 | **미지원**. htmx로 대체해 걸림돌이 사라졌다(D-96) |
 | **At.js 1.5.4** | **`<4.0.0`(제외 선언)** | `isArray` 2 | **미지원**(치환 2줄과 시험, 2022년 이후 갱신 없음) |
 | **jquery.event.drag 2.2.2** | 선언 없음 | `isFunction` 2 | **미지원**(치환 2줄) |
 | **magnific-popup 1.2.0** | 선언 없음 | `trim` 1, `isArray` 1, `isFunction` 5, `type` 5, `parseJSON` 2 | **미지원**(앱 코드에서 호출이 없어 정리 후보) |

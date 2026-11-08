@@ -38,7 +38,7 @@
 
           /// label text color adjustment
           $(document).on({
-              "pjax:complete": labelTextColorAdjust
+              "htmx:afterSwap": labelTextColorAdjust
           });
           function labelTextColorAdjust() {
               $(".title-cell > .label").each(function () {

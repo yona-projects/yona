@@ -56,3 +56,7 @@ updated: 2026-10-25
 2. 풀 리퀘스트는 보내는 쪽 프로젝트도 보이는 목록에 있어야 해서 보이지 않는 프로젝트에서 온 요청은 빠진다.
 3. 이슈 목록은 `format`, PJAX를 구분하지 않는다.
 4. 이슈 목록은 `yona.showSubtask.js`를 불러오지 않는데 `yobi.issue.List.js`가 `_initShowSubtasks()`를 호출해 열 때마다 스크립트 오류가 난다. 마지막 호출이라 동작에는 영향이 없다(R-69).
+
+## 클라이언트의 영역 교체 (htmx)
+
+필터, 탭, 정렬, 검색, 페이지 이동은 문서를 새로 불러오지 않고 `div[pjax-container]` 안쪽만 바꾼다. 처음에는 jquery-pjax가 했고 지금은 htmx 2.0.11이 한다(`decisions.md` D-96, A-401). 컨테이너와 검색 폼의 `hx-*` 속성이 교체를 선언하고, 공통 설정(헤더 `X-PJAX`와 `X-Requested-With`, 진행 막대, 오류와 시간 초과와 목록 영역이 없는 응답의 일반 이동 대체, 이동 이력 처리)은 `common/yona.Htmx.js`가 한다. 서버 응답 계약은 위와 같고 바뀌지 않았다. 뒤로 가기는 그 주소를 서버에서 새로 불러온다([differences-from-v16.md](../architecture/differences-from-v16.md)).

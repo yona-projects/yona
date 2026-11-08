@@ -32,7 +32,7 @@
             $(".title-prefix").on("click", function(){
                 var filterInput = $("input[name*='filter']");
                 filterInput.val($(this).text());
-                filterInput.closest("form").submit();
+                yona.Htmx.submit(filterInput.closest("form"));
             });
         }
 
@@ -43,7 +43,7 @@
             _initElement(htOptions || {});
             _attachEvent();
             _initPagination();
-            _initPjax();
+            _initHtmx();
             _initImplicitTitlePrefix();
             _listHoverEffect();
             _initTwoColumnMode();
@@ -74,7 +74,7 @@
             htElement.welIssueWrap.on("change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
             htElement.welIssueWrap.on("change", "[data-search]", _onChangeSearchField);
             htElement.welIssueWrap.on("change", '[data-toggle="calendar"]', _onChangeSearchField);
-            htElement.welIssueWrap.on("submit", "form[name='search']", _onSubmitSearchForm);
+            htElement.welIssueWrap.on("htmx:beforeRequest", "form[name='search']", _onSubmitSearchForm);
         }
 
         /**
@@ -110,7 +110,7 @@
 
             htElement.welSearchForm.find("input[name=orderBy]").val(link.attr("orderBy"));
             htElement.welSearchForm.find("input[name=orderDir]").val(link.attr("orderDir"));
-            htElement.welSearchForm.submit();
+            yona.Htmx.submit(htElement.welSearchForm);
         }
 
         /**
@@ -124,7 +124,7 @@
             weEvt.preventDefault();
 
             htElement.welSearchForm.find("input[name=state]").val($(this).attr("state"));
-            htElement.welSearchForm.submit();
+            yona.Htmx.submit(htElement.welSearchForm);
         }
 
         /**
@@ -161,7 +161,7 @@
          * @private
          */
         function _onChangeSearchField() {
-            htElement.welSearchForm.submit();
+            yona.Htmx.submit(htElement.welSearchForm);
         }
 
         /**
@@ -185,7 +185,7 @@
                 htElement.welSearchForm.find('[data-search="' + key + '"]').val(data[key]);
             }
 
-            htElement.welSearchForm.submit();
+            yona.Htmx.submit(htElement.welSearchForm);
         }
 
         /**
@@ -199,47 +199,20 @@
         }
 
         /**
-         * Initialize Pjax
+         * 목록 영역(`div[pjax-container]`)을 htmx로 바꾸는 화면의 후처리를 단다.
+         * 어떤 폼과 링크가 영역을 바꾸는지는 템플릿의 `hx-*` 속성이 정하고(`decisions.md` D-96),
+         * 공통 설정(헤더, 진행 막대, 오류 대체)은 `yona.Htmx.js`가 한다.
+         * htmx는 영역 안쪽만 바꾸므로 영역 안쪽에 직접 단 이벤트와 스크립트가 만든 요소는 바꾼 뒤에 다시 초기화한다.
          *
-         * @requires jquery.pjax
+         * @requires htmx
          * @private
          */
-        function _initPjax(){
-            var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-            var isSafari = navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1;
-            // Workaround for pjax bug result from bfcache
-            // https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
-            if(isFirefox || isSafari){
-                return;
-            }
-            var htPjaxOptions = {
-                "fragment": "div[pjax-container]",
-                "timeout" : 3000
-            };
-
-            if($.support.pjax) {
-                $.pjax.defaults.maxCacheLength = 0;
-            }
-
-            // on click pagination
-            $(document).on("click", "a[pjax-page]", function(weEvt) {
-                $.pjax.click(weEvt, "div[pjax-container]", htPjaxOptions);
+        function _initHtmx(){
+            $(document).on("htmx:afterSwap", function(weEvt){
+                if($(weEvt.target).is("[pjax-container]")){
+                    _onLoadIssueList();
+                }
             });
-
-            // on submit search form
-            $(document).on("submit", "form[name='search']", function(weEvt) {
-                $.pjax.submit(weEvt, "div[pjax-container]", htPjaxOptions);
-            });
-
-            // show spinners
-            $(document).on({
-                "pjax:send"    : _onBeforeLoadIssueList,
-                "pjax:complete": _onLoadIssueList
-            });
-        }
-
-        function _onBeforeLoadIssueList(){
-            NProgress.start();
         }
 
         function _initShowChildList() {
@@ -253,8 +226,6 @@
         }
 
         function _onLoadIssueList(){
-            NProgress.done();
-
             _initElement(htInitialOptions);
             _initPagination();
             _initSelect2();
@@ -279,15 +250,15 @@
         }
 
         function _addEventAtOrganizationIssueSearchPage() {
-            // pjax reset previous events, so it is required adding event again.
+            // htmx replaces the contents of the list wrap, so events bound to its descendants are lost and required adding again.
             $("#projects" ).on("change", function(){
-                $("#search" ).submit();
+                yona.Htmx.submit($("#search"));
             });
         }
 
         /**
          * Initialize ui.Select2
-         * This function called after redraw issue list HTML using PJAX.
+         * This function called after redraw issue list HTML using htmx.
          *
          * @private
          */
@@ -301,7 +272,7 @@
 
         /**
          * Initialize ui.Calendar
-         * This function called after redraw issue list HTML using PJAX.
+         * This function called after redraw issue list HTML using htmx.
          *
          * @private
          */
@@ -315,6 +286,11 @@
            }
         }
 
+        /**
+         * 검색 폼의 요청을 보내기 직전에 목표 완료일 형식을 검사한다. 잘못되면 알리고 요청을 막는다(`false`).
+         * htmx는 폼 자체에 단 제출 이벤트로 요청을 시작하므로 바깥 요소의 `submit` 처리보다 먼저 실행된다.
+         * 그래서 요청을 취소할 수 있는 `htmx:beforeRequest`에서 검사한다.
+         */
         function _onSubmitSearchForm(evt){
             var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
 

@@ -55,3 +55,7 @@ v1.6과 같은 라이브러리(JExcelAPI `jxl` 2.6.12, A-39)로 만든다. 조�
 ## 마일스톤 보기와의 관계
 
 마일스톤 보기 화면의 이슈 영역은 같은 `partial-list`와 `partial-massupdate`를 쓴다([milestones.md](milestones.md)).
+
+## 클라이언트의 영역 교체 (htmx)
+
+필터, 탭, 정렬, 검색, 페이지 이동은 문서를 새로 불러오지 않고 `div[pjax-container]` 안쪽만 바꾼다. 처음에는 jquery-pjax가 했고 지금은 htmx 2.0.11이 한다(`decisions.md` D-96, A-401). 컨테이너와 검색 폼의 `hx-*` 속성이 교체를 선언하고, 공통 설정(헤더 `X-PJAX`와 `X-Requested-With`, 진행 막대, 오류와 시간 초과와 목록 영역이 없는 응답의 일반 이동 대체, 이동 이력 처리)은 `common/yona.Htmx.js`가 한다. 서버 응답 계약은 위와 같고 바뀌지 않았다. 뒤로 가기는 그 주소를 서버에서 새로 불러온다([differences-from-v16.md](../architecture/differences-from-v16.md)).

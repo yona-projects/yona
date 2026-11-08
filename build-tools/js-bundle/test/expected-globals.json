@@ -21,7 +21,8 @@
     "validate",
     "xssClean",
     "yona",
-    "Mustache"
+    "Mustache",
+    "htmx"
   ],
   "jqueryFn": [
     "add",
@@ -129,7 +130,6 @@
     "parent",
     "parents",
     "parentsUntil",
-    "pjax",
     "position",
     "prepend",
     "prependTo",
@@ -261,7 +261,6 @@
     "parseHTML",
     "parseJSON",
     "parseXML",
-    "pjax",
     "post",
     "prop",
     "propFix",
@@ -335,7 +334,8 @@
     "tmpl",
     "tmplItem",
     "domManip",
-    "template"
+    "template",
+    "pjax"
   ],
   "removedStatic": [
     "validator",
@@ -343,6 +343,7 @@
     "tmpl",
     "tmplItem",
     "template",
-    "encode"
+    "encode",
+    "pjax"
   ]
 }

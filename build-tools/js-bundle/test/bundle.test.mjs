@@ -64,6 +64,11 @@ test("쓰이지 않는 zclip 코드는 번들에 들어가지 않는다", () => 
   assert.equal(typeof r.window.Mustache.render, "function");
   assert.equal(typeof r.window.$yona.render, "function");
   assert.equal(typeof r.window.$yona.renderElement, "function");
+  // jquery-pjax 대신 htmx를 쓴다(D-96): 전역 htmx가 있고 jQuery.pjax는 없다. Yona 설정(yona.Htmx.js)이 적용된다
+  assert.equal(r.window.htmx.version, "2.0.11");
+  assert.ok(!("pjax" in r.window.jQuery) && !("pjax" in r.window.jQuery.fn), "jQuery.pjax가 남아 있다");
+  assert.equal(r.window.htmx.config.historyCacheSize, 0);
+  assert.equal(r.window.htmx.config.refreshOnHistoryMiss, true);
 });
 
 test("같은 입력으로 다시 만들면 byte 단위로 같다(재현성)", () => {
