@@ -71,7 +71,6 @@
           </div>
           <div class="modal-body">
             <img style="max-width:500px;">
-            <canvas width="128" height="128" class="hide"></canvas>
           </div>
           <div class="modal-footer">
             <button type="button" class="ybtn ybtn-default" data-bs-dismiss="modal" th:text="#{button.cancel}"></button>
@@ -79,8 +78,7 @@
           </div>
         </div></div></div>
 
-        <link rel="stylesheet" type="text/css" th:href="@{/assets/stylesheets/jcrop/jquery.Jcrop.css}" />
-        <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery.Jcrop.min.js}"></script>
+        <script type="text/javascript" th:src="@{/assets/javascripts/lib/cropperjs/cropper.js}"></script>
         <script type="text/javascript" th:src="@{/assets/javascripts/lib/canvas-to-blob.js}"></script>
     </div>
 </div>

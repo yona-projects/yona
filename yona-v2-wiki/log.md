@@ -1901,3 +1901,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 
 앞서 새로 찾아 보고한 후보(`#repositoryURL`은 v1.6에서도 2013년에 사라진 요소)를 선생님이 적용하라고 하셨고 "빌드는 하지 마"라고 하셨다. 정적 시험(`V16DeadScriptRemovalTest`)에 새 이름 3개(`repositoryURL`, `_onClickRepoURL`, `welRepoURL`)를 먼저 더하고 같은 규칙의 스크립트로 3개가 남아 있는(빨간) 것을 확인한 뒤 지웠다. Gradle과 번들 빌드는 하지 않았다(`project.Home.js`는 번들 입력이 아니다). 확인: Node의 JS 시험 107건 통과(프로젝트 홈의 복사, 설명 수정, 저장 4건 포함), 같은 규칙의 스캔에서 3개 모두 없음. Kotlin 정적 시험은 Gradle이 필요해 돌리지 않았고 다음 전체 시험에서 확인한다.
 
+## [2026-11-08] build | Jcrop을 Cropper.js 2.3.1로 교체(D-101, A-405)
+
+선생님이 "Jcrop은 Cropper.js로 바꾸고"라고 하셔서(D-101) 프로필 이미지 자르기를 바꿨다. 최신 Jcrop(0.9.15)도 `isFunction` 5곳과 `isArray` 3곳이 있어 올려도 jQuery 4에서 동작하지 않는다는 것을 받아서 확인했다. 시험을 먼저 만들어 8건 실패를 확인했다(`src/test/js/avatarcrop.test.mjs`, Gradle 없이 Node와 Playwright). 마우스로 끌기 시험을 더해 9건, 모두 통과했고 전체 JS 시험도 통과했다. 선생님이 "빌드는 하지 마"라고 하셔서 jar 빌드와 Gradle 시험, 실제 앱 순회는 하지 못했다. 같은 지시 아래 Jcrop 대체 후보와 Yona 팀이 패치한 벤더 라이브러리 목록(v1.6 git 이력과 공식 배포본 대조)도 조사해 보고했다.
+

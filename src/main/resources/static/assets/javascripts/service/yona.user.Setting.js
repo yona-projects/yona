@@ -26,6 +26,31 @@
         var htVar = {};
         var htElement = {};
 
+        /** 자르기 모달의 이미지 최대 폭(px). 템플릿의 `max-width`와 같다. */
+        var AVATAR_CROP_MAX_WIDTH = 500;
+        /** 자른 아바타의 한 변(px). 미리보기 틀과 업로드하는 이미지의 크기이다. */
+        var AVATAR_PREVIEW_SIZE = 128;
+        /** 선택 상자의 최소 한 변(px, 이미지 표시 크기 기준). */
+        var AVATAR_CROP_MIN_SIZE = 32;
+        /** Cropper.js 2의 자르기 상자 구성. 비율 1:1, 이미지는 고정(옮기기, 확대 없음), 바깥은 흰 막으로 덮는다. */
+        var AVATAR_CROP_TEMPLATE = '<cropper-canvas background>'
+            + '<cropper-image></cropper-image>'
+            + '<cropper-shade theme-color="rgba(255, 255, 255, 0.6)"></cropper-shade>'
+            + '<cropper-handle action="select" plain></cropper-handle>'
+            + '<cropper-selection aspect-ratio="1" movable resizable outlined>'
+            + '<cropper-grid role="grid" bordered covered></cropper-grid>'
+            + '<cropper-handle action="move" theme-color="rgba(255, 255, 255, 0.35)"></cropper-handle>'
+            + '<cropper-handle action="n-resize"></cropper-handle>'
+            + '<cropper-handle action="e-resize"></cropper-handle>'
+            + '<cropper-handle action="s-resize"></cropper-handle>'
+            + '<cropper-handle action="w-resize"></cropper-handle>'
+            + '<cropper-handle action="ne-resize"></cropper-handle>'
+            + '<cropper-handle action="nw-resize"></cropper-handle>'
+            + '<cropper-handle action="se-resize"></cropper-handle>'
+            + '<cropper-handle action="sw-resize"></cropper-handle>'
+            + '</cropper-selection>'
+            + '</cropper-canvas>';
+
         /**
          * initialize
          *
@@ -56,7 +81,6 @@
             htElement.welAvatarCropWrap = $("#avatarCropWrap");
             htElement.welAvatarCropImg = htElement.welAvatarCropWrap.find(".modal-body > img");
             htElement.welAvatarCropPreviewImg = htElement.welAvatarCropWrap.find(".avatar-wrap > img");
-            htElement.elAvatarCropCanvas = htElement.welAvatarCropWrap.find("canvas").get(0);
             htElement.welBtnSubmitCrop = htElement.welAvatarCropWrap.find("button.btnSubmitCrop");
 
             htElement.welFormPswd = $("#frmPassword");
@@ -93,17 +117,17 @@
 
             htVar.nMaxFileSizeInNoCrop = 1024 * 1000 * 1; // 1Mb
 
-            htVar.bUseJCrop = yona.Files.getEnv().bXHR2;
+            htVar.bUseCrop = yona.Files.getEnv().bXHR2;
 
-            if(htVar.bUseJCrop){
+            if(htVar.bUseCrop){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
-                htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearJcrop);
+                htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearCropper);
 
                 yona.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,
                    "errorUpload"  : _onAvatarUploadError
-                }, "jCropUpload");
+                }, "avatarCropUpload");
             }
         }
 
@@ -133,8 +157,8 @@
 
             _setAvatarProgressBar(100);
 
-            if(htVar.bUseJCrop){
-                _showJcrop(oRes);
+            if(htVar.bUseCrop){
+                _showCropper(oRes);
                 return;
             }
 
@@ -164,10 +188,12 @@
         }
 
         /**
+         * 올린 이미지를 자르기 모달에 띄운다. 자르기 상자는 이미지가 불러와지면(`load`) 만든다.
+         *
          * @param {Object} oRes
          */
-        function _showJcrop(oRes){
-            _clearJcrop();
+        function _showCropper(oRes){
+            _clearCropper();
 
             htElement.welAvatarCropImg.attr("src", oRes.url);
             htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
@@ -175,29 +201,72 @@
         }
 
         /**
+         * 자르기 상자(Cropper.js 2)를 만든다(`decisions.md` D-101). 동작은 Jcrop 때와 같다: 비율 1:1, 최소 32px, 처음 선택은 왼쪽 위 128x128,
+         * 선택이 바뀌면 미리보기를 갱신한다.
+         *
+         * Cropper.js의 선택 좌표는 캔버스 기준이다. 캔버스를 이미지의 표시 크기(원본 크기, 최대 500px 폭)와 똑같이 맞추면 좌표가
+         * 이미지 위의 좌표가 되어 Jcrop 때의 미리보기 계산을 그대로 쓸 수 있다.
+         *
          * @private
          */
         function _onAvatarCropImageLoad(){
-            htElement.welAvatarCropImg.Jcrop({
-                "aspectRatio": 1,
-                "minSize"  : [32, 32],
-                "bgColor"  : "#fff",
-                "setSelect": [0, 0, 128, 128],
-                "onSelect" : _onAvatarImageCrop,
-                "onChange" : _onAvatarImageCrop,
-                "onRelease": _onAvatarImageCropCancel
-            }, function(){
-                htVar.oJcrop = this; // "this" means jCrop object
+            var elImage = htElement.welAvatarCropImg.get(0);
+
+            if(!elImage.getAttribute("src") || !elImage.naturalWidth){
+                return;
+            }
+
+            var nScale = Math.min(1, AVATAR_CROP_MAX_WIDTH / elImage.naturalWidth);
+            htVar.nCropWidth = Math.round(elImage.naturalWidth * nScale);
+            htVar.nCropHeight = Math.round(elImage.naturalHeight * nScale);
+
+            var oCropper = new Cropper.Cropper(elImage, {
+                "container": elImage.parentNode,
+                "template" : AVATAR_CROP_TEMPLATE
             });
+            htVar.oCropper = oCropper;
+
+            var elCanvas = oCropper.getCropperCanvas();
+            elCanvas.style.width = htVar.nCropWidth + "px";
+            elCanvas.style.height = htVar.nCropHeight + "px";
+
+            var elSelection = oCropper.getCropperSelection();
+            elSelection.addEventListener("change", _onAvatarCropSelectionChange);
+
+            oCropper.getCropperImage().$ready().then(function(){
+                if(htVar.oCropper !== oCropper){
+                    return; // 준비되는 사이에 모달이 닫혔다
+                }
+
+                var nSize = Math.min(AVATAR_PREVIEW_SIZE, htVar.nCropWidth, htVar.nCropHeight);
+                elSelection.$change(0, 0, nSize, nSize);
+            });
+        }
+
+        /**
+         * 선택 상자가 바뀌려 할 때이다(바뀌기 전, 취소할 수 있다). 최소 크기보다 작아지면 막고, 아니면 미리보기를 갱신한다.
+         *
+         * @param {CustomEvent} weEvt `detail`에 바뀔 `x`, `y`, `width`, `height`가 있다
+         * @private
+         */
+        function _onAvatarCropSelectionChange(weEvt){
+            var htData = weEvt.detail;
+
+            if(htData.width < AVATAR_CROP_MIN_SIZE || htData.height < AVATAR_CROP_MIN_SIZE){
+                weEvt.preventDefault();
+                return;
+            }
+
+            _onAvatarImageCrop({"x": htData.x, "y": htData.y, "w": htData.width, "h": htData.height});
         }
 
         /**
          * @private
          */
-        function _clearJcrop(){
-            if(htVar.oJcrop){
-                htVar.oJcrop.destroy();
-                htVar.oJcrop = null;
+        function _clearCropper(){
+            if(htVar.oCropper){
+                htVar.oCropper.destroy();
+                htVar.oCropper = null;
             }
 
             htElement.welAvatarCropImg.attr("src", "");
@@ -206,61 +275,38 @@
         }
 
         /**
-         * @param {Hash Table} htData
+         * 미리보기(128x128 틀 안의 이미지)를 선택 부분에 맞춘다.
+         *
+         * @param {Hash Table} htData 이미지 표시 크기 기준의 `x`, `y`, `w`, `h`
          */
         function _onAvatarImageCrop(htData){
             if(htData.w <= 0){
                 return;
             }
-            var nRx = 128 / htData.w;
-            var nRy = 128 / htData.h;
-
-            var nWidth = htElement.welAvatarCropImg.width();
-            var nHeight = htElement.welAvatarCropImg.height();
+            var nRx = AVATAR_PREVIEW_SIZE / htData.w;
+            var nRy = AVATAR_PREVIEW_SIZE / htData.h;
 
             htElement.welAvatarCropPreviewImg.css({
-                "width"     : Math.round(nRx * nWidth) + "px",
-                "height"    : Math.round(nRy * nHeight) + "px",
+                "width"     : Math.round(nRx * htVar.nCropWidth) + "px",
+                "height"    : Math.round(nRy * htVar.nCropHeight) + "px",
                 "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
                 "marginTop" : "-" + Math.round(nRy * htData.y) + "px"
             });
-
-            htVar.htLastCrop = htData;
         }
 
-        function _onAvatarImageCropCancel(){
-            if(htVar.oJcrop){
-                htVar.oJcrop.setSelect([0, 0, 128, 128]);
-            } else {
-                htVar.htLastCrop = null;
-            }
-        }
-
+        /**
+         * 선택 부분을 원본 화소로 잘라 128x128 PNG로 올린다(Cropper.js `$toCanvas`).
+         */
         function _onClickBtnSubmitCrop(){
-            var elImage = new Image();
+            if(!htVar.oCropper){
+                return;
+            }
 
-            elImage.onload = function(){
-                var htData = htVar.htLastCrop;
-                var nWidth = htElement.welAvatarCropImg.width();
-                var nRealWidth  = elImage.width;
-                var nRw = nRealWidth / nWidth;
-                var htCropData = {
-                    "x": (htData.x * nRw),
-                    "y": (htData.y * nRw),
-                    "w": (htData.w * nRw),
-                    "h": (htData.h * nRw)
-                };
-
-                var oContext = htElement.elAvatarCropCanvas.getContext("2d");
-                oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
-
-                // canvas-to-blob.js
-                htElement.elAvatarCropCanvas.toBlob(function(oFile){
-                    yona.Files.uploadFile(oFile, "jCropUpload");
-                }, elImage.mimeType, 100);
-            };
-
-            elImage.src = htElement.welAvatarCropImg.attr("src");
+            htVar.oCropper.getCropperSelection().$toCanvas({"width": AVATAR_PREVIEW_SIZE, "height": AVATAR_PREVIEW_SIZE}).then(function(elCanvas){
+                elCanvas.toBlob(function(oFile){
+                    yona.Files.uploadFile(oFile, "avatarCropUpload");
+                });
+            });
         }
 
         /**
