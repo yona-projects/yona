@@ -2147,3 +2147,7 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] fix | 이전 화면 레이아웃을 #main으로 감싸 가로로 늘어서던 것을 바로잡음
 
 선생님 지적으로 확인했다. AngularJS 판에서도 같았다(body가 flex이고 감싸는 요소가 없었음). 이전 화면 시험 25개 통과, 전체 회귀는 생략했다.
+
+## [2026-11-10] docs | 소규모 lib 파일과 화면별 JS의 현대화 검토, marked 4.3.0 유지 확정(D-121)
+
+`architecture/modern-js-review.md`에 정리했다. 죽은 코드 3개(diff.js, jquery.browser.js, magnific-popup.css)를 찾았다. 코드는 바꾸지 않았다.
