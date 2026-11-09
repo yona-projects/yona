@@ -15,32 +15,19 @@ yona.Files = (function(){
      * @param {Hash Table} htOptions
      * @param {String} htOptions.sListURL
      * @param {String} htOptions.sUploadURL
+     * @param {Number} htOptions.maxFileSize 올릴 수 있는 파일 크기의 최대(바이트)
      */
     function _init(htOptions){
         htOptions = htOptions || {};
 
         htVar.sListURL     = htOptions.sListURL;
         htVar.sUploadURL   = htOptions.sUploadURL;
-        htVar.htUploadOpts = htOptions.htUploadOpts || {"dataType": "json"};
 
-        // XMLHttpRequest2 file upload
-        // The FileReader API is not actually used, but works as feature detection.
-        // Check for window.ProgressEvent instead to detect XHR2 file upload capability
-        // ref: http://blueimp.github.io/jQuery-File-Upload
-        htVar.bXHR2 = !!(window.ProgressEvent && window.FileReader) && !!window.FormData;
+        // 끌어놓기는 HTML5 File API가 필요하다
+        htVar.bDroppable = (typeof window.File != "undefined");
 
-        // HTTPS connection is required for XHR upload on MSIE Browsers
-        // even if FormData feature available.
-        if(navigator.userAgent.toLowerCase().indexOf("trident") > -1){
-            htVar.bXHR2 = htVar.bXHR2 && (location.protocol.toLowerCase().indexOf("https") > -1);
-        }
-
-        // HTML5 FileAPI required
-        htVar.bDroppable = (typeof window.File != "undefined") && htVar.bXHR2;
-
-        // onpaste & XHR2 required
-        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2
-                       && (navigator.userAgent.indexOf("FireFox") === -1); // and not FireFox
+        // 붙여넣기는 문서의 paste 이벤트가 필요하다. v1.6은 "FireFox"(철자가 틀려 항상 참)를 제외하려 했으나 실제로는 제외되지 않았고 지금도 같다(R-140)
+        htVar.bPastable = (typeof document.onpaste != "undefined");
 
         // maximum filesize (<= 2,147,483,454 bytes = 2Gb)
         htVar.nMaxFileSize = htOptions.maxFileSize || 2147483454;
@@ -57,7 +44,7 @@ yona.Files = (function(){
     /**
      * Upload files
      *
-     * @param {Variant} oFiles FileList or File Object, HTMLInputElement(IE)
+     * @param {Variant} oFiles FileList or File Object
      * @param {String} sNamespace (Optional)
      */
     function _uploadFile(oFiles, sNamespace){
@@ -92,13 +79,16 @@ yona.Files = (function(){
             return false;
         }
 
-        return htVar.bXHR2 ? _uploadFileXHR(nSubmitId, oFile, sNamespace) : _uploadFileForm(nSubmitId, oFile, sNamespace);
+        return _uploadFileXHR(nSubmitId, oFile, sNamespace);
     }
 
     /**
-     * Upload file with XHR2
-     * available in IE 10+, FF4+, Chrome7+, Safari5+
-     * Reference: http://caniuse.com/xhr2
+     * 파일 하나를 올린다. 업로드 진행률(`upload`의 `progress`)이 필요하므로 `fetch`가 아니라 `XMLHttpRequest`를 쓴다.
+     *
+     * 토큰(CSRF)은 `yona.Csrf.js`가 `XMLHttpRequest`를 전역으로 가로채 싣는다.
+     * 서버가 아약스 요청을 알아보는 `X-Requested-With`는 직접 싣는다(`$.ajax`가 대신해 주던 일).
+     * 응답이 JSON이면 객체로 해석하고, 깨졌으면 `parsererror`로 오류 처리기에 알린다.
+     * 오류 처리기는 `status`와 `statusText`를 읽는다.
      *
      * @param {Number} nSubmitId
      * @param {File} oFile
@@ -117,88 +107,55 @@ yona.Files = (function(){
         var filename = oFile.name === 'image.png' ? nSubmitId + ".png" : oFile.name;
         oData.append("filePath", oFile, filename);
 
-        $.ajax({
-            "type" : "post",
-            "url"  : htVar.sUploadURL,
-            "data" : oData,
-            "cache": false,
-            "processData": false,
-            "contentType": false,
-            "success": function(oRes){
-                _onSuccessSubmit(nSubmitId, oRes, sNamespace);
-            },
-            "error": function(oRes){
-                _onErrorSubmit(nSubmitId, oRes, sNamespace);
-            },
-            "xhr": function(){
-                var oXHR = $.ajaxSettings.xhr();
+        var oXHR = new XMLHttpRequest();
+        oXHR.open("POST", htVar.sUploadURL);
+        oXHR.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
-                if(oXHR.upload){
-                    oXHR.upload.addEventListener("progress", function(weEvt){
-                        if(weEvt.lengthComputable){
-                            _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
-                        }
-                    }, false);
-                }
+        oXHR.upload.addEventListener("progress", function(weEvt){
+            if(weEvt.lengthComputable){
+                _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
+            }
+        }, false);
 
-                return oXHR;
+        oXHR.addEventListener("load", function(){
+            var oResult = _readResponse(oXHR);
+            if(oResult.error){
+                _onErrorSubmit(nSubmitId, oResult.error, sNamespace);
+            } else {
+                _onSuccessSubmit(nSubmitId, oResult.data, sNamespace);
             }
         });
+        var fOnFail = function(){
+            _onErrorSubmit(nSubmitId, {"status": 0, "statusText": "error", "responseText": ""}, sNamespace);
+        };
+        oXHR.addEventListener("error", fOnFail);
+        oXHR.addEventListener("abort", fOnFail);
+
+        oXHR.send(oData);
     }
 
     /**
-     * Upload file with $.ajaxForm
-     * available in almost browsers, except Safari on OSX.
-     * Reference: http://malsup.com/jquery/form/
+     * 끝난 요청의 응답을 해석한다.
      *
-     * @param {Number} nSubmitId
-     * @param {HTMLElement} elFile
-     * @param {String} sNamespace
+     * @param {XMLHttpRequest} oXHR
+     * @return {{data: *, error: (Object|undefined)}} 오류면 `error`에 `{status, statusText, responseText}`
+     * @private
      */
-    function _uploadFileForm(nSubmitId, elFile, sNamespace){
-        var htElement = htElements[sNamespace];
+    function _readResponse(oXHR){
+        var bSuccess = (oXHR.status >= 200 && oXHR.status < 300) || oXHR.status === 304;
+        var sText = oXHR.responseText;
 
-        if(!htElement.welInputFile && !elFile){
-            return false;
+        if(!bSuccess){
+            return {"error": {"status": oXHR.status, "statusText": oXHR.statusText || "error", "responseText": sText}};
         }
-
-        var welInputFile = htElement.welInputFile || $(elFile);
-        var welInputFileClone = welInputFile.clone();
-        var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
-
-        welInputFileClone.insertAfter(welInputFile);
-        welInputFileClone.on("change", $.proxy(_onChangeFile, this, sNamespace));
-        htElement.welInputFile = welInputFileClone;
-
-        welForm.attr('action', htVar.sUploadURL);
-        welForm.append(welInputFile).appendTo(document.body);
-
-        // free memory finally
-        var fClear = function(){
-            welInputFile.remove();
-            welForm.remove();
-            welForm = welInputFile = null;
-        };
-
-        var htUploadOpts = htVar.htUploadOpts;
-        htUploadOpts.success = function(oRes){
-            _onSuccessSubmit(nSubmitId, oRes, sNamespace);
-            fClear();
-            fClear = null;
-        };
-        htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
-            _onUploadProgress(nSubmitId, nPercentComplete, sNamespace);
-            fClear();
-            fClear = null;
-        };
-        htUploadOpts.error = function(oRes){
-            _onErrorSubmit(nSubmitId, oRes, sNamespace);
-            fClear();
-            fClear = null;
-        };
-
-        welForm.ajaxForm(htUploadOpts);
-        welForm.submit();
+        if(/json/i.test(oXHR.getResponseHeader("Content-Type") || "")){
+            try {
+                return {"data": JSON.parse(sText)};
+            } catch(e) {
+                return {"error": {"status": oXHR.status, "statusText": "parsererror", "responseText": sText}};
+            }
+        }
+        return {"data": sText};
     }
 
     /**
@@ -344,10 +301,6 @@ yona.Files = (function(){
         htElements[sNamespace].welTextarea  = $(htOptions.elTextarea);
         htElements[sNamespace].welInputFile = htElements[sNamespace].welContainer.find("input[type=file]");
         htElements[sNamespace].welContainer.attr("data-namespace", sNamespace);
-
-        if(!htVar.bXHR2){
-            htElements[sNamespace].welInputFile.attr("multiple", null);
-        }
     }
 
     /**
@@ -484,13 +437,12 @@ yona.Files = (function(){
      * @param {String} sNamespace
      */
     function _onChangeFile(sNamespace){
-        var htElement = htElements[sNamespace];
-        var sFileName = _getBasename(htElement.welInputFile.val());
-        if(!sFileName || sFileName === ""){
+        var oFiles = htElements[sNamespace].welInputFile[0].files;
+        if(!oFiles || oFiles.length === 0){
             return;
         }
 
-        _uploadFile(htElement.welInputFile[0].files || htElement.welInputFile[0], sNamespace);
+        _uploadFile(oFiles, sNamespace);
     }
 
     /**
@@ -675,18 +627,6 @@ yona.Files = (function(){
       var now = new Date();
       return  now.getSeconds() + "" + now.getMilliseconds() + '-' + now.getFullYear() + '-' + (now.getMonth() + 1)
           + '-' + now.getDate() + '-' + now.getHours() + '-' + now.getMinutes();
-    }
-
-    /**
-     * return trailing name component of path
-     *
-     * @param {String} sPath
-     * @return {String}
-     */
-    function _getBasename(sPath){
-        var sSeparator = 'fakepath';
-        var nPos = sPath.indexOf(sSeparator);
-        return (nPos > -1) ? sPath.substring(nPos + sSeparator.length + 1) : sPath;
     }
 
     /**

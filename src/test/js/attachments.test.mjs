@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { pageWith } from './harness.mjs';
+import { pageWith, FAKE_XHR } from './harness.mjs';
 
 const HTML = `<form id="f"><div id="c"><ul class="attached-files"></ul><p class="help"></p><input type="file"><textarea id="t"></textarea></div></form>`;
 const STUBS = { content: `
@@ -10,17 +10,15 @@ const STUBS = { content: `
 
 /** 임시 링크가 들어간 업로드를 시작하고 서버 응답으로 [response]를 돌려준 뒤 상태를 읽는다. */
 async function uploadWith(response) {
-  const page = await pageWith({ html: HTML, scripts: [STUBS, 'common/yona.Files.js', 'common/yona.Attachments.js'] });
+  const page = await pageWith({ html: HTML, scripts: [STUBS, { content: FAKE_XHR }, 'common/yona.Files.js', 'common/yona.Attachments.js'] });
   const state = await page.evaluate(async (resp) => {
-    var ajaxOpts; $.ajax = function (o) { ajaxOpts = o; };
     yona.Files.init({ sUploadURL: '/up' });
-    yona.Files.getEnv().bXHR2 = true;
     new yona.Attachments({ elContainer: $('#c')[0], elTextarea: $('#t')[0], sUploaderId: 'ns', targetFormId: $('#f') });
     var id = null;
     yona.Files.attach('beforeUpload', function (d) { id = d.oFile.nSubmitId; $('#t').val('앞 <!--_' + id + '_--> 뒤'); }, 'ns');
     var file = new File(['x'], 'a.txt');
     yona.Files.uploadFile(file, 'ns');
-    ajaxOpts.success(resp);
+    window.__xhrs[0].finish(200, 'OK', 'application/json', JSON.stringify(resp));
     await new Promise((r) => setTimeout(r, 30));
     return { text: $('#t').val(), ids: $('input[name=temporaryUploadFiles]').val(), notified: window.__notified || [] };
   }, response);

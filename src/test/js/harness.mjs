@@ -86,3 +86,23 @@ export function sourceSnippet(relativePath, from, to) {
   if (end < 0) throw new Error(`끝 표지를 찾지 못했다: ${to}`);
   return text.slice(start, end);
 }
+
+/**
+ * 가짜 `XMLHttpRequest`. 요청마다 `window.__xhrs`에 쌓이고, 시험이 `finish`, `fail`, `progress`로 서버 응답을 흉내 낸다.
+ * `open`, `setRequestHeader`, `send`로 받은 값은 `method`, `url`, `headers`, `body`에 남는다.
+ */
+export const FAKE_XHR = `
+  window.__xhrs = [];
+  window.XMLHttpRequest = function () {
+    var x = this; window.__xhrs.push(x);
+    x.headers = {}; x.listeners = {}; x.upload = { listeners: {}, addEventListener: function (t, f) { this.listeners[t] = f; } };
+    x.open = function (m, u) { x.method = m; x.url = u; };
+    x.setRequestHeader = function (k, v) { x.headers[k] = v; };
+    x.send = function (d) { x.body = d; };
+    x.addEventListener = function (t, f) { x.listeners[t] = f; };
+    x.getResponseHeader = function (n) { return String(n).toLowerCase() === 'content-type' ? (x.contentType || null) : null; };
+    x.finish = function (status, statusText, contentType, text) { x.status = status; x.statusText = statusText; x.contentType = contentType; x.responseText = text; x.readyState = 4; x.listeners.load && x.listeners.load({ type: 'load' }); };
+    x.fail = function () { x.status = 0; x.statusText = ''; x.responseText = ''; x.readyState = 4; x.listeners.error && x.listeners.error({ type: 'error' }); };
+    x.progress = function (loaded, total, computable) { x.upload.listeners.progress && x.upload.listeners.progress({ type: 'progress', loaded: loaded, total: total, lengthComputable: computable !== false }); };
+  };
+`;

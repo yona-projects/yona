@@ -115,20 +115,14 @@
             });
             yona.Files.getUploader(".avatar-frm");
 
-            htVar.nMaxFileSizeInNoCrop = 1024 * 1000 * 1; // 1Mb
+            htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
+            htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
+            htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearCropper);
 
-            htVar.bUseCrop = yona.Files.getEnv().bXHR2;
-
-            if(htVar.bUseCrop){
-                htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
-                htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
-                htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearCropper);
-
-                yona.Files.attach({
-                   "successUpload": _onAvatarCroppedImageUploaded,
-                   "errorUpload"  : _onAvatarUploadError
-                }, "avatarCropUpload");
-            }
+            yona.Files.attach({
+               "successUpload": _onAvatarCroppedImageUploaded,
+               "errorUpload"  : _onAvatarUploadError
+            }, "avatarCropUpload");
         }
 
         /**
@@ -157,19 +151,7 @@
 
             _setAvatarProgressBar(100);
 
-            if(htVar.bUseCrop){
-                _showCropper(oRes);
-                return;
-            }
-
-            if(oRes.size > htVar.nMaxFileSizeInNoCrop){
-                _onAvatarUploadError(Messages("user.avatar.fileSizeAlert"));
-                yona.Files.deleteFile({"sURL": oRes.url});
-                return false;
-            }
-
-            _setAvatarIdOnForm(oRes.id);
-            htElement.welFormAvatar.submit();
+            _showCropper(oRes);
         }
 
         /**

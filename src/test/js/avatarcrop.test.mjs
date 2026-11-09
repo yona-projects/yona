@@ -32,7 +32,7 @@ const STUBS = `
   window.__uploads = []; window.__alerts = [];
   yona.Files = { handlers: {},
     attach: function (h, id) { this.handlers[id || 'default'] = h; },
-    getUploader: function () {}, getEnv: function () { return { bXHR2: true }; },
+    getUploader: function () {}, getEnv: function () { return {}; },
     uploadFile: function (file, id) { window.__uploads.push({ file: file, id: id }); }, deleteFile: function () {} };
   window.FormValidator = function () { this._validateForm = function () {}; this.setMessage = function () {}; };
   $yona.isImageFile = function () { return true; }; $yona.showTab = function () {}; $yona.showPopover = function () {}; $yona.hidePopover = function () {};
