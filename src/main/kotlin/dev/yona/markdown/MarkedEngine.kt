@@ -18,13 +18,17 @@ import org.springframework.stereotype.Component
 class MarkedEngine {
 
     private val engine: ScriptEngine by lazy {
-        NashornScriptEngineFactory().scriptEngine.also { engine ->
+        // marked 4.x는 `Set`, `Map` 등 ES6 내장 객체를 쓰므로 ES6 모드로 연다(marked 1.2.9는 ES5만 썼다).
+        NashornScriptEngineFactory().getScriptEngine("--language=es6").also { engine ->
             // v1.6이 쓴 JDK 8의 Nashorn은 ES5.1 규칙이라 `splice(시작)`처럼 인자가 하나면 아무것도 지우지 않는다(deleteCount가 0).
             // 독립 배포판은 ES2015 규칙(끝까지 지움)이라 표 한 줄의 남는 칸 처리가 달라지므로 ES5 동작으로 맞춘다.
             engine.eval(ES5_SPLICE)
-            val script = checkNotNull(javaClass.getResourceAsStream(SCRIPT_RESOURCE)) { "$SCRIPT_RESOURCE 리소스가 없습니다." }
-                .readBytes().toString(Charsets.UTF_8)
-            engine.eval(script)
+            // 공식 marked 위에 Yona의 사용자 지정(marked-yona.js)을 얹는다. 브라우저도 같은 두 파일을 같은 순서로 쓴다.
+            for (resource in listOf(SCRIPT_RESOURCE, EXTENSION_RESOURCE)) {
+                val script = checkNotNull(javaClass.getResourceAsStream(resource)) { "$resource 리소스가 없습니다." }
+                    .readBytes().toString(Charsets.UTF_8)
+                engine.eval(script)
+            }
         }
     }
 
@@ -37,7 +41,7 @@ class MarkedEngine {
         if (source.isEmpty()) return source
         val options = engine.eval(OPTIONS)
         return try {
-            (engine as Invocable).invokeFunction("marked", source, options) as String
+            (engine as Invocable).invokeMethod(engine.eval("marked"), "parse", source, options) as String
         } catch (e: javax.script.ScriptException) {
             // v1.6 `renderByMarked`는 변환 중 스크립트 오류가 나면 기록하고 원문을 이스케이프해 `<pre>`로 감싸 돌려준다
             log.error("[Markdown] Failed to render: {}", source, e)
@@ -45,10 +49,11 @@ class MarkedEngine {
         }
     }
 
-    private companion object {
+    internal companion object {
         val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(MarkedEngine::class.java)
         const val SCRIPT_RESOURCE = "/markdown/marked.js"
-        const val ES5_SPLICE = "(function(){var s=Array.prototype.splice;Array.prototype.splice=function(a){return arguments.length===1?s.call(this,a,0):s.apply(this,arguments);};})();"
+        const val EXTENSION_RESOURCE = "/markdown/marked-yona.js"
+        internal const val ES5_SPLICE = "(function(){var s=Array.prototype.splice;Array.prototype.splice=function(a){return arguments.length===1?s.call(this,a,0):s.apply(this,arguments);};})();"
         const val OPTIONS = "new Object({gfm: true, tables: true, breaks: true, headerIds: true, pedantic: false, sanitize: false, smartLists: true})"
     }
 }

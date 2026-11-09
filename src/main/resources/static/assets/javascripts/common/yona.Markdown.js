@@ -55,7 +55,7 @@ yona.Markdown = (function(htOptions){
      * @return {String}
      */
     function _renderMarkdown(sText) {
-        return $yona.xssClean(marked(sText, htVar.htMarkedOption));
+        return $yona.xssClean(marked.parse(sText, htVar.htMarkedOption));
     }
 
     /**
