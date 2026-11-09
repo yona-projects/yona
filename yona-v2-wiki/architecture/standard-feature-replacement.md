@@ -23,7 +23,7 @@ updated: 2026-11-09
 | S-05 | `yona.ShortcutKey.js`와 `keyCode`, `which` 33곳(17개 파일) | `KeyboardEvent.key` | 가능. 한글 입력기에서 `keyCode` 229, `key`의 `Process`, `isComposing`을 함께 봐야 한다 | **완료**(2026-11-09, A-420, A안: 도우미 `isEnterKey` 등 + 호출 교체 + `ShortcutKey`를 `key` 기반으로) |
 | S-06 | `yona.Files.js`(783줄) 업로드 | `fetch` | 부분. `fetch`는 업로드 진행률이 없어 XHR이 필요하다. `FormData` 없는 브라우저용 `$.ajaxForm` 대체 경로(`_uploadFileForm`)와 IE 확인(`trident`)은 지울 수 있다 | **완료**(2026-11-09, A-421: 옛 폼 경로 삭제 + 업로드를 네이티브 XHR로. 목록 조회와 삭제는 S-14. Firefox 붙여넣기 업로드는 R-140 논의 사항으로 남김) |
 | S-07 | `jquery.requestAs.js`(303줄, 호출 7곳) | `fetch` + `<dialog>` 확인창 | 가능, 중간 규모 | **완료**(2026-11-09, A-422, A′안: `yona.Request` 함수 하나 + 표준 DOM 이벤트. 선언형 연결 층까지 없애는 방식은 후속 논의) |
-| S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 선생님 확인 대기) |
+| S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 R-145 논의 사항으로 남김) |
 | S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | `<input type="date">` | 가능하나 화면이 달라진다(v1.6과 같은 모양을 지키려면 결정이 필요) | 결정 대기 |
 | S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기 |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
@@ -165,4 +165,28 @@ updated: 2026-11-09
 - **A (권장)**: Dialog 유지, Toast 네이티브 재작성, Dropdown은 `mousewheel` 처리를 CSS로 교체. 작은 변경 두 건이다.
 - **B**: Dialog도 `<dialog>`로 바꾼다. 위의 포커스 충돌과 스타일 위험 때문에 권하지 않는다.
 - **C**: 모두 유지한다. 비용은 없지만 접두사 이벤트와 Firefox에서 동작하지 않는 휠 처리가 남는다.
+
+## S-09 조사 (`yona.ui.Calendar`와 Pikaday, 2026-11-09)
+체크리스트에는 `yona.ui.Calendar`(79줄) 하나만 적혀 있지만 달력 라이브러리 Pikaday는 **세 가지 방식**으로 쓰인다.
+
+| 방식 | 곳 | 모양 |
+|---|---|---|
+| 입력란 + 달력 단추(팝업) | `yona.ui.Calendar`(`data-toggle="calendar"`): 이슈 작성, 수정, 보기의 목표 완료일, 이슈 검색 폼 4곳. 입력란 옆 `.btn-calendar` 단추를 누르면 달력이 뜬다. 검색 폼은 `silent`(처음 값을 넣지 않음) | 팝업 |
+| **항상 보이는 달력(인라인)** | `yona.milestone.Write.js`: 마일스톤 만들기, 수정(`.date-picker` 영역에 달력을 붙이고 고른 날을 입력란에 채움) | 인라인 |
+| 항상 보이는 달력(인라인) | `user/partial-token-form.html`: API 토큰 만료일(추가 항목 X-5, `minDate` 내일 이후) | 인라인 |
+
+### 의존
+- Pikaday 33KB(JS)와 CSS. 날짜 형식(`format: "YYYY-MM-DD"`)을 읽고 쓰는 데 **moment를 쓴다**.
+- **moment-with-locales 391KB**: Pikaday의 형식 처리(마일스톤과 이슈 팝업) 외에 목표 완료일 검증(`moment(값).isValid()`, 이슈 작성·보기·목록 3곳), 코드 보기의 상대 시간(`fromNow()`, `yona.code.Browser.js` 1곳), `scripts.html`의 로케일 설정에 쓰인다. 5개 템플릿이 직접 불러온다.
+- Pikaday의 월과 요일 이름은 기본값(영어)이고 앱에서 i18n 설정을 찾지 못했다(화면으로 확인하지 않았다).
+
+### 표준 대체 후보: `<input type="date">`
+- 값이 항상 `yyyy-MM-dd`라 저장 형식이 같고, 브라우저가 로케일에 맞는 달력과 검증을 제공한다. `showPicker()`로 달력 단추를 연결할 수 있고(Chrome 99, Firefox 101, Safari 16), `min` 속성으로 "내일 이후"도 된다. 검증용 moment가 필요 없어진다.
+- **한계**: (1) 항상 보이는 달력(인라인)을 만들 수 없다. 마일스톤과 토큰 화면의 달력이 팝업으로 바뀌어 화면이 달라진다. (2) 모양이 브라우저마다 다르고 Pikaday와 다르다. (3) 자유 입력(예: `2014-5-3`, 빈칸, 잘못된 값 안내)이 칸 나눔 입력으로 바뀌어 v1.6의 입력 동작과 오류 안내가 달라진다. 그래서 체크리스트가 "결정 대기"였다.
+
+### 선택지
+- **A**: 모든 달력을 `<input type="date">`로 바꾼다. Pikaday와 moment 의존이 크게 줄지만 세 화면의 모양과 입력 동작이 v1.6과 달라진다(결정 필요).
+- **B (권장, 화면 변화 없음)**: Pikaday 모양은 그대로 두고 **moment 의존만 걷어낸다.** Pikaday는 `parse`와 `toString`을 직접 줄 수 있으므로 `yyyy-MM-dd`를 표준 코드로 읽고 쓰게 하고, 검증은 표준 날짜 검사로, 상대 시간은 `Intl.RelativeTimeFormat`으로 바꾼다. 391KB가 빠지고 달력 모양과 입력 동작은 그대로다.
+- **C**: 팝업 달력(이슈 4곳)만 `<input type="date">`와 `showPicker()`로 바꾸고 인라인 달력(마일스톤, 토큰)은 Pikaday를 유지한다. 일부 화면만 모양이 달라진다.
+- **D**: 그대로 둔다.
 
