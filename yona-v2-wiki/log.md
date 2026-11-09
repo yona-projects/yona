@@ -1977,3 +1977,8 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] experiment | text-expander-element로 At.js 패치 네 건 재확인
 
 IME, 2단 보기, Alt 키, 캐럿 네 건을 Chromium과 Firefox로 다시 확인했다. 모두 조건을 만족하고 Safari형 조합 중 Enter 보호막 한 줄과 Alt+Enter 차이만 남는다. `architecture/markdown-editor-trial.md`에 기록했다.
+
+## [2026-11-09] feature | 편집기 서식 단추(markdown-toolbar-element) 추가, D-106, A-417
+
+단추 열 개를 편집 탭에 붙였다. 모듈은 번들 없이 type=module, 공식 2.2.3 그대로. 실제 앱에서 서식 단추가 textarea에 남기는 contenteditable=false 때문에 At.js 멘션이 열리지 않는 문제와 단추가 넣은 @가 Mention을 시작하지 못하는 문제를 찾아 고쳤다. 실제 앱 21개 항목 통과.
+관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 20초에 통과했다. 전체 H2 시험은 돌리지 않았다.

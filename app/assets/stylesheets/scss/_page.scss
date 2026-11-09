@@ -7617,6 +7617,47 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     to {opacity: 1;}
 }
 
+/* 편집기 서식 단추(D-105): GitHub markdown-toolbar-element의 md-* 요소를 단추 모양으로 */
+.md-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 5px;
+
+    > * {
+        display: inline-block;
+        min-width: 28px;
+        padding: 2px 7px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background: #fff;
+        color: #444;
+        font-size: 0.75rem;
+        line-height: 1.25rem;
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+            background: #f0f0f0;
+            border-color: #aaa;
+        }
+
+        &:focus-visible {
+            outline: 2px solid #4a90d9;
+            outline-offset: 1px;
+        }
+    }
+
+    md-bold {
+        font-weight: bold;
+    }
+
+    md-italic {
+        font-style: italic;
+    }
+}
+
 .task-list-button {
     margin-top: 2px;
 

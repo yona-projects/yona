@@ -21,3 +21,4 @@ select2/i18n/ru.js	select2 i18n(ru)	4.1.0	3157080cd1da392bd61915d6ccbec6307e5fd5
 select2/i18n/en.js	select2 i18n(en)	4.1.0	b199a87f87c2e248deef33625b216cb9010999e78ab376dc089058b5af3e24e5
 cropperjs/cropper.js	Cropper.js	2.3.1	a5aa9e4ac7d12135dee2095bcd583ec37a193d78ac939bf78c306b7fe8627602
 title-input/title-input.min.js	title-input(Lit 3.2.1 포함, components 저장소 빌드)	0.1.0	f776a5cbd2fc8b29624beffefdff1d6b876abc6c2113b560eda33c7feeef2849
+markdown-toolbar/markdown-toolbar-element.js	markdown-toolbar-element	2.2.3	1f8dd41b82888cd538bdaf6d4a7bdd368271fb26b0c9942913e5b72fcbb1cf55

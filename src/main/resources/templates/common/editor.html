@@ -41,6 +41,19 @@
         <th:block th:replace="~{help/markdown :: markdown}"></th:block>
 
         <div th:id="'edit-' + ${wrapId}" class="tab-pane active">
+            <!--/* 서식 단추(D-105, 추가 개발 항목): 눌린 단추가 아래 textarea의 선택 범위에 마크다운 문법을 넣는다. 체크리스트 추가는 v1.6의 단추를 그대로 쓴다 */-->
+            <markdown-toolbar class="md-toolbar" th:attr="for=${'editor-' + textareaName + '-' + wrapId}">
+                <md-header th:title="#{common.editor.toolbar.header}" th:aria-label="#{common.editor.toolbar.header}">H</md-header>
+                <md-bold th:title="#{common.editor.toolbar.bold}" th:aria-label="#{common.editor.toolbar.bold}">B</md-bold>
+                <md-italic th:title="#{common.editor.toolbar.italic}" th:aria-label="#{common.editor.toolbar.italic}">I</md-italic>
+                <md-quote th:title="#{common.editor.toolbar.quote}" th:aria-label="#{common.editor.toolbar.quote}">&#10077;</md-quote>
+                <md-code th:title="#{common.editor.toolbar.code}" th:aria-label="#{common.editor.toolbar.code}">&lt;/&gt;</md-code>
+                <md-link th:title="#{common.editor.toolbar.link}" th:aria-label="#{common.editor.toolbar.link}">&#128279;</md-link>
+                <md-unordered-list th:title="#{common.editor.toolbar.unorderedList}" th:aria-label="#{common.editor.toolbar.unorderedList}">&#8226;</md-unordered-list>
+                <md-ordered-list th:title="#{common.editor.toolbar.orderedList}" th:aria-label="#{common.editor.toolbar.orderedList}">1.</md-ordered-list>
+                <md-mention th:title="#{common.editor.toolbar.mention}" th:aria-label="#{common.editor.toolbar.mention}">@</md-mention>
+                <md-ref th:title="#{common.editor.toolbar.ref}" th:aria-label="#{common.editor.toolbar.ref}">#</md-ref>
+            </markdown-toolbar>
             <div class="textarea-box">
                 <textarea th:name="${textareaName}" class="editorSeries content comment nm form-control" th:attr="data-editor-mode=${editorMode}" markdown="true" th:id="'editor-' + ${textareaName} + '-' + ${wrapId}"
                     th:tabindex="${additionalAttr != null and #strings.startsWith(additionalAttr, 'tabindex=')} ? ${#strings.substringAfter(additionalAttr, 'tabindex=')}"

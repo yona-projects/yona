@@ -63,6 +63,8 @@ yona.Mention = function(htOptions) {
      */
     function _attachEvent() {
         htElement.welTarget.on("keypress", _onKeyInput);
+        // 서식 단추(<md-mention>, <md-ref>)처럼 프로그램이 @, #, :를 넣을 때는 keypress가 오지 않고 input 이벤트의 data로만 알 수 있다(D-105)
+        htElement.welTarget.on("input", _onInput);
         if (jQuery.browser.mozilla){
             htElement.welTarget.on("focus", _startKeyupEventGenerator);
             htElement.welTarget.on("blur", _stopKeyupEventGenerator);
@@ -82,6 +84,23 @@ yona.Mention = function(htOptions) {
             if(htVar.doesNotDataLoaded) {
                 _findMentionList();
             }
+        }
+    }
+
+    /**
+     * Event handler on input event. 키보드가 아닌 방법으로 @, #, :가 들어올 때 멘션 목록 설정을 시작한다.
+     *
+     * @param {Event} eEvt
+     */
+    function _onInput(eEvt){
+        var sData = eEvt.originalEvent && eEvt.originalEvent.data;
+        if((sData === "@" || sData === "#" || sData === ":") && htVar.doesNotDataLoaded) {
+            // 서식 단추 모듈은 글자를 넣는 동안만 textarea를 contenteditable로 바꾸므로, 그 호출이 끝난 뒤에 시작한다
+            setTimeout(function(){
+                if(htVar.doesNotDataLoaded) {
+                    _findMentionList();
+                }
+            }, 0);
         }
     }
 

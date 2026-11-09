@@ -94,3 +94,5 @@ v1.6의 `conf/evolutions/default/1~32.sql`의 `Ups`를 새 MariaDB 10.11에 적�
 - 열거형: `issue.state`, `milestone.state`, `pull_request.state`, `webhook.webhook_type`은 선언 순서(서수)로 저장하므로 순서가 v1.6과 같아야 한다. `EnumOrdinalParityTest`가 지킨다.
 - 이전(Migration) 화면: 내보내기 JSON이 위 데이터에서 v1.6 모양으로 나오고, 화면에서 원본과 대상을 골라 마일스톤, 이슈, 게시글을 옮기면 GitHub로 나가는 요청(마일스톤 생성, `import/issues`)이 서버 내용과 같다. 단 토큰 교환이 폼 형식만 해석하는 v1.6 결함(R-58 1) 때문에 GitHub가 JSON으로 답하면 토큰이 비어 인증이 반복된다.
 
+## 편집기 서식 단추 (D-106, 추가 개발 항목, 2026-11-09)
+v1.6 편집기에는 서식 단추가 없고 도움말과 체크리스트 추가 단추만 있었다. 입력란 위에 GitHub의 `markdown-toolbar-element` 단추 열 개(제목, 굵게, 기울임, 인용, 코드, 링크, 글머리 기호 목록, 번호 목록, 멘션, 참조)를 더했다. 입력란, 서버 미리보기, 저장 계약은 바꾸지 않았다. 단추가 textarea에 남기는 `contenteditable="false"` 때문에 At.js 판별식 한 줄을 고쳤다(A-417).

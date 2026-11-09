@@ -194,7 +194,8 @@
 
         App.prototype.reg = function(flag, setting) {
             var base, controller;
-            controller = (base = this.controllers)[flag] || (base[flag] = this.$inputor.is('[contentEditable]') ? new EditableController(this, flag) : new TextareaController(this, flag));
+            // Yona: GitHub markdown-toolbar-element는 글자를 넣을 때 textarea에 contenteditable="false"를 남긴다(D-105). 속성이 있다는 이유만으로 편집 가능 요소로 보면 TextareaController가 아니라 EditableController가 만들어져 멘션이 열리지 않으므로, $.fn.atwho가 걸러내는 값(""와 true)만 편집 가능으로 본다.
+            controller = (base = this.controllers)[flag] || (base[flag] = this.$inputor.is('[contenteditable=""], [contenteditable=true]') ? new EditableController(this, flag) : new TextareaController(this, flag));
             if (setting.alias) {
                 this.aliasMaps[setting.alias] = flag;
             }
