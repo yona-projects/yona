@@ -105,3 +105,11 @@ jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더
 - **D(직접 쓰는 고정 패널)를 권한다.** 동작 변화가 가장 작고 의존이 없다. C(팝오버)는 거의 같은 코드에 브라우저 요건만 더한다. B는 CSS 추가와 기본 동작 끄기, 포커스 시험이 필요해 이득이 없다.
 - 다만 **2단 보기는 나중 UI 개편(Vue 컴포넌트, 2단 보기 개선)이 예정**되어 있으므로(그전까지는 htmx, D-96), 그때까지 **A(유지)도 합리적**이다.
 
+### jquery.pageslide 대체 B(Bootstrap 오프캔버스) 시험 구현 결과 (2026-11-09, 브랜치 `trial/pageslide-offcanvas`, 선생님 요청)
+- **정정**: 위 조사에서 플러그인을 부르는 템플릿을 5곳이라고 했으나 실제로는 **7곳**이다(`issue/list`, `issue/my-list`, `user/view`, `organization/issue-list`, `organization/board-list`, `board/list`, `pullrequest/list`).
+- **방법**: 옛 플러그인에서 특성 시험 10개(`twocolumn.test.mjs`)를 먼저 통과시킨 뒤(옛 스크립트와 플러그인은 `TC_IMPL=old`로 임시 폴더에서 불러온다) 오프캔버스로 구현했고 같은 시험이 통과한다. `bootstrap.scss`에 `vendor/bootstrap/offcanvas`를 더하고(앱의 컴파일 CSS에 0건이던 것이 172건), `#pageslide`를 `offcanvas offcanvas-end` 패널로 만들었다. 옵션은 `backdrop: false, scroll: true, keyboard: false`(배경 없음, 본문 스크롤 유지, Esc로 닫히지 않음)이고 `transition: none`으로 애니메이션이 없다(v1.6의 `speed: 0`).
+- **Bootstrap이 기본으로 하던 것 중 걸림이 된 것**: ① **그림자**: Bootstrap의 그림자 믹스인은 `$enable-shadows`가 꺼져 있으면 아무것도 내지 않아 `--bs-offcanvas-box-shadow` 변수만으로는 그림자가 안 나왔다(실제 앱 측정에서 발견, `box-shadow`를 직접 둠). ② **`$('#pageslide').is(':visible')`**: 오프캔버스는 `display`가 아니라 `visibility`로 숨기므로 jQuery `:visible`이 닫힌 패널도 참으로 본다. 열림 여부는 모듈 안의 상태 값으로 관리한다. ③ 포커스 가두기: `scroll: true`이고 배경이 없으면 켜지지 않아 목록 조작을 방해하지 않았다(시험으로 확인: 바깥 목록 클릭과 페이지 스크롤이 된다).
+- **실제 앱 확인**(이슈 목록, Chromium과 Firefox): 열린 패널의 위치(오른쪽 고정, 폭 50% = 700px, 높이 100%), `z-index` 999999, 그림자, iframe 주소, 주소 표시줄 변경, 왼쪽 메뉴 숨김과 복원, Esc로 안 닫힘, 같은 링크 재클릭으로 닫힘이 변경 전(옛 플러그인을 되살려 같은 앱에서 측정)과 모두 같았다. Firefox는 화면이 픽셀 단위로 같고, Chromium은 왼쪽 목록의 배치 수치가 같음을 확인했다(스크린샷에는 상단 알림 줄의 나타나는 시점 차이로 보이는 얕은 차이가 있었다).
+- **회귀 시험**: JS 전체 357개, 번들 8개, `web`, `audit`, `i18n` **9분 18초** 통과.
+- **상태**: 시험용 브랜치에만 있다(`next2`에 반영하지 않음). 선생님이 채택을 결정하면 합친다.
+

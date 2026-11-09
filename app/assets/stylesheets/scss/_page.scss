@@ -7385,24 +7385,26 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     background-color: #eee !important;
 }
 
-#pageslide {
-    /* These styles MUST be included. Do not change. */
-    display: none;
-    position: fixed;
-    top: 0;
-    height: 100%;
-    z-index: 999999;
-
-    /* Specify the width of your pageslide here */
-    width: 50%;
-    padding: 0;
-
-    /* These styles are optional, and describe how the pageslide will look */
-    -webkit-box-shadow: inset 0 0 5px 5px #222;
-    -moz-shadow: inset 0 0 5px 5px #222;
-    //box-shadow: inset 0 0 5px 5px #222;
+/*
+ * 2단 보기의 오른쪽 패널(Bootstrap 오프캔버스, `yona.twoColumnMode.js`). v1.6의 jquery.pageslide 패널과 같은 모양이다:
+ * 화면 오른쪽에 고정, 폭 50%, 높이 100%, 가장 위층, 그림자, 로딩 gif 배경. 애니메이션은 없다(`speed: 0`이었다).
+ */
+#pageslide.offcanvas {
+    --bs-offcanvas-width: 50%;
+    --bs-offcanvas-zindex: 999999;
+    --bs-offcanvas-padding-x: 0;
+    --bs-offcanvas-padding-y: 0;
+    --bs-offcanvas-border-width: 0;
+    transition: none;
+    /* Bootstrap의 그림자 믹스인은 `$enable-shadows`가 꺼져 있으면 아무것도 내지 않으므로 직접 둔다 */
     box-shadow: 2px 2px 8px #000;
     background: #FFF url('#{$base-image-path}/loading-gif-2.gif') no-repeat center;
+}
+
+#pageslide.offcanvas > iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 .myissues-search-input {

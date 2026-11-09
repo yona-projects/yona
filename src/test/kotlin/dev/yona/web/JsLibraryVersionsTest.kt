@@ -236,4 +236,14 @@ class JsLibraryVersionsTest {
         assertTrue(!asset("javascripts/common/yona.Sha1.js").exists(), "yona.Sha1.js는 지웠다")
         assertEquals(emptyList(), templateFiles().filter { it.readText().contains("yona.Sha1") }.map { it.path }, "yona.Sha1.js를 부르는 템플릿")
     }
+
+    @Test
+    fun `2단 보기 패널은 jquery_pageslide 없이 Bootstrap 오프캔버스로 동작한다`() {
+        // 시험용 구현(브랜치 trial/pageslide-offcanvas): jquery.pageslide 플러그인과 템플릿의 참조를 걷어내고 `yona.twoColumnMode.js`가 오프캔버스를 쓴다.
+        assertTrue(!asset("javascripts/lib/jquery.pageslide.js").exists(), "플러그인 파일은 지웠다")
+        assertEquals(emptyList(), templateFiles().filter { it.readText().contains("jquery.pageslide") }.map { it.path }, "플러그인을 부르는 템플릿")
+        val script = asset("javascripts/service/yona.twoColumnMode.js").readText()
+        assertTrue(script.contains("bootstrap.Offcanvas") && !script.contains(".pageslide(") && !script.contains("\$.pageslide"), "오프캔버스를 쓴다")
+        assertTrue(java.io.File("app/assets/stylesheets/bootstrap.scss").readText().contains("vendor/bootstrap/offcanvas"), "Sass 구성에 오프캔버스가 들어 있어야 한다")
+    }
 }

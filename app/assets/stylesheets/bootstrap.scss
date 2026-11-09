@@ -1,5 +1,5 @@
 // Bootstrap 5.3.8 빌드(로드맵 X-38d, decisions.md D-53). 소스는 `vendor/bootstrap/`(npm `bootstrap@5.3.8`의 scss, SHA-256 8b02d4a7482e0f0a2b1da58f1c9c86830e96cc2f77f094f89e4681b19886bc38)이고
-// 변수는 `scss/bs-variables`로 v1.6(Bootstrap 2.3.1) 모양에 맞춘다. 이 사이트가 쓰지 않는 구성 요소(내비바, 아코디언, 캐러셀, 스피너, 오프캔버스, 플레이스홀더, 토스트)는 넣지 않는다.
+// 변수는 `scss/bs-variables`로 v1.6(Bootstrap 2.3.1) 모양에 맞춘다. 이 사이트가 쓰지 않는 구성 요소(내비바, 아코디언, 캐러셀, 스피너, 플레이스홀더, 토스트)는 넣지 않는다. 오프캔버스는 2단 보기 패널(`#pageslide`)이 쓴다.
 @import "scss/bs-variables";
 @import "vendor/bootstrap/functions";
 @import "vendor/bootstrap/variables";
@@ -29,6 +29,7 @@
 @import "vendor/bootstrap/list-group";
 @import "vendor/bootstrap/close";
 @import "vendor/bootstrap/modal";
+@import "vendor/bootstrap/offcanvas";
 @import "vendor/bootstrap/tooltip";
 @import "vendor/bootstrap/popover";
 @import "vendor/bootstrap/helpers";

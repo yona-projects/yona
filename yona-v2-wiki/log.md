@@ -2091,3 +2091,7 @@ R-143(하위 댓글 Esc 뒤 다시 열리지 않음)을 Chromium과 Firefox에�
 ## [2026-11-09] fix | 달력 setDate("")와 하위 댓글 Ctrl+Enter(D-114, A-431)
 
 빈 값으로 비우기와 Ctrl, Cmd+Enter 제출을 고쳤다. Ctrl+Enter는 `e.Control` 오타 외에 Chromium이 modified Enter에 `keypress`를 내지 않는 문제가 겹쳐 `keydown`으로 옮겼다. JS 전체 347개, 실제 앱에서 두 브라우저 확인.
+
+## [2026-11-09] trial | jquery.pageslide를 Bootstrap 오프캔버스로 시험 구현(브랜치 trial/pageslide-offcanvas)
+
+옛 플러그인에서 특성 시험 10개를 먼저 통과시킨 뒤 오프캔버스로 구현해 같은 시험 통과. 실제 앱에서 두 브라우저로 변경 전후 동일 확인. 회귀 9분 18초 통과. 채택 결정 대기.
