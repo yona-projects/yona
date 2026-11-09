@@ -146,3 +146,4 @@
 - [직접 만든 JS를 표준 브라우저 기능으로 바꾸는 검토](architecture/standard-feature-replacement.md): 부품별 판단(S-01~S-14)과 발견한 것, 한 항목씩 진행
 - [OpenAPI 문서(Swagger UI)](architecture/openapi-docs.md): `/-_-api/docs`, 구성, 모델 규칙, 구조 시험과 계약 시험(D-50)
 - [프로젝트 위키](architecture/project-wiki.md): 저장소 위치, 페이지 규칙, 서비스, 단계(X-17, D-60)
+- [마크다운 입력란 GitHub 방식 (현황 보고)](architecture/markdown-input-github-way.md) — D-105, D-106 현황과 남은 일
