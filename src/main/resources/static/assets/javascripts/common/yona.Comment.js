@@ -32,12 +32,22 @@ yona.Comment = (function(){
      */
     function _attachEvent() {
         htElement.welContainer.on('click', '[data-toggle="comment-delete"]', _openDeleteModal);
+        htElement.welDeleteConfirmBtn.on('click', _onClickDeleteConfirm);
         htElement.welContainer.on('click', '[data-toggle="comment-edit"]', _toggleEditForm);
         htElement.welContainer.on('click', '.ybtn-cancel', _toggleEditForm);
 
         htElement.commentEditforms.each(function (i, item) {
             temporarySaveHandler($(item).find('textarea'), false);
         });
+    }
+
+    /**
+     * 삭제 확인창의 "예" 단추: 삭제 단추를 눌렀을 때 정해 둔 주소로 삭제를 요청한다
+     */
+    function _onClickDeleteConfirm(weEvt) {
+        weEvt.preventDefault();
+        weEvt.stopPropagation();
+        yona.Request.send('delete', htElement.deleteUrl);
     }
 
     function _toggleEditForm(){
@@ -54,10 +64,7 @@ yona.Comment = (function(){
      * open delete modal
      */
     function _openDeleteModal() {
-        htElement.welDeleteConfirmBtn
-            .data('requestUri', $(this).data('requestUri'))
-            .data('requestMethod', 'delete')
-            .requestAs();
+        htElement.deleteUrl = $(this).data('requestUri');
         bootstrap.Modal.getOrCreateInstance(htElement.welDeleteModal[0]).show();
     }
 

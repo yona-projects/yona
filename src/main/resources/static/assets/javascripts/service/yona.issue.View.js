@@ -393,7 +393,7 @@
 
             _initFileDownloader(timelineList.find(".attachments"));
             yona.Markdown.enableMarkdown(timelineList.find("[markdown]"));
-            timelineList.find("[data-request-method]").requestAs(); // delete button
+            yona.Request.bind(timelineList[0]); // delete button
 
             return timelineList;
         }

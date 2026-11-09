@@ -48,14 +48,15 @@
          */
         function _attachEvent(htOptions){
             htElement.welBtnDeletePop.click(_onClickBtnDeletePrj);
-            htElement.welBtnDeletePrj.requestAs({
-                "sMethod" : "delete",
-                "sHref"   : htOptions.sDeleteURL,
-                "fOnError": function(){
-                    bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).hide();
-                    $yona.alert(Messages("project.delete.error"));
-                    return false;
-                }
+            htElement.welBtnDeletePrj.on("click", function(weEvt){
+                weEvt.preventDefault();
+                weEvt.stopPropagation();
+                yona.Request.send("delete", htOptions.sDeleteURL).then(function(result){
+                    if(result.ok === false){
+                        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).hide();
+                        $yona.alert(Messages("project.delete.error"));
+                    }
+                });
             });
         }
 

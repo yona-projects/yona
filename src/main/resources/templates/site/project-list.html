@@ -59,17 +59,23 @@
 
     <script type="text/javascript" th:inline="javascript">
     $(function(){
+        // 삭제 확인창의 "예" 단추가 보낼 주소: 삭제 단추를 누를 때마다 바뀐다
+        var deleteUrl = null;
+
         $('.project-list-wrap').on('click','[data-toggle="delete-project"]',function(){
-            $('#projectDeleteBtn')
-              .data('requestUri',$(this).data('href'))
-              .data("requestMethod","delete")
-              .requestAs();
+            deleteUrl = $(this).data('href');
 
             $('#project-name').html($(this).data('projectName'));
 
             bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
 
             console.log($(this).data('href'));
+        });
+
+        document.getElementById('projectDeleteBtn').addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            yona.Request.send('delete', deleteUrl);
         });
 
         yona.Pagination.update($("#pagination"), [[${totalPageCount}]]);

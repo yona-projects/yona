@@ -102,17 +102,21 @@
             $yona.render(document.getElementById("dismissable-alerts-request").text, {}).appendTo(that.parent());
         }
 
+        // 계정 삭제 확인창의 "예" 단추가 보낼 주소: 삭제 단추를 누를 때마다 바뀐다
+        var accountDeleteUrl = null;
+
+        document.getElementById('accountToggleBtn').addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            yona.Request.send('delete', accountDeleteUrl).then(function(result){
+                if (result.status === 403) {
+                    document.location.reload();
+                }
+            });
+        });
+
         $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
-            $('#accountToggleBtn')
-                .data("requestUri", $(this).data('href'))
-                .data("requestMethod","delete")
-                .requestAs({
-                        "fOnError": function(oRes) {
-                            if (oRes.oXHR.status == 403) {
-                                document.location.reload();
-                            }
-                        }
-                    });
+            accountDeleteUrl = $(this).data('href');
             $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
             bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
         })
