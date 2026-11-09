@@ -415,7 +415,7 @@
          * @private
          */
         function _isMouseLeftButtonPressed(weEvt){
-            return (weEvt.which === 1);
+            return (weEvt.button === 0);
         }
 
         /**
@@ -587,7 +587,7 @@
          * @private
          */
         function _doesMouseButtonPressed(weEvt){
-            return (typeof weEvt.buttons !== "undefined") ? (weEvt.buttons !== 0) : (weEvt.which !== 0);
+            return (weEvt.buttons !== 0);
         }
 
         /**

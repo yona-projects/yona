@@ -87,9 +87,7 @@
          * @param {Wrapped Event} evt
          */
         function _onKeyUpInput(evt){
-            var keyCode = (evt.keyCode || evt.which);
-
-            if(keyCode !== 13){
+            if(!$yona.isEnterKey(evt)){
                 $(evt.target).data("isUserHasTyped", true)
                              .off("keyup", _onKeyUpInput);
             }

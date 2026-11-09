@@ -124,7 +124,7 @@
          * @param {Wrapped Event}
          */
         function _onKeypressDaysAgo(weEvt){
-            if(weEvt.keyCode === 13){ // Enter 키에 대해서만
+            if($yona.isEnterKey(weEvt)){ // Enter 키에 대해서만
                 _rememberCurrentTab();
                 document.location.href = '?' + _getTabQueryString();
                 return false;

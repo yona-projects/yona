@@ -25,7 +25,7 @@
 
             htElement.welInputTitle.focus();
             htElement.welInputTitle.on('keydown', function (e) {
-                if((e.keyCode || e.which) === 13) {
+                if($yona.isEnterKey(e)) {
                     e.preventDefault();
                     htElement.welInputContent.focus();
                 }

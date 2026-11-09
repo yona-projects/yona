@@ -79,7 +79,7 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _isMouseLeftButtonPressed(weEvt){
-        return (weEvt.which === 1);
+        return (weEvt.button === 0);
     }
 
     /**

@@ -217,7 +217,7 @@ yona.Pagination = (function(window, document) {
 
             if(typeof htData.submit === "function"){
                 htData.submit(nCurrentValue);
-            } else if(weEvt.which === 13){
+            } else if($yona.isEnterKey(weEvt)){
                 document.location.href = urlWithPageNum(htData.url, nCurrentValue, htData.paramNameForPage);
             }
         });

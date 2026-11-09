@@ -38,14 +38,15 @@ yona.ShortcutKey = (function(htOptions){
         htVar.rxTrim = /\s+/g;
         htVar.aFormTags = ["INPUT", "TEXTAREA"];
         htVar.aCombinationKeys = ["CTRL", "ALT", "SHIFT"];
-        htVar.htKeycodeMap = {
-            '13':'ENTER', '38':'UP', '40':'DOWN', '37':'LEFT', '39':'RIGHT', '13':'ENTER', '27':'ESC',
-            '32':'SPACE', '8':'BACKSPACE', '9':'TAB', '46':'DELETE', '33':'PAGEUP', '34':'PAGEDOWN', '36':'HOME', '35':'END',
-            '65':'A', '66':'B', '67':'C', '68':'D', '69':'E', '70':'F', '71':'G', '72':'H', '73':'I', '74':'J', '75':'K', '76':'L',
-            '77':'M', '78':'N', '79':'O', '80':'P', '81':'Q', '82':'R', '83':'S', '84':'T', '85':'U', '86':'V', '87':'W', '88':'X',
-            '89':'Y', '90':'Z',    '48':'0', '49':'1', '50':'2', '51':'3', '52':'4', '53':'5', '54':'6', '55':'7', '56':'8', '57':'9',
-            '219':'[', '221':']', '186':';', '222':'\'', '188':',', '190':'.', '191':'/', '189':'-', '187':'=', '220':'\\', '192':'`',
-            '112':'F1', '113':'F2', '114':'F3', '115':'F4', '116':'F5', '117':'F6', '118':'F7', '119':'F8', '120':'F9', '121':'F10', '122':'F11', '123':'F12'
+        // KeyboardEvent.key 가 이름이 있는 키(이동, 편집 키)일 때의 이름. 글자(A~Z)와 숫자, 기호, F1~F12는 _getMainKey 가 따로 만든다
+        htVar.htNamedKeys = {
+            'Enter':'ENTER', 'ArrowUp':'UP', 'ArrowDown':'DOWN', 'ArrowLeft':'LEFT', 'ArrowRight':'RIGHT', 'Escape':'ESC',
+            ' ':'SPACE', 'Backspace':'BACKSPACE', 'Tab':'TAB', 'Delete':'DELETE', 'PageUp':'PAGEUP', 'PageDown':'PAGEDOWN', 'Home':'HOME', 'End':'END'
+        };
+        // 기호 키는 Shift를 누르면 key 가 달라지므로(예: / → ?) 물리 키(code)로 이름을 정한다(옛 keyCode 표와 같다)
+        htVar.htSymbolCodes = {
+            'Minus':'-', 'Equal':'=', 'BracketLeft':'[', 'BracketRight':']', 'Semicolon':';', 'Quote':'\'', 'Comma':',', 'Period':'.',
+            'Slash':'/', 'Backslash':'\\', 'Backquote':'`'
         };
     }
 
@@ -145,11 +146,51 @@ yona.ShortcutKey = (function(htOptions){
     }
 
     /**
+     * keyDown 이벤트가 가리키는 키의 이름을 돌려준다. 이름이 없는 키(표에 없는 키)는 undefined.
+     *
+     * 옛 구현은 `keyCode` 표를 썼다. `KeyboardEvent.key`로 바꾸되 결과는 같게 맞췄다.
+     * - 한글 등 입력기로 조합하는 중(`isComposing`, `keyCode` 229, `key` "Process")의 키는 단축키가 아니다.
+     * - 글자는 `key`가 라틴 글자면 그 글자(대문자), 아니면(러시아어 배열 등) 물리 키(`KeyG` → G)다. `keyCode`도 그랬다.
+     * - 숫자와 기호는 물리 키(`Digit1`, `Slash`)다. 숫자 패드(`Numpad1`)는 옛 표에 없었으므로 제외한다.
+     *
+     * @param {Wrapped Event} weEvt
+     * @return {String|undefined}
+     */
+    function _getMainKey(weEvt){
+        var oEvt = weEvt.originalEvent || weEvt;
+        var sKey = oEvt.key;
+        var sCode = oEvt.code || "";
+        var aMatch;
+
+        if(!sKey || oEvt.isComposing === true || oEvt.keyCode === 229 || sKey === "Process"){
+            return;
+        }
+        if(htVar.htNamedKeys.hasOwnProperty(sKey)){
+            return htVar.htNamedKeys[sKey];
+        }
+        if(/^F([1-9]|1[0-2])$/.test(sKey)){
+            return sKey;
+        }
+        if(/^[a-z]$/i.test(sKey)){
+            return sKey.toUpperCase();
+        }
+        if((aMatch = /^Key([A-Z])$/.exec(sCode)) && sKey.length === 1 && /[^\x00-\x7f]/.test(sKey)){
+            return aMatch[1]; // 라틴이 아닌 배열의 글자 키
+        }
+        if((aMatch = /^Digit([0-9])$/.exec(sCode))){
+            return aMatch[1];
+        }
+        if(htVar.htSymbolCodes.hasOwnProperty(sCode)){
+            return htVar.htSymbolCodes[sCode];
+        }
+    }
+
+    /**
      * generate key string from keyDown event
      * @param {Wrapped Event} weEvt
      */
     function _getKeyString(weEvt){
-        var sMainKey = htVar.htKeycodeMap[weEvt.keyCode];
+        var sMainKey = _getMainKey(weEvt);
         if(typeof sMainKey === "undefined"){ // ignore event if not on keyMap
             return;
         }

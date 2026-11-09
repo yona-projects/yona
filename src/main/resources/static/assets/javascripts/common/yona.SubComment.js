@@ -15,13 +15,13 @@ $(function(){
 
         parent.find("textarea").on('keypress', function(e) {
             // Enter to submit
-            if ((e.metaKey || e.Control) && (e.keyCode || e.which) === 13) {
+            if ((e.metaKey || e.Control) && $yona.isEnterKey(e)) {
                 $(this).parents('form').submit();
                 return false;
             }
         }).on('keyup', function(e) {
             // Cancel input
-            if ((e.keyCode || e.which) === 27) {
+            if ($yona.isEscapeKey(e)) {
                 $(".child-comment-input-form").css("display", "none").css("visibility", "hidden");
                 $(".add-a-comment").show();
             }

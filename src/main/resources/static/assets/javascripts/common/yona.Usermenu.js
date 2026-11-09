@@ -81,7 +81,7 @@ $(function () {
             .on("keyup.search", function (event) {
                 var value = $(this).val().toLowerCase().trim();
 
-                if (value !== "" || event.which === 8) {  // 8: backspace
+                if (value !== "" || $yona.isBackspaceKey(event)) {
                     $(".user-li").each(function () {
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
                     });
@@ -91,13 +91,9 @@ $(function () {
                 }
             })
             .on("keydown.moveCursorFromInputform", function (e) {
-                switch (e.keyCode) {
-                    case 27:   // ESC
-                        $('.project-search').blur();
-                        closeSidebar($sidebar);
-                        break;
-                    default:
-                        break;
+                if ($yona.isEscapeKey(e)) {
+                    $('.project-search').blur();
+                    closeSidebar($sidebar);
                 }
             });
 
@@ -193,7 +189,8 @@ $(function () {
     }
 
     function isShortcutKeyPressed(event) {
-        return (!event.metaKey && (event.which === 102 || event.which === 12601))     // keycode => 102: f, 12623: ㄹ
+        var sKey = (event.originalEvent || event).key;
+        return (!event.metaKey && (sKey === "f" || sKey === "ㄹ"))     // keypress의 key => f, ㄹ(한글 자모 U+3139)
             && $(':focus').length === 0;                        // avoid already somewhere focused state
     }
 

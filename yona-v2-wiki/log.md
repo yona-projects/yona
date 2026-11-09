@@ -1999,3 +1999,8 @@ IME, 2단 보기, Alt 키, 캐럿 네 건을 Chromium과 Firefox로 다시 확�
 ## [2026-11-09] cleanup | S-03 Tab 들여쓰기가 되돌리기 기록을 남기도록 수정(A-419)
 
 S-03을 다시 열어 `yona.KeyControl.js`가 `execCommand('insertText')`로 바꾸게 했다. 실패하면 예전 방식. 결과 계산은 그대로. 시험 7개와 실제 앱 16개 항목(두 브라우저) 통과.
+
+## [2026-11-09] cleanup | S-05 keyCode와 which를 key와 button으로(A-420)
+
+선생님이 A안을 고르셨다. 도우미 4개, 호출 14개 파일 약 20곳, ShortcutKey 표를 key 기반으로 바꿨다. 한글 조합 중 Enter 처리를 한곳으로 모았다. v1.6 결함 둘(단축키 조합 정렬, e.Control)은 그대로 두고 R-141, R-142에 적었다. JS 212개, 실제 앱 28개 항목 통과.
+관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 10초에 통과했다(S-05 뒤). 전체 H2 시험은 돌리지 않았다.

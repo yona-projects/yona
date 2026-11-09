@@ -500,6 +500,60 @@ $yona = yona.Common = (function(){
         }
     }
 
+    /**
+     * 키보드 이벤트 본체를 돌려준다. jQuery 이벤트면 `originalEvent`(네이티브)를 쓴다.
+     * jQuery 이벤트에는 `key`는 복사되지만 `isComposing`은 복사되지 않는다.
+     *
+     * @param {Event|jQuery.Event} eEvt
+     * @return {KeyboardEvent|undefined}
+     */
+    function _keyboardEvent(eEvt) {
+        return (eEvt && eEvt.originalEvent) || eEvt;
+    }
+
+    /**
+     * 입력기(IME)로 글자를 조합하는 중에 난 키보드 이벤트인지 알려 준다.
+     *
+     * 조합 중의 키는 입력기의 것이다(예: 한글 조합을 확정하는 Enter). Chrome과 Firefox는 이때 `key`를 "Process",
+     * `keyCode`를 229로 보내고, Safari는 `key`를 "Enter"로 보내면서 `isComposing`을 참으로 둔다. 세 가지를 모두 본다.
+     *
+     * @param {Event|jQuery.Event} eEvt
+     * @return {Boolean}
+     */
+    function isComposingKey(eEvt) {
+        var oEvt = _keyboardEvent(eEvt);
+        return !!oEvt && (oEvt.isComposing === true || oEvt.keyCode === 229 || oEvt.key === "Process");
+    }
+
+    /**
+     * 눌린 키가 [sKey](`KeyboardEvent.key` 값)이고 조합 중이 아닌지 알려 준다.
+     */
+    function _isKey(eEvt, sKey) {
+        var oEvt = _keyboardEvent(eEvt);
+        return !!oEvt && oEvt.key === sKey && !isComposingKey(oEvt);
+    }
+
+    /**
+     * Enter(숫자 패드 포함)가 눌렸는지. 한글 조합을 확정하는 Enter는 제외한다.
+     */
+    function isEnterKey(eEvt) {
+        return _isKey(eEvt, "Enter");
+    }
+
+    /**
+     * Esc가 눌렸는지. 조합을 취소하는 Esc는 제외한다.
+     */
+    function isEscapeKey(eEvt) {
+        return _isKey(eEvt, "Escape");
+    }
+
+    /**
+     * Backspace가 눌렸는지.
+     */
+    function isBackspaceKey(eEvt) {
+        return _isKey(eEvt, "Backspace");
+    }
+
     function xssClean(str) {
       var filter = new Filter();
 
@@ -528,6 +582,10 @@ $yona = yona.Common = (function(){
         "htmlspecialchars": htmlspecialchars,
         "isImageFile": isImageFile,
         "xssClean" : xssClean,
+        "isComposingKey": isComposingKey,
+        "isEnterKey": isEnterKey,
+        "isEscapeKey": isEscapeKey,
+        "isBackspaceKey": isBackspaceKey,
         "showPopover": showPopover,
         "hidePopover": hidePopover,
         "showTab": showTab

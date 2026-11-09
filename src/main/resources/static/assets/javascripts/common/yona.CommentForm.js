@@ -114,13 +114,13 @@ $(function(){
     }
 
     /**
-     * Returns whether ESC(keyCode: 27) has pressed from event
+     * Returns whether ESC has pressed from event
      *
      * @param weEvt
      * @returns {boolean}
      */
     function isEscapeKeyPressed(evt){
-        return (evt.keyCode && evt.keyCode === 27);
+        return $yona.isEscapeKey(evt);
     }
 
     init();

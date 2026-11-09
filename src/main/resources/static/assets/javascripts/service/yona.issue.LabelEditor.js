@@ -152,7 +152,7 @@
          * @private
          */
         function _isEnterKeyPressed(evt){
-            return ((evt.keyCode || evt.which) === 13);
+            return $yona.isEnterKey(evt);
         }
 
         /**

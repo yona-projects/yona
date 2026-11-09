@@ -157,7 +157,7 @@
          * @param {Object} oEvent
          */
         function _onKeyPressInputProject(oEvent) {
-            if (oEvent.keyCode == 13) {
+            if ($yona.isEnterKey(oEvent)) {
                 _appendProjectLabel(htElement.welInputProject.val());
                 htElement.welInputProject.val("");
                 return false;

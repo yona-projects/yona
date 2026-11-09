@@ -128,12 +128,8 @@
                             $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
                         });
                     }).on("keydown.moveCursorFromInputform", function(e) {
-                        switch (e.keyCode) {
-                            case 27:   // ESC
-                                closeSidebar($sidebar);
-                                break;
-                            default:
-                                break;
+                        if ($yona.isEscapeKey(e)) {
+                            closeSidebar($sidebar);
                         }
                     });
 
