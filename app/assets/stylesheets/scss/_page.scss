@@ -2499,7 +2499,7 @@ label.inline-list {
                 @include border-radius(5px);
 
                 .due-date    { width: 236px; margin-bottom:0; }
-                .pika-single { width:232px; }
+                [data-vc="calendar"] { width:232px; min-width:0; }
                 .date-picker { margin-top:5px; }
 
                 label { color:#777; }
@@ -8255,13 +8255,22 @@ text-expander {
   width: 97%;
 }
 
-/* 달력의 월, 연 선택 상자: v1.6은 BS2 `select`의 높이 30px, 안쪽 여백 4px 6px, 테두리 #ccc이었다 */
-.pika-select {
-  box-sizing: border-box;
-  height: 30px;
-  padding: 4px 6px;
+/*
+ * 달력(vanilla-calendar-pro, S-09, A-424): v1.6의 Pikaday처럼 입력란의 왼쪽 아래에 틈 없이 붙고(라이브러리 기본은 위아래로 4px 띄운다) 다른 요소 위에 뜬다.
+ * Pikaday는 `z-index: 9`였다.
+ */
+[data-vc="calendar"][data-vc-input][data-vc-position] {
+  margin-top: 0;
+  z-index: 9;
+}
+
+/* 항상 보이는 달력(마일스톤, API 토큰): Pikaday는 폭 258에 1px 테두리의 상자였다. 라이브러리는 부모 폭을 다 채우고 테두리가 없다. */
+/* 라이브러리는 담는 요소의 class 를 `vc`로 바꾸므로 `.date-picker`로 고를 수 없다. 팝업이 아닌(`data-vc-input`이 없는) 달력이 항상 보이는 달력이다. */
+[data-vc="calendar"]:not([data-vc-input]) {
+  width: 258px;
+  min-width: 0;
   border: 1px solid #ccc;
-  background-color: #fff;
+  border-radius: 0;
 }
 
 /*
@@ -8293,11 +8302,6 @@ text-expander {
       }
     }
   }
-}
-
-/* 달력의 날짜 단추: pikaday는 content-box를 전제로 폭 100%에 안쪽 여백 5px를 쓰지만 v1.6은 칸 안에 들어맞았다 */
-.pika-button {
-  box-sizing: border-box;
 }
 
 /* 마크다운 편집기의 글상자: v1.6은 content-box라 높이 300px에 안쪽 여백과 테두리가 더해져 310px, 폭도 14px 더 넓었다 */

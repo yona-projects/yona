@@ -24,7 +24,7 @@ updated: 2026-11-09
 | S-06 | `yona.Files.js`(783줄) 업로드 | `fetch` | 부분. `fetch`는 업로드 진행률이 없어 XHR이 필요하다. `FormData` 없는 브라우저용 `$.ajaxForm` 대체 경로(`_uploadFileForm`)와 IE 확인(`trident`)은 지울 수 있다 | **완료**(2026-11-09, A-421: 옛 폼 경로 삭제 + 업로드를 네이티브 XHR로. 목록 조회와 삭제는 S-14. Firefox 붙여넣기 업로드는 R-140 논의 사항으로 남김) |
 | S-07 | `jquery.requestAs.js`(303줄, 호출 7곳) | `fetch` + `<dialog>` 확인창 | 가능, 중간 규모 | **완료**(2026-11-09, A-422, A′안: `yona.Request` 함수 하나 + 표준 DOM 이벤트. 선언형 연결 층까지 없애는 방식은 후속 논의) |
 | S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 R-145 논의 사항으로 남김) |
-| S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | `<input type="date">` | 가능하나 화면이 달라진다(v1.6과 같은 모양을 지키려면 결정이 필요) | 결정 대기 |
+| S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | vanilla-calendar-pro 3.4.0(계약과 위치는 Pikaday와 같게, `D-107`, `A-424`) | 구현 완료, 모양은 달라짐(월과 연 선택이 선택 상자에서 목록으로, 크기와 색) | 구현 완료, 선생님 화면 확인 대기 |
 | S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기 |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
 | S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API | 아직 모든 브라우저 표준이 아니라 유지 | 유지 |

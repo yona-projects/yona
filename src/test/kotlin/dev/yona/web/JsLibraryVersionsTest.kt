@@ -178,4 +178,30 @@ class JsLibraryVersionsTest {
         assertTrue(!File(assets, "compiler.jar").exists(), "static/assets/compiler.jar는 지웠다(D-92, A-398)")
         assertTrue(!java.io.File("minify-js.sh").exists(), "저장소 루트의 옛 minify-js.sh는 지웠다")
     }
+
+    @Test
+    fun `달력은 vanilla-calendar-pro 3_4_0이고 Pikaday는 파일도 참조도 없다`() {
+        // S-09, A-424: 날짜 선택 위젯을 Pikaday(저장소가 보관 처리됨)에서 vanilla-calendar-pro로 바꿨다. 계약은 yona.ui.Calendar.js가 지킨다.
+        val js = asset("javascripts/lib/vanilla-calendar-pro/index.js")
+        assertTrue(js.isFile && js.readText().take(200).contains("vanilla-calendar-pro v3.4.0"), "vanilla-calendar-pro 3.4.0 파일이 있어야 한다")
+        assertTrue(asset("javascripts/lib/vanilla-calendar-pro/index.css").readText().take(200).contains("vanilla-calendar-pro v3.4.0"))
+        assertTrue(asset("javascripts/lib/vanilla-calendar-pro/LICENSE").readText().contains("MIT License"))
+        assertTrue(!asset("javascripts/lib/pikaday").exists(), "lib/pikaday는 지웠다")
+        assertEquals(emptyList(), templateFiles().filter { it.readText().contains("pikaday", ignoreCase = true) }.map { it.path }, "Pikaday를 부르는 템플릿")
+        for (layout in listOf("layout/layout.html", "layout/layout-framed.html", "layout/migration-layout.html"))
+            assertTrue(template(layout).contains("lib/vanilla-calendar-pro/index.css"), "$layout 은 달력 CSS를 불러야 한다")
+        val calendar = template("common/calendar.html")
+        assertTrue(calendar.contains("lib/vanilla-calendar-pro/index.js") && calendar.contains("common/yona.ui.Calendar.js"), "공통 달력 조각은 라이브러리와 래퍼를 불러야 한다")
+        // 항상 보이는 달력을 쓰는 화면(마일스톤 작성과 수정, API 토큰)은 래퍼도 불러야 하고, moment는 Pikaday 때문에 불렀던 것이라 더 부르지 않는다
+        for (page in listOf("milestone/create.html", "milestone/edit.html", "user/partial-token-form.html")) {
+            val html = template(page)
+            assertTrue(html.contains("lib/vanilla-calendar-pro/index.js") && html.contains("common/yona.ui.Calendar.js"), "$page 는 달력 라이브러리와 래퍼를 불러야 한다")
+            assertTrue(!html.contains("moment"), "$page 는 moment를 부르지 않는다")
+        }
+        assertTrue(template("user/partial-token-form.html").contains("yona.ui.Calendar.inline"), "API 토큰 화면은 항상 보이는 달력 도우미를 쓴다")
+        assertTrue(asset("javascripts/service/yona.milestone.Write.js").readText().contains("yona.ui.Calendar.inline"), "마일스톤 작성은 항상 보이는 달력 도우미를 쓴다")
+        assertTrue(!asset("javascripts/service/yona.milestone.Write.js").readText().contains("Pikaday"))
+        val notice = java.io.File("NOTICE").readText()
+        assertTrue(notice.contains("vanilla-calendar-pro") && notice.contains("MIT"), "NOTICE에 vanilla-calendar-pro의 저작권 고지가 있어야 한다")
+    }
 }

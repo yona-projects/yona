@@ -95,34 +95,22 @@
 
         /**
          * initialize DatePicker
-         * @requires Pikaday
+         * 항상 보이는 달력을 붙인다. 고른 날짜는 마감일 입력란에 채우고, 입력란에 쓴 값은 blur에서 달력에 반영한다(yona.ui.Calendar.inline).
+         * @requires vanilla-calendar-pro, yona.ui.Calendar
          */
         function _initDatePicker(){
-            if(typeof Pikaday != "function"){
-                console.log("[Yobi] Pikaday required (https://github.com/dbushell/Pikaday)");
+            if(typeof VanillaCalendarPro != "object" || !yona.ui.Calendar || !yona.ui.Calendar.inline){
+                console.log("[Yona] vanilla-calendar-pro and yona.ui.Calendar required");
                 return false;
             }
 
-            // append Pikaday element to DatePicker
-            htVar.oPicker = new Pikaday({
-                "format" : htVar.sDateFormat,
-                "onSelect" : function(oDate) {
-                    htElement.welInputDueDate.val(this.toString());
-                }
-            });
-            htElement.welDatePicker.append(htVar.oPicker.el);
+            htVar.oPicker = yona.ui.Calendar.inline(htElement.welDatePicker, { "input": htElement.welInputDueDate });
 
-            // fill DatePicker date to InputDueDate if empty
-            // or set DatePicker date with InputDueDate
+            // 입력란에 값이 있으면 달력도 그 날짜로 맞춘다(입력란은 정규화된 값으로 다시 채워진다)
             var sDueDate = htElement.welInputDueDate.val();
             if(sDueDate.length > 0){
                 htVar.oPicker.setDate(sDueDate);
             }
-
-            // set relative event between dueDate input and datePicker
-            htElement.welInputDueDate.blur(function() {
-                htVar.oPicker.setDate(this.value);
-            });
         }
 
         /**

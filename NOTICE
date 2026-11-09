@@ -913,3 +913,10 @@ Apache Tika 1.2 mime type database (src/main/resources/mime/tika-mimetypes-1.2.x
 
 Copyright 2007-2012 The Apache Software Foundation. Licensed under the Apache License, Version 2.0.
 v1.6의 파일 종류 감지 결과를 그대로 내기 위해 Tika 1.2의 tika-mimetypes.xml을 변경 없이 포함한다.
+
+
+vanilla-calendar-pro 3.4.0 (src/main/resources/static/assets/javascripts/lib/vanilla-calendar-pro/)
+======================================================================================================
+
+Copyright (c) 2024 Yury Uvarov. Licensed under the MIT License (같은 폴더의 LICENSE).
+날짜 선택 달력을 위해 공식 배포 파일(index.js, styles/index.css)을 변경 없이 포함한다. https://github.com/uvarov-frontend/vanilla-calendar-pro

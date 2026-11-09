@@ -2039,3 +2039,7 @@ Dialog는 유지. 변경 전후 화면을 같은 데이터에서 찍어 세 쌍�
 ## [2026-11-09] docs | R-145(Firefox 드롭다운 휠)를 논의 사항으로 기록, S-09 조사
 
 Firefox 휠 확인을 R-145로 남기고 S-08 행에 연결했다. S-01~S-08은 S-04(유지)를 빼고 모두 완료. S-09는 Pikaday가 세 방식(팝업 4곳, 인라인 2화면)으로 쓰이고 moment 391KB와 얽혀 있음을 조사해 선택지 A~D를 적었다.
+
+## [2026-11-09] feat | S-09 달력을 vanilla-calendar-pro 3.4.0으로 교체(D-107, A-424)
+
+`yona.ui.Calendar.js` 계약(옵션, silent, change, 위치와 뒤집기)을 지키며 Pikaday를 바꿨다. 항상 보이는 달력(마일스톤, API 토큰)은 `yona.ui.Calendar.inline()`으로 통일했다. 시험: `calendar.test.mjs` 23개(JS 전체 272개 통과), 회귀 `dev.yona.web.*`, `audit.*`, `i18n.*` 전체 **9분 21초** 통과(17:55~18:04). 실제 앱 확인은 Chromium과 Firefox. 기존과 신규 화면 비교 이미지를 선생님께 드렸고 월과 연 선택(선택 상자에서 눌러서 여는 목록)의 차이를 안내했다.

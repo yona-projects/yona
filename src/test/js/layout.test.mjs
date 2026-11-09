@@ -172,14 +172,24 @@ export const tests = [
     },
   },
   {
-    name: '달력의 월 선택 상자는 높이 30이고 날짜 단추는 칸을 넘지 않는다 (A-377)',
+    name: '달력(vanilla-calendar-pro)은 v1.6의 Pikaday처럼 입력란에 틈 없이 붙고 z-index 9이며, 마일스톤 오른쪽 칸에서는 폭 232이다 (A-424)',
     async run() {
-      const page = await open(`<div class="pika-single"><div class="pika-lendar"><div class="pika-title"><div class="pika-label"><select class="pika-select pika-select-month"><option>November</option></select></div></div>
-        <table class="pika-table"><tbody><tr><td data-day="1"><button class="pika-button pika-day" type="button">1</button></td></tr></tbody></table></div></div>`);
-      const h = await page.evaluate(() => document.querySelector('.pika-select-month').getBoundingClientRect().height);
-      assert.equal(Math.round(h), 30, `월 선택 상자 높이 ${h}`);
-      const over = await page.evaluate(() => { const b = document.querySelector('.pika-day').getBoundingClientRect(); const c = document.querySelector('.pika-table td').getBoundingClientRect(); return b.width - c.width; });
-      assert.ok(over <= 0.5, `날짜 단추가 칸보다 ${over}px 넓다`);
+      const page = await open(`<div data-vc="calendar" data-vc-input data-vc-position="bottom" id="p">a</div><div data-vc="calendar" data-vc-input data-vc-position="top" id="q">b</div>`);
+      await page.addStyleTag({ path: path.join(ROOT, 'src/main/resources/static/assets/javascripts/lib/vanilla-calendar-pro/index.css') });
+      await page.addStyleTag({ path: path.join(CSS, 'yobi.css') });
+      const m = await page.evaluate(() => ['p', 'q'].map((id) => { const cs = getComputedStyle(document.getElementById(id)); return [cs.marginTop, cs.zIndex]; }));
+      assert.deepEqual(m, [['0px', '9'], ['0px', '9']]);
+    },
+  },
+  {
+    name: '항상 보이는 달력(data-vc-input이 없는 달력)은 부모가 넓어도 Pikaday처럼 고정 폭 258이고 테두리가 있으며, 팝업 달력은 건드리지 않는다 (A-424)',
+    async run() {
+      // 라이브러리는 달력을 담을 요소 자신을 달력으로 만들며 그때 class 를 `vc`로 바꾸므로(`date-picker` 같은 class 는 사라진다) class 가 아니라 속성으로 고른다.
+      const page = await open(`<div style="width:1200px"><div data-vc="calendar" id="c">a</div><div><div data-vc="calendar" id="d">b</div></div><div data-vc="calendar" data-vc-input id="p">c</div></div>`);
+      await page.addStyleTag({ path: path.join(ROOT, 'src/main/resources/static/assets/javascripts/lib/vanilla-calendar-pro/index.css') });
+      await page.addStyleTag({ path: path.join(CSS, 'yobi.css') });
+      const r = await page.evaluate(() => ['c', 'd', 'p'].map((id) => { const e = document.getElementById(id); const cs = getComputedStyle(e); return [Math.round(e.getBoundingClientRect().width) === 258, cs.borderTopWidth, cs.borderTopStyle]; }));
+      assert.deepEqual(r, [[true, '1px', 'solid'], [true, '1px', 'solid'], [false, '0px', 'none']]);
     },
   },
   {

@@ -74,7 +74,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         assertEquals("30", doc.selectFirst("form#token-create select[name=expiration] option[selected]")!!.attr("value"), "기본은 30일")
         assertNotNull(doc.selectFirst("form#token-create input[name=expiresDate]"))
         assertNotNull(doc.selectFirst("form#token-create .token-expires-picker"), "사용자 지정 만료일은 달력으로 고른다")
-        assertTrue(doc.select("script").any { it.attr("src").contains("pikaday") }, "달력 라이브러리(Pikaday)를 쓴다")
+        assertTrue(doc.select("script").any { it.attr("src").contains("vanilla-calendar-pro") }, "달력 라이브러리(vanilla-calendar-pro)를 쓴다")
         assertEquals(true, list.select("#token-list tr.token-row").isEmpty())
     }
 

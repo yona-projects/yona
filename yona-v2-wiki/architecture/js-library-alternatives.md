@@ -43,7 +43,7 @@ updated: 2026-11-08
 | diff.js(2곳, 12KB) | `diff`(jsdiff 9.0, 2026-04 갱신) | 8.4 | 같은 계열의 관리되는 후속 |
 | NProgress(호출 80곳 이상) | 유지(1.9) | 1.9 | 이미 가벼움. 대안 BProgress 3.3 |
 | autosize(호출 1곳) | 유지(1.3) / CSS `field-sizing: content` | 1.3 / 0 | Firefox 지원 확인 필요 |
-| Pikaday | 유지(5.9) / 네이티브 `<input type=date>` | 5.9 / 0 | 더 가벼운 대안 없음 |
+| Pikaday | **vanilla-calendar-pro 3.4.0으로 대체 완료**(`D-107`, 2026-11-09) | 25(gzip) | Pikaday 저장소가 2025-08 보관됨. 이전 판단("더 가벼운 대안 없음")을 고쳤다 |
 | video.js 7.8.2(486KB 원본, 첨부 동영상 재생 하나) | **네이티브 `<video controls>`** | 약 150 → 0 | 가장 큰 절감 |
 | Viewer.js(이미지 보기) | 유지(15.1) | 15.1 | medium-zoom(3.6)은 확대만 되어 기능이 줄어듦 |
 | highlight.js | 11.x에서 쓰는 언어만 담아 다시 만들기 | 가변 | 지금도 맞춤 묶음 |

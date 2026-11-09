@@ -9,9 +9,9 @@
 // (2)는 X-38i(디자인 현대화) 때 border-box 기준으로 다시 쓴다. 글자 입력창은 BS5 `.form-control`로 옮겨 예외가 없다.
 *, *:before, *:after { box-sizing: border-box; }
 
-// 외부 위젯(pikaday, jquery.elevator)의 CSS는 content-box를 전제로 쓰였다. 위젯 루트 아래는 content-box로 두고, `:where`로 특이도를 0으로 낮춰 위젯 자신의 `box-sizing` 선언이 이기게 한다.
+// 외부 위젯(jquery.elevator)의 CSS는 content-box를 전제로 쓰였다. 위젯 루트 아래는 content-box로 두고, `:where`로 특이도를 0으로 낮춰 위젯 자신의 `box-sizing` 선언이 이기게 한다.
 // 위젯을 border-box를 아는 버전으로 올리면 이 규칙을 지운다.
-:where(.pika-single, .jq-elevator), :where(.pika-single, .jq-elevator) * { box-sizing: content-box; }
+:where(.jq-elevator), :where(.jq-elevator) * { box-sizing: content-box; }
 
 a:focus {
   outline: thin dotted #333;

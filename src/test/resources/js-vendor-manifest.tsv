@@ -24,3 +24,5 @@ title-input/title-input.min.js	title-input(Lit 3.2.1 포함, components 저장�
 markdown-toolbar/markdown-toolbar-element.js	markdown-toolbar-element	2.2.3	1f8dd41b82888cd538bdaf6d4a7bdd368271fb26b0c9942913e5b72fcbb1cf55
 text-expander/text-expander-element.js	text-expander-element	2.9.4	301ba27434a916978e8d3ce3d82d4e03ede15cd4cebb6886d9f1839eebc62900
 text-expander/combobox-nav.js	combobox-nav	2.3.1	7b8114deee56d5cdfebc9f59e290f5b718e885933b8d4d7173c597014a2069ff
+vanilla-calendar-pro/index.js	vanilla-calendar-pro	3.4.0	3104901e40d02e560d7228262814dc1ceb52ffcab35ac6439ebdc56d444c554d
+vanilla-calendar-pro/index.css	vanilla-calendar-pro(styles/index.css)	3.4.0	856fd50a667cfb58577060358a9a9cbae108cd05f954dccbfbca6fbe4f6b0d24
