@@ -28,7 +28,7 @@ updated: 2026-11-09
 | S-10 | `yona.ui.Typeahead`와 better-typeahead | **BS2 플러그인 없이 같은 API로 다시 씀**(`D-109`, `A-426`. `<datalist>`는 아바타와 값 바꾸기를 못 해 제외) | 완료. 동작은 옛 구현과 같게 시험으로 고정, 모양은 그대로(BS5 `dropdown-menu`) | **완료**(2026-11-09, D-109, A-426, 선생님 확인) |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
 | S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API(`Element.setHTML`) | **표준 우선으로 바꿈**(지원하는 브라우저는 표준, Safari 등은 옛 필터. 금지 요소 목록과 변이 XSS 요소를 더 걷어냄) | **완료**(2026-11-09, D-108, A-425) |
-| S-13 | jQuery 정적 유틸: `$.each` 10, `$.extend` 8, `$.proxy` 8, `$.inArray`, `$.map` 2, `$.isEmptyObject`, `$.parseHTML` 2(합 32곳, 11개 파일. 인스턴스 `.each` 49곳과 `$.ajax` 계열은 S-14) | `for…of`, `forEach`, `Object.assign`, `bind`, `includes`, `map`, `Object.keys`, `<template>`/`DOMParser` | 쉬운 치환이 아니다: `$.each`의 인자 순서, `$.extend`의 `undefined` 건너뜀, `$.parseHTML`의 스크립트 제거 차이를 값 비교 시험으로 먼저 확인 | 조사 완료, 선택지 A~C 결정 대기(`S-13 조사`) |
+| S-13 | jQuery 정적 유틸 32곳(`$.each`, `$.extend`, `$.proxy`, `$.inArray`, `$.map` 2, `$.isEmptyObject`, `$.parseHTML` 2) | `forEach`, `Object.entries`, `Object.assign`, `bind`, `includes`, `map`, `Object.keys`, `<template>`, `DOMParser` | **완료**: 값 비교 시험을 먼저 두고 바꿨다. 다름이 있는 곳은 "S-13 동작 확인 목록"으로 나중에 확인(선생님 지시) | **완료**(2026-11-09, D-110, A-427, 동작 확인 대기) |
 | S-14 | jQuery DOM과 이벤트와 `.data()`와 `$.ajax`(약 1,300곳) | `classList`, `hidden`, `closest`, `addEventListener`, `dataset`, `fetch` | jQuery 전체 제거에 해당하는 큰 일. `.data()`는 값 자동 변환, `$.ajax`는 4xx 처리와 `X-Requested-With`, `Accept` 헤더 차이에 주의 | 별도 단계 |
 
 사용 횟수(`Migration.js` 제외, 파일 수): `$.ajax` 계열 59(34), `$.each` 60(28), `.show/.hide/.toggle` 122(36), 클래스 조작 100(32), `.on/.off/.bind` 237(64), `.data` 217(36), 탐색(`closest`, `find` 등) 310(51), `keyCode/which` 33(17), `setInterval` 8(5), `alert/confirm` 직접 30(13).
@@ -291,4 +291,18 @@ updated: 2026-11-09
 - **B. 일부만**: 차이가 없는 `$.proxy`, `$.inArray`, `$.map` 3종(11곳)만 바꾸고 나머지는 S-14 때 함께 한다.
 - **C. 유지**: S-14에서 한꺼번에 다룬다.
 - 판단: `$.each`와 `$.extend`는 위험한 차이(인자 순서, `undefined`)가 있어 시험 없이 기계적으로 바꾸면 안 되지만, 시험을 먼저 두면 안전하다. A를 권한다.
+
+### S-13 동작 확인 목록 (2026-11-09, 선생님 지시: 다름이 있는 곳은 나중에 동작 확인)
+구현은 끝났고 자동 시험과 실제 앱 확인(Chromium, Firefox)을 했다. 아래는 jQuery와 표준 JS의 결과가 **다를 수 있는 곳**이다. 선생님이 직접 화면에서 확인하실 때 보시라고 모아 둔다.
+
+| 곳 | 달라질 수 있는 점 | 지금까지 확인한 것 | 직접 볼 화면 |
+|---|---|---|---|
+| `Select2.js` `$.extend`(5곳), `$.map` | 원본의 `undefined`를 건너뛰던 것이 이제 복사된다 | 호출처의 원본은 서버 JSON(undefined 없음)이거나 옵션이 없다. 시험 + 이슈 보기 라벨 목록과 선택 | 이슈 보기 담당자, 라벨, 공유자 선택 상자 |
+| `Select2.js` `$.each`(객체 2곳, 선택 변화 비교) | 인자 순서, 객체 순회 방식 | 키 순서와 값이 같음을 값 비교로 확인, 라벨을 고르는 실제 화면 확인 | 라벨 여러 개 선택과 해제 |
+| `Common.js` `$.extend`(팝오버 옵션) | `content: undefined`를 넘기면 덮어쓴다 | 호출 5곳 확인(`user.Setting`만 값이 비어 있을 수 있고 부트스트랩이 빈 값은 같게 처리) | 프로필 설정, 가입, 비밀번호 재설정, 프로젝트 만들기의 오류 말풍선 |
+| `Common.js` `$.parseHTML` → `parseHtml` | 문서 소유자가 `<template>`의 빈 문서라 이미지 등을 읽는 동안 불러오지 않는다(jQuery도 같음) | `<tr>` 조각, script 제거, 글자 조각이 같음을 값 비교로 확인 | 템플릿으로 그리는 화면(첨부 목록, 알림) |
+| `Pagination.js` `$.extend`(대상을 바꾸는 2곳) | undefined 복사 | 이슈 목록 쪽 넘김 링크가 그려지는 것 확인 | 목록 아래 이전, 다음 쪽 |
+| `pullrequest.Reviewers.js` `$.parseHTML` → `DOMParser` | 문서 전체를 읽는 방식이 달라짐. `#review-area`가 없으면 아무것도 바꾸지 않는 점은 같게 함 | 새 시험(script 미실행, 밖은 가져오지 않음) | 풀 리퀘스트에서 리뷰 요청과 취소 직후 영역 갱신 |
+| `OriginalMessage.js` `$.each` → `Array.from(...).forEach` | 없음(인자 순서만) | 새 시험(구분선 숨김과 "..." 펼침) | 이메일로 온 댓글의 인용 숨기기 |
+| 그 밖의 `$.proxy`(Files), `$.inArray`, `$.isEmptyObject`, `jQuery.map` | 값 비교로 같음 | 파일 첨부와 끌어 놓기, 프로젝트 만들기 검증, 코드 보기 | 이슈 작성의 파일 올리기 |
 

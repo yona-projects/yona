@@ -156,7 +156,7 @@
                 error.url.push(Messages("project.import.error.empty.url"));
             }
 
-            if(!$.isEmptyObject(error)){
+            if(Object.keys(error).length > 0){
                 _showErrors(error);
                 evt.preventDefault();
                 return false;

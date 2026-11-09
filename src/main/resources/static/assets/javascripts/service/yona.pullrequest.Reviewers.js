@@ -34,8 +34,12 @@
     /** 변경 뒤 리뷰 영역과 타임라인만 다시 읽는다. */
     function refresh(timelineUrl) {
         $.get(window.location.href, function (html) {
-            var $page = $("<div>").append($.parseHTML(html));
-            $("#review-area").html($page.find("#review-area").html());
+            // 읽어 온 문서는 DOMParser로 읽어 스크립트를 실행하지 않는다. `#review-area`가 없으면(jQuery `.html(undefined)`처럼) 바꾸지 않는다
+            var fresh = new DOMParser().parseFromString(html, "text/html").querySelector("#review-area");
+            if (fresh) {
+                fresh.querySelectorAll("script").forEach(function (script) { script.remove(); });
+                $("#review-area").html(fresh.innerHTML);
+            }
             bindRequestBox();
         });
         if (timelineUrl) {

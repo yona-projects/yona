@@ -237,7 +237,7 @@ yona.Pagination = (function(window, document) {
         var sLinkHTMLOn = '<i class="ico btn-pg-prev"></i><span>' + sLinkText + '</span>';
         var sLinkHTMLOff = '<i class="ico btn-pg-prev off"></i><span class="off">' + sLinkText + '</span>';
 
-        var htOptions = $.extend(htData, {
+        var htOptions = Object.assign(htData, {
             "bActive"  : htData.hasPrev,
             "sLinkHref": htData.hasPrev ? urlWithPageNum(htData.url, htData.current - 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,
@@ -263,7 +263,7 @@ yona.Pagination = (function(window, document) {
         var sLinkHTMLOn = '<span>' + sLinkText + '</span><i class="ico btn-pg-next"></i>';
         var sLinkHTMLOff = '<span class="off">' + sLinkText + '</span><i class="ico btn-pg-next off"></i>';
 
-        var htOptions = $.extend(htData, {
+        var htOptions = Object.assign(htData, {
             "bActive"  : htData.hasNext,
             "sLinkHref": htData.hasNext ? urlWithPageNum(htData.url, htData.current + 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,

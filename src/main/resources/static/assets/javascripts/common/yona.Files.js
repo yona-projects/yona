@@ -308,13 +308,13 @@ yona.Files = (function(){
      */
     function _attachEvent(sNamespace){
         var htElement = htElements[sNamespace];
-        htElement.welInputFile.on("change", $.proxy(_onChangeFile, this, sNamespace));
+        htElement.welInputFile.on("change", _onChangeFile.bind(this, sNamespace));
 
         // Upload by Drag & Drop
         if(htVar.bDroppable){
             htElement.welContainer.on({
-                "dragover" : $.proxy(_onDragOver, this, sNamespace),
-                "drop"     : $.proxy(_onDropFile, this, sNamespace)
+                "dragover" : _onDragOver.bind(this, sNamespace),
+                "drop"     : _onDropFile.bind(this, sNamespace)
             });
 
             var sTplDropper = $("#tplDropFilesHere").text().trim() ||
@@ -324,16 +324,16 @@ yona.Files = (function(){
             htElement.welDropper = $(sTplDropper);
             htElement.welTextarea.before(htElement.welDropper);
             htElement.welTextarea.on({
-                "dragover" : $.proxy(_onDragOver,  this, sNamespace),
-                "dragenter": $.proxy(_onDragEnter, this, sNamespace),
-                "dragleave": $.proxy(_onDragLeave, this, sNamespace),
-                "drop"     : $.proxy(_onDropFile,  this, sNamespace)
+                "dragover" : _onDragOver.bind(this, sNamespace),
+                "dragenter": _onDragEnter.bind(this, sNamespace),
+                "dragleave": _onDragLeave.bind(this, sNamespace),
+                "drop"     : _onDropFile.bind(this, sNamespace)
             });
         }
 
         // Upload by paste
         if(htVar.bPastable && htElement.welTextarea){
-            htElement.welTextarea.on("paste", $.proxy(_onPasteFile, this, sNamespace));
+            htElement.welTextarea.on("paste", _onPasteFile.bind(this, sNamespace));
         }
 
         // Mark as already attached

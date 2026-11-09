@@ -435,7 +435,7 @@
 
         function _isMarkdownExtension(sPath) {
             var sExt =  getExt(basename(htVar.sPath));
-            return ($.inArray(sExt, htVar.aMarkdownExtension) !== -1);
+            return htVar.aMarkdownExtension.includes(sExt);
         }
 
         /**

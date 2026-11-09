@@ -42,7 +42,7 @@ yona.OriginalMessage = (function(htOptions){
      * @param {String} sQuery Selector string for targets
      */
     function _hide(targets) {
-        $.each(targets, function(_, targetElem) {
+        Array.from(targets).forEach(function(targetElem) {
             var delimiterLine;
             var originalMessage; // list of jquery elements which construct the original message
             var buttonToHideOriginalMessage; // a button to toggle the original message

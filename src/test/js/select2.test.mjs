@@ -332,5 +332,21 @@ export const remoteTests = [
       assert.deepEqual(JSON.parse(calls.find((c) => c.path === '/assignees').body), { assignees: [] });
     },
   },
+  {
+    name: '리뷰 요청: 성공하면 현재 화면 주소를 다시 읽어 #review-area 안쪽만 바꾸고 읽어 온 문서의 script는 실행하지 않는다 (S-13, A-427)',
+    async run() {
+      const { page } = await open2(
+        `<div id="review-area"><select id="review-request" data-placeholder="요청" style="width:300px" data-candidates-url="${API}/cand" data-request-url="${API}/req" data-timeline-url=""><option value=""></option></select></div>`,
+        ['service/yona.pullrequest.Reviewers.js'], { '/cand': () => [LEE], '/req': () => ({}) });
+      await page.evaluate(() => { window.__ran = 0; $.get = function (url, cb) { window.__got = url; cb('<!doctype html><html><head><script>window.__ran++</script></head><body><div id="other">x</div><div id="review-area"><p class="fresh">새 리뷰 영역</p><script>window.__ran++</script></div></body></html>'); }; });
+      await page.click('.select2-selection');
+      await page.fill('.select2-search__field', 'l');
+      await page.locator('.select2-results__option[role="option"] .usf-group').first().click();
+      await page.waitForSelector('#review-area .fresh', { timeout: 5000 });
+      assert.equal(await page.evaluate(() => document.querySelector('#review-area .fresh').textContent), '새 리뷰 영역');
+      assert.equal(await page.evaluate(() => document.querySelectorAll('#review-area script').length + window.__ran), 0, 'script는 가져오지도 실행하지도 않는다');
+      assert.equal(await page.evaluate(() => document.getElementById('other')), null, '#review-area 밖은 가져오지 않는다');
+    },
+  },
 ];
 tests.push(...remoteTests);

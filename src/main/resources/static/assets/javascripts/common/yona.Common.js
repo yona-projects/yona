@@ -376,6 +376,20 @@ $yona = yona.Common = (function(){
     }
 
     /**
+     * HTML 조각을 노드 배열로 읽는다(jQuery `$.parseHTML`의 기본 동작과 같다: 스크립트는 버리고, 읽는 동안 실행하거나 이미지를 불러오지 않는다).
+     * `<template>`은 `<tr>` 같은 조각도 문맥 없이 읽는다.
+     *
+     * @param {String} sHtml
+     * @return {Node[]}
+     */
+    function parseHtml(sHtml) {
+        var elTemplate = document.createElement("template");
+        elTemplate.innerHTML = sHtml;
+        elTemplate.content.querySelectorAll("script").forEach(function (elScript) { elScript.remove(); });
+        return Array.from(elTemplate.content.childNodes);
+    }
+
+    /**
      * Mustache 템플릿으로 HTML 조각을 만들어 jQuery 객체로 돌려준다. v1.6의 `$.tmpl(템플릿, 자료)`(jquery.tmpl)를 대신한다(decisions.md D-94).
      *
      * `{{이름}}`은 이스케이프해서, `{{{이름}}}`은 그대로 넣는다. 없는 값은 빈 글자이고 `a.b` 같은 중첩 속성도 된다.
@@ -393,7 +407,7 @@ $yona = yona.Common = (function(){
             return $();
         }
         Mustache.escape = escapeTemplateValue;
-        return $($.parseHTML(Mustache.render(sTemplate, htData == null ? {} : htData).trim()));
+        return $(parseHtml(Mustache.render(sTemplate, htData == null ? {} : htData).trim()));
     }
 
     /**
@@ -470,7 +484,7 @@ $yona = yona.Common = (function(){
             if(oOld){
                 oOld.dispose();
             }
-            new bootstrap.Popover(this, $.extend({"trigger": "manual"}, htOptions)).show();
+            new bootstrap.Popover(this, Object.assign({"trigger": "manual"}, htOptions)).show();
         });
     }
 

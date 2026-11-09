@@ -384,7 +384,7 @@
                                 break;
                             case '@@' :
                                 var aMatch = sLine.match(rxHunkHeader);
-                                var aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
+                                var aHunkRange = aMatch ? aMatch.map(function(sVal) {
                                     return parseInt(sVal, 10);
                                 }) : null;
 

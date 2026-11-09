@@ -82,13 +82,13 @@
         function match(term, data){
             if(data.children){
                 var children = [];
-                $.each(data.children, function(i, child){
+                data.children.forEach(function(child){
                     var matched = match(term, child);
                     if(matched){
                         children.push(matched);
                     }
                 });
-                return children.length > 0 ? $.extend({}, data, {"children": children}) : null;
+                return children.length > 0 ? Object.assign({}, data, {"children": children}) : null;
             }
             return test(term, data.text, $(data.element)) ? data : null;
         }
@@ -110,7 +110,7 @@
         if(!select[0]){
             return selected;
         }
-        $.each(select[0].options, function(i, option){
+        Array.from(select[0].options).forEach(function(option){
             if(option.selected){
                 selected[option.value] = {"id": option.value, "text": $(option).text(), "element": option};
             }
@@ -132,12 +132,14 @@
         var current = _selectedData(select);
         var changes = {"added": [], "removed": []};
 
-        $.each(current, function(id, data){
+        Object.entries(current).forEach(function(entry){
+            var id = entry[0], data = entry[1];
             if(!(id in before)){
                 changes.added.push(data);
             }
         });
-        $.each(before, function(id, data){
+        Object.entries(before).forEach(function(entry){
+            var id = entry[0], data = entry[1];
             if(!(id in current)){
                 changes.removed.push(data);
             }
@@ -200,8 +202,8 @@
                 return {"query": params.term};
             },
             "processResults": function(users){
-                return {"results": $.map(users, function(user){
-                    return $.extend({"id": user.loginId, "text": user.name}, user);
+                return {"results": users.map(function(user){
+                    return Object.assign({"id": user.loginId, "text": user.name}, user);
                 })};
             }
         };
@@ -216,7 +218,7 @@
      */
     function selectUsers(select, users){
         var selectElement = $(select);
-        $.each(users, function(i, user){
+        users.forEach(function(user){
             selectElement.find("option").filter(function(){
                 return this.value === user.loginId;
             }).remove();
@@ -231,7 +233,7 @@
     oNS.container[oNS.name] = function(element, options){
         var targetElement = $(element);
 
-        var select2Option = $.extend({
+        var select2Option = Object.assign({
             "width"            : "resolve",
             "allowClear"       : targetElement.data("allowClear"),
             "closeOnSelect"    : targetElement.data("closeOnSelect"),
@@ -408,7 +410,7 @@
                     // 그래서 새 라벨을 먼저 선택 상태로 만든 뒤 같은 분류의 앞선 선택을 해제한다(select2가 이어서 change를 한 번 내보낸다)
                     var categoryId = selected.data("categoryId");
                     selected[0].selected = true;
-                    $.each(select2Element[0].options, function(i, option){
+                    Array.from(select2Element[0].options).forEach(function(option){
                         if(option.selected && option !== selected[0] && $(option).data("categoryId") === categoryId){
                             option.selected = false;
                         }
@@ -425,7 +427,7 @@
 
         if(typeof formatter === "function"){
             var template = _toTemplate(formatter);
-            select2Option = $.extend(select2Option, {
+            select2Option = Object.assign(select2Option, {
                 "templateResult"   : template,
                 "templateSelection": template
             });
@@ -465,7 +467,7 @@
         // 3.x처럼 `data-container-css-class`와 원본의 레이아웃 클래스를 컨테이너에 건다
         var container = targetElement.next(".select2-container");
         container.addClass(targetElement.data("containerCssClass") || "");
-        $.each((targetElement.attr("class") || "").split(/\s+/), function(i, className){
+        (targetElement.attr("class") || "").split(/\s+/).forEach(function(className){
             if(className && !NOT_COPIED_CLASSES[className]){
                 container.addClass(className);
             }

@@ -90,7 +90,7 @@
 
                         var userData = {};
                         var userInfos = [];
-                        $.each(oData, function (i, user) {
+                        oData.forEach(function (user) {
                             userData[user.info] = user;
                             userInfos.push(user.info);
                         });

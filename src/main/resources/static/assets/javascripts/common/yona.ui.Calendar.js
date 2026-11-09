@@ -201,7 +201,7 @@
             targetElement = $(element);
             field = targetElement.get(0);
 
-            var options = $.extend({
+            var options = Object.assign({
                 "defaultDate": targetElement.val(),
                 "setDefaultDate": true,
                 "format": "YYYY-MM-DD"
