@@ -113,3 +113,32 @@ jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더
 - **회귀 시험**: JS 전체 357개, 번들 8개, `web`, `audit`, `i18n` **9분 18초** 통과.
 - **상태**: **채택하여 `next2`에 합쳤다**(D-115, A-432, 2026-11-09).
 
+## jquery.form 확인 (2026-11-09, 선생님 요청)
+
+### 쓰임
+- 라이브러리는 jquery.form **3.09**(2012-04, 1,085줄)이다(공식 최신은 4.x). 번들 `yona-layout.js`에 들어 있고, **호출은 `yona.Common.js`의 `$yona.sendForm` 한 곳**(`welForm.ajaxForm({...})`과 `submit()`)뿐이다. 앱의 다른 곳은 `ajaxSubmit`, `ajaxForm`, `formSerialize` 등을 쓰지 않는다.
+- `$yona.sendForm`의 하는 일: 숨은 `<form>`을 만들어 문서에 붙이고, `htData`의 키마다 `<input type="hidden">`을 만들어 넣은 뒤 `ajaxForm`으로 **XHR 요청 하나를 보내고** 끝나면 폼을 지운다. 파일 업로드가 아니라 **작은 폼 전송**(관심 등록, 역할 변경, 파일 삭제, 후보 조회)이다.
+- 호출은 **11곳, 파일 9개**: `Files.js`(파일 삭제), `ui.Typeahead.js`(후보 조회), `site.MassMail.js`(메일 주소 조회), `git.View`, `board.View`, `code.Diff`, `code.SvnDiff`(보기 관심 등록과 해제), `project.Member`(2), `organization.Member`(2)(역할 변경과 후보 조회).
+- 쓰는 옵션: `htOptForm`의 `method`(post 기본, get, POST)와 **`enctype: multipart/form-data`(`Files.js`의 파일 삭제 한 곳)**, `sDataType: "json"`(후보 조회 3곳과 메일 주소), `htData`, 콜백 `fOnLoad(data, textStatus, jqXHR)`와 `fOnError`.
+- 콜백 인자를 실제로 쓰는 곳: `oXHR.getResponseHeader('Content-Range')`(Typeahead, 프로젝트와 조직 구성원의 후보 조회), `oXHR.responseText`(조직 구성원의 역할 변경), `data`(메일 주소 배열). 나머지는 인자를 쓰지 않는다.
+
+### Yona의 패치와 지금
+- v1.6 커밋 제목은 "FileUploader의 XHR 업로드(MSIE) 수정"이다. 그 업로드 경로는 S-06에서 네이티브 XHR로 바꿔 **이 패치가 쓰이던 길은 사라졌다.** 남은 용도 중 `multipart` 삭제 한 곳은 파일 입력이 없어도 jquery.form이 `FormData` 경로로 보낸다.
+
+### 발견한 결함(v1.6부터)
+- `sendForm`은 값을 `'<input type="hidden" name="' + sKey + '" value="' + htData[sKey] + '">'`처럼 **문자열로 이어 붙인다.** 값에 `"`가 있으면 속성이 끊기고, `<` 등은 HTML로 읽힌다. 지금 호출처의 값은 숫자와 짧은 글자(후보 질의 `query`는 사용자 입력)라 드러나지 않았지만 **검색어에 따옴표를 넣으면 요청 값이 잘린다**(확인하지는 않았다).
+
+### 후보
+| 후보 | 내용 | 비고 |
+|---|---|---|
+| **A. 유지** | jquery.form 3.09를 그대로 | 방치된 2012년 판이 남는다(jQuery 4 준비는 이미 끝남, D-103) |
+| **B. `fetch`로 다시 쓰기(권장)** | `sendForm`을 숨은 폼 없이 `fetch`로 보낸다. `GET`은 질의 문자열, `POST`는 `URLSearchParams`(urlencoded), `enctype`이 multipart면 `FormData`. `X-Requested-With`와 `Accept`를 넣고(`yona.Request`와 같은 방식), 토큰은 `yona.Csrf.js`가 `fetch`에 이미 싣는다. 콜백은 같은 모양으로 `fOnLoad(data, "success", xhr모양 객체)`를 준다(`getResponseHeader`, `responseText`, `status`) | 값 이어 붙이기 결함이 사라진다. jQuery 의존이 줄어 S-14의 한 조각이다. 콜백 모양을 맞추는 코드가 필요하다 |
+| **C. `$.ajax`로 다시 쓰기** | 같은 모양을 `$.ajax`로. 콜백이 진짜 `jqXHR`라 호환이 가장 쉽다 | jquery.form은 사라지지만 jQuery `$.ajax`는 S-14에서 다시 바꿔야 한다 |
+
+### 동작 차이로 볼 것(B나 C의 값 비교 대상)
+`dataType: "json"`일 때 빈 응답은 jQuery가 오류로 보지만 `fetch`는 직접 처리해야 한다. `dataType`이 없을 때 jQuery는 응답 `Content-Type`으로 알아서 읽는다. HTTP 4xx, 5xx와 네트워크 오류의 콜백 인자 모양. 콜백 안의 `this`. 값에 따옴표가 든 경우(결함이 고쳐진다). `multipart` 삭제 요청의 본문 형식이 같은지(서버가 `_method=delete`를 읽는 방식).
+
+### 판단
+- **B를 권한다.** 쓰이는 곳이 한 함수뿐이고 호출 11곳이 쓰는 인자가 세 가지뿐이라 호환 객체로 감쌀 수 있다. 옛 jquery.form에서 특성 시험을 먼저 만들면(S-10, pageslide와 같은 방식) 안전하게 바꿀 수 있다.
+- 직접 쓰는 코드는 `sendForm` 안의 `fetch` 호출과 응답 모양 맞추기(약 50줄)이다.
+
