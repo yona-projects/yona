@@ -54,38 +54,8 @@
 
         function _attachEvent(){
             htElement.welList.on("click", "li", _onClickItem);
-            htElement.welList.on("mousewheel", _onScrollList);
         }
 
-        /**
-         * @param weEvt
-         * @returns {boolean}
-         * @private
-         */
-        function _onScrollList(weEvt){
-            if((weEvt.originalEvent.deltaY > 0 && _isScrollEndOfList()) ||
-               (weEvt.originalEvent.deltaY < 0 && _isScrollTopOfList())){
-                weEvt.preventDefault();
-                weEvt.stopPropagation();
-                return false;
-            }
-        }
-
-        /**
-         * @returns {boolean}
-         * @private
-         */
-        function _isScrollTopOfList(){
-            return (htElement.welList.scrollTop() === 0);
-        }
-
-        /**
-         * @returns {boolean}
-         * @private
-         */
-        function _isScrollEndOfList(){
-            return (htElement.welList.scrollTop() + htElement.welList.height() === htElement.welList.get(0).scrollHeight);
-        }
 
         /**
          * @param {Wrapped Event} weEvt

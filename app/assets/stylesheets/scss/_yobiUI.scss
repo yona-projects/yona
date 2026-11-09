@@ -21,6 +21,11 @@ input[type="email"], input[type="url"], input[type="search"], input[type="tel"],
   font-size: 0.75rem;
 }
 
+/* 목록 끝에서 휠을 더 굴려도 뒤의 페이지가 같이 스크롤되지 않게 한다(S-08). 예전에는 비표준 mousewheel 이벤트로 막았으나 Firefox에는 없는 이벤트였다 */
+.btn-group[data-name] > .dropdown-menu {
+    overscroll-behavior: contain;
+}
+
 .blind {
     overflow: hidden;
     position: absolute;
