@@ -82,18 +82,6 @@ export const tests = [
     assert.deepEqual(left, []);
     await page.close();
   } },
-  { name: 'jquery.form: 지워진 환경에서 action 앞뒤 공백을 걷어낸 주소로 보내고 위임 옵션이 동작한다(trim, isFunction 없이)', run: async () => {
-    const page = await pageWith({ stubs: false, scripts: ['lib/jquery/jquery.form.js'], html: '<form id="f" action=" /x " method="post"><input name="a" value="1"></form>' });
-    const r = await page.evaluate(() => {
-      let url = null;
-      $('#f').ajaxSubmit({ beforeSubmit: function (arr, $f, opts) { url = opts.url; return false; } });
-      $('#f').ajaxForm({ delegation: true, beforeSubmit: function () { return false; } });
-      return { url, serialized: $('#f').formSerialize() };
-    });
-    assert.equal(r.url, '/x'); assert.equal(r.serialized, 'a=1');
-    assert.deepEqual(page.errors, []);
-    await page.close();
-  } },
   { name: 'Viewer.js jQuery 래퍼: 지워진 환경에서 메서드 호출(문자열 옵션)이 동작한다(isFunction 없이)', run: async () => {
     const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
     const page = await pageWith({ stubs: false, scripts: ['lib/viewerjs/viewer.js', 'lib/viewerjs/jquery-viewer.js'], html: `<div id="g"><img src="${png}" alt="x"></div>` });

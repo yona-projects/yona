@@ -105,3 +105,4 @@ v1.6 편집기에는 서식 단추가 없고 도움말과 체크리스트 추가
 - **달력의 `change`(`yona.ui.Calendar.js`)**: v1.6의 Pikaday는 입력란에 날짜를 직접 쓰고 벗어나면 `change`를 한 번 더 내서 마감일 저장이 두 번 나갔고, 처음 초기화 때도 `change`를 냈다. 이제 직접 쓴 값과 초기화는 `change`를 새로 내지 않는다(R-146 (2), (3), D-113). 달력에서 날짜를 고르거나 `setDate(값)`을 부르면 한 번 낸다.
 - **달력 `setDate("")`(`yona.ui.Calendar.js`)**: v1.6의 Pikaday는 선택만 풀고 입력란은 그대로 두었다. 이제 입력란도 비우고 값이 있었을 때만 `change`를 한 번 낸다(R-146 (1), D-114). 앱에 호출하는 곳은 없다.
 - **하위 댓글 Ctrl+Enter 제출(`yona.SubComment.js`)**: v1.6은 없는 속성 `e.Control`과 `keypress`를 써서 Ctrl+Enter가 동작하지 않았고 Chromium에서는 Cmd+Enter도 동작하지 않았을 가능성이 크다. 이제 Ctrl+Enter와 Cmd+Enter가 제출한다(D-114).
+- `$yona.sendForm`(D-116): v1.6은 값을 숨은 입력의 HTML 속성에 이어 붙여 따옴표나 꺾쇠가 든 값이 잘렸다(후보 조회 검색어 등). `fetch`로 바꾸면서 값이 그대로 전달된다.

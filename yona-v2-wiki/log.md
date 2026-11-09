@@ -2099,3 +2099,9 @@ R-143(하위 댓글 Esc 뒤 다시 열리지 않음)을 Chromium과 Firefox에�
 ## [2026-11-09] feat | jquery.pageslide를 Bootstrap 오프캔버스로 대체(D-115, A-432)
 
 선생님이 채택해 시험용 브랜치를 `next2`에 합쳤다(fast-forward). `lib/jquery.pageslide.js`와 템플릿 7곳의 참조를 지웠다.
+
+## [2026-11-09] feat | sendForm을 jquery.form에서 fetch로 대체(D-116, A-433)
+
+선생님이 B안을 골랐다. 옛 구현에서 특성 시험 18개를 먼저 만들고 새 구현으로 통과시켰다. 실제 앱 요청 기록에서 `&amp;` 주소 회귀를 찾아 시험을 추가하고 고쳤다. `jquery.form.js`를 지웠다.
+
+회귀(web, audit, i18n)는 jquery.form 제거 후 9분 13초에 통과했다.

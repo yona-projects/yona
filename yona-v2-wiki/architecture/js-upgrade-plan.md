@@ -30,7 +30,7 @@ updated: 2026-11-08
 |---|---|
 | jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과. **Bootstrap 오프캔버스로 대체해 지웠다**(D-115, A-432, 2026-11-09) |
 | At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch (**text-expander-element로 대체되어 지웠다, D-106, A-418**) |
-| jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
+| jquery.form | FileUploader의 XHR 업로드(MSIE) 수정. **`fetch`로 대체해 지웠다**(D-116, A-433, 2026-11-09) |
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
 | Pikaday | **vanilla-calendar-pro 3.4.0으로 대체했다(D-107)**. 참고로 **JS 패치 없음**(공식 저장소 2014-05-26 커밋 `c43be6c2c`와 같음, 2026-11-09 대조). 커밋 제목의 "마감일 추가"는 래퍼와 템플릿 작업이고 JS는 사본 교체였다. **CSS는 Yona가 고쳐 유지**(월과 연도 단추 모양, z-index 등) |
 | js-xss | XSS 방어 수정 5건 |

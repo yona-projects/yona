@@ -33,7 +33,7 @@ class Jquery4ReadinessTest {
         File(js, "common").listFiles { f -> f.extension == "js" }!!.toList() +
             File(js, "service").listFiles { f -> f.extension == "js" }!!.toList() +
             listOf(
-                "lib/jquery/jquery.form.js", "lib/elevator/jquery.elevator.js",
+                "lib/elevator/jquery.elevator.js",
                 "lib/viewerjs/jquery-viewer.js",
             ).map { File(js, it) }
 

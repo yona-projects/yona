@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 26, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 25, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -245,5 +245,16 @@ class JsLibraryVersionsTest {
         val script = asset("javascripts/service/yona.twoColumnMode.js").readText()
         assertTrue(script.contains("bootstrap.Offcanvas") && !script.contains(".pageslide(") && !script.contains("\$.pageslide"), "오프캔버스를 쓴다")
         assertTrue(java.io.File("app/assets/stylesheets/bootstrap.scss").readText().contains("vendor/bootstrap/offcanvas"), "Sass 구성에 오프캔버스가 들어 있어야 한다")
+    }
+
+    @Test
+    fun `폼 전송은 jquery_form 없이 fetch로 보낸다`() {
+        // $yona.sendForm이 숨은 폼과 jquery.form 3.09(ajaxForm) 대신 fetch로 같은 요청을 보낸다.
+        assertTrue(!asset("javascripts/lib/jquery/jquery.form.js").exists(), "jquery.form은 지웠다")
+        assertTrue(!java.io.File("build-tools/js-bundle/bundles.mjs").readText().contains("jquery.form"), "번들 입력에서 빠져야 한다")
+        val common = asset("javascripts/common/yona.Common.js").readText()
+        assertTrue(common.contains("function sendForm") && common.contains("fetch(sURL, htInit)") && !common.contains(".ajaxForm("), "sendForm은 fetch를 쓴다")
+        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        assertTrue(!bundles.contains("ajaxSubmit") && !bundles.contains("jQuery Form Plugin"), "번들에 jquery.form 코드가 없어야 한다")
     }
 }

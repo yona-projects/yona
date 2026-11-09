@@ -17,7 +17,6 @@ export const bundles = {
   ],
   "yona-common.js": [
     `${JS}/lib/mustache.js`,
-    `${JS}/lib/jquery/jquery.form.js`,
     `${JS}/common/yona.Request.js`,
     `${JS}/lib/rgbcolor.js`,
     `${JS}/lib/humanize.js`,

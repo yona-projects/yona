@@ -197,56 +197,93 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * Send a request using $.ajaxForm
+     * 작은 폼 전송을 `fetch`로 보낸다(관심 등록, 역할 변경, 파일 삭제, 후보 조회 등). v1.6은 숨은 `<form>`을 만들어 jquery.form(`ajaxForm`)으로 보냈다.
+     * 숨은 폼 없이 같은 요청을 보내므로 값에 따옴표나 꺾쇠가 있어도 그대로 간다(v1.6은 값을 HTML 속성에 이어 붙여 잘렸다).
+     *
+     * - 주소: `&amp;` 같은 HTML 문자 참조는 풀어서 보낸다(v1.6은 폼 `action` 속성이어서 브라우저가 풀었다).
+     * - 방식: `htOptForm.method`(없으면 폼 기본인 GET, `htOptForm` 자체가 없으면 POST). GET은 값을 질의 문자열로 잇고, POST는 `urlencoded` 본문,
+     *   `enctype`이 `multipart/form-data`이면 `FormData`로 보낸다.
+     * - 헤더: `X-Requested-With: XMLHttpRequest`(서버가 비동기 요청을 가리는 데 쓴다)와 `Accept`. CSRF 토큰은 `yona.Csrf.js`가 `fetch`에 싣는다.
+     * - 응답: 2xx(그리고 304)는 성공이다. `sDataType`이 `json`이면 본문을 JSON으로 읽고(비었거나 JSON이 아니면 `parsererror`, 204는 예외) 없으면 응답의 `Content-Type`이
+     *   json일 때만 JSON으로 읽는다. 콜백에는 jQuery `$.ajax`와 같은 `(data, textStatus, xhr)`를 주고 `xhr`는 `status`, `statusText`, `responseText`, `getResponseHeader`를 가진다.
+     *
      * @param {Hash Table} htOptions
-     * @param {String}        htOptions.sURL <form> action
-     * @param {Hash Table} htOptions.htOptForm <form> attributes
-     * @param {Hash Table} htOptions.htData data to send
-     * @param {Function}   htOptions.fOnLoad callback function on load
-     * @param {Function}   htOptions.fOnError callback function on error
+     * @param {String}        htOptions.sURL 요청 주소(`<form>`의 action)
+     * @param {Hash Table} htOptions.htOptForm `method`, `enctype`
+     * @param {Hash Table} htOptions.htData 보낼 값(글자로 바꿔 보낸다)
+     * @param {Function}   htOptions.fOnLoad 성공 콜백 `(data, textStatus, xhr)`
+     * @param {Function}   htOptions.fOnError 실패 콜백 `(xhr, textStatus, errorThrown)`
      * @param {String}       htOptions.sDataType
      */
     function sendForm(htOptions){
-        var sKey = "";
-        var aFields = [];
-        var aFormAttr = [];
-
-        // create form with attributes (htOptForm)
         var htOptForm = htOptions.htOptForm || {"method":"post"};
-        for(sKey in htOptForm){
-            aFormAttr.push(sKey + '="' + htOptForm[sKey] + '"');
-        }
-        var sFormAttr = aFormAttr.join(" ");
-        var welForm = $('<form action="' + htOptions.sURL + '" ' + sFormAttr + '>');
-
-        // form fields
+        var sMethod = String(htOptForm.method || "GET").toUpperCase();
+        var bMultipart = String(htOptForm.enctype || "").toLowerCase() === "multipart/form-data";
         var htData = htOptions.htData || {};
-        for(sKey in htData){
-            aFields.push($('<input type="hidden" name="' + sKey + '" value="' + htData[sKey] + '">'));
+        // v1.6은 주소를 `<form action="...">` 속성에 넣어 브라우저가 `&amp;` 같은 문자 참조를 풀어 주었다. 템플릿이 주소에 `&amp;`를 써 넘기므로 같게 푼다.
+        var oDecoder = document.createElement("textarea");
+        oDecoder.innerHTML = htOptions.sURL;
+        var sURL = oDecoder.value;
+        var htHeaders = {
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": htOptions.sDataType === "json" ? "application/json, text/javascript, */*; q=0.01" : "*/*"
+        };
+        var htInit = {"method": sMethod, "headers": htHeaders, "credentials": "same-origin"};
+
+        if(sMethod === "GET" || sMethod === "HEAD"){
+            var sQuery = new URLSearchParams(Object.keys(htData).map(function(sKey){ return [sKey, String(htData[sKey])]; })).toString();
+            if(sQuery){
+                sURL += (sURL.indexOf("?") < 0 ? "?" : "&") + sQuery;
+            }
+        } else if(bMultipart){
+            var oFormData = new FormData();
+            Object.keys(htData).forEach(function(sKey){ oFormData.append(sKey, String(htData[sKey])); });
+            htInit.body = oFormData;
+        } else {
+            htInit.body = new URLSearchParams(Object.keys(htData).map(function(sKey){ return [sKey, String(htData[sKey])]; })).toString();
+            htHeaders["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
         }
-        welForm.append(aFields);
-        welForm.appendTo(document.body);
 
-        // send form
-        welForm.ajaxForm({
-            "success" : function(){
+        function fail(oXHR, sStatus, vError){
+            if(typeof htOptions.fOnError === "function"){
+                htOptions.fOnError.call(htOptions, oXHR, sStatus, vError);
+            }
+        }
+
+        fetch(sURL, htInit).then(function(oResponse){
+            return oResponse.text().then(function(sText){
+                var oXHR = {
+                    "status": oResponse.status,
+                    "statusText": oResponse.statusText,
+                    "responseText": sText,
+                    "getResponseHeader": function(sName){ return oResponse.headers.get(sName); }
+                };
+
+                if(!(oResponse.ok || oResponse.status === 304)){
+                    return fail(oXHR, "error", oResponse.statusText);
+                }
+
+                var vData = sText;
+                if(oResponse.status !== 204){
+                    var sType = oResponse.headers.get("Content-Type") || "";
+                    if(htOptions.sDataType === "json" || (!htOptions.sDataType && /json/i.test(sType))){
+                        try {
+                            vData = JSON.parse(sText);
+                        } catch(oError){
+                            return fail(oXHR, "parsererror", oError);
+                        }
+                    }
+                } else {
+                    vData = undefined;
+                }
+
                 if(typeof htOptions.fOnLoad === "function"){
-                    htOptions.fOnLoad.apply(this, arguments);
+                    htOptions.fOnLoad.call(htOptions, vData, "success", oXHR);
                 }
-                welForm.remove();
-            },
-            "error"   : function(){
-                if(typeof htOptions.fOnError === "function"){
-                    htOptions.fOnError.apply(this, arguments);
-                }
-                welForm.remove();
-            },
-            "dataType": htOptions.sDataType || null
+            });
+        }, function(oError){
+            fail({"status": 0, "statusText": "", "responseText": "", "getResponseHeader": function(){ return null; }}, "error", oError && oError.message || "");
         });
-
-        welForm.submit();
-
-        aFields = aFormAttr = sFormAttr = null;
     }
 
     /**
