@@ -168,3 +168,28 @@ jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더
 - 진행한다면 순서는 이렇다: 옛 판으로 이미지 클릭 열기, 썸네일 목록 가운데 맞춤, 닫기, 다음과 이전 이동의 특성 시험을 만들고 → 1.15.2를 들여 같은 시험을 통과시키고 → 썸네일 위치는 실제 화면(Playwright)에서 옛 판과 대조한다. 스타일 차이는 일부 허용된다는 기준(S-10)을 적용한다.
 
 **상태**: B안으로 올렸다(D-117, A-434, 2026-11-10). 공식 1.15.2는 처음 열 때 활성 썸네일을 가운데에 맞춘다. 배경 투명도가 0.85에서 0.5로 바뀐 것은 덮어써 v1.6과 같게 했다.
+
+## marked 패치 분석 (2026-11-10, 선생님 요청)
+
+### 기준 판과 방법
+- `lib/marked.js`(78,465바이트, 2,767줄)는 **공식 marked 1.2.9의 `lib/marked.js`**(2,758줄)에 Yona가 고친 것이다. v1.6 저장소 이력에서 확인했다: 2021-08에 3.0.0, 2022-12에 3.0.4로 올렸다가 **2023-01에 1.2.9로 되돌렸고**(`2887f02aa`) 그 위에 Yona 패치를 다시 적용했다(`a3ba20409`, 고침 `a1a421b15`). 이 파일은 `src/main/resources/markdown/marked.js`(서버, Nashorn)와 `src/test/resources/marked.js`(v1.6 비교 기준)와 byte 단위로 같다(세 벌).
+- 공식 1.2.9와 `diff -w -B`로 대조한 결과 **의미 있는 변경은 5곳**이다. 나머지는 들여쓰기 차이뿐이다(v1.6의 `a97691490` "indent formatting"). 위키에 적혀 있던 "패치 37건"은 이 파일의 변경 이력이 38개라는 수에서 나왔고 현재 파일에 남은 패치 수가 아니다. 이력의 나머지는 이전 판(0.3 계열 등)에서의 패치와 판 올림이며 1.2.9로 되돌릴 때 사라졌거나 공식 코드에 흡수되었다.
+
+### 5개 패치
+| # | 위치 | 공식 1.2.9 | Yona 판 | 결과 | 쓰는 곳 |
+|---|---|---|---|---|---|
+| 1 | `defaults.headerPrefix` | `''` | `'yb-header-'` | 제목 `id`가 `yb-header-<slug>`가 된다 | 목차와 앵커 이동, `.head-anchor` |
+| 2 | `Renderer.heading` | `headerIds` 참이면 `<hN id="...">텍스트</hN>`, 거짓이면 id 없음 | `headerIds` **과 상관없이** 항상 `id`를 달고 끝에 `<a href="#id" class="head-anchor">#</a>`를 붙인다. `slugger.slug()`를 먼저 불러 거짓일 때도 중복 번호가 올라간다 | 제목마다 `#` 링크가 생긴다 | `_markdown.scss`(`.head-anchor`), `scripts.html`(클릭 처리), `MarkdownRendererTest` |
+| 3 | `Renderer.listitem` | `<li>텍스트</li>` | 내용에 `<input`이 있고 `task-list-item`이 없으면 `<li class='task-list-item'>`와 `<input class='task-list-item-checkbox'>`로 바꾼다 | 작업 목록 항목에 클래스가 붙는다 | `_page.scss`의 `.task-list-item`, `.task-list-item-checkbox` |
+| 4 | `Renderer.checkbox` | `<input checked="" disabled="" type="checkbox">` | **`disabled=""`를 뺐다** | 작업 목록 체크박스를 누를 수 있다 | `yona.Tasklist.js`(체크박스를 눌러 원문의 `[ ]`와 `[x]`를 바꿔 저장) |
+| 5 | `Slugger.serialize` | 소문자, 태그 제거, 구두점 제거, 공백을 `-`로 | 구두점 제거 뒤 **`/[^\w|ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g`를 `-`로** 바꾼다 | 한글은 남고, 영문·숫자·밑줄·`|`도 남고, **그 밖의 문자(일본어, 키릴, 악센트 문자 등)는 `-`가 된다** | 한글 제목 앵커 |
+
+### 같이 알아 둘 것
+- **사용자 정의 렌더러나 옵션은 marked.js 밖에 있다.** 서버 옵션은 `MarkedEngine.kt`의 `{gfm, tables, breaks: true, headerIds: true, pedantic: false, sanitize: false, smartLists: true}`이고, 브라우저 옵션은 `yona.Markdown.js`의 `htMarkedOption`(`highlight`로 `hljs.highlight`, `langPrefix: ''`, `breaks` 없음)이다. 서버는 `highlight`를 쓰지 않는다(코드 강조는 브라우저에서). 서버와 브라우저의 `breaks`가 달라 미리보기와 저장 뒤 줄바꿈이 다를 수 있는 점은 v1.6부터이다.
+- **서버 쪽 보정**: JDK 8 Nashorn(ES5.1)과 독립 배포판의 `splice(시작)` 동작 차이를 `MarkedEngine`이 앞에서 맞춘다. 정화는 OWASP 정책(`MarkdownRenderer.POLICY`)이 한다(`input`의 `disabled`와 `checked`, `class`와 `id`를 허용).
+- 시험: `MarkdownRendererTest`가 v1.6 결과를 지키고 `a112dd3c6`에서 서버 파일을 그대로 쓰도록 만들었다. 패치 5개 각각을 가르는 전용 시험은 없고, 제목 `id`와 `head-anchor`만 확인한다.
+
+### 올릴 때(단계 5)의 의미
+- 5개 패치는 모두 **공식 확장 지점으로 옮길 수 있는 크기**다. 올리는 새 marked(18.x)에서는 `renderer`와 `slugger`, `walkTokens` 확장으로 같은 결과를 낼 수 있어 파일을 직접 고칠 필요가 없다. 직접 고치는 패치를 없애는 것이 올리기의 이점이다.
+- 다만 1.2.9와 18.x 사이에 마크다운 해석 자체가 바뀐 곳이 있어(예: 중첩 목록, 강조 겹침, 표 가장자리, 줄바꿈 처리) v1.6과 결과가 달라질 수 있으므로 단계 5의 "입력 모음을 옛 판과 새 판에 넣어 결과를 항목별로 비교"를 먼저 해야 한다. 서버 쪽 Nashorn이 새 문법(ES2020 이상)을 읽는지도 확인해야 한다.
+
