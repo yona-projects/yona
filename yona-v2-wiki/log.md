@@ -2004,3 +2004,7 @@ S-03을 다시 열어 `yona.KeyControl.js`가 `execCommand('insertText')`로 바
 
 선생님이 A안을 고르셨다. 도우미 4개, 호출 14개 파일 약 20곳, ShortcutKey 표를 key 기반으로 바꿨다. 한글 조합 중 Enter 처리를 한곳으로 모았다. v1.6 결함 둘(단축키 조합 정렬, e.Control)은 그대로 두고 R-141, R-142에 적었다. JS 212개, 실제 앱 28개 항목 통과.
 관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 10초에 통과했다(S-05 뒤). 전체 H2 시험은 돌리지 않았다.
+
+## [2026-11-09] verify | S-05 남은 일곱 곳 실제 앱 확인
+
+Pagination, 대량 메일, 라벨 편집기, git.Write, 하위 댓글(Esc, Meta+Enter, Ctrl+Enter), 마이그레이션 레이아웃 Esc를 두 브라우저에서 확인했고 댓글 폼 Esc는 JS 시험 두 개로 확인했다. 모두 이상 없음.

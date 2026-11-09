@@ -68,3 +68,33 @@ export const tests = [
     assert.deepEqual(offenders, []);
   } },
 ];
+
+// ---- 댓글 폼의 Esc(`common/yona.CommentForm.js`): 제출이 진행 중일 때 Esc 로 브라우저가 제출을 취소하면 진행 표시를 걷는다 ----
+async function commentForm() {
+  const page = await pageWith({ html: '<form id="comment-form"><textarea id="ta"></textarea></form>', stubs: false });
+  // 임시 저장은 localStorage 를 쓰는데 시험 문서에서는 막혀 있으므로 이 시험과 무관한 두 함수만 비워 둔다
+  await page.evaluate(() => { window.temporarySaveHandler = function () {}; window.removeCurrentPageTemprarySavedContent = function () {}; window.__done = 0; window.NProgress = { start() {}, done() { window.__done++; } }; });
+  await page.addScriptTag({ path: path.join(JS, 'common/yona.Common.js') });
+  await page.addScriptTag({ path: path.join(JS, 'common/yona.CommentForm.js') });
+  return page;
+}
+const pressKey = (page, init) => page.evaluate((init) => window.dispatchEvent(new KeyboardEvent('keydown', Object.assign({ bubbles: true, cancelable: true }, init))), init);
+
+tests.push(
+  { name: '댓글 폼: 제출이 진행 중일 때 Esc 를 누르면 진행 표시를 걷고 진행 중 표시를 끈다', run: async () => {
+    const page = await commentForm();
+    await page.evaluate(() => { $('#comment-form').data('onsubmit', true); });
+    await pressKey(page, { key: 'Escape', code: 'Escape', keyCode: 27 });
+    assert.deepEqual(await page.evaluate(() => [window.__done, $('#comment-form').data('onsubmit')]), [1, false]);
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '댓글 폼: 제출 중이 아니거나 Esc 가 아니거나 한글 조합 중이면 아무 일도 없다', run: async () => {
+    const page = await commentForm();
+    await pressKey(page, { key: 'Escape', code: 'Escape', keyCode: 27 });           // 제출 중이 아님
+    await page.evaluate(() => { $('#comment-form').data('onsubmit', true); });
+    await pressKey(page, { key: 'Enter', code: 'Enter', keyCode: 13 });             // Esc 가 아님
+    await pressKey(page, { key: 'Escape', code: 'Escape', keyCode: 229, isComposing: true }); // 조합 중
+    assert.deepEqual(await page.evaluate(() => [window.__done, $('#comment-form').data('onsubmit')]), [0, true]);
+    await page.close();
+  } },
+);
