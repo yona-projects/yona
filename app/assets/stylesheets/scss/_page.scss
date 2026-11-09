@@ -7617,6 +7617,57 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     to {opacity: 1;}
 }
 
+/* 본문 멘션 후보 목록(D-106): text-expander-element가 입력란을 감싸고 `.mention-menu`를 요소 안에 붙인다. 모양은 v1.6의 At.js 후보 상자(`.atwho-view`)와 같다 */
+text-expander {
+    display: block;
+    position: relative;
+}
+
+.mention-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 11110;
+    min-width: 120px;
+    max-height: 50vh;
+    margin: 18px 0 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    background: white;
+    color: black;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+
+    li {
+        display: block;
+        padding: 5px 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+    }
+
+    small {
+        font-size: smaller;
+        font-weight: normal;
+        color: #777;
+    }
+
+    strong {
+        color: #3366ff;
+    }
+
+    li[aria-selected="true"] {
+        background: #3366ff;
+        color: white;
+
+        small,
+        strong {
+            color: white;
+        }
+    }
+}
+
 /* 편집기 서식 단추(D-105): GitHub markdown-toolbar-element의 md-* 요소를 단추 모양으로 */
 .md-toolbar {
     display: flex;

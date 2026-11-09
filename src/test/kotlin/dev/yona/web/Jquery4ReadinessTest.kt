@@ -33,7 +33,7 @@ class Jquery4ReadinessTest {
         File(js, "common").listFiles { f -> f.extension == "js" }!!.toList() +
             File(js, "service").listFiles { f -> f.extension == "js" }!!.toList() +
             listOf(
-                "lib/atjs/jquery.atwho.js", "lib/jquery/jquery.form.js", "lib/jquery/jquery.requestAs.js", "lib/elevator/jquery.elevator.js",
+                "lib/jquery/jquery.form.js", "lib/jquery/jquery.requestAs.js", "lib/elevator/jquery.elevator.js",
                 "lib/viewerjs/jquery-viewer.js", "lib/jquery.pageslide.js",
             ).map { File(js, it) } +
             listOf("bootstrap-typeahead.js", "bootstrap-better-typeahead.js").map { File(bootstrapJs, it) }

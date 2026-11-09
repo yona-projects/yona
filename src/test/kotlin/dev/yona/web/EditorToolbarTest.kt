@@ -61,4 +61,21 @@ class EditorToolbarTest {
             for ((_, key) in buttons) assertTrue(props.getProperty(key)?.isNotBlank() == true, "$bundle 에 $key")
         }
     }
+
+    @Test
+    fun `import map은 모든 레이아웃의 head에서 어떤 모듈 태그보다 앞에 포함된다(Firefox는 모듈 뒤의 import map을 무시한다)`() {
+        val fragment = File(templates, "common/importmap.html").readText()
+        assertTrue(fragment.contains("""type="importmap""""), "import map 조각")
+        assertTrue(fragment.contains("lib/text-expander/combobox-nav.js") && fragment.contains("@github/combobox-nav"), "combobox-nav 경로")
+        for (layout in listOf("layout/layout.html", "layout/layout-framed.html", "layout/migration-layout.html")) {
+            val text = File(templates, layout).readText()
+            val include = text.indexOf("common/importmap :: importmap")
+            assertTrue(include > 0, "$layout 이 import map 조각을 포함한다")
+            assertTrue(include < text.indexOf("<script"), "$layout: import map은 첫 script보다 앞에 있다")
+            assertTrue(include < text.indexOf("<link"), "$layout: import map은 스타일시트 링크보다 앞에 있다")
+        }
+        val scripts = File(templates, "common/scripts.html").readText()
+        assertTrue(!scripts.contains("""type="importmap""""), "scripts.html에는 import map을 두지 않는다(이미 모듈 태그 뒤라 Firefox가 무시한다)")
+        assertTrue(scripts.contains("lib/text-expander/text-expander-element.js"), "text-expander 요소 모듈")
+    }
 }

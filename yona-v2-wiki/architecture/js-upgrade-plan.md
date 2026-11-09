@@ -29,7 +29,7 @@ updated: 2026-11-08
 | 파일 | 고친 내용(v1.6 커밋 제목) |
 |---|---|
 | jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과 |
-| At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch |
+| At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch (**text-expander-element로 대체되어 지웠다, D-106, A-418**) |
 | jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
 | Pikaday | 마감일 추가, import 경로 이동 |
@@ -237,3 +237,6 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2
 **bootstrap-typeahead.js**: 지금도 쓰인다. 실제 호출은 JS 4곳이다: 프로젝트 구성원 추가(`yona.project.Member.js`), 조직 구성원 추가(`yona.organization.Member.js`), 사이트 대량 메일(`yona.site.MassMail.js`), 이슈 라벨 분류 입력(`yona.issue.LabelEditor.js`). 템플릿 4곳의 `data-provider="typeahead"`는 아무 동작도 하지 않는다(플러그인의 자동 시작 선택자는 `data-provide`이고 v1.6부터 오타). Bootstrap 5에는 타입어헤드가 없어 Bootstrap 2 때의 플러그인을 계속 쓰는 상태이다. 없애려면 위 4곳을 다른 자동완성(바닐라 라이브러리나 직접 만든 요소)으로 먼저 바꿔야 한다. `bootstrap-better-typeahead.js`(빈 질의 허용)는 레이아웃에서 모든 화면에 불러온다.
 
 **AngularJS 1.5.8(`vendor.js`)을 Vue 3로 바꾸는 검토**: 쓰는 곳은 이전(Migration) 화면 하나(`migration/home.html`)뿐이다. 앱은 `yona.Migration.js`(browserify 묶음) 안에 설정, 컨트롤러(약 540줄), 지시자 1개(`importWarning`), 서비스(약 475줄, `$http` 28회)로 모두 약 1,000줄이다. 템플릿은 155줄이고 지시자가 약 65개(`ng-if` 23, `ng-cloak` 15, `ng-class` 6, `ng-click` 5, `ng-repeat` 4, `ng-show`와 `ng-model`과 `ng-init`과 `ng-disabled` 각 3, `ng-keyup` 1)이며 `{{ }}` 표현식이 32개이다. 모두 Vue의 `v-if`, `v-cloak`, `:class`, `@click`, `v-for`, `v-show`, `v-model`, `:disabled`, `@keyup`, `{{ }}`에 일대일로 대응한다. `$http`는 `fetch`, `$timeout`은 `setTimeout`으로 옮기면 되고 `$watch`와 lodash는 앱 코드가 쓰지 않는다. `vendor.js`(1.6MB)는 통째로 없앨 수 있다. 주의: 이 화면은 브라우저에서 GitHub API를 직접 호출한다(CORS를 위해 `X-Requested-With`를 지우고 `useXDomain`을 켬). `fetch`로 옮길 때 같은 방식으로 보내야 한다. 관련 시험은 `MigrationPageTest`, `MigrationExportTest`이다. **가능하며 범위가 작다.** 아직 바꾸지 않았다(Vue 3 전역 빌드의 인라인 템플릿으로 갈지 `vue-widgets` 파이프라인으로 갈지 결정이 필요하다).
+
+## At.js 제거 (2026-11-09, D-106, A-418)
+본문 멘션 엔진을 GitHub `text-expander-element`로 바꾸면서 `lib/atjs/`(At.js, atwho.css, jquery.caret)를 지웠다. 위 표와 jQuery 4 시험에서 At.js 항목은 더 이상 대상이 아니다. 새 JS 의존은 `lib/text-expander/`(2.9.4와 combobox-nav 2.3.1)와 `lib/markdown-toolbar/`(2.2.3)이며 모두 번들 없이 `type="module"`로 불러온다.

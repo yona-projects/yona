@@ -82,17 +82,6 @@ export const tests = [
     assert.deepEqual(left, []);
     await page.close();
   } },
-  { name: 'At.js(3줄 패치본): 지워진 환경에서 목록이 열린다(isArray, expr.filters 없이)', run: async () => {
-    const page = await pageWith({ stubs: false, scripts: ['lib/atjs/jquery.caret.min.js', 'lib/atjs/jquery.atwho.js'], html: '<textarea id="t" style="width:200px;height:80px"></textarea>' });
-    await page.evaluate(async () => {
-      const t = $('#t'); t.atwho({ at: '@', data: ['alice', 'bob'] });
-      t.focus().val('@a'); t.caret('pos', 2); t.trigger('input'); t.trigger('keyup'); await new Promise((r) => setTimeout(r, 200));
-    });
-    assert.equal(await page.evaluate(() => $('.atwho-view li').length), 1);
-    assert.equal(await page.evaluate(() => $('.atwho-view').is(':visible')), true);
-    assert.deepEqual(page.errors, []);
-    await page.close();
-  } },
   { name: 'jquery.form: 지워진 환경에서 action 앞뒤 공백을 걷어낸 주소로 보내고 위임 옵션이 동작한다(trim, isFunction 없이)', run: async () => {
     const page = await pageWith({ stubs: false, scripts: ['lib/jquery/jquery.form.js'], html: '<form id="f" action=" /x " method="post"><input name="a" value="1"></form>' });
     const r = await page.evaluate(() => {

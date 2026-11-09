@@ -25,7 +25,9 @@ updated: 2026-11-09
 - 실제 한글 입력기로 text-expander를 쓰는 확인은 하지 않았다(선생님 확인 필요).
 - 실제 2단 보기(`pageslide`) 화면에서 text-expander는 확인하지 않았다.
 
+## 본문 멘션 교체 (A-418)
+`yona.Mention({target, url})`의 호출 모양은 그대로 두고 엔진만 At.js에서 text-expander-element로 바꿨다. Safari 보호막과 Alt+Enter 처리를 넣었고 At.js와 caret 플러그인을 지웠다. import map은 모듈 태그 뒤에 오면 Firefox가 무시하므로 레이아웃 `<head>`의 첫 부분에 둔다. 실제 앱에서 두 브라우저로 43개 항목을 확인했다.
+
 ## 남은 일
-1. 본문 멘션을 At.js에서 text-expander-element로 실제 교체한다(Safari 보호막 한 줄 포함).
-2. Alt+Enter를 삽입으로 맞출지 정한다.
-3. 단추 모양과 단축키.
+1. 실제 한글 입력기, 실제 2단 보기, 코드 diff, SVN diff, 풀 리퀘스트, 마일스톤 화면에서의 확인.
+2. 단추 모양과 단축키.

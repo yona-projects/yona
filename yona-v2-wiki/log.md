@@ -1982,3 +1982,8 @@ IME, 2단 보기, Alt 키, 캐럿 네 건을 Chromium과 Firefox로 다시 확�
 
 단추 열 개를 편집 탭에 붙였다. 모듈은 번들 없이 type=module, 공식 2.2.3 그대로. 실제 앱에서 서식 단추가 textarea에 남기는 contenteditable=false 때문에 At.js 멘션이 열리지 않는 문제와 단추가 넣은 @가 Mention을 시작하지 못하는 문제를 찾아 고쳤다. 실제 앱 21개 항목 통과.
 관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 20초에 통과했다. 전체 H2 시험은 돌리지 않았다.
+
+## [2026-11-09] feature | 본문 멘션을 text-expander-element로 교체, At.js 제거(A-418)
+
+`yona.Mention.js`를 호출 모양 그대로 두고 엔진만 바꿨다. import map이 모듈 태그 뒤에 있으면 Firefox가 무시하는 문제를 실제 앱에서 찾아 레이아웃 head로 옮겼다. 실제 앱 43개 항목 통과. At.js, atwho.css, jquery.caret을 지웠다.
+관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 12초에 통과했다(멘션 교체 뒤). 전체 H2 시험은 돌리지 않았다.

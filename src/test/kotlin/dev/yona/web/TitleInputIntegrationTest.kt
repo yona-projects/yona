@@ -52,12 +52,12 @@ class TitleInputIntegrationTest {
     }
 
     @Test
-    fun `머리말을 쓰는 세 화면만 번들을 module로 불러오고 At js도 그대로 불러온다`() {
+    fun `머리말을 쓰는 세 화면만 번들을 module로 불러오고 본문 멘션은 레이아웃의 text-expander가 맡는다`() {
         for (path in withHead) {
             val text = template(path)
             assertTrue(Regex("""<script[^>]*type="module"[^>]*th:src="@\{$bundle\}"""").containsMatchIn(text) ||
                 Regex("""<script[^>]*th:src="@\{$bundle\}"[^>]*type="module"""").containsMatchIn(text), "$path: 번들을 type=module로 불러와야 한다")
-            assertTrue(text.contains("lib/atjs/jquery.atwho.js"), "$path: 본문 멘션이 쓰는 At.js는 그대로여야 한다")
+            assertFalse(text.contains("lib/atjs/"), "$path: At.js는 text-expander로 바뀌어 더 불러오지 않는다(D-106)")
         }
         val others = templates.walkTopDown().filter { it.isFile && it.extension == "html" }.map { it.relativeTo(templates).path }
             .filter { it !in withHead && File(templates, it).readText().contains("title-input") }.toList()

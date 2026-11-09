@@ -11,6 +11,7 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="migrationLayout(title, content)">
     <head>
         <meta charset="utf-8">
+<th:block th:replace="~{common/importmap :: importmap}"></th:block>
         <title th:text="${title}">Yona</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
