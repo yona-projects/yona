@@ -62,7 +62,7 @@ export const tests = [
     const allowed = new Set(['yona.Common.js', 'yona.Mention.js', 'yona.ShortcutKey.js']); // 조합 중(keyCode 229) 판별만 예외: 도우미, Mention 보호막, 단축키(Common 없이도 도는 파일)
     const offenders = [];
     for (const f of files) {
-      if (allowed.has(path.basename(f)) || /yona\.(Sha1|webauthn)\.js$/.test(f)) continue;
+      if (allowed.has(path.basename(f)) || /yona\.webauthn\.js$/.test(f)) continue;
       fs.readFileSync(f, 'utf8').split('\n').forEach((line, i) => { if (/\b(keyCode|e\.which|evt\.which|Evt\.which|event\.which|oEvent\.which)\b|\.which\s*[=!]==?|\.which\)/.test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line)) offenders.push(`${path.relative(JS, f)}:${i + 1} ${line.trim().slice(0, 90)}`); });
     }
     assert.deepEqual(offenders, []);

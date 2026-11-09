@@ -229,4 +229,11 @@ class JsLibraryVersionsTest {
         val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(!bundles.contains("\$.fn.typeahead") && !bundles.contains("typeahead.data-api"), "번들에 플러그인 코드가 없어야 한다")
     }
+
+    @Test
+    fun `호출이 없던 yona_Sha1는 지웠고 템플릿도 부르지 않는다`() {
+        // F-01: js-sha1 0.6.0 사본을 이슈 보기와 게시글 보기가 불러왔지만 어디서도 호출하지 않았다(본문 체크섬은 서버가 계산하고 v1.6도 같았다).
+        assertTrue(!asset("javascripts/common/yona.Sha1.js").exists(), "yona.Sha1.js는 지웠다")
+        assertEquals(emptyList(), templateFiles().filter { it.readText().contains("yona.Sha1") }.map { it.path }, "yona.Sha1.js를 부르는 템플릿")
+    }
 }

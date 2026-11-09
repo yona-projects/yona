@@ -100,4 +100,19 @@ export const tests = [
     await page.close();
     assert.ok(out && out.startsWith('| a'), String(out));
   } },
+  { name: '붙여넣기 업로드는 Firefox에서도 켜져 있고 붙여넣은 이미지를 올린다(F-03: 옛 Firefox 제외 조건은 철자 오류로 동작한 적이 없고 이제 필요 없다)', async run() {
+    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, XHR, 'common/yona.Files.js'] });
+    await page.evaluate(() => { Object.defineProperty(navigator, 'userAgent', { get: () => 'Mozilla/5.0 (X11; Linux x86_64; rv:155.0) Gecko/20100101 Firefox/155.0' }); });
+    const out = await page.evaluate(() => {
+      yona.Files.init({ sUploadURL: '/up' });
+      var pasted = null; yona.Files.attach('pasteFile', function (d) { pasted = d.oFile.type; }, 'ns');
+      yona.Files.getUploader($('#c')[0], $('#t')[0], 'ns');
+      var png = new File(['x'], 'p.png', { type: 'image/png' });
+      var e = $.Event('paste'); e.originalEvent = { clipboardData: { items: [{ kind: 'file', type: 'image/png', getAsFile: function () { return png; } }] }, preventDefault: function () {} };
+      $('#t').trigger(e);
+      return { pastable: yona.Files.getEnv().bPastable, pasted: pasted, uploads: (window.__xhrs || []).length };
+    });
+    assert.deepEqual(out, { pastable: true, pasted: 'image/png', uploads: 1 }); assert.deepEqual(page.errors, []); await page.close();
+  } },
 ];
+
