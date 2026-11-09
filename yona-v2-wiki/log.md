@@ -2075,3 +2075,7 @@ ru, uz는 월요일, ko, ja, en은 일요일. `calendar.test.mjs` 27개 통과, 
 ## [2026-11-09] verify | R-140 Firefox 붙여넣기를 화면 있는 Firefox로 확인
 
 `xvfb-run`과 `headless: false`로 Firefox 155를 띄우면 실제 클립보드 붙여넣기가 동작해 이미지가 업로드된다(headless에서는 빈 `clipboardData`). 같은 방법으로 R-145(휠)를 시도했으나 이 환경의 `xdotool`이 포인터를 움직이지 못해(Xvfb) 실제 휠 이벤트를 보내지 못했다.
+
+## [2026-11-09] verify | R-143, R-144 확인과 R-145 입력 주입 시도
+
+R-143(하위 댓글 Esc 뒤 다시 열리지 않음)을 Chromium과 Firefox에서 재현했다. R-144(삭제 확인창 주소)는 새 빌드가 눌린 댓글을 지우는 것을 두 브라우저에서 확인했다. R-145는 `python-xlib`(격리된 venv, 선생님 허락)로 XTEST 입력을 보내 포인터는 움직였으나 Playwright의 화면 있는 Firefox 페이지에는 마우스와 휠 이벤트가 전혀 닿지 않아 확인하지 못했다.
