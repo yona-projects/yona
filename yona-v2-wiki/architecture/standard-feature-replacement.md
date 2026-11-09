@@ -25,7 +25,7 @@ updated: 2026-11-09
 | S-07 | `jquery.requestAs.js`(303줄, 호출 7곳) | `fetch` + `<dialog>` 확인창 | 가능, 중간 규모 | **완료**(2026-11-09, A-422, A′안: `yona.Request` 함수 하나 + 표준 DOM 이벤트. 선언형 연결 층까지 없애는 방식은 후속 논의) |
 | S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 R-145 논의 사항으로 남김) |
 | S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | vanilla-calendar-pro 3.4.0(계약과 위치는 Pikaday와 같게, `D-107`, `A-424`) | 구현 완료, 모양은 달라짐(월과 연 선택이 선택 상자에서 목록으로, 크기와 색) | 완료(2026-11-09, 선생님 확인) |
-| S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기 |
+| S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기(`S-10 조사`에 선택지) |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
 | S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API(`Element.setHTML`) | **표준 우선으로 바꿈**(지원하는 브라우저는 표준, Safari 등은 옛 필터. 금지 요소 목록과 변이 XSS 요소를 더 걷어냄) | **완료**(2026-11-09, D-108, A-425) |
 | S-13 | jQuery 유틸 `$.each`(60), `$.extend`(10), `$.proxy`(13), `$.inArray`, `$.map`, `$.grep`, `$.isPlainObject`(약 5), `.animate` 등(7) | `for...of`, `Object.assign`, `bind`, `includes`, `map`, `filter`, CSS 전환 | 쉬운 기계적 치환(약 100곳) | 미착수 |
@@ -236,4 +236,29 @@ updated: 2026-11-09
 | js-datepicker 5.18.4(2025-02) | 0, 0 | **아니오** | **아니오** | 예 | 닫힘 | 닫힘 | 뒤집기 없음 |
 
 어댑터가 필요한 계약(모든 후보 공통, Pikaday가 기본으로 하던 것): (1) 선택과 `setDate()`가 입력란에 `change`를 내보내기, (2) 입력란에 직접 쓰고 `change`가 나면 달력에 반영하기, (3) `getDate()`가 `Date`를 돌려주기, (4) 초기에 입력란 값을 선택일로 삼기. Pikaday의 `setDate("")`는 값을 지우지 않는 버그가 있어(측정: 값이 그대로 남음) 후보들의 "지움"과 다르다.
+
+## S-10 조사 (`yona.ui.Typeahead`와 BS2 typeahead 플러그인, 2026-11-09)
+
+### 현재 구성
+- `common/yona.ui.Typeahead.js`(148줄) 래퍼가 BS2 플러그인 `bootstrap-typeahead.js`(2.3.1, 335줄)와 `bootstrap-better-typeahead.js`(1.0.0, 154줄, Yobi가 고친 곳에 `yobi` 표지)를 jQuery로 부른다. 플러그인은 `scripts.html`이 모든 화면에 불러온다. BS5에는 typeahead가 없다.
+- 래퍼는 `source`(함수 또는 서버 주소), `updater`, `render`, `minLength`(기본 0), `limit`(항목 수, 기본 10)를 받고, 서버가 `Content-Range: items 일부/전체`로 알려 주면 이미 전체를 받았을 때 다시 묻지 않고 캐시를 쓴다.
+
+| 쓰는 곳 | 항목 | 특이 사항 |
+|---|---|---|
+| 프로젝트 구성원 추가(`yona.project.Member.js`, `#loginId`) | **HTML 문자열**(아바타 `<img class='mention_image'>`와 이름, 서버 `UserApiController`가 `info`로 준다) | `render`가 플러그인 내부(`this.options.item`, `this.$menu`)를 직접 만진다. `updater`가 표시 문자열을 로그인 ID로 바꾼다. minLength 1 |
+| 조직 구성원 추가(`yona.organization.Member.js`) | 위와 같음 | 위와 같음(코드가 거의 복사본) |
+| 전체 메일(`yona.site.MassMail.js`, `#input-project`) | 프로젝트 이름 글자 | 기본 `source`(서버 호출), 래퍼 옵션만 사용 |
+| 이슈 라벨 분류(`yona.issue.LabelEditor.js`) | 글자 배열 | 래퍼 없이 `.typeahead()`를 부르고 `data("typeahead").source`에 배열을 넣는다(내부에 직접 접근). `better-typeahead` 덕에 빈 칸에서도 목록이 뜬다 |
+템플릿 4곳의 `data-provider="typeahead"`는 BS2의 자동 연결용이다.
+
+### 표준 `<datalist>`로 되는가
+- **되는 곳**: 글자 목록인 전체 메일과 라벨 분류(2곳). 값을 입력란에 채우는 동작은 표준이다.
+- **안 되는 곳**: 구성원 추가 2곳. `<datalist>`의 항목은 글자뿐이라 **아바타 이미지를 보여 줄 수 없고**, 표시 문자열을 다른 값(로그인 ID)으로 바꾸는 `updater`도 없다. 서버가 주는 `info`를 글자로 바꾸고 아바타를 포기하면 v1.6과 화면이 달라진다. 또 목록의 모양과 위치를 CSS로 정할 수 없고 브라우저마다 다르게 그려진다.
+- 그래서 체크리스트의 "그대로는 어렵다"가 맞다. 2곳만 바꾸고 2곳은 플러그인을 남기면 두 방식이 섞인다.
+
+### 선택지
+- **A. 유지**: 플러그인은 `jquery4.test.mjs`가 jQuery 4 환경에서 돌려 확인했고 동작한다. 단점은 BS2용 jQuery 플러그인이 계속 남고, 구성원 두 파일이 플러그인 내부(`$menu`, `options.item`)에 기대는 것이다.
+- **B. (권장 후보) 같은 API로 다시 쓴다**: 이미 `lib/text-expander/combobox-nav.js`(GitHub, 7KB, D-106에서 들임)가 있다. 입력란과 `role="listbox"` 목록을 연결해 위, 아래, Enter, Esc, 마우스 선택과 ARIA를 처리해 준다. 이를 바탕으로 `yona.ui.Typeahead`를 jQuery 플러그인 없이 다시 쓰면 항목은 DOM으로 직접 만들 수 있어 **아바타 HTML을 그대로 보여 주고**(`render`는 항목 하나를 만드는 함수로 단순해진다), BS2 플러그인 두 파일(489줄)과 `data-provider` 4곳, 라벨 편집기의 내부 접근이 사라진다. D-105, D-106의 GitHub 방식과 맞다. 구성원 두 파일과 라벨 편집기를 함께 고쳐야 한다(호출 4곳).
+- **C. Tom Select 등**: 선택 위젯이라 입력란에 글자를 채우는 이 화면의 동작이 바뀐다.
+- 정해야 할 것: v1.6의 입력 중 목록 모양(BS2 `.typeahead.dropdown-menu`), 목록을 여는 시점(minLength 0이면 초점만 가도 열림), Tab으로 선택하는지(BS2는 Tab과 Enter가 선택), 강조 표시(BS2 기본 `highlighter`가 검색어를 굵게)를 그대로 맞출지.
 
