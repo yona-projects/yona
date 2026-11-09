@@ -133,4 +133,12 @@ export const tests = [
     const bundles = fs.readFileSync(path.join(ROOT, 'build-tools/js-bundle/bundles.mjs'), 'utf8');
     assert.ok(bundles.includes('common/yona.Request.js') && !bundles.includes('requestAs'), '번들 입력이 바뀌어야 한다');
   } },
+  { name: '수락 단추의 닿지 않던 훅이 없다: 병합은 병합 상자의 일반 폼 제출이라 요청 이벤트를 쓰지 않는다(A-422)', run: async () => {
+    for (const f of ['service/yona.code.Diff.js', 'service/yona.git.View.js']) {
+      const text = fs.readFileSync(path.join(JS, f), 'utf8');
+      assert.ok(!text.includes('request:before'), `${f}: request:before 훅이 남아 있다`);
+      assert.ok(!/welBtnAccept\[0\]\.addEventListener/.test(text), `${f}: 수락 단추에 건 처리기가 남아 있다`);
+    }
+    assert.ok(!fs.readFileSync(path.join(JS, 'service/yona.code.Diff.js'), 'utf8').includes('welBtnAccept'), 'code.Diff 에서는 수락 단추 변수도 필요 없다');
+  } },
 ];

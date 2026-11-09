@@ -94,7 +94,6 @@
             htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
 
             // 코드받기
-            htElement.welBtnAccept = $("#btnAccept");
         }
 
         /**
@@ -127,12 +126,6 @@
 
             $(window).on("hashchange", _onHashChange);
 
-            if(htElement.welBtnAccept.length > 0){
-                htElement.welBtnAccept[0].addEventListener("request:before", function(){
-                    htElement.welBtnAccept.attr('disabled','disabled');
-                    NProgress.start();
-                });
-            }
 
 
             $(window).on('resize scroll', _setReviewListHeight);

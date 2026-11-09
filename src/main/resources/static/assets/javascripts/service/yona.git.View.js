@@ -119,12 +119,6 @@
                 });
             }
 
-            if(htElement.welBtnAccept.length > 0){
-                htElement.welBtnAccept[0].addEventListener("request:before", function(){
-                    htElement.welBtnAccept.attr('disabled','disabled');
-                    NProgress.start();
-                });
-            }
         }
 
         /**
