@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 25, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 24, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -299,5 +299,13 @@ class JsLibraryVersionsTest {
         assertTrue(script.contains("Vue.createApp") && !script.contains("require('angular')") && !script.contains("angular.module"))
         val template = File("src/main/resources/templates/migration/home.html").readText()
         assertTrue(!Regex("\\sng-[a-z]+=").containsMatchIn(template), "템플릿에 AngularJS 속성이 남아 있다")
+    }
+
+    @Test
+    fun `호출이 없던 diff_js와 jquery_browser_js와 magnific-popup_css는 없다`() {
+        // D-122 1단계: 불러오기만 하고 부르는 코드가 없던 세 파일을 지웠다(JsDiff, $.browser, .mfp 클래스를 쓰는 곳이 없었다).
+        listOf("javascripts/lib/diff.js", "javascripts/lib/jquery/jquery.browser.js", "javascripts/lib/magnific-popup/magnific-popup.css").forEach { assertTrue(!asset(it).exists(), it) }
+        val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
+        assertTrue(!templates.contains("lib/diff.js") && !templates.contains("jquery.browser.js") && !templates.contains("magnific-popup.css"))
     }
 }

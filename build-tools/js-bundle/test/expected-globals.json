@@ -188,7 +188,6 @@
     "ajaxTransport",
     "attr",
     "attrHooks",
-    "browser",
     "camelCase",
     "cleanData",
     "clone",
@@ -262,7 +261,6 @@
     "timers",
     "trim",
     "type",
-    "uaMatch",
     "unique",
     "uniqueSort",
     "valHooks",
@@ -340,6 +338,8 @@
     "template",
     "encode",
     "pjax",
-    "fieldValue"
+    "fieldValue",
+    "browser",
+    "uaMatch"
   ]
 }

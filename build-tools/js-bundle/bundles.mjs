@@ -10,7 +10,6 @@ export const bundles = {
   "yona-layout.js": [
     `${JS}/lib/nprogress/nprogress.js`,
     `${JS}/lib/jquery/jquery-3.7.1.js`,
-    `${JS}/lib/jquery/jquery.browser.js`,
     `${JS}/lib/htmx.js`,
     `${JS}/common/yona.Common.js`,
     `${JS}/common/yona.Htmx.js`,
