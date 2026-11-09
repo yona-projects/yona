@@ -2051,3 +2051,7 @@ Firefox 휠 확인을 R-145로 남기고 S-08 행에 연결했다. S-01~S-08은 
 ## [2026-11-09] feat | 달력의 한 주 시작 요일을 언어 관습에 따르게 함(A-424)
 
 ru, uz는 월요일, ko, ja, en은 일요일. `calendar.test.mjs` 27개 통과, 실제 앱에서 5개 언어를 Chromium과 Firefox로 확인.
+
+## [2026-11-09] feat | S-12 xssClean을 표준 Sanitizer API 우선으로(D-108, A-425)
+
+`xssclean.test.mjs` 9개와 번들 확인 시험, JS 전체 286개 통과. 회귀 `web`, `audit`, `i18n` 2783개 중 달력 언어 변경이 만든 영어 화면 한국어 주석 1건이 실패해 고쳤다(9분 25초). 고친 뒤 관련 시험 통과.

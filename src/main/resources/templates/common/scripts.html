@@ -62,7 +62,7 @@
 <script type="text/javascript" th:inline="javascript">
     $yona.setScriptPath([[@{/assets/javascripts/}]]);
 
-    // 현재 요청의 언어를 스크립트에 알린다. 달력(yona.ui.Calendar)의 월과 요일 이름이 이 값을 따른다.
+    /*[- 현재 요청의 언어를 스크립트에 알린다. 달력(yona.ui.Calendar)의 월과 요일 이름이 이 값을 따른다. 영어 화면에 한국어가 나가지 않도록 Thymeleaf 주석으로 쓴다 -]*/
     window.yona = window.yona || {};
     window.yona.language = [[${#locale.language}]];
 

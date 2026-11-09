@@ -204,4 +204,14 @@ class JsLibraryVersionsTest {
         val notice = java.io.File("NOTICE").readText()
         assertTrue(notice.contains("vanilla-calendar-pro") && notice.contains("MIT"), "NOTICE에 vanilla-calendar-pro의 저작권 고지가 있어야 한다")
     }
+
+    @Test
+    fun `레이아웃 번들의 xssClean은 표준 Sanitizer API를 먼저 쓰고 옛 필터를 대체 경로로 둔다`() {
+        // S-12, A-425: 브라우저가 Element.setHTML을 지원하면 표준으로 정화하고 지원하지 않으면 lib/xss.js의 옛 필터를 쓴다. 번들이 소스를 따라 다시 만들어졌는지 확인한다.
+        val bundle = asset("javascripts/yona-layout.js").readText()
+        assertTrue(bundle.contains("setHTML") && bundle.contains("Sanitizer"), "번들에 표준 정화 경로가 있어야 한다")
+        assertTrue(bundle.contains("http://www.w3.org/1998/Math/MathML") && bundle.contains("http://www.w3.org/2000/svg"), "math와 svg는 이름 공간으로 걷어내야 한다")
+        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        assertTrue(Regex("defence").findAll(bundles).count() >= 2, "옛 필터(Filter.defence)의 정의와 대체 경로의 호출이 번들에 있어야 한다")
+    }
 }

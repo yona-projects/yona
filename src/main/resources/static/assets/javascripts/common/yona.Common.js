@@ -554,10 +554,52 @@ $yona = yona.Common = (function(){
         return _isKey(eEvt, "Backspace");
     }
 
-    function xssClean(str) {
-      var filter = new Filter();
+    /**
+     * 정화할 때 내용과 함께 걷어내는 요소이다. 옛 필터(`lib/xss.js`)가 글자로 바꿔 보여 주던 금지 요소(Yona가 v1.6부터 막아 온 목록)에,
+     * 결과를 다시 읽을 때 구조가 바뀌어 XSS가 되는 변이(mutation) XSS를 일으키는 noscript, math, svg를 더했다.
+     * script, 이벤트 처리기, `javascript:` 주소 같은 것은 목록과 상관없이 표준 정화기가 항상 걷어낸다.
+     */
+    var XSS_REMOVED_ELEMENTS = [
+        "applet", "audio", "basefont", "base", "bgsound", "blink", "body", "embed", "form", "frameset", "frame", "head", "html", "ilayer", "iframe",
+        "input", "isindex", "layer", "link", "meta", "object", "plaintext", "style", "script", "textarea", "title", "xml",
+        "noscript",
+        // math와 svg는 HTML과 다른 이름 공간의 요소라 이름만 주면 걷어내지 못한다
+        { "name": "math", "namespace": "http://www.w3.org/1998/Math/MathML" },
+        { "name": "svg", "namespace": "http://www.w3.org/2000/svg" }
+    ];
 
-      return filter.defence(str);
+    var xssSanitizer = null;
+
+    /**
+     * 위험한 HTML을 정화해 글자로 돌려준다(S-12, A-425).
+     *
+     * 브라우저가 표준 Sanitizer API(`Element.setHTML`)를 지원하면 표준으로 정화한다. 표준은 허용 목록이 아니라 위험한 것(script, 이벤트 처리기,
+     * `javascript:` 주소 등)을 걷어내는 방식이라 이미지, 동영상, details, class, id, style 같은 마크다운 내용은 그대로 남는다.
+     * 지원하지 않는 브라우저(Safari 등)나 표준 정화기를 만들지 못하는 경우에는 옛 정규식 필터(`Filter.defence`)를 쓴다.
+     *
+     * @param {String} str 정화할 HTML. 값이 없으면 빈 글자로 본다
+     * @return {String} 정화한 HTML
+     */
+    function xssClean(str) {
+        str = str == null ? "" : String(str);
+
+        if (typeof Sanitizer === "function" && typeof Element.prototype.setHTML === "function") {
+            try {
+                xssSanitizer = xssSanitizer || new Sanitizer({ "removeElements": XSS_REMOVED_ELEMENTS });
+                var box = document.createElement("div");
+                box.setHTML(str, { "sanitizer": xssSanitizer });
+                // 표준 정화기는 주소의 종류를 가리지 않으므로 링크의 data: 주소는 따로 걷어낸다(옛 필터도 막았다). 이미지의 data: 주소는 남긴다
+                var links = box.querySelectorAll("a[href], area[href]");
+                for (var i = 0; i < links.length; i++) {
+                    if (/^[\s\u0000-\u001f]*data:/i.test(links[i].getAttribute("href"))) { links[i].removeAttribute("href"); }
+                }
+                return box.innerHTML;
+            } catch (e) {
+                // 설정을 거부하거나 정화에 실패하는 브라우저는 아래의 옛 필터로 정화한다
+            }
+        }
+
+        return new Filter().defence(str);
     }
 
     /* public Interface */

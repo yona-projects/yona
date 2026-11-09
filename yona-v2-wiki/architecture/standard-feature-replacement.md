@@ -27,7 +27,7 @@ updated: 2026-11-09
 | S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | vanilla-calendar-pro 3.4.0(계약과 위치는 Pikaday와 같게, `D-107`, `A-424`) | 구현 완료, 모양은 달라짐(월과 연 선택이 선택 상자에서 목록으로, 크기와 색) | 완료(2026-11-09, 선생님 확인) |
 | S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기 |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
-| S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API | 아직 모든 브라우저 표준이 아니라 유지 | 유지 |
+| S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API(`Element.setHTML`) | **표준 우선으로 바꿈**(지원하는 브라우저는 표준, Safari 등은 옛 필터. 금지 요소 목록과 변이 XSS 요소를 더 걷어냄) | **완료**(2026-11-09, D-108, A-425) |
 | S-13 | jQuery 유틸 `$.each`(60), `$.extend`(10), `$.proxy`(13), `$.inArray`, `$.map`, `$.grep`, `$.isPlainObject`(약 5), `.animate` 등(7) | `for...of`, `Object.assign`, `bind`, `includes`, `map`, `filter`, CSS 전환 | 쉬운 기계적 치환(약 100곳) | 미착수 |
 | S-14 | jQuery DOM과 이벤트와 `.data()`와 `$.ajax`(약 1,300곳) | `classList`, `hidden`, `closest`, `addEventListener`, `dataset`, `fetch` | jQuery 전체 제거에 해당하는 큰 일. `.data()`는 값 자동 변환, `$.ajax`는 4xx 처리와 `X-Requested-With`, `Accept` 헤더 차이에 주의 | 별도 단계 |
 
