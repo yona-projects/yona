@@ -92,10 +92,17 @@ export const tests = [
     const r = await page.evaluate(() => { const c = yona.ui.Calendar(document.getElementById('due'), { silent: true }); c.setDate('abc'); c.setDate('2026-02-31'); return { v: document.getElementById('due').value, n: window.__changes }; });
     assert.deepEqual(r, { v: '2026-03-15', n: 0 }); await page.close();
   } },
-  { name: '달력: setDate("")는 v1.6의 Pikaday처럼 선택만 풀고 입력란 값은 그대로 둔다(v1.6 동작 유지)', run: async () => {
+  { name: '달력: setDate("")는 선택을 풀고 입력란 값도 비우며 change 를 한 번 낸다(R-146 (1), Pikaday 1.8의 지우기와 같다)', run: async () => {
     const page = await open(); await page.evaluate(() => { window.__changes = 0; });
     const r = await page.evaluate(() => { const c = yona.ui.Calendar(document.getElementById('due'), { silent: true }); c.setDate(''); return { v: document.getElementById('due').value, n: window.__changes, d: c.getDate() }; });
-    assert.deepEqual(r, { v: '2026-03-15', n: 0, d: null }); await page.close();
+    assert.deepEqual(r, { v: '', n: 1, d: null }); await page.close();
+  } },
+  { name: '달력: 이미 빈 입력란에 setDate("")를 부르거나 사용자가 입력란을 지운 경우에는 change 가 새로 나가지 않는다(마감일 저장이 두 번 나가지 않게)', run: async () => {
+    const page = await open({ value: '' }); await page.evaluate(() => { window.__changes = 0; });
+    const r = await page.evaluate(() => { const c = yona.ui.Calendar(document.getElementById('due'), { silent: true }); c.setDate(''); c.setDate(null); return window.__changes; }); assert.equal(r, 0);
+    const b = await open(); await b.evaluate(() => { window.__changes = 0; const i = document.getElementById('due'); i.value = ''; i.dispatchEvent(new Event('change', { bubbles: true })); });
+    assert.equal(await b.evaluate(() => window.__changes), 1, '사용자가 지운 change 하나뿐'); assert.equal(await value(b), '');
+    await b.click('#cal'); await b.waitForTimeout(250); assert.equal(await selected(b), null, '달력의 선택도 풀린다'); await page.close(); await b.close();
   } },
   { name: '달력: 입력란에 직접 쓰고 change 가 나면 달력이 그 날로 가고 값은 YYYY-MM-DD로 바로잡히며 change 는 새로 나가지 않는다(R-146 (2): 원래 change 하나가 바로잡힌 값을 들고 간다)', run: async () => {
     const page = await open(); await page.evaluate(() => { window.__changes = 0; window.__seen = []; document.addEventListener('change', (e) => { if (e.target.id === 'due') window.__seen.push(e.target.value); }); });
@@ -159,6 +166,10 @@ export const tests = [
     const tomorrow = await page.evaluate(() => { const d = new Date(); d.setDate(d.getDate() + 1); return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-'); });
     await page.fill('#d', '2020-01-01'); await page.locator('#d').blur(); await page.waitForTimeout(100);
     assert.equal(await page.evaluate(() => document.getElementById('d').value), tomorrow, 'Pikaday처럼 minDate로 맞춘다'); await page.close();
+  } },
+  { name: '항상 보이는 달력: setDate("")는 선택을 풀고 입력란도 비운다(change 는 내지 않는다)', run: async () => {
+    const page = await openInline(); await page.evaluate(() => { window.cal.setDate(''); });
+    assert.equal(await page.evaluate(() => document.getElementById('d').value), ''); assert.equal(await inlineSelected(page), null); assert.equal(await page.evaluate(() => window.__changes), 0); await page.close();
   } },
   { name: '항상 보이는 달력: 같은 화면에 둘을 두어도 서로 영향을 주지 않는다', run: async () => {
     const page = await pageWith({ html: '<input id="a" value="2026-03-01"><div id="ba"></div><input id="b" value="2026-05-20"><div id="bb"></div>', scripts: [LIB, 'common/yona.ui.Calendar.js'] });

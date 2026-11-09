@@ -2087,3 +2087,7 @@ R-143(하위 댓글 Esc 뒤 다시 열리지 않음)을 Chromium과 Firefox에�
 ## [2026-11-09] fix | 달력의 불필요한 change 제거(R-146 (2), (3), D-113, A-430)
 
 마감일 입력란에 날짜를 직접 쓰고 벗어나면 저장 요청이 2번 나가던 것을 1번으로 줄였다(실제 앱 측정). 초기화 때 change도 없앴다. JS 전체 344개.
+
+## [2026-11-09] fix | 달력 setDate("")와 하위 댓글 Ctrl+Enter(D-114, A-431)
+
+빈 값으로 비우기와 Ctrl, Cmd+Enter 제출을 고쳤다. Ctrl+Enter는 `e.Control` 오타 외에 Chromium이 modified Enter에 `keypress`를 내지 않는 문제가 겹쳐 `keydown`으로 옮겼다. JS 전체 347개, 실제 앱에서 두 브라우저 확인.

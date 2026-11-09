@@ -14,9 +14,11 @@ $(function(){
         parent.find(".child-comment-input-form").toggle();
 
         // 누를 때마다 처리기가 쌓이지 않도록 이름 공간으로 먼저 떼고 붙인다(R-143)
-        parent.find("textarea").off(".subcomment").on('keypress.subcomment', function(e) {
-            // Enter to submit
-            if ((e.metaKey || e.Control) && $yona.isEnterKey(e)) {
+        parent.find("textarea").off(".subcomment").on('keydown.subcomment', function(e) {
+            // Enter to submit: Ctrl+Enter(Windows, Linux)와 Cmd+Enter(Mac).
+            // v1.6은 없는 속성 `e.Control`을 썼고 `keypress`에 걸어 Ctrl+Enter가 동작하지 않았다. 또 Chromium은 Ctrl이나 Cmd를 누른 Enter에는 `keypress`를
+            // 내지 않고 Firefox도 Cmd+Enter에는 내지 않으므로(실제 키 입력으로 확인) `keydown`에서 처리한다.
+            if ((e.metaKey || e.ctrlKey) && $yona.isEnterKey(e)) {
                 $(this).parents('form').submit();
                 return false;
             }

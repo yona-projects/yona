@@ -43,8 +43,18 @@ export const tests = [
     const page = await open(); await page.evaluate(() => { window.__submits = 0; $(document.getElementById('t1').form).on('submit', (e) => { e.preventDefault(); window.__submits++; }); });
     for (let i = 0; i < 3; i++) { await page.click('#c1 .add-a-comment'); await page.keyboard.press('Escape'); }
     await page.click('#c1 .add-a-comment'); await page.waitForTimeout(100);
-    await page.evaluate(() => { document.getElementById('t1').dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', keyCode: 13, metaKey: true, bubbles: true, cancelable: true })); });
+    await page.evaluate(() => { document.getElementById('t1').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, metaKey: true, bubbles: true, cancelable: true })); });
     assert.equal(await page.evaluate(() => window.__submits), 1); await page.close();
+  } },
+  { name: '하위 댓글: Ctrl+Enter와 Cmd(Meta)+Enter는 제출하고 Enter만 누르거나 Shift+Enter는 제출하지 않는다(v1.6은 없는 속성 e.Control을 쓰고 keypress에 걸어 Ctrl+Enter가 안 됐고, Chromium은 Ctrl, Cmd+Enter에 keypress를 내지 않는다)', run: async () => {
+    const page = await open(); await page.evaluate(() => { window.__submits = 0; $(document.getElementById('t1').form).on('submit', (e) => { e.preventDefault(); window.__submits++; }); });
+    await page.click('#c1 .add-a-comment'); await page.waitForTimeout(100);
+    const submits = () => page.evaluate(() => window.__submits);
+    await page.keyboard.press('Enter'); assert.equal(await submits(), 0, 'Enter만');
+    await page.keyboard.press('Shift+Enter'); assert.equal(await submits(), 0, 'Shift+Enter');
+    await page.keyboard.press('Control+Enter'); assert.equal(await submits(), 1, 'Ctrl+Enter');
+    await page.keyboard.press('Meta+Enter'); assert.equal(await submits(), 2, 'Cmd+Enter');
+    assert.deepEqual(page.errors, []); await page.close();
   } },
 ];
 

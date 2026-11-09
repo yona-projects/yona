@@ -32,7 +32,8 @@
  * - 입력란을 누르거나 초점을 두면 열리고, 바깥을 누르면 닫힌다. 위치는 입력란의 왼쪽 아래에 틈 없이 붙고, 오른쪽이나 아래가 화면을 넘치면 뒤집힌다.
  * - 입력란에 직접 쓰고 `change`가 나면 그 날짜로 이동하고 값을 `YYYY-MM-DD`로 바로잡는다. 새 `change`는 내지 않는다: 지금 퍼지고 있는 그 `change`가
  *   바로잡힌 값을 들고 가기 때문이다(v1.6은 한 번 더 내서 마감일 저장이 두 번 나갔다, R-146 (2)).
- * - `setDate("")`는 선택만 풀고 입력란 값은 그대로 둔다(Pikaday의 동작을 유지한 것이다).
+ * - `setDate("")`(빈 값, `null`)는 선택을 풀고 입력란 값도 비운다. 값이 있었을 때만 `change`를 한 번 낸다(v1.6의 Pikaday는 선택만 풀고 입력란은
+ *   그대로 두어 달력과 입력란이 어긋났다, R-146 (1)). 사용자가 입력란을 지워서 오는 `change`에는 새 `change`를 내지 않는다.
  *
  * 월 이름과 요일은 Yona의 언어 설정(`yona.language`, 레이아웃의 스크립트 조각이 현재 요청의 언어로 채운다)을 따르고, 설정이 없거나 브라우저가 모르는 언어면
  * 영어이다(v1.6의 Pikaday는 언어 설정이 없어 항상 영어였다). 한 주의 시작 요일도 언어의 관습을 따른다(ko, ja, en은 일요일, ru, uz는 월요일).
@@ -254,6 +255,14 @@
          */
         function _apply(dateStr, notify){
             var current = targetElement.data("calendar");
+            if (!dateStr) {
+                current.select(dateStr);
+                if (notify && field.value !== "") {
+                    field.value = "";
+                    _fireChange(field, picker);
+                }
+                return;
+            }
             if (current.select(dateStr)) {
                 field.value = _toString(current.getDate());
                 if (notify) { _fireChange(field, picker); }
@@ -291,6 +300,11 @@
         });
 
         function _setDate(value){
+            if (!value) {
+                picker.select(value);
+                input.val("");
+                return;
+            }
             if (picker.select(value)) { input.val(_toString(picker.getDate())); }
         }
 

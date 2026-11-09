@@ -103,3 +103,5 @@ v1.6 편집기에는 서식 단추가 없고 도움말과 체크리스트 추가
 - 같은 날 지운 파일: `common/yona.Sha1.js`(호출 없음, F-01).
 - **하위 댓글 Esc(`yona.SubComment.js`)**: v1.6은 Esc로 닫은 입력란을 다시 열 수 없었다(`visibility: hidden`이 남음). 이제 다시 열린다. 열고 닫을 때마다 처리기가 쌓이던 것도 고쳤다(R-143, D-112).
 - **달력의 `change`(`yona.ui.Calendar.js`)**: v1.6의 Pikaday는 입력란에 날짜를 직접 쓰고 벗어나면 `change`를 한 번 더 내서 마감일 저장이 두 번 나갔고, 처음 초기화 때도 `change`를 냈다. 이제 직접 쓴 값과 초기화는 `change`를 새로 내지 않는다(R-146 (2), (3), D-113). 달력에서 날짜를 고르거나 `setDate(값)`을 부르면 한 번 낸다.
+- **달력 `setDate("")`(`yona.ui.Calendar.js`)**: v1.6의 Pikaday는 선택만 풀고 입력란은 그대로 두었다. 이제 입력란도 비우고 값이 있었을 때만 `change`를 한 번 낸다(R-146 (1), D-114). 앱에 호출하는 곳은 없다.
+- **하위 댓글 Ctrl+Enter 제출(`yona.SubComment.js`)**: v1.6은 없는 속성 `e.Control`과 `keypress`를 써서 Ctrl+Enter가 동작하지 않았고 Chromium에서는 Cmd+Enter도 동작하지 않았을 가능성이 크다. 이제 Ctrl+Enter와 Cmd+Enter가 제출한다(D-114).
