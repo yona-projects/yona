@@ -44,6 +44,8 @@
     </head>
 
     <body th:class="''">
+        <!-- 일반 레이아웃(layout/layout.html)처럼 본문을 #main으로 감싼다. 감싸지 않으면 yobi.css의 `body { display: flex }`가 관리자 띠, 알림, 메뉴, 본문을 가로로 늘어놓는다(v1.6은 관리자 띠가 affix로 흐름에서 빠져 있었다) -->
+        <div id="main" class="main">
         <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
         <p th:if="${updateNotice != null}" class="center-txt">
             <a th:href="${updateNotice.url}" th:text="#{site.update.notification(${updateNotice.version})}"></a>
@@ -54,6 +56,7 @@
         <th:block th:replace="${content}"></th:block>
 
         <th:block th:replace="~{common/scripts :: scripts}"></th:block>
+        </div>
 
         <script type="text/javascript" th:inline="javascript">
                 $(function() {

@@ -96,6 +96,9 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertTrue(css.indexOf("/assets/stylesheets/yobi.css") < css.indexOf("/assets/stylesheets/usermenu.css"), css.toString())
         // 푸터가 없다
         assertTrue(doc.select("footer, #footer, .footer").isEmpty())
+        // 본문 전체를 #main으로 감싼다. yobi.css의 `body { display: flex }` 아래에서 관리자 띠, 업데이트 알림, 메뉴, 본문이 가로로 나란히 놓이지 않게 하고, 사이드바 닫기 스크립트가 찾는 #main이 있게 한다
+        val main = doc.selectFirst("body > div#main.main")
+        assertTrue(main != null && main.selectFirst("#migration-app") != null && main.selectFirst("header.gnb-outer") != null, "#main이 본문을 감싸야 한다")
     }
 
     @Test
