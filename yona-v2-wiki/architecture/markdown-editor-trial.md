@@ -5,6 +5,8 @@ sources:
   - ../e2e/editortrial.tmp/trial.mjs
   - ../e2e/editortrial.tmp/v3entry.mjs
   - ../e2e/editortrial.tmp/fill.mjs
+  - ../e2e/cmmodule.tmp/editor.js
+  - ../e2e/cmmodule.tmp/run.mjs
   - decisions.md
 updated: 2026-11-09
 ---
@@ -92,3 +94,41 @@ T1(후보), T2(Backspace 뒤 유지), T3(줄 중간 삽입 `aaa @alice  bbb`), T
 - **채우기에서 생기는 실제 결함은 EasyMDE 3의 값 설정 시 `trim`이다.** 생성자의 `initialValue` 옵션은 textarea 내용을 읽는 경로보다 약해서 빈 값이 되었다. 생성 직후 `view.dispatch({changes:{from:0,to:len,insert:원문}})`로 원문을 다시 넣으면 앞뒤 공백까지 보존되어 해결된다(복원 뒤 편집기와 제출 값이 원문과 같았다). 즉 채택하려면 이 복원 단계가 필수이다.
 - 외부 코드가 `textarea.value`를 직접 바꾸는 곳(첨부 삽입, 본문 채우기)은 `editor.value = ...` 또는 `view.dispatch`로 바꿔야 한다. 지금 Yona의 `yona.Attachments.js`와 본문 템플릿 채우기가 그런 곳인지는 이번에 확인하지 않았다.
 - `form.reset()` 불일치(F8)는 취소 단추가 `reset`을 쓰는 화면에서만 문제가 된다.
+
+## CodeMirror 6 직접 사용, 번들 없이 `<script type="module">` (2026-11-09)
+선생님의 요건: (1) 빌드하지 않고 `script type=module`로 CodeMirror를 포함, (2) 폼 제출과 수정 시 채우기, (3) Yona의 `@`, `:`, `#` 멘션 3종. EasyMDE를 거치지 않고 CodeMirror 6를 직접 쓰는 시험본을 `e2e/cmmodule.tmp/`에 만들어 Chromium과 Firefox에서 확인했다. 코드와 템플릿은 바꾸지 않았다.
+
+### (1) 번들 없이 가능한가: 가능하다
+- CodeMirror 6 패키지는 모두 ES 모듈 단일 파일(`dist/index.js`)을 낸다. `components/editor`가 쓰는 6개 패키지(`state`, `view`, `commands`, `language`, `autocomplete`, `lang-markdown`)의 전이 의존성까지 **20개 파일(비압축 1.4MB, gzip 약 350KB)**을 `vendor/`에 그대로 복사하고, 맨 이름 import(`@codemirror/state` 등)는 **`<script type="importmap">`으로 파일 경로에 연결**하면 번들러가 필요 없다. 소스는 4.3KB 한 파일(`editor.js`)이다.
+- 20개 파일은 모두 서로를 맨 이름으로만 부르고 상대 경로 import가 없어 import map 하나로 연결된다(`importmap.json`은 의존 목록에서 자동으로 만들 수 있다).
+- 단점: **요청이 21개**로 늘어난다(HTTP/2에서는 부담이 작고, 시험에서 로드 0.2~1초). `lang-markdown`이 `lang-html`, `lang-css`, `lang-javascript`(코드 블록 하이라이트용)를 끌고 와서 크기의 대부분을 차지한다. 코드 블록 하이라이트가 필요 없으면 `markdown({codeLanguages: []})`로 쓰더라도 파일 자체는 import되므로, 줄이려면 `@lezer/markdown`만 쓰는 방식이 따로 필요하다. import map 지원은 Chrome 89, Firefox 108, Safari 16.4 이상이다.
+
+### (2) 제출과 채우기: 통과
+EasyMDE 3의 문제였던 앞뒤 공백 자르기가 **생기지 않는다**(문서를 `textarea.value` 그대로 `EditorState`에 넣으므로). 숨긴 `<textarea name="body">`에 문서가 바뀔 때마다 값을 동기화하고 `input` 이벤트를 다시 발행한다.
+
+| 항목 | Chromium | Firefox |
+|---|---|---|
+| 한글, 멘션, 빈 줄이 든 본문 채우기 | 같음 | 같음 |
+| `<b>`, `&amp;`, `</textarea><script>` 채우기 | 같음, 스크립트 실행 없음 | 같음 |
+| 앞 4칸 들여쓰기, 줄 끝 공백 두 칸, 끝 빈 줄 | 보존, 한 글자 고쳐도 보존 | 보존 |
+| 고치지 않고 제출 / 실제 폼 제출(`requestSubmit`) | `body=처음 수정 @alice ` | 같음 |
+| 저장 값을 서버가 다시 채우는 왕복 | 같음 | 같음 |
+| reset(취소 단추) | 편집기와 제출 값이 함께 초기값 | 같음 |
+| 외부 코드가 `ed.set()`으로 값 변경 | 편집기와 제출 값이 함께 바뀜 | 같음 |
+| 2만 줄 채우기 | 약 0.3초 | 약 0.3초 |
+`reset` 처리는 `form`의 reset 이벤트에서 편집기 문서를 `textarea.defaultValue`로 되돌리는 코드를 직접 넣어서 맞췄다. 외부 코드가 `textarea.value`를 직접 바꾸는 경우는 EasyMDE와 같게 편집기에 반영되지 않으므로, 첨부 삽입 같은 곳은 `ed.set()` 또는 `view.dispatch`를 쓰도록 고쳐야 한다.
+
+### (3) 멘션 3종: 통과
+`@codemirror/autocomplete`의 `override` 소스 하나가 At.js 규칙(공백 뒤에서 시작, 공백 없이 이어진 질의, 질의 20자까지)으로 `@`(사용자), `#`(이슈), `:`(이모지)를 처리한다. 서버 조회(`mentionType=user|issue`)는 `fetch`로 한다.
+
+| 항목 | 결과 |
+|---|---|
+| 후보 표시, Backspace 뒤 유지, 줄 중간 삽입(`aaa @alice  bbb`), 삽입 뒤 캐럿(`hi @alice X`), Tab 삽입, Alt+Enter 삽입 | 두 브라우저 모두 통과 |
+| `:sm` → 🙂, `#12` → 이슈 후보 두 개, 모두 Enter로 삽입 | 통과 |
+| 한글 조합(`@` 뒤 `아`) | Chromium 통과(`채움 @아`), Firefox는 CDP가 없어 시험하지 못함 |
+| 후보 상자 위치 | 캐럿 아래(세로 간격 0). 가로는 트리거 시작에 맞춰 캐럿보다 19~24px 왼쪽 |
+| 페이지 오류 | 없음 |
+이모지 목록은 시험본에서 4개만 넣었다. 실제 적용에서는 `components/editor/src/mention.ts`의 목록과 정렬 규칙(`sortUsersBySearchText`, `sortIssues`, 최대 10개)을 그대로 옮겨야 한다.
+
+### 판단
+세 요건을 모두 만족하는 방식이 번들러 없이 성립한다. EasyMDE 3 beta보다 낫다: 앞뒤 공백 자르기가 없고, 멘션이 공식 확장(`autocomplete`)을 쓰며, beta 의존이 없다. 대가는 **툴바, 미리보기, 테마를 직접 만들어야 하고(`components/editor`에 TypeScript로 있으나 번들 전제), 20개 vendor 파일을 직접 관리한다**는 점이다. 아직 확인하지 않은 것: 실제 Yona 화면, 툴바와 미리보기, 첨부 삽입과 `yona.Attachments.js` 연동, 한글 조합의 Firefox 확인, Shadow DOM 안에서의 동작.

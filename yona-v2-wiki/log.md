@@ -1965,3 +1965,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] experiment | EasyMDE 3 + 멘션 플러그인 채우기 시험
 
 서버가 채운 textarea에서 멘션 8개 항목은 두 브라우저에서 모두 통과했다. 채우기 고유 결함은 EasyMDE 3이 값을 설정할 때 앞뒤 공백과 빈 줄을 자르는 것(고치면 코드 블록 들여쓰기 손실)이고, 생성 직후 원문을 다시 넣어 해결된다. `architecture/markdown-editor-trial.md`에 기록했다. 코드는 바꾸지 않았다.
+
+## [2026-11-09] experiment | CodeMirror 6 직접 사용(번들 없이 script type=module) 시험
+
+선생님의 세 요건(번들 없는 module, 제출과 채우기, 멘션 3종)을 임시 폴더에서 두 브라우저로 확인했다. 20개 vendor 파일과 import map, 4.3KB 소스로 모두 통과했고 EasyMDE 3의 앞뒤 공백 자르기는 생기지 않았다. `architecture/markdown-editor-trial.md`에 기록했다. 코드는 바꾸지 않았다.
