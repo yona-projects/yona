@@ -87,3 +87,34 @@ updated: 2026-11-09
 - **B. 호출만 `e.key`로 바꾸고 도우미는 두지 않는다**: 코드는 짧지만 조합 중 보호를 곳곳에 중복한다.
 - **C. 그대로 둔다**: 모든 브라우저가 아직 지원하고 비용이 없다. 다만 Safari의 조합 중 Enter 문제는 남는다.
 
+## S-06 조사 (`yona.Files.js` 업로드, 2026-11-09)
+`common/yona.Files.js`(782줄)는 첨부 업로더(버튼, 끌어놓기, 붙여넣기)이다. 업로드 경로가 둘이다.
+
+### 두 경로
+- **XHR2 경로**(`_uploadFileXHR`): `FormData`에 파일을 담아 `$.ajax`로 보내고 `xhr().upload`의 `progress` 이벤트로 진행률을 낸다.
+- **폼 경로**(`_uploadFileForm`, 약 50줄): 숨은 `<form>`에 `<input type=file>`을 옮겨 담고 `jquery.form`의 `ajaxForm`으로 보낸다. `FormData`가 없는 옛 브라우저용이다.
+
+### 어느 경로를 타는가
+`bXHR2 = !!(ProgressEvent && FileReader) && !!FormData`이고, IE(`trident`)면 HTTPS일 때만 참이다. 지금 지원하는 브라우저(Bootstrap 5와 이 프로젝트의 현대 브라우저 전제)는 모두 참이므로 **폼 경로는 도달하지 않는 코드**다. IE 확인(`trident`)도 같다.
+
+### 같이 사라지는 것들
+| 위치 | 내용 |
+|---|---|
+| `_init` | `bXHR2` 계산과 `trident` 규칙, `htUploadOpts`(폼 경로만 씀) |
+| `_uploadSingleFile` | `bXHR2 ? XHR : Form` 갈래 |
+| `_initElement` | `bXHR2`가 거짓이면 `multiple` 속성을 지우는 줄 |
+| `_uploadFile`, `_onChangeFile` | `HTMLInputElement(IE)`를 받는 갈래(`files \|\| element`) |
+| `yona.user.Setting.js` 120, 160 | `bUseCrop = getEnv().bXHR2`가 항상 참이라 자르기 없는 갈래(파일 크기 1MB 확인과 폼 바로 제출)가 도달 불가 |
+| `getEnv()` | `bXHR2`를 쓰는 곳은 `user.Setting` 하나뿐 |
+
+### 남기는 것
+- 진행률이 필요하므로 **XHR은 남긴다**(`fetch`는 업로드 진행률 이벤트가 없다).
+- `$.ajax` 껍데기: `yona.Csrf.js`가 `XMLHttpRequest`와 `fetch`를 전역으로 가로채 토큰을 싣기 때문에(CSRF 때문에 `$.ajax`가 필요한 것은 아니다) 네이티브 `XMLHttpRequest`로도 바꿀 수 있다. 그러나 `$.ajax`는 `X-Requested-With`, `Accept`, JSON 해석, 오류 객체 모양(`status`, `statusText`)을 맞춰 주므로 jQuery 전체 제거(S-14) 때 함께 바꾸는 편이 안전하다.
+- `bDroppable`(`File` 존재)과 `bPastable`(`document.onpaste` 존재 + `FireFox` 철자 조건). 붙여넣기 조건의 `"FireFox"` 철자 오류(R-140)는 그대로 항상 참이므로 이 조건을 지워도 동작이 같다. 단 Firefox 제외가 의도였는지 확인되지 않았으므로(R-140) 값은 그대로 참으로 둔다.
+- `jquery.form`(`ajaxForm`)은 `$yona.sendForm`이 쓰므로 이번에 지우지 않는다.
+
+### 선택지
+- **A (권장)**: 폼 경로, IE 규칙, `bXHR2`와 `htUploadOpts`, `multiple` 제거 갈래, IE 입력 요소 갈래를 지우고 `user.Setting`의 자르기 없는 갈래를 정리한다. 약 100줄 줄어든다. 동작은 지원 브라우저에서 같다.
+- **B**: A에 더해 `$.ajax`를 네이티브 `XMLHttpRequest`로 바꾼다. 헤더와 오류 모양을 맞춰야 하므로 S-14와 함께 하는 편이 낫다.
+- **C**: 그대로 둔다. 비용은 없지만 도달하지 않는 코드가 남는다.
+
