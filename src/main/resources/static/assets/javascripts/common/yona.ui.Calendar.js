@@ -32,7 +32,8 @@
  * - 입력란에 직접 쓰고 `change`가 나면 그 날짜로 이동하고 값을 `YYYY-MM-DD`로 바로잡는다(이때 `change`가 한 번 더 나간다).
  * - `setDate("")`는 선택만 풀고 입력란 값은 그대로 둔다(Pikaday의 동작을 유지한 것이다).
  *
- * 월 이름과 요일은 v1.6처럼 영어이고 일요일부터 시작한다(`_LOCALE`).
+ * 월 이름과 요일은 Yona의 언어 설정(`yona.language`, 레이아웃의 스크립트 조각이 현재 요청의 언어로 채운다)을 따르고, 설정이 없거나 브라우저가 모르는 언어면
+ * 영어이다(v1.6의 Pikaday는 언어 설정이 없어 항상 영어였다). 한 주는 v1.6처럼 일요일부터 시작한다.
  *
  * 항상 보이는 달력(마일스톤, API 토큰)은 `yona.ui.Calendar.inline()`을 쓴다.
  *
@@ -42,8 +43,19 @@
 (function(ns){
     var oNS = $yona.createNamespace(ns);
 
-    /** 달력의 언어. v1.6의 Pikaday는 언어 설정이 없어 영어였다. */
-    var _LOCALE = "en-US";
+    /**
+     * 달력의 언어를 정한다. Yona의 언어 설정(`yona.language`, 예: "ko")을 브라우저가 알면 그대로 쓰고, 없거나 모르는 값이면 영어로 둔다.
+     * 월 이름과 요일 이름은 브라우저의 `Intl`이 만든다.
+     */
+    function _locale(){
+        var language = window.yona && window.yona.language;
+        if (language && typeof Intl !== "undefined") {
+            try {
+                if (Intl.DateTimeFormat.supportedLocalesOf([language]).length > 0) { return language; }
+            } catch (e) { /* 잘못된 언어 태그는 영어로 둔다 */ }
+        }
+        return "en-US";
+    }
 
     /** 형식은 `YYYY-MM-DD` 하나만 쓴다(v1.6에서 다른 형식을 준 곳이 없다). */
     function _pad(n){ return (n < 10 ? "0" : "") + n; }
@@ -121,7 +133,7 @@
         vc = new VanillaCalendarPro.Calendar(container, {
             inputMode: !!options.popup,
             positionToInput: "auto",
-            locale: _LOCALE,
+            locale: _locale(),
             firstWeekday: 0,
             enableDateToggle: false,
             selectionDatesMode: "single",

@@ -11,9 +11,9 @@ const CSS = path.join(JS, 'lib/vanilla-calendar-pro/index.css');
 const YOBI = path.join(ROOT, 'build/generated/sass/static/assets/stylesheets/yobi.css');
 
 /** 입력란을 [pos](절대 위치)에 두고 위젯을 불러온다. 문서 전체의 change 횟수는 `window.__changes`에 센다. */
-async function open({ value = '2026-03-15', attrs = 'data-toggle="calendar"', pos = 'left:40px;top:120px', extra = '' } = {}) {
+async function open({ value = '2026-03-15', attrs = 'data-toggle="calendar"', pos = 'left:40px;top:120px', extra = '', language = null } = {}) {
   const page = await pageWith({
-    html: `<style>body{margin:0;height:1400px}</style><script>window.__changes=0;document.addEventListener('change',function(e){if(e.target.id==='due')window.__changes++;});</script>
+    html: `<style>body{margin:0;height:1400px}</style>${language ? `<script>window.yona = { language: '${language}' };</script>` : ''}<script>window.__changes=0;document.addEventListener('change',function(e){if(e.target.id==='due')window.__changes++;});</script>
       <input id="due" type="text" ${attrs} value="${value}" autocomplete="off" style="position:absolute;${pos};width:230px"><button id="cal" class="btn-calendar" type="button" style="position:absolute;left:300px;top:120px">달력</button>
       <h4 id="outside" style="position:absolute;left:400px;top:20px;margin:0">바깥</h4>${extra}`,
     scripts: [LIB, 'common/yona.ui.Calendar.js'],
@@ -172,5 +172,25 @@ export const tests = [
     await page.locator(P + ' [data-vc-years-year]').filter({ hasText: new RegExp(`^${next[next.length - 1]}$`) }).click(); await page.waitForTimeout(150);
     await day(page, 10).click(); await page.waitForTimeout(200);
     assert.equal(await value(page), `${next[next.length - 1]}-08-10`); assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '달력: 언어는 Yona의 언어 설정(yona.language)을 따른다. 한국어와 일본어로 월 이름과 요일이 바뀌고 일요일 시작은 그대로이다', run: async () => {
+    const text = (page) => page.evaluate(() => document.querySelector('[data-vc="calendar"][data-vc-input]').textContent.replace(/\s+/g, ' '));
+    const first = (page) => page.evaluate(() => document.querySelector('[data-vc="calendar"][data-vc-input] [data-vc-week-day]').textContent.trim());
+    const ko = await open({ language: 'ko' }); await ko.click('#due'); await ko.waitForTimeout(200);
+    assert.ok(/2026/.test(await text(ko)) && /3월/.test(await text(ko)), await text(ko)); assert.equal(await first(ko), '일'); await ko.close();
+    const ja = await open({ language: 'ja' }); await ja.click('#due'); await ja.waitForTimeout(200);
+    assert.ok(/3月/.test(await text(ja)), await text(ja)); assert.equal(await first(ja), '日'); await ja.close();
+    const en = await open({ language: 'en' }); await en.click('#due'); await en.waitForTimeout(200); assert.ok(/March/.test(await text(en))); assert.equal(await first(en), 'Sun'); await en.close();
+  } },
+  { name: '달력: 언어 설정이 없거나 알 수 없는 값이면 영어로 연다(오류 없이)', run: async () => {
+    for (const language of [null, 'xx-invalid-tag-!!']) {
+      const page = await open({ language }); await page.click('#due'); await page.waitForTimeout(200);
+      assert.ok(/March/.test(await page.evaluate(() => document.querySelector('[data-vc="calendar"][data-vc-input]').textContent)), String(language)); assert.deepEqual(page.errors, []); await page.close();
+    }
+  } },
+  { name: '항상 보이는 달력도 언어 설정을 따른다', run: async () => {
+    const page = await pageWith({ html: `<script>window.yona = { language: 'ko' };</script><input id="d" value="2026-03-15"><div id="box"></div>`, scripts: [LIB, 'common/yona.ui.Calendar.js'] });
+    await page.evaluate(() => { yona.ui.Calendar.inline('#box', { input: '#d' }); });
+    assert.ok(/3월/.test(await page.evaluate(() => document.getElementById('box').textContent)), '한국어'); await page.close();
   } },
 ];

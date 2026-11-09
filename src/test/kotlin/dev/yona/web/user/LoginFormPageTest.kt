@@ -249,4 +249,13 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         val doc = org.jsoup.Jsoup.parse(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/users/loginform")).andReturn().response.contentAsString)
         kotlin.test.assertTrue(doc.select(".email-verification-help").isEmpty())
     }
+
+    @Test
+    fun `스크립트 조각이 현재 언어를 yona_language로 알려 달력이 따른다 (S-09, D-107)`() {
+        fun language(acceptLanguage: String?): String? =
+            Regex("""yona\.language\s*=\s*["']([^"']+)["']""").find(page(acceptLanguage = acceptLanguage).select("script").joinToString("\n") { it.html() })?.groupValues?.get(1)
+        assertEquals("ko", language("ko-KR"))
+        assertEquals("ja", language("ja-JP"))
+        assertEquals("en", language("en-US"))
+    }
 }

@@ -2043,3 +2043,7 @@ Firefox 휠 확인을 R-145로 남기고 S-08 행에 연결했다. S-01~S-08은 
 ## [2026-11-09] feat | S-09 달력을 vanilla-calendar-pro 3.4.0으로 교체(D-107, A-424)
 
 `yona.ui.Calendar.js` 계약(옵션, silent, change, 위치와 뒤집기)을 지키며 Pikaday를 바꿨다. 항상 보이는 달력(마일스톤, API 토큰)은 `yona.ui.Calendar.inline()`으로 통일했다. 시험: `calendar.test.mjs` 23개(JS 전체 272개 통과), 회귀 `dev.yona.web.*`, `audit.*`, `i18n.*` 전체 **9분 21초** 통과(17:55~18:04). 실제 앱 확인은 Chromium과 Firefox. 기존과 신규 화면 비교 이미지를 선생님께 드렸고 월과 연 선택(선택 상자에서 눌러서 여는 목록)의 차이를 안내했다.
+
+## [2026-11-09] feat | 달력 언어를 Yona 언어 설정에 따르게 함(D-107, A-424)
+
+`window.yona.language`를 `common/scripts.html`이 채우고 `Calendar.js`가 따른다. 시험: `calendar.test.mjs` 26개, `LoginFormPageTest`의 언어 전달 시험(변경 전 실패 확인). 실제 앱에서 ko, en, ja를 Chromium과 Firefox로 확인.
