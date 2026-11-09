@@ -6,13 +6,11 @@
     "Filter",
     "FormValidator",
     "NProgress",
-    "RGBColor",
     "Validator",
     "assert",
     "check",
     "convert",
     "entities",
-    "humanize",
     "jQuery",
     "removeCurrentPageTemprarySavedContent",
     "sanitize",
@@ -269,7 +267,9 @@
   "removed": [
     "ZeroClipboard",
     "zclip",
-    "ZeroClipboardPath"
+    "ZeroClipboardPath",
+    "RGBColor",
+    "humanize"
   ],
   "yona": [
     "Attachments",

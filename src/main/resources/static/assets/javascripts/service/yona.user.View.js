@@ -145,9 +145,10 @@
          * @return {String}
          */
         function _getTabQueryString(){
-            var oURI = parseUri(document.location.href);
+            // 주소의 groups 값은 인코딩된 그대로 다시 붙인다
+            var aGroups = /[?&]groups=([^&#]*)/.exec(document.location.search);
             var sDaysAgo = htElement.welDaysAgo.val();
-            var sOptGroups = (oURI.queryKey.groups) ? "&groups=" + oURI.queryKey.groups : "";
+            var sOptGroups = (aGroups && aGroups[1]) ? "&groups=" + aGroups[1] : "";
 
             return 'daysAgo=' + sDaysAgo + '&selected=' + htVar.sTabSelected + sOptGroups;
         }

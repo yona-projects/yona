@@ -445,14 +445,13 @@
          * Get color code in HEX.
          * Returns false if given color expression is cannot be covered by RGBColor.
          *
-         * @require lib/rgbcolor.js
+         * @require common/yona.Common.js
          * @param color
          * @returns {*}
          * @private
          */
         function _getRefinedHexColor(color){
-            var rgb = new RGBColor(color || "");
-            return rgb && rgb.ok ? rgb.toHex() : false;
+            return $yona.getHexColor(color || "");
         }
 
         /**
@@ -748,8 +747,7 @@
                 return false;
             }
 
-            var rgb = new RGBColor(colorExpr);
-            return (rgb && rgb.ok);
+            return !!$yona.getHexColor(colorExpr);
         }
 
         /**

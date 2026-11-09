@@ -200,7 +200,7 @@ yona.Attachments = function(htOptions) {
             "fileName": htFile.name,
             "fileHref": htFile.url,
             "fileSize": htFile.size,
-            "fileSizeReadable": humanize.filesize(htFile.size),
+            "fileSizeReadable": $yona.formatFileSize(htFile.size),
             "mimeType": htFile.mimeType
         });
 
@@ -235,7 +235,7 @@ yona.Attachments = function(htOptions) {
 
         // for IE (uploadFileForm)
         welItem.find(".name").html(oRes.name);
-        welItem.find(".size").html(humanize.filesize(oRes.size));
+        welItem.find(".size").html($yona.formatFileSize(oRes.size));
 
         welItem.click(_onClickListItem);
     }

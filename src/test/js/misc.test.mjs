@@ -5,7 +5,7 @@ export const tests = [
   { name: '파일 정보 화면에서 파일 크기를 읽기 쉬운 단위로 바꾼다 (C022, C113-1)', async run() {
     const page = await pageWith({
       html: '<div class="file-wrap" data-type="file"><div id="showFile"><span class="filesize">2048</span></div></div>',
-      scripts: [{ content: 'window.humanize = { filesize: function (n) { return (n / 1024) + "KB"; } };' }, 'service/yona.code.Browser.js']
+      scripts: [{ content: 'window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return (n / 1024) + "KB"; };' }, 'service/yona.code.Browser.js']
     });
     const out = await page.evaluate(() => {
       try { new yona.code.Browser({ sProjectName: 'p', sMetaInfoURL: '/m', sBasePathURL: '/b', sInitialPath: '' }); } catch (e) { return 'ERR ' + e.message; }

@@ -374,13 +374,13 @@
         }
 
         /**
-         * @require humanize.js
+         * @require common/yona.Common.js
          */
         function _beautifyFileSize(){
             // v1.6는 `welShowfile`(소문자 f)을 읽어 TypeError가 났다(C022, C113-1)
             htElement.welShowFile.find(".filesize").each(function(i, el){
                 var welTarget = $(el);
-                welTarget.html(humanize.filesize(welTarget.text()));
+                welTarget.html($yona.formatFileSize(welTarget.text()));
             });
         }
 

@@ -4,7 +4,7 @@ import { pageWith } from './harness.mjs';
 const HTML = `<form><div class="textarea-box"><textarea></textarea></div><div class="attachment-files"></div><input type="hidden" class="temporaryUploadFiles" value=""><input type="file" class="file-upload__input" multiple></form>`;
 const STUBS = { content: `
   window.NProgress = { start: function () {}, done: function () {} };
-  window.humanize = { filesize: function (n) { return n + 'B'; } };
+  window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return n + 'B'; };
   window.__posts = [];
   $.post = function (u) { window.__posts.push(u); var d = $.Deferred(); return d.promise(); };` };
 

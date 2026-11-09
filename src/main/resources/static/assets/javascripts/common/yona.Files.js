@@ -98,8 +98,8 @@ yona.Files = (function(){
         // check maximum filesize (<= 2,147,483,454 bytes) if available
         if(oFile.size && oFile.size > htVar.nMaxFileSize){
             return _onErrorSubmit(nSubmitId, {
-                "status"    : humanize.filesize(oFile.size),
-                "statusText": Messages("error.toolargefile", humanize.filesize(htVar.nMaxFileSize))
+                "status"    : $yona.formatFileSize(oFile.size),
+                "statusText": Messages("error.toolargefile", $yona.formatFileSize(htVar.nMaxFileSize))
             }, sNamespace);
         }
 

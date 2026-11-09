@@ -191,9 +191,103 @@ $yona = yona.Common = (function(){
      * @example dimgray if yellow is given.
      */
     function getContrastColor(sColor){
-        var oRGB = new RGBColor(sColor);
+        var oRGB = parseColor(sColor) || {"r": 0, "g": 0, "b": 0};
         var y709 = (oRGB.r * 0.21) + (oRGB.g * 0.72) + (oRGB.b * 0.07);
         return (y709 > 192) ? 'dimgray' : 'white';
+    }
+
+    var oColorContext = null;
+
+    /**
+     * 색 글자(이름, `#rgb`, `#rrggbb`, `#` 없는 16진수, `rgb(r, g, b)`)를 읽어 `{r, g, b}`로 돌려준다. 브라우저의 캔버스가 색 문법을 해석하게 해 별도 색 이름 표 없이 읽는다.
+     * v1.6의 `rgbcolor.js`처럼 공백은 무시하고 대소문자를 가리지 않으며, 읽지 못하는 값과 알파가 있는 색(`rgba(...)`, `transparent`)은 읽지 못한 것으로 보아 null을 돌려준다.
+     *
+     * @param {String} sColor
+     * @returns {Object|null}
+     */
+    function parseColor(sColor){
+        var sValue = String(sColor == null ? "" : sColor).replace(/ /g, "").toLowerCase();
+        if(/^([0-9a-f]{3}|[0-9a-f]{6})$/.test(sValue)){
+            sValue = "#" + sValue;
+        }
+        if(!oColorContext){
+            oColorContext = document.createElement("canvas").getContext("2d");
+        }
+
+        // 읽지 못하는 값은 대입이 무시되어 이전 값이 남는다. 서로 다른 두 기준 값으로 이를 가려낸다
+        oColorContext.fillStyle = "#010203";
+        oColorContext.fillStyle = sValue;
+        var sRead = oColorContext.fillStyle;
+        if(sRead === "#010203"){
+            oColorContext.fillStyle = "#030201";
+            oColorContext.fillStyle = sValue;
+            if(oColorContext.fillStyle === "#030201"){
+                return null;
+            }
+        }
+
+        var aMatch = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(sRead);
+        if(!aMatch){
+            return null; // rgba(...): 알파가 있다
+        }
+        return {"r": parseInt(aMatch[1], 16), "g": parseInt(aMatch[2], 16), "b": parseInt(aMatch[3], 16)};
+    }
+
+    /**
+     * 색 글자를 `#rrggbb`(소문자)로 바꾼다.
+     *
+     * @param {String} sColor
+     * @returns {String|Boolean} 읽지 못하면 false
+     */
+    function getHexColor(sColor){
+        var oRGB = parseColor(sColor);
+        if(!oRGB){
+            return false;
+        }
+        return "#" + [oRGB.r, oRGB.g, oRGB.b].map(function(nValue){
+            return (nValue < 16 ? "0" : "") + nValue.toString(16);
+        }).join("");
+    }
+
+    /**
+     * 파일 크기를 `1.50 Kb`, `512 bytes`처럼 읽기 쉬운 글자로 바꾼다. v1.6의 `humanize.filesize`와 같은 글자를 낸다
+     * (단위 bytes, Kb, Mb, Gb, Tb, Pb, 1024 단위, 소수 둘째 자리, 천 단위 쉼표). 숫자로 읽을 수 없는 값은 옛 함수처럼 마지막 단위로 나온다.
+     *
+     * @param {Number|String} vSize 바이트 수
+     * @returns {String}
+     */
+    function formatFileSize(vSize){
+        var aUnits = ["bytes", "Kb", "Mb", "Gb", "Tb", "Pb"];
+        var nKilo = 1024;
+        var aThresholds = [1];
+
+        if(vSize <= 0){
+            return "0 bytes";
+        }
+        if(vSize < nKilo){
+            return formatNumber(vSize, 0) + " " + aUnits[0];
+        }
+        for(var i = 1; i < aUnits.length; i++){
+            aThresholds[i] = aThresholds[i - 1] * nKilo;
+            if(vSize < aThresholds[i]){
+                return formatNumber(vSize / aThresholds[i - 1], 2) + " " + aUnits[i - 1];
+            }
+        }
+        // 넘치면 마지막 단위를 쓴다
+        return formatNumber(vSize / aThresholds[aUnits.length - 1], 2) + " " + aUnits[aUnits.length - 1];
+    }
+
+    /**
+     * 수를 소수 `nDecimals`자리까지 천 단위 쉼표를 넣어 쓴다(v1.6 `humanize.numberFormat`).
+     */
+    function formatNumber(vNumber, nDecimals){
+        var sSign = vNumber < 0 ? "-" : "";
+        var nNumber = Math.abs(+vNumber || 0);
+        var sInt = parseInt(nNumber.toFixed(nDecimals), 10) + "";
+        var j = sInt.length > 3 ? sInt.length % 3 : 0;
+
+        return sSign + (j ? sInt.substr(0, j) + "," : "") + sInt.substr(j).replace(/(\d{3})(?=\d)/g, "$1,")
+            + (nDecimals ? "." + Math.abs(nNumber - sInt).toFixed(nDecimals).slice(2) : "");
     }
 
     /**
@@ -671,6 +765,8 @@ $yona = yona.Common = (function(){
         "setScriptPath"   : setScriptPath,
         "createNamespace" : createNamespace,
         "getContrastColor": getContrastColor,
+        "getHexColor": getHexColor,
+        "formatFileSize": formatFileSize,
         "loadModule": loadModule,
         "loadScript": loadScript,
         "stopEvent" : stopEvent,

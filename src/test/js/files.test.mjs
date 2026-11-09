@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pageWith, JS, FAKE_XHR } from './harness.mjs';
 
-const STUBS = { content: 'window.humanize = { filesize: function (n) { return n + "B"; } };' };
+const STUBS = { content: 'window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return n + "B"; };' };
 const XHR = { content: FAKE_XHR };
 
 /** 업로더를 만들고 파일을 올린 뒤 [respond]로 서버 응답을 흉내 낸다. 받은 처리기 호출을 모아 돌려준다. */

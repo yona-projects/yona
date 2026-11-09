@@ -3,7 +3,7 @@ import { pageWith, FAKE_XHR } from './harness.mjs';
 
 const HTML = `<form id="f"><div id="c"><ul class="attached-files"></ul><p class="help"></p><input type="file"><textarea id="t"></textarea></div></form>`;
 const STUBS = { content: `
-  window.humanize = { filesize: function (n) { return n + 'B'; } };
+  window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return n + 'B'; };
   window.NProgress = { done: function () {} };
   $.tmpl = function () { return $('<li class="attach"><div class="progress"><div class="bar"></div></div></li>'); };
   $yona.notify = function (m) { (window.__notified = window.__notified || []).push(m); };` };

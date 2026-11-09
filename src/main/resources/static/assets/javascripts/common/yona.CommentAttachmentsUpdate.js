@@ -143,7 +143,7 @@ $(function () {
         return '<div class="attached-file attached-file-marker" data-mime="' +
             data.mimeType.trim() + '" data-name="' + data.name + '" data-href="' + data.url + '">\n' +
             '<strong class="name">' + data.name + '</strong>\n' +
-            '<span class="size">' + humanize.filesize(data.size) + '</span>\n' +
+            '<span class="size">' + $yona.formatFileSize(data.size) + '</span>\n' +
             '<button type="button" class="btn-transparent btn-delete" data-id="' + data.id + '">&times;</button>\n' +
             '</div>';
     }

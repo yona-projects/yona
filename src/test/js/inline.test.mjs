@@ -19,10 +19,10 @@ async function translateDisables(template, from, to, buttonHtml, selector) {
 
 export const tests = [
   { name: '글 번역 단추는 번역을 받은 뒤 비활성화된다 (C064, 게시판)', async run() {
-    assert.equal(await translateDisables('board/view.html', "$('#translate').one(", '$.elevator', '<button id="translate"></button>', '#translate'), true);
+    assert.equal(await translateDisables('board/view.html', "$('#translate').one(", 'yona.ui.Elevator.init', '<button id="translate"></button>', '#translate'), true);
   } },
   { name: '댓글 번역 단추는 번역을 받은 뒤 비활성화된다 (C064, 게시판)', async run() {
-    assert.equal(await translateDisables('board/view.html', "$('.comment-translate').one(", '$.elevator', '<button class="comment-translate" data-comment-id="9"></button>', '.comment-translate'), true);
+    assert.equal(await translateDisables('board/view.html', "$('.comment-translate').one(", 'yona.ui.Elevator.init', '<button class="comment-translate" data-comment-id="9"></button>', '.comment-translate'), true);
   } },
   { name: '글 번역 단추는 번역을 받은 뒤 비활성화된다 (C064, 이슈)', async run() {
     assert.equal(await translateDisables('issue/view.html', "$('#translate').one(", "$('.comment-translate').one(", '<button id="translate"></button>', '#translate'), true);

@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 24, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 22, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -307,5 +307,17 @@ class JsLibraryVersionsTest {
         listOf("javascripts/lib/diff.js", "javascripts/lib/jquery/jquery.browser.js", "javascripts/lib/magnific-popup/magnific-popup.css").forEach { assertTrue(!asset(it).exists(), it) }
         val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
         assertTrue(!templates.contains("lib/diff.js") && !templates.contains("jquery.browser.js") && !templates.contains("magnific-popup.css"))
+    }
+
+    @Test
+    fun `humanize와 rgbcolor와 parseuri와 jquery_elevator는 표준 API와 작은 직접 구현으로 바뀌었다`() {
+        // D-122 2단계: 파일 크기 글자, 색 읽기는 yona.Common.js, 주소 쿼리는 정규식, 엘리베이터는 yona.ui.Elevator.js
+        listOf("javascripts/lib/humanize.js", "javascripts/lib/rgbcolor.js", "javascripts/lib/parseuri.js", "javascripts/lib/elevator/jquery.elevator.js").forEach { assertTrue(!asset(it).exists(), it) }
+        assertTrue(asset("javascripts/lib/elevator/jquery.elevator.css").isFile, "스타일은 그대로 쓴다")
+        val common = asset("javascripts/common/yona.Common.js").readText()
+        assertTrue(common.contains("function formatFileSize") && common.contains("function getHexColor") && !common.contains("new RGBColor"))
+        assertTrue(asset("javascripts/common/yona.ui.Elevator.js").isFile)
+        val scripts = File("src/main/resources/static/assets/javascripts").walkTopDown().filter { it.isFile && it.extension == "js" && "/lib/" !in it.path && !it.name.startsWith("yona-") }.joinToString("\n") { it.readLines().filter { line -> !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(line) }.joinToString("\n") }
+        assertTrue(!Regex("humanize\\.|new RGBColor|parseUri\\(|\\$\\.elevator").containsMatchIn(scripts), "옛 호출이 남아 있다")
     }
 }
