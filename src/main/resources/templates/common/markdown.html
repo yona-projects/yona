@@ -11,7 +11,6 @@
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     hljs.configure({languages: []});
-    hljs.initHighlightingOnLoad();
     var htOptions = {};
 
     /*[# th:if="${project != null}"]*/
@@ -20,6 +19,9 @@ $(document).ready(function(){
 
     // Reusable markdown renderer
     yona.Markdown.init(htOptions);
+
+    // 옛 PHP 별칭 등록(yona.Markdown.init)이 끝난 뒤에 서버가 만든 코드 블록 전체에 색을 입힌다(v1.6의 initHighlightingOnLoad는 load 뒤에 돌았다)
+    hljs.highlightAll();
 
 });
 </script>

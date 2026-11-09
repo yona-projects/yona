@@ -27,6 +27,11 @@ yona.Markdown = (function(htOptions){
     function _initVar(htOptions){
         htVar.sMarkdownRendererUrl = htOptions.sMarkdownRendererUrl;
 
+        // highlight.js 11에서 없어진 옛 PHP 별칭(v1.6의 9.11 팩은 php3부터 php6까지 알았다)을 다시 등록한다
+        if(window.hljs && hljs.registerAliases && !hljs.getLanguage("php5")){
+            hljs.registerAliases(["php3", "php4", "php5", "php6"], {"languageName": "php"});
+        }
+
         htVar.htMarkedOption = {
             "gfm"       : true,
             "tables"    : true,
@@ -37,7 +42,7 @@ yona.Markdown = (function(htOptions){
             "highlight" : function(sCode, sLang) {
                 if(sLang) {
                     try {
-                        return hljs.highlight(sLang.toLowerCase(), sCode).value;
+                        return hljs.highlight(sCode, {"language": sLang.toLowerCase()}).value;
                     } catch(oException) {
                         console.log(oException.message);
                     }
@@ -87,7 +92,7 @@ yona.Markdown = (function(htOptions){
             "success": function(data){
                 welTarget.html(data);
                 $('pre code').each(function(i, block) {
-                    hljs.highlightBlock(block);
+                    hljs.highlightElement(block);
                 });
             }
         });

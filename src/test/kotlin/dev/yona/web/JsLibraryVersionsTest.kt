@@ -278,4 +278,15 @@ class JsLibraryVersionsTest {
         assertEquals(asset("javascripts/lib/marked-yona.js").readText(), java.io.File(server, "marked-yona.js").readText(), "서버와 브라우저의 marked-yona.js는 같아야 한다")
         assertTrue(asset("javascripts/lib/marked-yona.js").readText().contains("yb-header-"))
     }
+
+    @Test
+    fun `코드 강조는 highlight_js 11_12_0이고 옛 API 호출이 남아 있지 않다`() {
+        // D-119: 9.11 팩을 공식 cdn-assets 11.12.0에 v1.6의 언어를 이어 붙인 팩으로 바꿨다(build-tools/highlight-pack/build.sh).
+        assertTrue(asset("javascripts/lib/highlight/highlight.pack.js").readText().take(300).contains("Highlight.js v11.12.0"))
+        val markdown = asset("javascripts/common/yona.Markdown.js").readText()
+        assertTrue(markdown.contains("hljs.highlightElement(") && !markdown.contains("highlightBlock("), "11의 API를 써야 한다")
+        assertTrue(!markdown.contains("hljs.highlight(sLang"), "옛 두 인자 형태를 쓰면 안 된다")
+        val template = File("src/main/resources/templates/common/markdown.html").readText()
+        assertTrue(template.contains("hljs.highlightAll()") && !template.contains("initHighlightingOnLoad"))
+    }
 }

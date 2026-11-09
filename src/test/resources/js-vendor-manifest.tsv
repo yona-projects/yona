@@ -29,3 +29,5 @@ vanilla-calendar-pro/index.css	vanilla-calendar-pro(styles/index.css)	3.4.0	856f
 viewerjs/viewer.js	Viewer.js	1.15.2	2489b5945d2e7c97f844fcd24e6b5b2486d8bc95feaeaae5714290e55f0f2781
 viewerjs/viewer.css	Viewer.js	1.15.2	b34600d437f65b10c28ccfc23654839d49c6f1c17e9cf41d773264cca2d7eb2e
 marked.js	marked	4.3.0	0fa8bb1eaf15ccc5fa6b2dbdabf2603466a197f5b176efffd9831b425d821821
+highlight/highlight.pack.js	highlight.js(공식 cdn-assets의 highlight.min.js에 언어 파일을 이어 붙인 것, build-tools/highlight-pack/build.sh)	11.12.0	154e686a1e431dcc754c0fc4065f9b02b6e930e3840914343a704de5a83d2e41
+highlight/styles/default.css	highlight.js(styles/default.min.css)	11.12.0	fbde0ac0921d86c356c41532e7319c887a23bd1b8ff00060cab447249f03c7cf
