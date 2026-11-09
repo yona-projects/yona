@@ -76,3 +76,32 @@ underscore가 쉽게 바꿔 주는 다른 일은 확인되지 않았다(앱이 `
 ## 4. 진행 순서 (선생님 지시, 2026-11-07)
 
 jquery.tmpl 대체(3절)는 **라이브러리 업데이트(Yona가 고친 벤더 파일의 패치 이식 등, `js-upgrade-plan.md`)를 먼저 끝낸 뒤**에 한다. 템플릿 엔진은 **Mustache로 결정되어 교체를 마쳤다**(`decisions.md` D-94와 A-400, 2026-11-07, select2 4.1.0 업데이트 뒤). underscore는 이 앱에서 `_.` 호출이 없어 다른 용도가 없다. 이어서 jquery-pjax도 htmx로 대체했다(`decisions.md` D-96과 A-401, 2026-11-08). 선생님은 나중 UI 개편에서 Vue 컴포넌트 도입과 2단 보기 개선을 생각하고 계시며, 그때 이 영역은 다시 바뀔 수 있다. 지금 작업하라는 지시는 아니다. 참고 확인: jquery.tmpl 1.0.0은 jQuery 3.7.1에서 동작한다(문자열, 배열, 요소 템플릿, `{{if}}`, `appendTo`를 jsdom에서 실행해 확인). jQuery 4에서는 `jQuery.trim`(`jquery.tmpl.js` 325번째 줄) 한 줄이 걸린다.
+
+## jquery.pageslide 대체 후보 조사 (2026-11-09, 선생님 요청)
+
+### 지금 하는 일
+- **쓰는 곳은 2단 보기 하나**다. `service/yona.twoColumnMode.js`(99줄)가 목록의 제목 링크(`.title`, `.twoColumeModeTarget`)에 `pageslide({direction: "left", speed: 0, modal: true})`를 건다. 템플릿 5곳(`issue/list`, `issue/my-list`, `user/view`, `organization/issue-list`, `board/list`)이 `lib/jquery.pageslide.js`와 이 스크립트를 불러오고, 모양은 `_page.scss`의 `#pageslide`(오른쪽에 고정, 폭 50%, 높이 100%, `z-index: 999999`, 그림자, 로딩 gif 배경)가 정한다. 시험은 없다.
+- **실제 동작**: 제목 링크를 누르면 기본 이동을 막고 그 주소를 **iframe으로 오른쪽 패널에 연다.** 같은 링크를 다시 누르면 닫는다. 다른 링크를 누르면 iframe을 지우고(로딩 gif가 보인다) 300ms 뒤 새 주소를 읽는다. 열릴 때 왼쪽 메뉴와 사용자 정보 상자를 숨기고 닫을 때 보인다(`yona.twoColumnMode.js`와 플러그인의 `.left-menu.show(200)`). 누를 때 `history.pushState`로 주소를 바꾸고 `NProgress.done()`을 부른다. `speed: 0`이라 **애니메이션이 없고**, `modal: true`라 **바깥 클릭이나 Esc로 닫히지 않는다.**
+- 플러그인의 나머지 기능(오른쪽 방향, `#id` 요소 읽기, ajax 읽기, 비모달 닫기, 슬라이드 애니메이션)은 **쓰이지 않는다.**
+
+### 플러그인의 상태와 Yona의 패치
+- 원본 tacitknowledge/jquery-pageslide는 마지막 push가 **2015-10**, 별 2개이다(npm 2.0.2는 2022-06에 올라왔으나 저장소 활동은 없다). 사실상 방치되어 있다.
+- 공식 2.0.1과 대조한 Yona의 변경(2017-04 v1.6 커밋 `c794532c9` "Introduce two column view mode", `5fe12536a` "natural loading effect"): 두 번 초기화하지 않기, iframe의 `allowtransparency`, 왼쪽 방향의 본문 `margin-left` 움직임 제거, 클릭 이벤트에 이름 공간, **열 때 iframe을 지우고 300ms 뒤 읽기(로딩 효과)**, 닫을 때 `.left-menu` 보이기. 위 동작이 모두 Yona 쪽 변경이다.
+
+### 후보
+| 후보 | 내용 | 장점 | 걸림 |
+|---|---|---|---|
+| **A. 유지** | 그대로 둔다 | 비용 0. jQuery 4 준비는 이미 끝났다(D-103) | 방치된 jQuery 플러그인이 남는다. jQuery 제거(S-14) 때 어차피 손대야 한다 |
+| **B. Bootstrap 5 Offcanvas** | `offcanvas-end` 패널에 iframe | 프로젝트가 쓰는 Bootstrap의 부품 | **이 앱의 컴파일된 `bootstrap.css`에는 offcanvas 스타일이 없다**(0건, 템플릿 사용처도 없다. JS는 번들에 있고 CSS만 빠져 있어, 앞선 조사 문서의 "이미 포함"은 JS만 해당했다). Sass 구성에 부품을 더해야 한다. 기본이 backdrop, 포커스 가두기, Esc 닫기, 본문 스크롤 잠금이라 `backdrop: false, scroll: true, keyboard: false`로 꺼야 하고 포커스 가두기가 목록 조작을 방해하는지 시험이 필요하다(간단한 시험은 CSS가 없어 결론을 내지 못했다). 열 때 iframe 지우기, 토글, 왼쪽 메뉴 숨기기는 어차피 직접 코드이다 |
+| **C. 표준 팝오버 API** | `<div popover="manual">`에 iframe, `showPopover()`와 `hidePopover()` | 의존 없음, 최상위 층에 그려진다, **`manual`은 바깥 클릭과 Esc로 닫히지 않아 `modal: true`와 같다**, 포커스를 가두지 않고 애니메이션도 없다(`speed: 0`과 같다) | 브라우저 요건(Chrome 114, Firefox 125, Safari 17 이상) |
+| **D. 직접 쓰는 고정 패널** | `#pageslide`(`display:none`)와 iframe을 보이고 숨기는 작은 함수(약 40줄)를 `yona.twoColumnMode.js` 안에 둔다. CSS는 지금 `#pageslide` 그대로 | 의존 없음, 동작 변화가 가장 적다, 모든 브라우저 | **직접 구현**이다(규모가 작아 유지 부담은 작다) |
+| E. 그 밖의 슬라이드 패널 라이브러리 | 후보를 찾아 보았으나 쓰는 기능이 "고정 패널과 iframe"뿐이라 라이브러리를 들일 이유가 없다 | | 제외 |
+
+### 지켜야 하는 동작(어느 후보든)
+제목 링크 클릭으로 열기와 기본 이동 막기, 같은 링크 재클릭으로 닫기, 다른 링크는 iframe 교체와 로딩 gif 노출, 폭 50%와 우측 고정과 기존 모양, 바깥 클릭과 Esc로 안 닫힘, 열릴 때 왼쪽 메뉴와 사용자 정보 숨김과 닫을 때 복원, `history.pushState`와 `NProgress.done`, 2단 보기 확인 상자를 끄면 닫고 이벤트 해제, 목록 갱신(htmx) 뒤에도 새 제목 링크에 다시 연결. **시험이 없으므로 옛 플러그인에서 특성 시험을 먼저 만든다**(S-10의 방식).
+
+### 판단
+- 이 부품이 하는 일은 사실상 **"오른쪽에 고정된 iframe 패널을 켜고 끄는 것"**이다. 라이브러리는 필요 없다.
+- **D(직접 쓰는 고정 패널)를 권한다.** 동작 변화가 가장 작고 의존이 없다. C(팝오버)는 거의 같은 코드에 브라우저 요건만 더한다. B는 CSS 추가와 기본 동작 끄기, 포커스 시험이 필요해 이득이 없다.
+- 다만 **2단 보기는 나중 UI 개편(Vue 컴포넌트, 2단 보기 개선)이 예정**되어 있으므로(그전까지는 htmx, D-96), 그때까지 **A(유지)도 합리적**이다.
+
