@@ -2071,3 +2071,7 @@ ru, uz는 월요일, ko, ja, en은 일요일. `calendar.test.mjs` 27개 통과, 
 ## [2026-11-09] fix | F-01 삭제, F-02 탭 복원과 F-03 붙여넣기 조건 처리(D-111, A-428)
 
 `yona.Sha1.js` 삭제, 탭 복원 수정(마지막 목록 id 저장 결함과 button 탭 미지원도 함께, `?tab=` 우선), Firefox 붙여넣기는 낡은 제외 조건을 없애 켜 둠. JS 전체 336개, 회귀 `web`, `audit`, `i18n` **9분 20초** 통과. 실제 Firefox 붙여넣기는 시험 환경 한계로 선생님 확인 대기.
+
+## [2026-11-09] verify | R-140 Firefox 붙여넣기를 화면 있는 Firefox로 확인
+
+`xvfb-run`과 `headless: false`로 Firefox 155를 띄우면 실제 클립보드 붙여넣기가 동작해 이미지가 업로드된다(headless에서는 빈 `clipboardData`). 같은 방법으로 R-145(휠)를 시도했으나 이 환경의 `xdotool`이 포인터를 움직이지 못해(Xvfb) 실제 휠 이벤트를 보내지 못했다.
