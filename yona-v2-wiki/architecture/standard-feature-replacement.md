@@ -146,3 +146,23 @@ updated: 2026-11-09
 
 ### S-07 결정 (A-422)
 선택지 A(플러그인을 새 모듈로 옮김)는 "플러그인 구조를 늘린다"는 지적으로 접고, 이벤트 장치와 인스턴스를 없앤 **A′**(함수 `send` + 표준 `CustomEvent`)로 구현했다. 선생님이 원래 생각하신 방식(단추에서 함수를 바로 불러 전송, 선언형 연결 층 제거)은 선언형 마크업 31곳을 바꾸게 되어 이번에는 하지 않았고 후속 논의로 남긴다.
+
+## S-08 조사 (`yona.ui.Dialog`, `Toast`, `Dropdown`, 2026-11-09)
+체크리스트의 "얇은 껍데기이고 호출은 2~3곳"은 틀렸다. 세 모듈은 서로 다른 일을 하고 호출처도 훨씬 많다.
+
+| | 하는 일 | 쓰는 곳 | 줄 수 |
+|---|---|---|---|
+| `yona.ui.Dialog` | Bootstrap 모달(`#yobiDialog`)을 복제해 메시지와 설명, 단추 목록을 채우고 보여 주는 알림·확인 창 | `$yona.alert` 46곳, `$yona.confirm` 3곳, `$yona.ajaxConfirm` 1곳(모두 `yona.Common.js`를 거침) | 160 |
+| `yona.ui.Toast` | 화면 구석에 잠깐 떴다 사라지는 알림 상자(`#yobiToasts`)를 쌓고 일정 시간 뒤 투명해진 다음 지운다 | `$yona.notify` 47곳 | 114 |
+| `yona.ui.Dropdown` | `.btn-group[data-name]`의 목록(`li[data-value]`)에서 하나를 골라 라벨 표시, 숨은 입력 `name` 값, `active` 표시, 바뀐 뒤 콜백을 처리한다. 목록 끝에서 휠이 페이지로 넘어가지 않게 막는다 | 마크업 12곳(10개 템플릿, 이슈 상태·담당자·마일스톤·라벨 일괄 변경, 이슈 작성, 멤버 관리 등), 문서 준비 때 자동 연결(`scripts.html`), `yona.issue.MassUpdate.js` 5곳, `yona.issue.Write.js` 1곳 | 203 |
+
+### 판정
+- **Dialog: 유지.** 이미 프로젝트의 표준 부품인 Bootstrap 5 `Modal`을 감싼 것이다. `<dialog>`로 바꾸면 (1) 알림창이 다른 Bootstrap 모달 위에 뜰 때 Bootstrap의 포커스 가두기가 포커스를 뺏어 단추를 키보드로 못 누르는 충돌이 생기고(복사 도우미를 모달 안에서 시험할 때 본 것과 같은 종류), (2) `.modal` 스타일을 새로 써야 해 v1.6과 모양이 달라질 위험이 있다. 얻는 것은 Bootstrap 의존을 한 곳 줄이는 정도라 비용에 맞지 않는다.
+- **Toast: 네이티브로 다시 쓰기(작음).** 표준 `Toast` 부품이 없고(Bootstrap 5의 `Toast`는 모양과 동작이 달라 v1.6 화면이 바뀐다) 이 모듈은 상자 만들기, 투명도 전환, `transitionend`에서 지우기뿐이다. 다만 지금은 `webkitTransitionEnd`(접두사 이벤트)와 jQuery(`bind`, `css`, `click`, `prepend`)를 쓴다. Chromium과 Firefox 모두 접두사 이벤트가 표준 `transitionend`의 별칭으로 아직 동작하는 것은 확인했다. 표준 `transitionend`와 DOM으로 바꾸고 사용하지 않는 템플릿 정리(`#tplYobiToast`의 `\n` 처리)를 한다. `push`, `clear` API는 그대로다.
+- **Dropdown: 휠 처리만 CSS로.** 목록 끝에서 휠이 넘어가지 않게 하는 JS는 비표준 `mousewheel` 이벤트를 쓴다. **Firefox에는 이 이벤트가 없어**(`'onmousewheel' in div`가 거짓으로 확인) 지금도 Firefox에서는 막지 못한다. 표준 CSS `overscroll-behavior: contain`으로 바꾸면 두 브라우저에서 같아진다(Firefox에서 동작이 v1.6과 달라지는 개선). 라벨, 숨은 입력, `active`, 콜백은 `<select>`로 대체할 수 없다(항목에 아바타와 색 라벨 같은 HTML이 들어가고 `<select>`는 꾸밀 수 없다). 그대로 둔다.
+
+### 선택지
+- **A (권장)**: Dialog 유지, Toast 네이티브 재작성, Dropdown은 `mousewheel` 처리를 CSS로 교체. 작은 변경 두 건이다.
+- **B**: Dialog도 `<dialog>`로 바꾼다. 위의 포커스 충돌과 스타일 위험 때문에 권하지 않는다.
+- **C**: 모두 유지한다. 비용은 없지만 접두사 이벤트와 Firefox에서 동작하지 않는 휠 처리가 남는다.
+
