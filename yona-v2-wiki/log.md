@@ -2008,3 +2008,7 @@ S-03을 다시 열어 `yona.KeyControl.js`가 `execCommand('insertText')`로 바
 ## [2026-11-09] verify | S-05 남은 일곱 곳 실제 앱 확인
 
 Pagination, 대량 메일, 라벨 편집기, git.Write, 하위 댓글(Esc, Meta+Enter, Ctrl+Enter), 마이그레이션 레이아웃 Esc를 두 브라우저에서 확인했고 댓글 폼 Esc는 JS 시험 두 개로 확인했다. 모두 이상 없음.
+
+## [2026-11-09] docs | 하위 댓글 Esc 뒤 다시 열리지 않는 v1.6 동작을 논의 사항으로 기록(R-143)
+
+선생님 요청으로 `refactoring-backlog.md`에 R-143(논의 필요)으로 적었다. 코드는 바꾸지 않았다.
