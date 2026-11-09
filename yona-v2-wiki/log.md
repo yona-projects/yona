@@ -2047,3 +2047,7 @@ Firefox 휠 확인을 R-145로 남기고 S-08 행에 연결했다. S-01~S-08은 
 ## [2026-11-09] feat | 달력 언어를 Yona 언어 설정에 따르게 함(D-107, A-424)
 
 `window.yona.language`를 `common/scripts.html`이 채우고 `Calendar.js`가 따른다. 시험: `calendar.test.mjs` 26개, `LoginFormPageTest`의 언어 전달 시험(변경 전 실패 확인). 실제 앱에서 ko, en, ja를 Chromium과 Firefox로 확인.
+
+## [2026-11-09] feat | 달력의 한 주 시작 요일을 언어 관습에 따르게 함(A-424)
+
+ru, uz는 월요일, ko, ja, en은 일요일. `calendar.test.mjs` 27개 통과, 실제 앱에서 5개 언어를 Chromium과 Firefox로 확인.

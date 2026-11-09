@@ -193,4 +193,18 @@ export const tests = [
     await page.evaluate(() => { yona.ui.Calendar.inline('#box', { input: '#d' }); });
     assert.ok(/3월/.test(await page.evaluate(() => document.getElementById('box').textContent)), '한국어'); await page.close();
   } },
+  { name: '달력: 한 주의 시작 요일은 언어의 관습을 따른다(ko, ja, en은 일요일, ru와 uz는 월요일)', run: async () => {
+    // 기대값은 브라우저의 Intl로 월요일(2024-01-01)과 일요일(2023-12-31)의 짧은 이름을 구해 비교한다.
+    const name = (page, lang, y, m, d) => page.evaluate(([l, a, b, c]) => new Date(a, b, c).toLocaleDateString(l, { weekday: 'short' }), [lang, y, m, d]);
+    const first = (page) => page.evaluate(() => document.querySelector('[data-vc="calendar"][data-vc-input] [data-vc-week-day]').textContent.trim());
+    const grid = (page) => page.evaluate(() => { const c = document.querySelector('[data-vc="calendar"][data-vc-input] [data-vc-date-month="current"]'); return c.closest('[data-vc-date]').getAttribute('data-vc-date'); });
+    for (const [lang, monday] of [['ko', false], ['ja', false], ['en', false], ['ru', true], ['uz', true]]) {
+      const page = await open({ language: lang }); await page.click('#due'); await page.waitForTimeout(200);
+      const expected = monday ? await name(page, lang, 2024, 0, 1) : await name(page, lang, 2023, 11, 31);
+      assert.equal((await first(page)).toLowerCase(), expected.toLowerCase(), `${lang}: 첫 요일`);
+      // 2026-03-01은 일요일이다. 월요일 시작이면 첫 줄 첫 칸은 2월 23일, 일요일 시작이면 3월 1일이다(이전 달 날짜는 흐리게 보인다).
+      const firstCell = await page.evaluate(() => document.querySelector('[data-vc="calendar"][data-vc-input] [data-vc-date]').getAttribute('data-vc-date'));
+      assert.equal(firstCell, monday ? '2026-02-23' : '2026-03-01', `${lang}: 첫 칸`); await page.close();
+    }
+  } },
 ];
