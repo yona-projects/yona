@@ -13,16 +13,17 @@ $(function(){
         // Show input form
         parent.find(".child-comment-input-form").toggle();
 
-        parent.find("textarea").on('keypress', function(e) {
+        // 누를 때마다 처리기가 쌓이지 않도록 이름 공간으로 먼저 떼고 붙인다(R-143)
+        parent.find("textarea").off(".subcomment").on('keypress.subcomment', function(e) {
             // Enter to submit
             if ((e.metaKey || e.Control) && $yona.isEnterKey(e)) {
                 $(this).parents('form').submit();
                 return false;
             }
-        }).on('keyup', function(e) {
-            // Cancel input
+        }).on('keyup.subcomment', function(e) {
+            // Cancel input. `visibility`는 건드리지 않는다: 다시 "대댓글 추가"를 눌러 `toggle()`이 `display`만 되돌려도 입력란이 보이게 한다(R-143)
             if ($yona.isEscapeKey(e)) {
-                $(".child-comment-input-form").css("display", "none").css("visibility", "hidden");
+                $(".child-comment-input-form").css("display", "none");
                 $(".add-a-comment").show();
             }
         }).focus();
