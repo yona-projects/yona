@@ -31,3 +31,4 @@ viewerjs/viewer.css	Viewer.js	1.15.2	b34600d437f65b10c28ccfc23654839d49c6f1c17e9
 marked.js	marked	4.3.0	0fa8bb1eaf15ccc5fa6b2dbdabf2603466a197f5b176efffd9831b425d821821
 highlight/highlight.pack.js	highlight.js(공식 cdn-assets의 highlight.min.js에 언어 파일을 이어 붙인 것, build-tools/highlight-pack/build.sh)	11.12.0	154e686a1e431dcc754c0fc4065f9b02b6e930e3840914343a704de5a83d2e41
 highlight/styles/default.css	highlight.js(styles/default.min.css)	11.12.0	fbde0ac0921d86c356c41532e7319c887a23bd1b8ff00060cab447249f03c7cf
+vue/vue.global.prod.js	Vue	3.5.45	0287592e25a077b6190b721db9903d253d936778dab50cbde0d6010c1f51d262

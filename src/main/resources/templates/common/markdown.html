@@ -20,7 +20,7 @@ $(document).ready(function(){
     // Reusable markdown renderer
     yona.Markdown.init(htOptions);
 
-    // 옛 PHP 별칭 등록(yona.Markdown.init)이 끝난 뒤에 서버가 만든 코드 블록 전체에 색을 입힌다(v1.6의 initHighlightingOnLoad는 load 뒤에 돌았다)
+    // 옛 PHP 별칭 등록(yona.Markdown.init)이 끝난 뒤에 서버가 만든 코드 블록 전체에 색을 입힌다(v1.6의 옛 자동 강조 호출은 load 뒤에 돌아 순서가 자연히 뒤였다)
     hljs.highlightAll();
 
 });

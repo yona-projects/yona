@@ -2137,3 +2137,7 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] feat | highlight.js 9.11을 11.12로 교체(D-119, A-436)
 
 선생님이 clipboard.js 제거와 highlight 업을 지시했다. clipboard.js는 이미 없었다. 공식 cdn-assets에 언어 파일을 이어 붙인 팩으로 올리고 옛 PHP 별칭을 다시 등록했다.
+
+## [2026-11-10] feat | 이전 화면을 AngularJS에서 Vue 3로 교체(D-120, A-437)
+
+선생님이 지시했다. AngularJS 판과 Vue 판에서 같은 시나리오를 실제 앱으로 돌려 28개 관찰값이 같음을 확인했고 Firefox도 같다. vendor.js(1.6MB)를 지웠다.

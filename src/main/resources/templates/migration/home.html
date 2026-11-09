@@ -5,74 +5,75 @@
 
   이식 원본: app/views/migration/home.scala.html, migrationPageLayout.scala.html
   모델: title, token(GitHub 접근 토큰. 없으면 빈 문자열), loginId, email
-  화면은 AngularJS 앱(yona.Migration.js)이 그린다. `{{...}}`는 Angular가 쓰는 표현이라 Thymeleaf가 건드리지 않는다.
+  화면은 Vue 3 앱(yona.Migration.js, D-120)이 그린다. 서버 값은 `#migration-app`의 data 속성으로 넘기고, `{{...}}`는 Vue가 쓰는 표현이라 Thymeleaf가 건드리지 않는다.
+  v1.6은 AngularJS 앱(ng-app, ng-controller)이었다.
 */-->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/migration-layout :: migrationLayout(${site.siteName}, ~{::migrationPage})}">
 <th:block th:fragment="migrationPage">
-    <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" th:attr="data-oauth-state=${oauthState}, ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${loginId}';vm.yobiUserEmail = '${email}'|">
-        <div class="header-pannel" th:attr="ng-if=|'${token}'|">
+    <div id="migration-app" v-cloak class="yobi-migration" th:attr="data-oauth-state=${oauthState}, data-token=${token}, data-login-id=${loginId}, data-email=${email}">
+        <div class="header-pannel" v-if="token">
             <div class="comeback-text float-end">Yona to Github<span class="midium-font"></span></div>
             <div class="title-text-bg">
-                <div id="system-msg" class="card card-body board" ng-cloak>
-                    <div class="messages" ng-repeat="msg in vm.systemMessages track by $index">
-                        {{::msg}}</div>
-                    <div class="error-data" ng-if="vm.importResult.errorData.length > 0">{{vm.importResult.errorData}}</div>
+                <div id="system-msg" class="card card-body board">
+                    <div class="messages" v-for="(msg, index) in systemMessages" :key="index">
+                        {{ msg }}</div>
+                    <div class="error-data" v-if="len(importResult.errorData) > 0">{{ JSON.stringify(importResult.errorData) }}</div>
                 </div>
             </div>
             <div class="status">
                 <div class="">
-                    <div class="head-title row" ng-cloak>
+                    <div class="head-title row">
                         <div class="source-title col-lg-5">
-                            <div class="project-name warn" ng-if="!vm.source.owner">[[#{migration.selectSource}]]</div>
-                            <div class="project-name" ng-if="vm.source.owner">{{vm.source.owner}}/{{vm.source.projectName}}</div>
+                            <div class="project-name warn" v-if="!source.owner">[[#{migration.selectSource}]]</div>
+                            <div class="project-name" v-if="source.owner">{{ source.owner }}/{{ source.projectName }}</div>
                         </div>
                         <div class="arrow col-lg-1"><i class="yobicon-arrow-right-alt"></i></div>
                         <div class="destination-title col-lg-6">
-                            <div class="project-name warn" ng-if="!vm.destination.owner">[[#{migration.selectDestination}]]</div>
-                            <div class="project-name" ng-if="vm.destination.owner">{{vm.destination.owner}}/{{vm.destination.projectName}}</div>
+                            <div class="project-name warn" v-if="!destination.owner">[[#{migration.selectDestination}]]</div>
+                            <div class="project-name" v-if="destination.owner">{{ destination.owner }}/{{ destination.projectName }}</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row source-destination" >
                 <div class="source-project col-lg-4">
-                    <div class="header" ng-cloak>[[#{migration.sourceCount('{{vm.sourceProjects.length}}')}]]</div>
-                    <div class="search left-border"><input tabindex="1" type="text" class="search-query form-control" name="target-filter" ng-model="source.full_name" placeholder="Search.." autofocus></div>
+                    <div class="header">[[#{migration.sourceCount('{{sourceCount}}')}]]</div>
+                    <div class="search left-border"><input tabindex="1" type="text" class="search-query form-control" name="target-filter" v-model="sourceFilter" placeholder="Search.." autofocus></div>
                     <div class="left-project-list">
-                        <div class="project-list" ng-repeat="repo in vm.sourceProjects | filter:source:strict" ng-click="vm.getSourceProject(repo.owner, repo.projectName);vm.selectSourceProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedSourceName }" ng-cloak>
-                            <div class="owner" ng-if="vm.isNewOwner(repo)">{{repo.owner}}</div>
-                            <div class="project-name"><a href="https://yona.dev/{{repo.full_name}}" target="_blank">{{repo.projectName}}</a></div>
+                        <div class="project-list" v-for="item in sourceItems" :key="item.repo.full_name" v-on:click="onClickSource(item.repo)" :class="{'selected': item.repo.full_name == selectedSourceName }">
+                            <div class="owner" v-if="item.newOwner">{{ item.repo.owner }}</div>
+                            <div class="project-name"><a :href="'https://yona.dev/' + item.repo.full_name" target="_blank">{{ item.repo.projectName }}</a></div>
                             <div class="metainfo-sm">
-                                [[#{migration.repoMembers('{{repo.owner}}', '{{repo.members}}')}]] <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i></div>
+                                [[#{migration.repoMembers('{{item.repo.owner}}', '{{item.repo.members}}')}]] <i class="yobicon-lock yobicon-small" v-if="item.repo.private"></i></div>
                         </div>
                     </div>
                 </div>
-                <div class="destination-project col-lg-4" th:attr="ng-init=${#strings.isEmpty(token)} ? null : 'vm.getDestinationProjects();vm.getCurrentGithubUser()'">
-                    <div class="header" ng-cloak>[[#{migration.destinationCount('{{vm.destinationProjects.length}}')}]]</div>
-                    <div class="search"><input type="text" tabindex="2" class="search-query form-control" name="target-filter" ng-model="destination.full_name" placeholder="Search.."></div>
+                <div class="destination-project col-lg-4">
+                    <div class="header">[[#{migration.destinationCount('{{destinationCount}}')}]]</div>
+                    <div class="search"><input type="text" tabindex="2" class="search-query form-control" name="target-filter" v-model="destinationFilter" placeholder="Search.."></div>
                     <div class="destination-project-list">
-                        <div class="project-list" ng-repeat="repo in vm.destinationProjects | filter:destination:strict" ng-click="vm.setDestination(repo);vm.selectDestinationProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedDestinationName }" ng-cloak>
-                            <div class="owner" ng-if="vm.isNewOwner(repo)">{{::repo.owner.login}}</div>
-                            <div class="project-name"><a href="{{repo.html_url}}" target="_blank">{{repo.name}}</a></div>
+                        <div class="project-list" v-for="item in destinationItems" :key="item.repo.full_name" v-on:click="onClickDestination(item.repo)" :class="{'selected': item.repo.full_name == selectedDestinationName }">
+                            <div class="owner" v-if="item.newOwner">{{ item.repo.owner.login }}</div>
+                            <div class="project-name"><a :href="item.repo.html_url" target="_blank">{{ item.repo.name }}</a></div>
                             <div class="metainfo-sm">
-                                {{repo.owner.login}} <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i>
+                                {{ item.repo.owner.login }} <i class="yobicon-lock yobicon-small" v-if="item.repo.private"></i>
                             </div>
-                            <div class="warn-no-worker" ng-show="repo.full_name == vm.destination.full_name && vm.showWorkerWarning" ng-cloak>
-                                <div class="badge bg-danger">[[#{migration.noWorkerInAdmin('{{vm.CONFIG.DEFAULT_WORKER}}')}]]</div>
-                                <div>[[#{migration.workerNeeded('{{vm.CONFIG.DEFAULT_WORKER}}')}]]
+                            <div class="warn-no-worker" v-show="item.repo.full_name == destination.full_name && showWorkerWarning">
+                                <div class="badge bg-danger">[[#{migration.noWorkerInAdmin('{{CONFIG.DEFAULT_WORKER}}')}]]</div>
+                                <div>[[#{migration.workerNeeded('{{CONFIG.DEFAULT_WORKER}}')}]]
                                 </div>
-                                <div ng-if="repo.owner.type === 'Organization' && vm.showNotAdminWarning">
+                                <div v-if="item.repo.owner.type === 'Organization' && showNotAdminWarning">
                                     <div class="badge text-bg-warning">[[#{migration.notAdmin}]]</div>
-                                    <div>[[#{migration.bothNotAdmin('{{vm.CONFIG.DEFAULT_WORKER}}', '{{vm.currentGithubUser.login}}')}]]</div>
+                                    <div>[[#{migration.bothNotAdmin('{{CONFIG.DEFAULT_WORKER}}', '{{currentGithubUser && currentGithubUser.login}}')}]]</div>
                                 </div>
                             </div>
-                            <div class="warn-user-project" ng-show="repo.full_name == vm.destination.full_name && vm.showUserProjectWarning" ng-cloak>
+                            <div class="warn-user-project" v-show="item.repo.full_name == destination.full_name && showUserProjectWarning">
                                 <div class="badge bg-danger">User Project</div>
-                                <div>[[#{migration.userUsedInstead('{{vm.CONFIG.DEFAULT_WORKER}}')}]]</div>
+                                <div>[[#{migration.userUsedInstead('{{CONFIG.DEFAULT_WORKER}}')}]]</div>
                             </div>
-                            <div ng-if="repo.owner.type === 'User' && repo.owner.login !== vm.currentGithubUser.login">
+                            <div v-if="item.repo.owner.type === 'User' && item.repo.owner.login !== (currentGithubUser && currentGithubUser.login)">
                                 <div class="badge text-bg-warning">[[#{migration.notAdmin}]]</div>
                                 <div>[[#{migration.cannotNonAdmin}]]</div>
                             </div>
@@ -81,8 +82,8 @@
                 </div>
                 <div class="col-lg-6 status">
                     <div class="progress">
-                        <div class="progress-bar" ng-cloak ng-class="vm.importResult.count/vm.expectedImportCount*100<100 ? 'bg-danger' : 'bg-success'" style="width: {{vm.importResult.count/vm.expectedImportCount*100 || 0 }}%">
-                            {{vm.importResult.count}}/{{vm.expectedImportCount}}</div>
+                        <div class="progress-bar" :class="progressClass" :style="{width: progressWidth}">
+                            {{ importResult.count }}/{{ expectedImportCount }}</div>
                     </div>
                     <table class="table">
                         <thead>
@@ -91,35 +92,35 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody ng-cloak>
+                        <tbody>
                             <tr>
-                                <td class="left-title">[[#{migration.milestone}]]</td><td class="left-title">{{vm.source.milestoneCount}}</td>
-                                <td ng-class="vm.destination.milestones.length > 0?'alert-bg':''">
-                                    <import-warning th:attr="type=#{migration.milestone}" data="vm.destination.milestones"></import-Warning>
-                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.importMilestones()" ng-if="vm.destination.projectName" ng-disabled="!vm.source.milestoneCount || vm.importBtnDisabled" ng-cloak>
+                                <td class="left-title">[[#{migration.milestone}]]</td><td class="left-title">{{ source.milestoneCount }}</td>
+                                <td :class="len(destination.milestones) > 0 ? 'alert-bg' : ''">
+                                    <import-warning th:attr="type=#{migration.milestone}" :data="destination.milestones"></import-warning>
+                                    <div class="btn-group"><button class="btn btn-danger" v-on:click="importMilestones()" v-if="destination.projectName" :disabled="!source.milestoneCount || importBtnDisabled">
                                         [[#{migration.moveMilestones}]]</button></div>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="left-title">[[#{migration.issue}]]</td><td class="left-title"><span>{{vm.source.issueCount}}</span></td>
-                                <td ng-class="vm.destination.issues.length > 0?'alert-bg':''">
-                                    <div class="text-align-left caution" ng-if="vm.destination.projectName">
+                                <td class="left-title">[[#{migration.issue}]]</td><td class="left-title"><span>{{ source.issueCount }}</span></td>
+                                <td :class="len(destination.issues) > 0 ? 'alert-bg' : ''">
+                                    <div class="text-align-left caution" v-if="destination.projectName">
                                         [[#{migration.milestoneFirst}]]
                                     </div>
-                                    <import-warning th:attr="type=#{migration.issue}" data="vm.destination.issues"></import-Warning>
-                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.importIssues(vm.source)" ng-if="vm.destination.projectName" ng-disabled="!vm.source.issueCount || vm.importBtnDisabled" ng-cloak>
+                                    <import-warning th:attr="type=#{migration.issue}" :data="destination.issues"></import-warning>
+                                    <div class="btn-group"><button class="btn btn-danger" v-on:click="importIssues(source)" v-if="destination.projectName" :disabled="!source.issueCount || importBtnDisabled">
                                         [[#{migration.moveIssues}]]</button></div>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="left-title">[[#{migration.post}]]</td><td class="left-title"><span>{{vm.source.postCount}}</span></td>
-                                <td ng-class="vm.destination.posts.length > 0?'alert-bg':''">
-                                    <div class="text-align-left caution" ng-if="vm.destination.projectName">
+                                <td class="left-title">[[#{migration.post}]]</td><td class="left-title"><span>{{ source.postCount }}</span></td>
+                                <td :class="len(destination.posts) > 0 ? 'alert-bg' : ''">
+                                    <div class="text-align-left caution" v-if="destination.projectName">
                                         [[#{migration.postsBecomeIssues}]]
                                     </div>
-                                    <div class="text-align-left caution" ng-if="vm.showMoreDesc">[[#{migration.postsWait}]]</div>
-                                    <import-warning th:attr="type=#{migration.post}" data="vm.destination.posts"></import-Warning>
-                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.showMoreDesc=!vm.showMoreDesc;vm.importPosts()" ng-if="vm.destination.projectName" ng-disabled="!vm.source.postCount || vm.importBtnDisabled" ng-cloak>
+                                    <div class="text-align-left caution" v-if="showMoreDesc">[[#{migration.postsWait}]]</div>
+                                    <import-warning th:attr="type=#{migration.post}" :data="destination.posts"></import-warning>
+                                    <div class="btn-group"><button class="btn btn-danger" v-on:click="onImportPosts()" v-if="destination.projectName" :disabled="!source.postCount || importBtnDisabled">
                                         [[#{migration.movePosts}]]</button></div>
                                 </td>
                             </tr>
@@ -131,19 +132,19 @@
                                     </div>
                                 </td>
                             </tr>
-                    <tbody>
+                        </tbody>
                     </table>
-                    <div class="left-title" ng-cloak>
-                        [[#{migration.assignees}]]<span ng-if="vm.source.assignees"> ({{vm.source.assignees.length}})</span>
+                    <div class="left-title">
+                        [[#{migration.assignees}]]<span v-if="source.assignees"> ({{ len(source.assignees) }})</span>
                     </div>
-                    <div class="caution" ng-if="vm.destination.projectName">
+                    <div class="caution" v-if="destination.projectName">
                         [[#{migration.assigneeHelp}]]</div>
                     <div>
-                        <table class="table table-bordered" ng-if="vm.source.assignees.length > 0" ng-show="vm.destination.projectName" ng-cloak>
-                            <tr ng-repeat="assignee in vm.source.assignees" class="assignee">
-                                <td>{{assignee.name}}<br/>@{{assignee.login}}</td>
+                        <table class="table table-bordered" v-if="len(source.assignees) > 0" v-show="destination.projectName">
+                            <tr v-for="assignee in source.assignees" :key="assignee.login" class="assignee">
+                                <td>{{ assignee.name }}<br/>@{{ assignee.login }}</td>
                                 <td>
-                                    <input class="form-control" ng-keyup="vm.userExistAtDestinationProject(vm.destination, assignee.login)" type="text" th:placeholder="#{migration.notAssigned}" ng-model="vm.destination.assignees[assignee.login].login" ng-init="vm.getAssigneeFromLocal(assignee.login)"><i class="yobicon-check-circle" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed"></i><i class="yobicon-delete-circle-alt" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed === false"></i></td>
+                                    <input class="form-control" v-on:keyup="userExistAtDestinationProject(destination, assignee.login)" type="text" th:placeholder="#{migration.notAssigned}" :value="assigneeLogin(assignee.login)" v-on:input="setAssigneeLogin(assignee.login, $event.target.value)"><i class="yobicon-check-circle" v-if="assigneeLogin(assignee.login) && assigneeConfirmed(assignee.login)"></i><i class="yobicon-delete-circle-alt" v-if="assigneeLogin(assignee.login) && assigneeConfirmed(assignee.login) === false"></i></td>
                             </tr>
                         </table>
                     </div>

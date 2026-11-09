@@ -51,7 +51,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
         val html = mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
         // v1.6은 `yobi.navercorp.com`으로 고정된 링크를 두었다
         assertTrue(!html.contains("yobi.navercorp.com"), "옛 서버 링크가 남아 있다")
-        assertTrue(html.contains("https://yona.dev/{{repo.full_name}}"), "yona 사이트 링크가 없다")
+        assertTrue(html.contains("'https://yona.dev/' + item.repo.full_name"), "yona 사이트 링크가 없다")
     }
 
     @Test
@@ -69,7 +69,9 @@ class MigrationPageTest : AbstractIntegrationTest() {
     @Test
     fun `이전 화면의 스크립트도 문구를 메시지 번들에서 읽는다 (R-58-4)`() {
         val script = java.io.File("src/main/resources/static/assets/javascripts/service/yona.Migration.js").readLines()
-            .filter { !it.trim().startsWith("//") && !it.contains("logToIssue") && !it.contains("labelOfPost") }
+            // 주석(줄 주석, 블록 주석, 줄 끝 주석)은 문구가 아니다. 화면에 나가는 한국어는 메시지 번들에서 읽어야 한다
+            .filter { val line = it.trim(); !line.startsWith("//") && !line.startsWith("/*") && !line.startsWith("*") && !it.contains("logToIssue") && !it.contains("labelOfPost") }
+            .map { it.replace(Regex("\\s//.*$"), "") }
         val hangul = script.filter { Regex("[가-힣]").containsMatchIn(it) }
         assertEquals(emptyList(), hangul, "스크립트에 한국어 문구가 남아 있다")
     }
@@ -86,9 +88,9 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertEquals("width=device-width, initial-scale=1.0", doc.selectFirst("meta[name=viewport]")!!.attr("content"))
         assertEquals("no-cache", doc.selectFirst("meta[http-equiv=cache-control]")!!.attr("content"))
         assertEquals(listOf("Montserrat", "Indie+Flower", "Muli"), doc.select("link[href^=https://fonts.googleapis.com]").map { it.attr("href").substringAfter("family=") })
-        // head: jquery, vendor.js, yona.Migration.js (본문 안이 아니다). v1.6은 jQuery 1.9.0이었으나 JS 라이브러리 업그레이드(D-91)로 다른 화면과 같은 3.7.1을 쓴다
+        // head: jquery, vue.global.prod.js(AngularJS vendor.js를 대체, D-120), yona.Migration.js (본문 안이 아니다). v1.6은 jQuery 1.9.0이었으나 JS 라이브러리 업그레이드(D-91)로 다른 화면과 같은 3.7.1을 쓴다
         val headScripts = doc.head().select("script[src]").map { it.attr("src") }
-        assertTrue("/assets/javascripts/lib/jquery/jquery-3.7.1.js" in headScripts && "/assets/javascripts/lib/vendor.js" in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
+        assertTrue("/assets/javascripts/lib/jquery/jquery-3.7.1.js" in headScripts && "/assets/javascripts/lib/vue/vue.global.prod.js" in headScripts && "/assets/javascripts/lib/vendor.js" !in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
         // CSS 순서: yobi.css 다음에 usermenu.css
         val css = doc.head().select("link[rel=stylesheet]").map { it.attr("href") }
         assertTrue(css.indexOf("/assets/stylesheets/yobi.css") < css.indexOf("/assets/stylesheets/usermenu.css"), css.toString())
@@ -100,10 +102,13 @@ class MigrationPageTest : AbstractIntegrationTest() {
     fun `코드가 없으면 토큰 없이 화면을 연다`() {
         val (_, session) = login()
         val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
-        val root = doc.selectFirst("div[ng-app=yona.migration]")!!
-        assertEquals("MigrationController as vm", root.attr("ng-controller"))
-        assertEquals("vm.setUserToken('');vm.yobiUser = 'mgpage';vm.yobiUserEmail = 'mgpage@example.com'", root.attr("ng-init"))
-        assertEquals("''", root.selectFirst(".header-pannel")!!.attr("ng-if"))
+        // D-120: AngularJS의 ng-app, ng-controller, ng-init 대신 Vue 3 앱이 data 속성으로 값을 받는다
+        val root = doc.selectFirst("div#migration-app")!!
+        assertEquals("", root.attr("data-token"))
+        assertEquals("mgpage", root.attr("data-login-id"))
+        assertEquals("mgpage@example.com", root.attr("data-email"))
+        assertTrue(root.hasAttr("v-cloak") && root.selectFirst(".header-pannel")!!.attr("v-if") == "token")
+        assertTrue(doc.select("[ng-app], [ng-controller], [ng-init], [ng-if], [ng-repeat], [ng-click]").isEmpty(), "AngularJS 속성이 남아 있다")
         assertTrue(doc.select("script[src=/assets/javascripts/service/yona.Migration.js]").isNotEmpty())
         Mockito.verifyNoInteractions(tokens)
     }
@@ -114,9 +119,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
         val (_, session) = login()
         session.setAttribute("migration.oauth.state", "st1")
         val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session).param("code", "abc").param("state", "st1")).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.selectFirst("div[ng-app]")!!.attr("ng-init").startsWith("vm.setUserToken('tok123');"))
-        assertEquals("'tok123'", doc.selectFirst(".header-pannel")!!.attr("ng-if"))
-        assertEquals("vm.getDestinationProjects();vm.getCurrentGithubUser()", doc.selectFirst(".destination-project")!!.attr("ng-init"))
+        assertEquals("tok123", doc.selectFirst("div#migration-app")!!.attr("data-token"))
     }
 
     @Test
@@ -130,7 +133,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
     fun `화면은 인증 요청에 실을 state를 내려 주고 돌아올 때 같은 값이어야 한다 (R-58-2)`() {
         val (_, session) = login()
         val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
-        val state = doc.selectFirst("div[ng-app]")!!.attr("data-oauth-state")
+        val state = doc.selectFirst("div#migration-app")!!.attr("data-oauth-state")
         assertTrue(state.length >= 16, state)
         assertEquals(state, session.getAttribute("migration.oauth.state"))
         // v1.6은 state가 없어, 공격자가 만든 code가 든 주소를 열면 공격자의 GitHub 토큰이 이 사용자의 이전 화면에 묶였다
@@ -147,7 +150,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
     fun `화면은 원본의 구성을 담는다`() {
         val (_, session) = login()
         val html = mockMvc.perform(get("/migration").session(session).header("Accept-Language", "ko-KR")).andReturn().response.contentAsString
-        listOf("Source 프로젝트를 선택해 주세요", "마일스톤 옮기기", "이슈 옮기기", "게시글 옮기기", "기존 이슈 담당자", "Yona to Github", "{{vm.sourceProjects.length}}").forEach { assertTrue(html.contains(it), it) }
+        listOf("Source 프로젝트를 선택해 주세요", "마일스톤 옮기기", "이슈 옮기기", "게시글 옮기기", "기존 이슈 담당자", "Yona to Github", "{{sourceCount}}").forEach { assertTrue(html.contains(it), it) }
     }
 
     @Test

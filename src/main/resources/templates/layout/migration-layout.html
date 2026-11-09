@@ -5,7 +5,7 @@
 
   이식 원본: app/views/migration/migrationPageLayout.scala.html
   이전(Migration) 화면 전용 문서 껍데기이다. 일반 사이트 레이아웃과 달리 푸터가 없고, 구글 글꼴 3종과 jquery 1.9.0을 head에서 불러오며,
-  vendor.js와 yona.Migration.js도 head에서 불러온다(Angular 앱이 본문을 그린다).
+  vue.global.prod.js(AngularJS vendor.js를 대체, D-120)와 yona.Migration.js도 head에서 불러온다(Vue 앱이 본문을 그린다).
   사용법: <html th:replace="~{layout/migration-layout :: migrationLayout(제목, 본문프래그먼트)}">
 */-->
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="migrationLayout(title, content)">
@@ -34,11 +34,12 @@
         <script type="text/javascript">
                 NProgress.configure({ minimum: 0.6 });
         </script>
+        <style>[v-cloak] { display: none !important; }</style>
         <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Csrf.js}"></script>
         <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-3.7.1.js}"></script>
         <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery.browser.js}"></script>
         <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Common.js}"></script>
-        <script type="text/javascript" th:src="@{/assets/javascripts/lib/vendor.js}"></script>
+        <script type="text/javascript" th:src="@{/assets/javascripts/lib/vue/vue.global.prod.js}"></script>
         <script type="text/javascript" th:src="@{/assets/javascripts/service/yona.Migration.js}"></script>
     </head>
 

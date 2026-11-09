@@ -936,3 +936,11 @@ marked 4.3.0 (src/main/resources/static/assets/javascripts/lib/marked.js, src/ma
 Copyright (c) 2011-2023, Christopher Jeffrey. Licensed under the MIT License (lib/marked-LICENSE.md).
 마크다운을 HTML로 바꾸기 위해 공식 배포 파일(lib/marked.umd.js)을 변경 없이 포함한다. 서버(Nashorn)와 브라우저가 같은 파일을 쓴다. https://github.com/markedjs/marked
 Yona의 사용자 지정은 같은 폴더의 marked-yona.js(공식 확장 지점 사용)에 있다.
+
+
+Vue 3.5.45 (src/main/resources/static/assets/javascripts/lib/vue/)
+==================================================================
+
+Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors. Licensed under the MIT License (같은 폴더의 LICENSE).
+이전(Migration) 화면을 AngularJS에서 다시 쓰기 위해 공식 배포 파일(dist/vue.global.prod.js, 템플릿 컴파일러 포함 전역 빌드)을 변경 없이 포함한다. https://github.com/vuejs/core
+

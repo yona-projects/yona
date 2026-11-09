@@ -289,4 +289,15 @@ class JsLibraryVersionsTest {
         val template = File("src/main/resources/templates/common/markdown.html").readText()
         assertTrue(template.contains("hljs.highlightAll()") && !template.contains("initHighlightingOnLoad"))
     }
+
+    @Test
+    fun `이전 화면은 AngularJS가 아니라 Vue 3이고 vendor_js는 없다`() {
+        // D-120: v1.6의 AngularJS 1.5.8 앱(vendor.js 1.6MB, 지원 종료)을 Vue 3 앱 한 개로 다시 썼다.
+        assertTrue(!asset("javascripts/lib/vendor.js").exists(), "AngularJS와 lodash 묶음 vendor.js는 지웠다")
+        assertTrue(asset("javascripts/lib/vue/vue.global.prod.js").readText().take(200).contains("vue v3.5.45"))
+        val script = asset("javascripts/service/yona.Migration.js").readText()
+        assertTrue(script.contains("Vue.createApp") && !script.contains("require('angular')") && !script.contains("angular.module"))
+        val template = File("src/main/resources/templates/migration/home.html").readText()
+        assertTrue(!Regex("\\sng-[a-z]+=").containsMatchIn(template), "템플릿에 AngularJS 속성이 남아 있다")
+    }
 }

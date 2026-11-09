@@ -70,7 +70,7 @@ jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지
 | autosize / NProgress / clipboard | 4.0.2 / 0.1.6 / 2.0.0 | 6.0.1 / 0.2.0 / **clipboard.js는 번들에서 이미 없앴고 표준 API(`yona.Clipboard.js`)로 대체** | 댓글 / 진행 표시 / 복사 | 완료 |
 | js-xss | 1.0.x | 1.0.17 | 입력 정리 | 작음 |
 | At.js(멘션) | 1.5.3 | 1.5.4(유지 중단) | 멘션 | 거의 없음 |
-| `vendor.js`(Angular 1.x와 lodash 묶음) | 1.5.8 | 없음(AngularJS는 지원 종료) | **마이그레이션 화면 하나** | 업그레이드 불가 |
+| `vendor.js`(Angular 1.x와 lodash 묶음) | 1.5.8 | **Vue 3.5.45로 이전 화면을 다시 썼고 vendor.js를 지웠다**(D-120, A-437, 2026-11-10) | 마이그레이션 화면 하나 | 완료 |
 
 ### 지워지는 API의 표준 JS 대체 (2026-11-09 확인, `src/test/js/jquery4.test.mjs`)
 
