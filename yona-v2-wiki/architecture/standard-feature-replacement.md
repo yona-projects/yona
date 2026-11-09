@@ -25,10 +25,10 @@ updated: 2026-11-09
 | S-07 | `jquery.requestAs.js`(303줄, 호출 7곳) | `fetch` + `<dialog>` 확인창 | 가능, 중간 규모 | **완료**(2026-11-09, A-422, A′안: `yona.Request` 함수 하나 + 표준 DOM 이벤트. 선언형 연결 층까지 없애는 방식은 후속 논의) |
 | S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 R-145 논의 사항으로 남김) |
 | S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | vanilla-calendar-pro 3.4.0(계약과 위치는 Pikaday와 같게, `D-107`, `A-424`) | 구현 완료, 모양은 달라짐(월과 연 선택이 선택 상자에서 목록으로, 크기와 색) | 완료(2026-11-09, 선생님 확인) |
-| S-10 | `yona.ui.Typeahead`와 better-typeahead | **BS2 플러그인 없이 같은 API로 다시 씀**(`D-109`, `A-426`. `<datalist>`는 아바타와 값 바꾸기를 못 해 제외) | 완료. 동작은 옛 구현과 같게 시험으로 고정, 모양은 그대로(BS5 `dropdown-menu`) | **완료**(2026-11-09, D-109, A-426) |
+| S-10 | `yona.ui.Typeahead`와 better-typeahead | **BS2 플러그인 없이 같은 API로 다시 씀**(`D-109`, `A-426`. `<datalist>`는 아바타와 값 바꾸기를 못 해 제외) | 완료. 동작은 옛 구현과 같게 시험으로 고정, 모양은 그대로(BS5 `dropdown-menu`) | **완료**(2026-11-09, D-109, A-426, 선생님 확인) |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
 | S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API(`Element.setHTML`) | **표준 우선으로 바꿈**(지원하는 브라우저는 표준, Safari 등은 옛 필터. 금지 요소 목록과 변이 XSS 요소를 더 걷어냄) | **완료**(2026-11-09, D-108, A-425) |
-| S-13 | jQuery 유틸 `$.each`(60), `$.extend`(10), `$.proxy`(13), `$.inArray`, `$.map`, `$.grep`, `$.isPlainObject`(약 5), `.animate` 등(7) | `for...of`, `Object.assign`, `bind`, `includes`, `map`, `filter`, CSS 전환 | 쉬운 기계적 치환(약 100곳) | 미착수 |
+| S-13 | jQuery 정적 유틸: `$.each` 10, `$.extend` 8, `$.proxy` 8, `$.inArray`, `$.map` 2, `$.isEmptyObject`, `$.parseHTML` 2(합 32곳, 11개 파일. 인스턴스 `.each` 49곳과 `$.ajax` 계열은 S-14) | `for…of`, `forEach`, `Object.assign`, `bind`, `includes`, `map`, `Object.keys`, `<template>`/`DOMParser` | 쉬운 치환이 아니다: `$.each`의 인자 순서, `$.extend`의 `undefined` 건너뜀, `$.parseHTML`의 스크립트 제거 차이를 값 비교 시험으로 먼저 확인 | 조사 완료, 선택지 A~C 결정 대기(`S-13 조사`) |
 | S-14 | jQuery DOM과 이벤트와 `.data()`와 `$.ajax`(약 1,300곳) | `classList`, `hidden`, `closest`, `addEventListener`, `dataset`, `fetch` | jQuery 전체 제거에 해당하는 큰 일. `.data()`는 값 자동 변환, `$.ajax`는 4xx 처리와 `X-Requested-With`, `Accept` 헤더 차이에 주의 | 별도 단계 |
 
 사용 횟수(`Migration.js` 제외, 파일 수): `$.ajax` 계열 59(34), `$.each` 60(28), `.show/.hide/.toggle` 122(36), 클래스 조작 100(32), `.on/.off/.bind` 237(64), `.data` 217(36), 탐색(`closest`, `find` 등) 310(51), `keyCode/which` 33(17), `setInterval` 8(5), `alert/confirm` 직접 30(13).
@@ -261,4 +261,34 @@ updated: 2026-11-09
 - **B. (권장 후보) 같은 API로 다시 쓴다**: 이미 `lib/text-expander/combobox-nav.js`(GitHub, 7KB, D-106에서 들임)가 있다. 입력란과 `role="listbox"` 목록을 연결해 위, 아래, Enter, Esc, 마우스 선택과 ARIA를 처리해 준다. 이를 바탕으로 `yona.ui.Typeahead`를 jQuery 플러그인 없이 다시 쓰면 항목은 DOM으로 직접 만들 수 있어 **아바타 HTML을 그대로 보여 주고**(`render`는 항목 하나를 만드는 함수로 단순해진다), BS2 플러그인 두 파일(489줄)과 `data-provider` 4곳, 라벨 편집기의 내부 접근이 사라진다. D-105, D-106의 GitHub 방식과 맞다. 구성원 두 파일과 라벨 편집기를 함께 고쳐야 한다(호출 4곳).
 - **C. Tom Select 등**: 선택 위젯이라 입력란에 글자를 채우는 이 화면의 동작이 바뀐다.
 - 정해야 할 것: v1.6의 입력 중 목록 모양(BS2 `.typeahead.dropdown-menu`), 목록을 여는 시점(minLength 0이면 초점만 가도 열림), Tab으로 선택하는지(BS2는 Tab과 Enter가 선택), 강조 표시(BS2 기본 `highlighter`가 검색어를 굵게)를 그대로 맞출지.
+
+## S-13 조사 (jQuery 정적 유틸, 2026-11-09)
+
+### 체크리스트 숫자 정정
+체크리스트의 "`$.each` 60, `$.extend` 10, `$.proxy` 13, `.animate` 7"은 지금(앱 코드 `common/`, `service/`, 라이브러리와 번들 제외)과 다르다. 앞선 작업(S-05, S-06, S-07 등)으로 줄었고, `$.each(`와 `.each(`가 섞여 있었다. 다시 센 값:
+
+| 구분 | 호출 수 | 판단 |
+|---|---|---|
+| **정적 유틸(S-13의 범위)**: `$.each` 10, `$.extend` 8, `$.proxy` 8, `$.inArray` 1, `$.map`과 `jQuery.map` 2, `$.isEmptyObject` 1, `$.parseHTML` 2 | **32곳, 파일 11개** | 아래에서 하나씩 본다 |
+| 인스턴스 `$(...).each(...)` | 49곳, 파일 27개 | jQuery 집합을 순회하므로 S-14(DOM 전체 제거)에 속한다. `this`가 요소이고 `:contains` 같은 jQuery 선택자와 묶여 있다 |
+| `$.ajax` 40, `$.get` 8, `$.post` 7, `$.getJSON` 1 | 56곳 | S-14(`fetch`). 4xx 처리, `X-Requested-With`, `Accept` 헤더 차이에 주의 |
+| `$.event.trigger`(`CodeCommentBox`) 2, `$.fn.select2.defaults` 1 | 3곳 | S-14와 select2에 속한다 |
+| `.animate` | **0곳** | 이미 없다(체크리스트가 옛 값) |
+
+### 정적 유틸 32곳의 표준 대체와 동작 차이
+| 함수(곳) | 대체 | 같은가 | 확인할 곳 |
+|---|---|---|---|
+| `$.proxy(fn, this, 인자)`(`Files.js` 8) | `fn.bind(this, 인자)` | 같다(고정 인자도 같은 순서). 다른 점은 jQuery가 묶인 함수에 붙이는 `guid`라서 원래 함수로 `.off(fn)`을 부르면 떼어지던 것인데, `Files.js`는 인자 없는 `.off()`로만 떼므로 영향이 없다 | 호출 8곳이 모두 `.on(...)`에 바로 넘기는 형태 |
+| `$.inArray(v, 배열) !== -1`(`code.Browser.js` 1) | `배열.includes(v)` | 같다(엄격 비교) | |
+| `$.map(users, fn)`(`Select2.js` 1), `jQuery.map(aMatch, fn)`(`SvnDiff.js` 1) | `배열.map(fn)` | jQuery `map`은 결과의 `null`, `undefined`를 버리고 배열을 평탄화한다. 두 곳 모두 값마다 객체나 숫자(`parseInt`)를 돌려주므로 같다. 정규식 결과 배열의 `undefined` 원소도 호출된다 | 각 콜백이 `null`을 돌려주지 않는지 |
+| `$.isEmptyObject(error)`(`project.New.js` 1) | `Object.keys(error).length === 0` | `error`는 직접 만든 객체라 같다. `null`, `undefined`는 `isEmptyObject`가 참이지만 `Object.keys`는 오류라 쓰는 곳에 `error`가 항상 객체인지 확인 | 이 곳은 `var error = {}`로 시작 |
+| `$.extend(a, b)`(8) | `Object.assign(a, b)` | **`undefined` 값을 건너뛰는 점이 다르다**: jQuery는 원본의 `undefined` 값을 복사하지 않고 `Object.assign`은 복사한다. 깊은 복사(`true`)는 8곳 모두 없다. 대상에 원래 있는 `undefined`는 둘 다 유지한다 | `Calendar.js`(내가 쓴 것), `Common.js`(`htOptions` 없을 수 있음, 둘 다 `null`, `undefined` 원본은 건너뜀), `Pagination.js` 2(변경하는 대상), `Select2.js` 3. `Select2.js:204`는 서버 JSON(`undefined` 없음), `:234`는 인자가 대부분 없음 |
+| `$.each(배열, (i, v) => …)`(10) | `배열.forEach((v, i) => …)` 또는 `for…of` | **인자 순서가 바뀐다**(i, v → v, i). jQuery는 콜백의 `this`가 값이고 `return false`로 멈춘다. 객체는 `(키, 값)`이다 | 10곳 중 객체 순회 2곳(`Select2.js:135, 140`, `Object.entries`), `HTMLOptionsCollection` 2곳(`Array.from`), `jQuery 객체` 1곳(`OriginalMessage.js`, 반복 가능), 나머지 배열 5곳. `this`나 `return false`를 쓰는 곳이 있는지 |
+| `$.parseHTML(html)`(`Common.js` 1, `pullrequest.Reviewers.js` 1) | 템플릿 조각은 `<template>`의 `content`, 전체 문서는 `DOMParser` | jQuery는 기본으로 `<script>`를 버린다(`keepScripts`가 거짓). `template`은 스크립트를 실행하지 않고 남기므로 지우는 단계가 필요하다. `Reviewers.js`는 문서 전체를 받아 `#review-area`만 쓰므로 `DOMParser`로 바로 읽는 쪽이 간단하다 | `<tr>` 같은 조각은 `<template>`이 문맥 없이 처리하므로 괜찮다 |
+
+### 선택지
+- **A. 32곳을 표준 JS로 바꾼다(권장)**: 위 표대로 하되 jQuery 4 준비(D-103) 때처럼 **원래 API와 표준 대체식이 같은 값을 내는지 값 비교 시험**으로 먼저 확인한다(특히 `$.extend`의 `undefined`, `$.each`의 객체 순회, `$.map`의 평탄화). 규모는 11개 파일, 한 묶음이다. 얻는 것은 jQuery 정적 유틸 의존이 사라지는 것이지 jQuery 제거는 아니다(S-14가 남는다).
+- **B. 일부만**: 차이가 없는 `$.proxy`, `$.inArray`, `$.map` 3종(11곳)만 바꾸고 나머지는 S-14 때 함께 한다.
+- **C. 유지**: S-14에서 한꺼번에 다룬다.
+- 판단: `$.each`와 `$.extend`는 위험한 차이(인자 순서, `undefined`)가 있어 시험 없이 기계적으로 바꾸면 안 되지만, 시험을 먼저 두면 안전하다. A를 권한다.
 
