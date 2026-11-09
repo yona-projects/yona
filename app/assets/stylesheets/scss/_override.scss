@@ -212,6 +212,11 @@ input:-webkit-autofill {
     max-width: 100vh;
 }
 
+.viewer-container.viewer-backdrop {
+    // Viewer.js 1.15.2는 배경 투명도를 0.5로 바꿨다. v1.6(1.6.1)의 0.85를 유지한다(viewer.css가 이 파일보다 뒤에 불려 클래스를 두 개 쓴다).
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
 .viewer-toolbar {
     ul {
         li {

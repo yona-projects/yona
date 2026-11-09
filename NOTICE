@@ -920,3 +920,11 @@ vanilla-calendar-pro 3.4.0 (src/main/resources/static/assets/javascripts/lib/van
 
 Copyright (c) 2024 Yury Uvarov. Licensed under the MIT License (같은 폴더의 LICENSE).
 날짜 선택 달력을 위해 공식 배포 파일(index.js, styles/index.css)을 변경 없이 포함한다. https://github.com/uvarov-frontend/vanilla-calendar-pro
+
+
+Viewer.js 1.15.2 (src/main/resources/static/assets/javascripts/lib/viewerjs/)
+=============================================================================
+
+Copyright 2015-present Chen Fengyuan. Licensed under the MIT License (같은 폴더의 LICENSE).
+마크다운 본문의 이미지 확대 보기를 위해 공식 배포 파일(dist/viewer.js, dist/viewer.css)을 변경 없이 포함한다. https://github.com/fengyuanchen/viewerjs
+같은 폴더의 jquery-viewer.js는 jquery-viewer 1.0.1(MIT)이며 jQuery 4에서 지워지는 API를 쓰지 않도록 Yona가 한 곳을 고쳤다.

@@ -257,4 +257,13 @@ class JsLibraryVersionsTest {
         val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(!bundles.contains("ajaxSubmit") && !bundles.contains("jQuery Form Plugin"), "번들에 jquery.form 코드가 없어야 한다")
     }
+
+    @Test
+    fun `이미지 확대 보기는 Viewer_js 1_15_2이고 Yona의 renderList 패치는 들어 있지 않다`() {
+        // 공식 1.15.2에서는 v1.6의 패치 대상 코드(renderList의 `outerWidth * i`)가 다시 쓰여 없어졌다. 시험 viewer.test.mjs가 같은 동작을 지킨다.
+        val js = asset("javascripts/lib/viewerjs/viewer.js").readText()
+        assertTrue(js.take(200).contains("Viewer.js v1.15.2"), "Viewer.js 1.15.2 파일이 있어야 한다")
+        assertTrue(!js.contains("outerWidth * i"), "옛 renderList 코드가 남아 있으면 안 된다")
+        assertTrue(asset("javascripts/lib/viewerjs/LICENSE").isFile, "라이선스 파일이 있어야 한다")
+    }
 }
