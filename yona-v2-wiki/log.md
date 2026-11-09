@@ -2055,3 +2055,7 @@ ru, uz는 월요일, ko, ja, en은 일요일. `calendar.test.mjs` 27개 통과, 
 ## [2026-11-09] feat | S-12 xssClean을 표준 Sanitizer API 우선으로(D-108, A-425)
 
 `xssclean.test.mjs` 9개와 번들 확인 시험, JS 전체 286개 통과. 회귀 `web`, `audit`, `i18n` 2783개 중 달력 언어 변경이 만든 영어 화면 한국어 주석 1건이 실패해 고쳤다(9분 25초). 고친 뒤 관련 시험 통과.
+
+## [2026-11-09] fix | xssClean이 작업 목록 체크 상자를 남기도록 고침(A-425)
+
+서버의 v1.6 정책이 허용하는 체크 상자(`input type=checkbox`)를 남기고 다른 input은 지운다. 진짜 form은 지워지는 대로 둔다. `xssclean.test.mjs` 12개, JS 전체 289개 통과.

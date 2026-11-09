@@ -557,11 +557,13 @@ $yona = yona.Common = (function(){
     /**
      * 정화할 때 내용과 함께 걷어내는 요소이다. 옛 필터(`lib/xss.js`)가 글자로 바꿔 보여 주던 금지 요소(Yona가 v1.6부터 막아 온 목록)에,
      * 결과를 다시 읽을 때 구조가 바뀌어 XSS가 되는 변이(mutation) XSS를 일으키는 noscript, math, svg를 더했다.
+     * 진짜 `<form>` 같은 요소를 그대로 쓰면 글자로 보이지 않고 사라진다(선생님이 무시해도 된다고 하셨다). 이스케이프해서 쓴 `&lt;form&gt;`은 글자로 보인다.
+     * `input`은 마크다운이 그리는 작업 목록 체크 상자이므로 뺐다(서버의 v1.6 정책도 허용한다). 대신 체크 상자만 남기고 속성을 줄인다(`xssClean`).
      * script, 이벤트 처리기, `javascript:` 주소 같은 것은 목록과 상관없이 표준 정화기가 항상 걷어낸다.
      */
     var XSS_REMOVED_ELEMENTS = [
         "applet", "audio", "basefont", "base", "bgsound", "blink", "body", "embed", "form", "frameset", "frame", "head", "html", "ilayer", "iframe",
-        "input", "isindex", "layer", "link", "meta", "object", "plaintext", "style", "script", "textarea", "title", "xml",
+        "isindex", "layer", "link", "meta", "object", "plaintext", "style", "script", "textarea", "title", "xml",
         "noscript",
         // math와 svg는 HTML과 다른 이름 공간의 요소라 이름만 주면 걷어내지 못한다
         { "name": "math", "namespace": "http://www.w3.org/1998/Math/MathML" },
@@ -592,6 +594,17 @@ $yona = yona.Common = (function(){
                 var links = box.querySelectorAll("a[href], area[href]");
                 for (var i = 0; i < links.length; i++) {
                     if (/^[\s\u0000-\u001f]*data:/i.test(links[i].getAttribute("href"))) { links[i].removeAttribute("href"); }
+                }
+                // 체크 상자만 남긴다. 서버의 v1.6 정책(`MarkdownRenderer`)은 input의 type, disabled, checked를 허용한다. 가짜 입력란을 막기 위해 체크 상자가 아닌 input은 지우고
+                // 허용하지 않는 속성(name, value, form 등)을 걷어낸다.
+                var inputs = box.querySelectorAll("input");
+                for (var j = 0; j < inputs.length; j++) {
+                    var input = inputs[j];
+                    if ((input.getAttribute("type") || "").toLowerCase() !== "checkbox") { input.remove(); continue; }
+                    var names = input.getAttributeNames();
+                    for (var k = 0; k < names.length; k++) {
+                        if (["type", "checked", "disabled", "class", "id", "style", "width", "height"].indexOf(names[k]) < 0) { input.removeAttribute(names[k]); }
+                    }
                 }
                 return box.innerHTML;
             } catch (e) {

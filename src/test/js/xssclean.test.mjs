@@ -20,12 +20,20 @@ export const tests = [
       assert.ok(out.includes(part), `${part} 가 없다: ${out}`);
     await page.close();
   } },
-  { name: 'xssClean(표준): Yona의 금지 요소(form, iframe, input, textarea, style, link, meta, base, object, embed, audio, title)는 내용과 함께 사라진다', run: async () => {
+  { name: 'xssClean(표준): 금지 요소(form, iframe, textarea, style, link, meta, base, object, embed, audio, title)를 그대로 쓰면 요소는 만들어지지 않는다(글자로 보이지는 않는다)', run: async () => {
     const page = await open();
-    for (const tag of ['form', 'iframe', 'input', 'textarea', 'style', 'link', 'meta', 'base', 'object', 'embed', 'audio', 'title'])
-      assert.ok(!new RegExp('<' + tag, 'i').test(await clean(page, `<p>a</p><${tag} src="https://e.com" href="https://e.com">x</${tag}><p>b</p>`)), tag);
-    assert.equal(await clean(page, '<p>a</p><form action="https://e.com"><input name=q><button>go</button></form><p>b</p>').then((s) => s.replace(/<button>go<\/button>/, '')), '<p>a</p><p>b</p>', 'form 안의 단추 말고는 남지 않는다');
+    for (const tag of ['form', 'iframe', 'textarea', 'style', 'link', 'meta', 'base', 'object', 'embed', 'audio', 'title']) {
+      const found = await page.evaluate(([h, t]) => { const d = document.createElement('div'); d.innerHTML = $yona.xssClean(h); return !!d.querySelector(t); }, [`<p>a</p><${tag} src="https://e.com" href="https://e.com">x</${tag}><p>b</p>`, tag]);
+      assert.equal(found, false, tag);
+    }
     await page.close();
+  } },
+  { name: 'xssClean(표준): 이스케이프해서 쓴 &lt;form&gt;과 코드 블록 안의 form은 글자로 보이고, 이중 이스케이프는 한 번만 풀린다', run: async () => {
+    const page = await open();
+    const text = (html) => page.evaluate((h) => { const d = document.createElement('div'); d.innerHTML = $yona.xssClean(h); return d.textContent; }, html);
+    assert.equal(await text('<p>&lt;form action="x"&gt;로그인&lt;/form&gt; &lt;script&gt;alert(1)&lt;/script&gt;</p>'), '<form action="x">로그인</form> <script>alert(1)</script>');
+    assert.equal(await text('<pre><code>&lt;form method="post"&gt;\n  &lt;input name="q"&gt;\n&lt;/form&gt;</code></pre>'), '<form method="post">\n  <input name="q">\n</form>');
+    assert.equal(await text('<p>&amp;lt;form&amp;gt;</p>'), '&lt;form&gt;'); await page.close();
   } },
   { name: 'xssClean(표준): 변이 XSS를 일으키는 noscript, math, svg와 style 변이는 사라지고, 결과를 다시 읽어도 실행되는 것이 없다', run: async () => {
     const page = await open();
@@ -40,6 +48,18 @@ export const tests = [
     const page = await open();
     const out = await clean(page, '<pre><code>document.cookie = "a"; var u = "javascript:void(0)"; eval(x);</code></pre>');
     assert.ok(out.includes('document.cookie') && out.includes('javascript:void(0)') && out.includes('eval(x)'), out); await page.close();
+  } },
+  { name: 'xssClean(표준): 마크다운이 그리는 작업 목록 체크 상자(input type=checkbox)는 남긴다. 서버의 v1.6 정책도 input의 type, disabled, checked를 허용한다', run: async () => {
+    const page = await open();
+    const out = await clean(page, `<ul><li class='task-list-item'><input class='task-list-item-checkbox' checked="" type="checkbox"> 끝</li><li class="task-list-item"><input class='task-list-item-checkbox' type="checkbox" disabled> 할 일</li></ul>`);
+    assert.ok(out.includes(`<input class="task-list-item-checkbox" checked="" type="checkbox"> 끝`) && out.includes(`<input class="task-list-item-checkbox" type="checkbox" disabled=""> 할 일`), out); await page.close();
+  } },
+  { name: 'xssClean(표준): 체크 상자가 아닌 input은 사라지고, 체크 상자는 type, checked, disabled, class 같은 허용 속성만 남는다(가짜 로그인 입력란 같은 것을 막는다)', run: async () => {
+    const page = await open();
+    for (const html of ['<input type="text" name="q" value="x">', '<input name="q">', '<input type="password">', '<input type="image" src="https://e.com/a.png">', '<input type="hidden" name="a" value="b">'])
+      assert.ok(!/<input/i.test(await clean(page, html)) || /&lt;input/i.test(await clean(page, html)) && !(await page.evaluate((h) => { const d = document.createElement('div'); d.innerHTML = $yona.xssClean(h); return !!d.querySelector('input'); }, html)), html);
+    const out = await clean(page, '<input type="CHECKBOX" name="n" value="v" form="f" formaction="https://e.com" autofocus readonly class="c" onclick="alert(1)">');
+    assert.equal(out, '<input type="CHECKBOX" class="c">'); await page.close();
   } },
   { name: 'xssClean(표준): 링크의 data: 주소는 걷어내고(옛 필터도 막았다) 이미지의 data: 주소는 남긴다', run: async () => {
     const page = await open();
