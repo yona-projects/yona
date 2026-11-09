@@ -35,7 +35,7 @@ updated: 2026-11-08
 | Pikaday | **vanilla-calendar-pro 3.4.0으로 대체했다(D-107)**. 참고로 **JS 패치 없음**(공식 저장소 2014-05-26 커밋 `c43be6c2c`와 같음, 2026-11-09 대조). 커밋 제목의 "마감일 추가"는 래퍼와 템플릿 작업이고 JS는 사본 교체였다. **CSS는 Yona가 고쳐 유지**(월과 연도 단추 모양, z-index 등) |
 | js-xss | XSS 방어 수정 5건 |
 | select2 | **패치 없음(정정)**: 공식 3.4.5 배포본(cdnjs)과 공백 무시 0줄, 공백 포함해도 들여쓰기 한 줄 차이. "860자"는 이 들여쓰기가 바이트 비교를 밀어 만든 숫자였다. 4.1.0 교체(D-95)로 해당 없음 |
-| marked | 공식 1.2.9 기준 **5곳**("37건"은 파일 변경 이력 38개에서 나온 수이고 현재 파일의 패치 수가 아니다. 분석은 `js-library-alternatives.md`의 marked 절) |
+| marked | 공식 1.2.9 기준 5곳. **공식 4.3.0으로 올리고 패치는 `marked-yona.js`로 옮겼다**(D-118, A-435, 2026-11-10). 18.x는 Nashorn이 읽지 못해 불가 |
 | mention.js | Yona 자체 코드(10건) |
 
 jquery-pjax는 공식 2.0.1과 바이트까지 같았고 **htmx로 대체해 지웠다**(`D-96`). 같은 방식(공식 배포본과 대조, 2026-11-08)으로 확인하니 **교체한 select2, jquery.tmpl, pjax, Jcrop은 모두 Yona 팀의 기능 패치가 없었다**: select2는 들여쓰기 한 줄, jquery.tmpl 1.0.0pre는 본문이 같고 공식 저장소가 나중에 덧붙인 AMD 래퍼만 다르며, pjax 2.0.1과 Jcrop 0.9.12는 공식 파일과 바이트가 같다. 그래서 이 넷은 옮길 패치가 없었고, 새 버전이 패치 효과를 "가지고 있어서" 필요 없어진 것이 아니다. 패치가 실제로 있는 라이브러리는 새 버전이 그 효과를 자동으로 갖지 않는다(At.js 1.5.4에는 IME 방어와 iframe 처리가 없고, 최신 Viewer.js는 목록 이동 계산을 다시 짜서 같은 문제가 해결되었는지 시험 전에는 알 수 없다). jquery.event.drag와 jquery.scrollTo는 어느 템플릿도 불러오지 않아 쓰이지 않으므로 **정리에서 지웠다**(패치도 죽은 코드, 호출은 브라우저 기본 `window.scrollTo`).
@@ -178,7 +178,7 @@ API가 바뀌지 않는 갱신이다: Popper 2.11.8, Tippy.js 6.3.7, clipboard 2
 - **moment**: `moment-with-langs`는 `moment-with-locales`로 이름이 바뀌었다. 쓰는 곳 4개(`isValid`와 날짜 서식)를 시험한다. ISO가 아닌 날짜 문자열의 동작 차이를 확인한다.
 - **highlight.js**: `hljs.highlight(lang, code)`는 `hljs.highlight(code, {language})`로, `highlightBlock`은 `highlightElement`로 바뀌었다. 쓰는 곳은 `yobi.Markdown.js` 하나이다. 지금 맞춤 묶음의 언어 목록과 같게 다시 만들고 CSS 테마를 교체한다. 서버의 코드 강조는 별개이다.
 
-### 단계 5. marked 18 (L, 선생님이 올리기로 하심, 범위 결정 대기)
+### 단계 5. marked (**4.3.0으로 완료**, D-118, 2026-11-10. 처음 계획한 18.x는 Nashorn이 읽지 못해 4.3.0이 한계였다)
 
 1. **먼저 비교 시험을 만든다**: 같은 입력 모음(README, 이슈, 댓글 실제 모양, 표, 작업 목록, 코드 블록, 이미지와 자동 링크, 제목 앵커, 강조 겹침, 줄바꿈)을 옛 marked와 새 marked에 넣어 결과를 **항목별로 비교**한다(`MarkdownRendererTest`의 v1.6 비교 기준을 그대로 둔다).
 2. 서버의 Nashorn 독립 배포판이 새 marked를 실행하는지 확인한다. 못 읽으면 서버는 올릴 수 없다.

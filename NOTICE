@@ -928,3 +928,12 @@ Viewer.js 1.15.2 (src/main/resources/static/assets/javascripts/lib/viewerjs/)
 Copyright 2015-present Chen Fengyuan. Licensed under the MIT License (같은 폴더의 LICENSE).
 마크다운 본문의 이미지 확대 보기를 위해 공식 배포 파일(dist/viewer.js, dist/viewer.css)을 변경 없이 포함한다. https://github.com/fengyuanchen/viewerjs
 같은 폴더의 jquery-viewer.js는 jquery-viewer 1.0.1(MIT)이며 jQuery 4에서 지워지는 API를 쓰지 않도록 Yona가 한 곳을 고쳤다.
+
+
+marked 4.3.0 (src/main/resources/static/assets/javascripts/lib/marked.js, src/main/resources/markdown/marked.js)
+================================================================================================================
+
+Copyright (c) 2011-2023, Christopher Jeffrey. Licensed under the MIT License (lib/marked-LICENSE.md).
+마크다운을 HTML로 바꾸기 위해 공식 배포 파일(lib/marked.umd.js)을 변경 없이 포함한다. 서버(Nashorn)와 브라우저가 같은 파일을 쓴다. https://github.com/markedjs/marked
+Yona의 사용자 지정은 같은 폴더의 marked-yona.js(공식 확장 지점 사용)에 있다.
+

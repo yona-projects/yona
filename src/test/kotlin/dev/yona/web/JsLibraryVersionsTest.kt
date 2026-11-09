@@ -266,4 +266,16 @@ class JsLibraryVersionsTest {
         assertTrue(!js.contains("outerWidth * i"), "옛 renderList 코드가 남아 있으면 안 된다")
         assertTrue(asset("javascripts/lib/viewerjs/LICENSE").isFile, "라이선스 파일이 있어야 한다")
     }
+
+    @Test
+    fun `마크다운 변환은 공식 marked 4_3_0과 Yona 확장이고 서버와 브라우저가 같은 파일을 쓴다`() {
+        // D-118: v1.6은 marked 1.2.9 파일을 직접 고쳐 썼다(패치 5곳). 공식 4.3.0을 그대로 두고 패치를 marked-yona.js로 옮겼다.
+        val lib = asset("javascripts/lib/marked.js").readText()
+        assertTrue(lib.take(200).contains("marked v4.3.0"), "marked 4.3.0 파일이어야 한다")
+        assertTrue(!lib.contains("yb-header-"), "공식 파일에 Yona의 패치가 들어가면 안 된다")
+        val server = java.io.File("src/main/resources/markdown")
+        assertEquals(lib, java.io.File(server, "marked.js").readText(), "서버와 브라우저의 marked.js는 같아야 한다")
+        assertEquals(asset("javascripts/lib/marked-yona.js").readText(), java.io.File(server, "marked-yona.js").readText(), "서버와 브라우저의 marked-yona.js는 같아야 한다")
+        assertTrue(asset("javascripts/lib/marked-yona.js").readText().contains("yb-header-"))
+    }
 }

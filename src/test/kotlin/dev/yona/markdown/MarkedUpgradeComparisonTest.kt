@@ -109,8 +109,23 @@ class MarkedUpgradeComparisonTest {
         m
     }
 
-    /** 선생님이 승인한 차이(입력 이름 → 이유). 승인 전에는 비어 있어야 한다. */
-    private val APPROVED = emptyMap<String, String>()
+    /**
+     * 선생님이 승인한 차이(입력 이름 → 이유, 2026-11-10, D-118). 이름 있는 입력의 차이는 모두 여기에 이유와 함께 적는다.
+     * 무작위 입력의 차이는 같은 원인(아래 [FUZZ_DIFFERENCES])이라 입력별로 적지 않고 건수로 지킨다.
+     */
+    private val APPROVED = mapOf(
+        "작업 목록 느슨함" to "느슨한 작업 목록에서 체크박스 뒤 공백이 줄바꿈으로 바뀐다(화면은 같다)",
+        "중첩 강조" to "`***x***`가 `<strong><em>`에서 CommonMark 순서 `<em><strong>`으로 바뀐다(화면은 같다)",
+        "자동 링크" to "자동 링크의 `href`에서 `&`를 `&amp;`로 쓰지 않고(정화 뒤 같아진다), 맨몸 이메일(`a@b.c`)이 링크가 된다(GFM 확장)",
+        "조각 강조" to "`***둘다***`의 `<strong><em>` 순서",
+        "조각 링크" to "자동 링크의 `&` 표기와 맨몸 이메일의 링크화",
+    )
+
+    /**
+     * 무작위 800건 중 다른 입력의 수(시드 고정). 원인은 CommonMark 0.30 준수와 GFM 자동 링크 확장이다(맨몸 이메일의 링크화, 인라인 HTML 판정, 닫히지 않은 펜스 코드, 강조 경계,
+     * 목록 안 HTML 블록의 끝, 탭 보존, 끝 공백 제거). marked나 `marked-yona.js`를 바꾸면 이 수가 달라질 수 있으므로 달라지면 차이를 다시 훑어 승인받는다.
+     */
+    private val FUZZ_DIFFERENCES = 352
 
     @Test
     fun `서버의 marked는 4_3_0이다`() {
@@ -130,7 +145,13 @@ class MarkedUpgradeComparisonTest {
         different.forEach { (name, t) -> report.append("--- $name\n입력: ${t.first.take(200)}\n기준: ${t.second.take(400)}\n운영: ${t.third.take(400)}\n\n") }
         File("build").mkdirs()
         File("build/marked-upgrade-differences.txt").writeText(report.toString())
-        val unapproved = different.keys - APPROVED.keys
-        assertEquals(emptyList<String>(), unapproved.toList(), "승인되지 않은 차이 ${unapproved.size}건, build/marked-upgrade-differences.txt를 보십시오")
+        val named = different.filterKeys { !it.startsWith("무작위 ") }
+        assertEquals(emptyList<String>(), (named.keys - APPROVED.keys).toList(), "승인되지 않은 차이, build/marked-upgrade-differences.txt를 보십시오")
+        assertEquals(FUZZ_DIFFERENCES, different.keys.count { it.startsWith("무작위 ") }, "무작위 입력의 차이 수가 달라졌다. 새 차이를 훑어 승인받으십시오")
+    }
+
+    @Test
+    fun `승인한 차이가 가리키는 입력은 모두 모음에 있다`() {
+        assertEquals(emptyList<String>(), (APPROVED.keys - corpus.keys).toList())
     }
 }

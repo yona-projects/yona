@@ -61,7 +61,8 @@ class MarkdownRendererTest {
     @Test
     fun `v1_6의 marked_js 결과를 그대로 낸다 (공식 v1_16_0과 같은 입력으로 확인한 모양)`() {
         // 강조 겹침 순서, 줄바꿈 처리, 제목 번호 매기기는 marked.js를 그대로 실행해야 같아진다
-        assertEquals("<p><strong><em>둘다</em></strong></p>", renderer.render("***둘다***").trim())
+        // marked 4.3.0으로 올리며 선생님이 승인한 차이(D-118): v1.6은 <strong><em>, CommonMark 순서는 <em><strong>이다(화면은 같다)
+        assertEquals("<p><em><strong>둘다</strong></em></p>", renderer.render("***둘다***").trim())
         assertEquals("<p>줄바꿈<br />두번째줄</p>", renderer.render("줄바꿈  \n두번째줄").trim())
         assertEquals("<p>세번째<br />네번째</p>", renderer.render("세번째\n네번째").trim())
         val headings = renderer.render("# 한글 제목 & 특수 <b>\n# 제목1\n# 제목1\n")
