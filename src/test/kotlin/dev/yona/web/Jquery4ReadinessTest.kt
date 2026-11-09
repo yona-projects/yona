@@ -35,8 +35,7 @@ class Jquery4ReadinessTest {
             listOf(
                 "lib/jquery/jquery.form.js", "lib/elevator/jquery.elevator.js",
                 "lib/viewerjs/jquery-viewer.js", "lib/jquery.pageslide.js",
-            ).map { File(js, it) } +
-            listOf("bootstrap-typeahead.js", "bootstrap-better-typeahead.js").map { File(bootstrapJs, it) }
+            ).map { File(js, it) }
 
     @Test
     fun `앱 코드와 Yona가 고쳐 쓰는 플러그인은 jQuery 4에서 지워지는 API를 쓰지 않는다`() {
@@ -86,10 +85,10 @@ class Jquery4ReadinessTest {
     }
 
     @Test
-    fun `타입어헤드는 쓰이고 있으므로 남긴다`() {
-        // yona.ui.Typeahead(프로젝트와 조직 구성원 추가, 사이트 대량 메일), yona.issue.LabelEditor, data-provider="typeahead" 입력란이 쓴다.
-        assertTrue(File(bootstrapJs, "bootstrap-typeahead.js").isFile)
-        assertTrue(File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"))
+    fun `타입어헤드는 BS2 플러그인 없이 yona_ui_Typeahead가 맡는다`() {
+        // S-10, A-426: yona.ui.Typeahead(프로젝트와 조직 구성원 추가, 사이트 대량 메일, 이슈 라벨 분류)가 jQuery 플러그인 없이 같은 동작을 한다.
+        assertFalse(File(bootstrapJs, "bootstrap-typeahead.js").exists())
+        assertFalse(File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"))
         assertTrue(File(js, "common/yona.ui.Typeahead.js").isFile)
     }
 }

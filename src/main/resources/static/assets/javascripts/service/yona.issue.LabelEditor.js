@@ -79,8 +79,8 @@
             vars.actionURL = elements.form.prop("action");
             vars.categories = [];
 
-            elements.inputCategory.typeahead();
-            elements.inputCategory.data("typeahead").source = vars.categories;
+            // 분류 이름 자동 완성: 한 글자 이상 쓰면 최대 8개를 보여 준다(v1.6의 BS2 typeahead 기본값). 배열은 나중에 항목을 더해도 반영된다.
+            new yona.ui.Typeahead(elements.inputCategory, { "htData": { "source": vars.categories, "minLength": 1, "maxItems": 8 } });
         }
 
         /**

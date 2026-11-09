@@ -25,7 +25,7 @@ updated: 2026-11-09
 | S-07 | `jquery.requestAs.js`(303줄, 호출 7곳) | `fetch` + `<dialog>` 확인창 | 가능, 중간 규모 | **완료**(2026-11-09, A-422, A′안: `yona.Request` 함수 하나 + 표준 DOM 이벤트. 선언형 연결 층까지 없애는 방식은 후속 논의) |
 | S-08 | `yona.ui.Dialog`, `Toast`, `Dropdown` | Bootstrap 5 컴포넌트 또는 `<dialog>` | 가능. 얇은 껍데기이고 호출은 2~3곳 | **완료**(2026-11-09, A-423, A안: Toast 네이티브 재작성, Dropdown 휠 막기를 CSS로, Dialog 유지. Firefox 휠은 R-145 논의 사항으로 남김) |
 | S-09 | `yona.ui.Calendar`(Pikaday 래퍼) | vanilla-calendar-pro 3.4.0(계약과 위치는 Pikaday와 같게, `D-107`, `A-424`) | 구현 완료, 모양은 달라짐(월과 연 선택이 선택 상자에서 목록으로, 크기와 색) | 완료(2026-11-09, 선생님 확인) |
-| S-10 | `yona.ui.Typeahead`와 better-typeahead | `<datalist>` | 그대로는 어렵다(구성원 추가가 `render`, `updater`로 항목을 꾸미는데 `<datalist>`는 꾸밀 수 없다) | 결정 대기(`S-10 조사`에 선택지) |
+| S-10 | `yona.ui.Typeahead`와 better-typeahead | **BS2 플러그인 없이 같은 API로 다시 씀**(`D-109`, `A-426`. `<datalist>`는 아바타와 값 바꾸기를 못 해 제외) | 완료. 동작은 옛 구현과 같게 시험으로 고정, 모양은 그대로(BS5 `dropdown-menu`) | **완료**(2026-11-09, D-109, A-426) |
 | S-11 | `lib/filetype.js`(1,078줄) | 없음 | 유지(파일 이름 → 아이콘 표) | 유지 |
 | S-12 | `yona.Common.js`의 `xssClean` | Sanitizer API(`Element.setHTML`) | **표준 우선으로 바꿈**(지원하는 브라우저는 표준, Safari 등은 옛 필터. 금지 요소 목록과 변이 XSS 요소를 더 걷어냄) | **완료**(2026-11-09, D-108, A-425) |
 | S-13 | jQuery 유틸 `$.each`(60), `$.extend`(10), `$.proxy`(13), `$.inArray`, `$.map`, `$.grep`, `$.isPlainObject`(약 5), `.animate` 등(7) | `for...of`, `Object.assign`, `bind`, `includes`, `map`, `filter`, CSS 전환 | 쉬운 기계적 치환(약 100곳) | 미착수 |

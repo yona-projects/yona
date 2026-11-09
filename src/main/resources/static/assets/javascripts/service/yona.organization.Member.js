@@ -53,21 +53,13 @@
             });
         }
 
-        function _render(items) {
-            var that = this;
-
-            items = $(items).map(function(i, item) {
-                i = $(that.options.item).attr('data-value', item);
-                var _linkHtml = $('<div />');
-                _linkHtml.append(item);
-                i.find('a').html(_linkHtml.html());
-                return i[0];
-            });
-
-            items.first().addClass('active');
-            this.$menu.html(items);
-            return this;
+        /**
+         * 목록에 그릴 항목 하나의 HTML이다. 서버가 준 `info`(아바타 이미지와 이름)를 그대로 보여 준다.
+         */
+        function _render(item) {
+            return item;
         }
+
         function _updater(item) {
             return htVar.htUserData[item].loginId;
         }

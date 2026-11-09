@@ -173,7 +173,6 @@
     "toggleClass",
     "trigger",
     "triggerHandler",
-    "typeahead",
     "unbind",
     "undelegate",
     "uniqueSort",

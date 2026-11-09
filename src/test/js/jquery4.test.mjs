@@ -102,23 +102,4 @@ export const tests = [
     assert.deepEqual(page.errors, []);
     await page.close();
   } },
-  { name: 'bootstrap-typeahead(BS2): 지워진 환경에서 함수 source로 후보를 보여 준다(isFunction 없이)', run: async () => {
-    const page = await pageWith({ stubs: false, scripts: [BS('bootstrap-typeahead.js')], html: '<input id="i" type="text">' });
-    await page.evaluate(async () => {
-      $('#i').typeahead({ source: function (query, process) { process(['apple', 'avocado', 'banana'].filter((x) => x.indexOf(query) === 0)); }, minLength: 1 });
-      $('#i').val('a').trigger('keyup'); await new Promise((r) => setTimeout(r, 150));
-    });
-    assert.equal(await page.evaluate(() => $('ul.typeahead li').length), 2);
-    assert.deepEqual(page.errors, []);
-    await page.close();
-  } },
-  { name: 'bootstrap-better-typeahead: 지워진 환경에서 빈 질의에도 함수 source가 불린다(isFunction 없이)', run: async () => {
-    const page = await pageWith({ stubs: false, scripts: [BS('bootstrap-typeahead.js'), BS('bootstrap-better-typeahead.js')], html: '<input id="i" type="text">' });
-    await page.evaluate(async () => {
-      $('#i').typeahead({ source: function (query, process) { process(['one', 'two']); }, minLength: 0 });
-      $('#i').trigger('focus').trigger('click'); await new Promise((r) => setTimeout(r, 150));
-    });
-    assert.deepEqual(page.errors, []);
-    await page.close();
-  } },
 ];

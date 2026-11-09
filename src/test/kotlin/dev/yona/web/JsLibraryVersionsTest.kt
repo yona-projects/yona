@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 27, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 26, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -213,5 +213,20 @@ class JsLibraryVersionsTest {
         assertTrue(bundle.contains("http://www.w3.org/1998/Math/MathML") && bundle.contains("http://www.w3.org/2000/svg"), "math와 svg는 이름 공간으로 걷어내야 한다")
         val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(Regex("defence").findAll(bundles).count() >= 2, "옛 필터(Filter.defence)의 정의와 대체 경로의 호출이 번들에 있어야 한다")
+    }
+
+    @Test
+    fun `자동 완성은 BS2 typeahead 플러그인 없이 yona_ui_Typeahead 하나로 동작한다`() {
+        // S-10, A-426: bootstrap-typeahead(2.3.1)와 bootstrap-better-typeahead 플러그인과 그것에 기대던 호출을 걷어냈다.
+        assertTrue(!asset("bootstrap/js/bootstrap-typeahead.js").exists() && !asset("bootstrap/js/bootstrap-better-typeahead.js").exists(), "플러그인 파일은 지웠다")
+        assertTrue(!java.io.File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"), "번들 입력에서 빠져야 한다")
+        assertTrue(!template("common/scripts.html").contains("typeahead"), "scripts.html은 플러그인을 불러오지 않는다")
+        assertEquals(emptyList(), templateFiles().filter { it.readText().contains("data-provider=\"typeahead\"") }.map { it.path }, "BS2 자동 연결용 속성(동작하지도 않던 오타 data-provider)이 남은 템플릿")
+        for (script in listOf("service/yona.project.Member.js", "service/yona.organization.Member.js", "service/yona.issue.LabelEditor.js", "service/yona.site.MassMail.js")) {
+            val text = asset("javascripts/$script").readText()
+            assertTrue(!text.contains("\$menu") && !text.contains("options.item") && !Regex("""\.typeahead\(""").containsMatchIn(text) && !text.contains("data(\"typeahead\")"), "$script 는 플러그인 내부에 기대지 않는다")
+        }
+        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        assertTrue(!bundles.contains("\$.fn.typeahead") && !bundles.contains("typeahead.data-api"), "번들에 플러그인 코드가 없어야 한다")
     }
 }

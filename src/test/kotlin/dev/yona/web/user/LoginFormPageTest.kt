@@ -166,7 +166,7 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         val sources = page().select("script[src]").map { it.attr("src") }
         val expected = listOf(
             "/assets/javascripts/yona-layout.js", "/messages.js", "/assets/javascripts/yona-common.js",
-            "/assets/bootstrap/js/bootstrap-better-typeahead.js", "/assets/bootstrap/js/bootstrap-switch.js",
+            "/assets/bootstrap/js/bootstrap-switch.js",
             "/assets/javascripts/yona-lib.js", "/assets/javascripts/common/yona.Usermenu.js"
         )
         expected.forEach { assertTrue(sources.contains(it), "$it 누락: $sources") }
