@@ -2141,3 +2141,5 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] feat | 이전 화면을 AngularJS에서 Vue 3로 교체(D-120, A-437)
 
 선생님이 지시했다. AngularJS 판과 Vue 판에서 같은 시나리오를 실제 앱으로 돌려 28개 관찰값이 같음을 확인했고 Firefox도 같다. vendor.js(1.6MB)를 지웠다.
+
+회귀(web, audit, i18n, markdown)는 이전 화면 Vue 교체와 highlight.js 11 교체 뒤 9분 18초에 통과했다.
