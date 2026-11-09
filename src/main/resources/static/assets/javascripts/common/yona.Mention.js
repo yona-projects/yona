@@ -25,17 +25,19 @@
  * `yona.Mention({target, url})`, 서버 호출(`url?query=&mentionType=user|issue`), 정렬 규칙, 후보 10개,
  * 이모지 목록, 시작 규칙(공백 뒤에서 시작, 질의 20자까지)은 v1.6과 같다.
  *
- * 입력란을 `<text-expander keys="@ : #">`로 감싸고, 후보 목록은 `<ul class="mention-menu">`로 만들어 요소에 넘긴다.
+ * `target`에 걸리는 모든 `textarea`와 `input`을 `<text-expander keys="@ : #" data-mention-url="...">`로 감싸고,
+ * 후보 목록은 `<ul class="mention-menu">`로 만들어 요소에 넘긴다. At.js와 같이 그 밖의 요소(`<review-editor>` 등)는 건드리지 않는다.
  * 요소 정의는 `common/scripts.html`이 모듈로 불러온다. 모듈이 늦게 정의되어도 이미 감싼 요소는 정의되는 때에 붙는다.
+ *
+ * 이벤트는 문서 전체에서 캡처 단계로 한 번만 받는다. 요소가 보내는 이벤트(`text-expander-change` 등)는 버블링하지 않지만
+ * 캡처 단계는 지나가고, 감싼 요소의 속성(`data-mention-url`)은 복제(`cloneNode`, jQuery `clone`)되어도 남는다.
+ * 그래서 코드 diff처럼 입력란을 복제해 만드는 화면에서도 따로 호출하지 않고 후보가 열린다.
  *
  * @param {Object} htOptions
  * @param {String} htOptions.target 입력란 선택자(`textarea`)
  * @param {String} htOptions.url 사용자와 이슈 후보를 돌려주는 주소
  */
-yona.Mention = function(htOptions) {
-
-    var htVar = {};
-    var htElement = {};
+(function() {
 
     /** 후보를 보여 줄 최대 개수(At.js `limit`) */
     var LIMIT = 10;
@@ -43,92 +45,158 @@ yona.Mention = function(htOptions) {
     var MAX_QUERY_LENGTH = 20;
     /** 사용자 검색의 입력 지연(밀리초). v1.6은 마지막 입력 300ms 뒤에 서버에 묻는다 */
     var USER_SEARCH_DELAY = 300;
+    /** 감싼 요소에 서버 주소를 남기는 속성 */
+    var URL_ATTRIBUTE = "data-mention-url";
+
+    var EMOJIS = [
+        { name: "+1", content: "👍" },
+        { name: "heart", content: "❤️️" },
+        { name: "wink", content: "😘" },
+        { name: "smile", content: "🙂" },
+        { name: "confused", content: "😕" },
+        { name: "check", content: "✅" },
+        { name: "hooray", content: "🎉" },
+        { name: "sad", content: "😢" },
+        { name: "-1", content: "👎" },
+        { name: "tada", content: "🎉" },
+        { name: "x", content: "❌" },
+        { name: "o", content: "⭕" },
+        { name: "face smile", content: "😄" },
+        { name: "face smile kiss", content: "😙" },
+        { name: "face kissing", content: "😗" },
+        { name: "face astonished", content: "😲" },
+        { name: "face angry", content: "😠" },
+        { name: "face scream", content: "😱" },
+        { name: "face cry", content: "😢" },
+        { name: "face neutral", content: "😐" },
+        { name: "face heart", content: "😍" },
+        { name: "question?", content: "❓" },
+        { name: "!", content: "❗️" },
+        { name: "bangbang!", content: "‼️" },
+        { name: "beer", content: "🍺" },
+        { name: "icecream", content: "🍦" },
+        { name: "korea", content: "🇰🇷" },
+        { name: "us america", content: "🇺🇸" },
+        { name: "fr", content: "🇫🇷" },
+        { name: "cn china", content: "🇨🇳" },
+        { name: "+100", content: "💯" },
+        { name: "heavy check", content: "✔️"},
+        { name: "+plus", content: "➕"},
+        { name: "-minus", content: "➖️"},
+        { name: "cactus", content: "🌵️"},
+        { name: "animal cat", content: "🐈"},
+        { name: "clover", content: "🍀"},
+        { name: "v️", content: "✌️"},
+        { name: "lock", content: "🔒"},
+        { name: "unlock", content: "🔓"},
+        { name: "idea bulb", content: "💡"},
+        { name: "bomb", content: "💣"},
+        { name: "calendar", content: "📆"},
+        { name: "date", content: "📅"},
+        { name: "chicken", content: "🐔"},
+        { name: "mushroom", content: "🍄"},
+        { name: "moneybag", content: "💰"},
+        { name: "money dollar", content: "💵"},
+        { name: "envelope", content: "✉️"},
+        { name: "chart upward", content: "📈"},
+        { name: "chart downward", content: "📉"},
+        { name: "택배 parcel", content: "📦"},
+        { name: "박수 clap", content: "👏"},
+        { name: "game joker", content: "🃏"},
+        { name: "game cards", content: "🎴"},
+        { name: "game die", content: "🎲"},
+        { name: "tea", content: "🍵"},
+        { name: "coffee", content: "☕"},
+        { name: "crystal", content: "🔮"},
+        { name: "taxi", content: "🚕"},
+        { name: "bus", content: "🚌"},
+        { name: "train", content: "🚋"},
+        { name: "warn", content: "⚠️"},
+        { name: "star", content: "⭐"},
+        { name: "phone", content: "☎️"},
+        ];
+
+    /** 감싼 요소마다의 상태(검색 순서와 입력 지연). 요소가 복제되어도 처음 이벤트에서 새로 만든다 */
+    var oContexts = new WeakMap();
+    var bInstalled = false;
 
     /**
-     * Initialize
-     *
-     * @param {Hash Table} htOptions
-     */
-    function _init(htOptions){
-        _initVar(htOptions);
-        if(!_initElement()){
-            return;
-        }
-        _wrap();
-        _attachEvent();
-    }
-
-    /**
-     * Initialize Variables
-     *
-     * @param {Hash Table} htOptions
-     */
-    function _initVar(htOptions) {
-        htVar = htOptions || {};
-        htVar.userSearch = _newSource(_searchUsers);
-        htVar.issueSearch = _newSource(_searchIssues);
-    }
-
-    /**
-     * Initialize Element variables
-     *
-     * @return {Boolean} 입력란을 찾았는지
-     */
-    function _initElement() {
-        if (!htVar.target) {
-            if (window.console) {
-                console.error("mention form element targeting doesn't exist!");
-            }
-            return false;
-        }
-        htElement.elTarget = $(htVar.target).get(0);
-        return !!htElement.elTarget;
-    }
-
-    /**
-     * 입력란을 `<text-expander>`로 감싼다. 이미 감싸져 있으면 그대로 둔다.
+     * 입력란을 `<text-expander>`로 감싼다. 이미 감싸져 있으면 주소만 갱신한다.
      *
      * 요소는 연결될 때 안쪽의 입력란을 찾으므로 입력란을 담은 뒤에 문서에 넣는다.
      * 입력란 자체는 옮겨질 뿐 같은 요소이므로 위에 걸린 핸들러는 유지된다. 포커스는 다시 돌려 둔다.
+     *
+     * @param {HTMLElement} elTarget
+     * @param {String} sUrl
      */
-    function _wrap() {
-        var elTarget = htElement.elTarget;
+    function _wrap(elTarget, sUrl) {
         var elParent = elTarget.parentNode;
         if(elParent && elParent.tagName === "TEXT-EXPANDER"){
-            htElement.elExpander = elParent;
+            elParent.setAttribute(URL_ATTRIBUTE, sUrl);
             return;
         }
         var bFocused = (document.activeElement === elTarget);
         var elExpander = document.createElement("text-expander");
         elExpander.setAttribute("keys", "@ : #");
+        elExpander.setAttribute(URL_ATTRIBUTE, sUrl);
         var elNext = elTarget.nextSibling;
         elExpander.appendChild(elTarget);
         elParent.insertBefore(elExpander, elNext);
         if(bFocused){
             elTarget.focus();
         }
-        htElement.elExpander = elExpander;
     }
 
     /**
-     * attachEvent
+     * 문서 전체에서 한 번만 이벤트를 듣는다(캡처 단계).
      */
-    function _attachEvent() {
-        var elExpander = htElement.elExpander;
-        if(elExpander.__yonaMention){
+    function _install() {
+        if(bInstalled){
             return;
         }
-        elExpander.__yonaMention = true;
-        elExpander.addEventListener("text-expander-change", _onChange);
-        elExpander.addEventListener("text-expander-value", _onValue);
-        elExpander.addEventListener("keydown", _onKeydownCapture, true);
+        bInstalled = true;
+        document.addEventListener("text-expander-change", _onChange, true);
+        document.addEventListener("text-expander-value", _onValue, true);
+        document.addEventListener("keydown", _onKeydownCapture, true);
+    }
+
+    /**
+     * 이벤트가 멘션을 붙인 요소에서 왔는지 찾는다.
+     *
+     * @param {Node} elNode
+     * @return {HTMLElement|null} `data-mention-url`이 있는 `<text-expander>`
+     */
+    function _expanderOf(elNode) {
+        if(!elNode || !elNode.closest){
+            return null;
+        }
+        var elExpander = elNode.closest("text-expander");
+        return (elExpander && elExpander.hasAttribute(URL_ATTRIBUTE)) ? elExpander : null;
+    }
+
+    /**
+     * 요소의 상태를 가져온다. 없으면 만든다.
+     */
+    function _contextOf(elExpander) {
+        var htContext = oContexts.get(elExpander);
+        if(!htContext){
+            htContext = {
+                "url": elExpander.getAttribute(URL_ATTRIBUTE),
+                "timer": null,
+                "waiting": []
+            };
+            htContext.userSearch = _newSource(function(sQuery){ return _searchUsers(htContext, sQuery); });
+            htContext.issueSearch = _newSource(function(sQuery){ return _searchIssues(htContext, sQuery); });
+            oContexts.set(elExpander, htContext);
+        }
+        return htContext;
     }
 
     /**
      * 후보 목록이 열려 있는지
      */
-    function _isMenuOpen() {
-        return !!htElement.elExpander.querySelector(".mention-menu");
+    function _isMenuOpen(elExpander) {
+        return !!elExpander.querySelector(".mention-menu");
     }
 
     /**
@@ -141,7 +209,8 @@ yona.Mention = function(htOptions) {
      * @param {KeyboardEvent} eEvt
      */
     function _onKeydownCapture(eEvt) {
-        if(!_isMenuOpen()){
+        var elExpander = _expanderOf(eEvt.target);
+        if(!elExpander || !_isMenuOpen(elExpander)){
             return;
         }
         if(eEvt.isComposing || eEvt.keyCode === 229){
@@ -151,7 +220,7 @@ yona.Mention = function(htOptions) {
         if(eEvt.altKey && eEvt.key === "Enter"){
             eEvt.preventDefault();
             eEvt.stopPropagation();
-            htElement.elTarget.dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter", "bubbles": true, "cancelable": true}));
+            eEvt.target.dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter", "bubbles": true, "cancelable": true}));
         }
     }
 
@@ -164,10 +233,14 @@ yona.Mention = function(htOptions) {
      * @param {CustomEvent} eEvt text-expander-change
      */
     function _onChange(eEvt) {
+        var elExpander = _expanderOf(eEvt.target);
+        if(!elExpander){
+            return;
+        }
         var htDetail = eEvt.detail;
         var sKey = htDetail.key;
         var sQuery = htDetail.text;
-        var elTarget = htElement.elTarget;
+        var elTarget = elExpander.querySelector("textarea, input");
 
         var nKeyPos = elTarget.selectionEnd - sQuery.length - sKey.length;
         var sBefore = nKeyPos > 0 ? elTarget.value.charAt(nKeyPos - 1) : "";
@@ -175,11 +248,12 @@ yona.Mention = function(htOptions) {
             return;
         }
 
+        var htContext = _contextOf(elExpander);
         var pSource;
         if(sKey === "@"){
-            pSource = htVar.userSearch(sQuery);
+            pSource = htContext.userSearch(sQuery);
         } else if(sKey === "#"){
-            pSource = htVar.issueSearch(sQuery);
+            pSource = htContext.issueSearch(sQuery);
         } else {
             pSource = Promise.resolve({"query": sQuery, "items": _filterEmojis(sQuery)});
         }
@@ -195,7 +269,9 @@ yona.Mention = function(htOptions) {
      * @param {CustomEvent} eEvt text-expander-value
      */
     function _onValue(eEvt) {
-        eEvt.detail.value = eEvt.detail.item.getAttribute("data-value");
+        if(_expanderOf(eEvt.target)){
+            eEvt.detail.value = eEvt.detail.item.getAttribute("data-value");
+        }
     }
 
     /**
@@ -217,21 +293,18 @@ yona.Mention = function(htOptions) {
         };
     }
 
-    var nSearchTimer = null;
-    var aWaitingUsers = [];
-
     /**
      * 사용자 후보. 마지막 입력 후 300ms 뒤에 서버에 한 번만 묻는다.
      * 그 사이에 들어온 앞선 호출도 같은 결과를 받아 끝난다(끝나지 않은 채로 남지 않는다).
      */
-    function _searchUsers(sQuery) {
+    function _searchUsers(htContext, sQuery) {
         return new Promise(function(resolve){
-            aWaitingUsers.push(resolve);
-            clearTimeout(nSearchTimer);
-            nSearchTimer = setTimeout(function(){
-                var aResolvers = aWaitingUsers;
-                aWaitingUsers = [];
-                _fetch("user", sQuery).then(function(aResult){
+            htContext.waiting.push(resolve);
+            clearTimeout(htContext.timer);
+            htContext.timer = setTimeout(function(){
+                var aResolvers = htContext.waiting;
+                htContext.waiting = [];
+                _fetch(htContext.url, "user", sQuery).then(function(aResult){
                     var htResult = {"query": sQuery, "items": _sortUsers(sQuery, aResult)};
                     aResolvers.forEach(function(fResolve){ fResolve(htResult); });
                 });
@@ -242,8 +315,8 @@ yona.Mention = function(htOptions) {
     /**
      * 이슈 후보. 입력 지연 없이 바로 묻는다.
      */
-    function _searchIssues(sQuery) {
-        return _fetch("issue", sQuery).then(function(aResult){
+    function _searchIssues(htContext, sQuery) {
+        return _fetch(htContext.url, "issue", sQuery).then(function(aResult){
             return {"query": sQuery, "items": _sortIssues(sQuery, aResult).slice(0, LIMIT)};
         });
     }
@@ -251,14 +324,15 @@ yona.Mention = function(htOptions) {
     /**
      * 서버에서 후보를 받아 온다. 진행 표시(NProgress)를 켜고 응답이나 실패에서 끈다.
      *
+     * @param {String} sUrl
      * @param {String} sType user 또는 issue
      * @param {String} sQuery
      * @return {Promise<Array>}
      */
-    function _fetch(sType, sQuery) {
+    function _fetch(sUrl, sType, sQuery) {
         return new Promise(function(resolve){
             NProgress.start();
-            var oRequest = $.getJSON(htVar.url, {"query": sQuery, "mentionType": sType}, function(data){
+            var oRequest = $.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, function(data){
                 NProgress.done();
                 resolve((data && data.result) || []);
             });
@@ -377,73 +451,22 @@ yona.Mention = function(htOptions) {
         return {"matched": aItems.length > 0, "fragment": elMenu};
     }
 
-    var EMOJIS = [
-        { name: "+1", content: "👍" },
-        { name: "heart", content: "❤️️" },
-        { name: "wink", content: "😘" },
-        { name: "smile", content: "🙂" },
-        { name: "confused", content: "😕" },
-        { name: "check", content: "✅" },
-        { name: "hooray", content: "🎉" },
-        { name: "sad", content: "😢" },
-        { name: "-1", content: "👎" },
-        { name: "tada", content: "🎉" },
-        { name: "x", content: "❌" },
-        { name: "o", content: "⭕" },
-        { name: "face smile", content: "😄" },
-        { name: "face smile kiss", content: "😙" },
-        { name: "face kissing", content: "😗" },
-        { name: "face astonished", content: "😲" },
-        { name: "face angry", content: "😠" },
-        { name: "face scream", content: "😱" },
-        { name: "face cry", content: "😢" },
-        { name: "face neutral", content: "😐" },
-        { name: "face heart", content: "😍" },
-        { name: "question?", content: "❓" },
-        { name: "!", content: "❗️" },
-        { name: "bangbang!", content: "‼️" },
-        { name: "beer", content: "🍺" },
-        { name: "icecream", content: "🍦" },
-        { name: "korea", content: "🇰🇷" },
-        { name: "us america", content: "🇺🇸" },
-        { name: "fr", content: "🇫🇷" },
-        { name: "cn china", content: "🇨🇳" },
-        { name: "+100", content: "💯" },
-        { name: "heavy check", content: "✔️"},
-        { name: "+plus", content: "➕"},
-        { name: "-minus", content: "➖️"},
-        { name: "cactus", content: "🌵️"},
-        { name: "animal cat", content: "🐈"},
-        { name: "clover", content: "🍀"},
-        { name: "v️", content: "✌️"},
-        { name: "lock", content: "🔒"},
-        { name: "unlock", content: "🔓"},
-        { name: "idea bulb", content: "💡"},
-        { name: "bomb", content: "💣"},
-        { name: "calendar", content: "📆"},
-        { name: "date", content: "📅"},
-        { name: "chicken", content: "🐔"},
-        { name: "mushroom", content: "🍄"},
-        { name: "moneybag", content: "💰"},
-        { name: "money dollar", content: "💵"},
-        { name: "envelope", content: "✉️"},
-        { name: "chart upward", content: "📈"},
-        { name: "chart downward", content: "📉"},
-        { name: "택배 parcel", content: "📦"},
-        { name: "박수 clap", content: "👏"},
-        { name: "game joker", content: "🃏"},
-        { name: "game cards", content: "🎴"},
-        { name: "game die", content: "🎲"},
-        { name: "tea", content: "🍵"},
-        { name: "coffee", content: "☕"},
-        { name: "crystal", content: "🔮"},
-        { name: "taxi", content: "🚕"},
-        { name: "bus", content: "🚌"},
-        { name: "train", content: "🚋"},
-        { name: "warn", content: "⚠️"},
-        { name: "star", content: "⭐"},
-        { name: "phone", content: "☎️"},
-    ];
+    /**
+     * @param {Object} htOptions
+     */
+    yona.Mention = function(htOptions) {
+        htOptions = htOptions || {};
+        if (!htOptions.target) {
+            if (window.console) {
+                console.error("mention form element targeting doesn't exist!");
+            }
+            return;
+        }
+        var aTargets = $(htOptions.target).filter("textarea, input").get();
+        aTargets.forEach(function(elTarget){
+            _wrap(elTarget, htOptions.url);
+        });
+        _install();
+    };
 
-    _init(htOptions || {});
-};
+})();

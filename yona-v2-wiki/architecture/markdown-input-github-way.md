@@ -29,5 +29,5 @@ updated: 2026-11-09
 `yona.Mention({target, url})`의 호출 모양은 그대로 두고 엔진만 At.js에서 text-expander-element로 바꿨다. Safari 보호막과 Alt+Enter 처리를 넣었고 At.js와 caret 플러그인을 지웠다. import map은 모듈 태그 뒤에 오면 Firefox가 무시하므로 레이아웃 `<head>`의 첫 부분에 둔다. 실제 앱에서 두 브라우저로 43개 항목을 확인했다.
 
 ## 남은 일
-1. 실제 한글 입력기, 실제 2단 보기, 코드 diff, SVN diff, 풀 리퀘스트, 마일스톤 화면에서의 확인.
+1. 실제 한글 입력기로 쓰는 확인(선생님). 코드 diff, SVN diff, 풀 리퀘스트, 마일스톤, 실제 2단 보기는 옛 빌드와 같음을 확인했다(A-418).
 2. 단추 모양과 단축키.

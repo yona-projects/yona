@@ -1987,3 +1987,7 @@ IME, 2단 보기, Alt 키, 캐럿 네 건을 Chromium과 Firefox로 다시 확�
 
 `yona.Mention.js`를 호출 모양 그대로 두고 엔진만 바꿨다. import map이 모듈 태그 뒤에 있으면 Firefox가 무시하는 문제를 실제 앱에서 찾아 레이아웃 head로 옮겼다. 실제 앱 43개 항목 통과. At.js, atwho.css, jquery.caret을 지웠다.
 관련 Gradle 시험(`dev.yona.web.*`, `audit.*`, `i18n.*`)은 9분 12초에 통과했다(멘션 교체 뒤). 전체 H2 시험은 돌리지 않았다.
+
+## [2026-11-09] verify | 멘션 교체 나머지 화면 확인(옛 빌드와 나란히)
+
+코드 diff, SVN diff, 풀 리퀘스트, 마일스톤, 실제 2단 보기를 새 jar와 옛 jar로 같은 데이터에서 비교해 모두 같았다. 확인 중 여러 입력란과 복제된 입력란에서 동작하지 않을 수 있는 문제를 찾아 문서 단위 캡처 이벤트와 `data-mention-url`로 고쳤다.

@@ -176,4 +176,29 @@ export const tests = [
     assert.deepEqual(page.errors, []);
     await page.close();
   } },
+  { name: '선택자가 여러 입력란에 걸리면 모두 감싸고 각각 따로 동작한다(코드 diff의 textarea[id^=editor-])', run: async () => {
+    const page = await open({ html: '<div id="box"><textarea id="editor-a" style="width:200px;height:50px"></textarea><textarea id="editor-b" style="width:200px;height:50px"></textarea></div>', init: false });
+    await page.evaluate(() => { yona.Mention({ target: 'textarea[id^=editor-]', url: '/mention' }); });
+    assert.equal(await page.evaluate(() => document.querySelectorAll('text-expander').length), 2);
+    for (const id of ['editor-a', 'editor-b']) {
+      await page.evaluate((id) => { const t = document.getElementById(id); t.value = ''; t.focus(); }, id); await page.keyboard.type('@bo', { delay: 25 }); await page.waitForTimeout(900);
+      assert.deepEqual(await menu(page), ['Bob Lee bob'], id); await page.keyboard.press('Enter'); await page.waitForTimeout(150);
+      assert.equal(await page.evaluate((id) => document.getElementById(id).value, id), '@bob ', id);
+    }
+    await page.close();
+  } },
+  { name: 'textarea나 input이 아닌 요소(<review-editor> 같은 사용자 정의 요소)는 감싸지 않고 지나간다(At.js도 붙이지 않았다)', run: async () => {
+    const page = await open({ html: '<div id="box"><review-editor id="r"></review-editor></div>', init: false });
+    await page.evaluate(() => { yona.Mention({ target: 'review-editor', url: '/mention' }); });
+    assert.equal(await page.evaluate(() => document.querySelectorAll('text-expander').length), 0);
+    assert.deepEqual(page.errors, []);
+    await page.close();
+  } },
+  { name: '복제한 입력란(.clone)에도 후보가 열린다(코드 diff의 댓글 상자는 틀을 복제해 만든다)', run: async () => {
+    const page = await open({ html: '<div id="box"><div id="tpl"><textarea id="editor-x" style="width:200px;height:50px"></textarea></div></div><div id="dest"></div>', init: false });
+    await page.evaluate(() => { yona.Mention({ target: 'textarea[id^=editor-]', url: '/mention' }); const c = $('#tpl').clone(true, true); c.find('textarea').attr('id', 'editor-y'); $('#dest').append(c); });
+    await page.evaluate(() => { const t = document.getElementById('editor-y'); t.value = ''; t.focus(); }); await page.keyboard.type('@bo', { delay: 25 }); await page.waitForTimeout(900);
+    assert.deepEqual(await menu(page), ['Bob Lee bob']);
+    await page.close();
+  } },
 ];
