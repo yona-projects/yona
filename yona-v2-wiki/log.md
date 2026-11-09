@@ -1973,3 +1973,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] decision | D-105 마크다운 입력란은 GitHub 방식(textarea + 서버 미리보기 + 웹 컴포넌트 보강)
 
 선생님이 GitHub 방식으로 가자고 결정하셨다. CodeMirror 계열(EasyMDE 3, 직접 사용, 라이브 프리뷰)은 채택하지 않는다. S-03(`yona.KeyControl.js`)은 B안으로 닫았다.
+
+## [2026-11-09] experiment | text-expander-element로 At.js 패치 네 건 재확인
+
+IME, 2단 보기, Alt 키, 캐럿 네 건을 Chromium과 Firefox로 다시 확인했다. 모두 조건을 만족하고 Safari형 조합 중 Enter 보호막 한 줄과 Alt+Enter 차이만 남는다. `architecture/markdown-editor-trial.md`에 기록했다.

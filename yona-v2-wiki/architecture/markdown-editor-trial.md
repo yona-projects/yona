@@ -7,6 +7,7 @@ sources:
   - ../e2e/editortrial.tmp/fill.mjs
   - ../e2e/cmmodule.tmp/editor.js
   - ../e2e/cmmodule.tmp/run.mjs
+  - ../e2e/textexp.tmp.mjs
   - decisions.md
 updated: 2026-11-09
 ---
@@ -132,3 +133,18 @@ EasyMDE 3의 문제였던 앞뒤 공백 자르기가 **생기지 않는다**(문
 
 ### 판단
 세 요건을 모두 만족하는 방식이 번들러 없이 성립한다. EasyMDE 3 beta보다 낫다: 앞뒤 공백 자르기가 없고, 멘션이 공식 확장(`autocomplete`)을 쓰며, beta 의존이 없다. 대가는 **툴바, 미리보기, 테마를 직접 만들어야 하고(`components/editor`에 TypeScript로 있으나 번들 전제), 20개 vendor 파일을 직접 관리한다**는 점이다. 아직 확인하지 않은 것: 실제 Yona 화면, 툴바와 미리보기, 첨부 삽입과 `yona.Attachments.js` 연동, 한글 조합의 Firefox 확인, Shadow DOM 안에서의 동작.
+
+## text-expander-element 재확인: At.js 패치 네 건 (2026-11-09, D-105 후속)
+`@github/text-expander-element` 2.9.4(`combobox-nav` 사용)를 textarea에 붙여 At.js 패치 네 건의 조건을 Chromium과 Firefox로 다시 확인했다(`e2e/textexp.tmp.mjs`, 본문 13개 항목은 `/tmp/.../c-trial`의 이전 시험과 같은 결과). 서버 조회(`mentionType=user|issue`)는 가짜 응답이고 후보 상자는 `text-expander` 요소 안에 만들어진다.
+
+| 패치 항목 | 결과 |
+|---|---|
+| **IME** (2018-03, 이벤트가 `undefined`일 때 방어) | `undefined` 이벤트 오류는 없다(`compositionstart/end`와 `keyup` 합성 후 페이지 오류 0). 한글 질의 `알`로 서버 후보(`알리스 박`)가 뜨고 Enter로 `@alis2 `가 삽입된다(두 브라우저). 조합 중에도 후보 목록은 보인다(At.js에서 `suspendOnComposing: false`와 같다). 조합 중 keydown이 Chrome, Firefox처럼 `key="Process"`(keyCode 229)로 오면 Enter가 후보를 고르지 않는다(`x @a` 유지, 확정 뒤 `x @아`). **Safari처럼 조합 중에도 `key="Enter"`(isComposing=true)로 오면 후보를 골라 `x @alice 아`가 된다.** 원인은 후보 목록을 갱신할 때마다 `combobox-nav`의 `Combobox`를 새로 만들어 `isComposing`이 초기화되는 것이다(`text-expander-element.js` 47, 78줄). **보호막** `text-expander`에 캡처 단계 keydown 한 줄(`e.isComposing \|\| e.keyCode === 229`이면 `stopPropagation`)을 더하면 막힌다(확인함). 이 한 줄은 컴포넌트 연결 코드에 둔다 |
+| **2단 보기** (2017-04, iframe 안의 부모 창 좌표) | 페이지가 iframe 안에 있고 iframe 안 문서가 스크롤된 경우에도 후보가 열리고 선택된다. 후보 상자는 iframe 안 문서의 `text-expander` 요소 안에만 생기고 바깥 문서에는 없다(`바깥문서의상자수 0`). 좌표 보정이 필요 없는 구조라 패치 대상 자체가 없다. 긴 본문(스크롤된 textarea)의 끝에서도 입력란 안쪽에 뜬다. 실제 2단 보기(`pageslide`가 띄우는 이슈 화면)에서는 확인하지 않았다 |
+| **Alt 키** (2014-05) | Alt가 눌리면 `combobox-nav`가 키를 무시한다. Alt+Enter는 삽입하지 않고(At.js는 삽입) 글자와 후보가 그대로이며, Alt+ArrowDown과 Alt 단독도 문서를 깨지 않고 이어지는 Enter는 정상 삽입된다. **차이는 Alt+Enter 하나**이고 오류는 없다 |
+| **캐럿** (2014-04) | 줄 중간 삽입 뒤 캐럿이 삽입 글자 바로 뒤에 있고(`aaa @alice X bbb`, 캐럿 12), 이모지(서로게이트 쌍) 삽입 뒤 이어 입력이 맞다(`x 🙂 X`). 후보 상자는 캐럿 줄 바로 아래에 뜬다. 삽입 뒤 Ctrl+Z는 되돌려지지 않는다(At.js와 같다) |
+
+### 해석
+- **네 건 모두 조건을 만족한다.** 단 두 가지가 남는다: (1) Safari형 조합 중 Enter를 막는 보호막 한 줄이 필요하다. (2) Alt+Enter 삽입은 지원되지 않는다. Alt+Enter 삽입은 v1.6 At.js의 동작이지만 사용자가 쓰는 단축키로 알려진 것은 없고, 필요하면 `text-expander-value` 대신 별도 keydown으로 `Alt+Enter`를 `Enter`로 바꿔 줄 수 있다.
+- 실제 한글 입력기(Chromium CDP 합성이 아닌)로 쓰는 확인은 이번에도 하지 못했다. 선생님이 직접 확인해 주셔야 한다.
+- 이전 제목 머리말(`[`) 시험 결과(D-102)는 라벨 선택에 내부 동작에 기대는 우회 코드가 필요해서 제목 입력란에는 `<title-input>`을 쓰고, 본문만 `text-expander`로 가는 구성이 맞다.
