@@ -97,21 +97,29 @@ export const tests = [
     const r = await page.evaluate(() => { const c = yona.ui.Calendar(document.getElementById('due'), { silent: true }); c.setDate(''); return { v: document.getElementById('due').value, n: window.__changes, d: c.getDate() }; });
     assert.deepEqual(r, { v: '2026-03-15', n: 0, d: null }); await page.close();
   } },
-  { name: '달력: 입력란에 직접 쓰고 change 가 나면 달력이 그 날로 가고 값은 YYYY-MM-DD로 바로잡힌다(Pikaday처럼 change 가 한 번 더 나간다)', run: async () => {
-    const page = await open(); await page.evaluate(() => { window.__changes = 0; });
+  { name: '달력: 입력란에 직접 쓰고 change 가 나면 달력이 그 날로 가고 값은 YYYY-MM-DD로 바로잡히며 change 는 새로 나가지 않는다(R-146 (2): 원래 change 하나가 바로잡힌 값을 들고 간다)', run: async () => {
+    const page = await open(); await page.evaluate(() => { window.__changes = 0; window.__seen = []; document.addEventListener('change', (e) => { if (e.target.id === 'due') window.__seen.push(e.target.value); }); });
     await page.evaluate(() => { const i = document.getElementById('due'); i.value = '2027-2-3'; i.dispatchEvent(new Event('change', { bubbles: true })); });
-    assert.equal(await value(page), '2027-02-03'); assert.equal(await page.evaluate(() => window.__changes), 2, '쓴 change 와 setDate 의 change');
+    assert.equal(await value(page), '2027-02-03'); assert.equal(await page.evaluate(() => window.__changes), 1, '쓴 change 하나뿐');
+    assert.deepEqual(await page.evaluate(() => window.__seen), ['2027-02-03'], '뒤의 처리기는 바로잡힌 값을 본다');
     await page.click('#cal'); await page.waitForTimeout(250); assert.equal(await selected(page), '3'); await page.close();
+  } },
+  { name: '달력: 이미 정규 형식인 값을 직접 써도 change 는 한 번이다(마감일 저장이 두 번 나가던 것)', run: async () => {
+    const page = await open(); await page.evaluate(() => { window.__changes = 0; });
+    await page.evaluate(() => { const i = document.getElementById('due'); i.value = '2027-03-09'; i.dispatchEvent(new Event('change', { bubbles: true })); });
+    assert.equal(await page.evaluate(() => window.__changes), 1); await page.close();
   } },
   { name: '달력: 날짜가 아닌 글자를 쓰고 change 가 나면 값은 그대로 두고 달력도 바뀌지 않는다', run: async () => {
     const page = await open(); await page.evaluate(() => { window.__changes = 0; });
     await page.evaluate(() => { const i = document.getElementById('due'); i.value = '내일'; i.dispatchEvent(new Event('change', { bubbles: true })); });
     assert.equal(await value(page), '내일'); assert.equal(await page.evaluate(() => window.__changes), 1); await page.close();
   } },
-  { name: '달력: 값이 있고 silent 가 아니면 처음에 setDate 를 한 번 불러 change 가 나가고, data-silent="true"이면 나가지 않는다(마감일 보기와 검색 폼의 차이)', run: async () => {
-    const a = await open(); assert.equal(await a.evaluate(() => window.__changes), 1, '값이 있으면 처음에 change 한 번'); await a.close();
-    const b = await open({ attrs: 'data-toggle="calendar" data-silent="true"' }); assert.equal(await b.evaluate(() => window.__changes), 0); assert.equal(await value(b), '2026-03-15'); await b.close();
-    const c = await open({ value: '' }); assert.equal(await c.evaluate(() => window.__changes), 0, '값이 없으면 부르지 않는다'); await c.close();
+  { name: '달력: 처음 초기화할 때는 change 를 내지 않고(R-146 (3), 값이 있어도 silent 여부와 무관), 입력란 값은 YYYY-MM-DD로 맞추며 선택일이 된다', run: async () => {
+    for (const attrs of ['data-toggle="calendar"', 'data-toggle="calendar" data-silent="true"']) {
+      const a = await open({ attrs, value: '2026-3-15' }); assert.equal(await a.evaluate(() => window.__changes), 0, attrs); assert.equal(await value(a), '2026-03-15', '값은 조용히 바로잡는다');
+      await a.click('#cal'); await a.waitForTimeout(250); assert.equal(await selected(a), '15'); await a.close();
+    }
+    const c = await open({ value: '' }); assert.equal(await c.evaluate(() => window.__changes), 0); assert.equal(await value(c), ''); await c.close();
   } },
   { name: '달력: 같은 입력란을 다시 초기화해도 달력은 새로 만들어지지 않는다', run: async () => {
     const page = await open();

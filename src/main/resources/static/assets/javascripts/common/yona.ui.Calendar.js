@@ -26,10 +26,12 @@
  * 계약(v1.6과 같다):
  * - `data-toggle="calendar"` 입력란은 문서가 준비되면 자동으로 초기화되고, `data-*` 속성이 곧 옵션이다(`data-silent="true"` 등).
  * - 값 형식은 `YYYY-MM-DD`이다. 날짜를 고르거나 `setDate()`를 부르면 입력란 값이 바뀌고 입력란에 `change`가 나간다.
- * - 입력란에 값이 있고 `silent`가 아니면 처음에 `setDate(값)`을 한 번 부른다(그래서 처음에도 `change`가 한 번 나간다).
+ * - 처음 초기화할 때는 `change`를 내지 않는다. 입력란에 값이 있으면 그 날짜를 선택일로 삼고 값만 `YYYY-MM-DD`로 조용히 바로잡는다
+ *   (v1.6은 처음에도 `change`를 한 번 내서 이슈 보기를 열 때 마감일이 저장될 수 있었다, R-146 (3)). `data-silent`는 받지만 이제 하는 일이 없다.
  * - 입력란 바로 다음 형제 `.btn-calendar`를 누르면 달력이 열린다.
  * - 입력란을 누르거나 초점을 두면 열리고, 바깥을 누르면 닫힌다. 위치는 입력란의 왼쪽 아래에 틈 없이 붙고, 오른쪽이나 아래가 화면을 넘치면 뒤집힌다.
- * - 입력란에 직접 쓰고 `change`가 나면 그 날짜로 이동하고 값을 `YYYY-MM-DD`로 바로잡는다(이때 `change`가 한 번 더 나간다).
+ * - 입력란에 직접 쓰고 `change`가 나면 그 날짜로 이동하고 값을 `YYYY-MM-DD`로 바로잡는다. 새 `change`는 내지 않는다: 지금 퍼지고 있는 그 `change`가
+ *   바로잡힌 값을 들고 가기 때문이다(v1.6은 한 번 더 내서 마감일 저장이 두 번 나갔다, R-146 (2)).
  * - `setDate("")`는 선택만 풀고 입력란 값은 그대로 둔다(Pikaday의 동작을 유지한 것이다).
  *
  * 월 이름과 요일은 Yona의 언어 설정(`yona.language`, 레이아웃의 스크립트 조각이 현재 요청의 언어로 채운다)을 따르고, 설정이 없거나 브라우저가 모르는 언어면
@@ -217,10 +219,10 @@
                 });
                 targetElement.data("calendar", picker);
 
-                // 입력란에 직접 쓴 값을 읽는다(Pikaday의 _onInputChange). 자기가 낸 change는 다시 읽지 않는다.
+                // 입력란에 직접 쓴 값을 읽는다(Pikaday의 _onInputChange). 자기가 낸 change는 다시 읽지 않고, 새 change는 내지 않는다.
                 field.addEventListener("change", function(evt){
                     if (evt.firedBy === picker) { return; }
-                    _setDate(field.value);
+                    _apply(field.value, false);
                 });
             } else {
                 picker = targetElement.data("calendar");
@@ -230,8 +232,9 @@
                 targetElement.data("calendar").show();
             });
 
-            if(targetElement.val().length > 0 && options.silent !== true){
-                _setDate(targetElement.val());
+            // 처음에는 입력란의 값을 선택일로 삼고 값만 바로잡는다. change는 내지 않는다.
+            if(targetElement.val().length > 0){
+                _apply(targetElement.val(), false);
             }
         }
 
@@ -245,11 +248,20 @@
             return targetElement.data("calendar").getDate();
         }
 
-        function _setDate(dateStr){
+        /**
+         * 날짜를 선택하고 입력란 값을 `YYYY-MM-DD`로 바로잡는다. [notify]가 참일 때만 change를 낸다.
+         * 읽을 수 없는 글자는 아무것도 바꾸지 않는다. 빈 값은 선택만 푼다.
+         */
+        function _apply(dateStr, notify){
             var current = targetElement.data("calendar");
             if (current.select(dateStr)) {
-                _write(current.getDate());
+                field.value = _toString(current.getDate());
+                if (notify) { _fireChange(field, picker); }
             }
+        }
+
+        function _setDate(dateStr){
+            _apply(dateStr, true);
         }
 
         _init(element, userOptions || {});
