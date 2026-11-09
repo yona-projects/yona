@@ -118,3 +118,29 @@ updated: 2026-11-09
 - **B**: A에 더해 `$.ajax`를 네이티브 `XMLHttpRequest`로 바꾼다. 헤더와 오류 모양을 맞춰야 하므로 S-14와 함께 하는 편이 낫다.
 - **C**: 그대로 둔다. 비용은 없지만 도달하지 않는 코드가 남는다.
 
+## S-07 조사 (`jquery.requestAs.js`, 2026-11-09)
+`lib/jquery/jquery.requestAs.js`(303줄)는 Yobi 시절(2013) 팀이 만든 jQuery 플러그인이다. 단추나 링크를 누르면 `POST`, `PUT`, `DELETE` 요청을 보내고 끝나면 화면을 새로 고치거나 서버가 알려 준 곳으로 옮긴다. 삭제, 투표, 상태 바꾸기, 관리자 조치처럼 "눌러서 서버에 한 번 알리고 화면을 갱신"하는 곳이 모두 이것을 쓴다. 공식 라이브러리가 아니라 우리 코드다.
+
+### 쓰는 곳
+- **선언형(자동 연결)**: 문서가 준비되면 `$("[data-request-method]").requestAs()`가 모든 요소에 붙는다. 마크업 요소 **31개**(14개 템플릿): `post` 18, `delete` 10, `put` 1. 템플릿: `issue/view`, `code/partial-comment-thread`, `pullrequest/partial-state`, `milestone/view`, `project/webhooks`, `code/branches`, `code/tags`, `site/user-list`, `user/edit-emails`, `board/view`, `layout/layout`, `pullrequest/view`, `pullrequest/partial-search`, `layout/migration-layout`. 요소에 `data-request-method`(방식)와 `data-request-uri`(주소, 없으면 `href`)를 둔다.
+- **코드에서 직접(7곳)**: `site/project-list.html`(프로젝트 삭제 확인 단추), `site/user-list.html`(계정 삭제, `fOnError`로 403이면 새로 고침), `yona.project.Delete.js`(`sMethod`, `sHref`, `fOnError`), `yona.Comment.js`(댓글 삭제 확인 단추), `yona.issue.View.js` 396(타임라인에 나중에 들어온 삭제 단추), `yona.code.Diff.js` 130과 `yona.git.View.js` 122(`data("requestAs").on("beforeRequest", …)`로 수락 단추를 비활성화하고 진행 표시를 켬). 확인창 단추 쪽은 `.data('requestUri', …).data('requestMethod', 'delete').requestAs()`처럼 jQuery 데이터를 채우고 부른다.
+
+### 지켜야 하는 동작
+1. 누르기(`click`)와 Enter(`keydown`)로 요청한다. `<a>`에 `GET`이면 아무것도 붙이지 않는다(보통 링크, C003). 요소에 `cursor: pointer`를 준다.
+2. 요청: 방식은 `data-request-method`, 주소는 `data-request-uri` 또는 `href`, 응답은 문자열(`dataType: "text"`)로 받는다. 누르면 `preventDefault`와 `stopPropagation`을 해서 다른 클릭 처리기로 가지 않는다.
+3. 사용자 정의 이벤트 `beforeRequest`(처리기가 `false`를 돌려주면 요청을 보내지 않는다), `load`(`false`면 기본 동작을 하지 않는다), `error`와 옵션 `fOnLoad`, `fOnError`.
+4. 성공의 기본 동작: 상태가 204이고 `Location` 머리글이 있으면 그곳으로 이동하고, 아니면 화면을 새로 고친다.
+5. 실패의 기본 동작: 상태 200이면 새로 고치고, 204이면 `Location`으로 이동하며, 그 밖의 오류는 **아무것도 하지 않는다**(사용자에게 알리지 않는다, v1.6 그대로).
+6. 이 플러그인은 `keyCode !== 13`을 쓰는 곳이 남아 있다(S-05의 훑기는 `lib/`를 보지 않았다).
+
+### 쟁점
+- **클릭 처리 순서**: 지금은 요소마다 직접 걸어 `stopPropagation`이 조상의 처리기를 막는다. 문서 전체 위임(`document.addEventListener`)으로 바꾸면 조상의 처리기가 먼저 돈 뒤라 달라진다(`code/branches`, `code/tags`는 요청 전에 삭제 확인을 캡처 단계에서 걸어 두었다). 요소마다 직접 거는 방식을 유지하면 순서가 같다.
+- **나중에 들어온 요소**: 지금은 `issue.View`가 타임라인을 다시 그린 뒤 `requestAs()`를 다시 불러 준다. 위임이면 필요 없지만 위 순서 문제가 따른다.
+- **jQuery 데이터**: 확인창 쪽 5곳은 `.data()`에 값을 넣고 부른다(속성이 아니다). 네이티브로 바꾸면 옵션으로 넘기도록 호출처를 고쳐야 한다.
+- 요청: `fetch`로 충분하다(진행률이 필요 없다). 토큰은 `yona.Csrf.js`가 `fetch`를 가로채 싣는다. `Location` 머리글은 같은 출처 응답이라 읽을 수 있고, `$.ajax`가 달던 `X-Requested-With`는 직접 단다.
+
+### 선택지
+- **A (권장)**: 같은 동작의 작은 네이티브 모듈(`yona.RequestAs`, 약 120줄)로 바꾼다. 선언형은 문서가 준비되면 요소마다 직접 걸고(순서 유지), 코드에서 직접 부르는 7곳은 옵션을 넘기는 호출로 바꾸며, `beforeRequest` 같은 이벤트는 모듈이 돌려주는 객체에 붙인다. 플러그인 파일을 지운다.
+- **B**: htmx(D-96으로 들여온 것)의 `hx-post`, `hx-delete`로 바꾼다. 서버가 204와 `Location`을 주는 계약(`HX-Redirect`가 아님)을 바꿔야 하고 마크업 31곳도 바뀐다. v1.6 계약을 바꾸므로 권하지 않는다.
+- **C**: 그대로 둔다. jQuery 4에서도 도는 것을 확인했고 비용이 없다. jQuery 전체 제거(S-14) 때 같이 정리한다.
+
