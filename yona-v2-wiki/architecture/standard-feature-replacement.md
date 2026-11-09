@@ -302,7 +302,7 @@ updated: 2026-11-09
 | `Common.js` `$.extend`(팝오버 옵션) | `content: undefined`를 넘기면 덮어쓴다 | 호출 5곳 확인(`user.Setting`만 값이 비어 있을 수 있고 부트스트랩이 빈 값은 같게 처리) | 프로필 설정, 가입, 비밀번호 재설정, 프로젝트 만들기의 오류 말풍선(추가 확인: 비밀번호 변경의 빈 입력 말풍선 3개를 두 브라우저로 확인) |
 | `Common.js` `$.parseHTML` → `parseHtml` | 문서 소유자가 `<template>`의 빈 문서라 이미지 등을 읽는 동안 불러오지 않는다(jQuery도 같음) | `<tr>` 조각, script 제거, 글자 조각이 같음을 값 비교로 확인 | 템플릿으로 그리는 화면(첨부 목록, 알림) |
 | `Pagination.js` `$.extend`(대상을 바꾸는 2곳) | undefined 복사 | 이슈 목록 쪽 넘김 링크가 그려지는 것 확인 | 목록 아래 이전, 다음 쪽 |
-| `pullrequest.Reviewers.js` `$.parseHTML` → `DOMParser` | 문서 전체를 읽는 방식이 달라짐. `#review-area`가 없으면 아무것도 바꾸지 않는 점은 같게 함 | 새 시험(script 미실행, 밖은 가져오지 않음) | 풀 리퀘스트에서 리뷰 요청과 취소 직후 영역 갱신 |
+| `pullrequest.Reviewers.js` `$.parseHTML` → `DOMParser` | 문서 전체를 읽는 방식이 달라짐. `#review-area`가 없으면 아무것도 바꾸지 않는 점은 같게 함 | 새 시험(script 미실행, 밖은 가져오지 않음). **실제 화면 확인 완료(2026-11-09)**: e2e 데이터의 `acme/web`에 풀 리퀘스트(feature-a → master)를 직접 만들어 리뷰 요청(`POST .../reviewRequests`) 뒤 리뷰 영역이 새로 그려지고 대기 중인 리뷰어와 취소 단추가 생기며, 취소 뒤 다시 갱신되는 것을 Chromium과 Firefox로 확인 | 풀 리퀘스트에서 리뷰 요청과 취소 직후 영역 갱신 |
 | `OriginalMessage.js` `$.each` → `Array.from(...).forEach` | 없음(인자 순서만) | 새 시험(구분선 숨김과 "..." 펼침) | 이메일로 온 댓글의 인용 숨기기(추가 확인: 실제 번들에서 구분선과 인용 숨김, 단추 생성을 두 브라우저로 확인, 이메일로 온 실제 댓글은 없어 주입한 표지로 확인) |
 | 그 밖의 `$.proxy`(Files), `$.inArray`, `$.isEmptyObject`, `jQuery.map` | 값 비교로 같음 | 파일 첨부와 끌어 놓기, 프로젝트 만들기 검증, 코드 보기 | 이슈 작성의 파일 올리기(추가 확인: 코드 보기에서 README.md가 마크다운으로 그려짐을 두 브라우저로 확인) |
 
