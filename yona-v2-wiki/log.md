@@ -1969,3 +1969,7 @@ jQuery 3.7.1과 jQuery UI 1.14.2 효과 묶음, 손대지 않은 벤더 파일(a
 ## [2026-11-09] experiment | CodeMirror 6 직접 사용(번들 없이 script type=module) 시험
 
 선생님의 세 요건(번들 없는 module, 제출과 채우기, 멘션 3종)을 임시 폴더에서 두 브라우저로 확인했다. 20개 vendor 파일과 import map, 4.3KB 소스로 모두 통과했고 EasyMDE 3의 앞뒤 공백 자르기는 생기지 않았다. `architecture/markdown-editor-trial.md`에 기록했다. 코드는 바꾸지 않았다.
+
+## [2026-11-09] decision | D-105 마크다운 입력란은 GitHub 방식(textarea + 서버 미리보기 + 웹 컴포넌트 보강)
+
+선생님이 GitHub 방식으로 가자고 결정하셨다. CodeMirror 계열(EasyMDE 3, 직접 사용, 라이브 프리뷰)은 채택하지 않는다. S-03(`yona.KeyControl.js`)은 B안으로 닫았다.
