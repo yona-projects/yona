@@ -28,7 +28,7 @@ updated: 2026-11-08
 
 | 파일 | 고친 내용(v1.6 커밋 제목) |
 |---|---|
-| jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과 |
+| jquery.pageslide | 2단 보기 도입, 자연스러운 로딩 효과. **Bootstrap 오프캔버스로 대체해 지웠다**(D-115, A-432, 2026-11-09) |
 | At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch (**text-expander-element로 대체되어 지웠다, D-106, A-418**) |
 | jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
