@@ -32,7 +32,7 @@ updated: 2026-11-08
 | At.js(와 caret) | IME 버그 수정, 2단 보기용 monkey patch (**text-expander-element로 대체되어 지웠다, D-106, A-418**) |
 | jquery.form | FileUploader의 XHR 업로드(MSIE) 수정 |
 | Viewer.js | 렌더 목록 transform 이동 방지(공식과 2글자 차이) |
-| Pikaday | 마감일 추가, import 경로 이동 |
+| Pikaday | **JS 패치 없음**(공식 저장소 2014-05-26 커밋 `c43be6c2c`와 같음, 2026-11-09 대조). 커밋 제목의 "마감일 추가"는 래퍼와 템플릿 작업이고 JS는 사본 교체였다. **CSS는 Yona가 고쳐 유지**(월과 연도 단추 모양, z-index 등) |
 | js-xss | XSS 방어 수정 5건 |
 | select2 | **패치 없음(정정)**: 공식 3.4.5 배포본(cdnjs)과 공백 무시 0줄, 공백 포함해도 들여쓰기 한 줄 차이. "860자"는 이 들여쓰기가 바이트 비교를 밀어 만든 숫자였다. 4.1.0 교체(D-95)로 해당 없음 |
 | marked | 사용자 지정 패치(37건) |
