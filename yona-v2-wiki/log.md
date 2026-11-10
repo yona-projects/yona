@@ -2208,3 +2208,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 템플릿(`code/view.html`, `common/calendar.html`)이 moment를 더 부르지 않는다. 라이브러리 파일은 시험의 기준으로 남겼고 삭제는 사용자 확인을 기다린다.
 
 전체 회귀(web, audit, i18n, markdown)는 moment 제거와 XSS 수정 뒤 9분 33초에 1건 실패(영어 화면에 남은 한글 주석)했고 고친 뒤 해당 시험이 통과했다. JS 시험은 612개.
+
+## [2026-11-10] refactor | 보류 항목 처리(D-124): 초안 타이머, 스크롤 처리기
+
+- 5번: 초안 저장 타이머를 입력란별로 나누고 수정 댓글은 댓글 번호 키로 저장한다. 댓글 제출 때와 1시간마다 모든 초안 타이머를 취소한다.
+- 10번: `issue.MassUpdate`의 `stuck` 판정을 `IntersectionObserver`로, `code.Diff` 코드 영역의 스레드 가로 고정을 CSS `sticky`로 바꿨다. 실제 커밋 화면에서 옛 방식과 6개 스크롤 지점의 위치가 같다.
+- 발견한 결함: `$(document.body).scrollTop()`이 표준 모드에서 항상 0이라 미니맵 현재 위치 표시가 움직이지 않았다(`code.Diff`, `code.SvnDiff`). 고쳤다.

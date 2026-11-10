@@ -53,7 +53,6 @@ const Diff = function(htOptions){
         htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
         htVar.sParentCommitId = htOptions.sParentCommitId;
         htVar.sCommitId = htOptions.sCommitId;
-        htVar.htThreadWrap = {};
 
         // 미니맵
         htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -114,15 +113,6 @@ const Diff = function(htOptions){
 
         // 리뷰카드 링크 클릭시
         htElement.welReviewWrap.on("click", "a.review-card", _onClickReviewCardLink);
-
-        // Diff 영역에서 스크롤시
-        // .comment-thread-wrap 의 좌우 위치를 맞춰준다
-        $(".diff-partial-code").on("scroll", function(){
-            const welPartial = $(this);
-            const sHashCode = $(this).data("hashcode");
-            htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
-            htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
-        });
 
         $(window).on("hashchange", _onHashChange);
 
@@ -465,7 +455,7 @@ const Diff = function(htOptions){
      * @private
      */
     function _doesCommentBoxOutOfWindow(){
-        const nScrollTop = $(document.body).scrollTop();
+        const nScrollTop = $(window).scrollTop();
         const nOffsetTop = yona.CodeCommentBox.offset().top;
 
         return (nScrollTop + window.innerHeight < nOffsetTop) ||
@@ -609,7 +599,7 @@ const Diff = function(htOptions){
     }
 
     function _updateMiniMapCurr(){
-        htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
+        htElement.welMiniMapCurr.css("top", Math.ceil($(window).scrollTop() * htVar.nMiniMapRatio) + "px");
     }
 
     function _resizeMiniMapCurr(){

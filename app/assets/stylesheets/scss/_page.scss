@@ -5881,6 +5881,13 @@ label.issue-item-row {
                 overflow-x: auto;
                 overflow-y: hidden;
 
+                // 코드가 가로로 스크롤되어도 댓글 스레드는 화면 왼쪽에 붙어 있다. 예전에는 스크롤 때마다 JS가 margin-left를 스크롤량으로
+                // 바꿨고(code.Diff.js), 지금은 CSS sticky가 한다(D-124, 동작 차이 10번). 나중에 추가된 스레드도 따라온다.
+                .comment-thread-wrap {
+                    position: sticky;
+                    left: 0;
+                }
+
                 .patch-header {
                     .path {
                         display:block;

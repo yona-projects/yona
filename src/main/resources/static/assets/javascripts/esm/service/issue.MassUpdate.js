@@ -38,18 +38,26 @@ const MassUpdate = function(htOptions){
 
     /**
      * 막대 줄이 `position: sticky`로 화면 위쪽에 붙어 있는 동안 `stuck` 클래스를 켠다.
-     * CSS는 붙었는지를 알 수 없어, 줄이 화면 맨 위에 닿았는지를 스크롤마다 확인한다(A-301).
+     * CSS는 붙었는지를 알 수 없어, 줄이 붙기 전 자연스러운 위치가 화면 맨 위에 닿았는지 본다(A-301).
+     * 예전에는 스크롤과 창 크기 변경마다 `getBoundingClientRect()`를 읽었고, 지금은 `IntersectionObserver`가 알려 준다(D-124, 동작 차이 10번).
+     *
+     * `stuck`이 붙으면 줄의 패딩이 바뀌어 높이가 달라지므로 줄 자신을 관찰하면 떨림이 생긴다. 그래서 줄 바로 위에 높이 0의 표지를 두고
+     * 그것을 관찰한다. 표지의 윗변이 화면 위로 올라가(1px 안쪽 기준) 사라지면 줄이 붙은 것이다.
      */
     function _markStuckWhileScrolling(){
         const $row = $('.filter-wrap.mass-update-sticky');
         if($row.length === 0){
             return;
         }
-        const update = function(){
-            $row.toggleClass('stuck', $row[0].getBoundingClientRect().top <= 0);
-        };
-        $(window).on('scroll resize', update);
-        update();
+        const sentinel = document.createElement('div');
+        sentinel.setAttribute('aria-hidden', 'true');
+        sentinel.style.cssText = 'height:0;margin:0;padding:0;border:0;';
+        $row[0].parentNode.insertBefore(sentinel, $row[0]);
+        const observer = new IntersectionObserver((entries) =>{
+            const entry = entries[entries.length - 1];
+            $row.toggleClass('stuck', !entry.isIntersecting && entry.boundingClientRect.top <= 0);
+        }, {"rootMargin": "-1px 0px 0px 0px", "threshold": [0, 1]});
+        observer.observe(sentinel);
     }
 
     /**

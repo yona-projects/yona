@@ -7,16 +7,16 @@ const TPL = `<script type="text/x-yona-template" id="labelListItem">
 <li data-value="\${id}" data-category="\${category}"><a><span class="issue-label active list-label" data-label-id="\${id}">\${name}</span></a></li>
 </script>`;
 const issueLabels = (category, id, name) => `${category},${id},${name},9,false`;
-const HTML = (labelsOfIssue1) => `${TPL}
-<div class="inner"><input id="check-all" type="checkbox">
+const HTML = (labelsOfIssue1, sticky = false) => `${TPL}
+${sticky ? '<style>body{margin:0}.filter-wrap.mass-update-sticky{position:sticky;top:0;height:30px;background:#fff}</style><div style="height:300px">위 여백</div><div class="filter-wrap mass-update-sticky">막대</div><div style="height:3000px">긴 목록</div>' : ''}<div class="inner"><input id="check-all" type="checkbox">
 <input class="chk" type="checkbox" data-issue-id="1" data-issue-labels="${labelsOfIssue1.replace(/"/g, '&quot;')}">
 <div id="st"></div><div id="as"></div><div id="ms"></div>
 <div id="al"><button>붙이기</button></div><div id="dl" data-name="detachingLabelIds"><button>떼기</button></div>
 <ul id="attach-label-list"><li data-category="Bug" data-value="1">Bug1</li></ul><ul id="delete-label-list"></ul>
 <div id="btns"><button>b</button></div><form id="mf"></form><div id="pagination"></div></div>`;
 
-async function open(labels) {
-  const page = await pageWith({ stubs: false, html: HTML(labels), scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'common/yona.Common.js'] });
+async function open(labels, sticky = false) {
+  const page = await pageWith({ stubs: false, html: HTML(labels, sticky), scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'common/yona.Common.js'] });
   await page.evaluate(() => {
     yona.ui = yona.ui || {}; yona.ui.Dropdown = function () { this.onChange = function () {}; };
     yona.ShortcutKey = { attach() {} };
@@ -55,5 +55,25 @@ export const tests = [
     const page = await open(issueLabels('Bug', 5, '<b>bold</b>'));
     await check(page); const r = await list(page);
     assert.equal(r.imgs, 0); assert.deepEqual(r.labels, [['5', 'Bug', '<b>bold</b>']]); await page.close();
+  } },
+  { name: '붙는 막대: 스크롤해서 막대가 화면 위에 닿으면 stuck을 달고, 올라오면 뗀다(경계 포함, 스크롤 위치별로 getBoundingClientRect().top <= 0과 같다)', run: async () => {
+    const page = await open(issueLabels('Bug', 1, 'x'), true);
+    const out = [];
+    for (const y of [0, 100, 250, 298, 299, 300, 301, 302, 400, 1000, 300, 250, 0]) {
+      await page.evaluate((y) => window.scrollTo(0, y), y);
+      await page.waitForFunction(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))), null, { timeout: 3000 });
+      await page.waitForTimeout(60);
+      out.push(await page.evaluate((y) => { const row = document.querySelector('.filter-wrap.mass-update-sticky'); return [y, row.classList.contains('stuck'), row.getBoundingClientRect().top <= 0]; }, y));
+    }
+    // 막대의 stuck 클래스는 padding을 바꿔 높이가 달라지므로, 판정 기준은 "붙기 전 자연스러운 위치"가 화면 위에 닿았는가이다. 자연 위치 300px 근처 한 칸(1px) 차이는 허용한다
+    const mismatches = out.filter(([y, stuck]) => stuck !== (y >= 300));
+    assert.deepEqual(mismatches, [], JSON.stringify(out)); assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '붙는 막대: 창 크기가 바뀌어 막대가 이미 위에 붙어 있게 되면 stuck을 단다', run: async () => {
+    const page = await open(issueLabels('Bug', 1, 'x'), true);
+    await page.evaluate(() => window.scrollTo(0, 1000)); await page.waitForTimeout(150);
+    assert.equal(await page.evaluate(() => document.querySelector('.filter-wrap.mass-update-sticky').classList.contains('stuck')), true);
+    await page.setViewportSize({ width: 700, height: 500 }); await page.waitForTimeout(150);
+    assert.equal(await page.evaluate(() => document.querySelector('.filter-wrap.mass-update-sticky').classList.contains('stuck')), true); await page.close();
   } },
 ];

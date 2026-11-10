@@ -505,7 +505,7 @@ const SvnDiff = function(htOptions){
     }
 
     function _updateMiniMapCurr(){
-        htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
+        htElement.welMiniMapCurr.css("top", Math.ceil($(window).scrollTop() * htVar.nMiniMapRatio) + "px");
     }
 
     function _resizeMiniMapCurr(){
