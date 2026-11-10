@@ -331,4 +331,15 @@ class JsLibraryVersionsTest {
         val scripts = File("src/main/resources/static/assets/javascripts/service").listFiles()!!.joinToString("\n") { f -> f.readLines().filter { !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(it) }.joinToString("\n") }
         assertTrue(!Regex("new Favico\\(|new FormValidator\\(").containsMatchIn(scripts), "옛 호출이 남아 있다")
     }
+
+    @Test
+    fun `ES 모듈 뼈대는 import map의 yona 접두어와 index_js 진입점으로 이어진다`() {
+        // D-122: 모듈을 하나씩 옮겨 가는 길. esm/namespace.js가 옛 전역 이름 공간에 등록하는 다리이다
+        val importmap = File("src/main/resources/templates/common/importmap.html").readText()
+        assertTrue(importmap.contains("\"yona/\": \"[[@{/assets/javascripts/esm/}]]\""), "import map에 yona/ 접두어가 있어야 한다")
+        val scripts = File("src/main/resources/templates/common/scripts.html").readText()
+        assertTrue(scripts.contains("""<script type="module" th:src="@{/assets/javascripts/esm/index.js}"></script>"""))
+        listOf("javascripts/esm/index.js", "javascripts/esm/namespace.js").forEach { assertTrue(asset(it).isFile, it) }
+        assertTrue(asset("javascripts/esm/index.js").readText().contains("""import { register, ensureNamespace } from "yona/namespace.js";"""))
+    }
 }

@@ -2151,3 +2151,7 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] docs | 소규모 lib 파일과 화면별 JS의 현대화 검토, marked 4.3.0 유지 확정(D-121)
 
 `architecture/modern-js-review.md`에 정리했다. 죽은 코드 3개(diff.js, jquery.browser.js, magnific-popup.css)를 찾았다. 코드는 바꾸지 않았다.
+
+## [2026-11-10] feat | 소규모 lib 파일과 화면별 JS 현대화 4단계와 ES 모듈 뼈대(D-122, A-438)
+
+죽은 코드 3개, humanize, rgbcolor, parseuri, jquery.elevator, Favico.js, validate.js를 없애고 문법 자동 고침(83개 파일)과 ES 모듈 뼈대를 더했다.

@@ -3,7 +3,8 @@
   문서의 어떤 `<script type="module">`보다 앞에 있어야 하므로 레이아웃의 `<head>`에서 가장 먼저 포함한다.
   (Firefox는 모듈 태그 뒤에 오는 import map을 무시한다. 페이지마다 `<head>` 뒤에 모듈 태그를 따로 두는 화면이 있다.)
   - `@github/combobox-nav`: `lib/text-expander/text-expander-element.js`가 가져오는 후보 목록 키보드 이동 모듈
+  - `yona/`: ES 모듈 뼈대(D-122). `esm/` 폴더의 모듈을 `import { register } from "yona/namespace.js"`처럼 이름으로 가져온다
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="importmap">
-<script type="importmap" th:inline="text">{"imports": {"@github/combobox-nav": "[[@{/assets/javascripts/lib/text-expander/combobox-nav.js}]]"}}</script>
+<script type="importmap" th:inline="text">{"imports": {"@github/combobox-nav": "[[@{/assets/javascripts/lib/text-expander/combobox-nav.js}]]", "yona/": "[[@{/assets/javascripts/esm/}]]"}}</script>
 </th:block>
