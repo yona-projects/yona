@@ -123,11 +123,11 @@ class JsLibraryVersionsTest {
 
     @Test
     fun `복사는 yona_Clipboard 도우미를 거치고 화면이 그것을 불러온다`() {
-        val helper = File(assets, "javascripts/common/yona.Clipboard.js")
+        val helper = File(assets, "javascripts/esm/Clipboard.js")
         assertTrue(helper.isFile, "yona.Clipboard.js가 있어야 한다")
         val text = helper.readText()
         assertTrue(text.contains("navigator.clipboard") && text.contains("isSecureContext") && text.contains("execCommand"), "클립보드 API를 먼저 쓰고 보안 연결이 아니면 대체 수단을 쓴다")
-        assertTrue(File(templates, "common/scripts.html").readText().contains("common/yona.Clipboard.js"), "scripts.html이 도우미를 불러와야 한다")
+        assertTrue(File(templates, "common/scripts.html").readText().contains("esm/Clipboard.js"), "scripts.html이 도우미를 불러와야 한다")
         assertTrue(File(templates, "code/history.html").readText().contains("yona.Clipboard.copy"), "커밋 번호 복사가 도우미를 써야 한다")
         assertTrue(File(assets, "javascripts/esm/service/project.Home.js").readText().contains("yona.Clipboard.copy"), "저장소 주소 복사가 도우미를 써야 한다")
     }

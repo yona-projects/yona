@@ -1,10 +1,10 @@
-// `common/yona.Clipboard.js`와 이슈 보기의 메일 복사 단추(clipboard.js를 대신한다, S-01)를 확인한다.
+// `esm/Clipboard.js`와 이슈 보기의 메일 복사 단추(clipboard.js를 대신한다, S-01)를 확인한다.
 import assert from 'node:assert/strict';
 import { pageWith, templateSnippet } from './harness.mjs';
 
 /** 보안 연결 여부와 표준 API, execCommand를 시험용으로 바꿔 놓은 페이지. */
 async function setup(extra = '') {
-  const page = await pageWith({ html: '<div id="box"></div><textarea id="paste"></textarea>', scripts: ['common/yona.Clipboard.js'] });
+  const page = await pageWith({ html: '<div id="box"></div><textarea id="paste"></textarea>', scripts: ['esm/Clipboard.js'] });
   await page.evaluate(`
     window.__calls = [];
     window.__secure = true;
