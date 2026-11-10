@@ -54,44 +54,58 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   // this resolves those loginIds to user objects so that each sharer has a type (3.x initSelection)
   const selectedLoginIds = ($issueSharer.val() || []).join(",");
   if (selectedLoginIds !== "") {
-    yona.http.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
-      dataType: "json"
-    }).done((data) => {
+    (async () => {
+      let data;
+      try {
+        data = await yona.http.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
+          dataType: "json"
+        });
+      } catch (failure) {
+        return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+      }
       if(data && data.length > 0) {
         yona.ui.Select2.selectUsers($issueSharer, data);
       }
-    });
+    })();
   }
 
-  $issueSharer.on("select2:selecting", (selected) => {
+  $issueSharer.on("select2:selecting", async (selected) => {
     const chosen = userOf(selected.params.args.data);
     const data = { sharer: {loginId: chosen.loginId, type: chosen.type}, action: 'add'};
 
     if(updateSharingApiUrl){
-        yona.http.ajax(updateSharingApiUrl, {
-            method: "POST",
-            dataType: "json",
-            contentType: "application/json",
-            data: JSON.stringify(data)
-        }).done((response) =>{
-            $yona.notify(response.action + ": " + response.sharer, 3000);
-        });
+        let response;
+        try {
+            response = await yona.http.ajax(updateSharingApiUrl, {
+                method: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            });
+        } catch (failure) {
+            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+        }
+        $yona.notify(response.action + ": " + response.sharer, 3000);
     }
   });
 
-  $issueSharer.on("select2:unselecting", (selected) => {
+  $issueSharer.on("select2:unselecting", async (selected) => {
     const removed = userOf(selected.params.args.data);
     const data = { sharer: {loginId: removed.loginId, type: removed.type}, action: 'delete'};
 
     if(updateSharingApiUrl){
-      yona.http.ajax(updateSharingApiUrl, {
-        method: "POST",
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify(data)
-      }).done((response) =>{
-        $yona.notify(response.action + ": " + response.sharer, 3000);
-      });
+      let response;
+      try {
+        response = await yona.http.ajax(updateSharingApiUrl, {
+          method: "POST",
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify(data)
+        });
+      } catch (failure) {
+        return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+      }
+      $yona.notify(response.action + ": " + response.sharer, 3000);
     }
   });
 

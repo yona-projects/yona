@@ -146,21 +146,28 @@ const Member = function(htOptions){
      * @private
      */
     function _onSubmitAddNewMember(evt){
-        yona.http.ajax(htElement.formAddNewMember.attr("action"), {
-            "method"  : "post",
-            "dataType": "json",
-            "data"    : {
-                "loginId": htElement.inputAddNewMember.val()
-            }
-        }).done(() =>{
-            location.reload();
-        }).fail((res) =>{
-            const error = JSON.parse(res.responseText);
-            $yona.notify(error.loginId.pop(), 3000);
-        });
+        // 핸들러가 false를 돌려줘야 기본 제출이 막히므로 요청은 안쪽 async 함수로 분리한다
+        _addNewMember();
 
         evt.preventDefault();
         return false;
+    }
+
+    async function _addNewMember(){
+        try {
+            await yona.http.ajax(htElement.formAddNewMember.attr("action"), {
+                "method"  : "post",
+                "dataType": "json",
+                "data"    : {
+                    "loginId": htElement.inputAddNewMember.val()
+                }
+            });
+        } catch (res) {
+            const error = JSON.parse(res.responseText);
+            $yona.notify(error.loginId.pop(), 3000);
+            return;
+        }
+        location.reload();
     }
 
     /**

@@ -89,25 +89,28 @@ $(() => {
             escapeMarkup: function (m) { return m; }
         });
 
-        $assignee.on("change", () => {
+        $assignee.on("change", async () => {
             if (formMode) { return; }
             const loginId = $assignee.val();
-            yona.http.ajax(urls.assignees, {
-                method: "POST",
-                dataType: "json",
-                contentType: "application/json",
-                data: JSON.stringify({assignees: loginId ? [loginId] : []})
-            }).done((response) => {
-                $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
-                refreshTimeline();
-            }).fail((xhr) => {
+            let response;
+            try {
+                response = await yona.http.ajax(urls.assignees, {
+                    method: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify({assignees: loginId ? [loginId] : []})
+                });
+            } catch (xhr) {
                 failed(Messages("issue.assignee"), xhr);
-            });
+                return;
+            }
+            $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
+            refreshTimeline();
         });
     }
 
     // 라벨
-    $("#labelIds").on("change", (evt) => {
+    $("#labelIds").on("change", async (evt) => {
         if (formMode) { return; }
         const data = {};
         const changes = yona.ui.Select2.selectionChanges(evt.target);
@@ -115,11 +118,13 @@ $(() => {
         const removed = idsOf(changes.removed);
         if (added) { data.attachingLabelIds = added; }
         if (removed) { data.detachingLabelIds = removed; }
-        yona.http.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(() => {
-            $yona.notify(Messages("issue.update.labelIds"), 3000);
-            refreshTimeline();
-        }).fail((xhr) => {
+        try {
+            await yona.http.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data});
+        } catch (xhr) {
             failed(Messages("issue.update.labelIds"), xhr);
-        });
+            return;
+        }
+        $yona.notify(Messages("issue.update.labelIds"), 3000);
+        refreshTimeline();
     });
 });

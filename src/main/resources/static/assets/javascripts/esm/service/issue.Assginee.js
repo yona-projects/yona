@@ -54,27 +54,37 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   // this resolves that loginId to a user object so that the user is shown with the avatar (3.x initSelection)
   const selectedLoginId = $assignee.val();
   if (selectedLoginId) {
-    yona.http.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
-      dataType: "json"
-    }).done((data) => {
+    (async () => {
+      let data;
+      try {
+        data = await yona.http.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
+          dataType: "json"
+        });
+      } catch (failure) {
+        return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+      }
       if(data && data.length > 0) {
         yona.ui.Select2.selectUsers($assignee, [data[0]]);
       }
-    });
+    })();
   }
 
-  $assignee.on("select2:selecting", (selected) => {
+  $assignee.on("select2:selecting", async (selected) => {
     const data = { assignees: [selected.params.args.data.id] };
 
     if(updateAssgineesApiUrl){
-        yona.http.ajax(updateAssgineesApiUrl, {
-            method: "POST",
-            dataType: "json",
-            contentType: "application/json",
-            data: JSON.stringify(data)
-        }).done((response) =>{
-            $yona.notify(message + ": " + response.assignee.name, 3000);
-        });
+        let response;
+        try {
+            response = await yona.http.ajax(updateAssgineesApiUrl, {
+                method: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            });
+        } catch (failure) {
+            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+        }
+        $yona.notify(message + ": " + response.assignee.name, 3000);
     }
   });
 }

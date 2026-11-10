@@ -19,7 +19,9 @@ async function open() {
     yona.ui = yona.ui || {}; yona.ui.Typeahead = function (sel, o) { window.__ta = o.htData; };
     $yona.sendForm = (o) => window.__send.push(o); $yona.alert = (m) => window.__alerts.push(m); $yona.notify = (m) => window.__notes.push(m);
     $yona.ajaxConfirm = (m, o, _x, b) => window.__ac.push([m, o, b]);
-    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.dataType, o.data]); const h = { done() { return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; } }; return h; } };
+    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.dataType, o.data]); const h = { done() { return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; },
+      // 실제 yona.http처럼 await할 수 있다. 실패를 정하지 않으면 끝내 완료되지 않는다
+      then(ok, bad) { return new Promise((res, rej) => { if (window.__fail) setTimeout(() => rej(window.__fail), 0); }).then(ok, bad); } }; return h; } };
   });
   await page.addScriptTag({ content: classicFromEsm('esm/service/project.Member.js') });
   await page.evaluate(() => { new yona.project.Member({ sActionURL: '/find', htData: { project: 1 } }); });

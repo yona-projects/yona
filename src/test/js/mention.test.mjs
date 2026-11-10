@@ -22,7 +22,7 @@ async function open({ html = '<div id="box"><textarea id="t" style="width:300px;
     window.__calls = []; window.__prog = [];
     window.NProgress = { start() { window.__prog.push('start'); }, done() { window.__prog.push('done'); } };
     jQuery.browser = jQuery.browser || {};
-    ((window.yona = window.yona || {}).http = (window.yona.http || {})).getJSON = function (url, data, cb) { window.__calls.push({ url, data }); window.__resolve = function () {}; setTimeout(function () { cb({ result: data.mentionType === 'user' ? window.__users : window.__issues }); }, 15); return { fail() { return this; } }; };
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).getJSON = function (url, data) { window.__calls.push({ url, data }); return new Promise(function (resolve, reject) { setTimeout(function () { if (window.__failJson) reject({ status: 500 }); else resolve({ result: data.mentionType === 'user' ? window.__users : window.__issues }); }, 15); }); };
     const importMap = document.createElement('script'); importMap.type = 'importmap';
     importMap.textContent = JSON.stringify({ imports: { '@github/combobox-nav': URL.createObjectURL(new Blob([combo], { type: 'text/javascript' })) } });
     document.head.appendChild(importMap);
@@ -65,6 +65,12 @@ export const tests = [
     assert.deepEqual(await menu(page), ['Alice Kim alice', 'Albert albert', 'X Alex xalex']);
     assert.ok(await page.evaluate(() => document.querySelector('.mention-menu li img').getAttribute('src')) === '/a.png');
     await page.close();
+  } },
+  { name: '@: 서버 요청이 실패하면 후보 없이 메뉴를 열지 않고 진행 표시를 끈다', run: async () => {
+    const page = await open(); await page.evaluate(() => { window.__failJson = true; window.__np = []; window.NProgress = { start: () => window.__np.push('start'), done: () => window.__np.push('done') }; });
+    await typeAfter(page, 'hi ', '@al', 900);
+    assert.deepEqual(await calls(page), ['user:al']); assert.equal(await menu(page), null); // 후보가 없으면 메뉴가 만들어지지 않는다
+    assert.deepEqual(await page.evaluate(() => window.__np), ['start', 'done']); assert.deepEqual(page.errors, []); await page.close();
   } },
   { name: '@: 일치 위치가 앞선 후보가 먼저이고 질의를 강조한다', run: async () => {
     const page = await open(); await typeAfter(page, '', '@al', 900);

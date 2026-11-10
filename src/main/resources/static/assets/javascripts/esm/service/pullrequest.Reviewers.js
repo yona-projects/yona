@@ -51,9 +51,14 @@ function refresh(timelineUrl) {
     }
 }
 
-function send(url, data, done) {
-    yona.http.ajax(url, {method: "POST", dataType: "json", contentType: "application/json", data: JSON.stringify(data || {})})
-        .done(done).fail(failed);
+async function send(url, data, done) {
+    try {
+        await yona.http.ajax(url, {method: "POST", dataType: "json", contentType: "application/json", data: JSON.stringify(data || {})});
+    } catch (xhr) {
+        failed(xhr);
+        return;
+    }
+    done();
 }
 
 function timelineUrl() {

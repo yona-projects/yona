@@ -331,20 +331,16 @@
      * @param {String} sQuery
      * @return {Promise<Array>}
      */
-    function _fetch(sUrl, sType, sQuery) {
-        return new Promise((resolve) =>{
-            NProgress.start();
-            const oRequest = yona.http.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, (data) =>{
-                NProgress.done();
-                resolve((data && data.result) || []);
-            });
-            if(oRequest && typeof oRequest.fail === "function"){
-                oRequest.fail(() =>{
-                    NProgress.done();
-                    resolve([]);
-                });
-            }
-        });
+    async function _fetch(sUrl, sType, sQuery) {
+        NProgress.start();
+        try {
+            const data = await yona.http.getJSON(sUrl, {"query": sQuery, "mentionType": sType});
+            return (data && data.result) || [];
+        } catch (failure) {
+            return [];
+        } finally {
+            NProgress.done();
+        }
     }
 
     /**
