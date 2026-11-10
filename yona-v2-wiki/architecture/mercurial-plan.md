@@ -471,3 +471,9 @@ Git에 있고 Mercurial에 없는 능력은 이제 온라인 편집(v1.6도 Git 
 1. 선생님이 이 보고서를 검토하고 D-86의 7개 질문에 답한다.
 2. 답에 따라 단계와 일정을 확정하고 로드맵 X-7을 갱신한다.
 3. 1단계(능력 선언)부터 시험 먼저로 시작한다.
+
+## hg4j 1.1.3 전환(2026-11-10)
+
+- hg4j 1.1.3이 Maven Central에 공개되어(`hg4j-1.1.3.jar` 확인) `build.gradle.kts`의 임시 `files("…/hg4j-snapshot/hg4j-1.1.3-SNAPSHOT.jar")` 줄을 지우고 버전을 `1.1.3`으로 올렸다. 1.1.3에는 LFS 가져오기 수정(로컬 경로 소스의 bundle2 광고, lfs requirement), `setLfsServing`, `TagCommand` 정렬이 들어 있다.
+- 확인: Mercurial 저장소(`repository.hg.*`), HTTP(`web.hg.*`), SSH(`HgSshServerTest`), 풀 리퀘스트 병합(`HgPullRequestMergerTest`), LFS(`web.lfs.*`) 시험이 모두 통과했다(3분 48초).
+

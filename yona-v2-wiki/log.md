@@ -2224,3 +2224,7 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 검증용 앱에 SVN 프로젝트(`admin/svnproj`, 리비전 2개, 댓글 여러 개)를 직접 만들어 미니맵을 Chromium과 Firefox에서 확인했다(12건 통과). 이때 미니맵 댓글 위치 링크가 `[object Object]`로 만들어지던 결함을 찾아 고쳤다.
 - `moment-with-locales.min.js`를 앱에서 빼고 `src/test/js/vendor`로 옮겼다(시험의 비교 기준으로만 쓴다).
 - 조직·프로젝트 이름은 서버가 HTML 문자를 거절하므로 XSS 경로가 없음을 확인했다.
+
+## [2026-11-10] build | hg4j 1.1.3으로 올림
+
+임시 snapshot jar 줄을 지우고 Central의 1.1.3을 쓴다. Mercurial, SSH, 병합, LFS 시험이 통과했다(3분 48초). 자세한 내용은 architecture/mercurial-plan.md.
