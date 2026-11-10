@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { pageWith, JS } from './harness.mjs';
+import { pageWith, JS, classicFromEsm } from './harness.mjs';
 
 const ev = (init) => init;
 async function open() { return pageWith({ html: '<input id="i"><textarea id="t"></textarea>', scripts: ['common/yona.Common.js'], stubs: false }); }
@@ -75,7 +75,7 @@ async function commentForm() {
   // 임시 저장은 localStorage 를 쓰는데 시험 문서에서는 막혀 있으므로 이 시험과 무관한 두 함수만 비워 둔다
   await page.evaluate(() => { window.temporarySaveHandler = function () {}; window.removeCurrentPageTemprarySavedContent = function () {}; window.__done = 0; window.NProgress = { start() {}, done() { window.__done++; } }; });
   await page.addScriptTag({ path: path.join(JS, 'common/yona.Common.js') });
-  await page.addScriptTag({ path: path.join(JS, 'esm/CommentForm.js') });
+  await page.addScriptTag({ content: classicFromEsm('esm/CommentForm.js') });
   return page;
 }
 const pressKey = (page, init) => page.evaluate((init) => window.dispatchEvent(new KeyboardEvent('keydown', Object.assign({ bubbles: true, cancelable: true }, init))), init);

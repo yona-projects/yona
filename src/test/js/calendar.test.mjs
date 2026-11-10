@@ -1,4 +1,4 @@
-// 달력 위젯 `common/yona.ui.Calendar.js`의 계약을 시험한다(S-09, 라이브러리는 Pikaday에서 vanilla-calendar-pro 3.4.0으로 바꾸었다, A-424).
+// 달력 위젯 `esm/ui/Calendar.js`의 계약을 시험한다(S-09, 라이브러리는 Pikaday에서 vanilla-calendar-pro 3.4.0으로 바꾸었다, A-424).
 // 계약은 v1.6의 Pikaday와 같다: 입력란의 왼쪽 아래에 틈 없이 붙고 넘치면 뒤집힌다, 값 형식은 YYYY-MM-DD, 고르거나 setDate 하면 입력란에 change 가 나간다,
 // `data-*` 속성이 옵션이다(`data-silent`), 값이 있고 silent 가 아니면 처음에 setDate 를 한 번 부른다, `.btn-calendar`가 달력을 연다.
 import assert from 'node:assert/strict';
@@ -16,7 +16,7 @@ async function open({ value = '2026-03-15', attrs = 'data-toggle="calendar"', po
     html: `<style>body{margin:0;height:1400px}</style>${language ? `<script>window.yona = { language: '${language}' };</script>` : ''}<script>window.__changes=0;document.addEventListener('change',function(e){if(e.target.id==='due')window.__changes++;});</script>
       <input id="due" type="text" ${attrs} value="${value}" autocomplete="off" style="position:absolute;${pos};width:230px"><button id="cal" class="btn-calendar" type="button" style="position:absolute;left:300px;top:120px">달력</button>
       <h4 id="outside" style="position:absolute;left:400px;top:20px;margin:0">바깥</h4>${extra}`,
-    scripts: [LIB, 'common/yona.ui.Calendar.js'],
+    scripts: [LIB, 'esm/ui/Calendar.js'],
   });
   await page.setViewportSize({ width: 700, height: 700 });
   await page.addStyleTag({ path: CSS });
@@ -34,7 +34,7 @@ const value = (page) => page.evaluate(() => document.getElementById('due').value
 
 /** 항상 보이는 달력(마일스톤, API 토큰)을 연다. */
 async function openInline({ value = '2026-03-15', options = '{}' } = {}) {
-  const page = await pageWith({ html: `<style>body{margin:0}</style><input id="d" type="text" value="${value}"><div id="box"></div>`, scripts: [LIB, 'common/yona.ui.Calendar.js'] });
+  const page = await pageWith({ html: `<style>body{margin:0}</style><input id="d" type="text" value="${value}"><div id="box"></div>`, scripts: [LIB, 'esm/ui/Calendar.js'] });
   await page.setViewportSize({ width: 700, height: 700 });
   await page.addStyleTag({ path: CSS }); await page.addStyleTag({ path: YOBI });
   await page.evaluate((o) => { window.__changes = 0; document.getElementById('d').addEventListener('change', () => { window.__changes++; }); const opts = new Function('return ' + o)(); opts.input = '#d'; window.cal = yona.ui.Calendar.inline('#box', opts); }, options);
@@ -172,7 +172,7 @@ export const tests = [
     assert.equal(await page.evaluate(() => document.getElementById('d').value), ''); assert.equal(await inlineSelected(page), null); assert.equal(await page.evaluate(() => window.__changes), 0); await page.close();
   } },
   { name: '항상 보이는 달력: 같은 화면에 둘을 두어도 서로 영향을 주지 않는다', run: async () => {
-    const page = await pageWith({ html: '<input id="a" value="2026-03-01"><div id="ba"></div><input id="b" value="2026-05-20"><div id="bb"></div>', scripts: [LIB, 'common/yona.ui.Calendar.js'] });
+    const page = await pageWith({ html: '<input id="a" value="2026-03-01"><div id="ba"></div><input id="b" value="2026-05-20"><div id="bb"></div>', scripts: [LIB, 'esm/ui/Calendar.js'] });
     await page.addStyleTag({ path: CSS });
     await page.evaluate(() => { yona.ui.Calendar.inline('#ba', { input: '#a' }); yona.ui.Calendar.inline('#bb', { input: '#b' }); });
     const r = await page.evaluate(() => [document.querySelector('#ba [data-vc-date-selected]').textContent.trim(), document.querySelector('#bb [data-vc-date-selected]').textContent.trim()]);
@@ -208,7 +208,7 @@ export const tests = [
     }
   } },
   { name: '항상 보이는 달력도 언어 설정을 따른다', run: async () => {
-    const page = await pageWith({ html: `<script>window.yona = { language: 'ko' };</script><input id="d" value="2026-03-15"><div id="box"></div>`, scripts: [LIB, 'common/yona.ui.Calendar.js'] });
+    const page = await pageWith({ html: `<script>window.yona = { language: 'ko' };</script><input id="d" value="2026-03-15"><div id="box"></div>`, scripts: [LIB, 'esm/ui/Calendar.js'] });
     await page.evaluate(() => { yona.ui.Calendar.inline('#box', { input: '#d' }); });
     assert.ok(/3월/.test(await page.evaluate(() => document.getElementById('box').textContent)), '한국어'); await page.close();
   } },

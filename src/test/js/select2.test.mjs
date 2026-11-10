@@ -18,7 +18,7 @@ async function open(html, { wait = true } = {}) {
     scripts: ['lib/select2/select2.js'],
   });
   await page.addScriptTag({ content: 'window.Messages = function (k) { return k; };' });
-  await page.addScriptTag({ path: path.join(JS, 'common/yona.ui.Select2.js') });
+  await page.addScriptTag({ content: classicFromEsm('esm/ui/Select2.js') });
   page.setDefaultTimeout(3000);
   // yona.ui.Select2.js 끝의 `$(function(){ … })`가 문서 준비 뒤에 모든 `[data-toggle="select2"]`를 초기화한다
   if (wait) await page.waitForSelector('.select2-container', { state: 'attached' });

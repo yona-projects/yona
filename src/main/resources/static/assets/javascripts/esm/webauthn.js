@@ -5,6 +5,8 @@
  * 서버가 주는 요청 JSON(바이너리는 base64url 문자열)을 navigator.credentials의 입력으로 바꾸고,
  * 돌려받은 자격 증명을 서버가 읽는 JSON 문자열로 바꾼다.
  */
+
+// 이 파일은 같은 이름에 함수와 정적 멤버를 등록하는 구조라 본문은 그대로 두고 ES 모듈 태그로 불러온다(전역 $yona가 먼저 준비되어 있다).
 (function (global) {
     "use strict";
 

@@ -191,11 +191,11 @@ class JsLibraryVersionsTest {
         for (layout in listOf("layout/layout.html", "layout/layout-framed.html", "layout/migration-layout.html"))
             assertTrue(template(layout).contains("lib/vanilla-calendar-pro/index.css"), "$layout 은 달력 CSS를 불러야 한다")
         val calendar = template("common/calendar.html")
-        assertTrue(calendar.contains("lib/vanilla-calendar-pro/index.js") && calendar.contains("common/yona.ui.Calendar.js"), "공통 달력 조각은 라이브러리와 래퍼를 불러야 한다")
+        assertTrue(calendar.contains("lib/vanilla-calendar-pro/index.js") && calendar.contains("esm/ui/Calendar.js"), "공통 달력 조각은 라이브러리와 래퍼를 불러야 한다")
         // 항상 보이는 달력을 쓰는 화면(마일스톤 작성과 수정, API 토큰)은 래퍼도 불러야 하고, moment는 Pikaday 때문에 불렀던 것이라 더 부르지 않는다
         for (page in listOf("milestone/create.html", "milestone/edit.html", "user/partial-token-form.html")) {
             val html = template(page)
-            assertTrue(html.contains("lib/vanilla-calendar-pro/index.js") && html.contains("common/yona.ui.Calendar.js"), "$page 는 달력 라이브러리와 래퍼를 불러야 한다")
+            assertTrue(html.contains("lib/vanilla-calendar-pro/index.js") && html.contains("esm/ui/Calendar.js"), "$page 는 달력 라이브러리와 래퍼를 불러야 한다")
             assertTrue(!html.contains("moment"), "$page 는 moment를 부르지 않는다")
         }
         assertTrue(template("user/partial-token-form.html").contains("yona.ui.Calendar.inline"), "API 토큰 화면은 항상 보이는 달력 도우미를 쓴다")

@@ -40,7 +40,7 @@
     </form>
   </div>
 </div>
-<script th:if="${securityKey}" type="text/javascript" th:src="@{/assets/javascripts/common/yona.webauthn.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/webauthn.js}"></script>
 <script th:if="${securityKey}" type="text/javascript" th:inline="javascript">
     $(function () {
         if (!window.YonaWebAuthn || !YonaWebAuthn.supported()) { return; }

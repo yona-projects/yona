@@ -73,7 +73,7 @@
 <th:block th:fragment="tokenScripts">
 <link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/vanilla-calendar-pro/index.css}" />
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/vanilla-calendar-pro/index.js}"></script>
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.ui.Calendar.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/ui/Calendar.js}"></script>
 <script type="text/javascript">
     $(function () {
         // 같은 화면의 만료 선택마다 따로 동작한다(편집 화면은 다시 만들기에 하나를 둔다)
