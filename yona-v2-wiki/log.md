@@ -2179,3 +2179,5 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 ## [2026-11-10] refactor | common 스크립트를 ES 모듈로 옮김, yona-lib 번들 제거(D-123 4-4)
 
 기반 3개(Common, Csrf, Htmx)와 템플릿 인라인 스크립트는 동작이 달라질 수 있어 보류하고 refactor-deviations.md에 적었다.
+
+회귀(web, audit, i18n, markdown)는 common 스크립트 이전과 yona-lib 번들 제거 뒤 9분 30초에 2건 실패(이전한 스크립트 경로를 읽던 구조 시험)했고 고친 뒤 통과했다.

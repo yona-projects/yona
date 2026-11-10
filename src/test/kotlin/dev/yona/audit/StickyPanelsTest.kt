@@ -22,8 +22,8 @@ class StickyPanelsTest {
         listOf("issue/view.html", "board/view.html").forEach {
             assertTrue(Regex("""class="issue-info[^"]*\bsticky-top\b""").containsMatchIn(text("src/main/resources/templates/$it")), "$it 의 정보창에 sticky-top이 있어야 한다")
         }
-        listOf("yona.issue.View.js", "yona.board.View.js").forEach {
-            assertFalse(text("src/main/resources/static/assets/javascripts/service/$it").contains("yona.affix"), "$it 는 affix를 부르면 안 된다")
+        listOf("issue.View.js", "board.View.js").forEach {
+            assertFalse(text("src/main/resources/static/assets/javascripts/esm/service/$it").contains("yona.affix"), "$it 는 affix를 부르면 안 된다")
         }
     }
 
@@ -61,8 +61,8 @@ class StickyPanelsTest {
         }
         assertTrue(Regex("""\.review-container \{[^}]*?position:\s*sticky""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(scss), ".review-container는 sticky여야 한다")
         assertFalse(Regex("""&\.affix|^\.affix""", RegexOption.MULTILINE).containsMatchIn(scss), "SCSS에 .affix 규칙이 남아 있다")
-        listOf("yona.issue.MassUpdate.js", "yona.code.Diff.js").forEach {
-            val js = text("src/main/resources/static/assets/javascripts/service/$it")
+        listOf("issue.MassUpdate.js", "code.Diff.js").forEach {
+            val js = text("src/main/resources/static/assets/javascripts/esm/service/$it")
             assertFalse(js.contains("yona.affix"), "$it 는 yona.affix를 부르면 안 된다")
             assertFalse(js.contains("'affix") || js.contains("\"affix"), "$it 에 affix 클래스 참조가 남아 있다")
         }
