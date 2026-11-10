@@ -58,7 +58,7 @@
 
             $("#notification-more").click(function() {
                 $("#notification-more").remove();
-                yona.http.get("/notification?from=[(${from + size})]&amp;limit=[(${size})]", function(data) {
+                yona.http.get("/notification?from=[(${from + size})]&limit=[(${size})]", function(data) {
                     $('.activity-streams').append(data);
                     $(".more").remove();
                     $(".message-wrap").each(function(index, value){
