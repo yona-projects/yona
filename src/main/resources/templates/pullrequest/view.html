@@ -182,12 +182,12 @@
 </div></div></div>
 <th:block th:if="${reviewArea.requestUrl != null or #lists.size(reviewArea.rows) > 0 or #lists.size(reviewArea.pending) > 0}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
-<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Reviewers.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/pullrequest.Reviewers.js}"></script>
 </th:block>
 <th:block th:if="${assigneeArea != null and (assigneeArea.canEdit or labelArea.canEdit)}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(project.owner, project.name) + '/issue/labels.css'}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
-<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Meta.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/pullrequest.Meta.js}"></script>
 </th:block>
 <script type="text/javascript">
     // 타임라인 라벨 상자의 글자색을 배경색에 맞춘다(이슈 화면과 같다). 밝은 라벨 색에서도 글자가 보이게 한다
