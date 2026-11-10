@@ -264,28 +264,30 @@ const LabelEditor = function(options){
      * @param requestData
      * @private
      */
-    function _requestAddLabel(requestData){
+    async function _requestAddLabel(requestData){
         if(_isLabelExists(requestData.categoryName, requestData.labelName)){
             $yona.alert(Messages("label.error.duplicated"));
             return false;
         }
 
-        yona.http.ajax(vars.actionURL, {
-            "method": "post",
-            "data"  : requestData
-        })
-        .done((res) =>{
-            if (res instanceof Object){
-                _addLabelIntoCategory(res);
-                elements.inputName.val("").focus();
-                return;
-            }
+        let res;
+        try {
+            res = await yona.http.ajax(vars.actionURL, {
+                "method": "post",
+                "data"  : requestData
+            });
+        } catch (failure) {
+            _showError(failure, "label.add");
+            return;
+        }
 
-            $yona.alert(Messages("label.error.creationFailed"));
-        })
-        .fail((res) =>{
-            _showError(res, "label.add");
-        });
+        if (res instanceof Object){
+            _addLabelIntoCategory(res);
+            elements.inputName.val("").focus();
+            return;
+        }
+
+        $yona.alert(Messages("label.error.creationFailed"));
     }
 
     /**
@@ -516,16 +518,18 @@ const LabelEditor = function(options){
      * @param target
      * @private
      */
-    function _requestRemoveLabel(target){
+    async function _requestRemoveLabel(target){
         const targetButton = $(target);
 
-        yona.http.ajax(targetButton.data("deleteUri"), {
-            "method": "post",
-            "data"  : {"_method": "delete"}
-        })
-        .done(() =>{
-            _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
-        });
+        try {
+            await yona.http.ajax(targetButton.data("deleteUri"), {
+                "method": "post",
+                "data"  : {"_method": "delete"}
+            });
+        } catch (failure) {
+            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+        }
+        _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
     }
 
     /**
@@ -599,7 +603,7 @@ const LabelEditor = function(options){
      *
      * @private
      */
-    function _onClickBtnSubmitEditCategory(){
+    async function _onClickBtnSubmitEditCategory(){
         const requestData = {
             "id"  : elements.editCategoryForm.data("categoryId"),
             "name": (elements.editCategoryName.val() || "").trim(),
@@ -609,17 +613,21 @@ const LabelEditor = function(options){
 
         NProgress.start();
 
-        yona.http.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
-            "method": "put",
-            "data"  : requestData
-        }).done(() =>{
+        try {
+            try {
+                await yona.http.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
+                    "method": "put",
+                    "data"  : requestData
+                });
+            } catch (failure) {
+                _showError(failure, "label.category.edit");
+                return;
+            }
             _reloadLabelList();
-        }).fail((res) =>{
-            _showError(res, "label.category.edit");
-        }).always(() =>{
+        } finally {
             bootstrap.Modal.getOrCreateInstance(elements.editCategoryForm[0]).hide();
             NProgress.done();
-        });
+        }
     }
 
     /**
@@ -672,19 +680,34 @@ const LabelEditor = function(options){
             return false;
         }
 
+        _updateLabel(requestData);
+    }
+
+    /**
+     * 라벨 수정 요청을 보내고 결과에 따라 목록을 새로 읽거나 오류를 보인다.
+     * 앞의 핸들러가 `return false`로 기본 동작을 막기도 하므로 `async`로 만들지 않고 이 함수로 분리했다.
+     *
+     * @param requestData
+     * @private
+     */
+    async function _updateLabel(requestData){
         NProgress.start();
 
-        yona.http.ajax(elements.editLabelForm.data("updateUri"), {
-            "method": "put",
-            "data"  : requestData
-        }).done(() =>{
+        try {
+            try {
+                await yona.http.ajax(elements.editLabelForm.data("updateUri"), {
+                    "method": "put",
+                    "data"  : requestData
+                });
+            } catch (failure) {
+                _showError(failure, "label.edit");
+                return;
+            }
             _reloadLabelList();
-        }).fail((res) =>{
-            _showError(res, "label.edit");
-        }).always(() =>{
+        } finally {
             bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).hide();
             NProgress.done();
-        });
+        }
     }
 
     /**

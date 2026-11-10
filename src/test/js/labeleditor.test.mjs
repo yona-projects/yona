@@ -31,7 +31,9 @@ async function open(opts = {}) {
     $yona.alert = (m, cb) => { window.__alerts.push(m); if (cb) cb(); };
     $yona.confirm = (m, cb, _a, o) => window.__confirms.push({ m, cb, labels: o && o.aButtonLabels });
     $yona.showPopover = (el, o) => window.__pop.push([el.attr('name'), o.content]);
-    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.data]); const r = resp || {}; const h = { done(cb) { if (r.ok !== undefined) setTimeout(() => cb(r.ok), 0); return h; }, fail(cb) { if (r.fail) setTimeout(() => cb(r.fail), 0); return h; }, always(cb) { setTimeout(cb, 5); return h; } }; return h; } };
+    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.data]); const r = resp || {}; const h = { done(cb) { if (r.ok !== undefined) setTimeout(() => cb(r.ok), 0); return h; }, fail(cb) { if (r.fail) setTimeout(() => cb(r.fail), 0); return h; }, always(cb) { setTimeout(cb, 5); return h; },
+      // 실제 yona.http처럼 await할 수 있다. 결과를 정하지 않으면 끝내 완료되지 않는다
+      then(ok, bad) { return new Promise((res, rej) => { const r = resp || {}; if (r.ok !== undefined) setTimeout(() => res(r.ok), 0); else if (r.fail) setTimeout(() => rej(r.fail), 0); }).then(ok, bad); } }; return h; } };
   }, opts.resp);
   await page.addScriptTag({ content: classicFromEsm('esm/service/issue.LabelEditor.js') });
   await page.evaluate(() => { new yona.issue.LabelEditor({ list: '#list', form: '#f', editCategoryForm: '#ecat', editLabelForm: '#elab', listURL: '/x' }); });

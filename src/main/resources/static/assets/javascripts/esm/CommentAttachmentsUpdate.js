@@ -2,7 +2,7 @@
 
 // ES 모듈은 문서 분석이 끝난 뒤 DOMContentLoaded 전에 실행되며, 아래 준비 완료 처리기는 그때 등록되어 문서가 준비되면 돈다.
 $(() => {
-    function deleteAttachment() {
+    async function deleteAttachment() {
         const $this = $(this);
         const $parent = $this.parent(".attached-file-marker");
         const id = $this.data("id");
@@ -24,13 +24,13 @@ $(() => {
         }).join(","));
         $textarea.val($textarea.val().split(linkStr).join(""));
 
-        yona.http.post(url)
-            .done((data) => {
-                $parent.remove();
-            })
-            .fail((data) => {
-                console.log(data);
-            });
+        try {
+            await yona.http.post(url);
+        } catch (data) {
+            console.log(data);
+            return;
+        }
+        $parent.remove();
     }
 
     $(".attached-file-marker").on("click", ".btn-delete", deleteAttachment);
@@ -46,14 +46,22 @@ $(() => {
             const formData = new FormData();
             formData.append("filePath", files[i]);
 
-            yona.http.ajax({
-                url: '/files',
-                type: 'POST',
-                cache: false,
-                contentType: false,
-                processData: false,
-                data: formData
-            }).done((data) => {
+            // 파일마다 요청이 동시에 나가고 끝난 순서대로 처리되던 동작을 지키려고, 반복문 안에서 await하지 않고 파일마다 따로 실행한다
+            (async () => {
+                let data;
+                try {
+                    data = await yona.http.ajax({
+                        url: '/files',
+                        type: 'POST',
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        data: formData
+                    });
+                } catch (failure) {
+                    $yona.notify(failure);
+                    return;
+                }
                 const $parentForm = $attachmentInput.parent().closest("form");
 
                 buildTemporaryUploadedFileCards($parentForm, data);
@@ -62,9 +70,7 @@ $(() => {
                 if (doneCount === files.length) {
                     NProgress.done();
                 }
-            }).fail((data) => {
-                $yona.notify(data);
-            });
+            })();
         }
     });
 
@@ -109,20 +115,26 @@ $(() => {
                     const formData = new FormData();
                     formData.append('filePath', item.getAsFile(), generateFileName());
 
-                    yona.http.ajax('/files', {
-                        type: 'POST',
-                        contentType: false,
-                        processData: false,
-                        data: formData
-                    }).done((data) => {
+                    // 붙여넣은 이미지마다 요청이 동시에 나가던 동작을 지키려고 반복문 안에서 await하지 않는다
+                    (async () => {
+                        let data;
+                        try {
+                            data = await yona.http.ajax('/files', {
+                                type: 'POST',
+                                contentType: false,
+                                processData: false,
+                                data: formData
+                            });
+                        } catch (failure) {
+                            $yona.notify(failure);
+                            return;
+                        }
                         const $parentForm = $attachmentInput.parent().closest("form");
 
                         buildTemporaryUploadedFileCards($parentForm, data);
                         caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
                         NProgress.done();
-                    }).fail((data) => {
-                        $yona.notify(data);
-                    });
+                    })();
 
                 }
             }

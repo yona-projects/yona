@@ -121,43 +121,51 @@ $(() =>{
     }
 
     function _onSubmitForm(weEvt){
-        const bCodeStep = htElement.welTwoFactorStep.is(":visible");
-        yona.http.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
-            "type": "post",
-            "dataType": "json",
-            "data": bCodeStep ? {
-                "code": htElement.welInputCode.val(),
-                "rememberDevice": htElement.welInputRememberDevice.is(":checked")
-            } : {
-                "loginIdOrEmail" : htElement.welInputId.val(),
-                "password": htElement.welInputPw.val(),
-                "rememberMe": htElement.welInputRememberMe.is(":checked")
-            }
-        }).done((htResult) =>{
-            if(htResult && htResult.twoFactor){
-                _showTwoFactorStep(htResult.securityKey);
-                return;
-            }
-            document.location.reload();
-        }).fail((htResult) =>{
-            // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
-            if(htResult.readyState == networkErrorStatus){
-                _showDialogError(Messages("user.login.failed.network"));
-            }else if(htResult.responseText && htResult.responseText.length > 0){
-                try{
-                    const responseObject = JSON.parse(htResult.responseText);
-                    _showDialogError(Messages(responseObject.message));
-                }catch (err){
-                    _getErrorMessageByStatus(htResult.status);
-                }
-            }else{
-                _getErrorMessageByStatus(htResult.status);
-            }
-        });
+        // 핸들러가 false를 돌려줘야 기본 제출이 막히므로 요청은 안쪽 async 함수로 분리한다
+        _submitLogin();
 
         weEvt.preventDefault();
         weEvt.stopPropagation();
         return false;
+    }
+
+    async function _submitLogin(){
+        const bCodeStep = htElement.welTwoFactorStep.is(":visible");
+        let htResult;
+        try {
+            htResult = await yona.http.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
+                "type": "post",
+                "dataType": "json",
+                "data": bCodeStep ? {
+                    "code": htElement.welInputCode.val(),
+                    "rememberDevice": htElement.welInputRememberDevice.is(":checked")
+                } : {
+                    "loginIdOrEmail" : htElement.welInputId.val(),
+                    "password": htElement.welInputPw.val(),
+                    "rememberMe": htElement.welInputRememberMe.is(":checked")
+                }
+            });
+        } catch (htFailure) {
+            // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
+            if(htFailure.readyState == networkErrorStatus){
+                _showDialogError(Messages("user.login.failed.network"));
+            }else if(htFailure.responseText && htFailure.responseText.length > 0){
+                try{
+                    const responseObject = JSON.parse(htFailure.responseText);
+                    _showDialogError(Messages(responseObject.message));
+                }catch (err){
+                    _getErrorMessageByStatus(htFailure.status);
+                }
+            }else{
+                _getErrorMessageByStatus(htFailure.status);
+            }
+            return;
+        }
+        if(htResult && htResult.twoFactor){
+            _showTwoFactorStep(htResult.securityKey);
+            return;
+        }
+        document.location.reload();
     }
 
     function _getErrorMessageByStatus(status) {
