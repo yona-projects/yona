@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { pageWith, ROOT, JS } from './harness.mjs';
+import { pageWith, ROOT, JS, classicFromEsm } from './harness.mjs';
 
 // select2 4.1.0과 `yona.ui.Select2.js`의 동작 시험이다(decisions.md D-95, architecture/select2-upgrade-plan.md).
 // 실제 select2.js와 실제 `common/select2.html`의 항목 모양 템플릿을 불러, 마우스로 여는 것과 같은 순서로 목록을 열고 고른다.
@@ -233,7 +233,7 @@ async function open2(html, scripts, routes) {
   // 실제 Common.js의 notify와 자체 도우미 tmpl(`${키}` 치환) 대신 쓰는 같은 동작의 대역이다
   await page.addScriptTag({ content: `window.$yona.notify = function (m) { (window.__notes = window.__notes || []).push(m); };
     window.$yona.tmpl = function (tpl, data) { return tpl.replace(/\\$\\{(\\w+)\\}/g, function (m, k) { return data[k]; }); };` });
-  for (const s of scripts) await page.addScriptTag({ path: path.join(JS, s) });
+  for (const s of scripts) await page.addScriptTag(s.startsWith('esm/') ? { content: classicFromEsm(s) } : { path: path.join(JS, s) });
   return { page, calls };
 }
 
@@ -243,7 +243,7 @@ export const remoteTests = [
     async run() {
       const { page, calls } = await open2(
         `<select id="assignee" name="assigneeLoginId" data-placeholder="없음" style="width:300px"><option value=""></option><option value="kim" selected>kim</option></select>`,
-        ['service/yona.issue.Assginee.js'], { '/users': () => [KIM] });
+        ['esm/service/issue.Assginee.js'], { '/users': () => [KIM] });
       await page.evaluate((api) => yonaAssgineeModule(`${api}/users`, null, '담당자'), API);
       await page.waitForSelector('.select2-selection__rendered .usf-group .name');
       assert.equal(await page.locator('.select2-selection__rendered .usf-group .name').textContent(), '김철수');
@@ -256,7 +256,7 @@ export const remoteTests = [
     async run() {
       const { page, calls } = await open2(
         `<select id="assignee" name="assigneeLoginId" data-placeholder="없음" style="width:300px"><option value=""></option></select>`,
-        ['service/yona.issue.Assginee.js'],
+        ['esm/service/issue.Assginee.js'],
         { '/users': (url) => (url.searchParams.get('query') === 'le' ? [LEE] : []), '/assign': () => ({ assignee: { name: '이영희' } }) });
       await page.evaluate((api) => yonaAssgineeModule(`${api}/users`, `${api}/assign`, '담당자'), API);
       await page.click('.select2-selection');
@@ -275,7 +275,7 @@ export const remoteTests = [
       const { page, calls } = await open2(
         `<span class="issue-sharer-count"></span><select id="issueSharer" multiple data-placeholder="공유자" style="width:300px">
            <option value="kim" selected>김철수</option></select>`,
-        ['service/yona.issue.Sharer.js'],
+        ['esm/service/issue.Sharer.js'],
         { '/byids': () => [KIM], '/sharable': (url) => (url.searchParams.get('query') === 'le' ? [LEE] : []), '/share': () => ({ action: 'add', sharer: 'x' }) });
       await page.evaluate((api) => yonaIssueSharerModule(`${api}/byids`, `${api}/sharable`, `${api}/share`, '공유자'), API);
       await page.waitForSelector('.select2-selection__choice .usf-group .name');
