@@ -155,31 +155,33 @@ const View = function(options){
      * @param callback
      * @private
      */
-    function _requestUpdateIssue(evt, callback){
+    async function _requestUpdateIssue(evt, callback){
         const field = $(evt.target);
         const fieldName = field.data("fieldName") || field.prop("name");
         const fieldValue = field.val();
 
         // Send request to update issueInfo
-        yona.http.ajax(vars.urls.massUpdate, {
-            "method"  : "post",
-            "dataType": "json",
-            "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
-        })
-        .done((res) =>{
-            _updateTimeline();
-
-            $yona.notify(Messages("issue.update." + fieldName), 3000);
-
-            if(typeof callback === "function"){
-                callback(res, fieldName, fieldValue, evt);
-            }
-        })
-        .fail((res) =>{
+        let res;
+        try {
+            res = await yona.http.ajax(vars.urls.massUpdate, {
+                "method"  : "post",
+                "dataType": "json",
+                "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
+            });
+        } catch (failure) {
             $yona.notify(Messages("error.failedTo",
                 Messages("issue.update." + fieldName),
-                res.status, res.statusText));
-        });
+                failure.status, failure.statusText));
+            return;
+        }
+
+        _updateTimeline();
+
+        $yona.notify(Messages("issue.update." + fieldName), 3000);
+
+        if(typeof callback === "function"){
+            callback(res, fieldName, fieldValue, evt);
+        }
     }
 
     /**
@@ -312,17 +314,24 @@ const View = function(options){
      *
      * @private
      */
-    function _updateTimeline(){
+    async function _updateTimeline(){
         if(vars.isTimelineUpdating){
             return;
         }
 
         vars.isTimelineUpdating = true;
 
-        yona.http.get(vars.urls.timeline, _onLoadTimeline)
-         .always(() =>{
-             vars.isTimelineUpdating = false;
-         });
+        try {
+            let resultHTML;
+            try {
+                resultHTML = await yona.http.get(vars.urls.timeline);
+            } catch (failure) {
+                return; // 실패해도 아래 finally에서 갱신 중 표시만 풀면 된다(예전에도 실패 처리기가 없었다)
+            }
+            _onLoadTimeline(resultHTML);
+        } finally {
+            vars.isTimelineUpdating = false;
+        }
     }
 
     /**

@@ -26,9 +26,12 @@ async function open({ ajax = {}, timelineHtml = null, period = 60000 } = {}) {
     yona.ShortcutKey = { attach: (k, cb) => window.__shortcuts.push([k, cb]) };
     yona.ui = yona.ui || {}; yona.ui.Select2 = { selectionChanges: () => ({ added: [{ id: 5 }, { id: 6 }], removed: { id: 2 } }) };
     yona.http = {
-      ajax: (url, o) => { window.__ajax.push([url, o.method, o.data, o.dataType]); const h = { done(cb) { if (ajax.ok) setTimeout(() => cb(ajax.ok), 0); return h; }, fail(cb) { if (ajax.fail) setTimeout(() => cb(ajax.fail), 0); return h; } }; if (ajax.error && o.error) setTimeout(() => o.error(ajax.error), 0); return h; },
+      ajax: (url, o) => { window.__ajax.push([url, o.method, o.data, o.dataType]); const h = { done(cb) { if (ajax.ok) setTimeout(() => cb(ajax.ok), 0); return h; }, fail(cb) { if (ajax.fail) setTimeout(() => cb(ajax.fail), 0); return h; },
+        // 실제 yona.http처럼 await할 수 있다. 결과를 정하지 않으면 끝내 완료되지 않는다
+        then(ok, bad) { return new Promise((res, rej) => { if (ajax.ok) setTimeout(() => res(ajax.ok), 0); else if (ajax.fail) setTimeout(() => rej(ajax.fail), 0); }).then(ok, bad); } }; if (ajax.error && o.error) setTimeout(() => o.error(ajax.error), 0); return h; },
       post: (url, cb) => { window.__posts.push(url); setTimeout(cb, 0); return {}; },
-      get: (url, cb) => { window.__gets.push(url); const h = { always(f) { setTimeout(() => { if (timelineHtml !== null) cb(timelineHtml); f(); }, 0); return h; } }; return h; },
+      // 실제 yona.http처럼 응답 HTML을 약속으로 돌려준다. 정하지 않으면 처음 타임라인과 같은 HTML이라 바뀌지 않는다
+      get: (url) => { window.__gets.push(url); return new Promise((res) => setTimeout(() => res(timelineHtml !== null ? timelineHtml : '<ul class="comments"><li>c1</li></ul>'), 0)); },
     };
   }, { ajax, timelineHtml });
   await page.addScriptTag({ content: classicFromEsm('esm/service/issue.View.js') });

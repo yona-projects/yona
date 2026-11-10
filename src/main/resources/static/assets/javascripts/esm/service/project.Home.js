@@ -77,41 +77,41 @@ const Home = function(htOptions){
             }).on('click', '[data-toggle="description-cancel"]', () =>{
                 $('[data-toggle="project-description-tab"]').toggleClass('hidden');
             });
-        $('#descriptionSaveBtn').on('click',() =>{
+        $('#descriptionSaveBtn').on('click', async () =>{
             const overview = {"overview" : $("#project-description-input").val() };
-            yona.http.ajax({
-                "url": htVar.sURLProject,
-                "method": "put",
-                "data": JSON.stringify(overview),
-                "contentType":"application/json"
-            }).done((data) =>{
-                    const sDescription = (data.overview)
-                                        ? data.overview
-                                        : $("#project-description-input").attr('placeholder');
+            let data;
+            try {
+                data = await yona.http.ajax({
+                    "url": htVar.sURLProject,
+                    "method": "put",
+                    "data": JSON.stringify(overview),
+                    "contentType":"application/json"
+                });
+            } catch (err) {
+                console.log("err>> ", err);
+                return;
+            }
+            const sDescription = (data.overview)
+                                ? data.overview
+                                : $("#project-description-input").attr('placeholder');
 
-                    yona.Markdown.render($("#project-description"), sDescription);
+            yona.Markdown.render($("#project-description"), sDescription);
 
-                    $('[data-toggle="project-description-tab"]').toggleClass('hidden');
-
-
-            }).fail((err) =>{
-                    console.log("err>> ", err);
-            });
+            $('[data-toggle="project-description-tab"]').toggleClass('hidden');
         });
         $('#projectLeaveBtn').on('click',function(){
             bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).show();
 
             const sURL = $(this).attr("data-href");
 
-            $("#leaveBtn").click(() =>{
-
-                yona.http.ajax(sURL, {
-                    "method": "delete",
-                    "dataType": "html"
-                }).done((sResult) =>{
-                    const htData = JSON.parse(sResult);
-                    document.location.replace(htData.location);
-                }).fail((oXHR) =>{
+            $("#leaveBtn").click(async () =>{
+                let sResult;
+                try {
+                    sResult = await yona.http.ajax(sURL, {
+                        "method": "delete",
+                        "dataType": "html"
+                    });
+                } catch (oXHR) {
                     let sErrorMsg;
 
                     switch(oXHR.status){
@@ -129,7 +129,10 @@ const Home = function(htOptions){
                     }
 
                     $yona.alert(sErrorMsg);
-                });
+                    return;
+                }
+                const htData = JSON.parse(sResult);
+                document.location.replace(htData.location);
             });
         });
     }

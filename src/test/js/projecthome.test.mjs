@@ -20,7 +20,7 @@ const STUBS = `
   yona.Markdown = { render: function (el, text) { window.__rendered.push(text); } };
   yona.Common = { notify: function (m) { window.__notified.push(m); } };
   $yona.notify = function () {};
-  ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (opts) { window.__ajax.push(opts); return $.Deferred().resolve({ overview: '새 설명' }).promise(); };
+  ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (opts) { window.__ajax.push(opts); return Promise.resolve({ overview: '새 설명' }); };
 `;
 
 async function open() {
@@ -63,10 +63,11 @@ export const tests = [
   } },
   { name: '프로젝트 홈: 설명 저장은 PUT으로 보내고 돌아온 설명을 그린다', async run() {
     const page = await open();
-    const out = await page.evaluate(() => {
+    const out = await page.evaluate(async () => {
       new yona.project.Home({ sURLProject: '/acme/web' });
       $('#project-description-input').val('새 설명');
       $('#descriptionSaveBtn').trigger('click');
+      await new Promise((r) => setTimeout(r, 20)); // 응답을 await로 받으므로 그리기가 한 틱 뒤에 일어난다
       return { ajax: window.__ajax.map((a) => ({ url: a.url, method: a.method, data: a.data, contentType: a.contentType })), rendered: window.__rendered };
     });
     await page.close();

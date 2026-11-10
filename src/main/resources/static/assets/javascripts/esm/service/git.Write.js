@@ -109,7 +109,7 @@ const Write = function(options){
      *
      * @private
      */
-    function _checkMergeResult(){
+    async function _checkMergeResult(){
         const data = _getFormValue();
 
         if(!data.fromBranch && !data.toBranch){
@@ -120,14 +120,20 @@ const Write = function(options){
 
         NProgress.start();
 
-        yona.http.ajax(vars.mergeResultURL, {
-            "data": data
-        })
-        .done(_onSuccessMergeResult)
-        .fail(_onErrorMergeResult)
-        .always(() =>{
+        try {
+            let resultHTML;
+            try {
+                resultHTML = await yona.http.ajax(vars.mergeResultURL, {
+                    "data": data
+                });
+            } catch (failure) {
+                _onErrorMergeResult(failure);
+                return;
+            }
+            _onSuccessMergeResult(resultHTML);
+        } finally {
             NProgress.done();
-        });
+        }
     }
 
     /**

@@ -19,7 +19,8 @@ async function open({ state = 'OPEN', html = null, fail = null, fb = 'feature', 
     window.temporarySaveHandler = () => {}; window.NProgress = { start: () => window.__np.push('start'), done: () => window.__np.push('done') };
     yona.Files = { getUploader: () => null, destroyUploader() {} }; yona.Attachments = function () {};
     $yona.alert = (m) => window.__alerts.push(m); $yona.confirm = (m, cb) => window.__confirms.push({ m, cb });
-    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.data]); const h = { done(cb) { if (html !== null) setTimeout(() => cb(html), 0); return h; }, fail(cb) { if (fail) setTimeout(() => cb(fail), 0); return h; }, always(cb) { setTimeout(cb, 5); return h; } }; return h; } };
+    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.data]); const h = { done(cb) { if (html !== null) setTimeout(() => cb(html), 0); return h; }, fail(cb) { if (fail) setTimeout(() => cb(fail), 0); return h; }, always(cb) { setTimeout(cb, 5); return h; },
+      then(ok, bad) { return new Promise((res, rej) => { if (html !== null) setTimeout(() => res(html), 0); else if (fail) setTimeout(() => rej(fail), 0); }).then(ok, bad); } }; return h; } };
   }, { html, fail, fb, tb });
   await page.addScriptTag({ content: classicFromEsm('esm/service/git.Write.js') });
   await page.evaluate((state) => { window.__w = new yona.git.Write({ mergeResultURL: '/mr', fromProject: $('#fp'), toProject: $('#tp'), fromBranch: $('#fb'), toBranch: $('#tb'), state }); }, state);
