@@ -127,6 +127,8 @@ dependencies {
 	// OpenAPI 문서와 Swagger UI(X-31, D-50). Spring Boot 4.1.2 기준 버전이라 4.1.1과 호환한다
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
 	implementation("org.springframework.boot:spring-boot-starter-security")
+	// LDAP 접속과 검색은 스프링 시큐리티의 LDAP 부품(접속 원천과 검색 템플릿)을 쓴다(로드맵 X-43, decisions.md D-132)
+	implementation("org.springframework.security:spring-security-ldap")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	// 관측성(X-10, D-64): 상태 확인(Actuator)과 OTLP로 보내는 지표, 추적, 로그(OpenTelemetry). 수집기 주소가 없으면 내보내지 않는다
 	implementation("org.springframework.boot:spring-boot-starter-actuator")

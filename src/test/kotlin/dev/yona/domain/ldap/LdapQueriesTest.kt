@@ -25,13 +25,4 @@ class LdapQueriesTest {
         assertEquals("CN=x\\,OU=evil,OU=user,DC=abc,DC=com", queries.principalOf("x,OU=evil").replace("\\=", "="))
         assertEquals("bob@corp.test", queries.principalOf("bob@corp.test"))
     }
-
-    @Test
-    fun `응답하지 않는 서버를 위해 읽기와 검색 제한 시간이 있다 (R-60-10)`() {
-        val directory = JndiLdapDirectory(YonaProperties.Ldap(), "ldap")
-        val env = directory.environmentFor("alice", "pw")
-        assertEquals("5000", env["com.sun.jndi.ldap.read.timeout"])
-        assertEquals("5000", env["com.sun.jndi.ldap.connect.timeout"])
-        assertTrue(directory.searchTimeLimitMillis > 0)
-    }
 }

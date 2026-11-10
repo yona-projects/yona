@@ -1727,6 +1727,7 @@ v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재�
 | A-444 | X-49 수준 1~2 구현 판단(D-130, 2026-11-10). (1) 수준 1: `YonaAuthentication`이 범위를 포함 관계까지 펼친 `SCOPE_` 권한으로 가진다(`ApiScopes.expand`, `ScopeAuthorities`). 세션과 쿠키 인증은 권한이 없다. 모든 범위 한 개와 두 개 조합에서 `ApiScopes.implies`와 같은 답임을 시험으로 고정했다. (2) 수준 2는 계획과 달리 `authorizeHttpRequests`에 걸지 **않았다**: 필터 체인은 MVC가 경로 패턴을 고르기 전이라 규칙표가 쓰는 최적 패턴이 없고(경로만으로 맞추면 패턴이 겹칠 때 다른 규칙이 걸릴 수 있다), 핸들러가 없는 경로의 404가 "표에 없으면 거부"의 403으로 바뀌어 v1.6 응답 계약이 달라진다. 그래서 판정 시점은 `ApiScopeInterceptor`에 두고 **판정만 권한 기준**(`ApiScopeRules.allowsAuthorities`)으로 바꿨다. 옛 집합 기준 판정은 지우고 기준(oracle)으로 시험에 옮겼다(요건 15종 x 범위 조합 x 공개 여부 1만 건 이상 일치). (3) 수준 3(인터셉터 제거, OAuth 토큰, MCP, Git HTTP 통합)은 위 이유로 보류한다. |
 | A-445 | X-50(OAuth 토큰과 개인 API 토큰을 표준 자원 서버 필터 `BearerTokenAuthenticationFilter`와 `OpaqueTokenIntrospector`로) 검토 결과 **하지 않기로 했다**(2026-11-10, 선생님이 진행하라고 하셔서 구현 전 확인). 표준 필터는 인증에 실패하면 실패 처리기만 부르고 필터 체인을 잇지 않아(바이트코드로 확인: `chain.doFilter`가 성공 경로에만 있다) 틀린 토큰이 곧바로 401이 된다. 현재 계약은 "틀린 토큰이면 실패를 세고(429 제한, 감사) **익명으로 계속 진행**"이라 범위가 필요 없는 경로(`/-_-api/v1/hello` 등)와 컨트롤러가 토큰 유무를 보는 `/-_-api/v1/user`가 달라진다. 토큰 대상(RFC 8707) 불일치도 "실패로 세지 않고 익명"이라 표준 흐름에 없다. 헤더 3종(`token`, `Bearer`, `Yona-Token`)과 `/-_-api` 밖의 토큰 무시 규칙도 표준 해석기가 아니라 자체 코드로 남는다. 얻는 것은 표준 이름뿐이고 v1.6 응답 계약이 바뀌므로 하지 않는다. 이미 표준인 것: 인가 서버(Spring Authorization Server), 토큰 인증 판정(`AuthenticationProvider`와 `ProviderManager`), 범위(`SCOPE_` 권한). |
 | A-446 | D-131 argon2id 도입 구현 판단(2026-11-10). (1) 판별은 해시 접두사 `$argon2id$`이고 `DelegatingPasswordEncoder`의 `{id}` 접두사는 쓰지 않았다(열에 `{argon2id}`를 붙이면 v1.6 열 형식과 더 멀어지고 판별 기준이 하나 더 생긴다). (2) 갱신은 `YonaPasswordAuthenticationProvider`가 로컬 비밀번호 판정에 성공한 직후 한다(필터의 트랜잭션 안). 잠금 상태 확인 전이라 잠긴 계정도 비밀번호가 맞으면 바뀌는데 비밀번호는 맞은 것이라 문제가 없다. LDAP 인증 경로와 Git HTTP Basic 경로는 바꾸지 않는다. (3) `UserPasswordService.set`은 솔트가 없으면 예외라는 v1.6 규칙을 유지한다. (4) `LegacyPasswordEncoder`는 쓰는 곳이 없는 채로 남겼다(삭제는 선생님 확인 후). (5) 기존 시험의 "저장된 해시가 v1.6 해시와 같다"는 단정 8곳을 "입구로 확인되고 argon2id이다"로 바꿨고, `TwoFactorLoginTest`는 쿠키를 해시가 바뀐 뒤에 만들도록 순서를 고쳤다. |
+| A-447 | D-132 LDAP 교체 구현 판단(2026-11-10). (1) `JndiLdapDirectory`를 `SpringLdapDirectory`로 바꾸고(같은 생성자 인자) 시험 클래스 이름도 옮겼다. 스프링 LDAP는 JNDI 예외를 감싸 던지므로 원인(`cause`)을 꺼내 JNDI 예외로 다시 던져 `LdapAuthService`와 그 시험을 바꾸지 않았다. (2) 접속 주소에는 기준 DN을 넣지 않고 검색 때 절대 기준 DN을 준다(이전과 같다). (3) `LdapQueries.filterOf`와 `escapeFilterValue`는 이제 운영 코드에서 쓰이지 않고 시험만 쓴다. 삭제는 선생님 확인 후에 한다(정리 결정). `principalOf`의 DN 이스케이프는 계속 쓴다. (4) `LdapAuthServiceTest`의 "해시가 v1.6 해시와 같다" 단정 한 곳을 입구 확인으로 바꿨다(argon2id, A-446). (5) 의존성 `org.springframework.security:spring-security-ldap`을 추가했고 버전은 스프링 부트가 정한다(spring-ldap-core 4.1.1이 함께 들어온다). |
 
 ### D-94. jquery.tmpl을 Mustache로 바꾼다 (2026-11-07, **확정**, 구현 완료)
 
@@ -2078,4 +2079,14 @@ v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재�
 - **지킨 것**: 열은 v1.6과 같다(`password`, `password_salt`). argon2id 사용자는 솔트가 해시 문자열 안에 있으므로 솔트 열은 쓰이지 않는 채움 값이다(24글자 Base64, "비어 있지 않다"는 v1.6 조건을 지킨다). 어느 방식인지는 해시가 `$argon2id$`로 시작하는지로 가린다.
 - **알려진 영향(선생님께 보고)**: (1) argon2id로 바뀐 계정은 v1.6으로 되돌릴 수 없다(롤백 불가). (2) 로그인 유지 쿠키의 서명이 저장된 해시를 쓰므로(`RememberMeCookies`), 해시가 바뀌는 로그인 때 그 사용자의 다른 기기 쿠키는 한 번 무효가 되어 다시 로그인해야 한다(비밀번호를 바꿀 때와 같다). 바뀐 뒤에는 영향이 없다. (3) 쿠키만으로 로그인하는 사용자와 LDAP 사용자는 비밀번호를 거치지 않아 바뀌지 않는다. (4) 로그인 한 번이 약 수십 밀리초 느려진다(메모리 16MiB).
 - **상태**: 구현 완료(2026-11-10, A-446).
+
+### D-132. LDAP 접속과 검색을 스프링 시큐리티 LDAP 부품으로 바꾼다 (선생님, 2026-11-10)
+
+- **결정자**: 선생님("ldap도 교체해줘!"). 앞서 "스프링 시큐리티가 OIDC, LDAP, SAML 로그인을 모두 지원하지 않아?"라고 물으셨고, LDAP은 스프링 부품으로 가는 것으로 정리했다.
+- **선택지**: (가) 접속 원천(`DefaultSpringSecurityContextSource`)과 검색 도우미(`SpringSecurityLdapTemplate.searchForSingleEntryInternal`)만 쓰고 바인드 후 검색 순서와 `LdapDirectory` 경계는 유지한다. (나) `BindAuthenticator`와 `LdapAuthenticationProvider`를 그대로 쓴다. (다) 지금의 JNDI 직접 구현을 유지한다.
+- **결정**: (가).
+- **권장과 이유**: (가)를 권했다. (나)의 `BindAuthenticator`는 DN 패턴을 쓰거나 관리자 연결로 **먼저 검색한 뒤 바인드**한다. 지금 동작(v1.6)은 로그인 입력으로 바인드 주체를 만들어 **그 사용자로 바인드한 다음 그 연결로 검색**하고, 이메일이면 주체를 DN이 아닌 이메일 그대로 쓴다(Active Directory의 UPN). 순서를 바꾸면 관리자 계정 설정이 새로 필요하고 이메일 로그인이 깨진다. 또 `LdapAuthenticationProvider`는 `UserDetails`를 만드는데 이 앱은 LDAP 결과를 로컬 사용자와 맞추는 흐름(`LdapAuthService`)이 따로 있다. (가)는 접속, 제한 시간, 검색 조건 이스케이프를 스프링 부품에 맡기면서 동작은 그대로 둔다.
+- **지킨 것**: 연결과 읽기 제한 시간 5초, 검색 시간 제한 5초, 일치 항목이 하나일 때만 인정, 로그인 속성과 이메일 속성 분기, 설정 화면에서 바꾸면 재시작 없이 반영(`DynamicLdapDirectory`), 같은 예외 계약(JNDI `AuthenticationException`, `CommunicationException`). 실제 메모리 LDAP 서버(UnboundID)에 접속하는 기존 시험 9건을 그대로 옮겨 통과했다.
+- **개선**: 검색 조건의 사용자 입력은 문자열 이어 붙이기 대신 매개변수(`{0}`)로 넘겨 JNDI가 이스케이프한다(R-60-2의 이스케이프 기능을 스프링 부품이 대신한다).
+- **상태**: 구현 완료(2026-11-10, A-447).
 

@@ -54,7 +54,7 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
         assertEquals("새 사용자 [개발]", user.name)
         assertEquals("newldap@corp.test", user.email)
         assertEquals(UserState.ACTIVE, user.state)
-        assertTrue(LegacyPasswordHasher.matches("pw1", user.passwordSalt!!, user.password!!))
+        assertTrue(dev.yona.security.UserPasswordService().matches(user, "pw1"))
         assertEquals(false, user.isGuest)
     }
 

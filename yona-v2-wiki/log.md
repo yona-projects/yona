@@ -2302,3 +2302,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-10] build | argon2id 도입 (D-131, A-446)
 
 선생님 지시로 새 해시와 비밀번호 변경을 argon2id로 쓰고, v1.6 해시는 계속 확인하다가 로그인 성공 때 바꾼다. 시험 먼저: 서비스 3건 수정과 1건 추가, 제공자 3건 추가(갱신, 틀리면 유지, 쿠키 서명 변화). Red 5건을 확인한 뒤 구현했다. 기존 시험 중 v1.6 해시 일치를 단정한 곳을 고쳤다. 영향 범위 시험(security, web.user, web.site, web.git, domain.user, oauth2server, web.api)이 통과했다(172초). 알려진 영향: 되돌리기 불가, 해시가 바뀌는 로그인 때 다른 기기 쿠키가 한 번 무효.
+
+## [2026-11-10] build | LDAP 접속과 검색을 스프링 시큐리티 LDAP 부품으로 교체 (D-132, A-447)
+
+선생님 지시로 `JndiLdapDirectory`를 `SpringLdapDirectory`로 바꿨다. 시험 먼저: 실제 메모리 LDAP 서버 시험 8건을 새 클래스 이름으로 옮기고 특수 문자 이름, 제한 시간 시험을 더해 Red(컴파일 실패)를 확인한 뒤 구현했다. 기존 동작 시험이 수정 없이 통과했다(LDAP, 로그인, 보안, SSO 설정, OAuth 재개, 지표 묶음 59초). 설정 화면 코드는 바꾸지 않았다(작업 전 캡처 3장은 `shots/sso-before`).

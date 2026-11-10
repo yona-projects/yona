@@ -3,12 +3,11 @@ package dev.yona.domain.ldap
 import dev.yona.config.YonaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.Hashtable
-import javax.naming.Context
-import javax.naming.directory.Attribute
-import javax.naming.directory.InitialDirContext
+import org.springframework.dao.IncorrectResultSizeDataAccessException
+import org.springframework.ldap.support.LdapUtils
+import org.springframework.security.ldap.DefaultSpringSecurityContextSource
+import org.springframework.security.ldap.SpringSecurityLdapTemplate
 import javax.naming.directory.SearchControls
-import javax.naming.directory.SearchResult
 
 /**
  * LDAP 서버가 알려 준 사용자이다. v1.6 `models.support.LdapUser`(`app/models/support/LdapUser.java`)에 해당한다.
@@ -81,51 +80,67 @@ class LdapQueries(
 }
 
 /**
- * [LdapDirectory]의 JNDI 구현이다. v1.6 `utils.LdapService.authenticate`(`app/utils/LdapService.java:41-130`)에 해당한다.
+ * [LdapDirectory]의 스프링 시큐리티 LDAP 구현이다(로드맵 X-43, `decisions.md` D-132). v1.6 `utils.LdapService.authenticate`(`app/utils/LdapService.java:41-130`)에 해당한다.
  *
- * 연결, 읽기, 검색 제한 시간은 각각 5초이다. 검색 조건과 바인드 주체의 사용자 입력은 이스케이프한다(v1.6은 이스케이프 없이 이어 붙이고 연결 제한 시간만 있었다, R-60-2, R-60-10).
+ * 접속은 [DefaultSpringSecurityContextSource]가, 검색은 스프링 시큐리티가 `BindAuthenticator`에서 쓰는 검색 도우미
+ * ([SpringSecurityLdapTemplate.searchForSingleEntryInternal])가 맡는다. 순서는 v1.6과 같다: 사용자 이름으로 바인드 주체를 만들어 **그 사용자로 바인드**하고, 바인드한 연결로
+ * 기준 DN 아래에서 그 사용자를 찾는다(`BindAuthenticator`는 관리자 연결로 먼저 찾은 뒤 바인드하므로 이 순서를 지킬 수 없어 부품만 가져다 쓴다).
+ *
+ * 연결과 읽기, 검색 제한 시간은 각각 5초이다. 검색 조건의 사용자 입력은 매개변수(`{0}`)로 넘겨 JNDI가 이스케이프하고, 바인드 주체의 DN 값은 [LdapQueries]가 이스케이프한다
+ * (v1.6은 이스케이프 없이 이어 붙이고 연결 제한 시간만 있었다, R-60-2, R-60-10).
+ *
+ * 예외는 이전과 같은 JNDI 예외로 알린다. 스프링 LDAP는 JNDI 예외를 감싸 던지므로 원인을 꺼내 다시 던진다([LdapAuthService]가 `AuthenticationException`, `CommunicationException`으로 가린다).
  */
-class JndiLdapDirectory(private val config: YonaProperties.Ldap, private val protocol: String) : LdapDirectory {
+class SpringLdapDirectory(private val config: YonaProperties.Ldap, private val protocol: String) : LdapDirectory {
 
     private val queries = LdapQueries(config.userNameProperty, config.distinguishedNamePostfix, config.loginProperty, config.emailProperty)
 
     /** 검색 제한 시간(밀리초)이다. v1.6은 연결 제한 시간만 있어 응답하지 않는 서버가 로그인 요청 스레드를 붙잡았다(R-60-10). */
     val searchTimeLimitMillis: Int get() = TIMEOUT
 
-    /** 접속 환경이다. 연결과 읽기 제한 시간을 둔다. */
-    fun environmentFor(username: String, password: String): Hashtable<String, String> = Hashtable<String, String>().apply {
-        put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
-        put("com.sun.jndi.ldap.connect.timeout", TIMEOUT.toString())
-        put("com.sun.jndi.ldap.read.timeout", TIMEOUT.toString())
-        put(Context.PROVIDER_URL, "$protocol://${config.host}:${config.port}")
-        put(Context.SECURITY_AUTHENTICATION, "simple")
-        put(Context.SECURITY_PRINCIPAL, queries.principalOf(username))
-        put(Context.SECURITY_CREDENTIALS, password)
+    /** 접속 환경에 더하는 JNDI 속성이다. 연결과 읽기 제한 시간을 둔다. */
+    val baseEnvironment: Map<String, String> = mapOf(
+        "com.sun.jndi.ldap.connect.timeout" to TIMEOUT.toString(),
+        "com.sun.jndi.ldap.read.timeout" to TIMEOUT.toString()
+    )
+
+    private val contextSource = DefaultSpringSecurityContextSource("$protocol://${config.host}:${config.port}").apply {
+        setBaseEnvironmentProperties(baseEnvironment)
+        afterPropertiesSet()
     }
 
     override fun authenticate(username: String, password: String): LdapUser? {
-        val env = environmentFor(username, password)
-        val context = InitialDirContext(env)
+        val context = try {
+            contextSource.getContext(queries.principalOf(username), password)
+        } catch (e: org.springframework.ldap.NamingException) {
+            throw unwrap(e)
+        }
         try {
             val controls = SearchControls().apply { searchScope = SearchControls.SUBTREE_SCOPE; timeLimit = TIMEOUT }
-            val results = context.search(config.baseDn, queries.filterOf(username), controls)
-            if (!results.hasMoreElements()) return null
-            val found = results.nextElement() as SearchResult
-            // 일치하는 항목은 하나여야 한다.
-            if (results.hasMoreElements()) return null
-            val attributes = found.attributes
-            fun text(attribute: Attribute?): String = attribute?.get()?.toString().orEmpty()
+            // 일치하는 항목은 하나여야 한다. 없거나 둘 이상이면 스프링이 던지는 예외를 null로 바꾼다
+            val entry = try {
+                SpringSecurityLdapTemplate.searchForSingleEntryInternal(context, controls, config.baseDn, "(${queries.filterAttributeOf(username)}={0})", arrayOf<Any>(username))
+            } catch (e: IncorrectResultSizeDataAccessException) {
+                return null
+            }
+            fun text(name: String): String = entry.getStringAttribute(name).orEmpty()
             return LdapUser(
-                displayName = text(attributes.get(config.displayNameProperty)),
-                email = text(attributes.get(config.emailProperty)),
-                loginId = text(attributes.get(config.loginProperty)),
-                department = text(attributes.get("department")),
-                englishName = if (config.englishNameAttributeName.isNotBlank()) text(attributes.get(config.englishNameAttributeName)) else ""
+                displayName = text(config.displayNameProperty),
+                email = text(config.emailProperty),
+                loginId = text(config.loginProperty),
+                department = text("department"),
+                englishName = if (config.englishNameAttributeName.isNotBlank()) text(config.englishNameAttributeName) else ""
             )
+        } catch (e: org.springframework.ldap.NamingException) {
+            throw unwrap(e)
         } finally {
-            context.close()
+            LdapUtils.closeContext(context)
         }
     }
+
+    /** 스프링 LDAP가 감싼 JNDI 예외를 꺼낸다. 원인이 JNDI 예외가 아니면 같은 메시지의 일반 JNDI 예외로 바꾼다. */
+    private fun unwrap(e: org.springframework.ldap.NamingException): javax.naming.NamingException =
+        e.cause as? javax.naming.NamingException ?: javax.naming.NamingException(e.message).also { it.initCause(e) }
 
     private companion object {
         const val TIMEOUT = 5000
@@ -133,10 +148,10 @@ class JndiLdapDirectory(private val config: YonaProperties.Ldap, private val pro
 }
 
 /**
- * 인증할 때마다 지금 적용되는 LDAP 설정([LdapSettingsService])으로 [JndiLdapDirectory]를 만들어 쓴다. 관리자가 화면에서 설정을 바꾸면 재시작 없이 반영된다.
+ * 인증할 때마다 지금 적용되는 LDAP 설정([LdapSettingsService])으로 [SpringLdapDirectory]를 만들어 쓴다. 관리자가 화면에서 설정을 바꾸면 재시작 없이 반영된다.
  */
 class DynamicLdapDirectory(private val settings: LdapSettingsService) : LdapDirectory {
-    override fun authenticate(username: String, password: String): LdapUser? = JndiLdapDirectory(settings.effective(), settings.protocol()).authenticate(username, password)
+    override fun authenticate(username: String, password: String): LdapUser? = SpringLdapDirectory(settings.effective(), settings.protocol()).authenticate(username, password)
 }
 
 /** [LdapDirectory]를 설정에서 만든다. */

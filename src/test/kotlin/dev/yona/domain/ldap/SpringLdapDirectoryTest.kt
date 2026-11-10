@@ -14,10 +14,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 /**
- * JNDI로 LDAP 서버에 바인드하고 사용자를 찾는 부분을 인메모리 LDAP 서버로 검증한다.
- * 원본: `utils.LdapService`(`app/utils/LdapService.java`).
+ * 스프링 시큐리티의 LDAP 부품으로 LDAP 서버에 바인드하고 사용자를 찾는 부분을 인메모리 LDAP 서버로 검증한다(로드맵 X-43, `decisions.md` D-132).
+ * 원본: `utils.LdapService`(`app/utils/LdapService.java`). 이전 JNDI 구현의 시험을 그대로 옮겼고(동작이 같아야 한다), 검색 조건의 특수 문자 시험을 더했다.
  */
-class JndiLdapDirectoryTest {
+class SpringLdapDirectoryTest {
 
     companion object {
         private val server = InMemoryDirectoryServer(
@@ -46,7 +46,7 @@ class JndiLdapDirectoryTest {
     }
 
     private fun directory(port: Int = server.listenPort, loginProperty: String = "uid", postfix: String = "ou=user,dc=example,dc=com", english: String = "givenName") =
-        JndiLdapDirectory(
+        SpringLdapDirectory(
             YonaProperties.Ldap(
                 enabled = true, host = "127.0.0.1", port = port.toString(), baseDn = "dc=example,dc=com", distinguishedNamePostfix = postfix,
                 loginProperty = loginProperty, displayNameProperty = "displayName", userNameProperty = "CN", emailProperty = "mail", englishNameAttributeName = english
@@ -96,6 +96,22 @@ class JndiLdapDirectoryTest {
         assertEquals("mail", queries.filterAttributeOf("a@b.c"))
         assertEquals("CN=alice,ou=user,dc=example,dc=com", queries.principalOf("alice"))
         assertEquals("sAMAccountName", queries.filterAttributeOf("alice"))
+    }
+
+    @Test
+    fun `이름에 검색 조건의 특수 문자를 넣어도 다른 사용자로 인증되지 않는다 (R-60-2)`() {
+        // 바인드 주체가 CN=*,... 이라 바인드가 실패하거나, 검색 조건의 *가 이스케이프되어 모든 항목과 일치하지 않아야 한다
+        val outcome = runCatching { directory().authenticate("*", "secret-alice") }
+        assertNull(outcome.getOrNull(), "특수 문자 이름으로는 사용자를 돌려주지 않는다")
+        assertNull(runCatching { directory().authenticate("alice)(uid=*", "secret-alice") }.getOrNull())
+    }
+
+    @Test
+    fun `연결과 읽기 제한 시간이 있다 (R-60-10)`() {
+        val directory = SpringLdapDirectory(YonaProperties.Ldap(), "ldap")
+        assertEquals("5000", directory.baseEnvironment["com.sun.jndi.ldap.read.timeout"])
+        assertEquals("5000", directory.baseEnvironment["com.sun.jndi.ldap.connect.timeout"])
+        assertEquals(5000, directory.searchTimeLimitMillis)
     }
 
     @Test
