@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { pageWith, classicFromEsm } from './harness.mjs';
 
-const MSG = { content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? '|' + [].slice.call(arguments, 1).join(',') : ''); };' };
+const MSG = { content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' };
 async function base(html, file, init) {
   const page = await pageWith({ stubs: false, html, scripts: [MSG, 'common/yona.Common.js'] });
   await page.evaluate(() => {
