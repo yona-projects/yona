@@ -66,3 +66,11 @@
     }
   }
 }
+
+/*
+ * 위키 편집창 높이(A-452): 이슈와 게시글의 편집창은 `.content-wrap textarea.content { height: 300px }`(yobi.css)로 300px인데 위키 화면은 `.content-wrap` 밖이라
+ * 기본 두 줄(약 40px)이 되었다. 같은 높이를 준다. 내용이 길면 편집창이 자동으로 늘어난다.
+ */
+.wiki-form textarea.content {
+  height: 300px;
+}
