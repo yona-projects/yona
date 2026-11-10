@@ -2334,3 +2334,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | 신설 화면 전반 점검, 규칙 묶음과 OAuth 앱 폼 너비 수정 (A-453)
 
 선생님 승인으로 신설 화면 26곳을 자동 점검하고 일부는 눈으로 확인했다. 규칙 묶음 폼(옛 크기 클래스 정의 없음)과 OAuth 앱 폼(760px 카드와 어긋남)을 고쳤다. 구조 시험 4건 Red 확인 후 통과, 관련 클래스 묶음 통과. 위키 페이지와 OAuth 동의 화면은 보지 못했다.
+
+## [2026-11-11] build | 알림 More 단추 요청 주소의 `&amp;` 결함 수정
+
+`partial-notifications.html`의 More 스크립트가 `...?from=20&amp;limit=20`으로 요청해 400이 나던 결함을 고쳤다(v1.6은 `@routes`라 문제가 없었다). 스크립트가 만든 주소를 그대로 호출하는 시험과 알림 종류 34개 전수 시험(`NotificationEveryTypeTest`)을 더했다. 같은 내용이 `ui-improvements`의 A-456이다.

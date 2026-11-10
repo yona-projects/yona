@@ -167,6 +167,20 @@ class NotificationListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `더 보기 스크립트가 요청하는 주소는 그대로 호출할 수 있다 (엔티티가 글자로 남으면 400이다)`() {
+        val me = user(); val s = user(); val i = issue(s)
+        (1..21).forEach { n -> event(s, me, i, EventType.NEW_ISSUE, null, "n$n", ago = (30 - n) * 1000L, title = "알림$n") }
+        val session = login(me)
+        val script = page("/notifications", session).select("script").joinToString("\n") { it.data() }
+        val url = Regex("yona\\.http\\.get\\(\"([^\"]*/notification\\?[^\"]*)\"").find(script)?.groupValues?.get(1)
+        assertNotNull(url, "더 보기 스크립트에서 주소를 찾지 못했다")
+        assertTrue(!url.contains("&amp;"), "주소에 &amp;가 글자로 남았다: $url")
+        // 스크립트가 만든 주소 그대로 호출하면 성공하고 나머지 한 개가 돌아온다
+        val more = Jsoup.parse(mockMvc.perform(get(url).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertEquals(listOf("알림1"), more.select("li.notification-stream .title").map { it.text() })
+    }
+
+    @Test
     fun `다른 사람의 알림은 보이지 않는다`() {
         val me = user(); val other = user(); val s = user(); val i = issue(s)
         event(s, other, i, EventType.NEW_ISSUE, null, "x")
