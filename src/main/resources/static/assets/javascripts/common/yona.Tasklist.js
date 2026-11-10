@@ -34,7 +34,7 @@ $(() => {
 
         const text = $form.find("textarea").val();
 
-        $.ajax({
+        yona.http.ajax({
             method: "PATCH",
             url: url,
             contentType: "application/json",

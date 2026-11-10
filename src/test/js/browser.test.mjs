@@ -18,7 +18,7 @@ const STUBS = `
   window.moment = function () { return { fromNow: function () { return ''; } }; };
   $yona.xssClean = function (s) { return s; };
   window.__ajax = [];
-  $.ajax = function (url) { window.__ajax.push(url); };`;
+  ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url) { window.__ajax.push(url); };`;
 
 async function open(hash) {
   const page = await pageWith({ html: HTML, scripts: [{ content: STUBS }, 'service/yona.code.Browser.js'] });

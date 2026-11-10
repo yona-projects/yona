@@ -7,7 +7,7 @@ const STUBS = { content: 'window.NProgress = { done: function () {} };' };
 async function run(response) {
   const page = await pageWith({ html: HTML, scripts: [STUBS, 'common/yona.ReceiverList.js'] });
   const out = await page.evaluate(async (resp) => {
-    $.ajax = function () { var d = $.Deferred(); setTimeout(function () { d.resolve(resp); }, 0); return d.promise(); };
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () { var d = $.Deferred(); setTimeout(function () { d.resolve(resp); }, 0); return d.promise(); };
     findNotiReceiversHandler($('#t'), '/r');
     await new Promise((r) => setTimeout(r, 50));
     return $('.notification-receiver-list').html();

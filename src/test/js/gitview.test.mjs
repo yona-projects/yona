@@ -13,7 +13,7 @@ async function open({ pending = false } = {}) {
   await page.evaluate((pending) => {
     window.__gets = []; window.__resp = { html: '<p id="s">A</p>', isConflict: false };
     yona.Files = { getUploader: function () { return null; } };
-    $.get = function (url, success) {
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).get = function (url, success) {
       window.__gets.push(url);
       var d = $.Deferred();
       if (pending) return d.promise();

@@ -79,7 +79,7 @@
                 });
             $('#descriptionSaveBtn').on('click',() =>{
                 const overview = {"overview" : $("#project-description-input").val() };
-                $.ajax({
+                yona.http.ajax({
                     "url": htVar.sURLProject,
                     "method": "put",
                     "data": JSON.stringify(overview),
@@ -105,7 +105,7 @@
 
                 $("#leaveBtn").click(() =>{
 
-                    $.ajax(sURL, {
+                    yona.http.ajax(sURL, {
                         "method": "delete",
                         "dataType": "html"
                     }).done((sResult) =>{

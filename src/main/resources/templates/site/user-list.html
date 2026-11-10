@@ -123,7 +123,7 @@
         .on('click','[data-toggle="reset-password"]',function(){
             var that = $(this);
             _showRequestWaitingMessage(that);
-            $.post(that.data("href"))
+            yona.http.post(that.data("href"))
                 .done(function(data){
                     $(".alert").remove();
                     if(data && data.isSuccess === true){

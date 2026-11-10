@@ -21,7 +21,7 @@ $(() => {
         }).join(","));
         $textarea.val($textarea.val().split(linkStr).join(""));
 
-        $.post(url)
+        yona.http.post(url)
             .done((data) => {
                 $parent.remove();
             })
@@ -43,7 +43,7 @@ $(() => {
             const formData = new FormData();
             formData.append("filePath", files[i]);
 
-            $.ajax({
+            yona.http.ajax({
                 url: '/files',
                 type: 'POST',
                 cache: false,
@@ -106,7 +106,7 @@ $(() => {
                     const formData = new FormData();
                     formData.append('filePath', item.getAsFile(), generateFileName());
 
-                    $.ajax('/files', {
+                    yona.http.ajax('/files', {
                         type: 'POST',
                         contentType: false,
                         processData: false,

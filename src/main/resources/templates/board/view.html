@@ -184,7 +184,7 @@
 
         $('.board-labels select').on('change', function(e){
             var url = /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/label'}]]*/ "";
-            $.ajax({
+            yona.http.ajax({
                 url: url,
                 method: "POST",
                 data: JSON.stringify(e.val),
@@ -208,7 +208,7 @@
                 type: "posting",
                 number: /*[[${#strings.toString(post.number)}]]*/ ""
             };
-            $.ajax({
+            yona.http.ajax({
                 url: "/translation",
                 data: JSON.stringify(data),
                 type: "POST",
@@ -228,7 +228,7 @@
                 type: "post-comment",
                 number: $(this).data("commentId")
             };
-            $.ajax({
+            yona.http.ajax({
                 url: "/translation",
                 data: JSON.stringify(payload),
                 type: "POST",

@@ -57,7 +57,7 @@
         function _onClickLeaveBtn(){
             const sURL = htElement.welGroupLeaveBtn.attr("data-href");
 
-            $.ajax(sURL, {
+            yona.http.ajax(sURL, {
                 "method"  : "delete",
                 "dataType": "html",
                 "success" : _onSuccessLeaveMember,

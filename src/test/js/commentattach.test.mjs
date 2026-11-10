@@ -6,7 +6,7 @@ const STUBS = { content: `
   window.NProgress = { start: function () {}, done: function () {} };
   window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return n + 'B'; };
   window.__posts = [];
-  $.post = function (u) { window.__posts.push(u); var d = $.Deferred(); return d.promise(); };` };
+  ((window.yona = window.yona || {}).http = (window.yona.http || {})).post = function (u) { window.__posts.push(u); var d = $.Deferred(); return d.promise(); };` };
 
 /** 파일 입력에 [count]개를 올리면 서버가 [ids]를 차례로 돌려주는 상황을 만든다. */
 async function upload(ids, doDelete) {
@@ -15,7 +15,7 @@ async function upload(ids, doDelete) {
   await page.addScriptTag({ path: (await import('./harness.mjs')).JS + '/common/yona.CommentAttachmentsUpdate.js' });
   const state = await page.evaluate(async ([list, doDelete]) => {
     var n = 0;
-    $.ajax = function () {
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () {
       var d = $.Deferred(); var id = list[n++];
       setTimeout(function () { d.resolve({ id: id, name: 'f' + id + '.txt', url: '/f/' + id, mimeType: 'text/plain', size: 1 }); }, 0);
       return d.promise();

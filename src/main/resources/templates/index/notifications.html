@@ -122,7 +122,7 @@
             var $setDefaultLoginPage = $("#setDefaultLoginPage");
             $setDefaultLoginPage.each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
             $setDefaultLoginPage.on('click', function(){
-                $.post([[@{/user/defultLoginPage}]] + "?path=" + $setDefaultLoginPage.data("url"))
+                yona.http.post([[@{/user/defultLoginPage}]] + "?path=" + $setDefaultLoginPage.data("url"))
                         .done(function (data) {
                             $yona.notify("Set to default: " + data.defaultLoginPage, 3000);
                             $setDefaultLoginPage.hide();

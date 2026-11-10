@@ -22,8 +22,8 @@
  */
 import { register } from "./namespace.js";
 
-/** `jQuery.param`과 같은 규칙으로 값을 `key=value&...` 글자로 만든다. */
-export function param(data) {
+/** `jQuery.param`과 같은 규칙으로 값을 `key=value&...` 글자로 만든다. [traditional]이 참이면 배열을 `key[]`가 아니라 `key=1&key=2`로 쓴다. */
+export function param(data, traditional = false) {
   const parts = [];
   const add = (key, value) => {
     const v = typeof value === "function" ? value() : (value == null ? "" : value);
@@ -32,7 +32,7 @@ export function param(data) {
   const build = (prefix, value) => {
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
-        if (/\[\]$/.test(prefix)) {
+        if (traditional || /\[\]$/.test(prefix)) {
           add(prefix, item);
         } else {
           build(`${prefix}[${typeof item === "object" && item != null ? index : ""}]`, item);
@@ -46,6 +46,9 @@ export function param(data) {
   };
   if (Array.isArray(data)) {
     data.forEach((field) => add(field.name, field.value));
+  } else if (traditional) {
+    // 전통 방식: 한 단계만 풀고 배열은 같은 이름을 되풀이한다(중첩 객체는 글자로 바뀐다)
+    Object.keys(data || {}).forEach((key) => [].concat(data[key]).forEach((item) => add(key, item)));
   } else {
     Object.keys(data || {}).forEach((key) => build(key, data[key]));
   }
@@ -102,7 +105,7 @@ export function ajax(urlOrOptions, maybeOptions) {
   headers.Accept = ACCEPTS[dataType] || "*/*";
 
   if (options.data !== undefined && options.data !== null) {
-    const data = typeof options.data === "string" || options.processData === false ? options.data : param(options.data);
+    const data = typeof options.data === "string" || options.processData === false ? options.data : param(options.data, options.traditional);
     if (hasBody) {
       body = data;
       if (options.contentType !== false) {

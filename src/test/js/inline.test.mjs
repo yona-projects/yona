@@ -7,7 +7,7 @@ async function translateDisables(template, from, to, buttonHtml, selector) {
   const page = await pageWith({ html: buttonHtml + '<div class="markdown-wrap"></div><div id="comment-body-9"><div class="markdown-wrap"></div></div>' });
   const disabled = await page.evaluate(async ([code, sel]) => {
     // jQuery는 성공 콜백의 `this`를 요청 설정 객체로 준다. 버튼이 아니다
-    $.ajax = function () { return $.Deferred().resolveWith({ url: '/translation' }, [{ translated: '번역' }]).promise(); };
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () { return $.Deferred().resolveWith({ url: '/translation' }, [{ translated: '번역' }]).promise(); };
     new Function(code)();
     $(sel).trigger('click');
     await new Promise((r) => setTimeout(r, 10));
@@ -34,7 +34,7 @@ export const tests = [
     const snippet = templateSnippet('board/view.html', "$('.board-labels select').on('change'", '// detect comment');
     const page = await pageWith({ html: '<div class="board-labels"><select><option>a</option></select></div>' });
     const out = await page.evaluate(async (code) => {
-      $.ajax = function () { return $.Deferred().resolve({}).promise(); };
+      ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () { return $.Deferred().resolve({}).promise(); };
       new Function(code)();
       var e = $.Event('change'); e.val = [1];
       try { $('.board-labels select').trigger(e); } catch (err) { return err.message; }

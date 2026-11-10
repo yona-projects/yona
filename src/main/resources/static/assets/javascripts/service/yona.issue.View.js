@@ -97,7 +97,7 @@
         }
 
         function _onClickCommentVote(){
-            $.ajax($(this).data("requestUri"), {
+            yona.http.ajax($(this).data("requestUri"), {
                 "method"  : "post",
                 "success" : function(){
                     location.reload();
@@ -163,7 +163,7 @@
             const fieldValue = field.val();
 
             // Send request to update issueInfo
-            $.ajax(vars.urls.massUpdate, {
+            yona.http.ajax(vars.urls.massUpdate, {
                 "method"  : "post",
                 "dataType": "json",
                 "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
@@ -267,7 +267,7 @@
             const watching = button.data("watching");
             const url = watching ? vars.urls.unwatch : vars.urls.watch;
 
-            $.post(url, () =>{
+            yona.http.post(url, () =>{
                 button.data("watching", !watching)
                     .toggleClass('ybtn-watching')
                     .html(Messages(!watching ? "issue.unwatch" : "issue.watch"))
@@ -321,7 +321,7 @@
 
             vars.isTimelineUpdating = true;
 
-            $.get(vars.urls.timeline, _onLoadTimeline)
+            yona.http.get(vars.urls.timeline, _onLoadTimeline)
              .always(() =>{
                  vars.isTimelineUpdating = false;
              });

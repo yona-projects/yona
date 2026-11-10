@@ -83,7 +83,7 @@
         }
 
         function _onReloadMilestone() {
-            $.get(htVar.sIssueFormURL, (data) =>{
+            yona.http.get(htVar.sIssueFormURL, (data) =>{
                 const context = data.replace("<!DOCTYPE html>", "").trim();
                 const milestoneOptionDiv = $("#milestoneOption", context);
                 $("#milestoneOption").html(milestoneOptionDiv.html());

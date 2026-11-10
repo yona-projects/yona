@@ -407,7 +407,7 @@
             const bChecked   = welTarget.prop("checked");
             const url        = $(this).attr("data-href");
 
-            $.ajax(url, {
+            yona.http.ajax(url, {
                 "method" : "post",
                 "success": function(data){
                     welTarget.prop("checked", bChecked);

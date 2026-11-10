@@ -52,7 +52,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   // this resolves those loginIds to user objects so that each sharer has a type (3.x initSelection)
   const selectedLoginIds = ($issueSharer.val() || []).join(",");
   if (selectedLoginIds !== "") {
-    $.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
+    yona.http.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
       dataType: "json"
     }).done((data) => {
       if(data && data.length > 0) {
@@ -66,7 +66,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     const data = { sharer: {loginId: chosen.loginId, type: chosen.type}, action: 'add'};
 
     if(updateSharingApiUrl){
-        $.ajax(updateSharingApiUrl, {
+        yona.http.ajax(updateSharingApiUrl, {
             method: "POST",
             dataType: "json",
             contentType: "application/json",
@@ -82,7 +82,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     const data = { sharer: {loginId: removed.loginId, type: removed.type}, action: 'delete'};
 
     if(updateSharingApiUrl){
-      $.ajax(updateSharingApiUrl, {
+      yona.http.ajax(updateSharingApiUrl, {
         method: "POST",
         dataType: "json",
         contentType: "application/json",

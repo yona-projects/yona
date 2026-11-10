@@ -241,7 +241,7 @@ yona.Files = (function(){
      * @param {Function} htOptions.fOnError
      */
     function _getFileList(htOptions){
-        $.ajax({
+        yona.http.ajax({
             "type"   : "get",
             "url"    : htVar.sListURL,
             "success": htOptions.fOnLoad,

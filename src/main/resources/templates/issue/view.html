@@ -365,7 +365,7 @@
                 type: "issue",
                 number: /*[[${#strings.toString(issue.number)}]]*/ ""
             };
-            $.ajax({
+            yona.http.ajax({
                 url: "/translation",
                 data: JSON.stringify(data),
                 type: "POST",
@@ -385,7 +385,7 @@
                 type: "issue-comment",
                 number: $(this).data("commentId")
             };
-            $.ajax({
+            yona.http.ajax({
                 url: "/translation",
                 data: JSON.stringify(payload),
                 type: "POST",
@@ -421,7 +421,7 @@
         });
 
         $("#upvote-issue-weight").on("click", function () {
-            $.ajax({
+            yona.http.ajax({
                 url: /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/upvoteWeight'}]]*/ "",
                 type: "POST",
             }).done(function (data) {
@@ -430,7 +430,7 @@
         });
 
         $("#down-vote-issue-weight").on("click", function () {
-            $.ajax({
+            yona.http.ajax({
                 url: /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/downvoteWeight'}]]*/ "",
                 type: "POST",
             }).done(function (data) {

@@ -40,7 +40,7 @@
 </div>
 <script language="javascript" th:inline="javascript">
     $("#btnDeleteExec").on("click", function() {
-        $.ajax({
+        yona.http.ajax({
             type: "delete",
             url: [[${#paths.organization(org.name)}]],
             success: function() {

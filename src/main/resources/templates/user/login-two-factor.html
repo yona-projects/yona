@@ -47,10 +47,10 @@
         $("#security-key-login").show();
         $("#security-key-use").on("click", function () {
             $("#security-key-error").hide();
-            $.post(/*[[@{/users/login/2fa/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
+            yona.http.post(/*[[@{/users/login/2fa/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
                 return YonaWebAuthn.authenticate(options);
             }).then(function (credential) {
-                return $.post(/*[[@{/users/login/2fa/webauthn}]]*/ "", { credential: credential, rememberDevice: $("#remember-device").is(":checked") }, null, "json");
+                return yona.http.post(/*[[@{/users/login/2fa/webauthn}]]*/ "", { credential: credential, rememberDevice: $("#remember-device").is(":checked") }, null, "json");
             }).then(function (result) {
                 location.href = result.redirect;
             }).catch(function (e) {

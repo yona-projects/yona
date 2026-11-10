@@ -7,7 +7,7 @@ $(() => {
     const SIDE_BAR_DEFAULT_WIDTH = "360px";
 
     if ($(".gnb-usermenu-dropdown").length !== 0) {
-        $.get(UsermenuUrl)
+        yona.http.get(UsermenuUrl)
             .done((data) => {
                 $("#usermenu-tab-content-list").html(data);
                 iniNaviUserMenu();
@@ -101,7 +101,7 @@ $(() => {
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
+                yona.http.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
                     .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
@@ -118,7 +118,7 @@ $(() => {
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                $.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
+                yona.http.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
                     .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
@@ -161,7 +161,7 @@ $(() => {
             .on("click.org", function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                $.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
+                yona.http.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
                     .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
@@ -212,7 +212,7 @@ $(() => {
 
     // This method intended to sync sub tab list of projects
     function updateStar() {
-        $.get(UsermenuGetFoveriteProjectsUrl)
+        yona.http.get(UsermenuGetFoveriteProjectsUrl)
             .done((data) => {
                 $(".star-project").each(function () {
                     const $this = $(this);

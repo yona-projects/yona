@@ -272,7 +272,7 @@
                 return false;
             }
 
-            $.ajax(vars.actionURL, {
+            yona.http.ajax(vars.actionURL, {
                 "method": "post",
                 "data"  : requestData
             })
@@ -521,7 +521,7 @@
         function _requestRemoveLabel(target){
             const targetButton = $(target);
 
-            $.ajax(targetButton.data("deleteUri"), {
+            yona.http.ajax(targetButton.data("deleteUri"), {
                 "method": "post",
                 "data"  : {"_method": "delete"}
             })
@@ -611,7 +611,7 @@
 
             NProgress.start();
 
-            $.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
+            yona.http.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
                 "method": "put",
                 "data"  : requestData
             }).done(() =>{
@@ -676,7 +676,7 @@
 
             NProgress.start();
 
-            $.ajax(elements.editLabelForm.data("updateUri"), {
+            yona.http.ajax(elements.editLabelForm.data("updateUri"), {
                 "method": "put",
                 "data"  : requestData
             }).done(() =>{

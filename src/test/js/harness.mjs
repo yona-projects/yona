@@ -46,6 +46,18 @@ export const JQUERY4_REMOVALS = `
  * 새 페이지를 만든다. [html]을 본문으로 하고 [scripts](JS 디렉터리 기준 경로 또는 `{content}`)를 차례로 불러온다.
  * 페이지에서 난 스크립트 오류는 `page.errors`에 모인다.
  */
+/**
+ * ES 모듈 `esm/http.js`를 클래식 스크립트로 바꿔 돌려준다. 클래식 스크립트 시험이 모듈 로더 없이도 실제 `yona.http`(fetch 구현)를 쓰게 하려는 것이다.
+ * `import`와 `export`를 걷어내고 `register("yona.http", http)`를 전역 대입으로 바꾼다.
+ */
+export function classicHttpSource() {
+  const src = fs.readFileSync(path.join(JS, 'esm/http.js'), 'utf8')
+    .replace(/^import .*$/m, '')
+    .replace(/^export (function|const) /gm, '$1 ')
+    .replace('register("yona.http", http);', 'window.yona = window.yona || {}; window.yona.http = http;');
+  return `(function () {\n${src}\n})();`;
+}
+
 export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = true } = {}) {
   const b = await launch();
   const page = await b.newPage();
@@ -59,6 +71,7 @@ export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = tr
     await page.addScriptTag({ path: path.join(JS, 'lib/mustache.js') });
     await page.addScriptTag({ content: COMMON_STUBS });
   }
+  await page.addScriptTag({ content: classicHttpSource() });
   for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? { path: path.join(JS, s) } : s);
   return page;
 }

@@ -206,7 +206,7 @@
             _setIndentByDepth(nNewDepth);
 
             NProgress.start();
-            $.ajax(sURL, {
+            yona.http.ajax(sURL, {
                 "success": function(oRes){
                     if(_isListExistsByPath(sTargetPath)){
                         NProgress.done();

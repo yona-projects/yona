@@ -90,10 +90,10 @@ $(() =>{
     function _useSecurityKey(){
         const welButton = htElement.welSecurityKeyStep.find(".security-key-use");
         htElement.welLoginError.hide();
-        $.post(welButton.data("options-uri"), null, null, "text").then((sOptions) =>{
+        yona.http.post(welButton.data("options-uri"), null, null, "text").then((sOptions) =>{
             return YonaWebAuthn.authenticate(sOptions);
         }).then((sCredential) =>{
-            return $.post(welButton.data("submit-uri"), {
+            return yona.http.post(welButton.data("submit-uri"), {
                 "credential": sCredential,
                 "rememberDevice": htElement.welInputRememberDevice.is(":checked")
             }, null, "json");
@@ -119,7 +119,7 @@ $(() =>{
 
     function _onSubmitForm(weEvt){
         const bCodeStep = htElement.welTwoFactorStep.is(":visible");
-        $.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
+        yona.http.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
             "type": "post",
             "dataType": "json",
             "data": bCodeStep ? {

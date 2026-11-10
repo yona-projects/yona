@@ -21,7 +21,7 @@ function findNotiReceiversHandler($textarea, url) {
     function findNotiReceivers() {
         const parentCommentId = $textarea.closest("form").find(".parentCommentId").val()
 
-        $.ajax({
+        yona.http.ajax({
             method: "POST",
             url: url,
             contentType: "application/json",

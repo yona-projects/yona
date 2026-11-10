@@ -50,7 +50,7 @@
          */
         function _onClickBtnEnroll(weEvt){
             const sURL = $(this).attr('href');
-            $.ajax(sURL, {
+            yona.http.ajax(sURL, {
                 "method" : "post",
                 "success": function(){
                     document.location.reload();

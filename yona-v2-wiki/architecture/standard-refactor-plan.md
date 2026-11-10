@@ -23,8 +23,10 @@ updated: 2026-11-10
 ## 단계
 1. **(완료)** 소규모 lib 교체와 문법 현대화(D-122, A-438)
 2. **(완료)** ES 모듈 뼈대와 모듈 3개(`esm/ui/Elevator.js`, `Favicon.js`, `FormValidator.js`). 템플릿은 진입점 `<script type="module">` 하나(`esm-skeleton.md`)
-3. 공용 `esm/http.js`(fetch 래퍼, 이전 화면의 `http()` 동작) 만들고 호출 수가 적은 파일부터 `$.ajax`를 옮긴다
+3. **(완료)** 공용 `esm/http.js`(fetch 래퍼, jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교)를 만들고 `$.ajax`, `$.get`, `$.post`, `$.getJSON` 76곳(44개 파일, 템플릿 인라인 포함)을 `yona.http.*`로 옮겼다. 콜백을 `await`로 바꾸는 일은 4단계에서 파일을 모듈로 옮길 때 함께 한다
 4. 화면별 스크립트를 한 파일씩 ES 모듈로 옮긴다. 시험이 없는 파일은 특성 시험을 먼저 만든다. 옮길 때 그 화면 템플릿의 `<script>` 태그는 `type="module"`로 바꾼다
 5. 직접 만든 지연 호출, 스크롤 처리기, 문자열 HTML, 날짜 계산을 파일을 열 때 함께 정리한다
 
 각 단계는 시험 통과와 실제 앱 확인 뒤에 커밋하고, 달라진 구조는 `decisions.md`에 적는다.
+
+동작이 달라지는 곳은 건드리지 않고 `refactor-deviations.md`에 모아 마지막에 보고한다.

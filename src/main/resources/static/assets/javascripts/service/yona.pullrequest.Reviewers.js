@@ -33,7 +33,7 @@
 
     /** 변경 뒤 리뷰 영역과 타임라인만 다시 읽는다. */
     function refresh(timelineUrl) {
-        $.get(window.location.href, (html) => {
+        yona.http.get(window.location.href, (html) => {
             // 읽어 온 문서는 DOMParser로 읽어 스크립트를 실행하지 않는다. `#review-area`가 없으면(jQuery `.html(undefined)`처럼) 바꾸지 않는다
             const fresh = new DOMParser().parseFromString(html, "text/html").querySelector("#review-area");
             if (fresh) {
@@ -43,7 +43,7 @@
             bindRequestBox();
         });
         if (timelineUrl) {
-            $.get(timelineUrl, (html) => {
+            yona.http.get(timelineUrl, (html) => {
                 const $comments = $("#comments");
                 if ($comments.length) {
                     $comments.html(html);
@@ -53,7 +53,7 @@
     }
 
     function send(url, data, done) {
-        $.ajax(url, {method: "POST", dataType: "json", contentType: "application/json", data: JSON.stringify(data || {})})
+        yona.http.ajax(url, {method: "POST", dataType: "json", contentType: "application/json", data: JSON.stringify(data || {})})
             .done(done).fail(failed);
     }
 

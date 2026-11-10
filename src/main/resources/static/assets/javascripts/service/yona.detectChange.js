@@ -42,7 +42,7 @@ function detectPageChange(url){
     }
 
     function detectChange(){
-        $.ajax({
+        yona.http.ajax({
             method: "POST",
             url: url,
             contentType: "application/json",

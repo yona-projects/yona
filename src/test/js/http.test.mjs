@@ -56,6 +56,7 @@ const check = async (source) => { const { page, requests } = await open(); const
 const CASES = [
   ['GET 기본(응답 Content-Type이 json이면 객체로 읽는다)', "api.ajax({ url: '/api/json', success: rec('success'), error: rec('error'), complete: rec('complete') })"],
   ['GET dataType json과 data 객체(배열, 중첩 객체, 공백)가 주소 뒤에 붙는다', "api.ajax({ url: '/api/json?x=1', data: { a: 1, b: [1, 2], c: { d: 'x y', e: [{ f: 1 }] }, g: '한글&=' }, dataType: 'json', success: rec('success') })"],
+  ['traditional: 배열을 key=1&key=2로 쓴다', "api.ajax({ url: '/api/json', method: 'POST', data: { ids: [1, 2], o: { a: 1 } }, traditional: true, success: rec('success') })"],
   ['POST 본문의 공백과 한글', "api.ajax({ url: '/api/json', method: 'POST', data: { q: 'a b', k: '한글' }, success: rec('success') })"],
   ['POST data 객체는 urlencoded 본문이다', "api.ajax({ url: '/api/json', method: 'POST', data: { a: 1, b: ['x', 'y'], c: { d: 2 } }, success: rec('success') })"],
   ['POST 문자열 data와 contentType json', "api.ajax({ url: '/api/json', type: 'post', data: '{\"k\":1}', contentType: 'application/json', dataType: 'json', success: rec('success') })"],

@@ -332,7 +332,7 @@
     function _fetch(sUrl, sType, sQuery) {
         return new Promise((resolve) =>{
             NProgress.start();
-            const oRequest = $.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, (data) =>{
+            const oRequest = yona.http.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, (data) =>{
                 NProgress.done();
                 resolve((data && data.result) || []);
             });

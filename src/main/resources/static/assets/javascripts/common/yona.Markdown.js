@@ -85,7 +85,7 @@ yona.Markdown = (function(htOptions){
             "breaks": (welTarget.hasClass('readme-body') ? false : true)
         };
 
-        $.ajax(htVar.sMarkdownRendererUrl,{
+        yona.http.ajax(htVar.sMarkdownRendererUrl,{
             "type": "post",
             "contentType":"application/json; charset=utf-8",
             "data": JSON.stringify(source),

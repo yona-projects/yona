@@ -41,7 +41,7 @@
                 $yona.notify(Messages("post.comment.empty"), 3000);
                 return;
             }
-            $.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done((response) => {
+            yona.http.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done((response) => {
                 $comment.find("textarea.comment-raw").val(contents);
                 $body.html(response.bodyHtml);
                 if (!$comment.find(".comment-edited").length) {

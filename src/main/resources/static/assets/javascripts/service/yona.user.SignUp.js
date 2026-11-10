@@ -132,7 +132,7 @@
          */
         function doesExists(welInput, sURL){
 
-            $.ajax({
+            yona.http.ajax({
                 "url": sURL + welInput.val()
             }).done((htData) =>{
                 if(htData.isExist === true){

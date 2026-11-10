@@ -40,10 +40,10 @@
         if (!window.YonaWebAuthn || !YonaWebAuthn.supported()) { $("#security-key-add").prop("disabled", true); showError("twoFactor.securityKey.unsupported"); return; }
         $("#security-key-add").on("click", function () {
             $("#security-key-error").hide();
-            $.post(/*[[@{/user/two-factor/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
+            yona.http.post(/*[[@{/user/two-factor/webauthn/options}]]*/ "", null, null, "text").then(function (options) {
                 return YonaWebAuthn.register(options);
             }).then(function (credential) {
-                return $.post(/*[[@{/user/two-factor/webauthn/register}]]*/ "", { name: $("#security-key-name").val(), credential: credential }, null, "json");
+                return yona.http.post(/*[[@{/user/two-factor/webauthn/register}]]*/ "", { name: $("#security-key-name").val(), credential: credential }, null, "json");
             }).then(function () {
                 location.href = /*[[@{/user/two-factor/webauthn/done}]]*/ "";
             }).catch(function (e) {

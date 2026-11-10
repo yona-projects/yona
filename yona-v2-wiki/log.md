@@ -2161,3 +2161,7 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] feat | 모듈 3개를 ES 모듈로 옮기고 표준 기능 리팩터링 계획을 세움(D-123)
 
 Elevator, Favicon, FormValidator를 esm/ui/로 옮겼다. 템플릿은 진입점 type=module 하나로 불러온다. 계획은 architecture/standard-refactor-plan.md.
+
+## [2026-11-10] refactor | $.ajax 계열 76곳을 yona.http로 이전(D-123 3단계)
+
+esm/http.js가 jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교했다. 동작이 달라지는 곳은 refactor-deviations.md에 모은다.

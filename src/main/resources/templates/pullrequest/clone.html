@@ -27,7 +27,7 @@
             var cloneUrl = /*[[${cloneUrl}]]*/ "";
             var cloneParam = {owner:"[(${helper.escape(forkOwner)})]", name:"[(${helper.escape(forkName)})]", projectScope:"[(${helper.escape(forkScope)})]"};
 
-            $.post(cloneUrl, cloneParam, function(data){
+            yona.http.post(cloneUrl, cloneParam, function(data){
                 if(data.status === "failed") {
                     $yona.alert('[(${helper.escapedMessage('fork.failed')})]', function(){
                         location.replace(data.url);

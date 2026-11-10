@@ -52,7 +52,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   // this resolves that loginId to a user object so that the user is shown with the avatar (3.x initSelection)
   const selectedLoginId = $assignee.val();
   if (selectedLoginId) {
-    $.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
+    yona.http.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
       dataType: "json"
     }).done((data) => {
       if(data && data.length > 0) {
@@ -65,7 +65,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
     const data = { assignees: [selected.params.args.data.id] };
 
     if(updateAssgineesApiUrl){
-        $.ajax(updateAssgineesApiUrl, {
+        yona.http.ajax(updateAssgineesApiUrl, {
             method: "POST",
             dataType: "json",
             contentType: "application/json",

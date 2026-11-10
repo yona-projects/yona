@@ -20,7 +20,7 @@ const STUBS = `
   yona.Markdown = { render: function (el, text) { window.__rendered.push(text); } };
   yona.Common = { notify: function (m) { window.__notified.push(m); } };
   $yona.notify = function () {};
-  $.ajax = function (opts) { window.__ajax.push(opts); return $.Deferred().resolve({ overview: '새 설명' }).promise(); };
+  ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (opts) { window.__ajax.push(opts); return $.Deferred().resolve({ overview: '새 설명' }).promise(); };
 `;
 
 async function open() {

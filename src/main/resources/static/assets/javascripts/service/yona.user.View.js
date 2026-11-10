@@ -84,7 +84,7 @@
             const welTarget = $(this);
             const sURL = welTarget.attr("href");
 
-            $.ajax(sURL, {
+            yona.http.ajax(sURL, {
                 "method" : "post",
                 "success": function(){
                     document.location.reload();

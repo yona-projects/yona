@@ -146,7 +146,7 @@
          * @private
          */
         function _onSubmitAddNewMember(evt){
-            $.ajax(htElement.formAddNewMember.attr("action"), {
+            yona.http.ajax(htElement.formAddNewMember.attr("action"), {
                 "method"  : "post",
                 "dataType": "json",
                 "data"    : {

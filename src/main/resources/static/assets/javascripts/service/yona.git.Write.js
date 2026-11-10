@@ -120,7 +120,7 @@
 
             NProgress.start();
 
-            $.ajax(vars.mergeResultURL, {
+            yona.http.ajax(vars.mergeResultURL, {
                 "data": data
             })
             .done(_onSuccessMergeResult)

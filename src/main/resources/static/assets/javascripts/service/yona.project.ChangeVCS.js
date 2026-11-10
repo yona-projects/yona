@@ -95,7 +95,7 @@
             if(elements.targetVCS.length){
                 ajaxOptions.data = {"targetVcs": elements.targetVCS.val()};
             }
-            $.ajax(options.sTransferURL, ajaxOptions);
+            yona.http.ajax(options.sTransferURL, ajaxOptions);
         }
 
         _init(options || {});

@@ -338,7 +338,7 @@ export const remoteTests = [
       const { page } = await open2(
         `<div id="review-area"><select id="review-request" data-placeholder="요청" style="width:300px" data-candidates-url="${API}/cand" data-request-url="${API}/req" data-timeline-url=""><option value=""></option></select></div>`,
         ['service/yona.pullrequest.Reviewers.js'], { '/cand': () => [LEE], '/req': () => ({}) });
-      await page.evaluate(() => { window.__ran = 0; $.get = function (url, cb) { window.__got = url; cb('<!doctype html><html><head><script>window.__ran++</script></head><body><div id="other">x</div><div id="review-area"><p class="fresh">새 리뷰 영역</p><script>window.__ran++</script></div></body></html>'); }; });
+      await page.evaluate(() => { window.__ran = 0; ((window.yona = window.yona || {}).http = (window.yona.http || {})).get = function (url, cb) { window.__got = url; cb('<!doctype html><html><head><script>window.__ran++</script></head><body><div id="other">x</div><div id="review-area"><p class="fresh">새 리뷰 영역</p><script>window.__ran++</script></div></body></html>'); }; });
       await page.click('.select2-selection');
       await page.fill('.select2-search__field', 'l');
       await page.locator('.select2-results__option[role="option"] .usf-group').first().click();

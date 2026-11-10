@@ -160,7 +160,7 @@
 
             htVar.bStateUpdating = true;
 
-            $.get(htVar.sStateUrl, (oRes) =>{
+            yona.http.get(htVar.sStateUrl, (oRes) =>{
                 const sResult = oRes.html;
 
                 // update state only HTML has changed

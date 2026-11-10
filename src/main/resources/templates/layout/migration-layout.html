@@ -139,7 +139,7 @@
                     $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
                         e.stopPropagation();
                         var that = $(this);
-                        $.post("[(@{/user/favoriteProjects/})]" + that.data("projectId"))
+                        yona.http.post("[(@{/user/favoriteProjects/})]" + that.data("projectId"))
                                 .done(function (data) {
                                     if(data.favored){
                                         that.find('i').addClass("starred");
@@ -155,7 +155,7 @@
                     $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
                         e.stopPropagation();
                         var that = $(this);
-                        $.post("[(@{/user/favoriteOrganizations/})]" + that.data("organizationId"))
+                        yona.http.post("[(@{/user/favoriteOrganizations/})]" + that.data("organizationId"))
                                 .done(function (data) {
                                     if(data.favored){
                                         that.find('i').addClass("starred");
@@ -170,7 +170,7 @@
 
                     // This method intended to sync sub tab list of projects
                     function updateStar(){
-                        $.get("[(@{/user/favoriteProjects})]")
+                        yona.http.get("[(@{/user/favoriteProjects})]")
                                 .done(function(data){
                                     $(".star-project").each(function () {
                                         var $this = $(this);

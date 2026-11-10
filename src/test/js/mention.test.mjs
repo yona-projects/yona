@@ -22,7 +22,7 @@ async function open({ html = '<div id="box"><textarea id="t" style="width:300px;
     window.__calls = []; window.__prog = [];
     window.NProgress = { start() { window.__prog.push('start'); }, done() { window.__prog.push('done'); } };
     jQuery.browser = jQuery.browser || {};
-    jQuery.getJSON = function (url, data, cb) { window.__calls.push({ url, data }); window.__resolve = function () {}; setTimeout(function () { cb({ result: data.mentionType === 'user' ? window.__users : window.__issues }); }, 15); return { fail() { return this; } }; };
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).getJSON = function (url, data, cb) { window.__calls.push({ url, data }); window.__resolve = function () {}; setTimeout(function () { cb({ result: data.mentionType === 'user' ? window.__users : window.__issues }); }, 15); return { fail() { return this; } }; };
     const importMap = document.createElement('script'); importMap.type = 'importmap';
     importMap.textContent = JSON.stringify({ imports: { '@github/combobox-nav': URL.createObjectURL(new Blob([combo], { type: 'text/javascript' })) } });
     document.head.appendChild(importMap);

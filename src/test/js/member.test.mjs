@@ -16,7 +16,7 @@ export const tests = [{
     const page = await pageWith({ html: HTML, scripts: ['service/yona.organization.Member.js'] });
     const calls = await page.evaluate(() => {
       window.__ajax = [];
-      $.ajax = function (url) { window.__ajax.push(url); };
+      ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url) { window.__ajax.push(url); };
       new yona.organization.Member({ sActionURL: '/x', htData: {} });
       $('#del-a').click();   // A를 고른 뒤 취소하고
       $('#del-b').click();   // B를 다시 고른다

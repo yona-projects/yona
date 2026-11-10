@@ -60,7 +60,7 @@
 
         /** 변경 뒤 타임라인 줄만 다시 불러오고 라벨 상자의 글자색을 다시 맞춘다. */
         function refreshTimeline() {
-            $.get(urls.timeline, (html) => {
+            yona.http.get(urls.timeline, (html) => {
                 let $comments = $("#comments");
                 if (!$comments.length) {
                     $comments = $('<ul class="comments" id="comments"></ul>').appendTo(".board-comment-wrap");
@@ -93,7 +93,7 @@
             $assignee.on("change", () => {
                 if (formMode) { return; }
                 const loginId = $assignee.val();
-                $.ajax(urls.assignees, {
+                yona.http.ajax(urls.assignees, {
                     method: "POST",
                     dataType: "json",
                     contentType: "application/json",
@@ -116,7 +116,7 @@
             const removed = idsOf(changes.removed);
             if (added) { data.attachingLabelIds = added; }
             if (removed) { data.detachingLabelIds = removed; }
-            $.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(() => {
+            yona.http.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(() => {
                 $yona.notify(Messages("issue.update.labelIds"), 3000);
                 refreshTimeline();
             }).fail((xhr) => {

@@ -441,7 +441,7 @@ $yona = yona.Common = (function(){
     function ajaxConfirm(sMessage, htAjaxOptions, sDescription, htConfirmOptions){
         showConfirm(sMessage, (htData) =>{
             if(htData.nButtonIndex === 1){
-                $.ajax(htAjaxOptions);
+                yona.http.ajax(htAjaxOptions);
             }
         }, sDescription, htConfirmOptions);
     }

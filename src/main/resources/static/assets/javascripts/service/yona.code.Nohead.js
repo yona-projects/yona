@@ -55,7 +55,7 @@
          * check is repository has updated
          */
         function _checkUpdate(){
-            $.ajax({
+            yona.http.ajax({
                 "url": htVar.sPath,
                 "success": _onLoadList
             });

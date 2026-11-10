@@ -49,7 +49,7 @@
             htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
 
             htElement.welBtnTransferPrj.one("click", () =>{
-                $.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
+                yona.http.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
                     "method" : "put",
                     "success": function(oRes, sStatus, oXHR){
                         // default action below:
