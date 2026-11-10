@@ -2181,3 +2181,10 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 기반 3개(Common, Csrf, Htmx)와 템플릿 인라인 스크립트는 동작이 달라질 수 있어 보류하고 refactor-deviations.md에 적었다.
 
 회귀(web, audit, i18n, markdown)는 common 스크립트 이전과 yona-lib 번들 제거 뒤 9분 30초에 2건 실패(이전한 스크립트 경로를 읽던 구조 시험)했고 고친 뒤 통과했다.
+
+## [2026-11-10] test | 시험 없던 모듈 채우기와 5단계 일부(D-123)
+
+- 시험이 없던 ES 모듈 42개 중 41개에 특성 시험을 채웠다(`usermenu`, `labeleditor`, `issueview`, `gitwrite`, `projectmember`, `writeforms`, `listviews`, `projectsettings`, `orgmisc`, `tasklist`, `logindraft`, `dialog`, `codecommentblock`, `codecommentbox`, `util`). JS 시험은 458개에서 581개가 되었다.
+- `Migration.js`(1001줄)는 JS 시험이 없고, 이전 화면은 AngularJS 기록과의 e2e 비교(`mg-e2e.mjs`)로 확인한 상태다.
+- 5-1 공용 `debounce`(`esm/util.js`)와 5-4 `Date.now()` 교체를 했다. 5-2(스크롤 처리기), 사용자 데이터가 든 HTML 문자열, 날짜 계산은 동작이 달라질 수 있어 `refactor-deviations.md` 10~13번에 적고 보류했다.
+- v1.6 결함 `Usermenu`의 처리기 이중 부착(14번)을 고쳤다. 관심 등록 주소의 `&amp;`(4번)와 붙여넣은 이미지 이름(6번)은 결함이 아님을 확인했다.
