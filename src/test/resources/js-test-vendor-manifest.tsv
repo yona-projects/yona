@@ -1,0 +1,2 @@
+# 시험에서만 쓰는 벤더 파일(src/test/js/vendor)의 기준 목록. 경로	이름	버전	SHA-256
+moment-with-locales.min.js	moment(모든 로케일)	2.31.0	49dcd7447ac5c61b53b68d352ac218cd2ab6a7bfa520a399f1a2c4161721cfb5

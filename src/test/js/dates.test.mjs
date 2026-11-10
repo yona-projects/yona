@@ -2,10 +2,13 @@
 // isValidDate는 `moment(값).isValid()`와, fromNow는 `moment(날짜).fromNow()`와 모든 입력에서 같아야 한다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { pageWith, JS } from './harness.mjs';
+import { pageWith, JS, ROOT } from './harness.mjs';
+
+/** 비교 기준으로 쓰는 moment 2.31.0 공식 배포 파일. 앱에는 싣지 않고 시험에만 둔다(D-124). */
+const MOMENT = path.join(ROOT, 'src/test/js/vendor/moment-with-locales.min.js');
 
 async function open(timezoneId) {
-  const page = await pageWith({ stubs: false, scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'lib/moment-with-locales.min.js', 'esm/dates.js'] });
+  const page = await pageWith({ stubs: false, scripts: [{ content: 'window.Messages = function (k) { return k; };' }, { path: MOMENT }, 'esm/dates.js'] });
   if (timezoneId) await page.emulateTimezone?.(timezoneId);
   await page.evaluate(() => { moment.suppressDeprecationWarnings = true; });
   return page;
@@ -47,7 +50,7 @@ async function openZone(timezoneId) {
   const browser = await launch(); const ctx = await browser.newContext({ timezoneId }); const page = await ctx.newPage(); page.errors = [];
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.setContent('<!doctype html><body></body>');
-  await page.addScriptTag({ path: path.join(JS, 'lib/moment-with-locales.min.js') });
+  await page.addScriptTag({ path: MOMENT });
   await page.addScriptTag({ content: classicFromEsm('esm/dates.js') });
   await page.evaluate(() => { moment.suppressDeprecationWarnings = true; });
   return page;

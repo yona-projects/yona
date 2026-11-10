@@ -9,7 +9,6 @@ tippy/popper.min.js	Popper(@popperjs/core)	2.11.8	c212f4b505a86352aed62b24a8f16f
 tippy/tippy-bundle.umd.min.js	Tippy.js	6.3.7	3f0fe70eb26ccf28f6887a192e29d38dd7ef7c2f079a73304ad42ddc7bed37de
 videojs/video.min.js	video.js	7.21.2	3d231a5500cb085a1fa7bb8c9148fcbf66dac0452a525ec1d13577b313ad414d
 videojs/video-js.min.css	video.js	7.21.2	31020b3680c09d76da253d297d6d3faa98fd6b551c1c751829db8c12a9f4a1ad
-moment-with-locales.min.js	moment(모든 로케일)	2.31.0	49dcd7447ac5c61b53b68d352ac218cd2ab6a7bfa520a399f1a2c4161721cfb5
 select2/select2.js	select2	4.1.0	5c5747ee03ec529347b9a582049789699acf7061450a051d8dcda7d1cf4a49f3
 select2/select2.css	select2	4.1.0	a5e90a30cd92ebff4e074b71380554e07048cb15a3f90bb35c87d975a08643e2
 select2/select2-bootstrap-5-theme.css	select2-bootstrap-5-theme	1.3.0	3dd03de4c143bcf7589677e921ccd1ff09315bf52cf5823f9504773a453cd0e6

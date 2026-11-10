@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 import java.security.MessageDigest
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -83,6 +84,17 @@ class JsLibraryVersionsTest {
     }
 
     @Test
+    fun `시험용 벤더 파일은 기준 목록의 공식 배포 파일과 byte 단위로 같다`() {
+        val manifest = File("src/test/resources/js-test-vendor-manifest.tsv").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.map { it.split('\t') }
+        assertTrue(manifest.isNotEmpty(), "시험용 기준 목록이 비어 있다")
+        val wrong = manifest.filter { (path, _, _, sha) ->
+            val file = File("src/test/js/vendor/$path")
+            !file.isFile || MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) } != sha
+        }.map { "${it[0]} (${it[1]} ${it[2]})" }
+        assertEquals(emptyList(), wrong, "기준 목록과 다른 시험용 벤더 파일")
+    }
+
+    @Test
     fun `레이아웃 번들의 NProgress는 0_2_0이다`() {
         val bundle = asset("javascripts/yona-layout.js").readText()
         assertTrue(Regex("version\\s*[:=]\\s*[\"'`]0\\.2\\.0[\"'`]").containsMatchIn(bundle), "번들에 NProgress 0.2.0 표기가 있어야 한다")
@@ -92,7 +104,8 @@ class JsLibraryVersionsTest {
     @Test
     fun `moment는 어느 화면에서도 부르지 않고 날짜 검사와 상대 시각은 esm dates 모듈이 한다`() {
         // 마감일 검사(moment(값).isValid())와 상대 시각(fromNow)을 esm/dates.js가 같은 결과로 대신한다(D-123, 동작 차이 13번).
-        // moment 파일(2.31.0)은 dates.test.mjs가 결과를 비교하는 기준으로만 남아 있다
+        // moment 파일(2.31.0)은 앱에서 빼고 src/test/js/vendor로 옮겼다. dates.test.mjs가 결과를 비교하는 기준으로만 쓴다
+        assertFalse(File(assets, "javascripts/lib/moment-with-locales.min.js").exists(), "moment 파일을 앱에 실어서는 안 된다(시험 폴더에만 둔다)")
         assertTrue(templateFiles().none { it.readText().contains("moment-with-locales") }, "템플릿이 moment를 불러서는 안 된다")
         assertTrue(templateFiles().none { it.readText().contains("moment.lang(") || it.readText().contains("moment.locale(") }, "moment 호출이 남아 있다")
         assertTrue(templateFiles().any { it.readText().contains("window.yonaLanguage") }, "dates 모듈이 읽는 언어를 scripts.html이 정해야 한다")
