@@ -139,7 +139,11 @@ export const FAKE_XHR = `
  * 레이아웃과 같은 import map(`yona/` 접두어)과 진입점 `esm/index.js`(`<script type="module">`)를 넣는다. 진입점이 `yona.esm.ready`가 될 때까지 기다린다.
  * [bodyHtml]은 본문, [head]는 import map 뒤에 넣을 글이다.
  */
-export async function esmPage({ bodyHtml = '', head = '', entry = true } = {}) {
+/** 레이아웃의 클래식 스크립트(번들 yona-layout.js의 jQuery와 yona.Common.js, yona-common.js의 Mustache와 xss)와 같은 것을 head에 둔다. 진입점 모듈이 이것들을 전제로 한다. */
+export const PRELUDE = ['lib/jquery/jquery-3.7.1.js', 'lib/mustache.js', 'common/yona.Common.js', 'lib/xss.js'].map((f) => `<script src="/assets/javascripts/${f}"></script>`).join('')
+  + '<script>window.Messages = window.Messages || function (k) { return k; };</script>';
+
+export async function esmPage({ bodyHtml = '', head = '', entry = true, prelude = true } = {}) {
   const b = await launch();
   const ctx = await b.newContext();
   const page = await ctx.newPage();
@@ -148,7 +152,7 @@ export async function esmPage({ bodyHtml = '', head = '', entry = true } = {}) {
   await page.route('http://esm.test/**', (route) => {
     const url = new URL(route.request().url());
     if (url.pathname === '/page') {
-      return route.fulfill({ contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><script type="importmap">{"imports": {"yona/": "/assets/javascripts/esm/"}}</script>${head}</head><body>${bodyHtml}${entry ? '<script type="module" src="/assets/javascripts/esm/index.js"></script>' : ''}</body></html>` });
+      return route.fulfill({ contentType: 'text/html', body: `<!doctype html><html><head><meta charset="utf-8"><script type="importmap">{"imports": {"yona/": "/assets/javascripts/esm/"}}</script>${prelude ? PRELUDE : ''}${head}</head><body>${bodyHtml}${entry ? '<script type="module" src="/assets/javascripts/esm/index.js"></script>' : ''}</body></html>` });
     }
     const file = path.join(JS, url.pathname.replace('/assets/javascripts/', ''));
     if (url.pathname.startsWith('/assets/javascripts/') && fs.existsSync(file) && fs.statSync(file).isFile()) {

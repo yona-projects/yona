@@ -1,4 +1,4 @@
-// 본문 멘션(`common/yona.Mention.js`)을 시험한다. 엔진은 GitHub의 text-expander-element 2.9.4이고(D-106) At.js를 대체했다.
+// 본문 멘션(`esm/Mention.js`)을 시험한다. 엔진은 GitHub의 text-expander-element 2.9.4이고(D-106) At.js를 대체했다.
 // 호출 모양 `yona.Mention({target, url})`, 서버 호출(`mentionType=user|issue`), 정렬 규칙, 후보 10개, 이모지, At.js의 시작 규칙(공백 뒤, 질의 20자까지)은 그대로여야 한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ const ISSUES = [{ issueNo: '123', title: 'logout' }, { issueNo: '12', title: 'lo
 
 /** 실제 모듈 두 개를 import map으로 이어서 불러오고(번들 없음) `yona.Mention`을 만든다. [html]은 textarea를 담는다. */
 async function open({ html = '<div id="box"><textarea id="t" style="width:300px;height:80px"></textarea></div>', users = USERS, issues = ISSUES, init = true } = {}) {
-  const page = await pageWith({ stubs: true, scripts: ['common/yona.Mention.js'], html });
+  const page = await pageWith({ stubs: true, scripts: ['esm/Mention.js'], html });
   await page.evaluate(async ({ combo, te }) => {
     window.__calls = []; window.__prog = [];
     window.NProgress = { start() { window.__prog.push('start'); }, done() { window.__prog.push('done'); } };

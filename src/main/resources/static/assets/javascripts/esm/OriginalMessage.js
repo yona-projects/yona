@@ -18,7 +18,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yona.OriginalMessage = (function(htOptions){
+
+import { register } from "./namespace.js";
+
+const OriginalMessage = (function(htOptions){
     function _setToggle(elem, f1, f2) {
         let a;
         let b;
@@ -88,3 +91,6 @@ yona.OriginalMessage = (function(htOptions){
 	"hide" : _hide
     };
 })();
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.OriginalMessage", OriginalMessage);

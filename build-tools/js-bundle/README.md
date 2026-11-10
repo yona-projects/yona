@@ -1,6 +1,6 @@
 # JS 번들 빌드 (D-92)
 
-`yona-layout.js`, `yona-common.js`, `yona-lib.js`를 만든다. v1.6의 Closure Compiler 스크립트를 vite로 바꾼 것이다.
+`yona-layout.js`, `yona-common.js`를 만든다. v1.6의 Closure Compiler 스크립트를 vite로 바꾼 것이다.
 
 ```bash
 build-tools/minify-js.sh          # npm ci 후 vite build, 결과는 static/assets/javascripts/

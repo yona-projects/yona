@@ -1,4 +1,4 @@
-// 화면 구석에 잠깐 떴다 사라지는 알림 상자(`common/yona.ui.Toast.js`)와 드롭다운(`yona.ui.Dropdown.js`)을 시험한다(S-08, A-423).
+// 화면 구석에 잠깐 떴다 사라지는 알림 상자(`esm/ui/Toast.js`)와 드롭다운(`yona.ui.Dropdown.js`)을 시험한다(S-08, A-423).
 // Toast 는 jQuery 와 접두사 이벤트(webkitTransitionEnd) 없이 표준 DOM 과 transitionend 를 쓴다. Dropdown 의 휠 막기는 CSS(overscroll-behavior)로 한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,7 +9,7 @@ const TPL = '\n<div class="toast" tabindex="-1">\n  <div class="btn-dismiss"><bu
 const NL2BR = { content: '$yona.nl2br = function (t) { return typeof t === "string" ? t.split("\\n").join("<br>") : t; };' };
 
 async function open({ transition = true } = {}) {
-  const page = await pageWith({ html: '<style>.toast{opacity:1;' + (transition ? 'transition:opacity .05s;' : '') + '}</style><div id="box"></div>', scripts: [NL2BR, 'common/yona.ui.Toast.js'] });
+  const page = await pageWith({ html: '<style>.toast{opacity:1;' + (transition ? 'transition:opacity .05s;' : '') + '}</style><div id="box"></div>', scripts: [NL2BR, 'esm/ui/Toast.js'] });
   await page.evaluate((tpl) => { window.toasts = new yona.ui.Toast('#box', { sTplToast: tpl }); }, TPL);
   return page;
 }
@@ -47,18 +47,18 @@ export const tests = [
     assert.equal(await count(page), 0); assert.deepEqual(page.errors, []); await page.close();
   } },
   { name: 'Toast: 실제 $yona.notify 를 거쳐 #tplYobiToast 템플릿으로 만들어진다', run: async () => {
-    const page = await pageWith({ html: '<div id="yobiToasts"></div><script type="text/x-yona-template" id="tplYobiToast">' + TPL + '</script>', scripts: ['common/yona.Common.js', 'common/yona.ui.Toast.js'], stubs: false });
+    const page = await pageWith({ html: '<div id="yobiToasts"></div><script type="text/x-yona-template" id="tplYobiToast">' + TPL + '</script>', scripts: ['common/yona.Common.js', 'esm/ui/Toast.js'], stubs: false });
     await page.evaluate(() => { $yona.notify('안녕\n하세요', 0, '제목'); });
     const html = await page.evaluate(() => document.querySelector('#yobiToasts .msg').innerHTML);
     assert.equal(html, '<strong>제목</strong><br>안녕<br>하세요'); assert.deepEqual(page.errors, []); await page.close();
   } },
   { name: 'Toast: jQuery 와 접두사 이벤트를 쓰지 않는다', run: async () => {
-    const text = fs.readFileSync(path.join(JS, 'common/yona.ui.Toast.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const text = fs.readFileSync(path.join(JS, 'esm/ui/Toast.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     for (const gone of ['webkitTransitionEnd', '$(', '.bind(', '.css(']) assert.ok(!text.includes(gone), `${gone} 가 남아 있다`);
   } },
   // ---- Dropdown
   { name: 'Dropdown: 휠 처리에 비표준 mousewheel 이벤트를 쓰지 않고 CSS overscroll-behavior: contain 이 대신한다', run: async () => {
-    const js = fs.readFileSync(path.join(JS, 'common/yona.ui.Dropdown.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const js = fs.readFileSync(path.join(JS, 'esm/ui/Dropdown.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     assert.ok(!js.includes('mousewheel') && !js.includes('_onScrollList'), 'mousewheel 처리가 남아 있다');
     const scss = fs.readFileSync(path.join(ROOT, 'app/assets/stylesheets/scss/_yobiUI.scss'), 'utf8');
     assert.match(scss, /btn-group\[data-name\][^{]*\.dropdown-menu\s*\{[^}]*overscroll-behavior:\s*contain/);
@@ -67,7 +67,7 @@ export const tests = [
   } },
   { name: 'Dropdown: 항목을 고르면 라벨, 숨은 입력, active, 변경 콜백이 처리되고 data-value 없는 항목은 무시한다', run: async () => {
     const html = '<form id="f"><div class="btn-group" id="dd" data-name="state"><button class="d-label">-</button><ul class="dropdown-menu"><li data-value="open" data-selected="true"><a class="dropdown-item"><b>열림</b></a></li><li data-value="closed"><a>닫힘</a></li><li class="divider"><span>구분</span></li></ul></div></form>';
-    const page = await pageWith({ html, scripts: ['common/yona.ui.Dropdown.js'] });
+    const page = await pageWith({ html, scripts: ['esm/ui/Dropdown.js'] });
     const r = await page.evaluate(async () => {
       const dd = new yona.ui.Dropdown({ elContainer: '#dd' }); const changes = []; dd.onChange((v) => changes.push(v));
       const out = { 기본: [document.querySelector('.d-label').textContent, dd.getValue(), document.querySelector('input[name=state]').value] };

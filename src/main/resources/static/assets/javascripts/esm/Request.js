@@ -35,7 +35,10 @@
  *
  * 토큰(CSRF)은 `yona.Csrf.js`가 `fetch`를 가로채 싣는다. 서버가 아약스 요청을 알아보는 `X-Requested-With`는 여기서 단다.
  */
-yona.Request = (function(){
+
+import { register } from "./namespace.js";
+
+const Request = (function(){
 
     /** 이동과 새로 고침. 시험에서 바꿔 끼울 수 있다 */
     const htNavigation = {
@@ -148,3 +151,6 @@ yona.Request = (function(){
         "navigation": htNavigation
     };
 })();
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.Request", Request);

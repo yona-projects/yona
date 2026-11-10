@@ -5,7 +5,9 @@
  * https://yona.io
  **/
 
-yona.Attachments = function(htOptions) {
+import { register } from "./namespace.js";
+
+const Attachments = function(htOptions) {
     const htVar = {};
     let htElements = {};
 
@@ -613,3 +615,6 @@ yona.Attachments = function(htOptions) {
         "destroy": _destroy
     };
 };
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.Attachments", Attachments);

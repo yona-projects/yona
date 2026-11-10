@@ -20,7 +20,7 @@ class YobiNamespaceRemovedTest {
     private fun sources(): List<File> =
         (listOf(templates) + listOf("common", "service", "esm", "template").map { File(assets, it) })
             .flatMap { it.walkTopDown().filter { f -> f.isFile && (f.extension == "html" || f.extension == "js") }.toList() } +
-            listOf("yona-layout.js", "yona-common.js", "yona-lib.js").map { File(assets, it) }
+            listOf("yona-layout.js", "yona-common.js").map { File(assets, it) }
 
     private val dollar = Regex("""\${'$'}yobi\b""")
     // `yobi.io`, `yobi.css`, `yobi.token` 같은 바뀌지 않는 것과 `title.yobi.feedback`처럼 앞에 이름이 붙은 것은 뺀다.

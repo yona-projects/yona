@@ -10,7 +10,7 @@ const STUBS = { content: `
 
 /** 임시 링크가 들어간 업로드를 시작하고 서버 응답으로 [response]를 돌려준 뒤 상태를 읽는다. */
 async function uploadWith(response) {
-  const page = await pageWith({ html: HTML, scripts: [STUBS, { content: FAKE_XHR }, 'common/yona.Files.js', 'common/yona.Attachments.js'] });
+  const page = await pageWith({ html: HTML, scripts: [STUBS, { content: FAKE_XHR }, 'esm/Files.js', 'esm/Attachments.js'] });
   const state = await page.evaluate(async (resp) => {
     yona.Files.init({ sUploadURL: '/up' });
     new yona.Attachments({ elContainer: $('#c')[0], elTextarea: $('#t')[0], sUploaderId: 'ns', targetFormId: $('#f') });

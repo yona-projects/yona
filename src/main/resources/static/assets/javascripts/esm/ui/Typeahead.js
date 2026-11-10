@@ -18,6 +18,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// 이 파일은 같은 이름에 함수와 정적 멤버를 등록하는 구조라 본문은 그대로 두고 ES 모듈 태그로 불러온다(전역 $yona가 먼저 준비되어 있다).
 /**
  * yona.ui.Typeahead
  *

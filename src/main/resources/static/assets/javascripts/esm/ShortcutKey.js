@@ -18,7 +18,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yona.ShortcutKey = (function(htOptions){
+
+import { register } from "./namespace.js";
+
+const ShortcutKey = (function(htOptions){
 
     let htVar = {};
     let htHandlers = {};
@@ -282,3 +285,6 @@ yona.ShortcutKey = (function(htOptions){
         "setKeymapLink": setKeymapLink
     };
 })();
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.ShortcutKey", ShortcutKey);

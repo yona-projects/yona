@@ -16,21 +16,6 @@ export const bundles = {
   ],
   "yona-common.js": [
     `${JS}/lib/mustache.js`,
-    `${JS}/common/yona.Request.js`,
     `${JS}/lib/xss.js`,
-  ],
-  "yona-lib.js": [
-    `${JS}/common/yona.Attachments.js`,
-    `${JS}/common/yona.Files.js`,
-    `${JS}/common/yona.Mention.js`,
-    `${JS}/common/yona.Markdown.js`,
-    `${JS}/common/yona.Pagination.js`,
-    `${JS}/common/yona.ShortcutKey.js`,
-    `${JS}/common/yona.ui.Dropdown.js`,
-    `${JS}/common/yona.ui.Typeahead.js`,
-    `${JS}/common/yona.ui.Dialog.js`,
-    `${JS}/common/yona.ui.Toast.js`,
-    `${JS}/common/yona.ui.Tabs.js`,
-    `${JS}/common/yona.OriginalMessage.js`,
   ],
 };

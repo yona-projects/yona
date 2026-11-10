@@ -89,6 +89,6 @@ class Jquery4ReadinessTest {
         // S-10, A-426: yona.ui.Typeahead(프로젝트와 조직 구성원 추가, 사이트 대량 메일, 이슈 라벨 분류)가 jQuery 플러그인 없이 같은 동작을 한다.
         assertFalse(File(bootstrapJs, "bootstrap-typeahead.js").exists())
         assertFalse(File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"))
-        assertTrue(File(js, "common/yona.ui.Typeahead.js").isFile)
+        assertTrue(File(js, "esm/ui/Typeahead.js").isFile)
     }
 }

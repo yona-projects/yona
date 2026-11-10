@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 20, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 6, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -211,7 +211,7 @@ class JsLibraryVersionsTest {
         val bundle = asset("javascripts/yona-layout.js").readText()
         assertTrue(bundle.contains("setHTML") && bundle.contains("Sanitizer"), "번들에 표준 정화 경로가 있어야 한다")
         assertTrue(bundle.contains("http://www.w3.org/1998/Math/MathML") && bundle.contains("http://www.w3.org/2000/svg"), "math와 svg는 이름 공간으로 걷어내야 한다")
-        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        val bundles = listOf("yona-layout.js", "yona-common.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(Regex("defence").findAll(bundles).count() >= 2, "옛 필터(Filter.defence)의 정의와 대체 경로의 호출이 번들에 있어야 한다")
     }
 
@@ -226,7 +226,7 @@ class JsLibraryVersionsTest {
             val text = asset("javascripts/$script").readText()
             assertTrue(!text.contains("\$menu") && !text.contains("options.item") && !Regex("""\.typeahead\(""").containsMatchIn(text) && !text.contains("data(\"typeahead\")"), "$script 는 플러그인 내부에 기대지 않는다")
         }
-        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        val bundles = listOf("yona-layout.js", "yona-common.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(!bundles.contains("\$.fn.typeahead") && !bundles.contains("typeahead.data-api"), "번들에 플러그인 코드가 없어야 한다")
     }
 
@@ -254,7 +254,7 @@ class JsLibraryVersionsTest {
         assertTrue(!java.io.File("build-tools/js-bundle/bundles.mjs").readText().contains("jquery.form"), "번들 입력에서 빠져야 한다")
         val common = asset("javascripts/common/yona.Common.js").readText()
         assertTrue(common.contains("function sendForm") && common.contains("fetch(sURL, htInit)") && !common.contains(".ajaxForm("), "sendForm은 fetch를 쓴다")
-        val bundles = listOf("yona-layout.js", "yona-common.js", "yona-lib.js").joinToString("\n") { asset("javascripts/$it").readText() }
+        val bundles = listOf("yona-layout.js", "yona-common.js").joinToString("\n") { asset("javascripts/$it").readText() }
         assertTrue(!bundles.contains("ajaxSubmit") && !bundles.contains("jQuery Form Plugin"), "번들에 jquery.form 코드가 없어야 한다")
     }
 
@@ -283,7 +283,7 @@ class JsLibraryVersionsTest {
     fun `코드 강조는 highlight_js 11_12_0이고 옛 API 호출이 남아 있지 않다`() {
         // D-119: 9.11 팩을 공식 cdn-assets 11.12.0에 v1.6의 언어를 이어 붙인 팩으로 바꿨다(build-tools/highlight-pack/build.sh).
         assertTrue(asset("javascripts/lib/highlight/highlight.pack.js").readText().take(300).contains("Highlight.js v11.12.0"))
-        val markdown = asset("javascripts/common/yona.Markdown.js").readText()
+        val markdown = asset("javascripts/esm/Markdown.js").readText()
         assertTrue(markdown.contains("hljs.highlightElement(") && !markdown.contains("highlightBlock("), "11의 API를 써야 한다")
         assertTrue(!markdown.contains("hljs.highlight(sLang"), "옛 두 인자 형태를 쓰면 안 된다")
         val template = File("src/main/resources/templates/common/markdown.html").readText()

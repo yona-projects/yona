@@ -1,4 +1,4 @@
-// 전역 단축키(`common/yona.ShortcutKey.js`)가 Shadow DOM 안의 입력란(`<title-input>`)에서 친 글자를 단축키로 받아들이지 않는지 확인한다(D-102, A-408).
+// 전역 단축키(`esm/ShortcutKey.js`)가 Shadow DOM 안의 입력란(`<title-input>`)에서 친 글자를 단축키로 받아들이지 않는지 확인한다(D-102, A-408).
 // 프로젝트 메뉴에는 H, B, C, I, M, P처럼 글자 하나로 화면을 옮기는 단축키가 있다. 키보드 이벤트의 대상(`event.target`)은 Shadow DOM 경계에서 호스트로 바뀌므로
 // 태그 이름만 보면 입력란을 알아보지 못한다.
 import assert from 'node:assert/strict';
@@ -9,7 +9,7 @@ const BUNDLE = path.join(JS, 'lib/title-input/title-input.min.js');
 const HTML = '<title-input id="title" name="title"></title-input><input id="plain"><textarea id="ta"></textarea><div id="free" tabindex="0">x</div>';
 
 async function setup() {
-  const page = await pageWith({ html: HTML, scripts: ['common/yona.ShortcutKey.js'] });
+  const page = await pageWith({ html: HTML, scripts: ['esm/ShortcutKey.js'] });
   await page.addScriptTag({ path: BUNDLE, type: 'module' });
   await page.waitForFunction(() => customElements.get('title-input'));
   await page.evaluate(() => {
@@ -66,7 +66,7 @@ const US = (() => {
   return t;
 })();
 async function plain() {
-  const page = await pageWith({ html: '<div id="free" tabindex="0">x</div><input id="plain">', scripts: ['common/yona.ShortcutKey.js'] });
+  const page = await pageWith({ html: '<div id="free" tabindex="0">x</div><input id="plain">', scripts: ['esm/ShortcutKey.js'] });
   await page.evaluate(() => { window.__hits = []; });
   return page;
 }

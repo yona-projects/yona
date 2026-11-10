@@ -1,4 +1,4 @@
-// `common/yona.ui.Typeahead.js`: 입력란 아래에 후보 목록을 보여 주는 자동 완성(S-10, A-426). v1.6은 BS2 플러그인(bootstrap-typeahead 2.3.1 + better-typeahead)을 jQuery로 불렀고,
+// `esm/ui/Typeahead.js`: 입력란 아래에 후보 목록을 보여 주는 자동 완성(S-10, A-426). v1.6은 BS2 플러그인(bootstrap-typeahead 2.3.1 + better-typeahead)을 jQuery로 불렀고,
 // 지금은 플러그인 없이 같은 동작을 한다. 기대값은 옛 플러그인에서 먼저 확인한 값이다(환경 변수 TA_IMPL=old 로 옛 구현을 불러 같은 시험이 통과하는지 볼 수 있다).
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -8,7 +8,7 @@ const OLD = process.env.CLAUDE_JOB_DIR ? path.join(process.env.CLAUDE_JOB_DIR, '
 const IMPL = process.env.TA_IMPL === 'old' ? 'old' : 'new';
 const SCRIPTS = IMPL === 'old'
   ? ['common/yona.Common.js', { path: path.join(OLD, 'bootstrap-typeahead.js') }, { path: path.join(OLD, 'bootstrap-better-typeahead.js') }, { path: path.join(OLD, 'yona.ui.Typeahead.js') }]
-  : ['common/yona.Common.js', 'common/yona.ui.Typeahead.js'];
+  : ['common/yona.Common.js', 'esm/ui/Typeahead.js'];
 
 /** 입력란 하나와 위젯을 만든다. [setup]은 페이지 안에서 실행되는 식이며 `new yona.ui.Typeahead('#i', 옵션)`을 만들어야 한다. */
 async function open(setup, { html = '' } = {}) {

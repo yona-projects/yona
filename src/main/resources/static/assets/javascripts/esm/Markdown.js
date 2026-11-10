@@ -5,7 +5,9 @@
  * https://yona.io
  **/
 
-yona.Markdown = (function(htOptions){
+import { register } from "./namespace.js";
+
+const Markdown = (function(htOptions){
 
     const htVar = {};
 
@@ -186,3 +188,6 @@ yona.Markdown = (function(htOptions){
         "render" : _render
     };
 })();
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.Markdown", Markdown);

@@ -23,6 +23,20 @@ import "./ui/Favicon.js";
 import "./ui/FormValidator.js";
 import "./http.js";
 import "./service/temporarySaveHandler.js";
+// 번들 yona-lib.js와 yona-common.js에 있던 순서 그대로 불러온다
+import "./Request.js";
+import "./Attachments.js";
+import "./Files.js";
+import "./Mention.js";
+import "./Markdown.js";
+import "./Pagination.js";
+import "./ShortcutKey.js";
+import "./ui/Dropdown.js";
+import "./ui/Typeahead.js";
+import "./ui/Dialog.js";
+import "./ui/Toast.js";
+import "./ui/Tabs.js";
+import "./OriginalMessage.js";
 
 yona.esm.ready = true;
 document.dispatchEvent(new CustomEvent("yona:esm-ready"));

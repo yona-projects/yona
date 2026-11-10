@@ -1,4 +1,4 @@
-// 눌러서 서버에 요청하고 화면을 갱신하는 `common/yona.Request.js`를 시험한다(S-07, A-422). Yobi 시절의 jQuery 플러그인 `jquery.requestAs.js`를 대체했다.
+// 눌러서 서버에 요청하고 화면을 갱신하는 `esm/Request.js`를 시험한다(S-07, A-422). Yobi 시절의 jQuery 플러그인 `jquery.requestAs.js`를 대체했다.
 // 선언형(`data-request-method`, `data-request-uri`)은 문서가 준비될 때 요소마다 클릭과 Enter 처리기를 단다. 직접 부를 때는 `yona.Request.send(방식, 주소)`를 쓴다.
 // 서버 계약은 그대로다: 성공이 204이고 `Location`이 있으면 그곳으로 이동하고, 아니면 화면을 새로 고친다. 실패는 사용자에게 알리지 않는다.
 import assert from 'node:assert/strict';
@@ -8,7 +8,7 @@ import { pageWith, JS, ROOT } from './harness.mjs';
 
 /** 가짜 fetch 와 가짜 이동을 심은 페이지. [reply]는 다음 응답({status, location, text}) 또는 'network' */
 async function open(html = '') {
-  const page = await pageWith({ html, scripts: ['common/yona.Common.js', 'common/yona.Request.js'], stubs: false });
+  const page = await pageWith({ html, scripts: ['common/yona.Common.js', 'esm/Request.js'], stubs: false });
   await page.evaluate(() => {
     window.__fetch = []; window.__nav = []; window.__reply = { status: 200 };
     window.fetch = function (url, opts) {
@@ -131,7 +131,8 @@ export const tests = [
     const left = files.filter((f) => /\.requestAs\(|data\(["']requestAs["']\)/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(JS, f));
     assert.deepEqual(left, []);
     const bundles = fs.readFileSync(path.join(ROOT, 'build-tools/js-bundle/bundles.mjs'), 'utf8');
-    assert.ok(bundles.includes('common/yona.Request.js') && !bundles.includes('requestAs'), '번들 입력이 바뀌어야 한다');
+    assert.ok(!bundles.includes('requestAs') && !bundles.includes('Request.js'), '번들 입력에 옛 플러그인과 Request가 없어야 한다(Request는 ES 모듈이다)');
+    assert.ok(fs.readFileSync(path.join(JS, 'esm/index.js'), 'utf8').includes('import "./Request.js";'), '진입점이 Request 모듈을 불러온다');
   } },
   { name: '수락 단추의 닿지 않던 훅이 없다: 병합은 병합 상자의 일반 폼 제출이라 요청 이벤트를 쓰지 않는다(A-422)', run: async () => {
     for (const f of ['esm/service/code.Diff.js', 'esm/service/git.View.js']) {

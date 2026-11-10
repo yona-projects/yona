@@ -93,7 +93,7 @@ export const tests = [
     assert.deepEqual(hits, []);
   } },
   { name: '원래 메일 숨기기(OriginalMessage.hide): 구분선과 그 뒤를 숨기고 "..." 단추로 펼친다', run: async () => {
-    const page = await pageWith({ stubs: true, html: '<div id="m" data-via-email><p id="a">안녕</p><div id="line">---- Original Message ----</div><p id="q1">인용1</p><p id="q2">인용2</p></div><div id="n" data-via-email><p id="plain">그냥 글</p></div>', scripts: ['common/yona.OriginalMessage.js'] });
+    const page = await pageWith({ stubs: true, html: '<div id="m" data-via-email><p id="a">안녕</p><div id="line">---- Original Message ----</div><p id="q1">인용1</p><p id="q2">인용2</p></div><div id="n" data-via-email><p id="plain">그냥 글</p></div>', scripts: ['esm/OriginalMessage.js'] });
     await page.evaluate(() => yona.OriginalMessage.hide($('[data-via-email]')));
     const vis = () => page.evaluate(() => ['a', 'line', 'q1', 'q2', 'plain'].map((id) => getComputedStyle(document.getElementById(id)).display !== 'none'));
     assert.deepEqual(await vis(), [true, false, false, false, true]);

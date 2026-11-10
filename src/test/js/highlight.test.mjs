@@ -2,15 +2,15 @@
 // 글에서 쓰이는 언어 이름과 별칭이 팩에 모두 있는지 확인한다. 9.11에서 먼저 통과시키고 11.x로 올려서도 통과시킨다. HL_DIR(팩 폴더)와 HL_MD(Markdown.js)로 다른 파일을 시험할 수 있다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { pageWith, JS } from './harness.mjs';
+import { pageWith, JS, classicFromEsm } from './harness.mjs';
 
 const DIR = process.env.HL_DIR || path.join(JS, 'lib/highlight');
-const MD = process.env.HL_MD || path.join(JS, 'common/yona.Markdown.js');
+const MD = process.env.HL_MD || path.join(JS, 'esm/Markdown.js');
 /** 9.11 팩이 알고 있던 언어 이름과 별칭 전체(글의 코드 블록에 이 이름을 쓸 수 있었다). */
 const OLD_NAMES = ["YAML", "accesslog", "adoc", "apache", "apacheconf", "arduino", "asciidoc", "atom", "awk", "bash", "basic", "bat", "c", "c++", "cc", "clj", "clojure", "clojure-repl", "cmake", "cmake.in", "cmd", "coffee", "coffeescript", "console", "cpp", "cs", "csharp", "cson", "css", "dart", "diff", "django", "docker", "dockerfile", "dos", "elixir", "elm", "erl", "erlang", "excel", "gemspec", "go", "golang", "gradle", "groovy", "gyp", "h", "h++", "haml", "haskell", "hpp", "hs", "html", "htmlbars", "http", "https", "iced", "ini", "irb", "java", "javascript", "jinja", "js", "json", "jsp", "jsx", "kotlin", "less", "llvm", "lua", "mak", "makefile", "markdown", "matlab", "md", "mk", "mkd", "mkdown", "mm", "nginx", "nginxconf", "obj-c", "objc", "objectivec", "patch", "perl", "php", "php3", "php4", "php5", "php6", "pl", "plist", "pm", "podspec", "powershell", "ps", "py", "python", "r", "rb", "rs", "rss", "ruby", "rust", "scala", "scss", "sh", "shell", "sql", "swift", "tex", "thor", "toml", "ts", "typescript", "xhtml", "xjb", "xls", "xlsx", "xml", "xsd", "xsl", "yaml", "yml", "zsh"];
 
 async function open(html = '') {
-  const page = await pageWith({ html, stubs: false, scripts: ['lib/xss.js', 'common/yona.Common.js', 'lib/marked.js', 'lib/marked-yona.js', { path: path.join(DIR, 'highlight.pack.js') }, { path: MD }] });
+  const page = await pageWith({ html, stubs: false, scripts: ['lib/xss.js', 'common/yona.Common.js', 'lib/marked.js', 'lib/marked-yona.js', { path: path.join(DIR, 'highlight.pack.js') }, (MD.includes('/esm/') ? { content: classicFromEsm('esm/Markdown.js') } : { path: MD })] });
   await page.evaluate(() => { window.yona = window.yona || {}; });
   return page;
 }

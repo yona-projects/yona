@@ -21,7 +21,7 @@ function build(dir) {
 build(out);
 
 test("번들 3개가 만들어진다", () => {
-  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+  for (const name of ["yona-layout.js", "yona-common.js"]) {
     assert.ok(existsSync(join(out, name)), `${name}이 없다`);
     assert.ok(statSync(join(out, name)).size > 10000, `${name}이 너무 작다`);
   }
@@ -74,14 +74,14 @@ test("쓰이지 않는 zclip 코드는 번들에 들어가지 않는다", () => 
 test("같은 입력으로 다시 만들면 byte 단위로 같다(재현성)", () => {
   const again = mkdtempSync(join(tmpdir(), "yona-js-bundle-"));
   build(again);
-  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+  for (const name of ["yona-layout.js", "yona-common.js"]) {
     assert.ok(readFileSync(join(out, name)).equals(readFileSync(join(again, name))), `${name}이 다르다`);
   }
 });
 
 test("저장소에 들어 있는 번들은 지금의 입력 파일로 만든 결과와 같다(입력을 고치고 번들을 다시 만들지 않은 실수를 막는다)", () => {
   const committed = join(root, "../../src/main/resources/static/assets/javascripts");
-  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+  for (const name of ["yona-layout.js", "yona-common.js"]) {
     assert.ok(readFileSync(join(committed, name)).equals(readFileSync(join(out, name))),
       `${name}이 입력과 다르다. build-tools/minify-js.sh로 다시 만든다`);
   }
@@ -89,7 +89,7 @@ test("저장소에 들어 있는 번들은 지금의 입력 파일로 만든 결
 
 test("번들은 옛 Closure 번들보다 크게 늘지 않는다", () => {
   const old = join(root, "../../src/main/resources/static/assets/javascripts");
-  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+  for (const name of ["yona-layout.js", "yona-common.js"]) {
     const a = statSync(join(old, name)).size, b = statSync(join(out, name)).size;
     assert.ok(b < a * 1.25, `${name}: ${b} > ${a} * 1.25`);
   }

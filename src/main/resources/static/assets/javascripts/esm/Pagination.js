@@ -18,11 +18,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { register } from "./namespace.js";
+
 // Render pagination in the given target HTML element.
 // Usage: Pagiation.updatePagination(target, totalPages);
 // For more details, see docs/technical/pagination.md
 
-yona.Pagination = (function(window, document) {
+const Pagination = (function(window, document) {
     const htRegEx = {};
     const rxDigit = /^.[0-9]*$/;
     // $.isNumeric determines hex, point or negative numbers as numeric.
@@ -342,3 +345,6 @@ yona.Pagination = (function(window, document) {
 $(document).on('click.pagination.number-api','input[name="pageNum"][type="number"]',function() {
     $(this).select();
 });
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.Pagination", Pagination);

@@ -6,7 +6,7 @@ export function loadGlobals(dir) {
   const baseline = new Set(Object.getOwnPropertyNames(new JSDOM("").window));
   const dom = new JSDOM("<!doctype html><html><body></body></html>", { runScripts: "outside-only", url: "http://localhost/" });
   const errors = [];
-  for (const name of ["yona-layout.js", "yona-common.js", "yona-lib.js"]) {
+  for (const name of ["yona-layout.js", "yona-common.js"]) {
     try {
       dom.window.eval(readFileSync(`${dir}/${name}`, "utf8"));
     } catch (e) {

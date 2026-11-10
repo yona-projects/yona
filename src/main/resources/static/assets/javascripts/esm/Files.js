@@ -4,7 +4,10 @@
  * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
-yona.Files = (function(){
+
+import { register } from "./namespace.js";
+
+const Files = (function(){
     const htVar = {};
     const htElements = {};
     const htHandlers = {};
@@ -497,7 +500,8 @@ yona.Files = (function(){
 
             if(oFile && oFile.type.indexOf("image/") === 0){
                 nSubmitId = _getSubmitId();
-                oFile.name = nSubmitId + ".png";
+                // v1.6은 여기서 `oFile.name = nSubmitId + ".png"`로 이름을 바꾸려 했으나 File.name은 읽기 전용이라 대입이 무시되었다(엄격 모드인 ES 모듈에서는 오류가 된다).
+                // 동작을 그대로 두려고 대입을 지웠다. 이름을 실제로 바꾸는 것은 동작이 달라지므로 refactor-deviations.md에 적어 두었다.
 
                 _uploadSingleFile(oFile, nSubmitId, sNamespace);
 
@@ -720,3 +724,6 @@ yona.Files = (function(){
         "deleteFile" : _deleteFile
     };
 })();
+
+// 옛 전역 이름으로도 부를 수 있게 등록한다
+register("yona.Files", Files);

@@ -1,9 +1,9 @@
-// 탭 기억 `common/yona.ui.Tabs.js`(F-02, R-139): 고른 탭의 순서를 localStorage(`yobitab-<id>`)에 저장하고 다음에 열 때 그 탭을 보여 준다.
+// 탭 기억 `esm/ui/Tabs.js`(F-02, R-139): 고른 탭의 순서를 localStorage(`yobitab-<id>`)에 저장하고 다음에 열 때 그 탭을 보여 준다.
 // v1.6은 복원 조건이 `welLink.data("toggle" == "tab")`(항상 거짓)이라 저장만 하고 복원하지 않았다. 고쳐서 복원한다.
 // 다만 서버가 탭을 정해 준 경우(`?tab=`, 설정을 저장한 뒤 돌아오는 화면)에는 서버를 따른다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { launch, JS, ROOT } from './harness.mjs';
+import { launch, JS, ROOT, classicFromEsm } from './harness.mjs';
 
 const BOOTSTRAP = path.join(ROOT, 'src/main/resources/static/assets/bootstrap/js/bootstrap.bundle.min.js');
 const HTML = `<ul class="nav nav-tabs" id="sso-tabs" role="tablist">
@@ -25,7 +25,7 @@ async function open({ query = '', saved = {}, html = HTML } = {}) {
   await page.addScriptTag({ path: path.join(JS, 'lib/jquery/jquery-3.7.1.js') });
   await page.addScriptTag({ path: BOOTSTRAP });
   await page.addScriptTag({ path: path.join(JS, 'common/yona.Common.js') });
-  await page.addScriptTag({ path: path.join(JS, 'common/yona.ui.Tabs.js') });
+  await page.addScriptTag({ content: classicFromEsm('esm/ui/Tabs.js') });
   await page.waitForTimeout(200);
   return { page, ctx };
 }
@@ -66,7 +66,7 @@ export const tests = [
     await page.route('http://tabs.test/**', (route) => route.fulfill({ contentType: 'text/html', body: '<!doctype html><body></body>' })); await page.goto('http://tabs.test/page.html');
     await page.setContent(`<!doctype html><body>${HTML}</body>`);
     await page.evaluate(() => { Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('denied', 'SecurityError'); } }); });
-    for (const f of ['lib/jquery/jquery-3.7.1.js', 'common/yona.Common.js', 'common/yona.ui.Tabs.js']) await page.addScriptTag({ path: f.startsWith('lib') || f.startsWith('common') ? path.join(JS, f) : f });
+    for (const f of ['lib/jquery/jquery-3.7.1.js', 'common/yona.Common.js', 'esm/ui/Tabs.js']) await page.addScriptTag(f.startsWith('esm/') ? { content: classicFromEsm(f) } : { path: path.join(JS, f) });
     await page.waitForTimeout(150); assert.deepEqual(page.errors.filter((m) => !/showTab|bootstrap/i.test(m)), []); await ctx.close();
   } },
 ];

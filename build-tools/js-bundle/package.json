@@ -2,7 +2,7 @@
   "name": "yona-js-bundle",
   "private": true,
   "version": "0.0.0",
-  "description": "Yona JS 번들(yona-layout.js, yona-common.js, yona-lib.js)을 만드는 빌드 도구. 서버 빌드(Gradle)와는 독립이며 수동으로 실행한다.",
+  "description": "Yona JS 번들(yona-layout.js, yona-common.js)을 만드는 빌드 도구. 서버 빌드(Gradle)와는 독립이며 수동으로 실행한다.",
   "type": "module",
   "scripts": {
     "build": "vite build",

@@ -8,7 +8,7 @@ const XHR = { content: FAKE_XHR };
 
 /** 업로더를 만들고 파일을 올린 뒤 [respond]로 서버 응답을 흉내 낸다. 받은 처리기 호출을 모아 돌려준다. */
 async function upload({ respond, file = { name: 'a.txt', content: 'x' }, namespace = 'ns', maxFileSize } = {}) {
-  const page = await pageWith({ html: '', scripts: [STUBS, XHR, 'common/yona.Files.js'] });
+  const page = await pageWith({ html: '', scripts: [STUBS, XHR, 'esm/Files.js'] });
   const r = await page.evaluate(async ([respondSource, file, ns, max]) => {
     yona.Files.init({ sUploadURL: '/up', maxFileSize: max });
     var seen = { error: [], success: [], progress: [], before: 0 };
@@ -75,17 +75,17 @@ export const tests = [
     assert.equal(r.requests, 0); assert.equal(r.seen.error.length, 1); assert.equal(r.seen.error[0].status, '10B');
   } },
   { name: '옛 경로가 없다: 폼 업로드, IE 확인, bXHR2, htUploadOpts, ajaxForm 은 남지 않는다', async run() {
-    const text = fs.readFileSync(path.join(JS, 'common/yona.Files.js'), 'utf8');
+    const text = fs.readFileSync(path.join(JS, 'esm/Files.js'), 'utf8');
     for (const gone of ['_uploadFileForm', 'trident', 'bXHR2', 'htUploadOpts', 'ajaxForm', '$.ajaxSettings']) assert.ok(!text.includes(gone), `${gone} 가 남아 있다`);
     const upload = text.slice(text.indexOf('function _uploadFileXHR'), text.indexOf('function _readResponse'));
     assert.ok(upload.includes('new XMLHttpRequest') && !upload.includes('$.ajax'), '업로드는 네이티브 XMLHttpRequest 만 쓴다(목록 조회의 $.ajax 는 S-14에서 바꾼다)');
-    const page = await pageWith({ html: '', scripts: [STUBS, 'common/yona.Files.js'] });
+    const page = await pageWith({ html: '', scripts: [STUBS, 'esm/Files.js'] });
     const env = await page.evaluate(() => { yona.Files.init({}); return Object.keys(yona.Files.getEnv()).sort(); });
     assert.ok(!env.includes('bXHR2') && !env.includes('htUploadOpts'), JSON.stringify(env));
     await page.close();
   } },
   { name: '표를 붙여넣으면 전역 window.event가 아니라 받은 이벤트로 마크다운 표를 만든다 (C010)', async run() {
-    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, 'common/yona.Files.js'] });
+    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, 'esm/Files.js'] });
     const out = await page.evaluate(() => {
       yona.Files.init({ sUploadURL: '/up' });
       var got = null;
@@ -101,7 +101,7 @@ export const tests = [
     assert.ok(out && out.startsWith('| a'), String(out));
   } },
   { name: '붙여넣기 업로드는 Firefox에서도 켜져 있고 붙여넣은 이미지를 올린다(F-03: 옛 Firefox 제외 조건은 철자 오류로 동작한 적이 없고 이제 필요 없다)', async run() {
-    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, XHR, 'common/yona.Files.js'] });
+    const page = await pageWith({ html: '<div id="c"><input type="file"><textarea id="t"></textarea></div>', scripts: [STUBS, XHR, 'esm/Files.js'] });
     await page.evaluate(() => { Object.defineProperty(navigator, 'userAgent', { get: () => 'Mozilla/5.0 (X11; Linux x86_64; rv:155.0) Gecko/20100101 Firefox/155.0' }); });
     const out = await page.evaluate(() => {
       yona.Files.init({ sUploadURL: '/up' });

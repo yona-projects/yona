@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { launch, JS } from './harness.mjs';
+import { launch, JS, PRELUDE } from './harness.mjs';
 
 const ESM = path.join(JS, 'esm');
 const IMPORT_MAP = '{"imports": {"yona/": "/assets/javascripts/esm/"}}';
@@ -13,9 +13,9 @@ async function open(body, { legacy = '' } = {}) {
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.route('http://esm.test/**', (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/page') return route.fulfill({ contentType: 'text/html', body: `<!doctype html><head><script type="importmap">${IMPORT_MAP}</script><script>window.yona = window.yona || {}; ${legacy}</script></head><body>${body}</body>` });
-    const file = path.join(ESM, url.pathname.replace('/assets/javascripts/esm/', ''));
-    if (url.pathname.startsWith('/assets/javascripts/esm/') && fs.existsSync(file)) return route.fulfill({ contentType: 'text/javascript', body: fs.readFileSync(file) });
+    if (url.pathname === '/page') return route.fulfill({ contentType: 'text/html', body: `<!doctype html><head><script type="importmap">${IMPORT_MAP}</script>${body.includes('esm/index.js') ? PRELUDE : ''}<script>window.yona = window.yona || {}; ${legacy}</script></head><body>${body}</body>` });
+    const file = path.join(JS, url.pathname.replace('/assets/javascripts/', ''));
+    if (url.pathname.startsWith('/assets/javascripts/') && fs.existsSync(file) && fs.statSync(file).isFile()) return route.fulfill({ contentType: 'text/javascript', body: fs.readFileSync(file) });
     return route.fulfill({ status: 404, body: '' });
   });
   await page.goto('http://esm.test/page');

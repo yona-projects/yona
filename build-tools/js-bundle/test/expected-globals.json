@@ -269,18 +269,18 @@
     "humanize",
     "FormValidator",
     "temporarySaveHandler",
-    "removeCurrentPageTemprarySavedContent"
+    "removeCurrentPageTemprarySavedContent",
+    "yona.Attachments",
+    "yona.Files",
+    "yona.Markdown",
+    "yona.Mention",
+    "yona.OriginalMessage",
+    "yona.Pagination",
+    "yona.ShortcutKey",
+    "yona.ui"
   ],
   "yona": [
-    "Attachments",
-    "Common",
-    "Files",
-    "Markdown",
-    "Mention",
-    "OriginalMessage",
-    "Pagination",
-    "ShortcutKey",
-    "ui"
+    "Common"
   ],
   "$yona": [
     "ajaxConfirm",
