@@ -2206,3 +2206,5 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - `moment(값).isValid()`와 `moment(날짜).fromNow()`를 moment 2.31.0 규칙 그대로 옮긴 `esm/dates.js`로 바꿨다. 언어는 `scripts.html`이 `window.yonaLanguage`로 넘긴다.
 - `dates.test.mjs`가 실제 moment와 비교한다: 날짜 검증 약 1만 건, 상대 시각 약 39만 건(Asia/Seoul, UTC, America/New_York, Europe/Moscow × en, ko, ja, ru, uz, fr) 모두 차이 0건.
 - 템플릿(`code/view.html`, `common/calendar.html`)이 moment를 더 부르지 않는다. 라이브러리 파일은 시험의 기준으로 남겼고 삭제는 사용자 확인을 기다린다.
+
+전체 회귀(web, audit, i18n, markdown)는 moment 제거와 XSS 수정 뒤 9분 33초에 1건 실패(영어 화면에 남은 한글 주석)했고 고친 뒤 해당 시험이 통과했다. JS 시험은 612개.
