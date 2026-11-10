@@ -20,6 +20,7 @@
  */
 
 import { register } from "../namespace.js";
+import { debounce } from "../util.js";
 
 const SignUp = function(htOptions){
 
@@ -94,12 +95,7 @@ const SignUp = function(htOptions){
         }
     }
 
-    function _onValidInputPassword(){
-
-        clearTimeout(htVar.oDelay);
-
-        htVar.oDelay = setTimeout(checkPassword, 300);
-    }
+    const _onValidInputPassword = debounce(() => checkPassword(), 300);
 
     function checkPassword() {
       hideErrorMessage(htElement.welInputPassword);
@@ -111,12 +107,8 @@ const SignUp = function(htOptions){
       checkPasswordConfirm();
     }
 
-    function _onValidInputPasswordCheck() {
-      // v1.6은 두 칸이 타이머 하나를 나눠 써서 번갈아 입력하면 앞선 검사가 취소되었다(C025). 확인 칸은 자기 타이머를 쓴다
-      clearTimeout(htVar.oDelayConfirm);
-
-      htVar.oDelayConfirm = setTimeout(checkPasswordConfirm, 200);
-    }
+    // v1.6은 두 칸이 타이머 하나를 나눠 써서 번갈아 입력하면 앞선 검사가 취소되었다(C025). 확인 칸은 자기 지연 호출을 쓴다
+    const _onValidInputPasswordCheck = debounce(() => checkPasswordConfirm(), 200);
 
     function checkPasswordConfirm() {
       hideErrorMessage(htElement.welInputPassword2);

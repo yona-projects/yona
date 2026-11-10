@@ -64,6 +64,7 @@ export function classicHttpSource() {
  */
 export function classicFromEsm(relativePath) {
   const src = fs.readFileSync(path.join(JS, relativePath), 'utf8')
+    .replace(/^import \{ ([^}]*) \} from "\.{1,2}\/util\.js";$/gm, 'const { $1 } = window.yona.util;')
     .replace(/^import .*$/gm, '')
     .replace(/^export default (\w+);\s*$/gm, '')
     .replace(/^export \{[^}]*\};?\s*$/gm, '')
@@ -86,6 +87,7 @@ export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = tr
     await page.addScriptTag({ content: COMMON_STUBS });
   }
   await page.addScriptTag({ content: classicHttpSource() });
+  await page.addScriptTag({ content: classicFromEsm('esm/util.js') });
   for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? (s.startsWith('esm/') ? { content: classicFromEsm(s) } : { path: path.join(JS, s) }) : s);
   return page;
 }

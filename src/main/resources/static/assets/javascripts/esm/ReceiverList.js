@@ -6,19 +6,15 @@
  **/
 
 import { register } from "./namespace.js";
+import { debounce } from "./util.js";
 
 function findNotiReceiversHandler($textarea, url) {
     const MAX_DISPLAY = 10
     const DEBOUNCE_DURATION = 1000;
 
-    if (!window.displayTimeout) window.displayTimeout = 0;
-
     findNotiReceivers();
 
-    $textarea.on('keyup.receiverList', () => {
-        clearTimeout(window.displayTimeout);
-        window.displayTimeout = setTimeout(findNotiReceivers, DEBOUNCE_DURATION);
-    });
+    $textarea.on('keyup.receiverList', debounce(() => findNotiReceivers(), DEBOUNCE_DURATION));
 
     function findNotiReceivers() {
         const parentCommentId = $textarea.closest("form").find(".parentCommentId").val()
