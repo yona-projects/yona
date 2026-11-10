@@ -316,16 +316,16 @@ class JsLibraryVersionsTest {
         assertTrue(asset("javascripts/lib/elevator/jquery.elevator.css").isFile, "스타일은 그대로 쓴다")
         val common = asset("javascripts/common/yona.Common.js").readText()
         assertTrue(common.contains("function formatFileSize") && common.contains("function getHexColor") && !common.contains("new RGBColor"))
-        assertTrue(asset("javascripts/common/yona.ui.Elevator.js").isFile)
+        assertTrue(asset("javascripts/esm/ui/Elevator.js").isFile)
         val scripts = File("src/main/resources/static/assets/javascripts").walkTopDown().filter { it.isFile && it.extension == "js" && "/lib/" !in it.path && !it.name.startsWith("yona-") }.joinToString("\n") { it.readLines().filter { line -> !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(line) }.joinToString("\n") }
         assertTrue(!Regex("humanize\\.|new RGBColor|parseUri\\(|\\$\\.elevator").containsMatchIn(scripts), "옛 호출이 남아 있다")
     }
 
     @Test
     fun `favico와 validate_js는 작은 직접 구현으로 바뀌었다`() {
-        // D-122 3단계: Favico.js(유지 중단)는 yona.ui.Favicon.js, validate.js(FormValidator)는 yona.ui.FormValidator.js
+        // D-122 3단계: Favico.js(유지 중단)는 esm/ui/Favicon.js, validate.js(FormValidator)는 esm/ui/FormValidator.js(ES 모듈, 진입점 esm/index.js가 불러온다)
         listOf("javascripts/lib/favico/favico.min.js", "javascripts/lib/validate.js").forEach { assertTrue(!asset(it).exists(), it) }
-        assertTrue(asset("javascripts/common/yona.ui.Favicon.js").isFile && asset("javascripts/common/yona.ui.FormValidator.js").isFile)
+        assertTrue(asset("javascripts/esm/ui/Favicon.js").isFile && asset("javascripts/esm/ui/FormValidator.js").isFile)
         val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
         assertTrue(!templates.contains("favico.min.js") && !templates.contains("lib/validate.js"))
         val scripts = File("src/main/resources/static/assets/javascripts/service").listFiles()!!.joinToString("\n") { f -> f.readLines().filter { !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(it) }.joinToString("\n") }
@@ -341,5 +341,17 @@ class JsLibraryVersionsTest {
         assertTrue(scripts.contains("""<script type="module" th:src="@{/assets/javascripts/esm/index.js}"></script>"""))
         listOf("javascripts/esm/index.js", "javascripts/esm/namespace.js").forEach { assertTrue(asset(it).isFile, it) }
         assertTrue(asset("javascripts/esm/index.js").readText().contains("""import { register, ensureNamespace } from "yona/namespace.js";"""))
+    }
+
+    @Test
+    fun `옮긴 ES 모듈은 진입점이 불러오고 템플릿에 옛 클래식 태그가 남지 않는다`() {
+        // D-122: Elevator, Favicon, FormValidator를 esm/ui/로 옮겼다. 모듈은 common/scripts.html의 <script type="module" src="esm/index.js"> 하나로 모든 화면에 내려가므로 개별 태그가 없어야 한다
+        val index = asset("javascripts/esm/index.js").readText()
+        listOf("./ui/Elevator.js", "./ui/Favicon.js", "./ui/FormValidator.js").forEach { assertTrue(index.contains("import \"$it\";"), it) }
+        listOf("common/yona.ui.Elevator.js", "common/yona.ui.Favicon.js", "common/yona.ui.FormValidator.js").forEach { assertTrue(!asset("javascripts/$it").exists(), it) }
+        val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
+        assertTrue(!Regex("yona\\.ui\\.(Elevator|Favicon|FormValidator)\\.js").containsMatchIn(templates), "템플릿에 옛 클래식 태그가 남아 있다")
+        assertTrue(!File("build-tools/js-bundle/bundles.mjs").readText().contains("yona.ui.FormValidator.js"))
+        listOf("javascripts/esm/ui/Elevator.js", "javascripts/esm/ui/Favicon.js", "javascripts/esm/ui/FormValidator.js").forEach { assertTrue(asset(it).readText().contains("register(\"yona.ui.")) }
     }
 }

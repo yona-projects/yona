@@ -59,7 +59,7 @@ test("쓰이지 않는 zclip 코드는 번들에 들어가지 않는다", () => 
   for (const n of expected.removedFn) assert.ok(!(n in r.window.jQuery.fn), `jQuery.fn.${n}이 남아 있다`);
   for (const n of expected.removedStatic) assert.ok(!(n in r.window.jQuery), `jQuery.${n}이 남아 있다`);
   assert.ok(!("ClipboardJS" in r.window), "clipboard.js는 번들에서 뺐다(복사는 yona.Clipboard, S-01)");
-  assert.equal(r.window.FormValidator === undefined && typeof r.window.yona.ui.FormValidator === "function", true, "전역 FormValidator는 없어지고 yona.ui.FormValidator로 옮겨 왔다(D-122)");
+  assert.equal(r.window.FormValidator === undefined, true, "전역 FormValidator는 없어졌다. yona.ui.FormValidator는 ES 모듈(esm/ui/FormValidator.js)이라 번들에 없다(D-122)");
   // jquery.tmpl 대신 Mustache를 쓴다(D-94): 전역 Mustache와 $yona.render가 있다
   assert.equal(typeof r.window.Mustache.render, "function");
   assert.equal(typeof r.window.$yona.render, "function");

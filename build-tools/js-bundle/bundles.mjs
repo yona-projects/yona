@@ -17,7 +17,6 @@ export const bundles = {
   "yona-common.js": [
     `${JS}/lib/mustache.js`,
     `${JS}/common/yona.Request.js`,
-    `${JS}/common/yona.ui.FormValidator.js`,
     `${JS}/lib/xss.js`,
   ],
   "yona-lib.js": [

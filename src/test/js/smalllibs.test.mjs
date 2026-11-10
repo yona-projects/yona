@@ -2,7 +2,7 @@
 // 기대값은 옛 파일을 실행해 얻은 표이다(파일 크기 글자, 색 읽기, 쿼리 문자열, 엘리베이터의 요소와 동작). 엘리베이터는 ELEV_IMPL=old로 옛 플러그인에서도 돌려 볼 수 있다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { pageWith, JS, launch } from './harness.mjs';
+import { pageWith, JS, launch, esmPage } from './harness.mjs';
 
 const OLD = process.env.CLAUDE_JOB_DIR ? path.join(process.env.CLAUDE_JOB_DIR, 'tmp/old-libs') : null;
 const ELEV_OLD = process.env.ELEV_IMPL === 'old';
@@ -16,9 +16,10 @@ const COLOR_CASES = [["yellow", "dimgray", "#ffff00"], ["red", "white", "#ff0000
 
 /** 엘리베이터(이슈와 게시글 보기의 위, 아래 이동 단추)를 높이 6000px 문서에서 연다. 옛 플러그인(ELEV_IMPL=old)과 새 구현 모두 같은 DOM과 동작을 낸다. */
 async function openElevator(options = "{ shape: 'rounded', tooltips: true }") {
-  const scripts = ELEV_OLD ? [{ path: path.join(OLD, 'elevator/jquery.elevator.js') }] : ['common/yona.Common.js', 'common/yona.ui.Elevator.js'];
-  const page = await pageWith({ stubs: false, scripts, html: '<div style="height:6000px">문서</div>' });
-  await page.addStyleTag({ path: ELEV_OLD ? path.join(OLD, 'elevator/jquery.elevator.css') : path.join(JS, 'lib/elevator/jquery.elevator.css') });
+  const page = ELEV_OLD
+    ? await pageWith({ stubs: false, scripts: [{ path: path.join(OLD, 'elevator/jquery.elevator.js') }], html: '<div style="height:6000px">문서</div>' })
+    : await esmPage({ bodyHtml: '<div style="height:6000px">문서</div>', head: '<link rel="stylesheet" href="/assets/javascripts/lib/elevator/jquery.elevator.css">' });
+  if (ELEV_OLD) await page.addStyleTag({ path: path.join(OLD, 'elevator/jquery.elevator.css') });
   await page.setViewportSize({ width: 1000, height: 700 });
   await page.evaluate((o) => { const opts = new Function(`return ${o};`)(); if (window.yona && yona.ui && yona.ui.Elevator) yona.ui.Elevator.init(opts); else $.elevator(opts); }, options);
   await page.waitForTimeout(300);
@@ -73,8 +74,7 @@ export const userViewTests = [
 
 /** 32x32 초록 파비콘에 position up, 파란 배경으로 배지 'N'을 그린 결과를 읽는다. 배지 영역(파랑)과 글자(흰색)의 경계 상자와 바뀌지 않은 화소 수. */
 async function badgeResult(drawCall) {
-  const scripts = FV_OLD ? [{ path: path.join(OLD, 'favico.min.js') }] : ['common/yona.ui.Favicon.js'];
-  const page = await pageWith({ stubs: false, html: '', scripts });
+  const page = FV_OLD ? await pageWith({ stubs: false, html: '', scripts: [{ path: path.join(OLD, 'favico.min.js') }] }) : await esmPage({});
   const r = await page.evaluate(async (call) => {
     const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'); x.fillStyle = '#2e8b57'; x.fillRect(0, 0, 32, 32);
     const link = document.createElement('link'); link.rel = 'icon'; link.type = 'image/png'; link.href = c.toDataURL('image/png'); document.head.appendChild(link);
@@ -110,7 +110,7 @@ export const faviconTests = [
 /** 가입, 비밀번호 변경, 비밀번호 재설정 화면과 같은 규칙으로 양식을 만들고(옛 validate.js의 FormValidator 또는 새 yona.ui.FormValidator) 제출 검증 결과를 모은다. */
 async function openForm() {
   const html = `<form name="signup" id="signup" action="#"><input name="loginId" id="loginId" value=""><input name="email" id="email" value=""><input name="password" id="password" type="password" value=""><input name="retypedPassword" id="retypedPassword" type="password" value=""><input name="agree" id="agree" type="checkbox"><button type="submit">ok</button></form>`;
-  const page = await pageWith({ stubs: false, html, scripts: VAL_OLD ? [{ path: path.join(OLD, 'validate.js') }] : ['common/yona.ui.FormValidator.js'] });
+  const page = VAL_OLD ? await pageWith({ stubs: false, html, scripts: [{ path: path.join(OLD, 'validate.js') }] }) : await esmPage({ bodyHtml: html });
   await page.evaluate(() => {
     const V = window.FormValidator || yona.ui.FormValidator; window.__calls = [];
     const rules = [{ name: 'loginId', rules: 'required|callback_check_loginId' }, { name: 'email', rules: 'required|valid_email' }, { name: 'password', rules: 'required|min_length[4]' }, { name: 'retypedPassword', rules: 'required|matches[password]' }, { name: 'agree', display: '약관', rules: 'required' }];

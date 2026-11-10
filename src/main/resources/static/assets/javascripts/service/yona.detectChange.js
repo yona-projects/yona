@@ -5,10 +5,18 @@
  * https://yona.io
  **/
 
-var favicon = new yona.ui.Favicon({
-    position: 'up',
-    bgColor: '#4183c4'
-});
+// 파비콘 배지 도우미는 ES 모듈(esm/ui/Favicon.js)이라 문서 분석 중에는 아직 없다. 처음 쓸 때 만든다.
+let favicon = null;
+
+function getFavicon(){
+    if(!favicon){
+        favicon = new yona.ui.Favicon({
+            position: 'up',
+            bgColor: '#4183c4'
+        });
+    }
+    return favicon;
+}
 
 function detectPageChange(url){
     let issueBodyChecksum = $("#issueBodyChecksum").val();
@@ -48,17 +56,17 @@ function detectPageChange(url){
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
-                    favicon.badge('N');
+                    getFavicon().badge('N');
                 } else if (data.numOfComments - numOfComments > 1) {
                     numOfComments = data.numOfComments;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
-                    favicon.badge('N');
+                    getFavicon().badge('N');
                 }
 
                 if (data.issueBodyChanged) {
                     issueBodyChecksum = data.issueBodyChecksum;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
-                    favicon.badge('N');
+                    getFavicon().badge('N');
                 }
             })
     }

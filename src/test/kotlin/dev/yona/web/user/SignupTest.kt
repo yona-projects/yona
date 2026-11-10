@@ -100,7 +100,8 @@ class SignupTest : AbstractIntegrationTest() {
         assertEquals("User ID (lower case)", form.selectFirst("label[for=loginId]")?.text())
         assertEquals("Sign up", form.selectFirst("button[type=submit]")?.text())
         assertEquals("/users/loginform", form.selectFirst("a.go-login")?.attr("href"))
-        assertTrue(page.select("script").any { it.attr("src").endsWith("/assets/javascripts/common/yona.ui.FormValidator.js") })
+        // FormValidator는 ES 모듈(esm/ui/FormValidator.js)이고 모든 화면의 본문 끝에서 진입점 하나(esm/index.js)가 불러온다
+        assertTrue(page.select("script[type=module]").any { it.attr("src").endsWith("/assets/javascripts/esm/index.js") })
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "user.SignUp" in it }
         assertTrue("\"sLogindIdCheckUrl\"" in script && "/user/isUsed?name=" in script && "/user/isEmailExist?email=" in script, script)
     }
