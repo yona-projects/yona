@@ -26,7 +26,7 @@ $(() => {
             });
     });
 
-    $markdownWrap.find(inputCheckBox).on("click", function () {
+    $markdownWrap.find(inputCheckBox).on("click", async function () {
         const $this = $(this);
         const $form = $this.closest("div[id]").prev().find("form");
         const url = $form.attr("action");
@@ -35,25 +35,25 @@ $(() => {
 
         const text = $form.find("textarea").val();
 
-        yona.http.ajax({
-            method: "PATCH",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({ content: text, original: originalText }),
-            beforeSend: function() {
-                NProgress.start();
-            }
-        })
-        .done((msg) => {
-            NProgress.done();
-            checkTasklistDoneCount($markdownWrap);
-        })
-        .fail((jqXHR, textStatus) =>{
+        try {
+            await yona.http.ajax({
+                method: "PATCH",
+                url: url,
+                contentType: "application/json",
+                data: JSON.stringify({ content: text, original: originalText }),
+                beforeSend: function() {
+                    NProgress.start();
+                }
+            });
+        } catch (jqXHR) {
             const response = JSON.parse(jqXHR.responseText);
             const message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
             $yona.showAlert(message);
             NProgress.done();
-        });
+            return;
+        }
+        NProgress.done();
+        checkTasklistDoneCount($markdownWrap);
 
     });
 

@@ -17,7 +17,9 @@ async function login() {
     window.__ajax = []; window.__modal = []; window.__shake = 0;
     $.fn.effect = function () { window.__shake++; return this; };
     window.bootstrap = { Modal: { getOrCreateInstance: (el) => ({ show: () => window.__modal.push(el.id) }) } };
-    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o]); const h = { done(cb) { if (window.__ok !== undefined) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; } }; return h; } };
+    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o]); const h = { done(cb) { if (window.__ok !== undefined) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; },
+      // 실제 yona.http처럼 await할 수 있다. 응답을 정하지 않으면 끝내 완료되지 않는다
+      then(ok, bad) { return new Promise((res, rej) => { if (window.__ok !== undefined) setTimeout(() => res(window.__ok), 0); else if (window.__fail) setTimeout(() => rej(window.__fail), 0); }).then(ok, bad); } }; return h; } };
   });
   await page.addScriptTag({ content: classicFromEsm('esm/LoginDialog.js') });
   await page.evaluate(() => new Promise((r) => $(r))); // 준비 처리기까지 기다린다
@@ -91,7 +93,7 @@ export const tests = [
       window.__real = window.setTimeout; window.setTimeout = (fn, ms) => { window.__delays.push(ms); return window.__real(fn, 5); };
       yona.ui = yona.ui || {}; yona.ui.Favicon = function () { this.badge = (c) => window.__badge.push(c); };
       $yona.notify = (m, t, title) => window.__notes.push([t, title]);
-      let n = 0; yona.http = { ajax: (o) => { window.__ajax.push(o); n++; return { done(cb) { cb(n === 1 ? { numOfComments: 3, issueBodyChanged: false } : { numOfComments: 3, issueBodyChanged: true, issueBodyChecksum: 'new' }); return this; } }; } };
+      let n = 0; yona.http = { ajax: (o) => { window.__ajax.push(o); n++; return Promise.resolve(n === 1 ? { numOfComments: 3, issueBodyChanged: false } : { numOfComments: 3, issueBodyChanged: true, issueBodyChecksum: 'new' }); } };
     });
     await page.addScriptTag({ content: classicFromEsm('esm/service/detectChange.js') });
     await page.evaluate(() => detectPageChange('/detect')); await page.waitForTimeout(120);

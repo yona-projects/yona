@@ -153,14 +153,15 @@ const View = function(htOptions){
     /**
      * update pullRequest state
      */
-    function _updateState(){
+    async function _updateState(){
         if(htVar.bStateUpdating){
             return;
         }
 
         htVar.bStateUpdating = true;
 
-        yona.http.get(htVar.sStateUrl, (oRes) =>{
+        try {
+            const oRes = await yona.http.get(htVar.sStateUrl);
             const sResult = oRes.html;
 
             // update state only HTML has changed
@@ -171,9 +172,11 @@ const View = function(htOptions){
 
             // update visiblitity of actrow buttons
             htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
-        }).always(() =>{
+        } catch (failure) {
+            // 실패해도 다음 주기에 다시 시도한다(예전에도 실패 처리기가 없었다)
+        } finally {
             htVar.bStateUpdating = false;
-        });
+        }
     }
 
     /**

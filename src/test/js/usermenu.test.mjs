@@ -20,7 +20,9 @@ async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
   await page.evaluate((resp) => {
     window.UsermenuUrl = '/um'; window.UsermenuToggleFavoriteProjectUrl = '/fp/'; window.UsermenuToggleFoveriteOrganizationUrl = '/fo/'; window.UsermenuGetFoveriteProjectsUrl = '/fl'; window.UsermenuToggleFavoriteIssueUrl = '/fi/';
     window.__calls = []; window.__alerts = []; window.__notes = [];
-    const fake = (kind) => (url) => { window.__calls.push(kind + ' ' + url); const r = resp[url]; const h = { done(cb) { if (r && r.ok) setTimeout(() => cb(r.data), 0); return h; }, fail(cb) { if (r && !r.ok) setTimeout(() => cb({ responseText: JSON.stringify(r.data) }), 0); return h; } }; return h; };
+    const fake = (kind) => (url) => { window.__calls.push(kind + ' ' + url); const r = resp[url]; const h = { done(cb) { if (r && r.ok) setTimeout(() => cb(r.data), 0); return h; }, fail(cb) { if (r && !r.ok) setTimeout(() => cb({ responseText: JSON.stringify(r.data) }), 0); return h; },
+      // 실제 yona.http처럼 await할 수 있게 한다. 응답을 정하지 않은 주소는 끝내 완료되지 않는다(예전에 done/fail이 불리지 않던 것과 같다)
+      then(ok, bad) { return new Promise((res, rej) => { if (r && r.ok) setTimeout(() => res(r.data), 0); else if (r) setTimeout(() => rej({ responseText: JSON.stringify(r.data) }), 0); }).then(ok, bad); } }; return h; };
     window.yona = window.yona || {}; yona.http = { get: fake('GET'), post: fake('POST') };
     $yona.alert = (m) => window.__alerts.push(m); $yona.notify = (m) => window.__notes.push(m);
   }, responses);

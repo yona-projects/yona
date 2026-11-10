@@ -13,7 +13,9 @@ async function base(html, file, init) {
     window.autosize = { update: () => { window.__auto++; } };
     window.bootstrap = { Modal: { getOrCreateInstance: (el) => ({ show: () => window.__modal.push(['show', el.id]) }) }, Popover: { getOrCreateInstance: () => { window.__pop++; } } };
     yona.Request = { send: (m, u) => window.__req.push([m, u]) };
-    yona.http = { ajax: (o) => { window.__ajax.push(o); const h = { done(cb) { if (window.__ok) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; } }; return h; } };
+    yona.http = { ajax: (o) => { window.__ajax.push(o); const h = { done(cb) { if (window.__ok) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; },
+      // 실제 yona.http처럼 await할 수 있다. 응답을 정하지 않으면 끝내 완료되지 않는다
+      then(ok, bad) { return new Promise((res, rej) => { if (window.__ok) setTimeout(() => res(window.__ok), 0); else if (window.__fail) setTimeout(() => rej(window.__fail), 0); }).then(ok, bad); } }; return h; } };
   });
   await page.addScriptTag({ content: classicFromEsm(file) });
   if (init) await page.evaluate(init);

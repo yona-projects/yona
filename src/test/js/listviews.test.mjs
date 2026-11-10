@@ -11,7 +11,9 @@ async function base(html, file, init) {
     yona.Pagination = { update: (el, n) => window.__pg.push([el.attr('id'), n]) };
     yona.Files = { getUploader: () => null }; yona.Attachments = function (o) { window.__att = (window.__att || 0) + 1; };
     $yona.notify = (m) => window.__notes.push(m); $yona.sendForm = (o) => window.__send.push(o);
-    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.dataType, o.data]); const h = { done(cb) { if (window.__ok) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; } }; return h; } };
+    yona.http = { ajax: (url, o) => { window.__ajax.push([url, o.method, o.dataType, o.data]); const h = { done(cb) { if (window.__ok) setTimeout(() => cb(window.__ok), 0); return h; }, fail(cb) { if (window.__fail) setTimeout(() => cb(window.__fail), 0); return h; },
+      // 실제 yona.http처럼 await할 수 있다. 응답을 정하지 않으면 끝내 완료되지 않는다
+      then(ok, bad) { return new Promise((res, rej) => { if (window.__ok) setTimeout(() => res(window.__ok), 0); else if (window.__fail) setTimeout(() => rej(window.__fail), 0); }).then(ok, bad); } }; return h; } };
   });
   await page.addScriptTag({ content: classicFromEsm(file) });
   if (init) await page.evaluate(init);

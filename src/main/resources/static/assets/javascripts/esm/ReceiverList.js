@@ -16,42 +16,43 @@ function findNotiReceiversHandler($textarea, url) {
 
     $textarea.on('keyup.receiverList', debounce(() => findNotiReceivers(), DEBOUNCE_DURATION));
 
-    function findNotiReceivers() {
+    async function findNotiReceivers() {
         const parentCommentId = $textarea.closest("form").find(".parentCommentId").val()
 
-        yona.http.ajax({
-            method: "POST",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({ comment: $textarea.val(), parentCommentId: parentCommentId || "" }),
-        })
-        .done((data) => {
-            NProgress.done();
-            let receivers = "";
-            // v1.6는 `&&`라 응답이 비어 있으면 오히려 오류가 났다(C009)
-            if (!data || !data.receivers) {
-                return;
-            }
-
-            sortByName(data.receivers)
-
-            for (let i = 0; i < data.receivers.length; i++) {
-                if (i === MAX_DISPLAY) {
-                    receivers += `<span>+${data.receivers.length - MAX_DISPLAY}</span>`
-                    break;
-                }
-                const user = data.receivers[i];
-                receivers += `<span title="${user.name} @${user.loginId}">${user.pureNameOnly}</span>`
-            }
-
-            // Display notification receivers
-            $textarea.closest("form").find(".notification-receiver-list").html(receivers);
-        })
-        .fail((jqXHR, textStatus) => {
+        let data;
+        try {
+            data = await yona.http.ajax({
+                method: "POST",
+                url: url,
+                contentType: "application/json",
+                data: JSON.stringify({ comment: $textarea.val(), parentCommentId: parentCommentId || "" }),
+            });
+        } catch (jqXHR) {
             const response = JSON.parse(jqXHR.responseText);
             const message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
             $yona.showAlert(message);
-        });
+            return;
+        }
+        NProgress.done();
+        let receivers = "";
+        // v1.6는 `&&`라 응답이 비어 있으면 오히려 오류가 났다(C009)
+        if (!data || !data.receivers) {
+            return;
+        }
+
+        sortByName(data.receivers)
+
+        for (let i = 0; i < data.receivers.length; i++) {
+            if (i === MAX_DISPLAY) {
+                receivers += `<span>+${data.receivers.length - MAX_DISPLAY}</span>`
+                break;
+            }
+            const user = data.receivers[i];
+            receivers += `<span title="${user.name} @${user.loginId}">${user.pureNameOnly}</span>`
+        }
+
+        // Display notification receivers
+        $textarea.closest("form").find(".notification-receiver-list").html(receivers);
     }
 
     function sortByName(receivers) {

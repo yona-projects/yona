@@ -10,15 +10,18 @@ $(() => {
     const SIDE_BAR_DEFAULT_WIDTH = "360px";
 
     if ($(".gnb-usermenu-dropdown").length !== 0) {
-        yona.http.get(UsermenuUrl)
-            .done((data) => {
-                $("#usermenu-tab-content-list").html(data);
-                iniNaviUserMenu();
-                afterUsermenuLoaded();
-            })
-            .fail((data) => {
-                console.log("Usermenu loading failed: " + data);
-            });
+        (async () => {
+            let data;
+            try {
+                data = await yona.http.get(UsermenuUrl);
+            } catch (failure) {
+                console.log("Usermenu loading failed: " + failure);
+                return;
+            }
+            $("#usermenu-tab-content-list").html(data);
+            iniNaviUserMenu();
+            afterUsermenuLoaded();
+        })();
     }
 
     afterUsermenuLoaded();
@@ -103,39 +106,33 @@ $(() => {
 
         $(".project-list > .star-project, .project-breadcrumb > .user-project-list")
             .off("click.toggleProjectFavorite")
-            .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
+            .on("click.toggleProjectFavorite", async function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                yona.http.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
-                    .done((data) => {
-                        if (data.favored) {
-                            that.find('i').addClass("starred");
-                        } else {
-                            that.find('i').removeClass("starred");
-                        }
-                    })
-                    .fail((data) => {
-                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
-                    });
+                let data;
+                try {
+                    data = await yona.http.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"));
+                } catch (failure) {
+                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    return;
+                }
+                that.find('i').toggleClass("starred", !!data.favored);
             });
 
         $(".favorite-issue")
             .off("click.toggleProjectFavorite")
-            .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
+            .on("click.toggleProjectFavorite", async function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                yona.http.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
-                    .done((data) => {
-                        if (data.favored) {
-                            that.find('i').addClass("starred");
-                        } else {
-                            that.find('i').removeClass("starred");
-                        }
-                        $yona.notify(Messages(data.message), 3000);
-                    })
-                    .fail((data) => {
-                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
-                    });
+                let data;
+                try {
+                    data = await yona.http.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"));
+                } catch (failure) {
+                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    return;
+                }
+                that.find('i').toggleClass("starred", !!data.favored);
+                $yona.notify(Messages(data.message), 3000);
 
             });
 
@@ -166,20 +163,17 @@ $(() => {
 
         $(".org-list > .star-org")
             .off("click.org")
-            .on("click.org", function toggleOrgFavorite(e) {
+            .on("click.org", async function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
-                yona.http.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
-                    .done((data) => {
-                        if (data.favored) {
-                            that.find('i').addClass("starred");
-                        } else {
-                            that.find('i').removeClass("starred");
-                        }
-                    })
-                    .fail((data) => {
-                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
-                    });
+                let data;
+                try {
+                    data = await yona.http.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"));
+                } catch (failure) {
+                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    return;
+                }
+                that.find('i').toggleClass("starred", !!data.favored);
             });
 
 
@@ -220,18 +214,17 @@ $(() => {
     }
 
     // This method intended to sync sub tab list of projects
-    function updateStar() {
-        yona.http.get(UsermenuGetFoveriteProjectsUrl)
-            .done((data) => {
-                $(".star-project").each(function () {
-                    const $this = $(this);
-                    if (data.projectIds.indexOf($this.data("projectId")) !== -1) {
-                        $this.find("i").addClass("starred");
-                    } else {
-                        $this.find("i").removeClass("starred");
-                    }
-                });
-            });
+    async function updateStar() {
+        let data;
+        try {
+            data = await yona.http.get(UsermenuGetFoveriteProjectsUrl);
+        } catch (failure) {
+            return; // 실패하면 별 표시를 그대로 둔다(예전에도 .fail 처리기가 없었다)
+        }
+        $(".star-project").each(function () {
+            const $this = $(this);
+            $this.find("i").toggleClass("starred", data.projectIds.includes($this.data("projectId")));
+        });
     }
 
 });

@@ -13,14 +13,11 @@ async function open({ pending = false } = {}) {
   await page.evaluate((pending) => {
     window.__gets = []; window.__resp = { html: '<p id="s">A</p>', isConflict: false };
     yona.Files = { getUploader: function () { return null; } };
-    ((window.yona = window.yona || {}).http = (window.yona.http || {})).get = function (url, success) {
+    // 실제 yona.http처럼 await할 수 있는 네이티브 Promise를 돌려준다(jQuery Deferred는 then에서 setTimeout을 써서 가짜 시계에 묶인다)
+    ((window.yona = window.yona || {}).http = (window.yona.http || {})).get = function (url) {
       window.__gets.push(url);
-      var d = $.Deferred();
-      if (pending) return d.promise();
-      var res = JSON.parse(JSON.stringify(window.__resp));
-      if (success) success(res);
-      d.resolve(res);
-      return d.promise();
+      if (pending) return new Promise(function () {});
+      return Promise.resolve(JSON.parse(JSON.stringify(window.__resp)));
     };
     new yona.git.View({ sStateUrl: '/state', bCommentable: false });
   }, pending);

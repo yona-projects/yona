@@ -43,34 +43,37 @@ function detectPageChange(url){
         }, duration);
     }
 
-    function detectChange(){
-        yona.http.ajax({
-            method: "POST",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({
-                issueBodyChecksum: issueBodyChecksum,
-                numOfComments: numOfComments,
-                lastUpdateDate: issueUpdateDate
-            }),
-        })
-            .done((data) => {
-                if (data.numOfComments - numOfComments === 1) {
-                    numOfComments = data.numOfComments;
-                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
-                    getFavicon().badge('N');
-                } else if (data.numOfComments - numOfComments > 1) {
-                    numOfComments = data.numOfComments;
-                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
-                    getFavicon().badge('N');
-                }
+    async function detectChange(){
+        let data;
+        try {
+            data = await yona.http.ajax({
+                method: "POST",
+                url: url,
+                contentType: "application/json",
+                data: JSON.stringify({
+                    issueBodyChecksum: issueBodyChecksum,
+                    numOfComments: numOfComments,
+                    lastUpdateDate: issueUpdateDate
+                }),
+            });
+        } catch (failure) {
+            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+        }
+        if (data.numOfComments - numOfComments === 1) {
+            numOfComments = data.numOfComments;
+            $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
+            getFavicon().badge('N');
+        } else if (data.numOfComments - numOfComments > 1) {
+            numOfComments = data.numOfComments;
+            $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
+            getFavicon().badge('N');
+        }
 
-                if (data.issueBodyChanged) {
-                    issueBodyChecksum = data.issueBodyChecksum;
-                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
-                    getFavicon().badge('N');
-                }
-            })
+        if (data.issueBodyChanged) {
+            issueBodyChecksum = data.issueBodyChecksum;
+            $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
+            getFavicon().badge('N');
+        }
     }
 }
 

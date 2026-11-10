@@ -122,19 +122,22 @@ const SignUp = function(htOptions){
      * @param {Wrapped Element} welInput
      * @param {String} sURL
      */
-    function doesExists(welInput, sURL){
-
-        yona.http.ajax({
-            "url": sURL + welInput.val()
-        }).done((htData) =>{
-            if(htData.isExist === true){
-                showErrorMessage(welInput, Messages("validation.duplicated"));
-            } else if (htData.isReserved == true) {
-                showErrorMessage(welInput, Messages("validation.reservedWord"));
-            } else {
-                hideErrorMessage(welInput);
-            }
-        });
+    async function doesExists(welInput, sURL){
+        let htData;
+        try {
+            htData = await yona.http.ajax({
+                "url": sURL + welInput.val()
+            });
+        } catch (failure) {
+            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+        }
+        if(htData.isExist === true){
+            showErrorMessage(welInput, Messages("validation.duplicated"));
+        } else if (htData.isReserved == true) {
+            showErrorMessage(welInput, Messages("validation.reservedWord"));
+        } else {
+            hideErrorMessage(welInput);
+        }
     }
 
     /**

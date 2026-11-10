@@ -34,21 +34,25 @@ $(document).on("click", ".comment-edit", function () {
     $form.find(".comment-edit-text").focus();
 
     $form.on("click", ".comment-edit-cancel", () => { close($comment); });
-    $form.on("click", ".comment-edit-save", () => {
+    $form.on("click", ".comment-edit-save", async () => {
         const contents = $form.find(".comment-edit-text").val();
         if ((contents || "").trim() === "") {
             $yona.notify(Messages("post.comment.empty"), 3000);
             return;
         }
-        yona.http.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done((response) => {
-            $comment.find("textarea.comment-raw").val(contents);
-            $body.html(response.bodyHtml);
-            if (!$comment.find(".comment-edited").length) {
-                $comment.find(".meta-info .ago").first().after($('<span class="comment-edited ago"></span>').text("(" + Messages("reviewComment.edited") + ")"));
-            }
-            close($comment);
-        }).fail((xhr) => {
+        let response;
+        try {
+            response = await yona.http.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}});
+        } catch (xhr) {
             $yona.notify(Messages("error.failedTo", Messages("common.comment.edit"), xhr.status, xhr.statusText));
-        });
+            return;
+        }
+        $comment.find("textarea.comment-raw").val(contents);
+        $body.html(response.bodyHtml);
+        if (!$comment.find(".comment-edited").length) {
+            $comment.find(".meta-info .ago").first().after($('<span class="comment-edited ago"></span>').text("(" + Messages("reviewComment.edited") + ")"));
+        }
+        close($comment);
     });
 });
+
