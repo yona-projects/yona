@@ -367,7 +367,7 @@ const LabelEditor = function(options){
      */
     function _getRandomColorCodeInPreset(){
         const presetColors = elements.colorsWrap.find(".btn-preset-color");
-        const randomIndex = (new Date().getTime()) % presetColors.length;
+        const randomIndex = Date.now() % presetColors.length;
         const color = presetColors.get(randomIndex).style.backgroundColor;
 
         return _getRefinedHexColor(color);
