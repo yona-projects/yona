@@ -2188,3 +2188,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - `Migration.js`(1001줄)는 JS 시험이 없고, 이전 화면은 AngularJS 기록과의 e2e 비교(`mg-e2e.mjs`)로 확인한 상태다.
 - 5-1 공용 `debounce`(`esm/util.js`)와 5-4 `Date.now()` 교체를 했다. 5-2(스크롤 처리기), 사용자 데이터가 든 HTML 문자열, 날짜 계산은 동작이 달라질 수 있어 `refactor-deviations.md` 10~13번에 적고 보류했다.
 - v1.6 결함 `Usermenu`의 처리기 이중 부착(14번)을 고쳤다. 관심 등록 주소의 `&amp;`(4번)와 붙여넣은 이미지 이름(6번)은 결함이 아님을 확인했다.
+
+## [2026-11-10] refactor | 콜백 연결 전부를 async/await로 전환, 보안 키 로그인 수정(D-123 5단계)
+
+- `.done/.fail/.always` 연결 49곳(18개 파일)을 `async/await`로 바꿨다. 핸들러가 `return false`로 기본 동작을 막는 곳(멤버 추가, 로그인 제출, 라벨 수정)은 요청만 안쪽 `async` 함수로 분리했고, 반복문 안의 업로드는 병렬 동작을 지키려고 파일마다 따로 실행한다.
+- 발견한 결함: `LoginDialog` 보안 키 로그인이 `yona.http.then(...).fail`을 이어 써서 `TypeError`로 깨져 있었다(내가 만든 `yona.http`가 일반 Promise를 돌려준 탓). `securitykey.test.mjs`로 재현하고 고쳤다. `yona.http`는 jQuery처럼 오류 응답에서도 `responseJSON`을 채우도록 맞췄고 `http.test.mjs`가 jQuery와 같은 값을 비교한다.
+- 시험의 가짜 `yona.http`는 실제처럼 `then`을 가진 Promise로 바꿨다. JS 시험 586개, 전체 Kotlin 회귀 9분 26초 모두 통과. 실제 앱 56쪽 방문 오류 0건, 별 즐겨찾기 요청이 한 번만 나가는 것까지 확인했다.
