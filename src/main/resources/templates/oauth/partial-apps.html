@@ -52,19 +52,19 @@
         <form id="oauth-app-form" method="post" th:action="${client == null} ? @{${urls.create}} : @{${urls.update(client.id)}}">
             <div class="mb-3">
                 <label for="oauth-name" class="form-label" th:text="#{oauth.form.name}"></label>
-                <input id="oauth-name" type="text" name="name" maxlength="100" class="form-control tf-wide w-100" th:value="${form.name}">
+                <input id="oauth-name" type="text" name="name" maxlength="100" class="form-control tf-group-wide w-100" th:value="${form.name}">
             </div>
             <div class="mb-3">
                 <label for="oauth-description" class="form-label" th:text="#{oauth.form.description}"></label>
-                <input id="oauth-description" type="text" name="description" maxlength="500" class="form-control tf-wide w-100" th:value="${form.description}">
+                <input id="oauth-description" type="text" name="description" maxlength="500" class="form-control tf-group-wide w-100" th:value="${form.description}">
             </div>
             <div class="mb-3">
                 <label for="oauth-home" class="form-label" th:text="#{oauth.form.homeUrl}"></label>
-                <input id="oauth-home" type="text" name="homeUrl" maxlength="500" class="form-control tf-wide w-100" th:value="${form.homeUrl}" placeholder="https://example.com">
+                <input id="oauth-home" type="text" name="homeUrl" maxlength="500" class="form-control tf-group-wide w-100" th:value="${form.homeUrl}" placeholder="https://example.com">
             </div>
             <div class="mb-3">
                 <label for="oauth-redirects" class="form-label" th:text="#{oauth.form.redirectUris}"></label>
-                <textarea id="oauth-redirects" name="redirectUris" rows="4" class="form-control tf-wide font-monospace" spellcheck="false" th:text="${form.redirectUris}"></textarea>
+                <textarea id="oauth-redirects" name="redirectUris" rows="4" class="form-control tf-group-wide font-monospace" spellcheck="false" th:text="${form.redirectUris}"></textarea>
                 <div class="form-text" th:text="#{oauth.form.redirectUris.help}"></div>
             </div>
             <div class="mb-4">
@@ -110,7 +110,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="oauth-transfer-confirm" class="form-label" th:text="#{oauth.transfer.confirm}"></label>
-                    <input id="oauth-transfer-confirm" type="text" name="confirm" autocomplete="off" class="form-control tf-wide w-100">
+                    <input id="oauth-transfer-confirm" type="text" name="confirm" autocomplete="off" class="form-control tf-group-wide w-100">
                 </div>
                 <button type="submit" class="btn btn-danger" th:text="#{oauth.transfer.submit}"></button>
             </form>

@@ -8145,6 +8145,13 @@ text-expander {
 .two-factor-page .tf-steps label.form-label { display:block; margin:16px 0 6px; font-weight:bold; }
 .two-factor-page .alert { margin-top:16px; }
 
+/*
+ * 규칙 묶음 폼의 입력란 너비(A-453): 옛 크기 클래스(`input-xlarge`, `input-large`, `input-mini`)의 정의가 없어져 `.form-control`의 `width: 100%`가 내용 크기로 줄어드는
+ * 칸(`.cu-desc`) 안에서 풀렸다. 이름과 대상 브랜치가 같은 너비가 되도록 글 입력란을 정하고, 승인 수는 좁게 둔다.
+ */
+#rulesetForm input.form-control[type="text"] { width: 420px; max-width: 100%; }
+#rulesetForm input.input-mini { width: 5rem; }
+
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
     // 코드 입력란은 밑줄 모양(옛 로그인 폼)을 그대로 두고 글자만 가운데 정렬한다
@@ -8163,6 +8170,8 @@ text-expander {
 }
 
 .two-factor-page .tf-wide { max-width:560px; }
+// OAuth 앱 폼(A-453): 같은 화면의 종류 카드와 범위 목록(tf-group, 760px)과 오른쪽 끝을 맞춘다
+.two-factor-page .tf-group-wide { max-width:760px; }
 .two-factor-page .tf-secret-value { display:inline-block; padding:8px 12px; font-size:1rem; letter-spacing:1px; word-break:break-all; }
 
 .oauth-consent p { margin-bottom:12px; }
