@@ -75,12 +75,20 @@ export const tests = [
     await page.waitForFunction((b) => parseInt($('.minimap-curr').css('height'), 10) !== b, before, { timeout: 3000 });
     await page.close();
   } },
+  { name: '미니맵: 댓글마다 위치와 높이를 가진 링크(<a href="#댓글id">)를 만든다(문자열 "[object Object]"가 아니라)', async run() {
+    const html = MINIMAP_HTML.replace('<ul class="comments"></ul>', '<ul class="comments"><li class="comment" id="comment-1" style="height:40px">하나</li><li class="comment" id="comment-2" style="height:60px">둘</li></ul>');
+    const page = await minimapPage(undefined, html);
+    const links = await page.evaluate(() => ({ text: $('.minimap-links').text(), items: $('.minimap-links a').map((i, a) => [[a.getAttribute('href'), a.style.top, a.style.height]]).get() }));
+    await page.close();
+    assert.equal(links.text, ''); assert.deepEqual(links.items.map((x) => x[0]), ['#comment-1', '#comment-2']);
+    assert.ok(links.items.every(([, top, height]) => /px$/.test(top) && /px$/.test(height)), JSON.stringify(links.items));
+  } },
 ];
 
 const MINIMAP_HTML = '<style>body{margin:0}.minimap-wrap{height:200px;position:relative}.minimap-curr{position:absolute;left:0;width:10px;background:#0a0}</style><div class="diff-wrap"><div id="commit"></div><div class="diff-body"></div></div><ul class="comments"></ul><div id="minimap"><div class="minimap-wrap"><div class="minimap-curr"></div><div class="minimap-links"></div></div></div><div style="height:4000px">긴 문서</div>';
 /** 미니맵이 있는 긴 문서에서 SVN 비교 화면을 시작한다. [beforeLoad]는 모듈을 올리기 전에 부른다. */
-async function minimapPage(beforeLoad) {
-  const page = await pageWith({ html: MINIMAP_HTML, scripts: [STUBS] });
+async function minimapPage(beforeLoad, html = MINIMAP_HTML) {
+  const page = await pageWith({ html, scripts: [STUBS] });
   if (beforeLoad) await beforeLoad(page);
   await page.addScriptTag({ content: classicFromEsm('esm/service/code.SvnDiff.js') });
   await page.evaluate((d) => { $('#commit').text(d); new yona.code.SvnDiff({ sCodeURL: '/c', sCommitId: '2', sParentCommitId: '1' }); }, HEADER + '@@ -1,1 +1,1 @@\n context\n');

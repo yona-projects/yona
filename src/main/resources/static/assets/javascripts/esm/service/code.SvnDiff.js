@@ -542,7 +542,8 @@ const SvnDiff = function(htOptions){
                     "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)
                 }));
             });
-            htElement.welMiniMapLinks.html(aLinks.join(""));
+            // $yona.render는 문자열이 아니라 jQuery 요소를 돌려주므로 이어 붙이지 않고 요소로 넣는다(예전에는 "[object Object]"가 들어갔다)
+            htElement.welMiniMapLinks.empty().append(aLinks);
             htElement.welMiniMap.show();
         } else {
             htElement.welMiniMap.hide();

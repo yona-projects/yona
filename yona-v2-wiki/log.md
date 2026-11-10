@@ -2218,3 +2218,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 같은 날 이어서: 초안 1시간 만료(시간 기록 `yona.draftTimes`), 미니맵 처리기를 `rafThrottle`+`passive`+`ResizeObserver`로 바꿨다. 리뷰 목록 높이는 바꾸지 않고 비교 스크린샷을 `architecture/review-list-height/`에 보관했다.
 
 - 같은 날 마지막: 리뷰 목록 높이를 CSS(`max-height: calc(100vh - 20px)`, 세로 flex)로 바꾸고 `code.Diff.js`의 `_setReviewListHeight`와 `_isReviewContainerStuck`를 지웠다. 실제 앱(Chromium, Firefox)에서 5개 스크롤 지점 모두 목록 높이 634px, 붙는 위치 10px을 확인했다.
+
+## [2026-11-10] fix | SVN 미니맵 실제 확인과 댓글 위치 링크 수정
+
+- 검증용 앱에 SVN 프로젝트(`admin/svnproj`, 리비전 2개, 댓글 여러 개)를 직접 만들어 미니맵을 Chromium과 Firefox에서 확인했다(12건 통과). 이때 미니맵 댓글 위치 링크가 `[object Object]`로 만들어지던 결함을 찾아 고쳤다.
+- `moment-with-locales.min.js`를 앱에서 빼고 `src/test/js/vendor`로 옮겼다(시험의 비교 기준으로만 쓴다).
+- 조직·프로젝트 이름은 서버가 HTML 문자를 거절하므로 XSS 경로가 없음을 확인했다.
