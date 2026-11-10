@@ -42,7 +42,7 @@ const STUBS = `
 async function open() {
   const page = await pageWith({
     html: PAGE_HTML(),
-    scripts: [{ content: STUBS }, 'lib/cropperjs/cropper.js', 'service/yona.user.Setting.js'],
+    scripts: [{ content: STUBS }, 'lib/cropperjs/cropper.js', 'esm/service/user.Setting.js'],
   });
   await page.evaluate(() => { new yona.user.Setting({}); });
   page.setDefaultTimeout(5000);

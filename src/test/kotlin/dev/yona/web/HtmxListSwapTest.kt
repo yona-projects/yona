@@ -20,7 +20,7 @@ class HtmxListSwapTest {
     private val js = File(assets, "javascripts")
     private val templates = File("src/main/resources/templates")
 
-    private fun appScripts() = listOf("common", "service").flatMap {
+    private fun appScripts() = listOf("common", "service", "esm").flatMap {
         File(js, it).walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList()
     }
 

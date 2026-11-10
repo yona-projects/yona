@@ -23,7 +23,7 @@ class V16DeadScriptRemovalTest {
         line.trim().let { it.startsWith("*") || it.startsWith("/*") || it.startsWith("//") || it.startsWith("<!--") }
     }.joinToString("\n")
 
-    private fun appFiles() = (listOf("common", "service").flatMap { File(js, it).walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList() } +
+    private fun appFiles() = (listOf("common", "service", "esm").flatMap { File(js, it).walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList() } +
         templates.walkTopDown().filter { it.isFile && it.extension == "html" }.toList())
 
     @Test
@@ -43,14 +43,14 @@ class V16DeadScriptRemovalTest {
             "sURLProjectLabels", "sURLLabelCategories", "sURLLabels", "nProjectId", "welLabelBoard", "welLabelEditorToggle",
             "repositoryURL", "_onClickRepoURL", "welRepoURL"
         ).map { Regex(Regex.escape(it)) }
-        val files = listOf(File(js, "service/yona.project.Home.js"), File(templates, "project/home.html"))
+        val files = listOf(File(js, "esm/service/project.Home.js"), File(templates, "project/home.html"))
         val hits = files.flatMap { f -> code(f).let { text -> banned.filter { it.containsMatchIn(text) }.map { "${f.path}: ${it.pattern}" } } }
         assertEquals(emptyList(), hits, "프로젝트 라벨 편집의 죽은 코드가 남은 곳")
     }
 
     @Test
     fun `프로젝트 홈의 살아 있는 동작은 그대로 남아 있다`() {
-        val text = code(File(js, "service/yona.project.Home.js"))
+        val text = code(File(js, "esm/service/project.Home.js"))
         for (live in listOf("yona.Clipboard.copy", "descriptionSaveBtn", "projectLeaveBtn", "sURLProject")) {
             assertEquals(true, text.contains(live), "$live 가 없다")
         }

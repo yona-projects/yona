@@ -80,7 +80,7 @@ class StickyPanelsTest {
         val rule = Regex("""\.mass-update-sticky \{.*?&\.stuck \{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL).find(scss)?.groupValues?.get(1)
         assertTrue(rule != null, ".mass-update-sticky.stuck 규칙이 있어야 한다")
         assertTrue(rule!!.contains("padding: 15px 0") && rule.contains("border-bottom: 1px solid rgba(0, 0, 0, 0.1)"), "v1.6 affix 값(여백 15px 0, 아래 선)이어야 한다")
-        val js = text("src/main/resources/static/assets/javascripts/service/yona.issue.MassUpdate.js")
+        val js = text("src/main/resources/static/assets/javascripts/esm/service/issue.MassUpdate.js")
         assertTrue(js.contains("toggleClass('stuck'") || js.contains("toggleClass(\"stuck\""), "스크립트가 붙은 상태를 stuck 클래스로 표시해야 한다")
     }
 }

@@ -37,6 +37,7 @@
         <strong th:text="#{site.mail.write}"></strong>
     </button>
 </div>
+<script type="module" th:src="@{/assets/javascripts/esm/service/site.MassMail.js}"></script>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function(){
     $yona.loadModule("site.MassMail", {

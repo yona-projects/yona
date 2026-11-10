@@ -18,7 +18,7 @@ class MustacheMigrationTest {
     private val assets = File("src/main/resources/static/assets")
     private val templates = File("src/main/resources/templates")
 
-    private fun appScripts() = listOf("common", "service", "template").flatMap {
+    private fun appScripts() = listOf("common", "service", "esm", "template").flatMap {
         File(assets, "javascripts/$it").walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList()
     }
 

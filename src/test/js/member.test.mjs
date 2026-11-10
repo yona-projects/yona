@@ -13,7 +13,7 @@ const HTML = `
 export const tests = [{
   name: '구성원 삭제 확인 핸들러는 클릭마다 쌓이지 않아 마지막에 고른 구성원만 지운다 (C024, C174, C113-3)',
   async run() {
-    const page = await pageWith({ html: HTML, scripts: ['service/yona.organization.Member.js'] });
+    const page = await pageWith({ html: HTML, scripts: ['esm/service/organization.Member.js'] });
     const calls = await page.evaluate(() => {
       window.__ajax = [];
       ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url) { window.__ajax.push(url); };

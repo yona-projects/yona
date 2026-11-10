@@ -18,6 +18,7 @@
         <div class="diff-body discommentable" th:unless="${empty}" th:utext="${diffHtml}"></div>
     </div>
 </div>
+<script type="module" th:src="@{/assets/javascripts/esm/service/code.Diff.js}"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yona.loadModule("code.Diff", {

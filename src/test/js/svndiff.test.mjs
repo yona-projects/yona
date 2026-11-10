@@ -13,7 +13,7 @@ const STUBS = { content: `
 async function render(diff) {
   const page = await pageWith({
     html: '<div class="diff-wrap"><div id="commit"></div><div class="diff-body"></div></div><ul class="comments"></ul><div id="minimap"><div class="minimap-wrap"><div class="minimap-curr"></div><div class="minimap-links"></div></div></div>',
-    scripts: [STUBS, 'service/yona.code.SvnDiff.js']
+    scripts: [STUBS, 'esm/service/code.SvnDiff.js']
   });
   await page.evaluate((d) => { $('#commit').text(d); }, diff);
   const result = await page.evaluate(() => {

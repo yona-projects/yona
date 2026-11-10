@@ -21,7 +21,7 @@ const STUBS = `
   ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url) { window.__ajax.push(url); };`;
 
 async function open(hash) {
-  const page = await pageWith({ html: HTML, scripts: [{ content: STUBS }, 'service/yona.code.Browser.js'] });
+  const page = await pageWith({ html: HTML, scripts: [{ content: STUBS }, 'esm/service/code.Browser.js'] });
   await page.evaluate((h) => {
     history.replaceState(null, '', h);
     new yona.code.Browser({ sProjectName: 'p', sMetaInfoURL: '/m', sBasePathURL: '/b', sInitialPath: 'dir' });

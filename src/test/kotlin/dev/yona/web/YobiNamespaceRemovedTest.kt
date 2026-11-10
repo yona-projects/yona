@@ -18,7 +18,7 @@ class YobiNamespaceRemovedTest {
 
     /** 옛 이름이 남았는지 보는 대상: 템플릿, 직접 쓴 JS 폴더 세 곳, 번들. 벤더(`lib`)는 보지 않는다. */
     private fun sources(): List<File> =
-        (listOf(templates) + listOf("common", "service", "template").map { File(assets, it) })
+        (listOf(templates) + listOf("common", "service", "esm", "template").map { File(assets, it) })
             .flatMap { it.walkTopDown().filter { f -> f.isFile && (f.extension == "html" || f.extension == "js") }.toList() } +
             listOf("yona-layout.js", "yona-common.js", "yona-lib.js").map { File(assets, it) }
 
@@ -39,7 +39,7 @@ class YobiNamespaceRemovedTest {
 
     @Test
     fun `yobi 점 이름의 JS 파일이 없다`() {
-        val left = listOf("common", "service", "template").flatMap { d ->
+        val left = listOf("common", "service", "esm", "template").flatMap { d ->
             File(assets, d).listFiles { f -> f.name.startsWith("yobi.") }?.map { it.path } ?: emptyList()
         }
         assertEquals(emptyList<String>(), left, "yona.*.js로 바뀌어야 한다")

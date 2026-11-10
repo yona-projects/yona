@@ -116,7 +116,7 @@ class JsLibraryVersionsTest {
     @Test
     fun `복사 단추는 Flash 기반 zclip을 쓰지 않는다`() {
         // 번들(yona-common.js)은 재빌드하지 않아 안의 옛 코드는 보지 않는다. 템플릿과 번들 밖의 JS, 번들 입력 목록만 본다(A-394)
-        val js = listOf("common", "service", "template").flatMap { File(assets, "javascripts/$it").walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList() }
+        val js = listOf("common", "service", "esm", "template").flatMap { File(assets, "javascripts/$it").walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList() }
         val users = (templateFiles() + js + File("build-tools/minify-js.sh")).filter { Regex("zclip|ZeroClipboard", RegexOption.IGNORE_CASE).containsMatchIn(it.readText()) }.map { it.name }
         assertEquals(emptyList(), users, "Flash 기반 복사(zclip)를 아직 쓰는 파일")
     }
@@ -129,7 +129,7 @@ class JsLibraryVersionsTest {
         assertTrue(text.contains("navigator.clipboard") && text.contains("isSecureContext") && text.contains("execCommand"), "클립보드 API를 먼저 쓰고 보안 연결이 아니면 대체 수단을 쓴다")
         assertTrue(File(templates, "common/scripts.html").readText().contains("common/yona.Clipboard.js"), "scripts.html이 도우미를 불러와야 한다")
         assertTrue(File(templates, "code/history.html").readText().contains("yona.Clipboard.copy"), "커밋 번호 복사가 도우미를 써야 한다")
-        assertTrue(File(assets, "javascripts/service/yona.project.Home.js").readText().contains("yona.Clipboard.copy"), "저장소 주소 복사가 도우미를 써야 한다")
+        assertTrue(File(assets, "javascripts/esm/service/project.Home.js").readText().contains("yona.Clipboard.copy"), "저장소 주소 복사가 도우미를 써야 한다")
     }
 
     @Test
@@ -148,7 +148,7 @@ class JsLibraryVersionsTest {
         val assets = java.io.File("src/main/resources/static/assets/javascripts")
         assertTrue(!java.io.File(assets, "common/yona.Interval.js").exists(), "yona.Interval.js는 지워졌다(S-02, A-416)")
         assertEquals(emptyList(), templateFiles().filter { it.readText().contains("yona.Interval") }.map { it.path })
-        val view = java.io.File(assets, "service/yona.git.View.js").readText()
+        val view = java.io.File(assets, "esm/service/git.View.js").readText()
         assertTrue(!view.contains("yona.Interval."), "풀 리퀘스트 보기가 yona.Interval을 부르지 않는다")
         assertTrue(view.contains("nIdleLimit"), "입력 없음 규칙이 풀 리퀘스트 보기 안에 있다")
     }
@@ -199,8 +199,8 @@ class JsLibraryVersionsTest {
             assertTrue(!html.contains("moment"), "$page 는 moment를 부르지 않는다")
         }
         assertTrue(template("user/partial-token-form.html").contains("yona.ui.Calendar.inline"), "API 토큰 화면은 항상 보이는 달력 도우미를 쓴다")
-        assertTrue(asset("javascripts/service/yona.milestone.Write.js").readText().contains("yona.ui.Calendar.inline"), "마일스톤 작성은 항상 보이는 달력 도우미를 쓴다")
-        assertTrue(!asset("javascripts/service/yona.milestone.Write.js").readText().contains("Pikaday"))
+        assertTrue(asset("javascripts/esm/service/milestone.Write.js").readText().contains("yona.ui.Calendar.inline"), "마일스톤 작성은 항상 보이는 달력 도우미를 쓴다")
+        assertTrue(!asset("javascripts/esm/service/milestone.Write.js").readText().contains("Pikaday"))
         val notice = java.io.File("NOTICE").readText()
         assertTrue(notice.contains("vanilla-calendar-pro") && notice.contains("MIT"), "NOTICE에 vanilla-calendar-pro의 저작권 고지가 있어야 한다")
     }
@@ -222,7 +222,7 @@ class JsLibraryVersionsTest {
         assertTrue(!java.io.File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"), "번들 입력에서 빠져야 한다")
         assertTrue(!template("common/scripts.html").contains("typeahead"), "scripts.html은 플러그인을 불러오지 않는다")
         assertEquals(emptyList(), templateFiles().filter { it.readText().contains("data-provider=\"typeahead\"") }.map { it.path }, "BS2 자동 연결용 속성(동작하지도 않던 오타 data-provider)이 남은 템플릿")
-        for (script in listOf("service/yona.project.Member.js", "service/yona.organization.Member.js", "service/yona.issue.LabelEditor.js", "service/yona.site.MassMail.js")) {
+        for (script in listOf("esm/service/project.Member.js", "esm/service/organization.Member.js", "service/yona.issue.LabelEditor.js", "esm/service/site.MassMail.js")) {
             val text = asset("javascripts/$script").readText()
             assertTrue(!text.contains("\$menu") && !text.contains("options.item") && !Regex("""\.typeahead\(""").containsMatchIn(text) && !text.contains("data(\"typeahead\")"), "$script 는 플러그인 내부에 기대지 않는다")
         }

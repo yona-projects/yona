@@ -1,4 +1,4 @@
-// 풀 리퀘스트 보기(`service/yona.git.View.js`)의 상태 갱신 타이머를 확인한다(S-02, A-416).
+// 풀 리퀘스트 보기(`esm/service/git.View.js`)의 상태 갱신 타이머를 확인한다(S-02, A-416).
 // 10초마다 서버에서 상태 조각을 받되, 사용자 입력이 60초 동안 없으면 멈추고 입력이 오면 다시 받는다(v1.6 `yona.Interval`의 규칙을 이 화면 안으로 옮겼다).
 // 가짜 시계(`page.clock`)로 시간을 흘려 시험한다.
 import assert from 'node:assert/strict';
@@ -8,7 +8,7 @@ const HTML = '<div id="state"></div><button id="btnAccept" style="display:inline
 
 /** [pending]이 참이면 응답을 끝내지 않는다(요청이 겹치는지 보려고). */
 async function open({ pending = false } = {}) {
-  const page = await pageWith({ html: HTML, scripts: ['service/yona.git.View.js'] });
+  const page = await pageWith({ html: HTML, scripts: ['esm/service/git.View.js'] });
   await page.clock.install();
   await page.evaluate((pending) => {
     window.__gets = []; window.__resp = { html: '<p id="s">A</p>', isConflict: false };

@@ -9,7 +9,7 @@ const ACE = path.join(JS, 'lib/ace');
 
 /** 코드 보기의 확장자 표(`htExtMap`)가 가리키는 모드 이름들. */
 function modeNames() {
-  const source = fs.readFileSync(path.join(JS, 'service/yona.code.Browser.js'), 'utf8');
+  const source = fs.readFileSync(path.join(JS, 'esm/service/code.Browser.js'), 'utf8');
   const start = source.indexOf('htVar.htExtMap = htVar.htExtMap || {');
   const block = source.slice(start, source.indexOf('};', start));
   return [...block.matchAll(/^\s*"([a-z0-9_]+)":\s*\[/gm)].map((m) => m[1]);

@@ -19,7 +19,7 @@ class Select2UpgradeTest {
     private val lib = File(assets, "javascripts/lib/select2")
     private val templates = File("src/main/resources/templates")
 
-    private fun appScripts() = listOf("common", "service").flatMap {
+    private fun appScripts() = listOf("common", "service", "esm").flatMap {
         File(assets, "javascripts/$it").walkTopDown().filter { f -> f.isFile && f.extension == "js" }.toList()
     }
 

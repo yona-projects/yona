@@ -32,7 +32,7 @@ class AceVendorTest {
 
     @Test
     fun `코드 보기가 고를 수 있는 모든 모드와 테마 clouds가 있다`() {
-        val script = File("src/main/resources/static/assets/javascripts/service/yona.code.Browser.js").readText()
+        val script = File("src/main/resources/static/assets/javascripts/esm/service/code.Browser.js").readText()
         val map = script.substringAfter("htVar.htExtMap = htVar.htExtMap || {").substringBefore("};")
         val modes = Regex("""^\s*"([a-z0-9_]+)":\s*\[""", RegexOption.MULTILINE).findAll(map).map { it.groupValues[1] }.toList()
         assertTrue(modes.size >= 30, "모드 이름을 읽지 못했다: $modes")

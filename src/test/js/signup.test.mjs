@@ -14,7 +14,7 @@ const STUBS = {
 export const tests = [{
   name: '비밀번호 칸과 확인 칸의 검사 타이머가 따로 있어 번갈아 입력해도 앞선 검사가 취소되지 않는다 (C025)',
   async run() {
-    const page = await pageWith({ html: HTML, scripts: [STUBS, 'service/yona.user.SignUp.js'] });
+    const page = await pageWith({ html: HTML, scripts: [STUBS, 'esm/service/user.SignUp.js'] });
     const popovers = await page.evaluate(async () => {
       new yona.user.SignUp({ sLogindIdCheckUrl: '/x/', sEmailCheckUrl: '/y/' });
       $('#password').val('ab').trigger('keyup');            // 4자 미만이라 오류가 나와야 한다

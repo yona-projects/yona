@@ -58,6 +58,20 @@ export function classicHttpSource() {
   return `(function () {\n${src}\n})();`;
 }
 
+/**
+ * `esm/` 아래 ES 모듈을 클래식 스크립트로 바꿔 돌려준다(모듈 로더 없이 시험하려는 것이다). `import`를 걷어내고 `export`를 지우며, `register`는 같은 일을 하는 지역 함수로 바꾼다.
+ * 모듈과 같은 엄격 모드(`"use strict"`)로 돌려 선언 없는 대입 같은 오류가 시험에서 드러나게 한다.
+ */
+export function classicFromEsm(relativePath) {
+  const src = fs.readFileSync(path.join(JS, relativePath), 'utf8')
+    .replace(/^import .*$/gm, '')
+    .replace(/^export default (\w+);\s*$/gm, '')
+    .replace(/^export \{[^}]*\};?\s*$/gm, '')
+    .replace(/^export (function|const|class) /gm, '$1 ');
+  const register = 'const register = (p, v) => { const parts = p.split("."); let n = window; parts.slice(0, -1).forEach((k) => { if (n[k] == null) n[k] = {}; n = n[k]; }); n[parts[parts.length - 1]] = v; return v; };';
+  return `(function () { "use strict"; ${register}\n${src}\n})();`;
+}
+
 export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = true } = {}) {
   const b = await launch();
   const page = await b.newPage();
@@ -72,7 +86,7 @@ export async function pageWith({ html = '', scripts = [], stubs = true, jq4 = tr
     await page.addScriptTag({ content: COMMON_STUBS });
   }
   await page.addScriptTag({ content: classicHttpSource() });
-  for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? { path: path.join(JS, s) } : s);
+  for (const s of scripts) await page.addScriptTag(typeof s === 'string' ? (s.startsWith('esm/') ? { content: classicFromEsm(s) } : { path: path.join(JS, s) }) : s);
   return page;
 }
 

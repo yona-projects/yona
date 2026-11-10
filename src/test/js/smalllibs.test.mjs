@@ -2,7 +2,7 @@
 // 기대값은 옛 파일을 실행해 얻은 표이다(파일 크기 글자, 색 읽기, 쿼리 문자열, 엘리베이터의 요소와 동작). 엘리베이터는 ELEV_IMPL=old로 옛 플러그인에서도 돌려 볼 수 있다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { pageWith, JS, launch, esmPage } from './harness.mjs';
+import { pageWith, JS, launch, esmPage, classicFromEsm } from './harness.mjs';
 
 const OLD = process.env.CLAUDE_JOB_DIR ? path.join(process.env.CLAUDE_JOB_DIR, 'tmp/old-libs') : null;
 const ELEV_OLD = process.env.ELEV_IMPL === 'old';
@@ -57,8 +57,8 @@ async function rememberedQuery(search, daysAgo) {
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.route('http://uv.test/**', (route) => route.fulfill({ contentType: 'text/html', body: '<!doctype html><body><input id="daysAgoBtn" value="' + daysAgo + '"></body>' }));
   await page.goto('http://uv.test/user/someone' + search);
-  const scripts = [path.join(JS, 'lib/jquery/jquery-3.7.1.js'), ...(UV_OLD ? [path.join(OLD, 'parseuri.js'), path.join(OLD, 'yona.Common.js'), path.join(OLD, 'yona.user.View.js')] : [path.join(JS, 'common/yona.Common.js'), path.join(JS, 'service/yona.user.View.js')])];
-  for (const f of scripts) await page.addScriptTag({ path: f });
+  const scripts = [path.join(JS, 'lib/jquery/jquery-3.7.1.js'), ...(UV_OLD ? [path.join(OLD, 'parseuri.js'), path.join(OLD, 'yona.Common.js'), path.join(OLD, 'yona.user.View.js')] : [path.join(JS, 'common/yona.Common.js'), { content: classicFromEsm('esm/service/user.View.js') }])];
+  for (const f of scripts) await page.addScriptTag(typeof f === 'string' ? { path: f } : f);
   await page.evaluate(() => { const orig = history.replaceState.bind(history); history.replaceState = (st, t, url) => { sessionStorage.setItem('seen', JSON.stringify(JSON.parse(sessionStorage.getItem('seen') || '[]').concat(String(url)))); return orig(st, t, url); }; window.Messages = (k) => k; window._initTwoColumnMode = () => {}; new yona.user.View({ sTabSelected: 'issues' }); $('#daysAgoBtn').trigger($.Event('keypress', { key: 'Enter' })); });
   await page.waitForTimeout(500); const recorded = await page.evaluate(() => JSON.parse(sessionStorage.getItem('seen') || '[]')); await ctx.close(); return { seen: recorded, errors: page.errors };
 }

@@ -5,7 +5,7 @@ export const tests = [
   { name: '파일 정보 화면에서 파일 크기를 읽기 쉬운 단위로 바꾼다 (C022, C113-1)', async run() {
     const page = await pageWith({
       html: '<div class="file-wrap" data-type="file"><div id="showFile"><span class="filesize">2048</span></div></div>',
-      scripts: [{ content: 'window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return (n / 1024) + "KB"; };' }, 'service/yona.code.Browser.js']
+      scripts: [{ content: 'window.$yona = window.$yona || {}; $yona.formatFileSize = function (n) { return (n / 1024) + "KB"; };' }, 'esm/service/code.Browser.js']
     });
     const out = await page.evaluate(() => {
       try { new yona.code.Browser({ sProjectName: 'p', sMetaInfoURL: '/m', sBasePathURL: '/b', sInitialPath: '' }); } catch (e) { return 'ERR ' + e.message; }
@@ -20,7 +20,7 @@ export const tests = [
       scripts: [{ content: `
         $yona.getTrim = function (s) { return $.trim(s); };
         $yona.sendForm = function (o) { setTimeout(function () { o.fOnLoad(['a@x.io', 'b@x.io']); }, 0); };
-        yona.ui.Typeahead = function () {};` }, 'service/yona.site.MassMail.js']
+        yona.ui.Typeahead = function () {};` }, 'esm/service/site.MassMail.js']
     });
     const seen = await page.evaluate(async () => {
       var seen = [];
@@ -40,7 +40,7 @@ export const tests = [
   { name: '프로젝트 생성 화면에서 코드 메뉴를 끄면 오류가 나지 않는다 (C032, R-78)', async run() {
     const page = await pageWith({
       html: '<form id="f"><input id="project-name"><input id="project-owner"><input id="url"><input id="vcs"><input id="svn"><input type="checkbox" id="menuSettingCode" checked><input type="checkbox" id="menuSettingPullRequest" checked><input type="checkbox" id="menuSettingReview" checked></form>',
-      scripts: [{ content: '$yona.hidePopover = function () {};' }, 'service/yona.project.New.js']
+      scripts: [{ content: '$yona.hidePopover = function () {};' }, 'esm/service/project.New.js']
     });
     await page.evaluate(() => { new yona.project.New({ sFormId: '#f' }); $('#menuSettingCode')[0].click(); });
     const errors = page.errors; await page.close();

@@ -2165,3 +2165,5 @@ Elevator, Favicon, FormValidator를 esm/ui/로 옮겼다. 템플릿은 진입점
 ## [2026-11-10] refactor | $.ajax 계열 76곳을 yona.http로 이전(D-123 3단계)
 
 esm/http.js가 jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교했다. 동작이 달라지는 곳은 refactor-deviations.md에 모은다.
+
+회귀(web 전체)는 yona.http 이전과 service 스크립트 26개의 ES 모듈 이전 뒤 9분 21초에 1건 실패(템플릿 안 호출 글자를 찾던 시험)했고 고친 뒤 통과했다.

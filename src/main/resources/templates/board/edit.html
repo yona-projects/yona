@@ -65,6 +65,7 @@
 
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
 
+<script type="module" th:src="@{/assets/javascripts/esm/service/board.Write.js}"></script>
 <script type="text/javascript" th:inline="javascript">
 $(function(){
     $yona.loadModule("board.Write", {

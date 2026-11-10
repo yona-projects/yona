@@ -183,6 +183,7 @@
 </div>
 
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="module" th:src="@{/assets/javascripts/esm/service/project.New.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(function() {
         $yona.loadModule("project.New", {

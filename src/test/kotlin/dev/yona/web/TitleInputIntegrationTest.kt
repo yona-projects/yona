@@ -87,7 +87,7 @@ class TitleInputIntegrationTest {
     @Test
     fun `제목을 찾는 화면 스크립트는 태그 이름에 기대지 않는다(title-input도 찾는다)`() {
         // 게시글 작성(`board/create`는 title-input, `board/edit`는 input)이 같은 스크립트를 쓴다. `input#title`로 찾으면 title-input에서는 포커스와 Enter 처리가 붙지 않는다.
-        val text = code(File(js, "service/yona.board.Write.js"))
+        val text = code(File(js, "esm/service/board.Write.js"))
         assertFalse(text.contains("input#title"), "yona.board.Write.js가 input#title로 제목을 찾는다")
         assertTrue(Regex("""welInputTitle\s*=\s*\$\(["']#title["']\)""").containsMatchIn(text), "제목은 #title로 찾아야 한다")
     }

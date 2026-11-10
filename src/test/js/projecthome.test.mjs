@@ -24,7 +24,7 @@ const STUBS = `
 `;
 
 async function open() {
-  return pageWith({ html: HTML, scripts: [{ content: STUBS }, 'service/yona.project.Home.js'] });
+  return pageWith({ html: HTML, scripts: [{ content: STUBS }, 'esm/service/project.Home.js'] });
 }
 
 export const tests = [

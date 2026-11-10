@@ -1,0 +1,116 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2014 NAVER Corp.
+ * http://yobi.io
+ *
+ * @author Deokhong Kim
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { register } from "../namespace.js";
+
+const Setting = function(htOptions){
+
+    const htVar = {};
+    const htElement = {};
+
+    /**
+     * initialize
+     */
+    function _init(htOptions){
+        _initVar(htOptions);
+        _initElement();
+        _attachEvent();
+
+        _initFormValidator();
+    }
+
+    /**
+     * initialize variables
+     */
+    function _initVar(htOptions){
+        htVar.sFormName = htOptions.sFormName || "update-org";
+        htVar.rxOrgName = /^[a-zA-Z0-9-가-힣]+([_.][a-zA-Z0-9-가-힣]+)*$/;
+    }
+
+    /**
+     * initialize element variables
+     */
+    function _initElement(){
+        htElement.welForm = $("form#saveSetting");
+        htElement.welInputLogo = $("#logoPath");
+    }
+
+    /**
+     * attach event handlers
+     */
+    function _attachEvent(){
+        htElement.welInputLogo.change(_onChangeLogoPath);
+    }
+
+    function _onChangeLogoPath(){
+        const welTarget = $(this);
+
+        if($yona.isImageFile(welTarget) === false){
+            $yona.showAlert(Messages("project.logo.alert"));
+            welTarget.val('');
+            return;
+        }
+
+        htElement.welForm.submit();
+    }
+
+    /**
+     * initialize formValidator
+     * @require validate.js
+     */
+    function _initFormValidator(){
+        // name : name of input element
+        // rules: rules to apply to the input element.
+        const aRules = [];
+
+        htVar.oValidator = new yona.ui.FormValidator(htVar.sFormName, aRules, ((aErrors) =>{
+            const oForm = $(document.forms[htVar.sFormName]);
+            const oElement = oForm.find("input[name=name]");
+            const sOrgName = oElement.val();
+            if(!htVar.rxOrgName.test(sOrgName)){
+                aErrors.push({
+                    id: oElement.attr("id"),
+                    name: oElement.attr("name"),
+                    message: Messages("organization.name.alert")
+                });
+            }
+            _onFormValidate(aErrors);
+        }));
+    }
+
+    /**
+     * handler for validation errors.
+     */
+    function _onFormValidate(aErrors){
+        if(aErrors.length > 0){
+            $('span.warning').hide();
+            $('span.msg').html(aErrors[0].message).show();
+        } else {
+            NProgress.start();
+        }
+    }
+
+    _init(htOptions || {});
+};
+
+export default Setting;
+
+register("yona.organization.Setting", Setting);

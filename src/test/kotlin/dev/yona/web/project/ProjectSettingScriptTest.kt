@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
  */
 class ProjectSettingScriptTest {
 
-    private val script = File("src/main/resources/static/assets/javascripts/service/yona.project.Setting.js").readText()
+    private val script = File("src/main/resources/static/assets/javascripts/esm/service/project.Setting.js").readText()
 
     @Test
     fun `리뷰어 수 토글 코드는 없다`() {
