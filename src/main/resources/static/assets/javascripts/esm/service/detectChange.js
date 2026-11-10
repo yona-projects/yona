@@ -5,6 +5,8 @@
  * https://yona.io
  **/
 
+import { register } from "../namespace.js";
+
 // 파비콘 배지 도우미는 ES 모듈(esm/ui/Favicon.js)이라 문서 분석 중에는 아직 없다. 처음 쓸 때 만든다.
 let favicon = null;
 
@@ -72,3 +74,5 @@ function detectPageChange(url){
     }
 }
 
+// 템플릿의 인라인 스크립트와 다른 모듈이 전역 이름으로 부른다
+register("detectPageChange", detectPageChange);

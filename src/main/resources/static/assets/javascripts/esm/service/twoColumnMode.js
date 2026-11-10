@@ -4,6 +4,9 @@
  * Copyright Yona & Yobi Authors & NAVER Corp.
  * https://yona.io
  **/
+
+import { register } from "../namespace.js";
+
 var lastClicked = "";
 var mainWidth = "";
 var isLeftMenuHide = false;
@@ -153,3 +156,6 @@ function _initTwoColumnMode(){
         });
     }
 }
+
+// 템플릿의 인라인 스크립트와 다른 모듈이 전역 이름으로 부른다
+register("_initTwoColumnMode", _initTwoColumnMode);

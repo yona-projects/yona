@@ -63,7 +63,7 @@
         <th:block th:replace="~{help/keymap :: keymap('boardList', ${projectView})}"></th:block>
     </div>
 </div>
-<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/board.List.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {

@@ -1,16 +1,16 @@
-// 2단 보기(`service/yona.twoColumnMode.js`): 켜 두면 목록의 제목 링크를 눌러 오른쪽 패널(iframe)에 그 글을 연다. 패널은 v1.6에서 jquery.pageslide 플러그인이 맡았다.
+// 2단 보기(`esm/service/twoColumnMode.js`): 켜 두면 목록의 제목 링크를 눌러 오른쪽 패널(iframe)에 그 글을 연다. 패널은 v1.6에서 jquery.pageslide 플러그인이 맡았다.
 // 같은 시험을 옛 구현(TC_IMPL=old: 옛 스크립트와 플러그인을 임시 폴더에서 불러온다)에서 먼저 통과시키고 새 구현에서도 통과시킨다. 컴파일된 실제 CSS가 필요하다(`./gradlew compileSass`).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { launch, JS, ROOT } from './harness.mjs';
+import { launch, JS, ROOT, classicFromEsm } from './harness.mjs';
 
 const OLD = process.env.CLAUDE_JOB_DIR ? path.join(process.env.CLAUDE_JOB_DIR, 'tmp/old-pageslide') : null;
 const IMPL = process.env.TC_IMPL === 'old' ? 'old' : 'new';
 const CSS = path.join(ROOT, 'build/generated/sass/static/assets/stylesheets');
 const SCRIPTS = IMPL === 'old'
   ? [path.join(JS, 'lib/jquery/jquery-3.7.1.js'), path.join(OLD, 'jquery.pageslide.js'), path.join(OLD, 'yona.twoColumnMode.js')]
-  : [path.join(JS, 'lib/jquery/jquery-3.7.1.js'), path.join(ROOT, 'src/main/resources/static/assets/bootstrap/js/bootstrap.bundle.min.js'), path.join(JS, 'service/yona.twoColumnMode.js')];
+  : [path.join(JS, 'lib/jquery/jquery-3.7.1.js'), path.join(ROOT, 'src/main/resources/static/assets/bootstrap/js/bootstrap.bundle.min.js'), path.join(JS, 'esm/service/twoColumnMode.js')];
 const LIST = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/__css/bootstrap.css"><link rel="stylesheet" href="/__css/yobi.css"></head><body>
 <div class="project-page-wrap" style="width:1000px"><div class="left-menu" id="lm">메뉴</div><div class="user-info-box" id="ui">사용자</div>
 <label><input type="checkbox" id="two-column-mode"> 2단 보기</label>
@@ -28,7 +28,7 @@ async function open({ on = true } = {}) {
   });
   await page.goto('http://tc.test/list');
   await page.evaluate((v) => { window.__np = 0; window.NProgress = { done() { window.__np++; }, start() {} }; localStorage.setItem('useTwoColumnMode', v ? 'true' : 'false'); }, on);
-  for (const s of SCRIPTS) await page.addScriptTag({ path: s });
+  for (const s of SCRIPTS) await page.addScriptTag(s.startsWith(path.join(JS, 'esm')) ? { content: classicFromEsm(path.relative(JS, s)) } : { path: s });
   await page.evaluate(() => window._initTwoColumnMode());
   return { page, ctx };
 }
