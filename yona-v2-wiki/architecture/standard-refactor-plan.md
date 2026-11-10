@@ -30,7 +30,7 @@ updated: 2026-11-10
 |---|---|---|
 | 4-1 | `service/` 네임스페이스형 26개(`board.*`, `code.*`, `git.View`, `issue.MassUpdate`, `issue.Write`, `milestone.*`, `organization.Member/New/Setting`, `project.*`, `site.MassMail`, `user.*`) | 완료 |
 | 4-2 | `service/` 네임스페이스형 11개(`git.Write`, `organization.Global/View`, `project.Global/Webhook/ChangeVCS`, `resetPassword`, `issue.LabelEditor/List/View`, `review.List`) | 완료 |
-| 4-3 | `service/` 전역 함수형 10개(`Migration`, `detectChange`, `issue.Assginee`, `issue.Sharer`, `pullrequest.Meta`, `pullrequest.Reviewers`, `review.CommentEdit`, `showSubtask`, `temporarySaveHandler`, `twoColumnMode`) | 남음(각각 구조가 달라 손으로 옮긴다) |
+| 4-3 | `service/` 전역 함수형과 즉시 실행형 10개(`Migration`, `detectChange`, `issue.Assginee`, `issue.Sharer`, `pullrequest.Meta`, `pullrequest.Reviewers`, `review.CommentEdit`, `showSubtask`, `temporarySaveHandler`, `twoColumnMode`) | 완료(`service/` 폴더가 비었다). 전역 함수는 `register`로 같은 이름의 전역에 등록하고, `temporarySaveHandler`는 번들에서 빼 진입점 `esm/index.js`가 불러온다. 이전 화면은 28개 관찰값 차이 0건 |
 | 4-4 | `common/` 34개(번들 3개가 불러오는 파일 포함) | 남음 |
 
 (원래 문장) 화면별 스크립트를 한 파일씩 ES 모듈로 옮긴다. 시험이 없는 파일은 특성 시험을 먼저 만든다. 옮길 때 그 화면 템플릿의 `<script>` 태그는 `type="module"`로 바꾼다

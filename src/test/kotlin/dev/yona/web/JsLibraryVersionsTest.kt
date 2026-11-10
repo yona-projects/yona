@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 21, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 20, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -295,7 +295,7 @@ class JsLibraryVersionsTest {
         // D-120: v1.6의 AngularJS 1.5.8 앱(vendor.js 1.6MB, 지원 종료)을 Vue 3 앱 한 개로 다시 썼다.
         assertTrue(!asset("javascripts/lib/vendor.js").exists(), "AngularJS와 lodash 묶음 vendor.js는 지웠다")
         assertTrue(asset("javascripts/lib/vue/vue.global.prod.js").readText().take(200).contains("vue v3.5.45"))
-        val script = asset("javascripts/service/yona.Migration.js").readText()
+        val script = asset("javascripts/esm/service/Migration.js").readText()
         assertTrue(script.contains("Vue.createApp") && !script.contains("require('angular')") && !script.contains("angular.module"))
         val template = File("src/main/resources/templates/migration/home.html").readText()
         assertTrue(!Regex("\\sng-[a-z]+=").containsMatchIn(template), "템플릿에 AngularJS 속성이 남아 있다")

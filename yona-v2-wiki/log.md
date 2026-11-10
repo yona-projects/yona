@@ -2171,3 +2171,7 @@ esm/http.js가 jQuery와 같은 요청과 결과를 내는지 30개 입력으로
 ## [2026-11-10] refactor | service 스크립트 37개를 esm/service로 옮김(D-123 4-1, 4-2)
 
 템플릿에는 type=module 태그를 넣었다. 남은 것은 service 10개와 common 34개.
+
+## [2026-11-10] refactor | service 스크립트를 모두 esm/service로 옮김(D-123 4-3)
+
+service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).

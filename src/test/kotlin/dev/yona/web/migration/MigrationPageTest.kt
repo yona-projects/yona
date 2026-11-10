@@ -68,7 +68,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
 
     @Test
     fun `이전 화면의 스크립트도 문구를 메시지 번들에서 읽는다 (R-58-4)`() {
-        val script = java.io.File("src/main/resources/static/assets/javascripts/service/yona.Migration.js").readLines()
+        val script = java.io.File("src/main/resources/static/assets/javascripts/esm/service/Migration.js").readLines()
             // 주석(줄 주석, 블록 주석, 줄 끝 주석)은 문구가 아니다. 화면에 나가는 한국어는 메시지 번들에서 읽어야 한다
             .filter { val line = it.trim(); !line.startsWith("//") && !line.startsWith("/*") && !line.startsWith("*") && !it.contains("logToIssue") && !it.contains("labelOfPost") }
             .map { it.replace(Regex("\\s//.*$"), "") }
@@ -90,7 +90,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertEquals(listOf("Montserrat", "Indie+Flower", "Muli"), doc.select("link[href^=https://fonts.googleapis.com]").map { it.attr("href").substringAfter("family=") })
         // head: jquery, vue.global.prod.js(AngularJS vendor.js를 대체, D-120), yona.Migration.js (본문 안이 아니다). v1.6은 jQuery 1.9.0이었으나 JS 라이브러리 업그레이드(D-91)로 다른 화면과 같은 3.7.1을 쓴다
         val headScripts = doc.head().select("script[src]").map { it.attr("src") }
-        assertTrue("/assets/javascripts/lib/jquery/jquery-3.7.1.js" in headScripts && "/assets/javascripts/lib/vue/vue.global.prod.js" in headScripts && "/assets/javascripts/lib/vendor.js" !in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
+        assertTrue("/assets/javascripts/lib/jquery/jquery-3.7.1.js" in headScripts && "/assets/javascripts/lib/vue/vue.global.prod.js" in headScripts && "/assets/javascripts/lib/vendor.js" !in headScripts && "/assets/javascripts/esm/service/Migration.js" in headScripts, headScripts.toString())
         // CSS 순서: yobi.css 다음에 usermenu.css
         val css = doc.head().select("link[rel=stylesheet]").map { it.attr("href") }
         assertTrue(css.indexOf("/assets/stylesheets/yobi.css") < css.indexOf("/assets/stylesheets/usermenu.css"), css.toString())
@@ -112,7 +112,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertEquals("mgpage@example.com", root.attr("data-email"))
         assertTrue(root.hasAttr("v-cloak") && root.selectFirst(".header-pannel")!!.attr("v-if") == "token")
         assertTrue(doc.select("[ng-app], [ng-controller], [ng-init], [ng-if], [ng-repeat], [ng-click]").isEmpty(), "AngularJS 속성이 남아 있다")
-        assertTrue(doc.select("script[src=/assets/javascripts/service/yona.Migration.js]").isNotEmpty())
+        assertTrue(doc.select("script[src=/assets/javascripts/esm/service/Migration.js]").isNotEmpty())
         Mockito.verifyNoInteractions(tokens)
     }
 
