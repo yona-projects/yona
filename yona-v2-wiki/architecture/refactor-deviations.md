@@ -17,4 +17,6 @@ updated: 2026-11-10
 | 5 | `window.draftSavingTimeout`(`CommentForm`, `temporarySaveHandler`가 공유) | 공용 `debounce` | 두 파일이 같은 타이머 변수를 공유해 한쪽 호출이 다른 쪽 타이머를 지운다. 공용 `debounce`로 나누면 두 호출이 독립이 되어 저장 횟수가 달라진다 | 보류 |
 | 6 | `esm/Files.js`의 붙여넣은 이미지 이름(`oFile.name = nSubmitId + ".png"`) | `new File([file], 새이름, {type})` | v1.6의 대입은 `File.name`이 읽기 전용이라 항상 무시되었다. 지금은 대입을 지워 같은 동작을 지킨다. 실제로 이름을 바꾸면 서버에 올라가는 파일 이름이 `image.png` 대신 제출 번호가 된다 | 확인 필요(v1.6 결함) |
 | 7 | 문서 준비 처리기(`$(() => ...)`)의 실행 순서 | - | 클래식 스크립트는 태그 위치에서 처리기를 등록했으나, ES 모듈은 문서 분석이 끝난 뒤 등록하므로 같은 페이지의 인라인 처리기보다 뒤에 돈다. 화면에서 순서에 기대는 곳이 있는지 시험과 화면 확인으로 보고 있다 | 감시 중 |
+| 8 | 기반 3개 `common/yona.Common.js`, `yona.Csrf.js`, `yona.Htmx.js`를 ES 모듈로 옮기는 것 | ES 모듈 | `Common.js`는 `$yona`와 `yona` 전역을 만들어 모든 클래식 인라인 스크립트와 ES 모듈이 문서 분석 중에도 쓴다. `Csrf.js`는 `fetch`와 `XMLHttpRequest`를 가장 먼저 감싸야 하고 `Htmx.js`는 htmx 설정을 가장 먼저 적용해야 한다. 모듈은 지연 실행이라 이 순서가 깨져 동작이 달라질 수 있어 클래식으로 둔다 | 보류 |
+| 9 | 템플릿의 인라인 스크립트 133블록 | `<script type="module">`과 `data-*` | 문서 분석 중에 바로 실행되는 인라인 스크립트가 많아 모듈로 바꾸면 실행 시점이 달라진다. 이번 리팩터링 범위 밖으로 두었다 | 보류 |
 

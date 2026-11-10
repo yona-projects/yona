@@ -2175,3 +2175,7 @@ esm/http.js가 jQuery와 같은 요청과 결과를 내는지 30개 입력으로
 ## [2026-11-10] refactor | service 스크립트를 모두 esm/service로 옮김(D-123 4-3)
 
 service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
+
+## [2026-11-10] refactor | common 스크립트를 ES 모듈로 옮김, yona-lib 번들 제거(D-123 4-4)
+
+기반 3개(Common, Csrf, Htmx)와 템플릿 인라인 스크립트는 동작이 달라질 수 있어 보류하고 refactor-deviations.md에 적었다.

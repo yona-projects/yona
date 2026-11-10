@@ -31,7 +31,10 @@ updated: 2026-11-10
 | 4-1 | `service/` 네임스페이스형 26개(`board.*`, `code.*`, `git.View`, `issue.MassUpdate`, `issue.Write`, `milestone.*`, `organization.Member/New/Setting`, `project.*`, `site.MassMail`, `user.*`) | 완료 |
 | 4-2 | `service/` 네임스페이스형 11개(`git.Write`, `organization.Global/View`, `project.Global/Webhook/ChangeVCS`, `resetPassword`, `issue.LabelEditor/List/View`, `review.List`) | 완료 |
 | 4-3 | `service/` 전역 함수형과 즉시 실행형 10개(`Migration`, `detectChange`, `issue.Assginee`, `issue.Sharer`, `pullrequest.Meta`, `pullrequest.Reviewers`, `review.CommentEdit`, `showSubtask`, `temporarySaveHandler`, `twoColumnMode`) | 완료(`service/` 폴더가 비었다). 전역 함수는 `register`로 같은 이름의 전역에 등록하고, `temporarySaveHandler`는 번들에서 빼 진입점 `esm/index.js`가 불러온다. 이전 화면은 28개 관찰값 차이 0건 |
-| 4-4 | `common/` 34개(번들 3개가 불러오는 파일 포함) | 남음 |
+| 4-4a | `common/` 템플릿 태그 14개(`CodeCommentBlock/Box`, `Comment`, `CommentAttachmentsUpdate`, `CommentForm`, `SubComment`, `Subtask`, `Tasklist`, `LoginDialog`, `ReceiverList`, `TitleHeadAutoCompletion`, `webauthn`, `ui.Calendar`, `ui.Select2`) | 완료(템플릿에 `<script type="module">`) |
+| 4-4b | `common/` 레이아웃과 scripts.html이 불러오던 4개(`Clipboard`, `KeyControl`, `Tabs`, `Usermenu`) | 완료 |
+| 4-4c | `common/` 번들에 있던 13개(`Attachments`, `Files`, `Mention`, `Markdown`, `Pagination`, `ShortcutKey`, `OriginalMessage`, `Request`, `ui.Dialog/Dropdown/Tabs/Toast/Typeahead`) | 완료. 번들 `yona-lib.js`가 사라졌고 진입점 `esm/index.js`가 불러온다 |
+| 4-4d | `common/` 기반 3개(`Common`, `Csrf`, `Htmx`) | **클래식으로 둔다**(`refactor-deviations.md` 8번) |
 
 (원래 문장) 화면별 스크립트를 한 파일씩 ES 모듈로 옮긴다. 시험이 없는 파일은 특성 시험을 먼저 만든다. 옮길 때 그 화면 템플릿의 `<script>` 태그는 `type="module"`로 바꾼다
 5. 직접 만든 지연 호출, 스크롤 처리기, 문자열 HTML, 날짜 계산을 파일을 열 때 함께 정리한다
