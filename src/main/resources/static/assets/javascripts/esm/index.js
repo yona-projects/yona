@@ -22,6 +22,7 @@ import "./ui/Elevator.js";
 import "./ui/Favicon.js";
 import "./ui/FormValidator.js";
 import "./http.js";
+import "./service/temporarySaveHandler.js";
 
 yona.esm.ready = true;
 document.dispatchEvent(new CustomEvent("yona:esm-ready"));

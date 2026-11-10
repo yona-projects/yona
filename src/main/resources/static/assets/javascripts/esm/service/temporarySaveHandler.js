@@ -5,6 +5,8 @@
  * https://yona.io
  **/
 
+import { register } from "../namespace.js";
+
 function temporarySaveHandler($textarea, contentInitialized) {
     const noticePanel = $(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
     if (!window.draftSavingTimeout) window.draftSavingTimeout = 0;
@@ -51,3 +53,7 @@ function removeCurrentPageTemprarySavedContent() {
     localStorage.removeItem(location.pathname);
     localStorage.removeItem(location.pathname + '-last-comment-update-draft');
 }
+
+// 번들(yona-lib.js)에서 전역 함수로 불리던 것이라, 댓글과 글 작성 화면의 클래식 스크립트가 같은 이름으로 부른다
+register("temporarySaveHandler", temporarySaveHandler);
+register("removeCurrentPageTemprarySavedContent", removeCurrentPageTemprarySavedContent);

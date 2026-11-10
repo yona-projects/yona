@@ -32,6 +32,5 @@ export const bundles = {
     `${JS}/common/yona.ui.Toast.js`,
     `${JS}/common/yona.ui.Tabs.js`,
     `${JS}/common/yona.OriginalMessage.js`,
-    `${JS}/service/yona.temporarySaveHandler.js`,
   ],
 };

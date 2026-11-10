@@ -31,8 +31,8 @@ test("모듈로 감싸지 않아 템플릿이 쓰는 전역 이름이 그대로 
   const r = loadGlobals(out);
   assert.deepEqual(r.errors, []);
   for (const n of expected.globals) assert.ok(r.names.includes(n), `전역 ${n}이 없다`);
-  assert.equal(typeof r.window.temporarySaveHandler, "function");
-  assert.equal(typeof r.window.removeCurrentPageTemprarySavedContent, "function");
+  assert.equal(typeof r.window.temporarySaveHandler, "undefined", "임시 저장 도우미는 ES 모듈(esm/service/temporarySaveHandler.js)로 옮겼다(D-123)");
+  assert.equal(typeof r.window.removeCurrentPageTemprarySavedContent, "undefined");
 });
 
 test("jQuery 3.7.1과 플러그인, yobi 모듈이 옛 번들과 같은 이름을 가진다", () => {

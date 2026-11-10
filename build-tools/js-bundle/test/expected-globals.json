@@ -11,9 +11,7 @@
     "convert",
     "entities",
     "jQuery",
-    "removeCurrentPageTemprarySavedContent",
     "sanitize",
-    "temporarySaveHandler",
     "validate",
     "xssClean",
     "yona",
@@ -269,7 +267,9 @@
     "ZeroClipboardPath",
     "RGBColor",
     "humanize",
-    "FormValidator"
+    "FormValidator",
+    "temporarySaveHandler",
+    "removeCurrentPageTemprarySavedContent"
   ],
   "yona": [
     "Attachments",
