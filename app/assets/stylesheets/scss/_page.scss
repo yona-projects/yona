@@ -4201,8 +4201,17 @@ label.issue-item-row {
             position:sticky;
             top:10px;
 
+            // 높이는 CSS가 정한다(D-124, 동작 차이 10번). 화면 높이에서 위아래 10px씩을 뺀 높이까지 늘어나고,
+            // 카드가 더 많으면 탭 아래 목록(.review-list)이 안쪽에서 스크롤된다. 예전에는 code.Diff.js가 스크롤과 창 크기 변경마다
+            // 목록의 max-height를 계산했다. 비교 영상과 설명은 yona-v2-wiki/architecture/review-list-height/에 있다.
+            max-height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+
             .review-list {
                 overflow:auto;
+                flex: 1 1 auto;
+                min-height: 0;
             }
         }
     }

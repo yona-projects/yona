@@ -41,7 +41,6 @@ const Diff = function(htOptions){
         _initCodeComment();
         _initMiniMap();
         _scrollToHash();
-        _setReviewListHeight();
         _setAllBtnThreadHerePosition();
     }
 
@@ -79,7 +78,6 @@ const Diff = function(htOptions){
         htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
         htElement.welReviewContainer = htElement.welReviewWrap.find("div.review-container");
         htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
-        htElement.welReviewList = htElement.welContainer.find("div.review-list");
         // 전체 댓글 (Non-Ranged comment thread)
         htElement.welUploader = $("#upload");
         htElement.welTextarea = $('textarea[data-editor-mode="comment-body"]');
@@ -115,8 +113,6 @@ const Diff = function(htOptions){
         $(window).on("hashchange", _onHashChange);
 
 
-
-        $(window).on('resize scroll', _setReviewListHeight);
 
         $("#branches").on("change", (weEvt) =>{
             location.href = weEvt.val;
@@ -639,41 +635,6 @@ const Diff = function(htOptions){
         } else {
             htElement.welMiniMap.hide();
         }
-    }
-
-    /**
-     * 리뷰 상자가 `position: sticky`로 화면 위쪽에 붙어 있는지 확인한다.
-     * 붙으면 상자의 화면상 위치가 `top` 값(10px)에 머문다.
-     */
-    function _isReviewContainerStuck() {
-        const container = htElement.welReviewContainer[0];
-        return !!container && container.getBoundingClientRect().top <= 10;
-    }
-
-    function _setReviewListHeight() {
-        let nMaxHeight;
-
-        // v1.6은 리뷰 스레드가 하나도 없으면 그려지지 않는 요소의 `position().top`을 읽어 TypeError가 났다(R-70)
-        if (htElement.welReviewList.length === 0) {
-            return;
-        }
-
-        if(_isReviewContainerStuck()) {
-            const nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
-            const nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
-            const nReviewListDefaultMarginBottom = 15;
-            const nDiffWrapBottomPadding = 90;
-
-            if(nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
-                nMaxHeight = nCodeDiffWrapOffsetBottom  - $(document).scrollTop() + nDiffWrapBottomPadding;
-            } else {
-                nMaxHeight = $(window).height() - htElement.welReviewList.position().top - nReviewListDefaultMarginBottom;
-            }
-        } else {
-            nMaxHeight = htElement.welContainer.height() - htElement.welReviewList.position().top;
-        }
-
-        htElement.welReviewList.css({'max-height': nMaxHeight +'px'});
     }
 
     _init(htOptions || {});

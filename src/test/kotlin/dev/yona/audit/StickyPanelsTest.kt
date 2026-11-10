@@ -69,6 +69,18 @@ class StickyPanelsTest {
     }
 
     @Test
+    fun `리뷰 목록의 높이는 CSS가 정하고 code Diff 스크립트는 max-height를 계산하지 않는다 (D-124)`() {
+        val scss = text("app/assets/stylesheets/scss/_page.scss")
+        val container = Regex("""\.review-container \{(.*?)\n        \}""", RegexOption.DOT_MATCHES_ALL).find(scss)?.groupValues?.get(1) ?: ""
+        assertTrue(Regex("""max-height:\s*calc\(100vh - 20px\)""").containsMatchIn(container), ".review-container는 화면 높이에서 위아래 10px을 뺀 높이까지여야 한다")
+        assertTrue(Regex("""display:\s*flex""").containsMatchIn(container) && Regex("""flex-direction:\s*column""").containsMatchIn(container), ".review-container는 세로 flex여야 한다")
+        assertTrue(Regex("""\.review-list \{[^}]*flex:\s*1 1 auto[^}]*min-height:\s*0[^}]*\}""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(container), ".review-list는 남는 높이를 채우고 넘치면 스크롤되어야 한다")
+        val js = text("src/main/resources/static/assets/javascripts/esm/service/code.Diff.js")
+        assertFalse(js.contains("_setReviewListHeight") || js.contains("_isReviewContainerStuck"), "리뷰 목록 높이를 계산하는 스크립트가 남아 있다")
+        assertFalse(js.contains("'max-height'") || js.contains("\"max-height\""), "code.Diff.js가 max-height를 정하면 안 된다")
+    }
+
+    @Test
     fun `yona Affix 스크립트는 저장소와 스크립트 목록에 없다`() {
         assertFalse(File("src/main/resources/static/assets/javascripts/common/yona.Affix.js").exists())
         assertFalse(text("src/main/resources/templates/common/scripts.html").contains("yona.Affix.js"))

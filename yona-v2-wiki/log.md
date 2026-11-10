@@ -2216,3 +2216,5 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 발견한 결함: `$(document.body).scrollTop()`이 표준 모드에서 항상 0이라 미니맵 현재 위치 표시가 움직이지 않았다(`code.Diff`, `code.SvnDiff`). 고쳤다.
 
 - 같은 날 이어서: 초안 1시간 만료(시간 기록 `yona.draftTimes`), 미니맵 처리기를 `rafThrottle`+`passive`+`ResizeObserver`로 바꿨다. 리뷰 목록 높이는 바꾸지 않고 비교 스크린샷을 `architecture/review-list-height/`에 보관했다.
+
+- 같은 날 마지막: 리뷰 목록 높이를 CSS(`max-height: calc(100vh - 20px)`, 세로 flex)로 바꾸고 `code.Diff.js`의 `_setReviewListHeight`와 `_isReviewContainerStuck`를 지웠다. 실제 앱(Chromium, Firefox)에서 5개 스크롤 지점 모두 목록 높이 634px, 붙는 위치 10px을 확인했다.
