@@ -74,15 +74,23 @@ class SignupService(
      */
     @Transactional(readOnly = true)
     fun generateLoginId(candidate: String): String {
-        if (users.findByLoginId(candidate) == null) return candidate
-        if (users.findByLoginId("$candidate-yona") == null) return "$candidate-yona"
+        if (isFree(candidate)) return candidate
+        if (isFree("$candidate-yona")) return "$candidate-yona"
         var number = 2
         while (true) {
             val suggestion = "$candidate$number"
-            if (users.findByLoginId(suggestion) == null) return suggestion
+            if (isFree(suggestion)) return suggestion
             number++
         }
     }
+
+    /**
+     * 로그인 ID로 쓸 수 있으면 `true`이다. 사용자 로그인 ID뿐 아니라 조직 이름과도 겹치지 않아야 한다.
+     * v1.6의 가입 폼과 `isUsed`는 조직 이름과 겹치는 ID를 거부했지만 소셜 로그인의 `newLoginIdWithoutDup`은 사용자만 확인해
+     * 조직 페이지가 가려지거나 유니크 제약 위반(500)이 났다. 소셜, SSO, LDAP 신규 생성이 모두 이 메서드를 쓰므로 여기서 함께 막는다.
+     */
+    private fun isFree(loginId: String): Boolean =
+        users.findByLoginId(loginId) == null && !organizations.existsByNameIgnoreCase(loginId)
 
     /** 관리자 승인제이면 `true`이다 (`signup.require.admin.confirm`). */
     fun requiresAdminConfirm(): Boolean = properties.signup.required()

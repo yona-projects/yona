@@ -2250,3 +2250,7 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 | e2e 작업 | `next2`의 `e2e`는 전 화면 확인 도구(seed, crawl, compare)이고 `npm test` 시험 묶음, `package-lock.json`, `playwright.config.ts`가 없다. `/bootstrap-setup`과 `--yona.data`, `--yona.signup.require-email-verification`, `--yona.*.base-dir` 설정도 `next2`에 없다 | 앱 기동 확인 작업(`boot`)으로 바꿨다: `--yona.data-dir`로 기동해 `/-_-actuator/health`가 UP이고 `/users/loginform`이 200인지 본다. 깨끗한 클론에서 14초 만에 UP |
 
 확인: 액션 버전(`checkout` v7, `setup-java` v6, `setup-gradle` v6, `upload/download-artifact` v7, `setup-node` v7)은 모두 실제 태그가 있다. JS 시험(633개)은 CI에 들어 있지 않다(`playwright`를 저장소 밖 `node_modules`에서 가져온다).
+
+## 2026-11-10 소셜, SSO, LDAP 자동 생성 로그인 ID가 조직 이름과 겹치지 않게 했다 (R-59-15)
+
+열린 PR 10건을 현재 `next`와 대조하다가 #847이 지적한 틈을 확인했다. v1.6의 가입 폼과 `isUsed`는 사용자 ID와 조직 이름을 함께 확인하지만, 소셜 로그인의 자동 생성(`newLoginIdWithoutDup`)은 사용자 ID만 확인한다. `generateLoginId`를 쓰는 소셜, SSO, LDAP 신규 생성이 모두 같은 틈이 있었다. TDD로 `SignupServiceLoginIdTest`에 3건(조직 이름 겹침, 대소문자와 `-yona` 겹침, 가입 폼 사용 여부 확인과 일치)을 먼저 추가해 실패를 확인하고 `SignupService.isFree`로 고쳤다. 관련 시험(social, sso, ldap, signup)은 통과했다. 장부는 `v16-retained-defects.md` R-59-15.
