@@ -20,10 +20,10 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(){
 
-        var htElement = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -55,7 +55,7 @@
         }
 
         function _onClickLeaveBtn(){
-            var sURL = htElement.welGroupLeaveBtn.attr("data-href");
+            const sURL = htElement.welGroupLeaveBtn.attr("data-href");
 
             $.ajax(sURL, {
                 "method"  : "delete",
@@ -67,7 +67,7 @@
 
         function _onSuccessLeaveMember(oXHR){
             try{
-                var htData = JSON.parse(oXHR);
+                const htData = JSON.parse(oXHR);
                 document.location.replace(htData.location);
             }catch(e){
                 document.location.reload();
@@ -75,7 +75,7 @@
         }
 
         function _onErrorLeaveMember(oXHR){
-            var sErrorMsg;
+            let sErrorMsg;
 
             try{
                 sErrorMsg = Messages(JSON.parse(oXHR.responseText).errorMsg);

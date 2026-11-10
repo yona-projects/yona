@@ -1,19 +1,19 @@
-$(function () {
+$(() => {
     /* Set side navigation */
     // Also, see index.scala.html for home page menu sliding actions !!
-    var $sidebar = $("#mySidenav");
-    var viewSize = window.parent === window ? $(window).width() : $(window.parent).width();
-    var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
-    var SIDE_BAR_DEFAULT_WIDTH = "360px";
+    const $sidebar = $("#mySidenav");
+    const viewSize = window.parent === window ? $(window).width() : $(window.parent).width();
+    const PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
+    const SIDE_BAR_DEFAULT_WIDTH = "360px";
 
     if ($(".gnb-usermenu-dropdown").length !== 0) {
         $.get(UsermenuUrl)
-            .done(function (data) {
+            .done((data) => {
                 $("#usermenu-tab-content-list").html(data);
                 iniNaviUserMenu();
                 afterUsermenuLoaded();
             })
-            .fail(function (data) {
+            .fail((data) => {
                 console.log("Usermenu loading failed: " + data);
             });
     }
@@ -29,13 +29,13 @@ $(function () {
             }
         });
 
-        $("#main").on("click.main", function (event) {
+        $("#main").on("click.main", (event) => {
             if ($sidebar.width() !== 0 && $(event.target).parents("#mySidenav").length == 0) {
                 closeSidebar($sidebar);
             }
         });
 
-        $("#sidebar-open-btn").on("click.usermenu", function (event) {
+        $("#sidebar-open-btn").on("click.usermenu", (event) => {
             event.stopPropagation();
             if ($sidebar.width() !== 0) {
                 closeSidebar($sidebar);
@@ -48,11 +48,11 @@ $(function () {
 
     function afterUsermenuLoaded() {
         // used for new project list ui
-        $(".right-menu").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function () {
+        $(".right-menu").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", () => {
             updateStar();
             setTimeout(function focusToProjectSearchInput() {
-                var $projectSearch = $('.project-search');
-                var $orgSearch = $('.org-search');
+                const $projectSearch = $('.project-search');
+                const $orgSearch = $('.org-search');
                 if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
                     $projectSearch.focus();
                 }
@@ -65,9 +65,9 @@ $(function () {
         });
 
         $('.myOrganizationList').on("click.orgList", function focusToOrgSearchInput() {
-            setTimeout(function () {
-                var $projectSearch = $('.project-search');
-                var $orgSearch = $('.org-search');
+            setTimeout(() => {
+                const $projectSearch = $('.project-search');
+                const $orgSearch = $('.org-search');
                 if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
                     $orgSearch.focus();
                 }
@@ -79,7 +79,7 @@ $(function () {
         // search by keyword
         $(".search-input")
             .on("keyup.search", function (event) {
-                var value = $(this).val().toLowerCase().trim();
+                const value = $(this).val().toLowerCase().trim();
 
                 if (value !== "" || $yona.isBackspaceKey(event)) {
                     $(".user-li").each(function () {
@@ -90,7 +90,7 @@ $(function () {
                     });
                 }
             })
-            .on("keydown.moveCursorFromInputform", function (e) {
+            .on("keydown.moveCursorFromInputform", (e) => {
                 if ($yona.isEscapeKey(e)) {
                     $('.project-search').blur();
                     closeSidebar($sidebar);
@@ -100,16 +100,16 @@ $(function () {
         $(".project-list > .star-project, .project-breadcrumb > .user-project-list")
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
+                const that = $(this);
                 $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
-                    .done(function (data) {
+                    .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
                             that.find('i').removeClass("starred");
                         }
                     })
-                    .fail(function (data) {
+                    .fail((data) => {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
@@ -117,9 +117,9 @@ $(function () {
         $(".favorite-issue")
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
+                const that = $(this);
                 $.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
-                    .done(function (data) {
+                    .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
@@ -127,7 +127,7 @@ $(function () {
                         }
                         $yona.notify(Messages(data.message), 3000);
                     })
-                    .fail(function (data) {
+                    .fail((data) => {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
 
@@ -138,7 +138,7 @@ $(function () {
                 e.preventDefault();
                 e.stopPropagation();
 
-                var location = $(this).data('location');
+                const location = $(this).data('location');
                 if (e.metaKey || e.ctrlKey || e.shiftKey) {
                    return window.location = location;
                 }
@@ -160,16 +160,16 @@ $(function () {
         $(".org-list > .star-org")
             .on("click.org", function toggleOrgFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
+                const that = $(this);
                 $.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
-                    .done(function (data) {
+                    .done((data) => {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
                             that.find('i').removeClass("starred");
                         }
                     })
-                    .fail(function (data) {
+                    .fail((data) => {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
@@ -177,19 +177,19 @@ $(function () {
 
         $(".all-orgs")
             .on("click.allOrgs", function () {
-                var $li = $(this).closest("li").find(".hide").toggle("fast");
+                const $li = $(this).closest("li").find(".hide").toggle("fast");
             });
 
         $(".sub-project-counter").each(function (item) {
-            var $this = $(this);
-            var counter = $this.closest(".org-li").find(".project-ul > .user-li").length || "";
+            const $this = $(this);
+            const counter = $this.closest(".org-li").find(".project-ul > .user-li").length || "";
 
             $this.text(counter);
         });
     }
 
     function isShortcutKeyPressed(event) {
-        var sKey = (event.originalEvent || event).key;
+        const sKey = (event.originalEvent || event).key;
         return (!event.metaKey && (sKey === "f" || sKey === "ㄹ"))     // keypress의 key => f, ㄹ(한글 자모 U+3139)
             && $(':focus').length === 0;                        // avoid already somewhere focused state
     }
@@ -213,9 +213,9 @@ $(function () {
     // This method intended to sync sub tab list of projects
     function updateStar() {
         $.get(UsermenuGetFoveriteProjectsUrl)
-            .done(function (data) {
+            .done((data) => {
                 $(".star-project").each(function () {
-                    var $this = $(this);
+                    const $this = $(this);
                     if (data.projectIds.indexOf($this.data("projectId")) !== -1) {
                         $this.find("i").addClass("starred");
                     } else {

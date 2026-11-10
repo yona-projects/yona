@@ -1,31 +1,31 @@
-$(function () {
+$(() => {
     function deleteAttachment() {
-        var $this = $(this);
-        var $parent = $this.parent(".attached-file-marker");
-        var id = $this.data("id");
-        var filename = $parent.data("name");
-        var url = $parent.data("href");
-        var mimeType = $parent.data("mime");
-        var linkStr = "[" + filename + "](" + url + ")";
+        const $this = $(this);
+        const $parent = $this.parent(".attached-file-marker");
+        const id = $this.data("id");
+        const filename = $parent.data("name");
+        const url = $parent.data("href");
+        const mimeType = $parent.data("mime");
+        let linkStr = "[" + filename + "](" + url + ")";
 
         if (mimeType.startsWith("image")) {
             linkStr = "!" + linkStr;
         }
 
-        var $form = $this.parent().closest("form");
-        var $textarea = $form.find("textarea");
-        var $attachfiles = $form.find(".temporaryUploadFiles");
+        const $form = $this.parent().closest("form");
+        const $textarea = $form.find("textarea");
+        const $attachfiles = $form.find(".temporaryUploadFiles");
 
-        $attachfiles.val($attachfiles.val().split(",").filter(function (item) {
+        $attachfiles.val($attachfiles.val().split(",").filter((item) => {
             return item != id;
         }).join(","));
         $textarea.val($textarea.val().split(linkStr).join(""));
 
         $.post(url)
-            .done(function (data) {
+            .done((data) => {
                 $parent.remove();
             })
-            .fail(function (data) {
+            .fail((data) => {
                 console.log(data);
             });
     }
@@ -34,13 +34,13 @@ $(function () {
     $(".file-upload__input").on("change", function (e) {
         NProgress.start();
 
-        var $attachmentInput = $(this);
-        var files = $attachmentInput[0].files;
-        var caretPos = getCaretPos($attachmentInput);
-        var doneCount = 0;
+        const $attachmentInput = $(this);
+        const files = $attachmentInput[0].files;
+        let caretPos = getCaretPos($attachmentInput);
+        let doneCount = 0;
 
-        for (var i = 0; i < files.length; i++) {
-            var formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            const formData = new FormData();
             formData.append("filePath", files[i]);
 
             $.ajax({
@@ -50,8 +50,8 @@ $(function () {
                 contentType: false,
                 processData: false,
                 data: formData
-            }).done(function (data) {
-                var $parentForm = $attachmentInput.parent().closest("form");
+            }).done((data) => {
+                const $parentForm = $attachmentInput.parent().closest("form");
 
                 buildTemporaryUploadedFileCards($parentForm, data);
                 caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
@@ -59,13 +59,13 @@ $(function () {
                 if (doneCount === files.length) {
                     NProgress.done();
                 }
-            }).fail(function (data) {
+            }).fail((data) => {
                 $yona.notify(data);
             });
         }
     });
 
-    var rememberBorder = "";
+    let rememberBorder = "";
     $(".textarea-box")
         .on("dragenter", "textarea", function (e) {
             e.stopPropagation();
@@ -73,7 +73,7 @@ $(function () {
             rememberBorder = $(this).css("border");
             $(this).css("border", "1px dashed orange");
         })
-        .on("dragover", "textarea", function (e) {
+        .on("dragover", "textarea", (e) => {
             e.stopPropagation();
             e.preventDefault();
         })
@@ -81,12 +81,12 @@ $(function () {
             e.stopPropagation();
             e.preventDefault();
 
-            var dt = e.originalEvent.dataTransfer;
-            var files = dt.files;
+            const dt = e.originalEvent.dataTransfer;
+            const files = dt.files;
 
             $(this).css("border", rememberBorder);
 
-            var attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
+            const attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
             attachmentInput[0].files = files;
             attachmentInput.trigger("change");
         })
@@ -94,16 +94,16 @@ $(function () {
             $(this).css("border", rememberBorder);
         })
         .on("paste", "textarea", function (event) {
-            var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-            var $attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
-            var caretPos = getCaretPos($attachmentInput);
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            const $attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
+            let caretPos = getCaretPos($attachmentInput);
 
-            for (var index in items) {
-                var item = items[index];
+            for (const index in items) {
+                const item = items[index];
 
                 if (item.kind === 'file' && item.type.indexOf("image") === 0) {
                     NProgress.start();
-                    var formData = new FormData();
+                    const formData = new FormData();
                     formData.append('filePath', item.getAsFile(), generateFileName());
 
                     $.ajax('/files', {
@@ -111,13 +111,13 @@ $(function () {
                         contentType: false,
                         processData: false,
                         data: formData
-                    }).done(function (data) {
-                        var $parentForm = $attachmentInput.parent().closest("form");
+                    }).done((data) => {
+                        const $parentForm = $attachmentInput.parent().closest("form");
 
                         buildTemporaryUploadedFileCards($parentForm, data);
                         caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
                         NProgress.done();
-                    }).fail(function (data) {
+                    }).fail((data) => {
                         $yona.notify(data);
                     });
 
@@ -130,7 +130,7 @@ $(function () {
     }
 
     function buildTemporaryUploadedFileCards($parentForm, data) {
-        var attachmentFileListArea = $parentForm.find(".attachment-files");
+        const attachmentFileListArea = $parentForm.find(".attachment-files");
 
         setTemporaryUploadFileIds($parentForm.find(".temporaryUploadFiles"), data.id);
         // v1.6은 업로드마다 삭제 핸들러를 더해 삭제 요청이 거듭 나갔다(C007). 떼고 다시 단다
@@ -152,7 +152,7 @@ $(function () {
         if ($attachmentFiles.val() === "") {
             $attachmentFiles.val(fileId);
         } else {
-            var splitIds = $attachmentFiles.val().split(",");
+            const splitIds = $attachmentFiles.val().split(",");
             // v1.6은 문자열 배열에 숫자 아이디를 찾아 항상 거짓이었다(C008)
             if (!splitIds.includes(String(fileId))) {
                 $attachmentFiles.val(splitIds.concat(fileId).join(","));
@@ -161,14 +161,14 @@ $(function () {
     }
 
     function generateFileName() {
-        var now = new Date();
+        const now = new Date();
         return  now.getSeconds() + "" + now.getMilliseconds() + '-' + now.getFullYear() + '-' + (now.getMonth() + 1)
             + '-' + now.getDate() + '-' + now.getHours() + '-' + now.getMinutes() + ".png";
     }
 
     function insertLinkIntoTextarea($textarea, data, caretPos) {
-        var textAreaTxt = $textarea.val();
-        var txtToAdd = "[" + data.name + "](" + data.url + ")";
+        const textAreaTxt = $textarea.val();
+        let txtToAdd = "[" + data.name + "](" + data.url + ")";
         if (data.mimeType.startsWith("image")) {
             txtToAdd = "!" + txtToAdd;
         }

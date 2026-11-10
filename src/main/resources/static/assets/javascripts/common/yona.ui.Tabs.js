@@ -30,11 +30,11 @@
  * - 서버가 탭을 정해 준 화면(주소에 `tab=`, 예: 설정을 저장하고 돌아오는 화면)에서는 저장된 값으로 덮어쓰지 않는다.
  * - localStorage를 쓸 수 없으면(사이트 데이터 차단) 조용히 넘어간다.
  */
-$(document).ready(function(){
+$(document).ready(() =>{
 
-    $(".nav-tabs[id]").each(function(i, elContainer){
-        var welContainer = $(elContainer);
-        var sContainerId = welContainer.attr("id");
+    $(".nav-tabs[id]").each((i, elContainer) =>{
+        const welContainer = $(elContainer);
+        const sContainerId = welContainer.attr("id");
 
         welContainer.find("li").click(function(){
             _store(sContainerId, $(this).index());
@@ -64,19 +64,19 @@ $(document).ready(function(){
             return;
         }
 
-        var nIndex;
+        let nIndex;
         try {
             nIndex = localStorage.getItem("yobitab-" + sContainerId);
         } catch (err) {
             return;
         }
 
-        var waItems = $("#" + sContainerId).find("li > a, li > button");
+        const waItems = $("#" + sContainerId).find("li > a, li > button");
         if(nIndex === null || !waItems[nIndex]){
             return;
         }
 
-        var welLink = $(waItems[nIndex]);
+        const welLink = $(waItems[nIndex]);
         if(welLink.data("toggle") === "tab" || welLink.data("bsToggle") === "tab"){
             $yona.showTab(welLink);
         }

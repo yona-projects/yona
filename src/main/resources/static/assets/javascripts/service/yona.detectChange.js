@@ -11,11 +11,11 @@ var favicon = new yona.ui.Favicon({
 });
 
 function detectPageChange(url){
-    var issueBodyChecksum = $("#issueBodyChecksum").val();
-    var numOfComments = $("#numOfComments").val();
-    var issueUpdateDate = $("#issueUpdateDate").val();
+    let issueBodyChecksum = $("#issueBodyChecksum").val();
+    let numOfComments = $("#numOfComments").val();
+    const issueUpdateDate = $("#issueUpdateDate").val();
 
-    var duration = 3000;
+    const duration = 3000;
 
     runIntervalAction(detectChange, duration);
 
@@ -27,7 +27,7 @@ function detectPageChange(url){
         } else {
             duration = duration * 1.2
         }
-        setTimeout(function(){
+        setTimeout(() =>{
             fn();
             runIntervalAction(fn, duration);
         }, duration);
@@ -44,7 +44,7 @@ function detectPageChange(url){
                 lastUpdateDate: issueUpdateDate
             }),
         })
-            .done(function (data) {
+            .done((data) => {
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);

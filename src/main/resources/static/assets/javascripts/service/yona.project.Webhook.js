@@ -21,10 +21,10 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
-        var elements = {};
+        const elements = {};
 
         /**
          * Initialize

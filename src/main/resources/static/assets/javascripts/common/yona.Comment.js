@@ -6,7 +6,7 @@
  **/
 
 yona.Comment = (function(){
-    var htElement = {};
+    const htElement = {};
 
     /**
      * initialize
@@ -36,7 +36,7 @@ yona.Comment = (function(){
         htElement.welContainer.on('click', '[data-toggle="comment-edit"]', _toggleEditForm);
         htElement.welContainer.on('click', '.ybtn-cancel', _toggleEditForm);
 
-        htElement.commentEditforms.each(function (i, item) {
+        htElement.commentEditforms.each((i, item) => {
             temporarySaveHandler($(item).find('textarea'), false);
         });
     }
@@ -51,7 +51,7 @@ yona.Comment = (function(){
     }
 
     function _toggleEditForm(){
-        var commentId = $(this).data("commentId");
+        const commentId = $(this).data("commentId");
 
         $('#comment-editform-' + commentId).toggle();
         $('#comment-body-' + commentId).toggle();

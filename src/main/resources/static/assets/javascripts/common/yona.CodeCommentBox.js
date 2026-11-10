@@ -24,8 +24,8 @@ yona = yona || {};
 yona.CodeCommentBox = (function(){
     "use strict";
 
-    var htVar = {};
-    var htElement = {};
+    const htVar = {};
+    const htElement = {};
 
     /**
      * @private
@@ -71,7 +71,7 @@ yona.CodeCommentBox = (function(){
         htOptions = htOptions || {};
 
         // show comment form
-        var sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
+        const sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
         _setArrowPlacement(sPlacement);
         _placeReviewForm(welTarget, sPlacement);
         htElement.welCommentWrap.show();
@@ -105,8 +105,8 @@ yona.CodeCommentBox = (function(){
      * @private
      */
     function _placeReviewForm(welTarget, sPlacement){
-        var welFormTarget = _getReviewFormTarget(welTarget);
-        var welFormPlace = _getReviewFormPlace(welFormTarget, sPlacement);
+        const welFormTarget = _getReviewFormTarget(welTarget);
+        const welFormPlace = _getReviewFormPlace(welFormTarget, sPlacement);
 
         _setReviewFormFields(_getReviewFormFieldData(welFormTarget));
 
@@ -141,7 +141,7 @@ yona.CodeCommentBox = (function(){
             return welTarget.closest(".comment-thread-wrap")
         }
 
-        var welPlace = $('<tr class="comment-form"></tr>');
+        const welPlace = $('<tr class="comment-form"></tr>');
         welPlace.html('<td colspan="3" class="write-comment-form"></td>');
 
         if(sPlacement === "top"){
@@ -170,11 +170,11 @@ yona.CodeCommentBox = (function(){
      * @private
      */
     function _getFormFieldsFromBlockInfo(htBlockInfo){
-        var sNewKey;
-        var htData = {};
-        var aBlockWords = ["bIsReversed"];
+        let sNewKey;
+        const htData = {};
+        const aBlockWords = ["bIsReversed"];
 
-        for(var sKey in htBlockInfo){
+        for(const sKey in htBlockInfo){
             // 특정한 항목은 폼 데이터에 넣지 않는다
             if(aBlockWords.indexOf(sKey) > -1){
                 continue;
@@ -191,9 +191,9 @@ yona.CodeCommentBox = (function(){
      * @private
      */
     function _setReviewFormFields(htData){
-        var aInput = [];
-        var welField, elField, sFieldName;
-        var welForm = htElement.welCommentForm;
+        const aInput = [];
+        let welField, elField, sFieldName;
+        const welForm = htElement.welCommentForm;
 
         // 필드가 없으면 만들고, 있으면 값 지정
         for(sFieldName in htData){
@@ -220,7 +220,7 @@ yona.CodeCommentBox = (function(){
      * @private
      */
     function _getHiddenField(sFieldName, sFieldValue){
-        var elInput = document.createElement("INPUT");
+        const elInput = document.createElement("INPUT");
         elInput.setAttribute("name", sFieldName);
         elInput.setAttribute("type", "hidden");
         elInput.value = sFieldValue;
@@ -232,7 +232,7 @@ yona.CodeCommentBox = (function(){
      */
     function _hide(){
         htElement.welCommentWrap.hide();
-        var welFormWrap = htElement.welCommentWrap.closest("tr.comment-form");
+        const welFormWrap = htElement.welCommentWrap.closest("tr.comment-form");
         htElement.welInitialParent.append(htElement.welCommentWrap);
         welFormWrap.remove();
 
@@ -263,7 +263,7 @@ yona.CodeCommentBox = (function(){
      * @private
      */
     function _initFileUploader(){
-        var oUploader = yona.Files.getUploader(htElement.welCommentUploader, htElement.welCommentTextarea);
+        const oUploader = yona.Files.getUploader(htElement.welCommentUploader, htElement.welCommentTextarea);
 
         if(oUploader){
             (new yona.Attachments({

@@ -20,17 +20,17 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
          */
         function _init(htOptions){
-            var htOpt = htOptions || {};
+            const htOpt = htOptions || {};
             _initVar(htOpt);
             _initElement(htOpt);
             _attachEvent();
@@ -76,7 +76,7 @@
         }
 
         function _onChangeLogoPath(){
-            var welTarget = $(this);
+            const welTarget = $(this);
 
             if($yona.isImageFile(welTarget) === false){
                 $yona.showAlert(Messages("project.logo.alert"));
@@ -88,7 +88,7 @@
         }
 
         function _onClickBtnSave(){
-            var sPrjName = htElement.welInputName.val();
+            const sPrjName = htElement.welInputName.val();
             if(!htVar.rxPrjName.test(sPrjName)){
                 $yona.showAlert(Messages("project.name.alert"));
                 return false;
@@ -102,7 +102,7 @@
         }
 
         function _onClickMenuSettingCode() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if (!isChecked) {
                 htElement.welMenuSettingCode.prop("checked", false);
@@ -116,7 +116,7 @@
         }
 
         function _onClickMenuSettingPullRequest() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if(isChecked) {
                 htElement.welMenuSettingCode.prop("checked", true);
@@ -127,7 +127,7 @@
         }
 
         function _onClickMenuSettingReview() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if(isChecked) {
                 htElement.welMenuSettingCode.prop("checked", true);

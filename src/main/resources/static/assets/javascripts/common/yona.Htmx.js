@@ -27,9 +27,9 @@ yona.Htmx = (function(window, document) {
     "use strict";
 
     /** 응답에 이 표지가 없으면 목록 조각이 아니라고 보고 일반 이동으로 처리한다. */
-    var CONTAINER_MARK = "list-container";
+    const CONTAINER_MARK = "list-container";
 
-    var htmx = window.htmx;
+    const htmx = window.htmx;
 
     if (typeof htmx !== "undefined") {
         _configure();
@@ -47,11 +47,11 @@ yona.Htmx = (function(window, document) {
         // 함께 지워져 원본 select가 화면에 드러난다. pjax는 노드를 그대로 바꿔 끼웠으므로 이 일이 없었다.
         htmx.config.attributesToSettle = [];
 
-        document.addEventListener("htmx:configRequest", function(evt) {
-            var detail = evt.detail;
+        document.addEventListener("htmx:configRequest", (evt) => {
+            const detail = evt.detail;
             // htmx는 `hx-get`의 값을 요소를 처리할 때 한 번만 읽는다. 풀 리퀘스트 목록의 탭은 클릭할 때 폼의 `action`을
             // 열림, 닫힘, 보냄 주소로 바꾸고 제출하므로(v1.6과 같다), 폼은 요청 시점의 `action`을 따른다.
-            var action = detail.elt && detail.elt.tagName === "FORM" && detail.elt.getAttribute("action");
+            const action = detail.elt && detail.elt.tagName === "FORM" && detail.elt.getAttribute("action");
             if (action) {
                 detail.path = action;
             }
@@ -60,12 +60,12 @@ yona.Htmx = (function(window, document) {
         document.addEventListener("htmx:beforeRequest", _startProgress);
         document.addEventListener("htmx:afterRequest", _doneProgress);
 
-        document.addEventListener("htmx:beforeSwap", function(evt) {
-            var detail = evt.detail;
+        document.addEventListener("htmx:beforeSwap", (evt) => {
+            const detail = evt.detail;
             if (detail.isError) {
                 return;
             }
-            var response = detail.serverResponse;
+            const response = detail.serverResponse;
             if (typeof response === "string" && response.indexOf(CONTAINER_MARK) < 0) {
                 detail.shouldSwap = false;
                 _loadWholePage(evt);
@@ -84,8 +84,8 @@ yona.Htmx = (function(window, document) {
      * @private
      */
     function _loadWholePage(evt) {
-        var pathInfo = evt.detail && evt.detail.pathInfo;
-        var path = pathInfo && (pathInfo.finalRequestPath || pathInfo.requestPath);
+        const pathInfo = evt.detail && evt.detail.pathInfo;
+        const path = pathInfo && (pathInfo.finalRequestPath || pathInfo.requestPath);
         if (path) {
             window.location.assign(path);
         }
@@ -112,7 +112,7 @@ yona.Htmx = (function(window, document) {
          * @param {HTMLFormElement|jQuery|String} form 폼 요소, jQuery 객체 또는 선택자
          */
         "submit": function(form) {
-            var el = window.jQuery(form).get(0);
+            const el = window.jQuery(form).get(0);
             if (!el) {
                 return;
             }

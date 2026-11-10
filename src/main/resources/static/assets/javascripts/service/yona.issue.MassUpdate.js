@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -41,11 +41,11 @@
          * CSS는 붙었는지를 알 수 없어, 줄이 화면 맨 위에 닿았는지를 스크롤마다 확인한다(A-301).
          */
         function _markStuckWhileScrolling(){
-            var $row = $('.filter-wrap.mass-update-sticky');
+            const $row = $('.filter-wrap.mass-update-sticky');
             if($row.length === 0){
                 return;
             }
-            var update = function(){
+            const update = function(){
                 $row.toggleClass('stuck', $row[0].getBoundingClientRect().top <= 0);
             };
             $(window).on('scroll resize', update);
@@ -113,7 +113,7 @@
                 $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked).change();
                 _onCheckIssue();
             });
-            yona.ShortcutKey.attach("CTRL+A", function(htInfo){
+            yona.ShortcutKey.attach("CTRL+A", (htInfo) =>{
                 if(!htInfo.bFormInput){
                     htInfo.weEvt.preventDefault();
                     $(htElement.weAllCheckbox).trigger('click');
@@ -138,8 +138,8 @@
          * more issues are checked, otherwise disable them.
          */
         function _onCheckIssue(){
-            var waChecked = $(htVar.sIssueCheckedBoxesSelector);
-            var bDisabled = (waChecked.length === 0);
+            const waChecked = $(htVar.sIssueCheckedBoxesSelector);
+            const bDisabled = (waChecked.length === 0);
 
             htElement.welMassUpdateButtons.attr('disabled', bDisabled);
 
@@ -164,7 +164,7 @@
          * @param {Wrapped Array} waChecked
          */
         function _makeLabelListByChecked(waChecked){
-            var htLabels = _getLabelsByChecked(waChecked);
+            const htLabels = _getLabelsByChecked(waChecked);
 
             _restoreLabelList();
             _setAttachLabelList(htLabels, waChecked.length);
@@ -179,8 +179,8 @@
          * @param {Number} nLength Numbers of checked issues
          */
         function _setAttachLabelList(htLabels, nLength){
-            var sCategory, sLabelId, aCategoryIds, htLabel;
-            var bVisible = false;
+            let sCategory, sLabelId, aCategoryIds, htLabel;
+            let bVisible = false;
 
             // Reset
             htVar.htExclusiveLabels = {};
@@ -216,11 +216,11 @@
          * @return {Boolean} Returns does category visible
          */
         function _getLabelCategoryVisibility(welList, sCategory){
-            var welItem;
-            var bHidden = true;
-            var waCategoryItems = welList.find('li[data-category="' + sCategory +'"]');
+            let welItem;
+            let bHidden = true;
+            const waCategoryItems = welList.find('li[data-category="' + sCategory +'"]');
 
-            waCategoryItems.each(function(i, el){
+            waCategoryItems.each((i, el) =>{
                 welItem = $(el);
 
                 if(typeof welItem.data("value") !== "undefined"){
@@ -243,9 +243,9 @@
          * @param {Hash Table} htLabels
          */
         function _setDetachLabelList(htLabels){
-            var aHTML = [];
-            var sCategory, sLabelId, htLabel;
-            var sTpl = $("#labelListItem").text();
+            const aHTML = [];
+            let sCategory, sLabelId, htLabel;
+            const sTpl = $("#labelListItem").text();
 
             // Category
             for(sCategory in htLabels){
@@ -274,11 +274,11 @@
          * @return {Hash Table}
          */
         function _getLabelsByChecked(waChecked){
-            var htLabels = {};
-            var welCheck, sIssueLabels, aIssueLabels, aLabel;
-            var sCategory, sLabelId, sLabelName, sCategoryId, bExclusiveCategory;
+            const htLabels = {};
+            let welCheck, sIssueLabels, aIssueLabels, aLabel;
+            let sCategory, sLabelId, sLabelName, sCategoryId, bExclusiveCategory;
 
-            waChecked.each(function(i, el){
+            waChecked.each((i, el) =>{
                 welCheck = $(el);
                 sIssueLabels = welCheck.data("issueLabels");
 
@@ -286,7 +286,7 @@
                     return;
                 }
 
-                sIssueLabels.split("|").forEach(function(sLabel){
+                sIssueLabels.split("|").forEach((sLabel) =>{
                     if(sLabel === ""){
                         return;
                     }
@@ -313,9 +313,9 @@
          * the form and request to update issues.
          */
         function _onChangeUpdateField(){
-            var nCnt = 0;
-            var welForm = htElement.welMassUpdateForm;
-            var sItemId = _getCurrentItemIdByScrollTop();
+            let nCnt = 0;
+            const welForm = htElement.welMassUpdateForm;
+            const sItemId = _getCurrentItemIdByScrollTop();
 
             if(sItemId){
                 welForm.attr("action", htVar.sActionURL + "#" + sItemId);
@@ -333,8 +333,8 @@
         }
 
         function _getCurrentItemIdByScrollTop(){
-            var nScrollTop = $(window).scrollTop();
-            var sItemId = $(".post-item").filter(function(i,el){
+            const nScrollTop = $(window).scrollTop();
+            const sItemId = $(".post-item").filter((i,el) =>{
                 return ($(el).offset().top > nScrollTop);
             }).first().prev().attr("id");
 
@@ -343,8 +343,8 @@
 
 
         function _onChangeAttachingLabelField(sLabelId){
-            var aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];
-            for(var i = 0; i < aDetachLabels.length; i++) {
+            const aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];
+            for(let i = 0; i < aDetachLabels.length; i++) {
                 if(sLabelId !== aDetachLabels[i]){
                     _addFormField(
                         htElement.welMassUpdateForm,

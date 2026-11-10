@@ -12,12 +12,12 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
     }
 
     // Template text
-    var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
+    const tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
         '<span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>' +
         '<strong class="name">{{name}}</strong>' +
         '<span class="loginid">{{loginId}}</span></div>';
 
-    var formattedResult = $yona.render(tplUserItem, {
+    const formattedResult = $yona.render(tplUserItem, {
       "avatarURL": result.avatarUrl,
       "name"     : result.name,
       "loginId"  : result.loginId
@@ -27,18 +27,18 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   }
 
   function matcher(params, data){
-    var term = (params.term || "").trim().toLowerCase();
+    const term = (params.term || "").trim().toLowerCase();
     if(term === ""){
       return data;
     }
 
-    var formattedResult = (data.text || "").toLowerCase();
-    var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
+    const formattedResult = (data.text || "").toLowerCase();
+    const loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
 
     return ((loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1)) ? data : null;
   }
 
-  var $assignee = $("#assignee");
+  const $assignee = $("#assignee");
   $assignee.select2({
     minimumInputLength: 0,
     ajax: yona.ui.Select2.userSearch(findAssignableUsersApiUrl),
@@ -50,19 +50,19 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
 
   // the select tag has a preselected option that points to a preselected user's loginId.
   // this resolves that loginId to a user object so that the user is shown with the avatar (3.x initSelection)
-  var selectedLoginId = $assignee.val();
+  const selectedLoginId = $assignee.val();
   if (selectedLoginId) {
     $.ajax(findAssignableUsersApiUrl + "?query=" + selectedLoginId + "&type=loginId", {
       dataType: "json"
-    }).done(function(data) {
+    }).done((data) => {
       if(data && data.length > 0) {
         yona.ui.Select2.selectUsers($assignee, [data[0]]);
       }
     });
   }
 
-  $assignee.on("select2:selecting", function(selected) {
-    var data = { assignees: [selected.params.args.data.id] };
+  $assignee.on("select2:selecting", (selected) => {
+    const data = { assignees: [selected.params.args.data.id] };
 
     if(updateAssgineesApiUrl){
         $.ajax(updateAssgineesApiUrl, {
@@ -70,7 +70,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
             dataType: "json",
             contentType: "application/json",
             data: JSON.stringify(data)
-        }).done(function(response){
+        }).done((response) =>{
             $yona.notify(message + ": " + response.assignee.name, 3000);
         });
     }

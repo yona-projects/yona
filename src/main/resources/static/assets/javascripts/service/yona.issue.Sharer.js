@@ -6,7 +6,7 @@
  **/
 
 function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message){
-  var userOf = function(state){ return yona.ui.Select2.userOf(state); };
+  const userOf = function(state){ return yona.ui.Select2.userOf(state); };
 
   function formatter(result){
     if(!result.avatarUrl){
@@ -14,10 +14,10 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     }
 
     // Template text. Also you can use predefined template: $("#tplSelect2FormatUser").text()
-    var tplUserItem = "<div class='usf-group' title='${name} ${loginId}'>" +
+    const tplUserItem = "<div class='usf-group' title='${name} ${loginId}'>" +
         "<strong class='name'>${name}</strong>";
 
-    var formattedResult = $yona.tmpl(tplUserItem, {
+    const formattedResult = $yona.tmpl(tplUserItem, {
       "avatarURL": result.avatarUrl,
       "name"     : result.name,
       "loginId"  : result.loginId
@@ -27,18 +27,18 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   }
 
   function matcher(params, data){
-    var term = (params.term || "").trim().toLowerCase();
+    const term = (params.term || "").trim().toLowerCase();
     if(term === ""){
       return data;
     }
 
-    var formattedResult = (data.text || "").toLowerCase();
-    var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
+    const formattedResult = (data.text || "").toLowerCase();
+    const loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
 
     return ((loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1)) ? data : null;
   }
 
-  var $issueSharer = $("#issueSharer");
+  const $issueSharer = $("#issueSharer");
   $issueSharer.select2({
     minimumInputLength: 1,
     ajax: yona.ui.Select2.userSearch(findSharableUsersApiUrl),
@@ -50,20 +50,20 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
 
   // the select tag has preselected options that point to the sharers' loginIds.
   // this resolves those loginIds to user objects so that each sharer has a type (3.x initSelection)
-  var selectedLoginIds = ($issueSharer.val() || []).join(",");
+  const selectedLoginIds = ($issueSharer.val() || []).join(",");
   if (selectedLoginIds !== "") {
     $.ajax(findUsersByloginIdsApiUrl+ "?query=" + selectedLoginIds, {
       dataType: "json"
-    }).done(function(data) {
+    }).done((data) => {
       if(data && data.length > 0) {
         yona.ui.Select2.selectUsers($issueSharer, data);
       }
     });
   }
 
-  $issueSharer.on("select2:selecting", function(selected) {
-    var chosen = userOf(selected.params.args.data);
-    var data = { sharer: {loginId: chosen.loginId, type: chosen.type}, action: 'add'};
+  $issueSharer.on("select2:selecting", (selected) => {
+    const chosen = userOf(selected.params.args.data);
+    const data = { sharer: {loginId: chosen.loginId, type: chosen.type}, action: 'add'};
 
     if(updateSharingApiUrl){
         $.ajax(updateSharingApiUrl, {
@@ -71,15 +71,15 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
             dataType: "json",
             contentType: "application/json",
             data: JSON.stringify(data)
-        }).done(function(response){
+        }).done((response) =>{
             $yona.notify(response.action + ": " + response.sharer, 3000);
         });
     }
   });
 
-  $issueSharer.on("select2:unselecting", function(selected) {
-    var removed = userOf(selected.params.args.data);
-    var data = { sharer: {loginId: removed.loginId, type: removed.type}, action: 'delete'};
+  $issueSharer.on("select2:unselecting", (selected) => {
+    const removed = userOf(selected.params.args.data);
+    const data = { sharer: {loginId: removed.loginId, type: removed.type}, action: 'delete'};
 
     if(updateSharingApiUrl){
       $.ajax(updateSharingApiUrl, {
@@ -87,13 +87,13 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         dataType: "json",
         contentType: "application/json",
         data: JSON.stringify(data)
-      }).done(function(response){
+      }).done((response) =>{
         $yona.notify(response.action + ": " + response.sharer, 3000);
       });
     }
   });
 
-  $issueSharer.on('change', function () {
+  $issueSharer.on('change', () => {
     $(".issue-sharer-count").text(($issueSharer.val() || []).length);
   });
 }

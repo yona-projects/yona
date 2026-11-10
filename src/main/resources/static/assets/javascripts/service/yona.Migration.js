@@ -16,15 +16,15 @@
 (function () {
     'use strict';
 
-    var CONFIG = {
+    const CONFIG = {
         "YONA_SERVER": "",
         "GITHUB_API_BASE_URL": "https://api.github.com",
         "IMPORT_API_ACCEPT_HEADER": "application/vnd.github.golden-comet-preview+json",
         "CLIENT_ID": "e7f9ad76a3a4ba19b2a5",
         "LOGGING_PROJECT_FULLNAME": "yona-projects/yona-migration-log"
     };
-    var USER = {TOKEN: ""};
-    var WORKER = {TOKEN: ""};
+    const USER = {TOKEN: ""};
+    const WORKER = {TOKEN: ""};
 
     ////////////////////////////// $http 대체
 
@@ -34,9 +34,9 @@
      * `If-Modified-Since`를 그대로 싣고, 보내는 값이 있으면 JSON으로 보낸다.
      */
     function http(config) {
-        var method = (config.method || "GET").toUpperCase();
-        var headers = {"Accept": "application/json, text/plain, */*"};
-        var init = {"method": method};
+        const method = (config.method || "GET").toUpperCase();
+        const headers = {"Accept": "application/json, text/plain, */*"};
+        const init = {"method": method};
 
         if (method === "GET") {
             headers["If-Modified-Since"] = "Mon, 26 Jul 1997 05:00:00 GMT";
@@ -49,9 +49,9 @@
         init.headers = headers;
 
         function build(response, text) {
-            var data = text;
-            var contentType = response.headers.get("Content-Type") || "";
-            var trimmed = typeof text === "string" ? text.trim() : "";
+            let data = text;
+            const contentType = response.headers.get("Content-Type") || "";
+            const trimmed = typeof text === "string" ? text.trim() : "";
             if (trimmed && (contentType.indexOf("application/json") === 0 || /^\[|^\{(?!\{)/.test(trimmed))) {
                 try {
                     data = JSON.parse(trimmed);
@@ -67,25 +67,25 @@
             };
         }
 
-        return fetch(config.url, init).then(function (response) {
-            return response.text().then(function (text) {
-                var result = build(response, text);
+        return fetch(config.url, init).then((response) => {
+            return response.text().then((text) => {
+                const result = build(response, text);
                 if (response.status >= 200 && response.status < 300) {
                     return result;
                 }
                 throw result;
             });
-        }, function () {
+        }, () => {
             throw {"data": null, "status": -1, "headers": function () { return null; }, "config": config};
         });
     }
 
     ////////////////////////////// 서비스
 
-    var milestoneMapper = {};
-    var labelOfPost = "게시글";
+    const milestoneMapper = {};
+    const labelOfPost = "게시글";
     // 화면과 서비스가 같이 쓰는 가져오기 결과이다. 서비스가 `count`를 올릴 때 화면이 바뀌도록 반응형으로 만든다.
-    var importResult = Vue.reactive({"count": 0, "errorData": []});
+    const importResult = Vue.reactive({"count": 0, "errorData": []});
 
     function success(response) {
         console.log(response);
@@ -117,23 +117,23 @@
         }
     }
 
-    var githubApi = CONFIG.GITHUB_API_BASE_URL;
+    const githubApi = CONFIG.GITHUB_API_BASE_URL;
 
     function authorization(token) {
         return {"Authorization": "token " + token};
     }
 
-    var migrationService = {
+    const migrationService = {
         logToIssue: function (source, destination, type, yobiUser, count) {
-            var body = "source project total \n--- \n"
+            const body = "source project total \n--- \n"
                 + "\nmilestone: " + source.milestoneCount
                 + "\nissue: " + source.issueCount
                 + "\nposting: " + source.postCount
                 + "\n\nsee: https://github.com/" + destination.full_name + "/issues"
                 + "\n\n====\n\n"
                 + " by [" + yobiUser + "](http://github.com/" + yobiUser + ")";
-            var sourceFullName = source.owner + "/" + source.projectName;
-            var labels = [sourceFullName + " --> " + destination.full_name, destination.owner];
+            const sourceFullName = source.owner + "/" + source.projectName;
+            const labels = [sourceFullName + " --> " + destination.full_name, destination.owner];
             if (destination.withWikiCommit) {
                 labels.push("attachments");
             }
@@ -146,7 +146,7 @@
                     "body": body,
                     "labels": labels
                 }
-            }).then(function (response) { return response; }, function (response) { return response; });
+            }).then((response) => { return response; }, (response) => { return response; });
         },
 
         delegateAttachmentsMigration: function () {
@@ -165,7 +165,7 @@
                 "method": "GET",
                 "url": githubApi + "/repos/" + destination.owner + "/" + destination.projectName + "/issues?state=all&labels=" + labelOfPost,
                 "headers": authorization(WORKER.TOKEN)
-            }).then(function (response) { return response; }, function (response) { return response; });
+            }).then((response) => { return response; }, (response) => { return response; });
         },
 
         haveIssuesAlready: function (destination) {
@@ -176,7 +176,7 @@
                 "method": "GET",
                 "url": githubApi + "/repos/" + destination.owner + "/" + destination.projectName + "/issues?state=all",
                 "headers": authorization(WORKER.TOKEN)
-            }).then(function (response) { return response; }, function (response) { return response; });
+            }).then((response) => { return response; }, (response) => { return response; });
         },
 
         haveMilestonesAlready: function (destination) {
@@ -187,7 +187,7 @@
                 "method": "GET",
                 "url": githubApi + "/repos/" + destination.owner + "/" + destination.projectName + "/milestones?state=all",
                 "headers": authorization(WORKER.TOKEN)
-            }).then(function (response) { return response; }, function (response) { return response; });
+            }).then((response) => { return response; }, (response) => { return response; });
         },
 
         getOrgMembership: function (destination, login) {
@@ -211,9 +211,9 @@
         },
 
         importIssueLabelMap: function (owner, projectName) {
-            var issueLabelMap = {};
-            return http({"method": "GET", "url": CONFIG.YONA_SERVER + "/migration/" + owner + "/projects/" + projectName + "/issuelabel"}).then(function (response) {
-                response.data.issueLabelPairs.forEach(function (obj) {
+            const issueLabelMap = {};
+            return http({"method": "GET", "url": CONFIG.YONA_SERVER + "/migration/" + owner + "/projects/" + projectName + "/issuelabel"}).then((response) => {
+                response.data.issueLabelPairs.forEach((obj) => {
                     if (!issueLabelMap[obj.issueId]) {
                         issueLabelMap[obj.issueId] = [];
                     }
@@ -233,10 +233,10 @@
 
         /** 내 GitHub 저장소 목록을 100개씩 100쪽까지 모은다. 다음 쪽 여부는 응답 헤더 `Link`의 `rel="next",`로 판단한다. */
         getDestinationProjects: function () {
-            var page = 1;
-            var PER_PAGE = 100;
-            var projects = [];
-            var MAX_PAGE_FOR_GATHERING = 100;
+            let page = 1;
+            const PER_PAGE = 100;
+            let projects = [];
+            const MAX_PAGE_FOR_GATHERING = 100;
 
             function hasNextPage(linkHeader) {
                 return linkHeader && linkHeader.indexOf('; rel="next",') > -1;
@@ -276,7 +276,7 @@
 
             importResult.expected = source.milestoneCount;
 
-            var sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/milestones";
+            let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/milestones";
             if (destination.withWikiCommit && destination.withWikiCommit === true) {
                 sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
             }
@@ -288,28 +288,28 @@
                 milestoneMapper[destination.projectName][data.milestone.id] = response.data.number;
             }
 
-            return http({"method": "GET", "url": sourceProjectUrl}).then(function (response) {
-                response.data.milestones.forEach(function (data) {
+            return http({"method": "GET", "url": sourceProjectUrl}).then((response) => {
+                response.data.milestones.forEach((data) => {
                     http({
                         "method": "POST",
                         "url": githubApi + "/repos/" + destination.owner + "/" + destination.projectName + "/milestones",
                         "headers": authorization(WORKER.TOKEN),
                         "data": JSON.stringify(data.milestone)
-                    }).then(function (created) {
+                    }).then((created) => {
                         if (created.status !== 201) {
                             importResult.errorData.push(created);
                         }
                         milestoneMapping(data, created);
                         importResult.count++;
-                    }, function (failed) {
-                        var orgData = JSON.parse(failed.config.data);
+                    }, (failed) => {
+                        const orgData = JSON.parse(failed.config.data);
                         importResult.errorData.push(orgData);
                         importResult.errorData.push(failed.data.errors[0]);
                         console.error("milestone import error", failed);
                     });
                 });
                 return importResult;
-            }, function (response) {
+            }, (response) => {
                 console.error(response);
             });
         },
@@ -317,7 +317,7 @@
         importPosts: function (source, destination) {
             assertIsProjectSelected("Source", source);
             assertIsProjectSelected("Destination", destination);
-            var sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/posts";
+            let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/posts";
             if (destination.withWikiCommit && destination.withWikiCommit === true) {
                 sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
             }
@@ -331,22 +331,22 @@
                 data.issue.labels = [labelOfPost];
             }
 
-            return http({"method": "GET", "url": sourceProjectUrl}).then(function (response) {
-                var counter = 0;  // 분당 요청 수 제한을 피하려고 0.5초씩 띄운다
-                response.data.issues.forEach(function (data) {
+            return http({"method": "GET", "url": sourceProjectUrl}).then((response) => {
+                let counter = 0;  // 분당 요청 수 제한을 피하려고 0.5초씩 띄운다
+                response.data.issues.forEach((data) => {
                     preprocessPostData(data);
-                    setTimeout(function () {
+                    setTimeout(() => {
                         http({
                             "method": "POST",
                             "url": githubApi + "/repos/" + destination.owner + "/" + destination.projectName + "/import/issues",
                             "headers": {"Authorization": "token " + WORKER.TOKEN, "Accept": CONFIG.IMPORT_API_ACCEPT_HEADER},
                             "data": JSON.stringify(data)
-                        }).then(function (imported) {
+                        }).then((imported) => {
                             importResult.count++;
                             if (imported.status !== 202) {
                                 importResult.errorData.push(imported);
                             }
-                        }, function (failed) {
+                        }, (failed) => {
                             importResult.errorData.push(failed);
                             console.error("a", failed);
                         });
@@ -361,28 +361,28 @@
             assertIsProjectSelected("Source", source);
             assertIsProjectSelected("Destination", destination);
 
-            var fullRepoName = destination.owner + "/" + destination.projectName;
-            var sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/issues";
+            const fullRepoName = destination.owner + "/" + destination.projectName;
+            let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/issues";
             if (destination.withWikiCommit && destination.withWikiCommit === true) {
                 sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
             }
 
-            return http({"method": "GET", "url": sourceProjectUrl}).then(function (response) {
-                var counter = 0;  // 분당 요청 수 제한을 피하려고 0.5초씩 띄운다
-                response.data.issues.forEach(function (data) {
-                    var issueData = preprocessIssueData(data, destination, issueLabelMap);
-                    setTimeout(function () {
+            return http({"method": "GET", "url": sourceProjectUrl}).then((response) => {
+                let counter = 0;  // 분당 요청 수 제한을 피하려고 0.5초씩 띄운다
+                response.data.issues.forEach((data) => {
+                    const issueData = preprocessIssueData(data, destination, issueLabelMap);
+                    setTimeout(() => {
                         http({
                             "method": "POST",
                             "url": githubApi + "/repos/" + fullRepoName + "/import/issues",
                             "headers": {"Authorization": "token " + WORKER.TOKEN, "Accept": CONFIG.IMPORT_API_ACCEPT_HEADER},
                             "data": JSON.stringify(issueData)
-                        }).then(function (imported) {
+                        }).then((imported) => {
                             importResult.count++;
                             if (imported.status !== 202) {
                                 importResult.errorData.push(imported);
                             }
-                        }, function (failed) {
+                        }, (failed) => {
                             importResult.errorData.push(failed);
                             console.error("a", failed);
                         });
@@ -390,14 +390,14 @@
                     counter++;
                 });
                 return importResult;
-            }, function (response) {
+            }, (response) => {
                 console.error("b", response);
             });
         }
     };
 
     function preprocessIssueData(data, destination, issueLabelMap) {
-        var projectName = destination.projectName;
+        const projectName = destination.projectName;
         // 담당자 매핑
         if (destination.assignees && destination.assignees[data.issue.assignee]) {
             data.issue.assignee = destination.assignees[data.issue.assignee].login;
@@ -411,7 +411,7 @@
 
         // 내용이 없는 이슈
         if ("body" in data.issue && !data.issue.body) {
-            var NO_CONTENTS = "-- no contents --";
+            const NO_CONTENTS = "-- no contents --";
             console.log(NO_CONTENTS);
             data.issue.body = NO_CONTENTS;
         }
@@ -434,8 +434,8 @@
 
     function storageAvailable(type) {
         try {
-            var storage = window[type];
-            var x = "__storage_test__";
+            const storage = window[type];
+            const x = "__storage_test__";
             storage.setItem(x, x);
             storage.removeItem(x);
             return true;
@@ -445,7 +445,7 @@
     }
 
     /** 이슈나 마일스톤이 이미 있다는 경고. v1.6의 `import-warning` 디렉티브이다. */
-    var ImportWarning = {
+    const ImportWarning = {
         "props": ["data", "type"],
         "computed": {
             "exists": function () { return this.data && this.data.length > 0; },
@@ -458,7 +458,7 @@
             + '</div>'
     };
 
-    var MigrationApp = {
+    const MigrationApp = {
         "components": {"import-warning": ImportWarning},
 
         "data": function () {
@@ -500,10 +500,10 @@
 
             /** 검색어(대소문자 구분 없이 `full_name`에 들어 있는 글자)로 거른 원본 프로젝트. 소유자가 바뀌는 첫 항목에 `newOwner`를 표시한다. */
             "sourceItems": function () {
-                return this.itemsOf(this.sourceProjects, this.sourceFilter, function (repo) { return repo.owner; });
+                return this.itemsOf(this.sourceProjects, this.sourceFilter, (repo) => { return repo.owner; });
             },
             "destinationItems": function () {
-                return this.itemsOf(this.destinationProjects, this.destinationFilter, function (repo) { return repo.owner.login || repo.owner; });
+                return this.itemsOf(this.destinationProjects, this.destinationFilter, (repo) => { return repo.owner.login || repo.owner; });
             },
 
             "progressClass": function () {
@@ -515,7 +515,7 @@
         },
 
         "created": function () {
-            var root = document.getElementById("migration-app");
+            const root = document.getElementById("migration-app");
             this.oauthState = root.getAttribute("data-oauth-state") || "";
             this.token = root.getAttribute("data-token") || "";
             this.yobiUser = root.getAttribute("data-login-id");
@@ -536,8 +536,8 @@
         "watch": {
             /** 원본 프로젝트가 바뀌면 담당자 입력칸을 이전에 입력해 둔 값(localStorage)으로 채운다(v1.6의 행마다 `ng-init`). */
             "source": function (source) {
-                var vm = this;
-                (source.assignees || []).forEach(function (assignee) { vm.getAssigneeFromLocal(assignee.login); });
+                const vm = this;
+                (source.assignees || []).forEach((assignee) => { vm.getAssigneeFromLocal(assignee.login); });
             }
         },
 
@@ -545,13 +545,13 @@
             "len": function (list) { return list ? list.length : 0; },
 
             "itemsOf": function (list, filter, ownerOf) {
-                var term = String(filter || "").toLowerCase();
-                var previous = null;
-                return (list || []).filter(function (repo) {
+                const term = String(filter || "").toLowerCase();
+                let previous = null;
+                return (list || []).filter((repo) => {
                     return String(repo.full_name).toLowerCase().indexOf(term) > -1;
-                }).map(function (repo) {
-                    var owner = ownerOf(repo);
-                    var item = {"repo": repo, "newOwner": previous === null || previous !== owner};
+                }).map((repo) => {
+                    const owner = ownerOf(repo);
+                    const item = {"repo": repo, "newOwner": previous === null || previous !== owner};
                     previous = owner;
                     return item;
                 });
@@ -572,7 +572,7 @@
             },
 
             "activate": function () {
-                var vm = this;
+                const vm = this;
                 this.loadingBar = {
                     "start": (window.NProgress && NProgress.start) ? function () { NProgress.start(); } : noop,
                     "end": function () {
@@ -582,18 +582,18 @@
                         vm.importBtnDisabled = false;
                         if (vm.destination.projectName) {
                             clearInterval(vm.interval);
-                            vm.interval = setInterval(function () { vm.checkIfDestinationHaveDataAlready(); }, 2000);
+                            vm.interval = setInterval(() => { vm.checkIfDestinationHaveDataAlready(); }, 2000);
                         }
                     }
                 };
 
                 // 나가기 전에 확인한다(토큰이 있을 때만)
                 window.onload = function () {
-                    window.addEventListener("beforeunload", function (e) {
+                    window.addEventListener("beforeunload", (e) => {
                         if (!USER.TOKEN) {
                             return undefined;
                         }
-                        var confirmationMessage = Messages("migration.js.leavePage");
+                        const confirmationMessage = Messages("migration.js.leavePage");
                         (e || window.event).returnValue = confirmationMessage;
                         return confirmationMessage;
                     });
@@ -604,8 +604,8 @@
 
             "systemMessage": function (text) {
                 this.systemMessages.push(text);
-                setTimeout(function () {
-                    var display = document.getElementById("system-msg");
+                setTimeout(() => {
+                    const display = document.getElementById("system-msg");
                     if (display) {
                         display.scrollTop = display.scrollHeight;
                     }
@@ -613,19 +613,19 @@
             },
 
             "getSourceProjects": function () {
-                var vm = this;
+                const vm = this;
                 this.loadingBar.start();
-                migrationService.getSourceProjects().then(function (results) {
+                migrationService.getSourceProjects().then((results) => {
                     vm.sourceProjects = results.data;
                     vm.loadingBar.end();
                 });
             },
 
             "getDestinationProjects": function () {
-                var vm = this;
+                const vm = this;
                 this.systemMessage(Messages("migration.js.readingGithub"));
                 this.loadingBar.start();
-                migrationService.getDestinationProjects().then(function (response) {
+                migrationService.getDestinationProjects().then((response) => {
                     vm.destinationProjects = response;
                     vm.loadingBar.end();
                     vm.systemMessage("OK!");
@@ -633,16 +633,16 @@
             },
 
             "getCurrentGithubUser": function () {
-                var vm = this;
-                migrationService.getCurrentGithubUser().then(function (response) {
+                const vm = this;
+                migrationService.getCurrentGithubUser().then((response) => {
                     vm.currentGithubUser = response.data;
                 });
             },
 
             "getSourceProject": function (owner, projectName) {
-                var vm = this;
+                const vm = this;
                 this.loadingBar.start();
-                migrationService.getSourceProject(owner, projectName).then(function (data) {
+                migrationService.getSourceProject(owner, projectName).then((data) => {
                     vm.loadingBar.end();
                     vm.source = data;
                 });
@@ -671,7 +671,7 @@
             },
 
             "setDestination": function (repo) {
-                var vm = this;
+                const vm = this;
                 this.destination = {
                     "owner": repo.owner.login,
                     "projectName": repo.name,
@@ -687,14 +687,14 @@
                 this.isMigrationWorkerAdmin(this.destination);
                 this.checkIfDestinationHaveDataAlready();
                 if (this.source.assignees) {
-                    this.source.assignees.forEach(function (sourceUser) {
+                    this.source.assignees.forEach((sourceUser) => {
                         vm.userExistAtDestinationProject(vm.destination, sourceUser.login, 0);
                     });
                 }
             },
 
             "isMigrationWorkerAdmin": function (destination) {
-                var vm = this;
+                const vm = this;
                 this.showWorkerWarning = false;
                 this.showUserProjectWarning = false;
                 this.showNotAdminWarning = false;
@@ -703,7 +703,7 @@
                     return;
                 }
                 this.showUserProjectWarning = false;
-                migrationService.getOrgMembership(destination, this.currentGithubUser.login).then(function (response) {
+                migrationService.getOrgMembership(destination, this.currentGithubUser.login).then((response) => {
                     if (destination.ownerType === "Organization" && response.data.role !== "admin") {
                         WORKER.TOKEN = USER.TOKEN;
                         vm.showWorkerWarning = true;
@@ -711,24 +711,24 @@
                         vm.showWorkerWarning = false;
                     }
                 });
-                migrationService.getOrgMembership(destination, this.currentGithubUser.login).then(function (response) {
+                migrationService.getOrgMembership(destination, this.currentGithubUser.login).then((response) => {
                     vm.showNotAdminWarning = destination.ownerType === "Organization" && response.data.role !== "admin";
                 });
             },
 
             "checkIfDestinationHaveDataAlready": function () {
-                var vm = this;
-                var milestones = migrationService.haveMilestonesAlready(this.destination);
-                var posts = migrationService.havePostsAlready(this.destination);
-                var issues = migrationService.haveIssuesAlready(this.destination);
-                if (milestones) { milestones.then(function (response) { vm.destination.milestones = response.data; }); }
-                if (posts) { posts.then(function (response) { vm.destination.posts = response.data; }); }
-                if (issues) { issues.then(function (response) { vm.destination.issues = response.data; }); }
+                const vm = this;
+                const milestones = migrationService.haveMilestonesAlready(this.destination);
+                const posts = migrationService.havePostsAlready(this.destination);
+                const issues = migrationService.haveIssuesAlready(this.destination);
+                if (milestones) { milestones.then((response) => { vm.destination.milestones = response.data; }); }
+                if (posts) { posts.then((response) => { vm.destination.posts = response.data; }); }
+                if (issues) { issues.then((response) => { vm.destination.issues = response.data; }); }
             },
 
             /** 담당자 입력칸의 값(`destination.assignees[원본 로그인].login`). 없으면 빈 글자. */
             "assigneeLogin": function (sourceUser) {
-                var assignee = this.destination.assignees && this.destination.assignees[sourceUser];
+                const assignee = this.destination.assignees && this.destination.assignees[sourceUser];
                 return assignee && assignee.login !== undefined ? assignee.login : "";
             },
 
@@ -743,7 +743,7 @@
             },
 
             "assigneeConfirmed": function (sourceUser) {
-                var assignee = this.destination.assignees && this.destination.assignees[sourceUser];
+                const assignee = this.destination.assignees && this.destination.assignees[sourceUser];
                 return assignee ? assignee.confirmed : undefined;
             },
 
@@ -765,7 +765,7 @@
                 }
 
                 if (storageAvailable("localStorage")) {
-                    var fromLocal = localStorage.getItem(sourceUser);
+                    const fromLocal = localStorage.getItem(sourceUser);
                     if (fromLocal) {
                         console.log("loaded from localstorage:", fromLocal);
                         if (!this.destination.assignees[sourceUser]) {
@@ -781,15 +781,15 @@
 
             /** 담당자로 적은 GitHub 계정이 대상 저장소의 협업자인지 확인한다. `delay`가 0이면 바로, 아니면 입력이 멈춘 뒤 300ms(이상) 지나서 확인한다. */
             "userExistAtDestinationProject": function (destination, sourceUser, delay) {
-                var vm = this;
+                const vm = this;
                 // 담당자를 정하지 않았으면 확인하지 않는다
                 if (!destination.assignees[sourceUser] || !destination.assignees[sourceUser].login) {
                     return;
                 }
-                var destUser = destination.assignees[sourceUser].login;
+                const destUser = destination.assignees[sourceUser].login;
 
                 function checkUserExisted() {
-                    migrationService.userExistAtDestinationProject(destination.owner, destination.projectName, destUser).then(function (response) {
+                    migrationService.userExistAtDestinationProject(destination.owner, destination.projectName, destUser).then((response) => {
                         if (response.status === 204) {
                             if (!vm.destination.assignees) {
                                 vm.destination.assignees = {};
@@ -811,7 +811,7 @@
                 if (this.filterTextTimeout) {
                     clearTimeout(this.filterTextTimeout);
                 }
-                var defaultDelayMillis = 300;
+                const defaultDelayMillis = 300;
                 this.filterTextTimeout = setTimeout(checkUserExisted, delay > defaultDelayMillis ? delay : defaultDelayMillis);
             },
 
@@ -819,7 +819,7 @@
                 if (!this.isDestinationSelected()) {
                     return;
                 }
-                var calledCheckKey = this.source.full_name + "/" + this.destination.full_name;
+                const calledCheckKey = this.source.full_name + "/" + this.destination.full_name;
                 if (!this.delegateAttachmentsMigrationCalled[calledCheckKey]) {
                     this.delegateAttachmentsMigrationCalled[calledCheckKey] = true;
                     // v1.6은 값을 돌려주지 않는 서비스 함수에 `.then`을 걸어 TypeError가 났다(C101). 서비스는 아직 지원하지 않으므로 결과를 기다리지 않는다
@@ -858,8 +858,8 @@
             },
 
             "endLoadingBar": function (counter) {
-                var vm = this;
-                setTimeout(function () {
+                const vm = this;
+                setTimeout(() => {
                     if (vm.importResult.count === vm.expectedImportCount) {
                         vm.loadingBar.end();
                     } else if (counter < 20) {
@@ -874,7 +874,7 @@
             },
 
             "importMilestones": function () {
-                var vm = this;
+                const vm = this;
                 this.checkHardcodedDestinationForTest();
                 if (!this.lastConfirm(Messages("migration.milestone"), this.destination)) { return; }
 
@@ -884,7 +884,7 @@
                 this.assertIsProjectSelected("Destination", this.destination);
                 this.systemMessage(Messages("migration.js.copyMilestones"));
 
-                migrationService.importMilestones(this.source, this.destination).then(function (result) {
+                migrationService.importMilestones(this.source, this.destination).then((result) => {
                     vm.importResult = result;
                     vm.destination.milestones = vm.importResult;
                     vm.endLoadingBar(1);
@@ -904,9 +904,9 @@
             },
 
             "importProjectLabels": function (source) {
-                var vm = this;
+                const vm = this;
                 this.loadingBar.start();
-                migrationService.importProjectLabels(source.owner, source.projectName).then(function (data) {
+                migrationService.importProjectLabels(source.owner, source.projectName).then((data) => {
                     vm.projectLabels = data.labels;
                     vm.systemMessage(Messages("migration.js.labelCount", Object.keys(vm.projectLabels).length));
                     vm.systemMessage(Messages("migration.js.arrangingLabels"));
@@ -915,8 +915,8 @@
             },
 
             "importIssueLabelMap": function (source) {
-                var vm = this;
-                migrationService.importIssueLabelMap(source.owner, source.projectName).then(function (data) {
+                const vm = this;
+                migrationService.importIssueLabelMap(source.owner, source.projectName).then((data) => {
                     vm.rawIssueLabelMap = data;
                     vm.systemMessage(Messages("migration.js.labeledIssues", Object.keys(vm.rawIssueLabelMap).length));
                     vm.systemMessage(Messages("migration.js.working"));
@@ -927,10 +927,10 @@
 
             /** 이슈 번호별 라벨 번호 목록을 "라벨 이름 - 분류 이름" 목록으로 바꾼다. */
             "flatLabelMap": function () {
-                var vm = this;
+                const vm = this;
                 this.issueLabelMap = {};
-                Object.keys(this.rawIssueLabelMap).forEach(function (key) {
-                    vm.rawIssueLabelMap[key].forEach(function (id) {
+                Object.keys(this.rawIssueLabelMap).forEach((key) => {
+                    vm.rawIssueLabelMap[key].forEach((id) => {
                         if (!vm.issueLabelMap[key]) {
                             vm.issueLabelMap[key] = [];
                         }
@@ -941,17 +941,17 @@
             },
 
             "executeIssueImports": function () {
-                var vm = this;
-                var source = this.source;
-                var destination = this.destination;
-                var issueLabelMap = this.issueLabelMap;
+                const vm = this;
+                const source = this.source;
+                const destination = this.destination;
+                const issueLabelMap = this.issueLabelMap;
 
                 this.setExpectedResultCount(source.issueCount);
                 this.assertIsProjectSelected("Source", source);
                 this.assertIsProjectSelected("Destination", destination);
 
                 this.systemMessage(Messages("migration.js.readingIssues"));
-                migrationService.importIssues(source, destination, issueLabelMap).then(function (result) {
+                migrationService.importIssues(source, destination, issueLabelMap).then((result) => {
                     vm.importResult = result;
                     vm.destination.issues = result;
                     vm.endLoadingBar(1);
@@ -963,13 +963,13 @@
             },
 
             "importPosts": function () {
-                var vm = this;
+                const vm = this;
                 this.checkHardcodedDestinationForTest();
                 if (!this.lastConfirm(Messages("migration.post"), this.destination)) { return; }
 
                 this.importBtnDisabled = true;
-                var source = this.source;
-                var destination = this.destination;
+                const source = this.source;
+                const destination = this.destination;
 
                 this.setExpectedResultCount(source.postCount);
                 this.assertIsProjectSelected("Source", source);
@@ -977,7 +977,7 @@
 
                 this.loadingBar.start();
                 this.systemMessage(Messages("migration.js.readingPosts"));
-                migrationService.importPosts(source, destination).then(function (result) {
+                migrationService.importPosts(source, destination).then((result) => {
                     vm.importResult = result;
                     vm.destination.issues = result;
                     vm.endLoadingBar(1);
@@ -997,7 +997,7 @@
         }
     };
 
-    $(function () {
+    $(() => {
         Vue.createApp(MigrationApp).mount("#migration-app");
     });
 })();

@@ -6,11 +6,11 @@
  **/
 
 (function(ns){
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
-        var vars = {};
-        var elements = {};
+        const vars = {};
+        const elements = {};
 
         /**
          * initialize
@@ -99,7 +99,7 @@
          * @private
          */
         function _onChangeProject(){
-            var data = _getFormValue();
+            const data = _getFormValue();
 
             location.search = "?fromProjectId=" + data.fromProjectId + "&toProjectId=" + data.toProjectId;
         }
@@ -110,7 +110,7 @@
          * @private
          */
         function _checkMergeResult(){
-            var data = _getFormValue();
+            const data = _getFormValue();
 
             if(!data.fromBranch && !data.toBranch){
                 return;
@@ -125,7 +125,7 @@
             })
             .done(_onSuccessMergeResult)
             .fail(_onErrorMergeResult)
-            .always(function(){
+            .always(() =>{
                 NProgress.done();
             });
         }
@@ -153,8 +153,8 @@
          * @private
          */
         function _getMergeResultData(){
-            var container = $("#mergeResult");
-            var data = {
+            const container = $("#mergeResult");
+            const data = {
                 "cssClass"    : "alert-info",
                 "message"     : Messages("pullRequest.diff.noChanges"),
                 "isConflict"  : (container.attr("data-conflict") === "true"),
@@ -187,7 +187,7 @@
          * @private
          */
         function _fillFormTitleBody(data){
-            var isUserHasTyped = elements.title.data("isUserHasTyped") ||
+            const isUserHasTyped = elements.title.data("isUserHasTyped") ||
                                  elements.body.data("isUserHasTyped");
 
             if(!isUserHasTyped){
@@ -237,7 +237,7 @@
 
             // Show confirm dialog in case of conflict
             if(vars.mergeResult.isConflict && !vars.mergeResult.forceSubmit){
-                $yona.confirm(Messages("pullRequest.ignore.conflict"), function(data){
+                $yona.confirm(Messages("pullRequest.ignore.conflict"), (data) =>{
                     if(data.nButtonIndex === 1){
                         vars.mergeResult.forceSubmit = true;
                         elements.form.submit();
@@ -247,9 +247,9 @@
             }
 
             // Check whether required field is empty
-            var requiredField = _getFormValue();
+            const requiredField = _getFormValue();
 
-            for(var fieldName in requiredField){
+            for(const fieldName in requiredField){
                 if(requiredField[fieldName].length === 0){
                     $yona.alert(Messages("pullRequest." + fieldName + ".required"));
                     return false;
@@ -269,7 +269,7 @@
                 vars.uploaderId = null;
             }
 
-            var oUploader = yona.Files.getUploader(elements.uploader, elements.body);
+            const oUploader = yona.Files.getUploader(elements.uploader, elements.body);
 
             if(oUploader){
                 vars.uploaderId = oUploader.attr("data-namespace");

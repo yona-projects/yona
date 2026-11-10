@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -75,14 +75,14 @@
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welBtnHelp.click(function(e){
+            htElement.welBtnHelp.click((e) =>{
                 e.preventDefault();
                 htElement.welMsgHelp.toggle();
             });
 
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = (welTarget.attr("data-watching") === "true");
+            htElement.welBtnWatch.click((weEvt) => {
+                const welTarget = $(weEvt.target);
+                const bWatched = (welTarget.attr("data-watching") === "true");
 
                 $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
@@ -101,7 +101,7 @@
                 $(this).next("pre").toggleClass("hidden");
             });
 
-            $("a#toggle").click(function(weEvt){
+            $("a#toggle").click((weEvt) =>{
                 weEvt.preventDefault();
                 $("#outdatedCommits").toggle();
             });
@@ -125,7 +125,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -141,7 +141,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(n, elContainer){
+            htElement.welAttachments.each((n, elContainer) =>{
                 if(!$(elContainer).data("isYobiAttachment")){
                     if(!$(elContainer).data("isYobiAttachment")){
                         (new yona.Attachments({"elContainer": elContainer}));
@@ -160,8 +160,8 @@
 
             htVar.bStateUpdating = true;
 
-            $.get(htVar.sStateUrl, function(oRes){
-                var sResult = oRes.html;
+            $.get(htVar.sStateUrl, (oRes) =>{
+                const sResult = oRes.html;
 
                 // update state only HTML has changed
                 if(sResult != htVar.sStateHTML){
@@ -171,7 +171,7 @@
 
                 // update visiblitity of actrow buttons
                 htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
-            }).always(function(){
+            }).always(() =>{
                 htVar.bStateUpdating = false;
             });
         }
@@ -185,13 +185,13 @@
          * 입력(scroll, mousedown, mousemove, keypress)이 오면 다음 간격 시각부터 다시 요청한다.
          */
         function _setStateUpdateTimer(){
-            var nIdleLimit = 60000; // 60sec
-            var nLastInput = Date.now();
+            const nIdleLimit = 60000; // 60sec
+            let nLastInput = Date.now();
 
             function onUserInput(){
                 nLastInput = Date.now();
             }
-            ["scroll", "mousedown", "mousemove", "keypress"].forEach(function(sType){
+            ["scroll", "mousedown", "mousemove", "keypress"].forEach((sType) =>{
                 window.addEventListener(sType, onUserInput, {"passive": true});
             });
 
@@ -199,7 +199,7 @@
                 clearInterval(htVar.nStateUpdateTimer);
             }
 
-            htVar.nStateUpdateTimer = setInterval(function(){
+            htVar.nStateUpdateTimer = setInterval(() =>{
                 if(Date.now() - nLastInput >= nIdleLimit){
                     return;
                 }

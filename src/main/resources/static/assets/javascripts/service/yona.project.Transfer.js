@@ -20,10 +20,10 @@
  */
 (function(ns){
     
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
                 
-        var htElement = {};
+        const htElement = {};
         
         /**
          * initialize
@@ -48,12 +48,12 @@
         function _attachEvent(htOptions){
             htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
 
-            htElement.welBtnTransferPrj.one("click", function(){
+            htElement.welBtnTransferPrj.one("click", () =>{
                 $.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
                     "method" : "put",
                     "success": function(oRes, sStatus, oXHR){
                         // default action below:
-                        var sLocation = oXHR.getResponseHeader("Location");
+                        const sLocation = oXHR.getResponseHeader("Location");
 
                         if(oXHR.status === 204 && sLocation){
                             document.location.href = sLocation;

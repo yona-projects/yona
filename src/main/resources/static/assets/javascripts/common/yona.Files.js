@@ -5,9 +5,9 @@
  * https://yona.io
  **/
 yona.Files = (function(){
-    var htVar = {};
-    var htElements = {};
-    var htHandlers = {};
+    const htVar = {};
+    const htElements = {};
+    const htHandlers = {};
 
     /**
      * initialize fileUploader
@@ -49,7 +49,7 @@ yona.Files = (function(){
      */
     function _uploadFile(oFiles, sNamespace){
         if(oFiles && oFiles.length){
-            for(var i = 0; i < oFiles.length; i++){
+            for(let i = 0; i < oFiles.length; i++){
                 _uploadSingleFile(oFiles[i], _getSubmitId(), sNamespace);
             }
         } else {
@@ -71,7 +71,7 @@ yona.Files = (function(){
         }
 
         // fireEvent: beforeUpload
-        var bEventResult = _fireEvent("beforeUpload", {
+        const bEventResult = _fireEvent("beforeUpload", {
             "oFile": oFile,
             "nSubmitId": oFile ? oFile.nSubmitId : nSubmitId
         }, sNamespace);
@@ -103,29 +103,29 @@ yona.Files = (function(){
             }, sNamespace);
         }
 
-        var oData = new FormData();
-        var filename = oFile.name === 'image.png' ? nSubmitId + ".png" : oFile.name;
+        const oData = new FormData();
+        const filename = oFile.name === 'image.png' ? nSubmitId + ".png" : oFile.name;
         oData.append("filePath", oFile, filename);
 
-        var oXHR = new XMLHttpRequest();
+        const oXHR = new XMLHttpRequest();
         oXHR.open("POST", htVar.sUploadURL);
         oXHR.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
-        oXHR.upload.addEventListener("progress", function(weEvt){
+        oXHR.upload.addEventListener("progress", (weEvt) =>{
             if(weEvt.lengthComputable){
                 _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
             }
         }, false);
 
-        oXHR.addEventListener("load", function(){
-            var oResult = _readResponse(oXHR);
+        oXHR.addEventListener("load", () =>{
+            const oResult = _readResponse(oXHR);
             if(oResult.error){
                 _onErrorSubmit(nSubmitId, oResult.error, sNamespace);
             } else {
                 _onSuccessSubmit(nSubmitId, oResult.data, sNamespace);
             }
         });
-        var fOnFail = function(){
+        const fOnFail = function(){
             _onErrorSubmit(nSubmitId, {"status": 0, "statusText": "error", "responseText": ""}, sNamespace);
         };
         oXHR.addEventListener("error", fOnFail);
@@ -142,8 +142,8 @@ yona.Files = (function(){
      * @private
      */
     function _readResponse(oXHR){
-        var bSuccess = (oXHR.status >= 200 && oXHR.status < 300) || oXHR.status === 304;
-        var sText = oXHR.responseText;
+        const bSuccess = (oXHR.status >= 200 && oXHR.status < 300) || oXHR.status === 304;
+        const sText = oXHR.responseText;
 
         if(!bSuccess){
             return {"error": {"status": oXHR.status, "statusText": oXHR.statusText || "error", "responseText": sText}};
@@ -294,7 +294,7 @@ yona.Files = (function(){
      * @param {String} sNamespace
      */
     function _initElement(htOptions){
-        var sNamespace = htOptions.sNamespace;
+        const sNamespace = htOptions.sNamespace;
 
         htElements[sNamespace] = {};
         htElements[sNamespace].welContainer = $(htOptions.elContainer);
@@ -307,7 +307,7 @@ yona.Files = (function(){
      * @param {String} sNamespace
      */
     function _attachEvent(sNamespace){
-        var htElement = htElements[sNamespace];
+        const htElement = htElements[sNamespace];
         htElement.welInputFile.on("change", _onChangeFile.bind(this, sNamespace));
 
         // Upload by Drag & Drop
@@ -317,7 +317,7 @@ yona.Files = (function(){
                 "drop"     : _onDropFile.bind(this, sNamespace)
             });
 
-            var sTplDropper = $("#tplDropFilesHere").text().trim() ||
+            const sTplDropper = $("#tplDropFilesHere").text().trim() ||
                 '<div class="upload-drop-here"><div class="msg-wrap"><div class="msg">' +
                 Messages("common.attach.dropFilesHere") +
                 '</div></div></div>';
@@ -390,7 +390,7 @@ yona.Files = (function(){
      * @private
      */
     function _getDropEffect(weEvt){
-        var oData = weEvt.originalEvent.dataTransfer;
+        const oData = weEvt.originalEvent.dataTransfer;
 
         if(!oData.types){
             return "none";
@@ -423,7 +423,7 @@ yona.Files = (function(){
      * @param {String} sNamespace
      */
     function _detachEvent(sNamespace){
-        var htElement = htElements[sNamespace];
+        const htElement = htElements[sNamespace];
         htElement.welInputFile.off();
         htElement.welContainer.off();
         htElement.welTextarea.off();
@@ -437,7 +437,7 @@ yona.Files = (function(){
      * @param {String} sNamespace
      */
     function _onChangeFile(sNamespace){
-        var oFiles = htElements[sNamespace].welInputFile[0].files;
+        const oFiles = htElements[sNamespace].welInputFile[0].files;
         if(!oFiles || oFiles.length === 0){
             return;
         }
@@ -452,7 +452,7 @@ yona.Files = (function(){
     function _onDropFile(sNamespace, weEvt){
         _hideDropper();
 
-        var oFiles = weEvt.originalEvent.dataTransfer.files;
+        const oFiles = weEvt.originalEvent.dataTransfer.files;
         if(!oFiles || oFiles.length === 0){
             return;
         }
@@ -474,13 +474,13 @@ yona.Files = (function(){
      * @param {Wrapped Event} weEvt
      */
     function _onPasteFile(sNamespace, weEvt){
-        var oClipboardData = weEvt.originalEvent.clipboardData;
+        const oClipboardData = weEvt.originalEvent.clipboardData;
 
         if(!oClipboardData || !oClipboardData.items){
             return;
         }
 
-        var oItem, nSubmitId, oFile;
+        let oItem, nSubmitId, oFile;
 
 
         if( hasBothTextAndImage(oClipboardData.items)){
@@ -491,7 +491,7 @@ yona.Files = (function(){
             return weEvt.preventDefault();
         }
 
-        for(var i = 0, nLength = oClipboardData.items.length; i < nLength; i++){
+        for(let i = 0, nLength = oClipboardData.items.length; i < nLength; i++){
             oItem = oClipboardData.items[i];
             oFile = oItem.getAsFile();
 
@@ -511,11 +511,11 @@ yona.Files = (function(){
         }
 
         function hasBothTextAndImage(data) {
-            var hasStringData = false;
-            var hasImageData = false;
+            let hasStringData = false;
+            let hasImageData = false;
 
             if (data && data.length > 1) {
-                for (var i = 0, nLength = data.length; i < nLength; i++) {
+                for (let i = 0, nLength = data.length; i < nLength; i++) {
                     if ((data[i].kind === 'string') &&
                         (data[i].type.match('^text/plain'))) {
                         hasStringData = true;
@@ -530,16 +530,16 @@ yona.Files = (function(){
 
         // v1.6은 인자 대신 전역 `window.event`를 읽었다(C010). 받은 이벤트를 쓴다
         function getPlainText(data, weEvt) {
-            var text;
+            let text;
 
             if (data && data.length > 1) {
-                for (var i = 0, nLength = data.length; i < nLength; i++) {
+                for (let i = 0, nLength = data.length; i < nLength; i++) {
                     if ((data[i].kind === 'string') &&
                         (data[i].type.match('^text/plain'))) {
 
                         // The rest of this block codes are derived from
                         // https://github.com/jonmagic/copy-excel-paste-markdown/blob/master/script.js
-                        var clipboard = weEvt.originalEvent.clipboardData
+                        const clipboard = weEvt.originalEvent.clipboardData
                         var data = clipboard.getData('text/plain').trim()
 
                         if(looksLikeTable(data)) {
@@ -548,19 +548,19 @@ yona.Files = (function(){
                             return
                         }
 
-                        var rows = data.split((/[\u0085\u2028\u2029]|\r\n?/g)).map(function(row) {
+                        var rows = data.split((/[\u0085\u2028\u2029]|\r\n?/g)).map((row) => {
                             row = row.replace('\n', ' ')
                             return row.split("\t")
                         })
 
                         var colAlignments = []
 
-                        var columnWidths = rows[0].map(function(column, columnIndex) {
-                            var alignment = "l"
-                            var re = /^(\^[lcr])/i
-                            var m = column.match(re)
+                        var columnWidths = rows[0].map((column, columnIndex) => {
+                            let alignment = "l"
+                            const re = /^(\^[lcr])/i
+                            const m = column.match(re)
                             if (m) {
-                                var align = m[1][1].toLowerCase()
+                                const align = m[1][1].toLowerCase()
                                 if (align === "c") {
                                     alignment = "c"
                                 } else if (align === "r") {
@@ -572,23 +572,23 @@ yona.Files = (function(){
                             rows[0][columnIndex] = column
                             return columnWidth(rows, columnIndex)
                         })
-                        var markdownRows = rows.map(function(row, rowIndex) {
+                        const markdownRows = rows.map((row, rowIndex) => {
                             // | Name         | Title | Email Address  |
                             // |--------------|-------|----------------|
                             // | Jane Atler   | CEO   | jane@acme.com  |
                             // | John Doherty | CTO   | john@acme.com  |
                             // | Sally Smith  | CFO   | sally@acme.com |
-                            return "| " + row.map(function(column, index) {
+                            return "| " + row.map((column, index) => {
                                 return column + Array(columnWidths[index] - column.length + 1).join(" ")
                             }).join(" | ") + " |"
                             row.map
 
                         })
-                        markdownRows.splice(1, 0, "|" + columnWidths.map(function(width, index) {
-                            var prefix = ""
-                            var postfix = ""
-                            var adjust = 0
-                            var alignment = colAlignments[index]
+                        markdownRows.splice(1, 0, "|" + columnWidths.map((width, index) => {
+                            let prefix = ""
+                            let postfix = ""
+                            let adjust = 0
+                            const alignment = colAlignments[index]
                             if (alignment === "r") {
                                 postfix = ":"
                                 adjust = 1
@@ -608,7 +608,7 @@ yona.Files = (function(){
         }
 
         function columnWidth(rows, columnIndex) {
-            return Math.max.apply(null, rows.map(function(row) {
+            return Math.max.apply(null, rows.map((row) => {
                 return ('' + row[columnIndex]).length
             }))
         }
@@ -624,7 +624,7 @@ yona.Files = (function(){
      * @return {Number}
      */
     function _getSubmitId(){
-      var now = new Date();
+      const now = new Date();
       return  now.getSeconds() + "" + now.getMilliseconds() + '-' + now.getFullYear() + '-' + (now.getMonth() + 1)
           + '-' + now.getDate() + '-' + now.getHours() + '-' + now.getMinutes();
     }
@@ -646,7 +646,7 @@ yona.Files = (function(){
     function _attachCustomEvent(sEventName, fHandler, sNamespace){
         if(typeof sEventName === "object"){
             sNamespace = fHandler ? (fHandler+".") : "";
-            for(var sKey in sEventName){
+            for(const sKey in sEventName){
                 htHandlers[sNamespace + sKey] = htHandlers[sNamespace + sKey] || [];
                 htHandlers[sNamespace + sKey].push(sEventName[sKey]);
             }
@@ -673,8 +673,8 @@ yona.Files = (function(){
             return;
         }
 
-        var aHandlers = htHandlers[sNamespace + sEventName];
-        var nIndex = aHandlers ? aHandlers.indexOf(fHandler) : -1;
+        const aHandlers = htHandlers[sNamespace + sEventName];
+        const nIndex = aHandlers ? aHandlers.indexOf(fHandler) : -1;
 
         if(nIndex > -1){
             htHandlers[sNamespace + sEventName].splice(nIndex, 1);
@@ -691,16 +691,16 @@ yona.Files = (function(){
     function _fireEvent(sEventName, oData, sNamespace){
         sNamespace = sNamespace ? (sNamespace+".") : "";
 
-        var aGlobalHandlers = htHandlers[sEventName] || [];
-        var aLocalHandlers = htHandlers[sNamespace + sEventName] || [];
-        var aHandlers = aGlobalHandlers.concat(aLocalHandlers);
+        const aGlobalHandlers = htHandlers[sEventName] || [];
+        const aLocalHandlers = htHandlers[sNamespace + sEventName] || [];
+        const aHandlers = aGlobalHandlers.concat(aLocalHandlers);
 
         if((aHandlers instanceof Array) === false){
             return;
         }
 
-        var bResult;
-        aHandlers.forEach(function(fHandler){
+        let bResult;
+        aHandlers.forEach((fHandler) =>{
             bResult = bResult || fHandler(oData);
         });
 

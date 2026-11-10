@@ -20,14 +20,14 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         function _init(htOptions){
-            var htOpt = htOptions || {};
+            const htOpt = htOptions || {};
             _initVar(htOpt);
             _initElement(htOptions);
             _attachEvent();
@@ -58,8 +58,8 @@
          */
         function _attachEvent(){
             // 저장소 주소 복사(Flash 대체 경로는 없앴다, yona.Clipboard)
-            htElement.welBtnCopy.on("click", function () {
-                yona.Clipboard.copy(htElement.welInputCloneURL.val()).then(function (copied) {
+            htElement.welBtnCopy.on("click", () => {
+                yona.Clipboard.copy(htElement.welInputCloneURL.val()).then((copied) => {
                     if (copied) {
                         yona.Common.notify(Messages("code.copyUrl.copied"), 1000);
                     }
@@ -71,21 +71,21 @@
             });
 
             $('.project-page-wrap')
-                .on('click', '[data-toggle="description-edit"]', function(){
+                .on('click', '[data-toggle="description-edit"]', () =>{
                     $('[data-toggle="project-description-tab"]').toggleClass('hidden');
                     $('.project-description-edit input').focus();
-                }).on('click', '[data-toggle="description-cancel"]', function(){
+                }).on('click', '[data-toggle="description-cancel"]', () =>{
                     $('[data-toggle="project-description-tab"]').toggleClass('hidden');
                 });
-            $('#descriptionSaveBtn').on('click',function(){
-                var overview = {"overview" : $("#project-description-input").val() };
+            $('#descriptionSaveBtn').on('click',() =>{
+                const overview = {"overview" : $("#project-description-input").val() };
                 $.ajax({
                     "url": htVar.sURLProject,
                     "method": "put",
                     "data": JSON.stringify(overview),
                     "contentType":"application/json"
-                }).done(function(data){
-                        var sDescription = (data.overview)
+                }).done((data) =>{
+                        const sDescription = (data.overview)
                                             ? data.overview
                                             : $("#project-description-input").attr('placeholder');
 
@@ -94,25 +94,25 @@
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
 
 
-                }).fail(function(err){
+                }).fail((err) =>{
                         console.log("err>> ", err);
                 });
             });
             $('#projectLeaveBtn').on('click',function(){
                 bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).show();
 
-                var sURL = $(this).attr("data-href");
+                const sURL = $(this).attr("data-href");
 
-                $("#leaveBtn").click(function(){
+                $("#leaveBtn").click(() =>{
 
                     $.ajax(sURL, {
                         "method": "delete",
                         "dataType": "html"
-                    }).done(function(sResult){
-                        var htData = JSON.parse(sResult);
+                    }).done((sResult) =>{
+                        const htData = JSON.parse(sResult);
                         document.location.replace(htData.location);
-                    }).fail(function(oXHR){
-                        var sErrorMsg;
+                    }).fail((oXHR) =>{
+                        let sErrorMsg;
 
                         switch(oXHR.status){
                             case 403:

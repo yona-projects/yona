@@ -1,15 +1,15 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htElement = {};
-        var htOrderMap = {"asc": "desc", "desc": "asc"};
+        const htElement = {};
+        const htOrderMap = {"asc": "desc", "desc": "asc"};
 
         function _initImplicitTitlePrefix() {
             $(".title-prefix").on("click", function(){
-                var filterInput = $("input[name*='filter']");
+                const filterInput = $("input[name*='filter']");
                 filterInput.val($(this).text());
                 filterInput.closest("form").submit();
             });
@@ -77,12 +77,12 @@
         function _onClickLabelOnList(weEvt) {
             weEvt.preventDefault();
 
-            var link = $(this);
-            var targetQuery = "[data-search=labelIds]";
-            var target = htElement.welForm.find(targetQuery);
+            const link = $(this);
+            const targetQuery = "[data-search=labelIds]";
+            const target = htElement.welForm.find(targetQuery);
 
-            var labelId = link.data("labelId");
-            var newValue;
+            const labelId = link.data("labelId");
+            let newValue;
 
             if(target.prop("multiple")){
                 newValue = (target.val() || []);

@@ -8,11 +8,11 @@
 
     "use strict";
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
-        var vars = {};
-        var elements = {};
+        const vars = {};
+        const elements = {};
 
         /**
          * Initialize
@@ -115,8 +115,8 @@
          * @private
          */
         function _onChangeDueDate(evt){
-            var element = $(this);
-            var dueDate = (element.val() || "").trim();
+            const element = $(this);
+            const dueDate = (element.val() || "").trim();
 
             // if dueDate is not empty and invalid
             if(dueDate && !moment(dueDate).isValid()){
@@ -129,7 +129,7 @@
                 element.data("oval", element.val());
             }
 
-            _requestUpdateIssue(evt, function(res){
+            _requestUpdateIssue(evt, (res) =>{
                 elements.dueDateStatus.html("(" + res.dueDateMsg + ")");
                 if (res.isOverDue) {
                     elements.dueDateStatus.addClass("overdue");
@@ -158,9 +158,9 @@
          * @private
          */
         function _requestUpdateIssue(evt, callback){
-            var field = $(evt.target);
-            var fieldName = field.data("fieldName") || field.prop("name");
-            var fieldValue = field.val();
+            const field = $(evt.target);
+            const fieldName = field.data("fieldName") || field.prop("name");
+            const fieldValue = field.val();
 
             // Send request to update issueInfo
             $.ajax(vars.urls.massUpdate, {
@@ -168,7 +168,7 @@
                 "dataType": "json",
                 "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
             })
-            .done(function(res){
+            .done((res) =>{
                 _updateTimeline();
 
                 $yona.notify(Messages("issue.update." + fieldName), 3000);
@@ -177,7 +177,7 @@
                     callback(res, fieldName, fieldValue, evt);
                 }
             })
-            .fail(function(res){
+            .fail((res) =>{
                 $yona.notify(Messages("error.failedTo",
                     Messages("issue.update." + fieldName),
                     res.status, res.statusText));
@@ -194,10 +194,10 @@
          * @private
          */
         function _getUpdateIssueRequestData(fieldName, fieldValue, evt){
-            var requestData = {"issues[0].id": vars.issueId};
+            const requestData = {"issues[0].id": vars.issueId};
 
             if(fieldName === "labelIds"){
-                var changes = yona.ui.Select2.selectionChanges(evt.target);
+                const changes = yona.ui.Select2.selectionChanges(evt.target);
                 requestData["attachingLabelIds"] = _getIdProps(changes.added);
                 requestData["detachingLabelIds"] = _getIdProps(changes.removed);
             } else {
@@ -220,10 +220,10 @@
          * @private
          */
         function _getIdProps(source){
-            var result = [];
+            const result = [];
 
             if(source instanceof Array){
-                source.forEach(function(obj){
+                source.forEach((obj) =>{
                     if(obj && obj.id){
                         result.push(obj.id);
                     }
@@ -263,11 +263,11 @@
          * @private
          */
         function _onClickBtnWatch(evt){
-            var button = $(evt.target);
-            var watching = button.data("watching");
-            var url = watching ? vars.urls.unwatch : vars.urls.watch;
+            const button = $(evt.target);
+            const watching = button.data("watching");
+            const url = watching ? vars.urls.unwatch : vars.urls.watch;
 
-            $.post(url, function(){
+            $.post(url, () =>{
                 button.data("watching", !watching)
                     .toggleClass('ybtn-watching')
                     .html(Messages(!watching ? "issue.unwatch" : "issue.watch"))
@@ -283,7 +283,7 @@
          * @private
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(elements.uploader, elements.textarea);
+            const oUploader = yona.Files.getUploader(elements.uploader, elements.textarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -302,7 +302,7 @@
          * @private
          */
         function _initFileDownloader(target){
-            (target || $(".attachments")).each(function(i, container){
+            (target || $(".attachments")).each((i, container) =>{
                 if(!$(container).data("isYobiAttachment")){
                     (new yona.Attachments({"elContainer": container}));
                 }
@@ -322,7 +322,7 @@
             vars.isTimelineUpdating = true;
 
             $.get(vars.urls.timeline, _onLoadTimeline)
-             .always(function(){
+             .always(() =>{
                  vars.isTimelineUpdating = false;
              });
         }
@@ -340,17 +340,17 @@
 
             _fixTimelineHeight();
 
-            var timelineList = _getRenderedTimeline(resultHTML);
+            const timelineList = _getRenderedTimeline(resultHTML);
 
-            setTimeout(function(){
+            setTimeout(() =>{
                 elements.timelineList.replaceWith(timelineList);
                 elements.timelineList = timelineList;
                 vars.timelineHTML = resultHTML;
 
-                var isChanged = (vars.timelineItems !== _countTimelineItems());
-                var isTimelineChangedOnTyping = vars.isTextareaOnFocused && isChanged;
+                const isChanged = (vars.timelineItems !== _countTimelineItems());
+                const isTimelineChangedOnTyping = vars.isTextareaOnFocused && isChanged;
 
-                var scrollGap = isTimelineChangedOnTyping ?
+                const scrollGap = isTimelineChangedOnTyping ?
                     (elements.textarea.offset().top - $(document).scrollTop()) : 0;
 
                 _unfixTimelineHeight();
@@ -388,7 +388,7 @@
          * @private
          */
         function _getRenderedTimeline(timelineHTML){
-            var timelineList = elements.timelineList.clone();
+            const timelineList = elements.timelineList.clone();
             timelineList.html(timelineHTML);
 
             _initFileDownloader(timelineList.find(".attachments"));
@@ -409,8 +409,8 @@
             _unsetTimelineUpdateTimer();
 
             vars.timelineItems = _countTimelineItems();
-            vars.timelineUpdateTimer = setInterval(function(){
-                var isEditing = (elements.timelineWrap.find(".comment-update-form:visible").length > 0)
+            vars.timelineUpdateTimer = setInterval(() =>{
+                const isEditing = (elements.timelineWrap.find(".comment-update-form:visible").length > 0)
                                 || _isDockedInspectorOpened();
 
                 if(vars.isTimelineUpdating !== true && !isEditing){
@@ -453,15 +453,15 @@
          * @private
          */
         function _initCommentAndCloseButton(){
-            var commentForm = $("#comment-form");
-            var dynamicCommentBtn = $("#dynamic-comment-btn");
-            var withStateTransitionInput = $("<input type='hidden' name='withStateTransition'>");
+            const commentForm = $("#comment-form");
+            const dynamicCommentBtn = $("#dynamic-comment-btn");
+            const withStateTransitionInput = $("<input type='hidden' name='withStateTransition'>");
 
             commentForm.prepend(withStateTransitionInput);
 
             dynamicCommentBtn.removeClass("hidden");
             dynamicCommentBtn.html(Messages("button.nextState." + vars.nextState));
-            dynamicCommentBtn.on("click", function(){
+            dynamicCommentBtn.on("click", () =>{
                 if(elements.textarea.val().length > 0){
                     withStateTransitionInput.val("true");
                     commentForm.submit();
@@ -471,7 +471,7 @@
                 }
             });
 
-            elements.textarea.on("keyup", function(){
+            elements.textarea.on("keyup", () =>{
                 if(elements.textarea.val().length > 0){
                     dynamicCommentBtn.html(Messages("button.commentAndNextState." + vars.nextState));
                 } else {
@@ -481,7 +481,7 @@
 
             // if yona.ShortcutKey exists
             if(yona.ShortcutKey){
-                yona.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
+                yona.ShortcutKey.attach("CTRL+SHIFT+ENTER", (htInfo) =>{
                     if(htInfo.welTarget.is(elements.textarea)){
                         dynamicCommentBtn.click();
                     }

@@ -20,17 +20,17 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
          */
         function _init(htOptions){
-            var htOpt = htOptions || {};
+            const htOpt = htOptions || {};
             _initVar(htOpt);
             _initElement(htOpt);
             _attachEvent();
@@ -71,7 +71,7 @@
         }
 
         function _clickMailTypeLabel() {
-            var sAction = $(this).data('action');
+            const sAction = $(this).data('action');
             htElement.welSelectedProjects.html("");
             htElement.welProjectList[sAction]();
 
@@ -82,14 +82,14 @@
          */
         function _onClickWriteEmail() {
             // Get project names from labels in #selected-projects div.
-            var sMailingType = $('[name=mailingType]:checked').val();
-            var waProjectSpan, aProjects;
+            const sMailingType = $('[name=mailingType]:checked').val();
+            let waProjectSpan, aProjects;
             if (sMailingType == 'all') {
                 aProjects = {'all': 'true'}
             } else {
                 waProjectSpan = $('#selected-projects > .badge');
                 aProjects = [];
-                for (var i = 0; i < waProjectSpan.length; i++) {
+                for (let i = 0; i < waProjectSpan.length; i++) {
                     aProjects.push(waProjectSpan[i].childNodes[0].nodeValue.trim());
                 }
             }
@@ -104,9 +104,9 @@
                 "htData"    : aProjects,
                 "sDataType" : "json",
                 "fOnLoad"   : function(data) {
-                    var form = $('<form>');
-                    var mailto = 'mailto:';
-                    for (var i = 0; i < data.length; i++) {
+                    const form = $('<form>');
+                    let mailto = 'mailto:';
+                    for (let i = 0; i < data.length; i++) {
                         mailto += data[i] + ',';
                     }
                     console.log(mailto);
@@ -170,7 +170,7 @@
          * @param {String} sName
          */
         function _createProjectLabel(sName) {
-            var fOnClickUnselect = function() {
+            const fOnClickUnselect = function() {
                 welProject.remove();
             };
 

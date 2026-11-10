@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -44,7 +44,7 @@
                 $(this).find(".child-issue-list").show();
             });
 
-            $(".title-wrap > .title").on("click", function(e){
+            $(".title-wrap > .title").on("click", (e) =>{
                 e.stopPropagation();
             })
         }
@@ -81,8 +81,8 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
-            var welTarget = $(this);
-            var sURL = welTarget.attr("href");
+            const welTarget = $(this);
+            const sURL = welTarget.attr("href");
 
             $.ajax(sURL, {
                 "method" : "post",
@@ -90,8 +90,8 @@
                     document.location.reload();
                 },
                 "error"  : function(oRes){
-                    var bOnWatching = welTarget.hasClass("blue");
-                    var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
+                    const bOnWatching = welTarget.hasClass("blue");
+                    const sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
 
                     $yona.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
                 }
@@ -105,7 +105,7 @@
          * @param {Wrapped Event}
          */
         function _onClickBtnLeaveProject(weEvt){
-            var sProjectName = $(this).attr("data-projectName");
+            const sProjectName = $(this).attr("data-projectName");
 
             weEvt.preventDefault();
             weEvt.stopPropagation();
@@ -115,7 +115,7 @@
             }
 
             // 탈퇴는 상태를 바꾸므로 링크 이동(GET)이 아니라 폼 제출(POST)로 보낸다(R-48-2)
-            var welForm = $('<form method="post" style="display:none"></form>').attr("action", $(this).attr("data-leave-url"));
+            const welForm = $('<form method="post" style="display:none"></form>').attr("action", $(this).attr("data-leave-url"));
             welForm.appendTo(document.body).submit();
             return false;
         }
@@ -146,9 +146,9 @@
          */
         function _getTabQueryString(){
             // 주소의 groups 값은 인코딩된 그대로 다시 붙인다
-            var aGroups = /[?&]groups=([^&#]*)/.exec(document.location.search);
-            var sDaysAgo = htElement.welDaysAgo.val();
-            var sOptGroups = (aGroups && aGroups[1]) ? "&groups=" + aGroups[1] : "";
+            const aGroups = /[?&]groups=([^&#]*)/.exec(document.location.search);
+            const sDaysAgo = htElement.welDaysAgo.val();
+            const sOptGroups = (aGroups && aGroups[1]) ? "&groups=" + aGroups[1] : "";
 
             return 'daysAgo=' + sDaysAgo + '&selected=' + htVar.sTabSelected + sOptGroups;
         }

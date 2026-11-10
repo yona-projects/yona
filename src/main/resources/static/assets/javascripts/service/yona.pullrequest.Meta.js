@@ -23,7 +23,7 @@
         if (!result.avatarUrl) {
             return '<div>' + result.name + '</div>';
         }
-        var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
+        const tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
             '<span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>' +
             '<strong class="name">{{name}}</strong>' +
             '<span class="loginid">{{loginId}}</span></div>';
@@ -31,27 +31,27 @@
     }
 
     function matcher(params, data) {
-        var term = (params.term || "").trim().toLowerCase();
+        const term = (params.term || "").trim().toLowerCase();
         if (term === "") {
             return data;
         }
-        var loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
+        const loginId = (typeof data.loginId !== "undefined") ? data.loginId.toLowerCase() : "";
         return ((loginId.indexOf(term) > -1) || ((data.text || "").toLowerCase().indexOf(term) > -1)) ? data : null;
     }
 
     /** 바뀐 선택 항목들의 `id`만 모은다. 없으면 `undefined`이다. */
     function idsOf(items) {
-        var ids = items.map(function (item) { return item.id; }).filter(Boolean);
+        const ids = items.map((item) => { return item.id; }).filter(Boolean);
         return ids.length > 0 ? ids : undefined;
     }
 
-    $(function () {
-        var $meta = $("#pr-meta");
+    $(() => {
+        const $meta = $("#pr-meta");
         if (!$meta.length) {
             return;
         }
-        var formMode = $meta.data("mode") === "form";
-        var urls = {
+        const formMode = $meta.data("mode") === "form";
+        const urls = {
             assignees: $meta.data("assignees-url"),
             labels: $meta.data("labels-url"),
             timeline: $meta.data("timeline-url"),
@@ -60,14 +60,14 @@
 
         /** 변경 뒤 타임라인 줄만 다시 불러오고 라벨 상자의 글자색을 다시 맞춘다. */
         function refreshTimeline() {
-            $.get(urls.timeline, function (html) {
-                var $comments = $("#comments");
+            $.get(urls.timeline, (html) => {
+                let $comments = $("#comments");
                 if (!$comments.length) {
                     $comments = $('<ul class="comments" id="comments"></ul>').appendTo(".board-comment-wrap");
                 }
                 $comments.html(html);
                 $comments.find(".event > .badge").each(function () {
-                    var $label = $(this);
+                    const $label = $(this);
                     $label.removeClass("dimgray white").addClass($yona.getContrastColor($label.css("background-color")));
                 });
             });
@@ -78,7 +78,7 @@
         }
 
         // 담당자
-        var $assignee = $("#assignee");
+        const $assignee = $("#assignee");
         if ($assignee.length) {
             $assignee.select2({
                 minimumInputLength: 0,
@@ -90,36 +90,36 @@
                 escapeMarkup: function (m) { return m; }
             });
 
-            $assignee.on("change", function () {
+            $assignee.on("change", () => {
                 if (formMode) { return; }
-                var loginId = $assignee.val();
+                const loginId = $assignee.val();
                 $.ajax(urls.assignees, {
                     method: "POST",
                     dataType: "json",
                     contentType: "application/json",
                     data: JSON.stringify({assignees: loginId ? [loginId] : []})
-                }).done(function (response) {
+                }).done((response) => {
                     $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
                     refreshTimeline();
-                }).fail(function (xhr) {
+                }).fail((xhr) => {
                     failed(Messages("issue.assignee"), xhr);
                 });
             });
         }
 
         // 라벨
-        $("#labelIds").on("change", function (evt) {
+        $("#labelIds").on("change", (evt) => {
             if (formMode) { return; }
-            var data = {};
-            var changes = yona.ui.Select2.selectionChanges(evt.target);
-            var added = idsOf(changes.added);
-            var removed = idsOf(changes.removed);
+            const data = {};
+            const changes = yona.ui.Select2.selectionChanges(evt.target);
+            const added = idsOf(changes.added);
+            const removed = idsOf(changes.removed);
             if (added) { data.attachingLabelIds = added; }
             if (removed) { data.detachingLabelIds = removed; }
-            $.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(function () {
+            $.ajax(urls.labels, {method: "POST", dataType: "json", traditional: true, data: data}).done(() => {
                 $yona.notify(Messages("issue.update.labelIds"), 3000);
                 refreshTimeline();
-            }).fail(function (xhr) {
+            }).fail((xhr) => {
                 failed(Messages("issue.update.labelIds"), xhr);
             });
         });

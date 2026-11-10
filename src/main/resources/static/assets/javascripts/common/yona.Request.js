@@ -38,13 +38,13 @@
 yona.Request = (function(){
 
     /** 이동과 새로 고침. 시험에서 바꿔 끼울 수 있다 */
-    var htNavigation = {
+    const htNavigation = {
         "to"    : function(sUrl){ document.location.href = sUrl; },
         "reload": function(){ document.location.reload(); }
     };
 
     /** 이미 처리기를 단 요소 */
-    var oBound = new WeakSet();
+    const oBound = new WeakSet();
 
     /**
      * 요소에 이벤트를 보낸다.
@@ -78,13 +78,13 @@ yona.Request = (function(){
             "method" : String(sMethod).toUpperCase(),
             "headers": {"X-Requested-With": "XMLHttpRequest"},
             "cache"  : "no-store"
-        }).then(function(oResponse){
+        }).then((oResponse) =>{
             if(!oResponse.ok){
                 _dispatch(elSource, "request:error", {"status": oResponse.status, "response": oResponse});
                 return {"ok": false, "status": oResponse.status};
             }
             if(_dispatch(elSource, "request:load", {"status": oResponse.status, "response": oResponse}) !== false){
-                var sLocation = oResponse.headers.get("Location");
+                const sLocation = oResponse.headers.get("Location");
                 if(oResponse.status === 204 && sLocation){
                     yona.Request.navigation.to(sLocation);
                 } else {
@@ -92,7 +92,7 @@ yona.Request = (function(){
                 }
             }
             return {"ok": true, "status": oResponse.status};
-        }, function(){
+        }, () =>{
             _dispatch(elSource, "request:error", {"status": 0, "response": null});
             return {"ok": false, "status": 0};
         });
@@ -102,7 +102,7 @@ yona.Request = (function(){
      * 눌렀을 때 요청을 보낸다. 방식과 주소는 누르는 때 요소에서 읽는다.
      */
     function _onActivate(weEvt){
-        var elTarget = weEvt.currentTarget;
+        const elTarget = weEvt.currentTarget;
         if(weEvt.type === "keydown" && !$yona.isEnterKey(weEvt)){
             return;
         }
@@ -117,11 +117,11 @@ yona.Request = (function(){
      * @param {Document|HTMLElement} elRoot
      */
     function bind(elRoot){
-        var aElements = Array.prototype.slice.call(elRoot.querySelectorAll("[data-request-method]"));
+        const aElements = Array.prototype.slice.call(elRoot.querySelectorAll("[data-request-method]"));
         if(elRoot.matches && elRoot.matches("[data-request-method]")){
             aElements.unshift(elRoot);
         }
-        aElements.forEach(function(elTarget){
+        aElements.forEach((elTarget) =>{
             if(oBound.has(elTarget)){
                 return;
             }
@@ -137,7 +137,7 @@ yona.Request = (function(){
     }
 
     if(document.readyState === "loading"){
-        document.addEventListener("DOMContentLoaded", function(){ bind(document); });
+        document.addEventListener("DOMContentLoaded", () =>{ bind(document); });
     } else {
         bind(document);
     }

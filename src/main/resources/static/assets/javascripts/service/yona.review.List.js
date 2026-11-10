@@ -20,10 +20,10 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
-        var htVar = {};
-        var htElement = {};
+        let htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -60,12 +60,12 @@
         function _onChangeFilter(weEvent) {
             weEvent.preventDefault();
 
-            var welElement = $(this);
+            const welElement = $(this);
             if(welElement.data('type') === 'state') {
                 $("input[name='state']").val(welElement.data('value'));
             } else {
-                var sAuthorId = (welElement.data('type') === 'authorId') ? welElement.data('value') : '';
-                var sParticipantId = (welElement.data('type') ==='participantId') ? welElement.data('value') : '';
+                const sAuthorId = (welElement.data('type') === 'authorId') ? welElement.data('value') : '';
+                const sParticipantId = (welElement.data('type') ==='participantId') ? welElement.data('value') : '';
 
                 $("input[name='authorId']").val(sAuthorId);
                 $("input[name='participantId']").val(sParticipantId);
@@ -77,9 +77,9 @@
         function _onChangeOrder(weEvent) {
             weEvent.preventDefault();
 
-            var welElement = $(this);
-            var sOrderField = welElement.data('field');
-            var sOrderValue = welElement.data('value');
+            const welElement = $(this);
+            const sOrderField = welElement.data('field');
+            const sOrderValue = welElement.data('value');
 
             $("input[name='orderBy']").val(sOrderField);
             $("input[name='orderDir']").val(sOrderValue);

@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -81,14 +81,14 @@
                     "htData"    : htVar.htData,
                     "sDataType" : "json",
                     "fOnLoad"    : function(oData, oStatus, oXHR){
-                        var sContentRange = oXHR.getResponseHeader('Content-Range');
+                        let sContentRange = oXHR.getResponseHeader('Content-Range');
 
                         htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
                         htVar.sLastQuery = sQuery;
 
-                        var userData = {};
-                        var userInfos = [];
-                        oData.forEach(function (user) {
+                        const userData = {};
+                        const userInfos = [];
+                        oData.forEach((user) => {
                             userData[user.info] = user;
                             userInfos.push(user.info);
                         });
@@ -110,7 +110,7 @@
          * @return {Boolean}
          */
         function _isEntireRange(sContentRange){
-            var aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
+            const aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
             return (aMatch) ? !(parseInt(aMatch[1], 10) < parseInt(aMatch[2], 10)) : true;
         }
 
@@ -142,7 +142,7 @@
          */
         function _onClickEnrollAcceptBtns(weEvt){
             weEvt.preventDefault();
-            var loginId = $(this).attr('data-loginId');
+            const loginId = $(this).attr('data-loginId');
             $('#loginId').val(loginId);
             $('#addNewMember').submit();
         }
@@ -151,12 +151,12 @@
          * @param {Wrapped Element} weltArget
          */
         function _onClickDelete(){
-            var sURL = $(this).attr("data-href");
+            const sURL = $(this).attr("data-href");
 
             // DELETE 메소드로 AJAX 호출
             // v1.6은 삭제 링크를 누를 때마다 핸들러를 더해, 취소한 뒤 다른 구성원을 지우면 이전 구성원의 주소로도 DELETE가 나갔다(C024, C174, C113-3).
             // 같은 이름 공간의 핸들러를 떼고 다시 달아 마지막에 고른 구성원 하나만 지운다
-            $("#deleteBtn").off("click.deleteMember").on("click.deleteMember", function(){
+            $("#deleteBtn").off("click.deleteMember").on("click.deleteMember", () =>{
                 $.ajax(sURL, {
                     "method"  : "delete",
                     "dataType": "html",
@@ -169,7 +169,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = JSON.parse(sResult);
+            const htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 
@@ -177,7 +177,7 @@
          * @param {Object} oXHR
          */
         function _onErrorDeleteMember(oXHR){
-            var sErrorMsg;
+            let sErrorMsg;
 
             switch(oXHR.status){
                 case 403:
@@ -209,9 +209,9 @@
          * @param {Wrapped Element} welTarget
          */
         function _onClickApply(){
-            var sURL = $(this).attr("data-href");
-            var sLoginId = $(this).attr("data-loginId");
-            var sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
+            const sURL = $(this).attr("data-href");
+            const sLoginId = $(this).attr("data-loginId");
+            const sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
 
             if(typeof sRoleId == "undefined"){
                 //console.log("cannot find Role Id");
@@ -225,7 +225,7 @@
                 "fOnLoad" : function(oData, oStatus, oXHR) {
                     console.log("oXHR.responseText:" + oXHR.responseText);
                     if (oXHR.responseText != "") {
-                        var htData = JSON.parse(oXHR.responseText);
+                        const htData = JSON.parse(oXHR.responseText);
                         document.location.replace(htData.location);
                     }
                 }

@@ -25,10 +25,10 @@
 (function (window, document) {
     "use strict";
 
-    var yona = window.yona = window.yona || {};
+    const yona = window.yona = window.yona || {};
     yona.ui = yona.ui || {};
 
-    var SIZE_CLASSES = ["jq-sml", "jq-mid", "jq-big"];
+    const SIZE_CLASSES = ["jq-sml", "jq-mid", "jq-big"];
 
     /**
      * 단추 한 개를 만든다.
@@ -41,13 +41,13 @@
      * @return {HTMLAnchorElement}
      */
     function createLink(sClassName, sSymbol, sTitle, bTooltips, fOnClick) {
-        var elLink = document.createElement("a");
+        const elLink = document.createElement("a");
         elLink.className = sClassName + " jq-mid";
         elLink.setAttribute("href", "#");
         elLink.appendChild(document.createTextNode(sSymbol));
 
         if (bTooltips) {
-            var elTitle = document.createElement("span");
+            const elTitle = document.createElement("span");
             elTitle.className = "jq-title";
             elTitle.textContent = sTitle;
             elLink.appendChild(elTitle);
@@ -55,7 +55,7 @@
             elLink.setAttribute("title", sTitle);
         }
 
-        elLink.addEventListener("click", function (weEvt) {
+        elLink.addEventListener("click", (weEvt) => {
             weEvt.preventDefault();
             fOnClick();
         });
@@ -63,7 +63,7 @@
     }
 
     function setSize(elLink, sSize) {
-        SIZE_CLASSES.forEach(function (sClass) {
+        SIZE_CLASSES.forEach((sClass) => {
             elLink.classList.remove(sClass);
         });
         elLink.classList.add(sSize);
@@ -76,26 +76,26 @@
      * @return {HTMLElement} 만든 요소(`div.jq-elevator`)
      */
     function init(htOptions) {
-        var htOpt = htOptions || {};
-        var nMargin = htOpt.margin === undefined ? 100 : htOpt.margin;
-        var aAlign = (htOpt.align || "bottom right").split(" ");
-        var elDiv = document.createElement("div");
+        const htOpt = htOptions || {};
+        const nMargin = htOpt.margin === undefined ? 100 : htOpt.margin;
+        const aAlign = (htOpt.align || "bottom right").split(" ");
+        const elDiv = document.createElement("div");
 
         elDiv.classList.add("jq-elevator");
         if ("ontouchstart" in window || window.navigator.msMaxTouchPoints) {
             elDiv.classList.add("touch");
         }
-        ["top", "bottom", "left", "right"].forEach(function (sPosition) {
+        ["top", "bottom", "left", "right"].forEach((sPosition) => {
             if (aAlign.indexOf(sPosition) >= 0) {
                 elDiv.classList.add("align-" + sPosition);
             }
         });
         elDiv.classList.add(htOpt.shape === "square" || htOpt.shape === "rounded" ? htOpt.shape : "circle");
 
-        var elTop = createLink("jq-top", "▲", "Move to Top", htOpt.tooltips, function () {
+        const elTop = createLink("jq-top", "▲", "Move to Top", htOpt.tooltips, () => {
             window.scrollTo({"top": 0, "behavior": "smooth"});
         });
-        var elBottom = createLink("jq-bottom", "▼", "Move to Bottom", htOpt.tooltips, function () {
+        const elBottom = createLink("jq-bottom", "▼", "Move to Bottom", htOpt.tooltips, () => {
             window.scrollTo({"top": document.documentElement.scrollHeight, "behavior": "smooth"});
         });
         elDiv.appendChild(elTop);

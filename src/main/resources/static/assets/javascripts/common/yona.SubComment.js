@@ -1,14 +1,14 @@
-$(function(){
+$(() =>{
     // timeline label text color adjusting
     $(".event > .badge").each(function() {
-        var $this = $(this);
+        const $this = $(this);
         $this.removeClass("dimgray white")
             .addClass($yona.getContrastColor($this.css('background-color')))
     });
 
     // Releated with one line sub-comment feature
     $(".add-a-comment").on("click", function(e){
-        var parent = $(this).parents(".comment");
+        const parent = $(this).parents(".comment");
 
         // Show input form
         parent.find(".child-comment-input-form").toggle();
@@ -22,7 +22,7 @@ $(function(){
                 $(this).parents('form').submit();
                 return false;
             }
-        }).on('keyup.subcomment', function(e) {
+        }).on('keyup.subcomment', (e) => {
             // Cancel input. `visibility`는 건드리지 않는다: 다시 "대댓글 추가"를 눌러 `toggle()`이 `display`만 되돌려도 입력란이 보이게 한다(R-143)
             if ($yona.isEscapeKey(e)) {
                 $(".child-comment-input-form").css("display", "none");
@@ -32,7 +32,7 @@ $(function(){
     });
 
     $(".comment").on("mouseenter tab", function () {
-        var $this = $(this);
+        const $this = $(this);
         if(!$this.find(".textarea-box > textarea").is(":visible")) {
             $this.find(".add-a-comment").fadeIn(300);
             $this.find(".new-issue-by").fadeIn(300);
@@ -47,12 +47,12 @@ $(function(){
     // Releated with one line sub-comment feature
     $(".subcomment-author").each(function addAuthorToLastParagraphOfOnelineComment(index, el){
         // append Author and addtionals to mardkown rendered contents
-        var $el = $(el);
+        const $el = $(el);
         // Remove spaces
-        var trimmed = $el.html().replace(/\s\s+/g, ' ');
+        const trimmed = $el.html().replace(/\s\s+/g, ' ');
         // Find parent element
-        var $closest = $el.closest('.contents');
-        var normalTextRenderedParagraph = $closest.find('p').last();
+        const $closest = $el.closest('.contents');
+        const normalTextRenderedParagraph = $closest.find('p').last();
 
         // Remove unused author and addtional text
         $el.remove();

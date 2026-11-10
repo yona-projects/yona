@@ -21,7 +21,7 @@
 (function (window, document) {
     "use strict";
 
-    var yona = window.yona = window.yona || {};
+    const yona = window.yona = window.yona || {};
 
     /**
      * 보이지 않는 입력 칸을 거쳐 `execCommand("copy")`로 복사한다.
@@ -31,14 +31,14 @@
      * @return {boolean} 복사했으면 true
      */
     function legacyCopy(sText, elContainer) {
-        var elInput = document.createElement("textarea");
-        var elActive = document.activeElement;
-        var bCopied = false;
+        const elInput = document.createElement("textarea");
+        const elActive = document.activeElement;
+        let bCopied = false;
 
         elInput.value = sText;
         elInput.setAttribute("readonly", "");
         elInput.style.cssText = "position:fixed;top:-1000px;left:0;opacity:0;";
-        var elParent = elContainer || document.body;
+        const elParent = elContainer || document.body;
         elParent.appendChild(elInput);
         elInput.select();
         try {
@@ -61,12 +61,12 @@
      * @return {Promise<boolean>} 복사했으면 true로 이행한다(실패해도 거절하지 않고 false로 이행한다)
      */
     function copy(sText, elContainer) {
-        var sValue = sText == null ? "" : String(sText);
+        const sValue = sText == null ? "" : String(sText);
 
         if (window.navigator.clipboard && window.isSecureContext) {
-            return window.navigator.clipboard.writeText(sValue).then(function () {
+            return window.navigator.clipboard.writeText(sValue).then(() => {
                 return true;
-            }, function () {
+            }, () => {
                 // 권한이 없거나 문서가 포커스를 잃었으면 대체 수단으로 한 번 더 시도한다
                 return legacyCopy(sValue, elContainer);
             });

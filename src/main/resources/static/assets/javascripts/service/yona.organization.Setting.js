@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -61,7 +61,7 @@
         }
 
         function _onChangeLogoPath(){
-            var welTarget = $(this);
+            const welTarget = $(this);
 
             if($yona.isImageFile(welTarget) === false){
                 $yona.showAlert(Messages("project.logo.alert"));
@@ -79,12 +79,12 @@
         function _initFormValidator(){
             // name : name of input element
             // rules: rules to apply to the input element.
-            var aRules = [];
+            const aRules = [];
 
-            htVar.oValidator = new yona.ui.FormValidator(htVar.sFormName, aRules, function(aErrors){
-                var oForm = $(document.forms[htVar.sFormName]);
-                var oElement = oForm.find("input[name=name]");
-                var sOrgName = oElement.val();
+            htVar.oValidator = new yona.ui.FormValidator(htVar.sFormName, aRules, ((aErrors) =>{
+                const oForm = $(document.forms[htVar.sFormName]);
+                const oElement = oForm.find("input[name=name]");
+                const sOrgName = oElement.val();
                 if(!htVar.rxOrgName.test(sOrgName)){
                     aErrors.push({
                         id: oElement.attr("id"),
@@ -93,7 +93,7 @@
                     });
                 }
                 _onFormValidate(aErrors);
-            });
+            }));
         }
 
         /**

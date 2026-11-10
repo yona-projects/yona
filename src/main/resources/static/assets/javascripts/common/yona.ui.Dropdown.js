@@ -30,11 +30,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {"sValue":""};
-        var htElement = {};
+        const htVar = {"sValue":""};
+        const htElement = {};
 
          function _init(htOptions){
             _initElement(htOptions);
@@ -62,8 +62,8 @@
          */
         function _onClickItem(weEvt){
             // set welTarget to <li> item
-            var welCurrent = $(weEvt.target);
-            var welTarget = (weEvt.target.tagName === "LI") ? welCurrent : $(welCurrent.parents("li")[0]);
+            const welCurrent = $(weEvt.target);
+            const welTarget = (weEvt.target.tagName === "LI") ? welCurrent : $(welCurrent.parents("li")[0]);
 
             // ignore click event if item doesn't have data-value attribute
             if(welTarget.length === 0 || typeof welTarget.attr("data-value") === "undefined"){
@@ -92,8 +92,8 @@
          * @param {Wrapped Element} welTarget
          */
         function _setFormValue(welTarget){
-            var sFieldValue = welTarget.attr("data-value");
-            var sFieldName  = htElement.welContainer.attr("data-name");
+            const sFieldValue = welTarget.attr("data-value");
+            const sFieldName  = htElement.welContainer.attr("data-name");
             htVar.sName     = sFieldName;
             htVar.sValue    = sFieldValue;
 
@@ -101,7 +101,7 @@
                 return;
             }
 
-            var welInput = htElement.welContainer.find("input[name='" + sFieldName +"']");
+            let welInput = htElement.welContainer.find("input[name='" + sFieldName +"']");
 
             if(welInput.length === 0){
                 welInput = $('<input type="hidden" name="' + sFieldName + '">');
@@ -113,7 +113,7 @@
 
         function _onChange(){
             if(typeof htVar.fOnChange == "function"){
-                setTimeout(function(){
+                setTimeout(() =>{
                     htVar.fOnChange(_getValue());
                 }, 0);
             }
@@ -149,12 +149,12 @@
          * @param {String} sQuery
          */
         function _selectItem(sQuery){
-            var waFind = htElement.welContainer.find(sQuery);
+            const waFind = htElement.welContainer.find(sQuery);
             if(waFind.length <= 0){
                 return false; // no item matches
             }
 
-            var welTarget = $(waFind[0]);
+            const welTarget = $(waFind[0]);
             _setItemSelected(welTarget);
             _setFormValue(welTarget);
 

@@ -18,13 +18,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-$(function(){
+$(() =>{
     "use strict";
 
-    var htElement = {};
-    var clientErrorStatus = /^4[0-9][0-9]$/
-    var serverErrorStatus = /^5[0-9][0-9]$/
-    var networkErrorStatus = 0;
+    const htElement = {};
+    const clientErrorStatus = /^4[0-9][0-9]$/
+    const serverErrorStatus = /^5[0-9][0-9]$/
+    const networkErrorStatus = 0;
 
     function _init(){
         // do this except in loginForm, signUpForm
@@ -88,19 +88,19 @@ $(function(){
 
     // Security key (WebAuthn) as the second step. It uses the same attempt counter as the code input.
     function _useSecurityKey(){
-        var welButton = htElement.welSecurityKeyStep.find(".security-key-use");
+        const welButton = htElement.welSecurityKeyStep.find(".security-key-use");
         htElement.welLoginError.hide();
-        $.post(welButton.data("options-uri"), null, null, "text").then(function(sOptions){
+        $.post(welButton.data("options-uri"), null, null, "text").then((sOptions) =>{
             return YonaWebAuthn.authenticate(sOptions);
-        }).then(function(sCredential){
+        }).then((sCredential) =>{
             return $.post(welButton.data("submit-uri"), {
                 "credential": sCredential,
                 "rememberDevice": htElement.welInputRememberDevice.is(":checked")
             }, null, "json");
-        }).then(function(){
+        }).then(() =>{
             document.location.reload();
-        }).fail(function(htResult){
-            var sKey = htResult && htResult.responseJSON && htResult.responseJSON.message;
+        }).fail((htResult) =>{
+            const sKey = htResult && htResult.responseJSON && htResult.responseJSON.message;
             _showDialogError(Messages(sKey || "user.twoFactor.invalid"));
         });
     }
@@ -118,7 +118,7 @@ $(function(){
     }
 
     function _onSubmitForm(weEvt){
-        var bCodeStep = htElement.welTwoFactorStep.is(":visible");
+        const bCodeStep = htElement.welTwoFactorStep.is(":visible");
         $.ajax(bCodeStep ? htElement.welForm.data("two-factor-action") : htElement.welForm.attr("action"), {
             "type": "post",
             "dataType": "json",
@@ -130,19 +130,19 @@ $(function(){
                 "password": htElement.welInputPw.val(),
                 "rememberMe": htElement.welInputRememberMe.is(":checked")
             }
-        }).done(function(htResult){
+        }).done((htResult) =>{
             if(htResult && htResult.twoFactor){
                 _showTwoFactorStep(htResult.securityKey);
                 return;
             }
             document.location.reload();
-        }).fail(function(htResult){
+        }).fail((htResult) =>{
             // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
             if(htResult.readyState == networkErrorStatus){
                 _showDialogError(Messages("user.login.failed.network"));
             }else if(htResult.responseText && htResult.responseText.length > 0){
                 try{
-                    var responseObject = JSON.parse(htResult.responseText);
+                    const responseObject = JSON.parse(htResult.responseText);
                     _showDialogError(Messages(responseObject.message));
                 }catch (err){
                     _getErrorMessageByStatus(htResult.status);

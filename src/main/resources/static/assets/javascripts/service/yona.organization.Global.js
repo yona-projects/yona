@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 (function(ns) {
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions) {
-        var htElement = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -49,7 +49,7 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            var sURL = $(this).attr('href');
+            const sURL = $(this).attr('href');
             $.ajax(sURL, {
                 "method" : "post",
                 "success": function(){

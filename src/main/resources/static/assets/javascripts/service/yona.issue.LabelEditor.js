@@ -22,11 +22,11 @@
 
     "use strict";
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
-        var vars = {};
-        var elements = {};
+        const vars = {};
+        const elements = {};
 
         /**
          * Initialize
@@ -123,8 +123,8 @@
          * @private
          */
         function _buildCategoryList(){
-            $("div[data-category-name]").each(function(i, item){
-                var categoryName = $(item).data("categoryName");
+            $("div[data-category-name]").each((i, item) =>{
+                const categoryName = $(item).data("categoryName");
 
                 if(vars.categories.indexOf(categoryName) < 0){
                     vars.categories.push(categoryName);
@@ -167,7 +167,7 @@
                 return false;
             }
 
-            var categoryName = (elements.inputCategory.val() || "").trim();
+            const categoryName = (elements.inputCategory.val() || "").trim();
 
             // if categoryName is new, and no option determined,
             // show confirm before submit
@@ -230,7 +230,7 @@
          * @private
          */
         function _submitFormAfterConfirmNewCategoryOption(categoryName){
-            $yona.confirm(Messages("label.category.new.confirm", categoryName), function(evt){
+            $yona.confirm(Messages("label.category.new.confirm", categoryName), (evt) =>{
                     vars.isNewCategoryExclusive = (evt.nButtonIndex === 1);
                     elements.form.submit();
                 }, "", {
@@ -243,10 +243,10 @@
         function _showError(res, messageKey){
             if(res.responseText){
                 try{
-                    var error = JSON.parse(res.responseText);
-                    var errorText = Messages("label.failedTo", Messages(messageKey));
+                    const error = JSON.parse(res.responseText);
+                    let errorText = Messages("label.failedTo", Messages(messageKey));
 
-                    for(var key in error){
+                    for(const key in error){
                         errorText += "\n" + error[key];
                     }
 
@@ -276,7 +276,7 @@
                 "method": "post",
                 "data"  : requestData
             })
-            .done(function(res){
+            .done((res) =>{
                 if (res instanceof Object){
                     _addLabelIntoCategory(res);
                     elements.inputName.val("").focus();
@@ -285,7 +285,7 @@
 
                 $yona.alert(Messages("label.error.creationFailed"));
             })
-            .fail(function(res){
+            .fail((res) =>{
                 _showError(res, "label.add");
             });
         }
@@ -326,7 +326,7 @@
          * @private
          */
         function _addCategoryIntoEditFormSelect(categoryId, categoryName){
-            var option = $('<option value="' + categoryId + '">' + categoryName + '</option>');
+            const option = $('<option value="' + categoryId + '">' + categoryName + '</option>');
             elements.editLabelCategory.append(option);
         }
 
@@ -351,8 +351,8 @@
         function _onFocusInputName(){
             elements.colorsWrap.show();
 
-            var categoryName = elements.inputCategory.val().trim();
-            var labelColor = _isNewCategory(categoryName) ? _getRandomColorCodeInPreset()
+            const categoryName = elements.inputCategory.val().trim();
+            const labelColor = _isNewCategory(categoryName) ? _getRandomColorCodeInPreset()
                                                           : _getFirstItemColorInCategory(categoryName);
 
             if(elements.inputColor.val().length === 0){
@@ -368,9 +368,9 @@
          * @returns {String}
          */
         function _getRandomColorCodeInPreset(){
-            var presetColors = elements.colorsWrap.find(".btn-preset-color");
-            var randomIndex = (new Date().getTime()) % presetColors.length;
-            var color = presetColors.get(randomIndex).style.backgroundColor;
+            const presetColors = elements.colorsWrap.find(".btn-preset-color");
+            const randomIndex = (new Date().getTime()) % presetColors.length;
+            const color = presetColors.get(randomIndex).style.backgroundColor;
 
             return _getRefinedHexColor(color);
         }
@@ -383,8 +383,8 @@
          * @private
          */
         function _getFirstItemColorInCategory(categoryName){
-            var targetItem = _getCategoryElement(categoryName).find(".issue-label:first");
-            var color = targetItem.css("background-color");
+            const targetItem = _getCategoryElement(categoryName).find(".issue-label:first");
+            const color = targetItem.css("background-color");
 
             return _getRefinedHexColor(color);
         }
@@ -396,8 +396,8 @@
          * @private
          */
         function _onClickBtnPresetColor(evt){
-            var targetButton = $(evt.target);
-            var targetColor = _getRefinedHexColor(targetButton.css('background-color'));
+            const targetButton = $(evt.target);
+            const targetColor = _getRefinedHexColor(targetButton.css('background-color'));
 
             elements.inputColor.val(targetColor);
             elements.inputColor.focus();
@@ -413,14 +413,14 @@
          * @private
          */
         function _onBlurInputColor(){
-            var typedColor = elements.inputColor.val();
+            const typedColor = elements.inputColor.val();
 
             if(typedColor.length < 1){
                 return;
             }
 
             if(!_isValidColorExpr(typedColor)){
-                $yona.alert(Messages("label.error.color", typedColor), function(){
+                $yona.alert(Messages("label.error.color", typedColor), () =>{
                     elements.inputColor.focus();
                 });
                 return;
@@ -466,7 +466,7 @@
                 return;
             }
 
-            var boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
+            const boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
 
             inputColor.css("cssText", boxShadowCSS);
             inputName.css("background-color", color);
@@ -487,10 +487,10 @@
          * // text-shadow: 1px 1px 0 #000; -moz-text-shadow: 1px 1px 0 #000; -webkit-text-shadow: 1px 1px 0 #000;
          */
         function _getPrefixedCSSText(cssText){
-            var result = [];
-            var prefixes = ["", "-moz-", "-webkit-"];
+            const result = [];
+            const prefixes = ["", "-moz-", "-webkit-"];
 
-            prefixes.forEach(function(prefix){
+            prefixes.forEach((prefix) =>{
                 result.push(prefix + cssText);
             });
 
@@ -505,7 +505,7 @@
          * @private
          */
         function _onClickBtnDeleteLabel(evt){
-            $yona.confirm(Messages("label.confirm.delete"), function(data){
+            $yona.confirm(Messages("label.confirm.delete"), (data) =>{
                 if(data.nButtonIndex === 1){
                     _requestRemoveLabel(evt.target);
                 }
@@ -519,13 +519,13 @@
          * @private
          */
         function _requestRemoveLabel(target){
-            var targetButton = $(target);
+            const targetButton = $(target);
 
             $.ajax(targetButton.data("deleteUri"), {
                 "method": "post",
                 "data"  : {"_method": "delete"}
             })
-            .done(function(){
+            .done(() =>{
                 _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
             });
         }
@@ -587,7 +587,7 @@
          * @private
          */
         function _onClickBtnEditCategory(evt){
-            var target = $(evt.currentTarget);
+            const target = $(evt.currentTarget);
 
             elements.editCategoryForm.data(target.data());
             elements.editCategoryName.val(target.data("categoryName"));
@@ -602,7 +602,7 @@
          * @private
          */
         function _onClickBtnSubmitEditCategory(){
-            var requestData = {
+            const requestData = {
                 "id"  : elements.editCategoryForm.data("categoryId"),
                 "name": (elements.editCategoryName.val() || "").trim(),
                 "isExclusive": elements.editCategoryExclusive.val(),
@@ -614,11 +614,11 @@
             $.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
                 "method": "put",
                 "data"  : requestData
-            }).done(function(){
+            }).done(() =>{
                 _reloadLabelList();
-            }).fail(function(res){
+            }).fail((res) =>{
                 _showError(res, "label.category.edit");
-            }).always(function(){
+            }).always(() =>{
                 bootstrap.Modal.getOrCreateInstance(elements.editCategoryForm[0]).hide();
                 NProgress.done();
             });
@@ -632,7 +632,7 @@
          * @private
          */
         function _onClickBtnEditLabel(evt){
-            var target = $(evt.currentTarget);
+            const target = $(evt.currentTarget);
 
             elements.editLabelForm.data(target.data());
             elements.editLabelName.val(target.data("labelName"));
@@ -652,16 +652,16 @@
          * @private
          */
         function _onClickBtnSubmitEditLabel(){
-            var requestData = {
+            const requestData = {
                 "name" : (elements.editLabelName.val() || "").trim(),
                 "color": (elements.editLabelColor.val() || "").trim(),
                 "category.id": elements.editLabelCategory.val()
             };
 
             // Check is label with same name exists on new category
-            var categoryName = elements.editLabelCategory.select2("data")[0].text;
-            var initialLabelName = elements.editLabelForm.data("labelName");
-            var isLabelNameChanged = (requestData.name != initialLabelName);
+            const categoryName = elements.editLabelCategory.select2("data")[0].text;
+            const initialLabelName = elements.editLabelForm.data("labelName");
+            const isLabelNameChanged = (requestData.name != initialLabelName);
 
             if(isLabelNameChanged && _isLabelExists(categoryName, requestData.name)){
                 _popoverMessageOn(Messages("label.error.duplicated.in.category", categoryName), elements.editLabelName);
@@ -679,11 +679,11 @@
             $.ajax(elements.editLabelForm.data("updateUri"), {
                 "method": "put",
                 "data"  : requestData
-            }).done(function(){
+            }).done(() =>{
                 _reloadLabelList();
-            }).fail(function(res){
+            }).fail((res) =>{
                 _showError(res, "label.edit");
-            }).always(function(){
+            }).always(() =>{
                 bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).hide();
                 NProgress.done();
             });
@@ -696,8 +696,8 @@
          * @private
          */
         function _onClickBtnPresetColorOnEditForm(evt){
-            var targetButton = $(evt.target);
-            var targetColor = _getRefinedHexColor(targetButton.css('background-color'));
+            const targetButton = $(evt.target);
+            const targetColor = _getRefinedHexColor(targetButton.css('background-color'));
 
             elements.editLabelColor.focus();
             elements.editLabelColor.val(targetColor);
@@ -715,7 +715,7 @@
          * @private
          */
         function _onBlurEditColor(){
-            var refinedColor = _getRefinedHexColor(elements.editLabelColor.val());
+            const refinedColor = _getRefinedHexColor(elements.editLabelColor.val());
 
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,

@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -83,14 +83,14 @@
                     "htData"    : htVar.htData,
                     "sDataType" : "json",
                     "fOnLoad"   : function(oData, oStatus, oXHR){
-                        var sContentRange = oXHR.getResponseHeader('Content-Range');
+                        let sContentRange = oXHR.getResponseHeader('Content-Range');
 
                         htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
                         htVar.sLastQuery = sQuery;
 
-                        var userData = {};
-                        var userInfos = [];
-                        oData.forEach(function (user) {
+                        const userData = {};
+                        const userInfos = [];
+                        oData.forEach((user) => {
                             userData[user.info] = user;
                             userInfos.push(user.info);
                         });
@@ -112,7 +112,7 @@
          * @return {Boolean}
          */
          function _isEntireRange(sContentRange){
-             var aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
+             const aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
              return (aMatch) ? !(parseInt(aMatch[1], 10) < parseInt(aMatch[2], 10)) : true;
          }
 
@@ -152,10 +152,10 @@
                 "data"    : {
                     "loginId": htElement.inputAddNewMember.val()
                 }
-            }).done(function(){
+            }).done(() =>{
                 location.reload();
-            }).fail(function(res){
-                var error = JSON.parse(res.responseText);
+            }).fail((res) =>{
+                const error = JSON.parse(res.responseText);
                 $yona.notify(error.loginId.pop(), 3000);
             });
 
@@ -168,7 +168,7 @@
          */
         function _onClickEnrollAcceptBtns(weEvt){
             weEvt.preventDefault();
-            var loginId = $(this).attr('data-loginId');
+            const loginId = $(this).attr('data-loginId');
             $('#loginId').val(loginId);
             $('#addNewMember').submit();
         }
@@ -177,7 +177,7 @@
          * @param {Wrapped Element} weltArget
          */
         function _onClickDelete(){
-            var sURL = $(this).attr("data-href");
+            const sURL = $(this).attr("data-href");
 
             $yona.ajaxConfirm(Messages("project.member.deleteConfirm"),
                 {
@@ -195,7 +195,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = JSON.parse(sResult);
+            const htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 
@@ -203,7 +203,7 @@
          * @param {Object} oXHR
          */
         function _onErrorDeleteMember(oXHR){
-            var sErrorMsg;
+            let sErrorMsg;
 
             switch(oXHR.status){
                 case 403:
@@ -227,9 +227,9 @@
          * @param {Wrapped Element} welTarget
          */
         function _onClickApply(){
-            var sURL = $(this).attr("data-href");
-            var sLoginId = $(this).attr("data-loginId");
-            var sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
+            const sURL = $(this).attr("data-href");
+            const sLoginId = $(this).attr("data-loginId");
+            const sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
 
             if(typeof sRoleId == "undefined"){
                 //console.log("cannot find Role Id");

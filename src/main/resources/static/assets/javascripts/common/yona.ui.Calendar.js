@@ -45,14 +45,14 @@
  */
 
 (function(ns){
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
 
     /**
      * 달력의 언어를 정한다. Yona의 언어 설정(`yona.language`, 예: "ko")을 브라우저가 알면 그대로 쓰고, 없거나 모르는 값이면 영어로 둔다.
      * 월 이름과 요일 이름은 브라우저의 `Intl`이 만든다.
      */
     function _locale(){
-        var language = window.yona && window.yona.language;
+        const language = window.yona && window.yona.language;
         if (language && typeof Intl !== "undefined") {
             try {
                 if (Intl.DateTimeFormat.supportedLocalesOf([language]).length > 0) { return language; }
@@ -67,8 +67,8 @@
      */
     function _firstWeekday(locale){
         try {
-            var info = new Intl.Locale(locale);
-            var week = typeof info.getWeekInfo === "function" ? info.getWeekInfo() : info.weekInfo;
+            const info = new Intl.Locale(locale);
+            const week = typeof info.getWeekInfo === "function" ? info.getWeekInfo() : info.weekInfo;
             if (week && week.firstDay) { return week.firstDay % 7; }
         } catch (e) { /* Intl.Locale을 모르는 브라우저는 아래 표를 쓴다 */ }
         return /^(ru|uz)(-|$)/.test(locale) ? 1 : 0;
@@ -89,15 +89,15 @@
         if (value instanceof Date) {
             return isNaN(value.getTime()) ? null : new Date(value.getFullYear(), value.getMonth(), value.getDate());
         }
-        var m = /^(\d{4})\D(\d{1,2})\D(\d{1,2})$/.exec(String(value == null ? "" : value).trim());
+        const m = /^(\d{4})\D(\d{1,2})\D(\d{1,2})$/.exec(String(value == null ? "" : value).trim());
         if (!m) { return null; }
-        var date = new Date(+m[1], +m[2] - 1, +m[3]);
+        const date = new Date(+m[1], +m[2] - 1, +m[3]);
         return date.getMonth() === +m[2] - 1 ? date : null;
     }
 
     /** 최소, 최대 날짜(Date 또는 글자)를 `YYYY-MM-DD`로 돌려준다. 없으면 undefined. */
     function _limit(value){
-        var date = _toDate(value);
+        const date = _toDate(value);
         return date ? _toString(date) : undefined;
     }
 
@@ -110,7 +110,7 @@
 
     /** 입력란에 `change`를 낸다. `firedBy`로 자기가 낸 것임을 표시해 다시 읽지 않게 한다(Pikaday와 같다). */
     function _fireChange(field, firedBy){
-        var evt = document.createEvent("HTMLEvents");
+        const evt = document.createEvent("HTMLEvents");
         evt.initEvent("change", true, false);
         evt.firedBy = firedBy;
         field.dispatchEvent(evt);
@@ -123,16 +123,16 @@
      * @param {Object} options `popup`, `min`, `max`, `initial`, `onPick(date)`
      */
     function _create(container, options){
-        var selected = null, vc = null;
-        var min = _toDate(options.min), max = _toDate(options.max);
+        let selected = null, vc = null;
+        const min = _toDate(options.min), max = _toDate(options.max);
 
         /**
          * 달력 화면과 선택을 맞춘다.
          * 팝업 달력은 처음 열기 전에 `set()`을 부르면 이후 `show()`가 달력을 만들지 못하므로, 아직 그려지지 않았으면 속성만 바꾸고 열 때 그려지게 한다.
          */
         function _show(date){
-            var base = date || new Date();
-            var dates = date ? [_toString(date)] : [];
+            const base = date || new Date();
+            const dates = date ? [_toString(date)] : [];
             if (vc.context.mainElement && vc.context.mainElement.hasAttribute("data-vc")) {
                 vc.set({ selectedDates: dates, selectedMonth: base.getMonth(), selectedYear: base.getFullYear() });
             } else {
@@ -147,7 +147,7 @@
             _show(date);
         }
 
-        var locale = _locale();
+        const locale = _locale();
         vc = new VanillaCalendarPro.Calendar(container, {
             inputMode: !!options.popup,
             positionToInput: "auto",
@@ -162,11 +162,11 @@
             selectedYear: (options.initial || new Date()).getFullYear(),
             onClickDate: function(self){
                 if (options.popup) { return; }
-                var picked = _toDate(self.context.selectedDates[0]);
+                const picked = _toDate(self.context.selectedDates[0]);
                 if (picked) { selected = picked; options.onPick(picked); }
             },
             onChangeToInput: function(self){
-                var picked = _toDate(self.context.selectedDates[0]);
+                const picked = _toDate(self.context.selectedDates[0]);
                 if (picked) { selected = picked; options.onPick(picked); }
                 self.hide();
             }
@@ -180,7 +180,7 @@
             /** 읽을 수 있는 날짜면 선택하고 true, 아니면 아무것도 바꾸지 않고 false이다. 빈 값이면 선택만 풀고 false이다. */
             select: function(value){
                 if (!value) { _setSelected(null); return false; }
-                var date = _toDate(value);
+                const date = _toDate(value);
                 if (!date) { return false; }
                 _setSelected(_clamp(date, min, max));
                 return true;
@@ -198,13 +198,13 @@
      */
     oNS.container[oNS.name] = function(element, userOptions){
 
-        var targetElement, picker, field;
+        let targetElement, picker, field;
 
         function _init(element, userOptions){
             targetElement = $(element);
             field = targetElement.get(0);
 
-            var options = Object.assign({
+            const options = Object.assign({
                 "defaultDate": targetElement.val(),
                 "setDefaultDate": true,
                 "format": "YYYY-MM-DD"
@@ -221,7 +221,7 @@
                 targetElement.data("calendar", picker);
 
                 // 입력란에 직접 쓴 값을 읽는다(Pikaday의 _onInputChange). 자기가 낸 change는 다시 읽지 않고, 새 change는 내지 않는다.
-                field.addEventListener("change", function(evt){
+                field.addEventListener("change", (evt) =>{
                     if (evt.firedBy === picker) { return; }
                     _apply(field.value, false);
                 });
@@ -229,7 +229,7 @@
                 picker = targetElement.data("calendar");
             }
 
-            targetElement.next(".btn-calendar").on("click", function(){
+            targetElement.next(".btn-calendar").on("click", () =>{
                 targetElement.data("calendar").show();
             });
 
@@ -254,7 +254,7 @@
          * 읽을 수 없는 글자는 아무것도 바꾸지 않는다. 빈 값은 선택만 푼다.
          */
         function _apply(dateStr, notify){
-            var current = targetElement.data("calendar");
+            const current = targetElement.data("calendar");
             if (!dateStr) {
                 current.select(dateStr);
                 if (notify && field.value !== "") {
@@ -290,8 +290,8 @@
      * @return {{getDate: Function, setDate: Function}}
      */
     oNS.container[oNS.name].inline = function(container, options){
-        var input = $(options.input);
-        var picker = _create($(container).get(0), {
+        const input = $(options.input);
+        const picker = _create($(container).get(0), {
             popup: false,
             min: options.minDate,
             max: options.maxDate,
@@ -318,8 +318,8 @@
 
 })("yona.ui.Calendar");
 
-$(function(){
-    $('[data-toggle="calendar"]').each(function(i, el){
+$(() =>{
+    $('[data-toggle="calendar"]').each((i, el) =>{
         yona.ui.Calendar(el, $(el).data());
     });
 });

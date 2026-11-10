@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -69,7 +69,7 @@
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $('textarea[data-editor-mode="comment-body"]');
 
-            var welHidden = $('<input>').attr('type', 'hidden');
+            const welHidden = $('<input>').attr('type', 'hidden');
 
             htElement.welDiff = $('#commit');
             htElement.welEmptyCommentForm = $('#comment-form')
@@ -96,9 +96,9 @@
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
+            htElement.welBtnWatch.click((weEvt) => {
+                const welTarget = $(weEvt.target);
+                const bWatched = welTarget.hasClass("active");
 
                 $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
@@ -120,7 +120,7 @@
          * Render diff and comments
          */
         function _render() {
-            var sDiff = htElement.welDiff.text();
+            const sDiff = htElement.welDiff.text();
 
             htElement.welDiff.text("");
             htElement.welDiff.append(_renderDiff(sDiff));
@@ -128,8 +128,8 @@
             htElement.welComments.show(); // Show the remain comments
 
             if(document.location.hash){
-                var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
-                var welTarget = $(document.getElementById(sTargetId));
+                const sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
+                const welTarget = $(document.getElementById(sTargetId));
 
                 if(welTarget.length > 0){
                     window.scrollTo(0, welTarget.offset().top);
@@ -143,7 +143,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -159,7 +159,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            $(".attachments").each(function(i, elContainer){
+            $(".attachments").each((i, elContainer) =>{
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
@@ -170,7 +170,7 @@
          * initialize toggle comments button
          */
         function _initToggleCommentsButton() {
-            $('#toggle-comments').on('click',function() {
+            $('#toggle-comments').on('click',() => {
                 $('.diff-container').toggleClass('show-comments');
                 $("#minimap").toggle();
             });
@@ -180,7 +180,7 @@
          * @param {Object} welTr
          */
         function _appendCommentThreadOnLine(welTr,sPath) {
-            var welUl = _createCommentThreadOnLine(welTr,sPath);
+            const welUl = _createCommentThreadOnLine(welTr,sPath);
 
             if (welUl.children().length > 0) {
                 return _appendCommentToggle(welTr, welUl);
@@ -192,13 +192,13 @@
          * @param {Object} welUl
          */
         function _appendCommentToggle(welTr, welUl) {
-            var welTd = $('<td colspan=3>')
+            const welTd = $('<td colspan=3>')
                 .data("line", welTr.data("line"))
                 .data("side", welTr.data("side"))
                 .data("path", welTr.data("path"));
 
             if (htVar.bCommentable) {
-                var welCommentBoxToggleButton = htElement.welEmptyCommentButton.clone()
+                const welCommentBoxToggleButton = htElement.welEmptyCommentButton.clone()
                     .text(Messages("code.openCommentBox"))
                     .attr('data-toggle','commentBoxToggle')
                     .attr('data-type','open');
@@ -211,10 +211,10 @@
         }
 
         function _onClickCommentBoxToggleBtn(weEvt) {
-            var welCommentTr = $(this).closest('tr');
-            var welCodeTr = welCommentTr.prev('tr');
-            var welPath = welCodeTr.closest('table');
-            var sType = $(this).data('type');
+            const welCommentTr = $(this).closest('tr');
+            const welCodeTr = welCommentTr.prev('tr');
+            const welPath = welCodeTr.closest('table');
+            const sType = $(this).data('type');
 
             if(sType=='open') {
                 _showCommentBox(welCommentTr,welPath.data('filePath'),welCodeTr.data('line'),welCodeTr.data('type'));
@@ -240,14 +240,14 @@
          */
         function _onClickLineNumA(weEvt) {
 
-            var commentForm =
+            const commentForm =
                 $(weEvt.target).closest('tr').next().find('#comment-form');
 
             if (commentForm.length > 0) {
                 _hideCommentBox();
             } else {
-                var welRow = $(this).closest('tr');
-                var welPath = welRow.closest('table');
+                const welRow = $(this).closest('tr');
+                const welPath = welRow.closest('table');
                 if(welRow.data('type')=='add' || welRow.data('type')=='context' || welRow.data('type')=='remove') {
                     _showCommentBox(welRow, welPath.data('filePath'), welRow.data('line'),welRow.data('type'));
                 }
@@ -259,14 +259,14 @@
          * @param {Object} welUl
          */
         function _createCommentThreadOnLine(welTr,sPath) {
-            var waComments = htElement.welComments.children('li.comment');
-            var welUl = $('<ul>',{class:'comments'});
+            const waComments = htElement.welComments.children('li.comment');
+            const welUl = $('<ul>',{class:'comments'});
 
-            var nLinenum = welTr.data('line');
-            var sSide = (welTr.data('type') == 'remove') ? 'A' : 'B';
+            const nLinenum = welTr.data('line');
+            const sSide = (welTr.data('type') == 'remove') ? 'A' : 'B';
 
-            for(var i = 0; i < waComments.length; i++) {
-               var welComment = $(waComments[i]);
+            for(let i = 0; i < waComments.length; i++) {
+               const welComment = $(waComments[i]);
 
                if (sPath == welComment.data('path')
                        && nLinenum == welComment.data('line')
@@ -282,9 +282,9 @@
          * @param {Object} welTr
          */
         function _showCommentBox(welTr,sPath,nLine,sType) {
-            var welTd = $("<td/>",{class:'diff-comment-box',colspan:3});
-            var welCommentTr;
-            var sSide = (sType == 'remove') ? 'A' : 'B';
+            const welTd = $("<td/>",{class:'diff-comment-box',colspan:3});
+            let welCommentTr;
+            const sSide = (sType == 'remove') ? 'A' : 'B';
 
             if (htElement.welCommentTr) {
                 htElement.welCommentTr.remove();
@@ -307,37 +307,37 @@
          * @return {Object} 렌더링한 결과로 만들어진 HTML 테이블
          */
         function _renderDiff(sDiff) {
-            var rxDiff = /^Index: [\S]+\n[=]+\n/igm;
-            var aMatchDiff = sDiff.match(rxDiff);
-            var aDiffPath = sDiff.split(rxDiff).slice(1);
-            var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
-            var rxFileHeader = /^(---|\+\+\+) (.+)\t[^\t]+$/; // http://en.wikipedia.org/wiki/Diff#Unified_format
-            var sPath;
+            const rxDiff = /^Index: [\S]+\n[=]+\n/igm;
+            const aMatchDiff = sDiff.match(rxDiff);
+            const aDiffPath = sDiff.split(rxDiff).slice(1);
+            const rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
+            const rxFileHeader = /^(---|\+\+\+) (.+)\t[^\t]+$/; // http://en.wikipedia.org/wiki/Diff#Unified_format
+            let sPath;
 
-            aDiffPath.forEach(function(sDiffRow,nIndex){
-                var welDiffWrapOuter = $('<div/>',{class:'diff-partial-outer'});
-                var welDiffWrapInner = $('<div/>',{class:'diff-partial-inner'});
-                var welDiffMeta = $('<div/>',{class:'diff-partial-meta'});
-                var welDiffMetaCommit = $('<div/>',{class:'diff-partial-commit'});
-                var welDiffMetaFile = $('<div/>',{class:'diff-partial-file'});
-                var welDiffCodeWrap = $('<div/>',{class:'diff-partial-code'});
-                var welDiffCodeTable = $('<table/>',{class:'diff-container show-comments'});
-                var welDiffCodeTableBody = $('<tbody/>');
+            aDiffPath.forEach((sDiffRow,nIndex) =>{
+                const welDiffWrapOuter = $('<div/>',{class:'diff-partial-outer'});
+                const welDiffWrapInner = $('<div/>',{class:'diff-partial-inner'});
+                const welDiffMeta = $('<div/>',{class:'diff-partial-meta'});
+                const welDiffMetaCommit = $('<div/>',{class:'diff-partial-commit'});
+                const welDiffMetaFile = $('<div/>',{class:'diff-partial-file'});
+                const welDiffCodeWrap = $('<div/>',{class:'diff-partial-code'});
+                const welDiffCodeTable = $('<table/>',{class:'diff-container show-comments'});
+                const welDiffCodeTableBody = $('<tbody/>');
 
-                var aLine = sDiffRow.split('\n').slice(0,-1);
-                var sPath;
-                var nLineA=1;
-                var nLineB=1;
-                var nLastLineA=1;
-                var nLastLineB=1;
-                var nCodeLineA;
-                var nCodeLineB;
-                var bInHunk = false;
+                const aLine = sDiffRow.split('\n').slice(0,-1);
+                let sPath;
+                let nLineA=1;
+                let nLineB=1;
+                let nLastLineA=1;
+                let nLastLineB=1;
+                let nCodeLineA;
+                let nCodeLineB;
+                let bInHunk = false;
 
                 if(aLine[0].indexOf('file marked as a binary type') !==-1) {
-                    var sDiffIndex = aMatchDiff[nIndex].split('\n')[0];
-                    var welLineA = $('<td/>',{class:'linenum'}).append($('<div/>',{class:'line-number'}));
-                    var welLineB = welLineA.clone();
+                    const sDiffIndex = aMatchDiff[nIndex].split('\n')[0];
+                    const welLineA = $('<td/>',{class:'linenum'}).append($('<div/>',{class:'line-number'}));
+                    const welLineB = welLineA.clone();
 
                     sPath = sDiffIndex.substr(7);
 
@@ -347,10 +347,10 @@
                     welDiffCodeTableBody.append(_makeCodeLine(null,null,'binary',Messages('code.isBinary')));
 
                 } else {
-                    aLine.forEach(function(sLine){
+                    aLine.forEach((sLine) =>{
                         // v1.6은 내용이 `--`나 `++`로 시작하는 줄을 파일 머리로 보내 그리지 않았고 줄 번호도 어긋났다(C042).
                         // 첫 헝크가 시작된 뒤의 줄은 모두 내용 줄이다
-                        var sLineHead = bInHunk ? '' : sLine.substr(0,2);
+                        const sLineHead = bInHunk ? '' : sLine.substr(0,2);
                         switch(sLineHead) {
                             case '--':
                             case '++':
@@ -384,7 +384,7 @@
                                 break;
                             case '@@' :
                                 var aMatch = sLine.match(rxHunkHeader);
-                                var aHunkRange = aMatch ? aMatch.map(function(sVal) {
+                                var aHunkRange = aMatch ? aMatch.map((sVal) => {
                                     return parseInt(sVal, 10);
                                 }) : null;
 
@@ -451,19 +451,19 @@
         }
 
         function _makeCommitLink(sPath,sCommitId) {
-            var sURL = htVar.sCodeURL + "/" + sCommitId + "/" + sPath;
-            var welCommit = $('<div/>',{class:'diff-partial-commit-id'});
-            var welCommitLink = $('<a/>',{href:sURL,target:'_blink'}).text(sCommitId);
+            const sURL = htVar.sCodeURL + "/" + sCommitId + "/" + sPath;
+            const welCommit = $('<div/>',{class:'diff-partial-commit-id'});
+            const welCommitLink = $('<a/>',{href:sURL,target:'_blink'}).text(sCommitId);
             welCommit.append(welCommitLink);
 
             return welCommit;
         }
 
         function _makeCodeLine(nLineA,nLineB,sRowType,sCode) {
-            var welRow = $('<tr/>',{class:sRowType});
-            var welCellLineA = $('<td/>',{class:'linenum'});
-            var welCellLineB = $('<td/>',{class:'linenum'});
-            var welCellCode = $('<td/>');
+            const welRow = $('<tr/>',{class:sRowType});
+            const welCellLineA = $('<td/>',{class:'linenum'});
+            const welCellLineB = $('<td/>',{class:'linenum'});
+            const welCellCode = $('<td/>');
 
             if(sRowType=='range') {
                 welCellCode.addClass('hunk');
@@ -472,8 +472,8 @@
                 welCellCode.addClass('binary');
                 welCellCode.text(sCode);
             } else {
-                var welCode = $('<pre/>',{class:'diff-partial-codeline'}).text(sCode);
-                var nLine = (nLineB==null) ? nLineA : nLineB;
+                const welCode = $('<pre/>',{class:'diff-partial-codeline'}).text(sCode);
+                const nLine = (nLineB==null) ? nLineA : nLineB;
                 welCellCode.addClass('code');
                 welRow.attr('data-line',nLine).attr('data-type',sRowType);
                 welCellLineA.append($('<i/>',{class:'yobicon-comments'}));
@@ -498,8 +498,8 @@
         }
 
         function _setMiniMapRatio(){
-            var nDocumentHeight = $(document).height();
-            var nMapHeight = htElement.welMiniMapWrap.height();
+            const nDocumentHeight = $(document).height();
+            const nMapHeight = htElement.welMiniMapWrap.height();
 
             htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
         }
@@ -513,12 +513,12 @@
         }
 
         function _updateMiniMap(){
-            var aLinks = [];
-            var welTarget, nTop;
-            var waTargets = $(htVar.sQueryMiniMap);
+            const aLinks = [];
+            let welTarget, nTop;
+            const waTargets = $(htVar.sQueryMiniMap);
 
             if(waTargets.length > 0){
-                waTargets.each(function(i, el){
+                waTargets.each((i, el) =>{
                     welTarget = $(el);
 
                     aLinks.push($yona.render(htVar.sTplMiniMapLink, {

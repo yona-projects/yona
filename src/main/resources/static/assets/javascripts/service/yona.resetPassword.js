@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -63,7 +63,7 @@
          * @require validate.js
          */
         function _initFormValidator(){
-            var aRules = [
+            const aRules = [
                   {"name": 'password',        "rules": 'required|min_length[4]'},
                   {"name": 'retypedPassword', "rules": 'required|matches[password]'}
               ];
@@ -82,9 +82,9 @@
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            var welTarget;
+            let welTarget;
 
-            aErrors.forEach(function(htError){
+            aErrors.forEach((htError) =>{
                 welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
                 if(welTarget){
                     showErrorMessage(welTarget, htError.message);

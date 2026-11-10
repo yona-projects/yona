@@ -7,11 +7,11 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -23,7 +23,7 @@
             _initFileUploader();
 
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.on('keydown', (e) => {
                 if($yona.isEnterKey(e)) {
                     e.preventDefault();
                     htElement.welTextarea.focus();
@@ -83,9 +83,9 @@
         }
 
         function _onReloadMilestone() {
-            $.get(htVar.sIssueFormURL, function(data){
-                var context = data.replace("<!DOCTYPE html>", "").trim();
-                var milestoneOptionDiv = $("#milestoneOption", context);
+            $.get(htVar.sIssueFormURL, (data) =>{
+                const context = data.replace("<!DOCTYPE html>", "").trim();
+                const milestoneOptionDiv = $("#milestoneOption", context);
                 $("#milestoneOption").html(milestoneOptionDiv.html());
                 (new yona.ui.Dropdown({"elContainer":"#milestoneId"}));
             });
@@ -95,7 +95,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -108,16 +108,16 @@
         }
 
         function _onSubmitForm(){
-            var sTitle = $yona.getTrim(htElement.welInputTitle.val());
+            const sTitle = $yona.getTrim(htElement.welInputTitle.val());
 
             if(sTitle.length < 1){
-                $yona.alert(Messages("issue.error.emptyTitle"), function(){
+                $yona.alert(Messages("issue.error.emptyTitle"), () =>{
                     htElement.welInputTitle.focus();
                 });
                 return false;
             }
 
-            var sDueDate = $yona.getTrim(htElement.welDueDate.val());
+            const sDueDate = $yona.getTrim(htElement.welDueDate.val());
 
             if (sDueDate && !moment(sDueDate).isValid()) {
                 $yona.notify(Messages("issue.error.invalid.duedate"), 3000);

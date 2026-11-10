@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -107,7 +107,7 @@
                 "scroll": _updateMiniMapCurr
             });
 
-            htElement.waBtnToggleReviewWrap.on("click", function(){
+            htElement.waBtnToggleReviewWrap.on("click", () =>{
                 htElement.welContainer.toggleClass("diffs-only");
 
             });
@@ -118,8 +118,8 @@
             // Diff 영역에서 스크롤시
             // .comment-thread-wrap 의 좌우 위치를 맞춰준다
             $(".diff-partial-code").on("scroll", function(){
-                var welPartial = $(this);
-                var sHashCode = $(this).data("hashcode");
+                const welPartial = $(this);
+                const sHashCode = $(this).data("hashcode");
                 htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
                 htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
             });
@@ -130,7 +130,7 @@
 
             $(window).on('resize scroll', _setReviewListHeight);
 
-            $("#branches").on("change", function(weEvt){
+            $("#branches").on("change", (weEvt) =>{
                 location.href = weEvt.val;
             });
         }
@@ -141,13 +141,13 @@
          * @private
          */
         function _onClickReviewCardLink(weEvt){
-            var sThreadId = _getHashFromLinkString($(weEvt.currentTarget).attr("href"));
+            const sThreadId = _getHashFromLinkString($(weEvt.currentTarget).attr("href"));
 
             if(!_isThreadExistOnCurrentPage(sThreadId)){
                 return;
             }
 
-            var sPreviousHash = location.hash;
+            const sPreviousHash = location.hash;
             location.hash = sThreadId;
 
             if(sPreviousHash === location.hash) {
@@ -190,7 +190,7 @@
          * @private
          */
         function _scrollToAndHighlight(welTarget){
-            var welThread = _getThread(welTarget);
+            const welThread = _getThread(welTarget);
 
             if(!welTarget || welTarget.length === 0 || !welThread || welThread.length === 0){
                 return;
@@ -245,8 +245,8 @@
          * @private
          */
         function _onClickBtnWatchToggle(weEvt){
-            var welTarget = $(weEvt.target);
-            var bWatched = welTarget.hasClass("active");
+            const welTarget = $(weEvt.target);
+            const bWatched = welTarget.hasClass("active");
 
             $yona.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
@@ -261,7 +261,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -272,11 +272,11 @@
                 }));
             }
 
-            $("form.review-form").each(function(i, el){
-                var form = $(el);
-                var container = form.find(".upload-wrap");
-                var textarea = form.find("textarea");
-                var uploader = yona.Files.getUploader(container, textarea);
+            $("form.review-form").each((i, el) =>{
+                const form = $(el);
+                const container = form.find(".upload-wrap");
+                const textarea = form.find("textarea");
+                const uploader = yona.Files.getUploader(container, textarea);
 
                 if(uploader){
                     (new yona.Attachments({
@@ -294,7 +294,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            $(".attachments").each(function(i, elContainer){
+            $(".attachments").each((i, elContainer) =>{
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
@@ -305,7 +305,7 @@
          * initialize toggle comments button
          */
         function _initToggleCommentsButton(){
-            $('#toggle-comments').on('click', function(){
+            $('#toggle-comments').on('click', () =>{
                 htElement.waDiffContainers.toggleClass('show-comments');
                 htElement.welMiniMap.toggle();
             });
@@ -358,8 +358,8 @@
          * @private
          */
         function _onClickBtnReplyOnThread(weEvt){
-            var welButton = $(weEvt.currentTarget);
-            var welActions = welButton.closest(".thread-actrow");
+            const welButton = $(weEvt.currentTarget);
+            const welActions = welButton.closest(".thread-actrow");
 
             $(window).on("CodeCommentBox:afterhide", function(){
                 welActions.show();
@@ -433,13 +433,13 @@
          * @private
          */
         function _onClickBtnAddBlockComment(){
-            var htBlockInfo = yona.CodeCommentBlock.getData();
+            const htBlockInfo = yona.CodeCommentBlock.getData();
             yona.CodeCommentBlock.block(htBlockInfo);
 
-            var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
-            var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
-            var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
-            var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
+            const sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
+            const sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
+            const welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+            const welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
             welTR.data("blockInfo", htBlockInfo);
 
             yona.CodeCommentBox.show(welTR, {
@@ -447,7 +447,7 @@
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
 
-            var nMarginFromBorder = 20;
+            const nMarginFromBorder = 20;
 
             if(!htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
                 window.scrollTo(0, yona.CodeCommentBox.offset().top + yona.CodeCommentBox.height() - window.innerHeight + nMarginFromBorder);
@@ -465,8 +465,8 @@
          * @private
          */
         function _doesCommentBoxOutOfWindow(){
-            var nScrollTop = $(document.body).scrollTop();
-            var nOffsetTop = yona.CodeCommentBox.offset().top;
+            const nScrollTop = $(document.body).scrollTop();
+            const nOffsetTop = yona.CodeCommentBox.offset().top;
 
             return (nScrollTop + window.innerHeight < nOffsetTop) ||
                    (nOffsetTop + yona.CodeCommentBox.height() > nScrollTop + window.innerHeight);
@@ -478,9 +478,9 @@
         function _onClickLineNumA(weEvt){
             window.getSelection().removeAllRanges();
 
-            var welTarget = $(weEvt.target).closest("tr").find("td.code pre");
-            var oNode = welTarget.get(0).childNodes[0];
-            var oRange = document.createRange();
+            const welTarget = $(weEvt.target).closest("tr").find("td.code pre");
+            const oNode = welTarget.get(0).childNodes[0];
+            const oRange = document.createRange();
 
             oRange.setStart(oNode, 0);
             oRange.setEnd(oNode, oNode.length);
@@ -507,7 +507,7 @@
          * @private
          */
         function _setAllBtnThreadHerePosition(){
-            htElement.welDiffBody.find(".btn-thread-here").each(function(i, el){
+            htElement.welDiffBody.find(".btn-thread-here").each((i, el) =>{
                 _setBtnThreadHerePosition($(el));
             });
         }
@@ -519,15 +519,15 @@
          * @private
          */
         function _setBtnThreadHerePosition(welButton){
-            var welThread = welButton.closest(".comment-thread-wrap");
-            var nPadding = 10;
+            const welThread = welButton.closest(".comment-thread-wrap");
+            const nPadding = 10;
 
             // set unfold button right
             welButton.css("right", ((welThread.index() * welButton.width()) + nPadding) + "px");
 
             // set unfold button top
             // find target line with thread
-            var welEndLine = _getTargetLineByThread(welThread);
+            const welEndLine = _getTargetLineByThread(welThread);
             if(welEndLine.length > 0){
                 welButton.css("top", welEndLine.position().top - nPadding + "px");
             }
@@ -541,9 +541,9 @@
          * @private
          */
         function _getTargetLineByThread(welThread){
-            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
+            const sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
                 '[data-side="' + welThread.data("range-endside") + '"]';
-            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+            const welEndLine = welThread.closest("tr").prev(sEndLineQuery);
 
             return welEndLine;
         }
@@ -559,8 +559,8 @@
                 return;
             }
 
-            var welThread = $(weEvt.currentTarget);
-            var htBlockInfo = {
+            const welThread = $(weEvt.currentTarget);
+            const htBlockInfo = {
                 "sPath"       : welThread.data("range-path"),
                 "sStartSide"  : welThread.data("range-startside"),
                 "nStartLine"  : parseInt(welThread.data("range-startline"), 10),
@@ -602,8 +602,8 @@
         }
 
         function _setMiniMapRatio(){
-            var nDocumentHeight = $(document).height();
-            var nMapHeight = htElement.welMiniMapWrap.height();
+            const nDocumentHeight = $(document).height();
+            const nMapHeight = htElement.welMiniMapWrap.height();
 
             htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
         }
@@ -617,12 +617,12 @@
         }
 
         function _updateMiniMap(){
-            var aLinks = [];
-            var welTarget, nTop;
-            var waTargets = $(htVar.sQueryMiniMap);
+            const aLinks = [];
+            let welTarget, nTop;
+            const waTargets = $(htVar.sQueryMiniMap);
 
             if(waTargets.length > 0){
-                waTargets.each(function(i, el){
+                waTargets.each((i, el) =>{
                     welTarget = $(el);
 
                     aLinks.push($yona.render(htVar.sTplMiniMapLink, {
@@ -643,12 +643,12 @@
          * 붙으면 상자의 화면상 위치가 `top` 값(10px)에 머문다.
          */
         function _isReviewContainerStuck() {
-            var container = htElement.welReviewContainer[0];
+            const container = htElement.welReviewContainer[0];
             return !!container && container.getBoundingClientRect().top <= 10;
         }
 
         function _setReviewListHeight() {
-            var nMaxHeight;
+            let nMaxHeight;
 
             // v1.6은 리뷰 스레드가 하나도 없으면 그려지지 않는 요소의 `position().top`을 읽어 TypeError가 났다(R-70)
             if (htElement.welReviewList.length === 0) {
@@ -656,10 +656,10 @@
             }
 
             if(_isReviewContainerStuck()) {
-                var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
-                var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
-                var nReviewListDefaultMarginBottom = 15;
-                var nDiffWrapBottomPadding = 90;
+                const nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
+                const nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
+                const nReviewListDefaultMarginBottom = 15;
+                const nDiffWrapBottomPadding = 90;
 
                 if(nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
                     nMaxHeight = nCodeDiffWrapOffsetBottom  - $(document).scrollTop() + nDiffWrapBottomPadding;

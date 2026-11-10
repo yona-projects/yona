@@ -9,27 +9,27 @@
     "use strict";
 
     function toBuffer(text) {
-        var padded = text.replace(/-/g, "+").replace(/_/g, "/");
+        let padded = text.replace(/-/g, "+").replace(/_/g, "/");
         while (padded.length % 4) { padded += "="; }
-        var binary = atob(padded);
-        var bytes = new Uint8Array(binary.length);
-        for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+        const binary = atob(padded);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
         return bytes.buffer;
     }
 
     function toText(buffer) {
-        var bytes = new Uint8Array(buffer);
-        var binary = "";
-        for (var i = 0; i < bytes.length; i++) { binary += String.fromCharCode(bytes[i]); }
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) { binary += String.fromCharCode(bytes[i]); }
         return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     }
 
     function decodeDescriptors(list) {
-        return (list || []).map(function (d) { return Object.assign({}, d, { id: toBuffer(d.id) }); });
+        return (list || []).map((d) => { return Object.assign({}, d, { id: toBuffer(d.id) }); });
     }
 
     function creationOptions(json) {
-        var key = JSON.parse(json).publicKey;
+        const key = JSON.parse(json).publicKey;
         key.challenge = toBuffer(key.challenge);
         key.user.id = toBuffer(key.user.id);
         key.excludeCredentials = decodeDescriptors(key.excludeCredentials);
@@ -37,15 +37,15 @@
     }
 
     function requestOptions(json) {
-        var key = JSON.parse(json).publicKey;
+        const key = JSON.parse(json).publicKey;
         key.challenge = toBuffer(key.challenge);
         key.allowCredentials = decodeDescriptors(key.allowCredentials);
         return { publicKey: key };
     }
 
     function encode(credential) {
-        var response = credential.response;
-        var out = {
+        const response = credential.response;
+        const out = {
             type: credential.type,
             id: credential.id,
             rawId: toText(credential.rawId),

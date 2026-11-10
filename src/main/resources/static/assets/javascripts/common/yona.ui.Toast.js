@@ -20,14 +20,14 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(sContainer, htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /** 템플릿을 주지 않았을 때 쓰는 알림 상자 */
-        var DEFAULT_TEMPLATE = '<div class="toast" tabindex="-1">' +
+        const DEFAULT_TEMPLATE = '<div class="toast" tabindex="-1">' +
             '<div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>' +
             '<div class="center-text msg"></div></div>';
 
@@ -51,12 +51,12 @@
          * @return {HTMLElement}
          */
         function _createToast(sMessage){
-            var elTemplate = document.createElement("template");
+            const elTemplate = document.createElement("template");
             elTemplate.innerHTML = htVar.sTplToast.trim();
-            var elToast = elTemplate.content.firstElementChild;
+            const elToast = elTemplate.content.firstElementChild;
 
             elToast.style.opacity = "0";
-            elToast.addEventListener("click", function(){
+            elToast.addEventListener("click", () =>{
                 elToast.remove();
             });
             elToast.querySelector(".msg").innerHTML = $yona.nl2br(sMessage);
@@ -71,7 +71,7 @@
          * @param {Number} nDuration 밀리초. 이 시간 뒤 투명해졌다가 사라진다. 없거나 0이면 눌러서 닫을 때까지 남는다
          */
         function pushToast(sMessage, nDuration){
-            var elToast = _createToast(sMessage);
+            const elToast = _createToast(sMessage);
             htElement.elContainer.prepend(elToast);
             elToast.style.opacity = "1";
 
@@ -87,8 +87,8 @@
          * @param {Number} nDuration
          */
         function _fadeOutTimer(elToast, nDuration){
-            setTimeout(function(){
-                elToast.addEventListener("transitionend", function(weEvt){
+            setTimeout(() =>{
+                elToast.addEventListener("transitionend", (weEvt) =>{
                     if(weEvt.target === elToast){
                         elToast.remove();
                     }

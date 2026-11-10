@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -48,10 +48,10 @@
          */
         function _attachEvent(htOptions){
             htElement.welBtnDeletePop.click(_onClickBtnDeletePrj);
-            htElement.welBtnDeletePrj.on("click", function(weEvt){
+            htElement.welBtnDeletePrj.on("click", (weEvt) =>{
                 weEvt.preventDefault();
                 weEvt.stopPropagation();
-                yona.Request.send("delete", htOptions.sDeleteURL).then(function(result){
+                yona.Request.send("delete", htOptions.sDeleteURL).then((result) =>{
                     if(result.ok === false){
                         bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).hide();
                         $yona.alert(Messages("project.delete.error"));

@@ -20,20 +20,20 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /** 자르기 모달의 이미지 최대 폭(px). 템플릿의 `max-width`와 같다. */
-        var AVATAR_CROP_MAX_WIDTH = 500;
+        const AVATAR_CROP_MAX_WIDTH = 500;
         /** 자른 아바타의 한 변(px). 미리보기 틀과 업로드하는 이미지의 크기이다. */
-        var AVATAR_PREVIEW_SIZE = 128;
+        const AVATAR_PREVIEW_SIZE = 128;
         /** 선택 상자의 최소 한 변(px, 이미지 표시 크기 기준). */
-        var AVATAR_CROP_MIN_SIZE = 32;
+        const AVATAR_CROP_MIN_SIZE = 32;
         /** Cropper.js 2의 자르기 상자 구성. 비율 1:1, 이미지는 고정(옮기기, 확대 없음), 바깥은 흰 막으로 덮는다. */
-        var AVATAR_CROP_TEMPLATE = '<cropper-canvas background>'
+        const AVATAR_CROP_TEMPLATE = '<cropper-canvas background>'
             + '<cropper-image></cropper-image>'
             + '<cropper-shade theme-color="rgba(255, 255, 255, 0.6)"></cropper-shade>'
             + '<cropper-handle action="select" plain></cropper-handle>'
@@ -141,7 +141,7 @@
          * @param {Hash Table} htData
          */
         function _onAvatarUploaded(htData){
-            var oRes = htData.oRes;
+            const oRes = htData.oRes;
 
             if(oRes.mimeType.indexOf("image/") !== 0){
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
@@ -159,7 +159,7 @@
          * @private
          */
         function _setAvatarIdOnForm(nAvatarId){
-            var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
+            let welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
 
             if(welAvatarId.length === 0){
                 welAvatarId = $('<input type="hidden" name="avatarId">');
@@ -192,35 +192,35 @@
          * @private
          */
         function _onAvatarCropImageLoad(){
-            var elImage = htElement.welAvatarCropImg.get(0);
+            const elImage = htElement.welAvatarCropImg.get(0);
 
             if(!elImage.getAttribute("src") || !elImage.naturalWidth){
                 return;
             }
 
-            var nScale = Math.min(1, AVATAR_CROP_MAX_WIDTH / elImage.naturalWidth);
+            const nScale = Math.min(1, AVATAR_CROP_MAX_WIDTH / elImage.naturalWidth);
             htVar.nCropWidth = Math.round(elImage.naturalWidth * nScale);
             htVar.nCropHeight = Math.round(elImage.naturalHeight * nScale);
 
-            var oCropper = new Cropper.Cropper(elImage, {
+            const oCropper = new Cropper.Cropper(elImage, {
                 "container": elImage.parentNode,
                 "template" : AVATAR_CROP_TEMPLATE
             });
             htVar.oCropper = oCropper;
 
-            var elCanvas = oCropper.getCropperCanvas();
+            const elCanvas = oCropper.getCropperCanvas();
             elCanvas.style.width = htVar.nCropWidth + "px";
             elCanvas.style.height = htVar.nCropHeight + "px";
 
-            var elSelection = oCropper.getCropperSelection();
+            const elSelection = oCropper.getCropperSelection();
             elSelection.addEventListener("change", _onAvatarCropSelectionChange);
 
-            oCropper.getCropperImage().$ready().then(function(){
+            oCropper.getCropperImage().$ready().then(() =>{
                 if(htVar.oCropper !== oCropper){
                     return; // 준비되는 사이에 모달이 닫혔다
                 }
 
-                var nSize = Math.min(AVATAR_PREVIEW_SIZE, htVar.nCropWidth, htVar.nCropHeight);
+                const nSize = Math.min(AVATAR_PREVIEW_SIZE, htVar.nCropWidth, htVar.nCropHeight);
                 elSelection.$change(0, 0, nSize, nSize);
             });
         }
@@ -232,7 +232,7 @@
          * @private
          */
         function _onAvatarCropSelectionChange(weEvt){
-            var htData = weEvt.detail;
+            const htData = weEvt.detail;
 
             if(htData.width < AVATAR_CROP_MIN_SIZE || htData.height < AVATAR_CROP_MIN_SIZE){
                 weEvt.preventDefault();
@@ -265,8 +265,8 @@
             if(htData.w <= 0){
                 return;
             }
-            var nRx = AVATAR_PREVIEW_SIZE / htData.w;
-            var nRy = AVATAR_PREVIEW_SIZE / htData.h;
+            const nRx = AVATAR_PREVIEW_SIZE / htData.w;
+            const nRy = AVATAR_PREVIEW_SIZE / htData.h;
 
             htElement.welAvatarCropPreviewImg.css({
                 "width"     : Math.round(nRx * htVar.nCropWidth) + "px",
@@ -284,8 +284,8 @@
                 return;
             }
 
-            htVar.oCropper.getCropperSelection().$toCanvas({"width": AVATAR_PREVIEW_SIZE, "height": AVATAR_PREVIEW_SIZE}).then(function(elCanvas){
-                elCanvas.toBlob(function(oFile){
+            htVar.oCropper.getCropperSelection().$toCanvas({"width": AVATAR_PREVIEW_SIZE, "height": AVATAR_PREVIEW_SIZE}).then((elCanvas) =>{
+                elCanvas.toBlob((oFile) =>{
                     yona.Files.uploadFile(oFile, "avatarCropUpload");
                 });
             });
@@ -301,7 +301,7 @@
         }
 
         function _onAvatarUploadError(vParam){
-            var sMessage = (vParam.oRes) ? Messages("user.avatar.uploadError") +
+            const sMessage = (vParam.oRes) ? Messages("user.avatar.uploadError") +
                 "<br>(" + vParam.oRes.status + " " + vParam.oRes.statusText + ")" : vParam;
 
             $yona.alert(sMessage);
@@ -336,7 +336,7 @@
 
             // Hide progress bar 1s after full
             if(nPercent >= 100){
-                setTimeout(function(){
+                setTimeout(() =>{
                     _setAvatarProgressBar(0);
                 }, 1000);
             }
@@ -351,7 +351,7 @@
          * @require validate.js
          */
         function _initFormValidator(){
-            var aRules = [
+            const aRules = [
                 {"name": 'oldPassword',     "rules": 'required'},
                 {"name": 'password',        "rules": 'required|min_length[4]'},
                 {"name": 'retypedPassword', "rules": 'required|matches[password]'}
@@ -376,8 +376,8 @@
                 return _clearPopovers();
             }
 
-            var welTarget;
-            aErrors.forEach(function(htError){
+            let welTarget;
+            aErrors.forEach((htError) =>{
                 welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
 
                 if(welTarget){
@@ -403,9 +403,9 @@
         }
 
         function _onChangeNotiSwitch(){
-            var welTarget  = $(this);
-            var bChecked   = welTarget.prop("checked");
-            var url        = $(this).attr("data-href");
+            const welTarget  = $(this);
+            const bChecked   = welTarget.prop("checked");
+            const url        = $(this).attr("data-href");
 
             $.ajax(url, {
                 "method" : "post",

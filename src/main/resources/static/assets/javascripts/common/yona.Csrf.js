@@ -10,10 +10,10 @@
 (function () {
     "use strict";
 
-    var SAFE = /^(GET|HEAD|OPTIONS|TRACE)$/i;
+    const SAFE = /^(GET|HEAD|OPTIONS|TRACE)$/i;
 
     function token() {
-        var match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
         return match ? decodeURIComponent(match[1]) : "";
     }
 
@@ -26,14 +26,14 @@
     }
 
     // XMLHttpRequest
-    var originalOpen = XMLHttpRequest.prototype.open;
-    var originalSend = XMLHttpRequest.prototype.send;
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.open = function (method, url) {
         this.__yonaCsrf = !SAFE.test(method || "GET") && sameOrigin(String(url));
         return originalOpen.apply(this, arguments);
     };
     XMLHttpRequest.prototype.send = function () {
-        var value = token();
+        const value = token();
         if (this.__yonaCsrf && value) {
             try { this.setRequestHeader("X-XSRF-TOKEN", value); } catch (e) { /* 이미 보낸 요청이면 무시한다 */ }
         }
@@ -42,14 +42,14 @@
 
     // fetch
     if (window.fetch) {
-        var originalFetch = window.fetch;
+        const originalFetch = window.fetch;
         window.fetch = function (input, init) {
-            var method = (init && init.method) || (input && input.method) || "GET";
-            var url = typeof input === "string" ? input : (input && input.url) || "";
-            var value = token();
+            const method = (init && init.method) || (input && input.method) || "GET";
+            const url = typeof input === "string" ? input : (input && input.url) || "";
+            const value = token();
             if (!SAFE.test(method) && sameOrigin(url) && value) {
                 init = init || {};
-                var headers = new Headers(init.headers || (input && input.headers) || {});
+                const headers = new Headers(init.headers || (input && input.headers) || {});
                 if (!headers.has("X-XSRF-TOKEN")) headers.set("X-XSRF-TOKEN", value);
                 init.headers = headers;
             }
@@ -60,11 +60,11 @@
     // 폼
     function addTokenTo(form) {
         if (!form || !form.tagName || form.tagName.toLowerCase() !== "form") return;
-        var method = form.getAttribute("method") || "get";
+        const method = form.getAttribute("method") || "get";
         if (SAFE.test(method) || !sameOrigin(form.getAttribute("action") || window.location.href)) return;
-        var value = token();
+        const value = token();
         if (!value) return;
-        var input = form.querySelector('input[name="_csrf"]');
+        let input = form.querySelector('input[name="_csrf"]');
         if (!input) {
             input = document.createElement("input");
             input.type = "hidden";
@@ -74,9 +74,9 @@
         input.value = value;
     }
 
-    document.addEventListener("submit", function (event) { addTokenTo(event.target); }, true);
+    document.addEventListener("submit", (event) => { addTokenTo(event.target); }, true);
 
-    var originalSubmit = HTMLFormElement.prototype.submit;
+    const originalSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
         addTokenTo(this);
         return originalSubmit.apply(this, arguments);

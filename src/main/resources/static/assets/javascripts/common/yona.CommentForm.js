@@ -5,11 +5,11 @@
  * https://yona.io
  **/
 
-$(function(){
+$(() =>{
 
     "use strict";
 
-    var elements = {};
+    const elements = {};
 
     /**
      * Initialize
@@ -49,7 +49,7 @@ $(function(){
         clearTimeout(window.draftSavingTimeout);
 
         event.preventDefault();
-        var that = this;
+        const that = this;
 
         if(isCommentBodyEmpty()){
             $yona.notify(Messages("post.comment.empty"), 3000);
@@ -65,7 +65,7 @@ $(function(){
 
         NProgress.start();
 
-        setTimeout(function () {
+        setTimeout(() => {
             that.submit();
         }, 300);
     }

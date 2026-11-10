@@ -7,11 +7,11 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -23,7 +23,7 @@
 
             _initFileUploader();
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.on('keydown', (e) => {
                 if($yona.isEnterKey(e)) {
                     e.preventDefault();
                     htElement.welTextarea.focus();
@@ -60,7 +60,7 @@
 
             temporarySaveHandler(htElement.welTextarea);
 
-            htElement.welTextarea.on("focus", function(){
+            htElement.welTextarea.on("focus", () =>{
                 $(window).on("beforeunload", _onBeforeUnload);
             });
         }
@@ -76,7 +76,7 @@
          */
         function _onSubmitForm(){
             if(htElement.welInputTitle.val() == ""){
-                $yona.showAlert(Messages("post.error.emptyTitle"), function() {
+                $yona.showAlert(Messages("post.error.emptyTitle"), () => {
                     $("#title").focus();
                 });
                 return false;
@@ -93,7 +93,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({

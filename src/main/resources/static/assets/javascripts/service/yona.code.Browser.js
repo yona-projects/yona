@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * @param {Hash Table} htOptions
@@ -77,12 +77,12 @@
         }
 
         function _initDepthedList(){
-            var waFileWrap = $("div.list-wrap[data-listpath]");
+            const waFileWrap = $("div.list-wrap[data-listpath]");
 
-            waFileWrap.each(function(i, elList){
-                var welList = $(elList);
-                var sListPath = welList.data("listpath");
-                var welTarget = $('[data-path="' + sListPath + '"]');
+            waFileWrap.each((i, elList) =>{
+                const welList = $(elList);
+                const sListPath = welList.data("listpath");
+                const welTarget = $('[data-path="' + sListPath + '"]');
 
                 welList.data("content", sListPath);
                 welList.data("depth", i+1);
@@ -110,12 +110,12 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickWrap(weEvt){
-            var elTarget = weEvt.target;
-            var welTarget = $(elTarget);
+            const elTarget = weEvt.target;
+            const welTarget = $(elTarget);
 
             if(elTarget.tagName.toLowerCase() === 'a' && welTarget.data("type") === "folder"){
-                var sPreviousHash = document.location.hash;
-                var sTargetPath = welTarget.data("targetpath");
+                const sPreviousHash = document.location.hash;
+                const sTargetPath = welTarget.data("targetpath");
                 document.location.hash = sTargetPath;
 
                 if(document.location.hash === sPreviousHash){
@@ -135,7 +135,7 @@
          * @return {String} 폴더 경로. 해시가 없으면 빈 문자열
          */
         function _getHashPath(){
-            var sHash = document.location.hash.substr(1);
+            const sHash = document.location.hash.substr(1);
 
             if(sHash.indexOf("cb-") === 0 && $('[data-targetpath="' + sHash + '"]').length === 0){
                 return sHash.substr(3);
@@ -149,16 +149,16 @@
                 return false;
             }
 
-            var sHash = document.location.hash.substr(1);
-            var sTargetPath = _getHashPath();
-            var welList = $('[data-listpath="' + sTargetPath + '"]');
-            var bAnchor = (sTargetPath !== sHash);
+            const sHash = document.location.hash.substr(1);
+            const sTargetPath = _getHashPath();
+            const welList = $('[data-listpath="' + sTargetPath + '"]');
+            const bAnchor = (sTargetPath !== sHash);
 
-            var sCheckPath = "";
+            let sCheckPath = "";
             htVar.aPathQueue = [];
             htVar.aWelList = [];
 
-            sTargetPath.split("/").forEach(function(sPath){
+            sTargetPath.split("/").forEach((sPath) =>{
                 sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
                 htVar.aPathQueue.push(sCheckPath);
             });
@@ -179,14 +179,14 @@
         function _requestFolderList(){
             if(htVar.aPathQueue.length === 0){
                 NProgress.done();
-                htVar.aWelList.forEach(function(welList){
+                htVar.aWelList.forEach((welList) =>{
                     welList.css("display", "block");
                 });
                 return false;
             }
 
-            var sTargetPath = decodeURI(htVar.aPathQueue.shift());
-            var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+            const sTargetPath = decodeURI(htVar.aPathQueue.shift());
+            const welTarget = $('[data-targetpath="' + sTargetPath + '"]');
 
             if(_isListExistsByPath(sTargetPath)){
                 _requestFolderList();
@@ -200,9 +200,9 @@
          * @param {String} sTargetPath
          */
         function _appendFolderList(welTarget, sTargetPath){
-            var sURL = _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath);
-            var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
-            var nNewDepth = nParentDepth + 1;
+            const sURL = _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath);
+            const nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
+            const nNewDepth = nParentDepth + 1;
             _setIndentByDepth(nNewDepth);
 
             NProgress.start();
@@ -213,9 +213,9 @@
                         return;
                     }
 
-                    var aHTML = _getListHTML(oRes.data, sTargetPath);
-                    var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
-                    var welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
+                    const aHTML = _getListHTML(oRes.data, sTargetPath);
+                    const welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
+                    const welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
 
                     welList.data("depth", nNewDepth);
                     welList.addClass("depth-" + nNewDepth);
@@ -228,7 +228,7 @@
                         _requestFolderList();
                     } else {
                         _setCurrentPathBold(sTargetPath);
-                        htVar.aWelList.forEach(function(welList){
+                        htVar.aWelList.forEach((welList) =>{
                             welList.css("display", "block");
                         });
                     }
@@ -256,15 +256,15 @@
          * @return {Array}
          */
         function _getListHTML(htData, sTargetPath){
-            var aHTML = [];
+            const aHTML = [];
 
             // 폴더 먼저/ 파일 나중 순으로 만들기
-            var htSortedData = _getSortedList(htData);
-            var aProcessOrder = ["folder", "file"];
+            const htSortedData = _getSortedList(htData);
+            const aProcessOrder = ["folder", "file"];
 
-            aProcessOrder.forEach(function(sType){
+            aProcessOrder.forEach((sType) =>{
                 if(htSortedData[sType] instanceof Array){
-                    htSortedData[sType].forEach(function(htFile){
+                    htSortedData[sType].forEach((htFile) =>{
                         htFile = _getFileInfoForTpl(htFile, sTargetPath);
                         aHTML.push($yona.tmpl(htVar.sTplListItem, htFile));
                     });
@@ -278,11 +278,11 @@
          * @return {Hash Table}
          */
         function _getSortedList(htData){
-            var sType;
-            var htListByType = {};
+            let sType;
+            const htListByType = {};
 
             // 타입별로 정리
-            for(var sFileName in htData){
+            for(const sFileName in htData){
                 htFileInfo = htData[sFileName];
                 htFileInfo.fileName = sFileName;
                 sType = htFileInfo.type;
@@ -299,7 +299,7 @@
          * @param {String} sTargetPath
          */
         function _getFileInfoForTpl(htFile, sTargetPath){
-            var sAuthorURL = (htFile.userLoginId) ? '/'+ htFile.userLoginId : 'javascript:void(0); return false;';
+            const sAuthorURL = (htFile.userLoginId) ? '/'+ htFile.userLoginId : 'javascript:void(0); return false;';
 
             htFile.commitDate = (typeof htFile.createdDate !=='undefined') ? (moment(new Date(htFile.createdDate)).fromNow()) : '';
             htFile.fileClass = (htFile.fileName ==='..') ? 'updir' : (htFile.type === "folder" ? 'dynatree-ico-cf' : 'dynatree-ico-c');
@@ -329,7 +329,7 @@
          * @param {String} sPath
          */
         function _setCurrentPathBold(sPath){
-            var welCurrent = $('[data-path="' + sPath + '"]');
+            const welCurrent = $('[data-path="' + sPath + '"]');
 
             if(welCurrent.length > 0){
                 $(".currentPath").removeClass("currentPath");
@@ -356,7 +356,7 @@
          * @param {String} sRule
          */
         function _addCSSRule(sSelector, sRule){
-            var elStyle = htVar.elStyle;
+            const elStyle = htVar.elStyle;
 
             if(elStyle.addRule){ // Chrome, IE
                 elStyle.addRule(sSelector, sRule);
@@ -378,8 +378,8 @@
          */
         function _beautifyFileSize(){
             // v1.6는 `welShowfile`(소문자 f)을 읽어 TypeError가 났다(C022, C113-1)
-            htElement.welShowFile.find(".filesize").each(function(i, el){
-                var welTarget = $(el);
+            htElement.welShowFile.find(".filesize").each((i, el) =>{
+                const welTarget = $(el);
                 welTarget.html($yona.formatFileSize(welTarget.text()));
             });
         }
@@ -405,9 +405,9 @@
 
                 // Use explicit MIME Type if the server told which language is used to write the source code.
                 // or the client should guess it.
-                var sMimeType = htElement.welShowCode.data("mimetype");
-                var aMatch = sMimeType.match(htVar.rxSub);
-                var sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
+                const sMimeType = htElement.welShowCode.data("mimetype");
+                const aMatch = sMimeType.match(htVar.rxSub);
+                const sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
 
                 htVar.oSession.setMode("ace/mode/" + sMode);
                 htVar.oSession.setValue(htElement.welCodeVal.text());
@@ -420,7 +420,7 @@
          * @return {Object}
          */
         function _getEditor(sContainer){
-            var oAce = ace.edit(sContainer);
+            const oAce = ace.edit(sContainer);
             oAce.setTheme("ace/theme/clouds");
             oAce.setHighlightActiveLine(false);
             oAce.setReadOnly(true);
@@ -434,7 +434,7 @@
         }
 
         function _isMarkdownExtension(sPath) {
-            var sExt =  getExt(basename(htVar.sPath));
+            const sExt =  getExt(basename(htVar.sPath));
             return htVar.aMarkdownExtension.includes(sExt);
         }
 
@@ -443,7 +443,7 @@
          * @return {String}
          */
         function _getEditorModeByPath(sPath){
-            var sExt = getExt(basename(sPath));
+            const sExt = getExt(basename(sPath));
             return ext2mode(sExt);
         }
 
@@ -492,7 +492,7 @@
                 "yaml": ["yaml", "yml"]
             };
 
-            for(var sMode in htVar.htExtMap){
+            for(const sMode in htVar.htExtMap){
                 if(htVar.htExtMap[sMode].indexOf(sExt) > -1){
                     return sMode;
                 }
@@ -518,10 +518,10 @@
         }
 
         function _resizeEditor(){
-            var nLineHeight = htVar.oEditor.renderer.lineHeight;
+            let nLineHeight = htVar.oEditor.renderer.lineHeight;
             nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
 
-            var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
+            const newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
             htElement.welShowCode.height(newHeight);
             htVar.oEditor.resize();
         }
@@ -530,33 +530,33 @@
          * @param {Array} aPathQueue
          */
         function _updateBreadcrumbs(aPathQueue){
-            var sLink, sName;
-            var aCrumbs = ['<a href="' + htVar.sBasePathURL + '">' + htVar.sProjectName + '</a>'];
+            let sLink, sName;
+            const aCrumbs = ['<a href="' + htVar.sBasePathURL + '">' + htVar.sProjectName + '</a>'];
 
-            aPathQueue.forEach(function(sPath){
+            aPathQueue.forEach((sPath) =>{
                 sPath = decodeURI(sPath);
                 sLink = _getCorrectedPath(htVar.sBasePathURL, sPath);
                 sName = sPath.split("/").pop();
                 aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');
             });
 
-            var breadcrumb = $yona.xssClean(aCrumbs.join(""));
+            const breadcrumb = $yona.xssClean(aCrumbs.join(""));
 
             htElement.welBreadCrumbs.html(breadcrumb);
 
-            var $newFileLink = $("#new-file-link");
-            var path = _getHashPath();
+            const $newFileLink = $("#new-file-link");
+            const path = _getHashPath();
 
             // 'New File' Button supports only git repositories.
             if ($newFileLink[0]) {
-                var newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
+                const newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
                 $newFileLink.attr("href", newPath);
             }
         }
 
         function updateQueryStringParameter(uri, key, value) {
-            var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-            var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+            const re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+            const separator = uri.indexOf('?') !== -1 ? "&" : "?";
             if (uri.match(re)) {
                 return uri.replace(re, '$1' + key + "=" + value + '$2');
             }

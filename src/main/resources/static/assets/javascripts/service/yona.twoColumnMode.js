@@ -14,7 +14,7 @@ var isLeftMenuHide = false;
  * 300ms 뒤 새 주소를 읽는다. 바깥 클릭이나 Esc로는 닫히지 않고(`keyboard: false`, 배경 없음), 페이지 스크롤도 잠그지 않는다(`scroll: true`).
  */
 var twoColumnPanel = (function () {
-    var element = null, offcanvas = null, open = false, lastCaller = null, loadTimer = null;
+    let element = null, offcanvas = null, open = false, lastCaller = null, loadTimer = null;
 
     function ensure() {
         if (!element) {
@@ -26,7 +26,7 @@ var twoColumnPanel = (function () {
     function load(href) {
         window.clearTimeout(loadTimer);
         $(element).find("iframe").remove();
-        loadTimer = window.setTimeout(function () {
+        loadTimer = window.setTimeout(() => {
             $(element).append($("<iframe allowtransparency='true' frameborder='0'></iframe>").attr("src", href));
         }, 300);
     }
@@ -61,11 +61,11 @@ var twoColumnPanel = (function () {
 })();
 
 function _initTwoColumnMode(){
-    var $twoColumnMode = $("#two-column-mode");
-    var useTwoColumnMode = localStorage.getItem('useTwoColumnMode');
-    var $title = $('.title, .twoColumeModeTarget');
+    const $twoColumnMode = $("#two-column-mode");
+    const useTwoColumnMode = localStorage.getItem('useTwoColumnMode');
+    const $title = $('.title, .twoColumeModeTarget');
 
-    var $projectPageWrap = $('.project-page-wrap');
+    const $projectPageWrap = $('.project-page-wrap');
     if (mainWidth === "") {
         mainWidth = $projectPageWrap.css("width") || $(".page-wrap").css("width");
     }
@@ -78,7 +78,7 @@ function _initTwoColumnMode(){
     $('#two-column-mode-checkbox').each(function(){ new bootstrap.Popover(this, {trigger: "hover", placement: "top", delay: { show: 100, hide: 100 }}); });
 
     // when to check box click
-    $('.mass-update-check').on('click', function (e) {
+    $('.mass-update-check').on('click', (e) => {
         e.stopPropagation();
     });
 
@@ -116,7 +116,7 @@ function _initTwoColumnMode(){
         $('.post-item').css("cursor", "pointer");
 
         title.on('click.changeUrlWhenClick', function(e){
-            var $this = $(this);
+            const $this = $(this);
             if (!history.state) {
                 window.history.pushState({ startPath: location.pathname }, $this.text(), $this.attr("href"));
             } else {
@@ -145,8 +145,8 @@ function _initTwoColumnMode(){
             } else {
                 $(".user-info-box").show(0);
             }
-            setTimeout(function () {
-                $('#pageslide > iframe').ready(function () {
+            setTimeout(() => {
+                $('#pageslide > iframe').ready(() => {
                     NProgress.done();
                 });
             }, 100);

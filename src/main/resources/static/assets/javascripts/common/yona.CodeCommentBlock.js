@@ -22,9 +22,9 @@
 yona = yona || {};
 
 yona.CodeCommentBlock = (function(){
-    var htVar = {};
-    var htElement = {};
-    var htBlockInfo = {};
+    const htVar = {};
+    const htElement = {};
+    let htBlockInfo = {};
 
     /**
      * @param sQuery
@@ -98,8 +98,8 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _doesCommentableRangeExists(){
-        var bHasRange = false;
-        var oSelection = document.getSelection();
+        let bHasRange = false;
+        const oSelection = document.getSelection();
 
         // check empty seletction string
         if(oSelection.toString().length == 0){
@@ -107,8 +107,8 @@ yona.CodeCommentBlock = (function(){
         }
 
         // get anchor, focus row (TR) from selected text node
-        var welAnchor = $(oSelection.getRangeAt(0).startContainer).closest("tr");
-        var welFocus = $(oSelection.getRangeAt(oSelection.rangeCount-1).endContainer).closest("tr");
+        const welAnchor = $(oSelection.getRangeAt(0).startContainer).closest("tr");
+        const welFocus = $(oSelection.getRangeAt(oSelection.rangeCount-1).endContainer).closest("tr");
 
 
         // data-line attribute is required on both of anchor and focus
@@ -123,16 +123,16 @@ yona.CodeCommentBlock = (function(){
         }
 
         // detect whether is reversed
-        var nAnchorIndex = welAnchor.index();
-        var nFocusIndex = welFocus.index();
-        var bIsReversed = (nAnchorIndex > nFocusIndex);
-        var welStartLine = bIsReversed ? welFocus : welAnchor;
-        var welEndLine = bIsReversed ? welAnchor : welFocus;
+        const nAnchorIndex = welAnchor.index();
+        const nFocusIndex = welFocus.index();
+        const bIsReversed = (nAnchorIndex > nFocusIndex);
+        const welStartLine = bIsReversed ? welFocus : welAnchor;
+        const welEndLine = bIsReversed ? welAnchor : welFocus;
 
         // in range ...
         if(nAnchorIndex !== nFocusIndex){
             welStartLine.nextUntil(welEndLine).each(function(){
-                var welLine = $(this);
+                const welLine = $(this);
 
                 // tr.comments is tolerable
                 if(!welLine.hasClass("comments") &&
@@ -150,26 +150,26 @@ yona.CodeCommentBlock = (function(){
      */
     function _setBlockDataBySelection(){
         // get anchor, focus row (TR) from selected text node
-        var oSelection = document.getSelection();
+        const oSelection = document.getSelection();
 
-        var anchor = oSelection.getRangeAt(0);
-        var focus = (oSelection.rangeCount ===1) ? anchor : oSelection.getRangeAt(oSelection.rangeCount-1);
+        const anchor = oSelection.getRangeAt(0);
+        const focus = (oSelection.rangeCount ===1) ? anchor : oSelection.getRangeAt(oSelection.rangeCount-1);
 
-        var welAnchor = $(anchor.startContainer).closest("tr");
-        var welFocus = $(focus.endContainer).closest("tr");
+        const welAnchor = $(anchor.startContainer).closest("tr");
+        const welFocus = $(focus.endContainer).closest("tr");
 
-        var welTable = welAnchor.closest("table");
+        const welTable = welAnchor.closest("table");
 
         // detect whether is reversed
-        var nAnchorIndex = welAnchor.index();
-        var nFocusIndex = welFocus.index();
+        const nAnchorIndex = welAnchor.index();
+        const nFocusIndex = welFocus.index();
 
-        var nAnchorOffset = anchor.startOffset;
-        var nFocusOffset = focus.endOffset;
+        const nAnchorOffset = anchor.startOffset;
+        const nFocusOffset = focus.endOffset;
 
-        var startIndex = $(htElement.mouseEventStart).closest("tr").index();
+        const startIndex = $(htElement.mouseEventStart).closest("tr").index();
 
-        var bIsReversed = (nAnchorIndex < startIndex) ||
+        const bIsReversed = (nAnchorIndex < startIndex) ||
                           (nAnchorIndex === nFocusIndex && nAnchorOffset > nFocusOffset);
 
 
@@ -210,7 +210,7 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _showPopButtonOnBlock(){
-        var htPosition = _getPopButtonPosition();
+        const htPosition = _getPopButtonPosition();
 
         htElement.welPopButtonOnBlock.show();
         htElement.welPopButtonOnBlock.css({
@@ -227,17 +227,17 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _getPopButtonPosition(){
-        var htBlockInfo = _getBlockData();
-        var htElements = _getElementsByOffsetOptions(htBlockInfo);
+        const htBlockInfo = _getBlockData();
+        const htElements = _getElementsByOffsetOptions(htBlockInfo);
 
-        var nColumnWidth = 7;
-        var nLineHeight = 1.5;
-        var nColumn = htBlockInfo.bIsReversed ? htBlockInfo.nStartColumn : htBlockInfo.nEndColumn;
-        var welLine = htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine;
+        const nColumnWidth = 7;
+        const nLineHeight = 1.5;
+        const nColumn = htBlockInfo.bIsReversed ? htBlockInfo.nStartColumn : htBlockInfo.nEndColumn;
+        const welLine = htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine;
 
-        var welCode = welLine.find("td.code");
-        var htCodeOffset = welCode.position();
-        var nMaxLeft = htElement.welContainer.width() - (htElement.welPopButtonOnBlock.width() * 2);
+        const welCode = welLine.find("td.code");
+        const htCodeOffset = welCode.position();
+        const nMaxLeft = htElement.welContainer.width() - (htElement.welPopButtonOnBlock.width() * 2);
 
         return {
             "top" : htCodeOffset.top - (welCode.height() * nLineHeight),
@@ -257,7 +257,7 @@ yona.CodeCommentBlock = (function(){
             htVar.nSelectionWatcher = null;
         }
 
-        htVar.nSelectionWatcher = setInterval(function(){
+        htVar.nSelectionWatcher = setInterval(() =>{
             if(document.getSelection().toString().length === 0){
                 htElement.welPopButtonOnBlock.hide();
                 clearInterval(htVar.nSelectionWatcher);
@@ -293,19 +293,19 @@ yona.CodeCommentBlock = (function(){
     function _wrapOnDiff(htOffset){
         removeRanges();
 
-        var htElements = _getElementsByOffsetOptions(htOffset);
+        const htElements = _getElementsByOffsetOptions(htOffset);
         if(!htElements.elStartLine || !htElements.elEndLine){
             return false;
         }
 
-        var nRows = htElements.aRows.length;
-        htElements.aRows.forEach(function(welRow, nIndex){
-            var welRowNode = welRow.find("td.code > pre").get(0).childNodes[0];
-            var oRange = document.createRange();
-            var elBlock = _getCommentLineWrapper();
-            var nStartColumn = 0;
-            var nEndColumn = 0;
-            var nNodeLength = welRowNode.length;
+        const nRows = htElements.aRows.length;
+        htElements.aRows.forEach((welRow, nIndex) =>{
+            const welRowNode = welRow.find("td.code > pre").get(0).childNodes[0];
+            const oRange = document.createRange();
+            const elBlock = _getCommentLineWrapper();
+            let nStartColumn = 0;
+            let nEndColumn = 0;
+            const nNodeLength = welRowNode.length;
 
             if(nRows === 1){               // in one line
                 nStartColumn = htOffset.nStartColumn;
@@ -335,13 +335,13 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _getElementsByOffsetOptions(htOffset){
-        var htResult = {};
-        var sContainerProp = htOffset.sPath ? "[data-file-path='" + htOffset.sPath + "']": "";
-        var sStartProp = [htOffset.nStartLine ? "[data-line=" + htOffset.nStartLine + "]": "",
+        const htResult = {};
+        const sContainerProp = htOffset.sPath ? "[data-file-path='" + htOffset.sPath + "']": "";
+        const sStartProp = [htOffset.nStartLine ? "[data-line=" + htOffset.nStartLine + "]": "",
             htOffset.sStartSide ? "[data-side=" + htOffset.sStartSide + "]" : ""].join("");
-        var sEndProp = [htOffset.nEndLine ? "[data-line=" + htOffset.nEndLine + "]": "",
+        const sEndProp = [htOffset.nEndLine ? "[data-line=" + htOffset.nEndLine + "]": "",
             htOffset.sEndSide ? "[data-side=" + htOffset.sEndSide + "]": ""].join("");
-        var welContainer = $("table.diff-container" + sContainerProp);
+        const welContainer = $("table.diff-container" + sContainerProp);
 
         htResult.welStartLine = welContainer.find("tr" + sStartProp);
         htResult.welEndLine = welContainer.find("tr" + sEndProp);
@@ -370,10 +370,10 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _getRowsBetween(elStart, elEnd){
-        var aRows = [];
+        const aRows = [];
 
-        $(elStart).nextUntil(elEnd).each(function(i, elRow){
-            var welRow = $(elRow);
+        $(elStart).nextUntil(elEnd).each((i, elRow) =>{
+            const welRow = $(elRow);
 
             if(welRow.data("line")){
                 aRows.push(welRow);
@@ -389,7 +389,7 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _getCommentLineWrapper(){
-        var elWrapper =  document.createElement("SPAN");
+        const elWrapper =  document.createElement("SPAN");
         elWrapper.setAttribute("data-toggle", "comment-block");
         elWrapper.className = "review-block";
 
@@ -412,8 +412,8 @@ yona.CodeCommentBlock = (function(){
      * @private
      */
     function _unwrapCommentBlock(){
-        var parent = $(this).parents("pre");
-        var unwrappedHTML = parent.html().replace(this.outerHTML, this.innerHTML);
+        const parent = $(this).parents("pre");
+        const unwrappedHTML = parent.html().replace(this.outerHTML, this.innerHTML);
 
         parent.html(unwrappedHTML);
     }

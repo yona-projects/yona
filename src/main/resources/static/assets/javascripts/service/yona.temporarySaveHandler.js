@@ -6,11 +6,11 @@
  **/
 
 function temporarySaveHandler($textarea, contentInitialized) {
-    var noticePanel = $(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
+    const noticePanel = $(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
     if (!window.draftSavingTimeout) window.draftSavingTimeout = 0;
 
     // this 대신 editor 컨테이너. this 에 붙여두면 화면 전환 시 handler가 메모리에 중첩됨
-    $textarea.on('keyup', function () {
+    $textarea.on('keyup', () => {
         if ($textarea.val() !== localStorage.getItem(location.pathname)) {
             clearTimeout(window.draftSavingTimeout);
 
@@ -21,7 +21,7 @@ function temporarySaveHandler($textarea, contentInitialized) {
 
             noticePanel.children().fadeOut();
 
-            window.draftSavingTimeout = setTimeout(function () {
+            window.draftSavingTimeout = setTimeout(() => {
                 if($textarea.data("editorMode") === "update-comment-body") {
                     // FIXME: There are bug when editing comment.
                     // NOW, just make it skipping to store at local storage
@@ -36,8 +36,8 @@ function temporarySaveHandler($textarea, contentInitialized) {
     });
 
     if (contentInitialized === undefined || contentInitialized === true) {     // default: true
-        var lastTextAreaText = $("textarea.content[data-editor-mode='update-comment-body']").last().val();
-        var storedDraftText = localStorage.getItem(location.pathname);
+        const lastTextAreaText = $("textarea.content[data-editor-mode='update-comment-body']").last().val();
+        const storedDraftText = localStorage.getItem(location.pathname);
         if (storedDraftText && lastTextAreaText
             && storedDraftText.trim() === lastTextAreaText.trim()) {
             removeCurrentPageTemprarySavedContent();

@@ -20,12 +20,12 @@
     }
 
     $(document).on("click", ".comment-edit", function () {
-        var $button = $(this), $comment = $button.closest("li.comment");
+        const $button = $(this), $comment = $button.closest("li.comment");
         if ($comment.find(".comment-edit-form").length) {
             return;
         }
-        var $body = $comment.find(".comment-body");
-        var $form = $('<div class="comment-edit-form mt10"><textarea class="comment-edit-text form-control" rows="6" style="width:100%; box-sizing:border-box;"></textarea>' +
+        const $body = $comment.find(".comment-body");
+        const $form = $('<div class="comment-edit-form mt10"><textarea class="comment-edit-text form-control" rows="6" style="width:100%; box-sizing:border-box;"></textarea>' +
             '<div class="right-txt mt5"><button type="button" class="ybtn ybtn-small comment-edit-cancel"></button> ' +
             '<button type="button" class="ybtn ybtn-success ybtn-small comment-edit-save"></button></div></div>');
         $form.find(".comment-edit-text").val($comment.find("textarea.comment-raw").val());
@@ -34,21 +34,21 @@
         $body.hide().after($form);
         $form.find(".comment-edit-text").focus();
 
-        $form.on("click", ".comment-edit-cancel", function () { close($comment); });
-        $form.on("click", ".comment-edit-save", function () {
-            var contents = $form.find(".comment-edit-text").val();
+        $form.on("click", ".comment-edit-cancel", () => { close($comment); });
+        $form.on("click", ".comment-edit-save", () => {
+            const contents = $form.find(".comment-edit-text").val();
             if ((contents || "").trim() === "") {
                 $yona.notify(Messages("post.comment.empty"), 3000);
                 return;
             }
-            $.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done(function (response) {
+            $.ajax($button.data("url"), {method: "POST", dataType: "json", data: {contents: contents}}).done((response) => {
                 $comment.find("textarea.comment-raw").val(contents);
                 $body.html(response.bodyHtml);
                 if (!$comment.find(".comment-edited").length) {
                     $comment.find(".meta-info .ago").first().after($('<span class="comment-edited ago"></span>').text("(" + Messages("reviewComment.edited") + ")"));
                 }
                 close($comment);
-            }).fail(function (xhr) {
+            }).fail((xhr) => {
                 $yona.notify(Messages("error.failedTo", Messages("common.comment.edit"), xhr.status, xhr.statusText));
             });
         });

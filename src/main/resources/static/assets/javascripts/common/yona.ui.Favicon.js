@@ -26,7 +26,7 @@
 (function (window, document) {
     "use strict";
 
-    var yona = window.yona = window.yona || {};
+    const yona = window.yona = window.yona || {};
     yona.ui = yona.ui || {};
 
     /**
@@ -34,20 +34,20 @@
      * @constructor
      */
     function Favicon(htOptions) {
-        var htOpt = htOptions || {};
-        var sPosition = htOpt.position || "down";
-        var sBgColor = htOpt.bgColor || "#d00";
-        var sTextColor = htOpt.textColor || "#fff";
+        const htOpt = htOptions || {};
+        const sPosition = htOpt.position || "down";
+        const sBgColor = htOpt.bgColor || "#d00";
+        const sTextColor = htOpt.textColor || "#fff";
 
-        var elLink = document.querySelector('link[rel$="icon"]');
+        let elLink = document.querySelector('link[rel$="icon"]');
         if (!elLink) {
             elLink = document.createElement("link");
             elLink.setAttribute("rel", "icon");
             document.head.appendChild(elLink);
         }
-        var sOriginalHref = elLink.getAttribute("href") || "";
-        var sOriginalType = elLink.getAttribute("type");
-        var elImage = null;
+        const sOriginalHref = elLink.getAttribute("href") || "";
+        const sOriginalType = elLink.getAttribute("type");
+        let elImage = null;
 
         /** 원래 아이콘을 한 번만 읽는다. 다 읽으면 [fCallback]에 이미지(읽지 못하면 null)를 넘긴다. */
         function loadIcon(fCallback) {
@@ -67,21 +67,21 @@
          * @param {String|Number} vText 배지에 쓸 글자(예: "N")
          */
         this.badge = function (vText) {
-            loadIcon(function (elIcon) {
-                var nWidth = (elIcon && elIcon.naturalWidth) || 32;
-                var nHeight = (elIcon && elIcon.naturalHeight) || 32;
-                var elCanvas = document.createElement("canvas");
+            loadIcon((elIcon) => {
+                const nWidth = (elIcon && elIcon.naturalWidth) || 32;
+                const nHeight = (elIcon && elIcon.naturalHeight) || 32;
+                const elCanvas = document.createElement("canvas");
                 elCanvas.width = nWidth;
                 elCanvas.height = nHeight;
-                var oContext = elCanvas.getContext("2d");
+                const oContext = elCanvas.getContext("2d");
 
                 if (elIcon) {
                     oContext.drawImage(elIcon, 0, 0, nWidth, nHeight);
                 }
 
-                var nSize = Math.floor(Math.min(nWidth, nHeight) * 0.6);
-                var nLeft = sPosition.indexOf("left") >= 0 ? 0 : nWidth - nSize;
-                var nTop = sPosition.indexOf("up") >= 0 ? 0 : nHeight - nSize;
+                const nSize = Math.floor(Math.min(nWidth, nHeight) * 0.6);
+                const nLeft = sPosition.indexOf("left") >= 0 ? 0 : nWidth - nSize;
+                const nTop = sPosition.indexOf("up") >= 0 ? 0 : nHeight - nSize;
 
                 oContext.beginPath();
                 oContext.arc(nLeft + nSize / 2, nTop + nSize / 2, nSize / 2, 0, Math.PI * 2);

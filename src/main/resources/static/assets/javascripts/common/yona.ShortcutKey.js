@@ -20,8 +20,8 @@
  */
 yona.ShortcutKey = (function(htOptions){
 
-    var htVar = {};
-    var htHandlers = {};
+    let htVar = {};
+    let htHandlers = {};
 
     /**
      * initialize
@@ -71,8 +71,8 @@ yona.ShortcutKey = (function(htOptions){
      * global keyDown event handler
      */
     function _onKeyDown(weEvt){
-        var sKeyInput = _getKeyString(weEvt);
-        var fHandler = htHandlers[sKeyInput];
+        const sKeyInput = _getKeyString(weEvt);
+        const fHandler = htHandlers[sKeyInput];
 
         if(typeof fHandler === "function"){
             _runEventHandler(fHandler, weEvt, sKeyInput);
@@ -87,16 +87,16 @@ yona.ShortcutKey = (function(htOptions){
      * @param {Wrapped Event} weEvt
      */
     function _getActualTarget(weEvt){
-        var oEvt = weEvt.originalEvent;
-        var aPath = (oEvt && typeof oEvt.composedPath === "function") ? oEvt.composedPath() : [];
-        var elActual = aPath[0];
+        const oEvt = weEvt.originalEvent;
+        const aPath = (oEvt && typeof oEvt.composedPath === "function") ? oEvt.composedPath() : [];
+        const elActual = aPath[0];
         return (elActual && elActual.nodeType === 1) ? elActual : weEvt.target;
     }
 
     function _runEventHandler(fHandler, weEvt, sKeyInput){
-        var elTarget = _getActualTarget(weEvt);
-        var sTagName = elTarget.tagName.toUpperCase();
-        var htInfo = {
+        const elTarget = _getActualTarget(weEvt);
+        const sTagName = elTarget.tagName.toUpperCase();
+        let htInfo = {
             "weEvt"     : weEvt,
             "welTarget" : $(elTarget),
             "sTagName"  : sTagName,
@@ -141,7 +141,7 @@ yona.ShortcutKey = (function(htOptions){
      * @param {String} fHandler
      */
     function detachHandler(sKeyInput){
-        var sKey = _normalizeKeyString(sKeyInput);
+        const sKey = _normalizeKeyString(sKeyInput);
         delete htHandlers[sKey];
     }
 
@@ -157,10 +157,10 @@ yona.ShortcutKey = (function(htOptions){
      * @return {String|undefined}
      */
     function _getMainKey(weEvt){
-        var oEvt = weEvt.originalEvent || weEvt;
-        var sKey = oEvt.key;
-        var sCode = oEvt.code || "";
-        var aMatch;
+        const oEvt = weEvt.originalEvent || weEvt;
+        const sKey = oEvt.key;
+        const sCode = oEvt.code || "";
+        let aMatch;
 
         if(!sKey || oEvt.isComposing === true || oEvt.keyCode === 229 || sKey === "Process"){
             return;
@@ -190,14 +190,14 @@ yona.ShortcutKey = (function(htOptions){
      * @param {Wrapped Event} weEvt
      */
     function _getKeyString(weEvt){
-        var sMainKey = _getMainKey(weEvt);
+        const sMainKey = _getMainKey(weEvt);
         if(typeof sMainKey === "undefined"){ // ignore event if not on keyMap
             return;
         }
 
         // generate key combination
-        var aKeys = [];
-        var sKeyString = "";
+        const aKeys = [];
+        let sKeyString = "";
 
         if(weEvt.altKey){
             aKeys.push("ALT");
@@ -224,7 +224,7 @@ yona.ShortcutKey = (function(htOptions){
     function _normalizeKeyString(sKey){
         sKey = sKey.toUpperCase() || "";
         sKey = sKey.replace(htVar.rxTrim, '');
-        sKey = sKey.split("+").sort(function(v){
+        sKey = sKey.split("+").sort((v) =>{
             return -1 * (htVar.aCombinationKeys.indexOf(v));
         }).join("+");
 
@@ -248,8 +248,8 @@ yona.ShortcutKey = (function(htOptions){
      * });
      */
     function setKeymapLink(htKeyMap){
-        var sKey;
-        var fHandler = function(htInfo){
+        let sKey;
+        const fHandler = function(htInfo){
             if(!htInfo.bFormInput){
                 document.location.href = htKeyMap[htInfo.sKeyInput];
             }

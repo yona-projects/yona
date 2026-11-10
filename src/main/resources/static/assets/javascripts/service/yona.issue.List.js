@@ -22,15 +22,15 @@
 
     "use strict";
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htElement = {};
-        var htInitialOptions = {};
+        const htElement = {};
+        let htInitialOptions = {};
 
         function _initImplicitTitlePrefix() {
             $(".title-prefix").on("click", function(){
-                var filterInput = $("input[name*='filter']");
+                const filterInput = $("input[name*='filter']");
                 filterInput.val($(this).text());
                 yona.Htmx.submit(filterInput.closest("form"));
             });
@@ -85,8 +85,8 @@
          * @private
          */
         function _onChangeIssueCheckBox() {
-            var welCheckBox = $(this);
-            var welItemWrap = $('#issue-item-' + welCheckBox.data('issueId'));
+            const welCheckBox = $(this);
+            const welItemWrap = $('#issue-item-' + welCheckBox.data('issueId'));
 
             if(welCheckBox.is(':checked')){
                 welItemWrap.addClass('active');
@@ -106,7 +106,7 @@
         function _onClickListOrder(weEvt) {
             weEvt.preventDefault();
 
-            var link = $(this);
+            const link = $(this);
 
             htElement.welSearchForm.find("input[name=orderBy]").val(link.attr("orderBy"));
             htElement.welSearchForm.find("input[name=orderDir]").val(link.attr("orderDir"));
@@ -137,12 +137,12 @@
         function _onClickLabelOnList(weEvt) {
             weEvt.preventDefault();
 
-            var link = $(this);
-            var targetQuery = "[data-search=labelIds]";
-            var target = htElement.welSearchForm.find(targetQuery);
+            const link = $(this);
+            const targetQuery = "[data-search=labelIds]";
+            const target = htElement.welSearchForm.find(targetQuery);
 
-            var labelId = link.data("labelId");
-            var newValue;
+            const labelId = link.data("labelId");
+            let newValue;
 
             if(target.prop("multiple")){
                 newValue = (target.val() || []);
@@ -179,9 +179,9 @@
         function _onClickSearchFilter(weEvt) {
             weEvt.preventDefault();
 
-            var data = $(this).data();
+            const data = $(this).data();
 
-            for(var key in data){
+            for(const key in data){
                 htElement.welSearchForm.find('[data-search="' + key + '"]').val(data[key]);
             }
 
@@ -208,7 +208,7 @@
          * @private
          */
         function _initHtmx(){
-            $(document).on("htmx:afterSwap", function(weEvt){
+            $(document).on("htmx:afterSwap", (weEvt) =>{
                 if($(weEvt.target).is("[list-container]")){
                     _onLoadIssueList();
                 }
@@ -220,7 +220,7 @@
                 $(this).find(".child-issue-list").show();
             });
             
-            $(".title-wrap > .title").on("click", function(e){
+            $(".title-wrap > .title").on("click", (e) =>{
                 e.stopPropagation();
             })
         }
@@ -251,7 +251,7 @@
 
         function _addEventAtOrganizationIssueSearchPage() {
             // htmx replaces the contents of the list wrap, so events bound to its descendants are lost and required adding again.
-            $("#projects" ).on("change", function(){
+            $("#projects" ).on("change", () =>{
                 yona.Htmx.submit($("#search"));
             });
         }
@@ -264,7 +264,7 @@
          */
         function _initSelect2(){
             if(typeof yona.ui.Select2 === "function"){
-                $('[data-toggle="select2"]').each(function(i, el){
+                $('[data-toggle="select2"]').each((i, el) =>{
                     yona.ui.Select2(el);
                 });
             }
@@ -278,7 +278,7 @@
          */
         function _initCalendar(){
            if(typeof yona.ui.Calendar === "function"){
-               $('[data-toggle="calendar"]').each(function(i, el){
+               $('[data-toggle="calendar"]').each((i, el) =>{
                    yona.ui.Calendar(el, {
                        "silent": true
                    });
@@ -292,10 +292,10 @@
          * 그래서 요청을 취소할 수 있는 `htmx:beforeRequest`에서 검사한다.
          */
         function _onSubmitSearchForm(evt){
-            var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
+            const elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
 
             if(elDueDate.length > 0) {
-                var sDueDate = $yona.getTrim($(elDueDate).val());
+                const sDueDate = $yona.getTrim($(elDueDate).val());
 
                 if(sDueDate && !moment(sDueDate).isValid()){
                     $yona.notify(Messages("issue.error.invalid.duedate"), 3000);

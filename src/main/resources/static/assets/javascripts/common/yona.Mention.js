@@ -40,15 +40,15 @@
 (function() {
 
     /** 후보를 보여 줄 최대 개수(At.js `limit`) */
-    var LIMIT = 10;
+    const LIMIT = 10;
     /** 질의 최대 길이(At.js `maxLen`). 넘으면 후보를 열지 않는다 */
-    var MAX_QUERY_LENGTH = 20;
+    const MAX_QUERY_LENGTH = 20;
     /** 사용자 검색의 입력 지연(밀리초). v1.6은 마지막 입력 300ms 뒤에 서버에 묻는다 */
-    var USER_SEARCH_DELAY = 300;
+    const USER_SEARCH_DELAY = 300;
     /** 감싼 요소에 서버 주소를 남기는 속성 */
-    var URL_ATTRIBUTE = "data-mention-url";
+    const URL_ATTRIBUTE = "data-mention-url";
 
-    var EMOJIS = [
+    const EMOJIS = [
         { name: "+1", content: "👍" },
         { name: "heart", content: "❤️️" },
         { name: "wink", content: "😘" },
@@ -117,8 +117,8 @@
         ];
 
     /** 감싼 요소마다의 상태(검색 순서와 입력 지연). 요소가 복제되어도 처음 이벤트에서 새로 만든다 */
-    var oContexts = new WeakMap();
-    var bInstalled = false;
+    const oContexts = new WeakMap();
+    let bInstalled = false;
 
     /**
      * 입력란을 `<text-expander>`로 감싼다. 이미 감싸져 있으면 주소만 갱신한다.
@@ -130,16 +130,16 @@
      * @param {String} sUrl
      */
     function _wrap(elTarget, sUrl) {
-        var elParent = elTarget.parentNode;
+        const elParent = elTarget.parentNode;
         if(elParent && elParent.tagName === "TEXT-EXPANDER"){
             elParent.setAttribute(URL_ATTRIBUTE, sUrl);
             return;
         }
-        var bFocused = (document.activeElement === elTarget);
-        var elExpander = document.createElement("text-expander");
+        const bFocused = (document.activeElement === elTarget);
+        const elExpander = document.createElement("text-expander");
         elExpander.setAttribute("keys", "@ : #");
         elExpander.setAttribute(URL_ATTRIBUTE, sUrl);
-        var elNext = elTarget.nextSibling;
+        const elNext = elTarget.nextSibling;
         elExpander.appendChild(elTarget);
         elParent.insertBefore(elExpander, elNext);
         if(bFocused){
@@ -170,7 +170,7 @@
         if(!elNode || !elNode.closest){
             return null;
         }
-        var elExpander = elNode.closest("text-expander");
+        const elExpander = elNode.closest("text-expander");
         return (elExpander && elExpander.hasAttribute(URL_ATTRIBUTE)) ? elExpander : null;
     }
 
@@ -178,15 +178,15 @@
      * 요소의 상태를 가져온다. 없으면 만든다.
      */
     function _contextOf(elExpander) {
-        var htContext = oContexts.get(elExpander);
+        let htContext = oContexts.get(elExpander);
         if(!htContext){
             htContext = {
                 "url": elExpander.getAttribute(URL_ATTRIBUTE),
                 "timer": null,
                 "waiting": []
             };
-            htContext.userSearch = _newSource(function(sQuery){ return _searchUsers(htContext, sQuery); });
-            htContext.issueSearch = _newSource(function(sQuery){ return _searchIssues(htContext, sQuery); });
+            htContext.userSearch = _newSource((sQuery) =>{ return _searchUsers(htContext, sQuery); });
+            htContext.issueSearch = _newSource((sQuery) =>{ return _searchIssues(htContext, sQuery); });
             oContexts.set(elExpander, htContext);
         }
         return htContext;
@@ -209,7 +209,7 @@
      * @param {KeyboardEvent} eEvt
      */
     function _onKeydownCapture(eEvt) {
-        var elExpander = _expanderOf(eEvt.target);
+        const elExpander = _expanderOf(eEvt.target);
         if(!elExpander || !_isMenuOpen(elExpander)){
             return;
         }
@@ -233,23 +233,23 @@
      * @param {CustomEvent} eEvt text-expander-change
      */
     function _onChange(eEvt) {
-        var elExpander = _expanderOf(eEvt.target);
+        const elExpander = _expanderOf(eEvt.target);
         if(!elExpander){
             return;
         }
-        var htDetail = eEvt.detail;
-        var sKey = htDetail.key;
-        var sQuery = htDetail.text;
-        var elTarget = elExpander.querySelector("textarea, input");
+        const htDetail = eEvt.detail;
+        const sKey = htDetail.key;
+        const sQuery = htDetail.text;
+        const elTarget = elExpander.querySelector("textarea, input");
 
-        var nKeyPos = elTarget.selectionEnd - sQuery.length - sKey.length;
-        var sBefore = nKeyPos > 0 ? elTarget.value.charAt(nKeyPos - 1) : "";
+        const nKeyPos = elTarget.selectionEnd - sQuery.length - sKey.length;
+        const sBefore = nKeyPos > 0 ? elTarget.value.charAt(nKeyPos - 1) : "";
         if((sBefore && !/\s/.test(sBefore)) || sQuery.length > MAX_QUERY_LENGTH){
             return;
         }
 
-        var htContext = _contextOf(elExpander);
-        var pSource;
+        const htContext = _contextOf(elExpander);
+        let pSource;
         if(sKey === "@"){
             pSource = htContext.userSearch(sQuery);
         } else if(sKey === "#"){
@@ -257,7 +257,7 @@
         } else {
             pSource = Promise.resolve({"query": sQuery, "items": _filterEmojis(sQuery)});
         }
-        htDetail.provide(pSource.then(function(htResult){
+        htDetail.provide(pSource.then((htResult) =>{
             // 강조는 후보를 만든 질의로 한다(앞선 호출이 늦게 끝나도 가장 나중 질의의 후보를 가장 나중 질의로 그린다)
             return _toMenu(htResult.items, htResult.query, sKey);
         }));
@@ -281,13 +281,13 @@
      * @return {Function} 같은 모양의 함수
      */
     function _newSource(fSearch) {
-        var nSeq = 0;
-        var pLatest = null;
+        let nSeq = 0;
+        let pLatest = null;
         return function(sQuery){
-            var nMine = ++nSeq;
-            var pMine = fSearch(sQuery);
+            const nMine = ++nSeq;
+            const pMine = fSearch(sQuery);
             pLatest = pMine;
-            return pMine.then(function(htResult){
+            return pMine.then((htResult) =>{
                 return nMine === nSeq ? htResult : pLatest;
             });
         };
@@ -298,15 +298,15 @@
      * 그 사이에 들어온 앞선 호출도 같은 결과를 받아 끝난다(끝나지 않은 채로 남지 않는다).
      */
     function _searchUsers(htContext, sQuery) {
-        return new Promise(function(resolve){
+        return new Promise((resolve) =>{
             htContext.waiting.push(resolve);
             clearTimeout(htContext.timer);
-            htContext.timer = setTimeout(function(){
-                var aResolvers = htContext.waiting;
+            htContext.timer = setTimeout(() =>{
+                const aResolvers = htContext.waiting;
                 htContext.waiting = [];
-                _fetch(htContext.url, "user", sQuery).then(function(aResult){
-                    var htResult = {"query": sQuery, "items": _sortUsers(sQuery, aResult)};
-                    aResolvers.forEach(function(fResolve){ fResolve(htResult); });
+                _fetch(htContext.url, "user", sQuery).then((aResult) =>{
+                    const htResult = {"query": sQuery, "items": _sortUsers(sQuery, aResult)};
+                    aResolvers.forEach((fResolve) =>{ fResolve(htResult); });
                 });
             }, USER_SEARCH_DELAY);
         });
@@ -316,7 +316,7 @@
      * 이슈 후보. 입력 지연 없이 바로 묻는다.
      */
     function _searchIssues(htContext, sQuery) {
-        return _fetch(htContext.url, "issue", sQuery).then(function(aResult){
+        return _fetch(htContext.url, "issue", sQuery).then((aResult) =>{
             return {"query": sQuery, "items": _sortIssues(sQuery, aResult).slice(0, LIMIT)};
         });
     }
@@ -330,14 +330,14 @@
      * @return {Promise<Array>}
      */
     function _fetch(sUrl, sType, sQuery) {
-        return new Promise(function(resolve){
+        return new Promise((resolve) =>{
             NProgress.start();
-            var oRequest = $.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, function(data){
+            const oRequest = $.getJSON(sUrl, {"query": sQuery, "mentionType": sType}, (data) =>{
                 NProgress.done();
                 resolve((data && data.result) || []);
             });
             if(oRequest && typeof oRequest.fail === "function"){
-                oRequest.fail(function(){
+                oRequest.fail(() =>{
                     NProgress.done();
                     resolve([]);
                 });
@@ -352,16 +352,16 @@
         if(!sQuery){
             return aItems.slice(0, LIMIT);
         }
-        var sLower = sQuery.toLowerCase();
-        var aScored = [];
-        aItems.forEach(function(htItem){
-            var nOrder = String(htItem.searchText).toLowerCase().indexOf(sLower);
+        const sLower = sQuery.toLowerCase();
+        const aScored = [];
+        aItems.forEach((htItem) =>{
+            const nOrder = String(htItem.searchText).toLowerCase().indexOf(sLower);
             if(nOrder > -1){
                 aScored.push({"item": htItem, "order": nOrder});
             }
         });
-        aScored.sort(function(a, b){ return a.order - b.order; });
-        return aScored.slice(0, LIMIT).map(function(htScored){ return htScored.item; });
+        aScored.sort((a, b) =>{ return a.order - b.order; });
+        return aScored.slice(0, LIMIT).map((htScored) =>{ return htScored.item; });
     }
 
     /**
@@ -371,19 +371,19 @@
         if(!sQuery){
             return aItems;
         }
-        var sLower = sQuery.toLowerCase();
-        var aScored = aItems.map(function(htItem, i){
-            var nOrder;
+        const sLower = sQuery.toLowerCase();
+        const aScored = aItems.map((htItem, i) =>{
+            let nOrder;
             if(htItem.issueNo === sQuery){
                 nOrder = 0;
             } else {
-                var nIssueNoIndex = htItem.issueNo.toLowerCase().indexOf(sLower);
+                const nIssueNoIndex = htItem.issueNo.toLowerCase().indexOf(sLower);
                 nOrder = i + 1 + Math.pow(10, nIssueNoIndex) + ((nIssueNoIndex > -1) ? 0 : Math.pow(100, htItem.title.toLowerCase().indexOf(sLower)));
             }
             return {"item": htItem, "order": nOrder};
         });
-        aScored.sort(function(a, b){ return a.order - b.order; });
-        return aScored.map(function(htScored){ return htScored.item; });
+        aScored.sort((a, b) =>{ return a.order - b.order; });
+        return aScored.map((htScored) =>{ return htScored.item; });
     }
 
     /**
@@ -393,16 +393,16 @@
         if(!sQuery){
             return EMOJIS.slice(0, LIMIT);
         }
-        var sLower = sQuery.toLowerCase();
-        var aScored = [];
-        EMOJIS.forEach(function(htEmoji){
-            var nOrder = htEmoji.name.toLowerCase().indexOf(sLower);
+        const sLower = sQuery.toLowerCase();
+        const aScored = [];
+        EMOJIS.forEach((htEmoji) =>{
+            const nOrder = htEmoji.name.toLowerCase().indexOf(sLower);
             if(nOrder > -1){
                 aScored.push({"item": htEmoji, "order": nOrder});
             }
         });
-        aScored.sort(function(a, b){ return a.order - b.order; });
-        return aScored.slice(0, LIMIT).map(function(htScored){ return htScored.item; });
+        aScored.sort((a, b) =>{ return a.order - b.order; });
+        return aScored.slice(0, LIMIT).map((htScored) =>{ return htScored.item; });
     }
 
     function _escape(sText) {
@@ -413,11 +413,11 @@
      * 글자에서 질의와 일치하는 부분을 굵게 보이도록 감싼다(At.js의 강조와 같다). 값은 모두 이스케이프한다.
      */
     function _highlight(sText, sQuery) {
-        var sEscaped = _escape(sText);
+        const sEscaped = _escape(sText);
         if(!sQuery){
             return sEscaped;
         }
-        var oRegExp = new RegExp("(" + _escape(sQuery).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+        const oRegExp = new RegExp("(" + _escape(sQuery).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
         return sEscaped.replace(oRegExp, "<strong>$1</strong>");
     }
 
@@ -430,10 +430,10 @@
      * @return {{matched: Boolean, fragment: HTMLElement}}
      */
     function _toMenu(aItems, sQuery, sKey) {
-        var elMenu = document.createElement("ul");
+        const elMenu = document.createElement("ul");
         elMenu.className = "mention-menu";
-        aItems.forEach(function(htItem){
-            var elItem = document.createElement("li");
+        aItems.forEach((htItem) =>{
+            const elItem = document.createElement("li");
             elItem.setAttribute("role", "option");
             if(sKey === "@"){
                 elItem.setAttribute("data-value", "@" + htItem.loginid);
@@ -462,8 +462,8 @@
             }
             return;
         }
-        var aTargets = $(htOptions.target).filter("textarea, input").get();
-        aTargets.forEach(function(elTarget){
+        const aTargets = $(htOptions.target).filter("textarea, input").get();
+        aTargets.forEach((elTarget) =>{
             _wrap(elTarget, htOptions.url);
         });
         _install();

@@ -8,9 +8,9 @@
 // Borrowed and modified from https://jsfiddle.net/tovic/rKzs5/
 (function () {
 
-    var tabCharacter = '    '; // Use `\t` or multiple space character
+    const tabCharacter = '    '; // Use `\t` or multiple space character
 
-    var select = function (start, end, target) {
+    const select = function (start, end, target) {
         target.focus();
         target.setSelectionRange(start, end);
     };
@@ -27,8 +27,8 @@
      * @param {Number} to 바꿀 범위의 끝(포함하지 않음)
      * @param {String} text 바꿔 넣을 글자
      */
-    var replaceRange = function (target, from, to, text) {
-        var value = target.value,
+    const replaceRange = function (target, from, to, text) {
+        let value = target.value,
             expected = value.substring(0, from) + text + value.substring(to),
             done = false;
 
@@ -46,19 +46,19 @@
 
     window._tab = function (target) {
 
-        var start = target.selectionStart,
+        const start = target.selectionStart,
             end = target.selectionEnd,
             value = target.value,
             selections = value.substring(start, end).split('\n');
 
-        for (var i = 0, len = selections.length; i < len; ++i) {
+        for (let i = 0, len = selections.length; i < len; ++i) {
             selections[i] = tabCharacter + selections[i];
         }
 
         replaceRange(target, start, end, selections.join('\n'));
 
         // re-select text after tabbing
-        var selectEnd = (end + (tabCharacter.length * selections.length));
+        const selectEnd = (end + (tabCharacter.length * selections.length));
         if (start === end) {
             select(selectEnd, selectEnd, target);
         } else {
@@ -68,7 +68,7 @@
     };
 
     window._untab = function (target) {
-        var start = target.selectionStart,
+        let start = target.selectionStart,
             end = target.selectionEnd,
             value = target.value,
             pattern = new RegExp(tabCharacter),
@@ -83,7 +83,7 @@
                 start--;
             }
 
-            var portion = value.substring(start, end),
+            const portion = value.substring(start, end),
                 matches = portion.match(pattern);
 
             if (matches) {
@@ -92,14 +92,14 @@
             }
 
             // set caret position after tabbing
-            var selectEnd = end <= start ? end : end - tabCharacter.length + 1;
+            const selectEnd = end <= start ? end : end - tabCharacter.length + 1;
             select(selectEnd, selectEnd, target);
 
         } else { // multiline
 
-            var selections = value.substring(start, end).split('\n');
+            const selections = value.substring(start, end).split('\n');
 
-            for (var i = 0, len = selections.length; i < len; ++i) {
+            for (let i = 0, len = selections.length; i < len; ++i) {
                 if (selections[i].match(pattern)) {
                     edits++;
                     selections[i] = selections[i].replace(pattern, "");

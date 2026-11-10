@@ -33,18 +33,18 @@
 
     /** 변경 뒤 리뷰 영역과 타임라인만 다시 읽는다. */
     function refresh(timelineUrl) {
-        $.get(window.location.href, function (html) {
+        $.get(window.location.href, (html) => {
             // 읽어 온 문서는 DOMParser로 읽어 스크립트를 실행하지 않는다. `#review-area`가 없으면(jQuery `.html(undefined)`처럼) 바꾸지 않는다
-            var fresh = new DOMParser().parseFromString(html, "text/html").querySelector("#review-area");
+            const fresh = new DOMParser().parseFromString(html, "text/html").querySelector("#review-area");
             if (fresh) {
-                fresh.querySelectorAll("script").forEach(function (script) { script.remove(); });
+                fresh.querySelectorAll("script").forEach((script) => { script.remove(); });
                 $("#review-area").html(fresh.innerHTML);
             }
             bindRequestBox();
         });
         if (timelineUrl) {
-            $.get(timelineUrl, function (html) {
-                var $comments = $("#comments");
+            $.get(timelineUrl, (html) => {
+                const $comments = $("#comments");
                 if ($comments.length) {
                     $comments.html(html);
                 }
@@ -62,7 +62,7 @@
     }
 
     function bindRequestBox() {
-        var $box = $("#review-request");
+        const $box = $("#review-request");
         if (!$box.length) {
             return;
         }
@@ -74,19 +74,19 @@
             templateSelection: yona.ui.Select2.userTemplate(formatter),
             escapeMarkup: function (m) { return m; }
         });
-        $box.on("change", function (evt) {
-            var loginId = $box.val();
+        $box.on("change", (evt) => {
+            const loginId = $box.val();
             if (!loginId) {
                 return;
             }
-            send($box.data("request-url"), {reviewer: loginId}, function () {
+            send($box.data("request-url"), {reviewer: loginId}, () => {
                 $yona.notify(Messages("pullRequest.review.request.done"), 3000);
                 refresh(timelineUrl());
             });
         });
     }
 
-    $(function () {
+    $(() => {
         if (!$("#review-area").length) {
             return;
         }
@@ -94,13 +94,13 @@
 
         // 취소와 다시 요청 단추는 영역을 다시 읽어도 동작하도록 문서에 위임한다
         $(document).on("click", "#review-area .review-cancel", function () {
-            send($(this).data("url"), {}, function () {
+            send($(this).data("url"), {}, () => {
                 $yona.notify(Messages("pullRequest.review.request.cancelled"), 3000);
                 refresh(timelineUrl());
             });
         });
         $(document).on("click", "#review-area .review-rerequest", function () {
-            send($(this).data("url"), {reviewer: $(this).data("reviewer")}, function () {
+            send($(this).data("url"), {reviewer: $(this).data("reviewer")}, () => {
                 $yona.notify(Messages("pullRequest.review.request.done"), 3000);
                 refresh(timelineUrl());
             });

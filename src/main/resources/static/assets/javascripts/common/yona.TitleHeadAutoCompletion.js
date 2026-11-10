@@ -15,8 +15,8 @@
  * @param {{target: string, url?: string}} htOptions `target`은 `<title-input>`의 선택자, `url`은 머리말 후보를 묻는 주소(`src`가 없을 때만 쓴다)
  */
 function yonaTitleHeadModule(htOptions){
-    var htVar = {};
-    var welTarget = null;
+    let htVar = {};
+    let welTarget = null;
 
     /**
      * Initialize
@@ -46,8 +46,8 @@ function yonaTitleHeadModule(htOptions){
      */
     function _attachEvent() {
         welTarget.on("title-input-select", _onSelect);
-        welTarget.on("title-input-loadstart", function() { NProgress.start(); });
-        welTarget.on("title-input-loadend", function() { NProgress.done(); });
+        welTarget.on("title-input-loadstart", () => { NProgress.start(); });
+        welTarget.on("title-input-loadend", () => { NProgress.done(); });
     }
 
     /**
@@ -57,8 +57,8 @@ function yonaTitleHeadModule(htOptions){
      * @param {Event} eEvt `title-input-select`. `detail.item`은 서버가 준 후보
      */
     function _onSelect(eEvt) {
-        var item = eEvt.originalEvent.detail.item;
-        var $labelField = $("#labelIds");
+        const item = eEvt.originalEvent.detail.item;
+        const $labelField = $("#labelIds");
 
         if (!item.category || $labelField.length === 0) {
             return;
@@ -66,13 +66,13 @@ function yonaTitleHeadModule(htOptions){
 
         eEvt.originalEvent.preventDefault();
 
-        var issueLabels = $labelField.val() || [];
-        var $selectedLabel = $labelField.find("option[value=" + item.id + "]");
+        let issueLabels = $labelField.val() || [];
+        const $selectedLabel = $labelField.find("option[value=" + item.id + "]");
         $selectedLabel.prop('selected', true);
 
         if (item.isExclusive) {
-            var labelsOfTheCategory = getProjectLabels()[item.categoryId] || [];
-            issueLabels = issueLabels.filter(function(label){
+            const labelsOfTheCategory = getProjectLabels()[item.categoryId] || [];
+            issueLabels = issueLabels.filter((label) =>{
                 return labelsOfTheCategory.indexOf(label) === -1;
             });
         }
@@ -93,12 +93,12 @@ function yonaTitleHeadModule(htOptions){
      *  }
      */
     function getProjectLabels(){
-        var allLabels = {};
+        const allLabels = {};
         $("#labelIds > optgroup").each(function(){
-            var allLabelsOfTheCategory = [];
-            var categoryId;
+            const allLabelsOfTheCategory = [];
+            let categoryId;
             $(this).children().each(function(){
-                var $this = $(this);
+                const $this = $(this);
                 allLabelsOfTheCategory.push($this.val());
                 categoryId = $this.data("categoryId");
             });

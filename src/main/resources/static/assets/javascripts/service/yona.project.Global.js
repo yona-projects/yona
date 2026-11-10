@@ -23,14 +23,14 @@
  * projectMenu.scala.html 에서 호출함
  */
 (function(ns) {
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions) {
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
-        var clientErrorStatus = /^4[0-9][0-9]$/
-        var serverErrorStatus = /^5[0-9][0-9]$/
-        var networkErrorStatus = 0;
+        const clientErrorStatus = /^4[0-9][0-9]$/
+        const serverErrorStatus = /^5[0-9][0-9]$/
+        const networkErrorStatus = 0;
 
         /**
          * initialize
@@ -76,7 +76,7 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
-            var sURL = $(this).attr('href');
+            const sURL = $(this).attr('href');
 
             $.ajax(sURL, {
                 "method" : "post",
@@ -96,7 +96,7 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            var sURL = $(this).attr('href');
+            const sURL = $(this).attr('href');
 
             $.ajax(sURL, {
                 "method" : "post",

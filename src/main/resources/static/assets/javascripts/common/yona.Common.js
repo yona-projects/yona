@@ -22,11 +22,11 @@ window.yona = (typeof yona == "undefined") ? {} : yona;
 
 $yona = yona.Common = (function(){
 
-    var htVar = {
+    const htVar = {
         "sScriptPath":"",
         "rxTrim": /\s+/g
     };
-    var htModuleInstance = {};
+    const htModuleInstance = {};
 
     /**
      * set JavaScript asset path for loadScript
@@ -47,11 +47,11 @@ $yona = yona.Common = (function(){
      * // oNS.name === "Name"
      */
     function createNamespace(sNamespace) {
-        var aSpace = sNamespace.split(".");
-        var oParent = window;
-        var sObjectName = null;
+        const aSpace = sNamespace.split(".");
+        let oParent = window;
+        let sObjectName = null;
 
-        for ( var i = 0, len = aSpace.length; i < len; i++) {
+        for ( let i = 0, len = aSpace.length; i < len; i++) {
             sObjectName = aSpace[i];
             if (i == (len - 1)) {
                 break;
@@ -86,8 +86,8 @@ $yona = yona.Common = (function(){
                 return false;
             }
 
-            var sURL = htVar.sScriptPath + "service/yona." + sName + ".js";
-            var fOnLoad = function(){
+            const sURL = htVar.sScriptPath + "service/yona." + sName + ".js";
+            const fOnLoad = function(){
                 loadModule(sName, htOptions, fCallback);
             };
             return loadScript(sURL, fOnLoad);
@@ -104,9 +104,9 @@ $yona = yona.Common = (function(){
      * @param {Hash Table} htOptions
      */
     function registerModule(sName, htOptions){
-        var aNames = sName.split(".");
-        var sDepth = aNames.shift();
-        var oModule = yona[sDepth];
+        const aNames = sName.split(".");
+        let sDepth = aNames.shift();
+        let oModule = yona[sDepth];
 
         while(aNames.length && oModule){
             sDepth = aNames.shift();
@@ -116,7 +116,7 @@ $yona = yona.Common = (function(){
         $("[data-bs-toggle=popover]").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
 
         // temporary code for compatibility with nForge
-        var oInstance;
+        let oInstance;
         if(typeof oModule == "undefined"){
             return false;
         } else if(typeof oModule == "function"){
@@ -134,13 +134,13 @@ $yona = yona.Common = (function(){
      * @param {Function} fCallback callback function on load
      */
     function loadScript(sURL, fCallback){
-        var elScript = document.createElement("script");
+        let elScript = document.createElement("script");
         elScript.type = "text/javascript";
         elScript.async = true;
         elScript.src = sURL;
 
         // run callback and free memory on load
-        var fOnLoad = function(){
+        let fOnLoad = function(){
             if(typeof fCallback == "function"){
                 fCallback();
             }
@@ -191,12 +191,12 @@ $yona = yona.Common = (function(){
      * @example dimgray if yellow is given.
      */
     function getContrastColor(sColor){
-        var oRGB = parseColor(sColor) || {"r": 0, "g": 0, "b": 0};
-        var y709 = (oRGB.r * 0.21) + (oRGB.g * 0.72) + (oRGB.b * 0.07);
+        const oRGB = parseColor(sColor) || {"r": 0, "g": 0, "b": 0};
+        const y709 = (oRGB.r * 0.21) + (oRGB.g * 0.72) + (oRGB.b * 0.07);
         return (y709 > 192) ? 'dimgray' : 'white';
     }
 
-    var oColorContext = null;
+    let oColorContext = null;
 
     /**
      * 색 글자(이름, `#rgb`, `#rrggbb`, `#` 없는 16진수, `rgb(r, g, b)`)를 읽어 `{r, g, b}`로 돌려준다. 브라우저의 캔버스가 색 문법을 해석하게 해 별도 색 이름 표 없이 읽는다.
@@ -206,7 +206,7 @@ $yona = yona.Common = (function(){
      * @returns {Object|null}
      */
     function parseColor(sColor){
-        var sValue = String(sColor == null ? "" : sColor).replace(/ /g, "").toLowerCase();
+        let sValue = String(sColor == null ? "" : sColor).replace(/ /g, "").toLowerCase();
         if(/^([0-9a-f]{3}|[0-9a-f]{6})$/.test(sValue)){
             sValue = "#" + sValue;
         }
@@ -217,7 +217,7 @@ $yona = yona.Common = (function(){
         // 읽지 못하는 값은 대입이 무시되어 이전 값이 남는다. 서로 다른 두 기준 값으로 이를 가려낸다
         oColorContext.fillStyle = "#010203";
         oColorContext.fillStyle = sValue;
-        var sRead = oColorContext.fillStyle;
+        const sRead = oColorContext.fillStyle;
         if(sRead === "#010203"){
             oColorContext.fillStyle = "#030201";
             oColorContext.fillStyle = sValue;
@@ -226,7 +226,7 @@ $yona = yona.Common = (function(){
             }
         }
 
-        var aMatch = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(sRead);
+        const aMatch = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(sRead);
         if(!aMatch){
             return null; // rgba(...): 알파가 있다
         }
@@ -240,11 +240,11 @@ $yona = yona.Common = (function(){
      * @returns {String|Boolean} 읽지 못하면 false
      */
     function getHexColor(sColor){
-        var oRGB = parseColor(sColor);
+        const oRGB = parseColor(sColor);
         if(!oRGB){
             return false;
         }
-        return "#" + [oRGB.r, oRGB.g, oRGB.b].map(function(nValue){
+        return "#" + [oRGB.r, oRGB.g, oRGB.b].map((nValue) =>{
             return (nValue < 16 ? "0" : "") + nValue.toString(16);
         }).join("");
     }
@@ -257,9 +257,9 @@ $yona = yona.Common = (function(){
      * @returns {String}
      */
     function formatFileSize(vSize){
-        var aUnits = ["bytes", "Kb", "Mb", "Gb", "Tb", "Pb"];
-        var nKilo = 1024;
-        var aThresholds = [1];
+        const aUnits = ["bytes", "Kb", "Mb", "Gb", "Tb", "Pb"];
+        const nKilo = 1024;
+        const aThresholds = [1];
 
         if(vSize <= 0){
             return "0 bytes";
@@ -267,7 +267,7 @@ $yona = yona.Common = (function(){
         if(vSize < nKilo){
             return formatNumber(vSize, 0) + " " + aUnits[0];
         }
-        for(var i = 1; i < aUnits.length; i++){
+        for(let i = 1; i < aUnits.length; i++){
             aThresholds[i] = aThresholds[i - 1] * nKilo;
             if(vSize < aThresholds[i]){
                 return formatNumber(vSize / aThresholds[i - 1], 2) + " " + aUnits[i - 1];
@@ -281,10 +281,10 @@ $yona = yona.Common = (function(){
      * 수를 소수 `nDecimals`자리까지 천 단위 쉼표를 넣어 쓴다(v1.6 `humanize.numberFormat`).
      */
     function formatNumber(vNumber, nDecimals){
-        var sSign = vNumber < 0 ? "-" : "";
-        var nNumber = Math.abs(+vNumber || 0);
-        var sInt = parseInt(nNumber.toFixed(nDecimals), 10) + "";
-        var j = sInt.length > 3 ? sInt.length % 3 : 0;
+        const sSign = vNumber < 0 ? "-" : "";
+        const nNumber = Math.abs(+vNumber || 0);
+        const sInt = parseInt(nNumber.toFixed(nDecimals), 10) + "";
+        const j = sInt.length > 3 ? sInt.length % 3 : 0;
 
         return sSign + (j ? sInt.substr(0, j) + "," : "") + sInt.substr(j).replace(/(\d{3})(?=\d)/g, "$1,")
             + (nDecimals ? "." + Math.abs(nNumber - sInt).toFixed(nDecimals).slice(2) : "");
@@ -310,31 +310,31 @@ $yona = yona.Common = (function(){
      * @param {String}       htOptions.sDataType
      */
     function sendForm(htOptions){
-        var htOptForm = htOptions.htOptForm || {"method":"post"};
-        var sMethod = String(htOptForm.method || "GET").toUpperCase();
-        var bMultipart = String(htOptForm.enctype || "").toLowerCase() === "multipart/form-data";
-        var htData = htOptions.htData || {};
+        const htOptForm = htOptions.htOptForm || {"method":"post"};
+        const sMethod = String(htOptForm.method || "GET").toUpperCase();
+        const bMultipart = String(htOptForm.enctype || "").toLowerCase() === "multipart/form-data";
+        const htData = htOptions.htData || {};
         // v1.6은 주소를 `<form action="...">` 속성에 넣어 브라우저가 `&amp;` 같은 문자 참조를 풀어 주었다. 템플릿이 주소에 `&amp;`를 써 넘기므로 같게 푼다.
-        var oDecoder = document.createElement("textarea");
+        const oDecoder = document.createElement("textarea");
         oDecoder.innerHTML = htOptions.sURL;
-        var sURL = oDecoder.value;
-        var htHeaders = {
+        let sURL = oDecoder.value;
+        const htHeaders = {
             "X-Requested-With": "XMLHttpRequest",
             "Accept": htOptions.sDataType === "json" ? "application/json, text/javascript, */*; q=0.01" : "*/*"
         };
-        var htInit = {"method": sMethod, "headers": htHeaders, "credentials": "same-origin"};
+        const htInit = {"method": sMethod, "headers": htHeaders, "credentials": "same-origin"};
 
         if(sMethod === "GET" || sMethod === "HEAD"){
-            var sQuery = new URLSearchParams(Object.keys(htData).map(function(sKey){ return [sKey, String(htData[sKey])]; })).toString();
+            const sQuery = new URLSearchParams(Object.keys(htData).map((sKey) =>{ return [sKey, String(htData[sKey])]; })).toString();
             if(sQuery){
                 sURL += (sURL.indexOf("?") < 0 ? "?" : "&") + sQuery;
             }
         } else if(bMultipart){
-            var oFormData = new FormData();
-            Object.keys(htData).forEach(function(sKey){ oFormData.append(sKey, String(htData[sKey])); });
+            const oFormData = new FormData();
+            Object.keys(htData).forEach((sKey) =>{ oFormData.append(sKey, String(htData[sKey])); });
             htInit.body = oFormData;
         } else {
-            htInit.body = new URLSearchParams(Object.keys(htData).map(function(sKey){ return [sKey, String(htData[sKey])]; })).toString();
+            htInit.body = new URLSearchParams(Object.keys(htData).map((sKey) =>{ return [sKey, String(htData[sKey])]; })).toString();
             htHeaders["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
         }
 
@@ -344,9 +344,9 @@ $yona = yona.Common = (function(){
             }
         }
 
-        fetch(sURL, htInit).then(function(oResponse){
-            return oResponse.text().then(function(sText){
-                var oXHR = {
+        fetch(sURL, htInit).then((oResponse) =>{
+            return oResponse.text().then((sText) =>{
+                const oXHR = {
                     "status": oResponse.status,
                     "statusText": oResponse.statusText,
                     "responseText": sText,
@@ -357,9 +357,9 @@ $yona = yona.Common = (function(){
                     return fail(oXHR, "error", oResponse.statusText);
                 }
 
-                var vData = sText;
+                let vData = sText;
                 if(oResponse.status !== 204){
-                    var sType = oResponse.headers.get("Content-Type") || "";
+                    const sType = oResponse.headers.get("Content-Type") || "";
                     if(htOptions.sDataType === "json" || (!htOptions.sDataType && /json/i.test(sType))){
                         try {
                             vData = JSON.parse(sText);
@@ -375,7 +375,7 @@ $yona = yona.Common = (function(){
                     htOptions.fOnLoad.call(htOptions, vData, "success", oXHR);
                 }
             });
-        }, function(oError){
+        }, (oError) =>{
             fail({"status": 0, "statusText": "", "responseText": "", "getResponseHeader": function(){ return null; }}, "error", oError && oError.message || "");
         });
     }
@@ -420,8 +420,8 @@ $yona = yona.Common = (function(){
         }
 
         htOptions = htOptions || {};
-        var aButtonStyles = htOptions.aButtonStyles;
-        var aButtonLabels = htOptions.aButtonLabels || [Messages("button.cancel"), Messages("button.confirm")];
+        const aButtonStyles = htOptions.aButtonStyles;
+        const aButtonLabels = htOptions.aButtonLabels || [Messages("button.cancel"), Messages("button.confirm")];
 
         htVar.oConfirmDialog.show(sMessage, sDescription, {
            "fOnClickButton": fCallback,
@@ -439,7 +439,7 @@ $yona = yona.Common = (function(){
      * @param {Hash Table} htConfirmOptions showConfirm options (optional)
      */
     function ajaxConfirm(sMessage, htAjaxOptions, sDescription, htConfirmOptions){
-        showConfirm(sMessage, function(htData){
+        showConfirm(sMessage, (htData) =>{
             if(htData.nButtonIndex === 1){
                 $.ajax(htAjaxOptions);
             }
@@ -490,7 +490,7 @@ $yona = yona.Common = (function(){
     function processTpl(sTemplate, htData) {
         htVar.rxTemplate = htVar.rxTemplate || /\${([^{}]*)}/g;
 
-        return sTemplate.replace(htVar.rxTemplate, function(a, b) {
+        return sTemplate.replace(htVar.rxTemplate, (a, b) => {
             return (typeof htData[b] == "undefined") ? "" : htData[b];
         });
     }
@@ -514,9 +514,9 @@ $yona = yona.Common = (function(){
      * @return {Node[]}
      */
     function parseHtml(sHtml) {
-        var elTemplate = document.createElement("template");
+        const elTemplate = document.createElement("template");
         elTemplate.innerHTML = sHtml;
-        elTemplate.content.querySelectorAll("script").forEach(function (elScript) { elScript.remove(); });
+        elTemplate.content.querySelectorAll("script").forEach((elScript) => { elScript.remove(); });
         return Array.from(elTemplate.content.childNodes);
     }
 
@@ -577,13 +577,13 @@ $yona = yona.Common = (function(){
         }
 
         // if vFile is HTMLElement
-        var welFile = $(vFile);
-        var oFileList = welFile.prop("files");
+        const welFile = $(vFile);
+        const oFileList = welFile.prop("files");
 
         if(oFileList && oFileList.length){
-            var bResult = true;
+            let bResult = true;
 
-            for(var i = 0, nLength = oFileList.length; i < nLength; i++){
+            for(let i = 0, nLength = oFileList.length; i < nLength; i++){
                 bResult = bResult && isImageFile(oFileList[i]);
             }
 
@@ -611,7 +611,7 @@ $yona = yona.Common = (function(){
      */
     function showPopover(target, htOptions){
         $(target).each(function(){
-            var oOld = bootstrap.Popover.getInstance(this);
+            const oOld = bootstrap.Popover.getInstance(this);
             if(oOld){
                 oOld.dispose();
             }
@@ -626,7 +626,7 @@ $yona = yona.Common = (function(){
      */
     function hidePopover(target){
         $(target).each(function(){
-            var oPopover = bootstrap.Popover.getInstance(this);
+            const oPopover = bootstrap.Popover.getInstance(this);
             if(oPopover){
                 oPopover.dispose();
             }
@@ -639,7 +639,7 @@ $yona = yona.Common = (function(){
      * @param {Wrapped Element|Element} target 탭의 링크
      */
     function showTab(target){
-        var elTab = $(target).get(0);
+        const elTab = $(target).get(0);
         if(elTab){
             bootstrap.Tab.getOrCreateInstance(elTab).show();
         }
@@ -666,7 +666,7 @@ $yona = yona.Common = (function(){
      * @return {Boolean}
      */
     function isComposingKey(eEvt) {
-        var oEvt = _keyboardEvent(eEvt);
+        const oEvt = _keyboardEvent(eEvt);
         return !!oEvt && (oEvt.isComposing === true || oEvt.keyCode === 229 || oEvt.key === "Process");
     }
 
@@ -674,7 +674,7 @@ $yona = yona.Common = (function(){
      * 눌린 키가 [sKey](`KeyboardEvent.key` 값)이고 조합 중이 아닌지 알려 준다.
      */
     function _isKey(eEvt, sKey) {
-        var oEvt = _keyboardEvent(eEvt);
+        const oEvt = _keyboardEvent(eEvt);
         return !!oEvt && oEvt.key === sKey && !isComposingKey(oEvt);
     }
 
@@ -706,7 +706,7 @@ $yona = yona.Common = (function(){
      * `input`은 마크다운이 그리는 작업 목록 체크 상자이므로 뺐다(서버의 v1.6 정책도 허용한다). 대신 체크 상자만 남기고 속성을 줄인다(`xssClean`).
      * script, 이벤트 처리기, `javascript:` 주소 같은 것은 목록과 상관없이 표준 정화기가 항상 걷어낸다.
      */
-    var XSS_REMOVED_ELEMENTS = [
+    const XSS_REMOVED_ELEMENTS = [
         "applet", "audio", "basefont", "base", "bgsound", "blink", "body", "embed", "form", "frameset", "frame", "head", "html", "ilayer", "iframe",
         "isindex", "layer", "link", "meta", "object", "plaintext", "style", "script", "textarea", "title", "xml",
         "noscript",
@@ -715,7 +715,7 @@ $yona = yona.Common = (function(){
         { "name": "svg", "namespace": "http://www.w3.org/2000/svg" }
     ];
 
-    var xssSanitizer = null;
+    let xssSanitizer = null;
 
     /**
      * 위험한 HTML을 정화해 글자로 돌려준다(S-12, A-425).
@@ -733,21 +733,21 @@ $yona = yona.Common = (function(){
         if (typeof Sanitizer === "function" && typeof Element.prototype.setHTML === "function") {
             try {
                 xssSanitizer = xssSanitizer || new Sanitizer({ "removeElements": XSS_REMOVED_ELEMENTS });
-                var box = document.createElement("div");
+                const box = document.createElement("div");
                 box.setHTML(str, { "sanitizer": xssSanitizer });
                 // 표준 정화기는 주소의 종류를 가리지 않으므로 링크의 data: 주소는 따로 걷어낸다(옛 필터도 막았다). 이미지의 data: 주소는 남긴다
-                var links = box.querySelectorAll("a[href], area[href]");
-                for (var i = 0; i < links.length; i++) {
+                const links = box.querySelectorAll("a[href], area[href]");
+                for (let i = 0; i < links.length; i++) {
                     if (/^[\s\u0000-\u001f]*data:/i.test(links[i].getAttribute("href"))) { links[i].removeAttribute("href"); }
                 }
                 // 체크 상자만 남긴다. 서버의 v1.6 정책(`MarkdownRenderer`)은 input의 type, disabled, checked를 허용한다. 가짜 입력란을 막기 위해 체크 상자가 아닌 input은 지우고
                 // 허용하지 않는 속성(name, value, form 등)을 걷어낸다.
-                var inputs = box.querySelectorAll("input");
-                for (var j = 0; j < inputs.length; j++) {
-                    var input = inputs[j];
+                const inputs = box.querySelectorAll("input");
+                for (let j = 0; j < inputs.length; j++) {
+                    const input = inputs[j];
                     if ((input.getAttribute("type") || "").toLowerCase() !== "checkbox") { input.remove(); continue; }
-                    var names = input.getAttributeNames();
-                    for (var k = 0; k < names.length; k++) {
+                    const names = input.getAttributeNames();
+                    for (let k = 0; k < names.length; k++) {
                         if (["type", "checked", "disabled", "class", "id", "style", "width", "height"].indexOf(names[k]) < 0) { input.removeAttribute(names[k]); }
                     }
                 }

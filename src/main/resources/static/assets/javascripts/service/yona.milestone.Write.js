@@ -7,11 +7,11 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -24,7 +24,7 @@
             _initFileUploader();
 
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.on('keydown', (e) => {
                 if($yona.isEnterKey(e)) {
                     e.preventDefault();
                     htElement.welInputContent.focus();
@@ -71,9 +71,9 @@
         }
 
         function _validateForm(){
-            var sTitle = (htElement.welInputTitle.val() || "").trim();
-            var sContent = (htElement.welInputContent.val() || "").trim();
-            var sDueDate = (htElement.welInputDueDate.val() || "").trim();
+            const sTitle = (htElement.welInputTitle.val() || "").trim();
+            const sContent = (htElement.welInputContent.val() || "").trim();
+            const sDueDate = (htElement.welInputDueDate.val() || "").trim();
 
             if(sTitle.length === 0){
                 $yona.showAlert(Messages("milestone.error.title"));
@@ -107,7 +107,7 @@
             htVar.oPicker = yona.ui.Calendar.inline(htElement.welDatePicker, { "input": htElement.welInputDueDate });
 
             // 입력란에 값이 있으면 달력도 그 날짜로 맞춘다(입력란은 정규화된 값으로 다시 채워진다)
-            var sDueDate = htElement.welInputDueDate.val();
+            const sDueDate = htElement.welInputDueDate.val();
             if(sDueDate.length > 0){
                 htVar.oPicker.setDate(sDueDate);
             }
@@ -117,7 +117,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welInputContent);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welInputContent);
 
             if(oUploader){
                 (new yona.Attachments({

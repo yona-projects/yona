@@ -27,11 +27,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(sContainer, htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * @param {String} sContainer
@@ -79,7 +79,7 @@
             htVar.fOnClickButton = htOptions.fOnClickButton;
 
             // 커스텀 버튼 옵션이 있으면 버튼을 생성하고, 아니면 기본 버튼만 제공한다
-            var sButtonHTML = htOptions.aButtonLabels ?
+            const sButtonHTML = htOptions.aButtonLabels ?
                 _getCustomButtons(htOptions) : htVar.sDefaultButton;
 
             htElement.welButtons.html(sButtonHTML);
@@ -94,11 +94,11 @@
          * @private
          */
         function _getCustomButtons(htOptions){
-            var aButtonsHTML = [];
-            var aButtonLabels = htOptions.aButtonLabels;
-            var aButtonStyles = htOptions.aButtonStyles || [];
+            const aButtonsHTML = [];
+            const aButtonLabels = htOptions.aButtonLabels;
+            const aButtonStyles = htOptions.aButtonStyles || [];
 
-            for(var i = 0, nLength = aButtonLabels.length; i < nLength; i++){
+            for(let i = 0, nLength = aButtonLabels.length; i < nLength; i++){
                 aButtonsHTML.push($yona.tmpl(htVar.sTplCustomButton, {
                     "text" : aButtonLabels[i],
                     "class": aButtonStyles[i] || (aButtonStyles.length === 0 && i === nLength-1 ? "ybtn-primary" : "ybtn-default")
@@ -114,7 +114,7 @@
          */
         function _onClickButton(weEvt){
             if(typeof htVar.fOnClickButton === "function"){
-                var bResult = htVar.fOnClickButton({
+                const bResult = htVar.fOnClickButton({
                     "weEvt"       : weEvt,
                     "nButtonIndex": $(this).index()
                 });

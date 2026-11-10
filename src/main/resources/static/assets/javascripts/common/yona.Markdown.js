@@ -7,7 +7,7 @@
 
 yona.Markdown = (function(htOptions){
 
-    var htVar = {};
+    const htVar = {};
 
     /**
      * initialize
@@ -80,7 +80,7 @@ yona.Markdown = (function(htOptions){
     }
 
     function _render(welTarget, sContentBody) {
-        var source = {
+        const source = {
             "body": sContentBody,
             "breaks": (welTarget.hasClass('readme-body') ? false : true)
         };
@@ -91,7 +91,7 @@ yona.Markdown = (function(htOptions){
             "data": JSON.stringify(source),
             "success": function(data){
                 welTarget.html(data);
-                $('pre code').each(function(i, block) {
+                $('pre code').each((i, block) => {
                     hljs.highlightElement(block);
                 });
             }
@@ -104,8 +104,8 @@ yona.Markdown = (function(htOptions){
      * @param {Wrapped Element} welTarget is not <textarea> or <input>
      */
     function _setViewer(welTarget){
-        var sMarkdownText = welTarget.text();
-        var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
+        const sMarkdownText = welTarget.text();
+        const sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
         $('.markdown-loader').remove();
         welTarget.html(sContentBody).removeClass('markdown-before');
     }
@@ -113,11 +113,11 @@ yona.Markdown = (function(htOptions){
     // Deprecated. so never call this method
     function _postMarkdownRender(){
         // Make first li font bold when multi-depth list is used
-        var ul = $(".markdown-wrap > ul");
+        const ul = $(".markdown-wrap > ul");
         ul.find("> li > ul").parent().closest('ul').css('font-weight', 'bold');  //ul > ul
         ul.find("> li > ol").parent().closest('ul').css('font-weight', 'bold');  //ul > ol
 
-        var ol = $(".markdown-wrap > ol");
+        const ol = $(".markdown-wrap > ol");
         ol.find("> li > ul").parent().closest('ol').css('font-weight', 'bold');  //ol > ul
         ol.find("> li > ol").parent().closest('ol').css('font-weight', 'bold');  //ol > ol
     }
@@ -128,15 +128,15 @@ yona.Markdown = (function(htOptions){
      * @param {Wrapped Element} welTextarea
      */
     function _setEditor(welTextarea){
-        var elContainer = welTextarea.parents('[data-toggle="markdown-editor"]').get(0);
+        const elContainer = welTextarea.parents('[data-toggle="markdown-editor"]').get(0);
 
         if(!elContainer){
             return false;
         }
 
-        $(elContainer).on("click", 'a[data-mode="preview"]', function(weEvt){
-            var welPreview = $(weEvt.delegateTarget).find("div.markdown-preview");
-            var sContentBody = welTextarea.val();
+        $(elContainer).on("click", 'a[data-mode="preview"]', (weEvt) =>{
+            const welPreview = $(weEvt.delegateTarget).find("div.markdown-preview");
+            const sContentBody = welTextarea.val();
 
             _replaceAutoLink(welPreview, sContentBody);
 
@@ -144,7 +144,7 @@ yona.Markdown = (function(htOptions){
         });
 
         welTextarea.on("keydown.tabkey-event-handler", function(e) {
-            var $this = $(this);
+            const $this = $(this);
             if (e.shiftKey && e.key === 'Tab') {
                 e.preventDefault();
                 _untab($this.get(0));
@@ -161,9 +161,9 @@ yona.Markdown = (function(htOptions){
      * @param {String} sQuery Selector string for targets
      */
     function _enableMarkdown(sQuery){
-        var waTarget = $(sQuery || "[markdown]"); // TODO: markdown=true
+        const waTarget = $(sQuery || "[markdown]"); // TODO: markdown=true
 
-        waTarget.each(function(nIndex, elTarget){
+        waTarget.each((nIndex, elTarget) =>{
             _isEditableElement(elTarget) ? _setEditor($(elTarget)) : _setViewer($(elTarget));
         });
     }
@@ -175,7 +175,7 @@ yona.Markdown = (function(htOptions){
      * @return {Boolean}
      */
     function _isEditableElement(elTarget){
-        var sTagName = elTarget.tagName.toUpperCase();
+        const sTagName = elTarget.tagName.toUpperCase();
         return (sTagName === "TEXTAREA" || sTagName === "INPUT" || elTarget.contentEditable == "true");
     }
 

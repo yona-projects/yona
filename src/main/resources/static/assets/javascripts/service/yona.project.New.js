@@ -6,11 +6,11 @@
  **/
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         function _init(htOptions){
             _initVar();
@@ -104,7 +104,7 @@
         }
 
         function _onChangeProjectOwner() {
-            var sType = $("#project-owner option:selected").data("type");
+            const sType = $("#project-owner option:selected").data("type");
 
             if (sType == "user") {
                 if ($("#protected").is(":checked")) {
@@ -132,8 +132,8 @@
          * @private
          */
         function _validateForm(evt){
-            var error = {};
-            var projectName = htElement.welInputProjectName.val();
+            const error = {};
+            const projectName = htElement.welInputProjectName.val();
 
             if(projectName.length === 0){
                 error.name = error.name || [];
@@ -176,9 +176,9 @@
                 return;
             }
 
-            var targetElement;
+            let targetElement;
 
-            for(var target in error){
+            for(const target in error){
                 targetElement = htElement.welForm.find("[name=" + target + "]");
 
                 if(targetElement.length > 0) {
@@ -191,7 +191,7 @@
         }
 
         function _onClickMenuSettingCode() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if (!isChecked) {
                 htElement.welMenuSettingCode.prop("checked", false);
@@ -205,7 +205,7 @@
         }
 
         function _onClickMenuSettingPullRequest() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if(isChecked) {
                 htElement.welMenuSettingCode.prop("checked", true);
@@ -215,7 +215,7 @@
         }
 
         function _onClickMenuSettingReview() {
-            var isChecked = $(this).prop("checked");
+            const isChecked = $(this).prop("checked");
             
             if(isChecked) {
                 htElement.welMenuSettingCode.prop("checked", true);

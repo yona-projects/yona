@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -65,9 +65,9 @@
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = (welTarget.attr("data-watching") === "true");
+            htElement.welBtnWatch.click((weEvt) => {
+                const welTarget = $(weEvt.target);
+                const bWatched = (welTarget.attr("data-watching") === "true");
                 
                 $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
@@ -87,7 +87,7 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            const oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 (new yona.Attachments({
@@ -103,7 +103,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(i, elContainer){
+            htElement.welAttachments.each((i, elContainer) =>{
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }

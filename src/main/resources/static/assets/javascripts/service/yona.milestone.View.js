@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -60,7 +60,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(i, elContainer){
+            htElement.welAttachments.each((i, elContainer) =>{
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }

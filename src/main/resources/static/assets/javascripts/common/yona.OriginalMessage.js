@@ -20,8 +20,8 @@
  */
 yona.OriginalMessage = (function(htOptions){
     function _setToggle(elem, f1, f2) {
-        var a;
-        var b;
+        let a;
+        let b;
 
         a = function() {
             f1();
@@ -42,14 +42,14 @@ yona.OriginalMessage = (function(htOptions){
      * @param {String} sQuery Selector string for targets
      */
     function _hide(targets) {
-        Array.from(targets).forEach(function(targetElem) {
-            var delimiterLine;
-            var originalMessage; // list of jquery elements which construct the original message
-            var buttonToHideOriginalMessage; // a button to toggle the original message
-            var target = $(targetElem);
+        Array.from(targets).forEach((targetElem) => {
+            let delimiterLine;
+            let originalMessage; // list of jquery elements which construct the original message
+            let buttonToHideOriginalMessage; // a button to toggle the original message
+            const target = $(targetElem);
 
             target.find(":contains('---')").each(function() {
-                var h = $(this).html()
+                const h = $(this).html()
                 // This matches the boudnary which starts the original message like
                 // '----Original Mesage---' roughly.
                 if (h && !$(this).is(target.children(":first")) &&
@@ -64,7 +64,7 @@ yona.OriginalMessage = (function(htOptions){
                 originalMessage = delimiterLine.add(
                         delimiterLine.nextAll()
                     ).add(
-                        delimiterLine.parents().filter(function(idx, elem) {
+                        delimiterLine.parents().filter((idx, elem) => {
                             return target.has(elem).length > 0;
                         }).nextAll()
                     ).hide();
@@ -76,8 +76,8 @@ yona.OriginalMessage = (function(htOptions){
                     .attr('type', 'button')
                     .text('...');
                 _setToggle(buttonToHideOriginalMessage,
-                        function() { originalMessage.show(); },
-                        function() { originalMessage.hide(); });
+                        () => { originalMessage.show(); },
+                        () => { originalMessage.hide(); });
                 delimiterLine.before(buttonToHideOriginalMessage);
             }
         });

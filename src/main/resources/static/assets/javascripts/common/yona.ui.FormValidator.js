@@ -31,14 +31,14 @@
 (function (window, document) {
     "use strict";
 
-    var yona = window.yona = window.yona || {};
+    const yona = window.yona = window.yona || {};
     yona.ui = yona.ui || {};
 
-    var NUMERIC = /^[0-9]+$/;
-    var EMAIL = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-    var RULE_WITH_PARAM = /^(.+?)\[(.+)\]$/;
+    const NUMERIC = /^[0-9]+$/;
+    const EMAIL = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+    const RULE_WITH_PARAM = /^(.+?)\[(.+)\]$/;
 
-    var DEFAULT_MESSAGES = {
+    const DEFAULT_MESSAGES = {
         "required": "The %s field is required.",
         "matches": "The %s field does not match the %s field.",
         "valid_email": "The %s field must contain a valid email address.",
@@ -47,7 +47,7 @@
     };
 
     /** 규칙 이름별 검사 함수. 통과하면 true를 돌려준다. */
-    var HOOKS = {
+    const HOOKS = {
         "required": function (htField) {
             if (htField.type === "checkbox") {
                 return htField.checked === true;
@@ -55,7 +55,7 @@
             return htField.value !== null && htField.value !== "";
         },
         "matches": function (htField, sOtherName) {
-            var elOther = this.form[sOtherName];
+            const elOther = this.form[sOtherName];
             return elOther ? htField.value === elOther.value : false;
         },
         "valid_email": function (htField) {
@@ -76,7 +76,7 @@
      * @constructor
      */
     function FormValidator(sFormName, aFields, fCallback) {
-        var oSelf = this;
+        const oSelf = this;
 
         this.callback = fCallback || function () {};
         this.errors = [];
@@ -85,7 +85,7 @@
         this.messages = {};
         this.handlers = {};
 
-        aFields.forEach(function (htField) {
+        aFields.forEach((htField) => {
             // 이름이나 규칙이 없으면 건너뛴다
             if (!htField.name || !htField.rules) {
                 return;
@@ -132,12 +132,12 @@
      * @return {Boolean} 제출해도 되는지(처리기가 true나 false를 돌려주면 그 값)
      */
     FormValidator.prototype.validate = function (eEvent) {
-        var oSelf = this;
+        const oSelf = this;
         this.errors = [];
 
-        Object.keys(this.fields).forEach(function (sKey) {
-            var htField = oSelf.fields[sKey];
-            var elInput = oSelf.form[htField.name];
+        Object.keys(this.fields).forEach((sKey) => {
+            const htField = oSelf.fields[sKey];
+            const elInput = oSelf.form[htField.name];
             if (elInput) {
                 htField.id = elInput.id;
                 htField.type = elInput.type;
@@ -148,7 +148,7 @@
         });
 
         if (typeof this.callback === "function") {
-            var vReturn = this.callback(this.errors, eEvent);
+            const vReturn = this.callback(this.errors, eEvent);
             if (typeof vReturn === "boolean") {
                 return vReturn;
             }
@@ -166,18 +166,18 @@
 
     /** 한 필드를 검사해 처음 실패한 규칙 하나를 `errors`에 더한다. */
     FormValidator.prototype.validateField = function (htField) {
-        var aRules = htField.rules.split("|");
+        const aRules = htField.rules.split("|");
 
         // 필수가 아니면 빈 값은 검사하지 않는다
         if (htField.rules.indexOf("required") === -1 && (!htField.value || htField.value === "")) {
             return;
         }
 
-        for (var i = 0; i < aRules.length; i++) {
-            var sMethod = aRules[i];
-            var sParam = null;
-            var bFailed = false;
-            var aParts = RULE_WITH_PARAM.exec(sMethod);
+        for (let i = 0; i < aRules.length; i++) {
+            let sMethod = aRules[i];
+            let sParam = null;
+            let bFailed = false;
+            const aParts = RULE_WITH_PARAM.exec(sMethod);
 
             if (aParts) {
                 sMethod = aParts[1];
@@ -194,8 +194,8 @@
             }
 
             if (bFailed) {
-                var sSource = this.messages[sMethod] || DEFAULT_MESSAGES[sMethod];
-                var sMessage = "An error has occurred with the " + htField.display + " field.";
+                const sSource = this.messages[sMethod] || DEFAULT_MESSAGES[sMethod];
+                let sMessage = "An error has occurred with the " + htField.display + " field.";
                 if (sSource) {
                     sMessage = sSource.replace("%s", htField.display);
                     if (sParam) {

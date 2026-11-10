@@ -20,10 +20,10 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htElement = {};
+        let htElement = {};
 
         /**
          * initialize

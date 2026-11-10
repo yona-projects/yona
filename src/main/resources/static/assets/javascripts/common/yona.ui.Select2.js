@@ -39,7 +39,7 @@
 
     "use strict";
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
 
     // 이 파일을 거치지 않고 `.select2()`를 직접 부르는 화면(담당자, 공유자, 리뷰어)도 같은 테마를 쓴다
     $.fn.select2.defaults.set("theme", "bootstrap-5");
@@ -50,7 +50,7 @@
      * 4.x는 복사하지 않으므로 초기화 뒤에 같은 규칙으로 복사한다. `form-select`와 `form-control`은 컨테이너에 화살표 배경이
      * 겹쳐 그려지므로(X-38i, D-56), `hide`는 컨테이너가 보여야 하므로, `select2-hidden-accessible`은 select2가 붙인 것이므로 뺀다.
      */
-    var NOT_COPIED_CLASSES = {"form-select": true, "form-control": true, "hide": true, "select2-hidden-accessible": true};
+    const NOT_COPIED_CLASSES = {"form-select": true, "form-control": true, "hide": true, "select2-hidden-accessible": true};
 
     /**
      * 3.x 방식으로 쓰인 항목 모양 함수를 4.x 템플릿 함수로 바꾼다.
@@ -66,7 +66,7 @@
             if(itemObject.loading || !itemObject.element){
                 return itemObject.text;
             }
-            var result = formatter(itemObject);
+            const result = formatter(itemObject);
             return (typeof result === "string") ? $("<span/>").html(result) : result;
         };
     }
@@ -81,9 +81,9 @@
     function _toMatcher(test){
         function match(term, data){
             if(data.children){
-                var children = [];
-                data.children.forEach(function(child){
-                    var matched = match(term, child);
+                const children = [];
+                data.children.forEach((child) =>{
+                    const matched = match(term, child);
                     if(matched){
                         children.push(matched);
                     }
@@ -93,7 +93,7 @@
             return test(term, data.text, $(data.element)) ? data : null;
         }
         return function(params, data){
-            var term = (params.term || "").trim();
+            const term = (params.term || "").trim();
             return term === "" ? data : match(term, data);
         };
     }
@@ -106,11 +106,11 @@
      * @return {Object} option 값 → 자료 객체
      */
     function _selectedData(select){
-        var selected = {};
+        const selected = {};
         if(!select[0]){
             return selected;
         }
-        Array.from(select[0].options).forEach(function(option){
+        Array.from(select[0].options).forEach((option) =>{
             if(option.selected){
                 selected[option.value] = {"id": option.value, "text": $(option).text(), "element": option};
             }
@@ -127,19 +127,19 @@
      * @return {{added: Array, removed: Array}} 더해진 선택과 빠진 선택(각 항목은 `{id, text, element}`)
      */
     function selectionChanges(element){
-        var select = $(element);
-        var before = select.data("yonaSelectionBase") || {};
-        var current = _selectedData(select);
-        var changes = {"added": [], "removed": []};
+        const select = $(element);
+        const before = select.data("yonaSelectionBase") || {};
+        const current = _selectedData(select);
+        const changes = {"added": [], "removed": []};
 
-        Object.entries(current).forEach(function(entry){
-            var id = entry[0], data = entry[1];
+        Object.entries(current).forEach((entry) =>{
+            const id = entry[0], data = entry[1];
             if(!(id in before)){
                 changes.added.push(data);
             }
         });
-        Object.entries(before).forEach(function(entry){
-            var id = entry[0], data = entry[1];
+        Object.entries(before).forEach((entry) =>{
+            const id = entry[0], data = entry[1];
             if(!(id in current)){
                 changes.removed.push(data);
             }
@@ -158,7 +158,7 @@
      * @return {{name: String, loginId: String, avatarUrl: String, type: String}}
      */
     function userOf(state){
-        var optionElement = $(state.element);
+        const optionElement = $(state.element);
         return {
             "name"     : state.name      || optionElement.data("name")      || state.text,
             "loginId"  : state.loginId   || optionElement.data("loginId")   || state.id,
@@ -179,7 +179,7 @@
             if(state.loading || (!state.element && !state.loginId)){
                 return state.text;
             }
-            var result = formatter(userOf(state));
+            const result = formatter(userOf(state));
             return (typeof result === "string") ? $("<span/>").html(result) : result;
         };
     }
@@ -202,7 +202,7 @@
                 return {"query": params.term};
             },
             "processResults": function(users){
-                return {"results": users.map(function(user){
+                return {"results": users.map((user) =>{
                     return Object.assign({"id": user.loginId, "text": user.name}, user);
                 })};
             }
@@ -217,13 +217,13 @@
      * @param {Array} users 사용자 객체 배열 (`loginId`, `name`, `avatarUrl`, `type`)
      */
     function selectUsers(select, users){
-        var selectElement = $(select);
-        users.forEach(function(user){
+        const selectElement = $(select);
+        users.forEach((user) =>{
             selectElement.find("option").filter(function(){
                 return this.value === user.loginId;
             }).remove();
 
-            var option = $(new Option(user.name, user.loginId, true, true));
+            const option = $(new Option(user.name, user.loginId, true, true));
             option.attr({"data-name": user.name, "data-login-id": user.loginId, "data-avatar-url": user.avatarUrl, "data-type": user.type});
             selectElement.append(option);
         });
@@ -231,9 +231,9 @@
     }
 
     oNS.container[oNS.name] = function(element, options){
-        var targetElement = $(element);
+        const targetElement = $(element);
 
-        var select2Option = Object.assign({
+        let select2Option = Object.assign({
             "width"            : "resolve",
             "allowClear"       : targetElement.data("allowClear"),
             "closeOnSelect"    : targetElement.data("closeOnSelect"),
@@ -241,16 +241,16 @@
         }, options);
 
         // Customized formats
-        var formatters = {
+        const formatters = {
             "projects": function(itemObject){
-                var itemElement = $(itemObject.element);
-                var avatarURL = itemElement.data("avatarUrl");
+                const itemElement = $(itemObject.element);
+                const avatarURL = itemElement.data("avatarUrl");
 
                 function _doesntHaveProjectAvatar() {
                     return !avatarURL || avatarURL.indexOf("project_default_logo.png") !== -1;
                 }
 
-                var owner = itemElement.data("owner") ? itemElement.data("owner") : "";
+                const owner = itemElement.data("owner") ? itemElement.data("owner") : "";
                 if(_doesntHaveProjectAvatar()){
                     return $yona.render($("#tplSelect2ProjectsWithoutAvatar").text(), {
                         "name"     : itemObject.text,
@@ -270,22 +270,22 @@
                 });
             },
             "user": function(itemObject){
-                var itemElement = $(itemObject.element);
-                var avatarURL = itemElement.data("avatarUrl");
+                const itemElement = $(itemObject.element);
+                const avatarURL = itemElement.data("avatarUrl");
 
                 if(!avatarURL){
                     return '<div>' + itemObject.text + '</div>';
                 }
 
                 // Template text
-                var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
+                const tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
                     '<span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>' +
                     '<strong class="name">{{name}}</strong>' +
                     '<span class="loginid">{{loginId}}</span></div>';
 
-                var loginId = itemElement.data("loginId") ? "@" + itemElement.data("loginId") : "";
+                const loginId = itemElement.data("loginId") ? "@" + itemElement.data("loginId") : "";
 
-                var formattedResult = $yona.render(tplUserItem, {
+                const formattedResult = $yona.render(tplUserItem, {
                     "avatarURL": avatarURL,
                     "name"     : itemObject.text.trim(),
                     "loginId"  : loginId
@@ -294,19 +294,19 @@
                 return formattedResult;
             },
             "milestone": function(itemObject){
-                var itemElement = $(itemObject.element);
-                var milestoneState = itemElement.data("state");
+                const itemElement = $(itemObject.element);
+                let milestoneState = itemElement.data("state");
 
                 if(!milestoneState){
                     return itemObject.text;
                 }
 
                 milestoneState = milestoneState.toLowerCase();
-                var milestoneStateLabel = Messages("milestone.state." + milestoneState);
-                var tplMilestoneItem = $("#tplSElect2FormatMilestone").text()
+                const milestoneStateLabel = Messages("milestone.state." + milestoneState);
+                const tplMilestoneItem = $("#tplSElect2FormatMilestone").text()
                                     || '<div title="[{{stateLabel}}] {{name}}">{{name}}</div>';
 
-                var formattedResult = $yona.render(tplMilestoneItem, {
+                const formattedResult = $yona.render(tplMilestoneItem, {
                     "name" : itemObject.text.trim().replace('<', '&lt;'),
                     "state": milestoneState,
                     "stateLabel": milestoneStateLabel
@@ -315,13 +315,13 @@
                 return formattedResult;
             },
             "issuelabel": function(itemObject){
-                var element = $(itemObject.element);
-                var labelId = element.val();
-                var text = $("<div/>").text(itemObject.text).html().trim();
+                const element = $(itemObject.element);
+                const labelId = element.val();
+                const text = $("<div/>").text(itemObject.text).html().trim();
 
                 if(!labelId){ // = optgroup
-                    var isCategoryExclusive = element.data("categoryIsExclusive");
-                    var data = {
+                    const isCategoryExclusive = element.data("categoryIsExclusive");
+                    const data = {
                         "text" : text,
                         "title": Messages("label.category.option") + '<br>' +
                                 (isCategoryExclusive ? Messages("label.category.option.single")
@@ -329,7 +329,7 @@
                         "css"  : isCategoryExclusive ? 'yobicon-tag  category-exclusive single'
                                                      : 'yobicon-tags category-exclusive multiple'
                     };
-                    var tpl = '<i class="{{css}}" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right" title="{{title}}"></i><span>{{text}}</span>';
+                    const tpl = '<i class="{{css}}" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right" title="{{title}}"></i><span>{{text}}</span>';
 
                     return $yona.render(tpl, data);
                 }
@@ -342,15 +342,15 @@
                     return $('<div/>').text(itemObject.text.trim()).html();
                 }
 
-                var branchType = "unknown";
-                var branchName = itemObject.text.trim();
-                var branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;
+                let branchType = "unknown";
+                let branchName = itemObject.text.trim();
+                const branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;
 
                 // parse branchName with regular expression branchNameRegex
                 // e.g.'refs/heads/feature/review-10'
                 // -> ["refs/heads/feature/review-10", "heads", "feature/review-10"]
-                var parsedBranchName = branchName.match(branchNameRegex);
-                var branchTypeMapByName = {
+                const parsedBranchName = branchName.match(branchNameRegex);
+                const branchTypeMapByName = {
                     "heads": "branch",
                     "tags" : "tag"
                 };
@@ -360,12 +360,12 @@
                     branchName = parsedBranchName[2];
                 }
 
-                var tplBranchItem = $("#tplSelect2FormatBranch").text()
+                const tplBranchItem = $("#tplSelect2FormatBranch").text()
                                   || '<strong class="branch-label {{branchType}}">{{branchType}}</strong> {{branchName}}';
 
                 // branchType will be "unknown"
                 // if selected branch name doesn't starts with /refs
-                var formattedResult = $yona.render(tplBranchItem, {
+                const formattedResult = $yona.render(tplBranchItem, {
                     "branchType": branchType,
                     "branchName": branchName
                 });
@@ -375,11 +375,11 @@
         };
 
         // Custom matchers
-        var matchers = {
+        const matchers = {
             "user": function(term, formattedResult, itemElement){
                 term = term.toLowerCase();
                 formattedResult = formattedResult.toLowerCase();
-                var loginId = itemElement.data("loginId") + "";
+                let loginId = itemElement.data("loginId") + "";
                 loginId = (typeof loginId !== "undefined") ? loginId.toLowerCase() : "";
 
                 return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
@@ -387,7 +387,7 @@
             "projects": function(term, formattedResult, itemElement){
               term = term.toLowerCase();
               formattedResult = formattedResult.toLowerCase();
-              var owner = itemElement.data("owner") + "";
+              let owner = itemElement.data("owner") + "";
               owner = (typeof owner !== "undefined") ? owner.toLowerCase() : "";
 
               return (owner.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
@@ -395,12 +395,12 @@
         };
 
         // Custom behaviors
-        var behaviors = {
+        const behaviors = {
             "issuelabel": function(select2Element){
                 // 배타 분류의 라벨을 고르면 같은 분류에서 이미 고른 라벨을 먼저 해제한다.
                 // 해제는 select2의 선택 처리 전에 option의 selected만 바꾸고, 뒤이은 선택 처리가 change를 한 번 내보내며 화면을 갱신한다.
-                select2Element.on("select2:selecting", function(evt){
-                    var selected = $(evt.params.args.data.element);
+                select2Element.on("select2:selecting", (evt) =>{
+                    const selected = $(evt.params.args.data.element);
 
                     if(!selected.data("categoryIsExclusive")){
                         return;
@@ -408,9 +408,9 @@
 
                     // 선택된 option이 하나도 없는 순간이 생기면 브라우저가 맨 앞의 빈 option을 선택해 폼에 빈 값이 실린다.
                     // 그래서 새 라벨을 먼저 선택 상태로 만든 뒤 같은 분류의 앞선 선택을 해제한다(select2가 이어서 change를 한 번 내보낸다)
-                    var categoryId = selected.data("categoryId");
+                    const categoryId = selected.data("categoryId");
                     selected[0].selected = true;
-                    Array.from(select2Element[0].options).forEach(function(option){
+                    Array.from(select2Element[0].options).forEach((option) =>{
                         if(option.selected && option !== selected[0] && $(option).data("categoryId") === categoryId){
                             option.selected = false;
                         }
@@ -420,13 +420,13 @@
         };
 
         // Use customized format if specified format exists
-        var formatName = targetElement.data("format");
-        var formatter = formatName ? formatters[formatName.toLowerCase()] : null;
-        var matcher   = formatName ? matchers[formatName.toLowerCase()]   : null;
-        var behavior  = formatName ? behaviors[formatName.toLowerCase()]  : null;
+        const formatName = targetElement.data("format");
+        const formatter = formatName ? formatters[formatName.toLowerCase()] : null;
+        const matcher   = formatName ? matchers[formatName.toLowerCase()]   : null;
+        const behavior  = formatName ? behaviors[formatName.toLowerCase()]  : null;
 
         if(typeof formatter === "function"){
-            var template = _toTemplate(formatter);
+            const template = _toTemplate(formatter);
             select2Option = Object.assign(select2Option, {
                 "templateResult"   : template,
                 "templateSelection": template
@@ -465,9 +465,9 @@
         targetElement.data("yonaSelectionBase", _selectedData(targetElement));
 
         // 3.x처럼 `data-container-css-class`와 원본의 레이아웃 클래스를 컨테이너에 건다
-        var container = targetElement.next(".select2-container");
+        const container = targetElement.next(".select2-container");
         container.addClass(targetElement.data("containerCssClass") || "");
-        (targetElement.attr("class") || "").split(/\s+/).forEach(function(className){
+        (targetElement.attr("class") || "").split(/\s+/).forEach((className) =>{
             if(className && !NOT_COPIED_CLASSES[className]){
                 container.addClass(className);
             }
@@ -483,8 +483,8 @@
     oNS.container[oNS.name].selectUsers = selectUsers;
 })("yona.ui.Select2");
 
-$(function(){
-    $('[data-toggle="select2"]').each(function(i, el){
+$(() =>{
+    $('[data-toggle="select2"]').each((i, el) =>{
         yona.ui.Select2(el);
     });
 });

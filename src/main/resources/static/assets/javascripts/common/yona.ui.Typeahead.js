@@ -57,13 +57,13 @@
 
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
 
     /** 한 번에 보여 주는 후보의 최대 수. `limit` 옵션은 서버에 보내는 값일 뿐 이 수를 바꾸지 않는다(v1.6과 같다). */
-    var MAX_ITEMS = 10;
+    const MAX_ITEMS = 10;
 
     /** 입력란마다 하나의 자동 완성만 둔다. 같은 입력란에 다시 만들면 옵션만 새 값으로 바뀐다. */
-    var instances = new WeakMap();
+    const instances = new WeakMap();
 
     function _escape(sText){
         return String(sText).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -71,8 +71,8 @@
 
     /** 후보 하나를 검색어 강조와 함께 HTML로 만든다. 글자는 이스케이프하고 일치하는 부분만 `<strong>`으로 감싼다. */
     function _highlight(sItem, sQuery){
-        var rx = new RegExp("(" + sQuery.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&") + ")", "ig");
-        return sItem.split(rx).map(function(sPart, i){
+        const rx = new RegExp("(" + sQuery.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&") + ")", "ig");
+        return sItem.split(rx).map((sPart, i) =>{
             return (i % 2) ? "<strong>" + _escape(sPart) + "</strong>" : _escape(sPart);
         }).join("");
     }
@@ -103,20 +103,20 @@
         },
 
         _listen: function(){
-            var that = this;
-            this.input.addEventListener("focus", function(){ that._onFocus(); });
-            this.input.addEventListener("blur", function(){ that._onBlur(); });
-            this.input.addEventListener("keydown", function(e){ that._onKeyDown(e); });
-            this.input.addEventListener("keypress", function(e){ that._onKeyPress(e); });
-            this.input.addEventListener("keyup", function(e){ that._onKeyUp(e); });
+            const that = this;
+            this.input.addEventListener("focus", () =>{ that._onFocus(); });
+            this.input.addEventListener("blur", () =>{ that._onBlur(); });
+            this.input.addEventListener("keydown", (e) =>{ that._onKeyDown(e); });
+            this.input.addEventListener("keypress", (e) =>{ that._onKeyPress(e); });
+            this.input.addEventListener("keyup", (e) =>{ that._onKeyUp(e); });
         },
 
         _createMenu: function(){
-            var that = this;
-            var menu = document.createElement("ul");
+            const that = this;
+            const menu = document.createElement("ul");
             menu.className = "typeahead dropdown-menu";
             menu.setAttribute("role", "listbox");
-            menu.addEventListener("click", function(e){
+            menu.addEventListener("click", (e) =>{
                 e.stopPropagation();
                 e.preventDefault();
                 that.select();
@@ -131,17 +131,17 @@
             if (this.query.length < this.minLength) {
                 return this.shown ? this.hide() : this;
             }
-            var items = typeof this.source === "function" ? this.source(this.query, this.process.bind(this)) : this.source;
+            const items = typeof this.source === "function" ? this.source(this.query, this.process.bind(this)) : this.source;
             return items ? this.process(items) : this;
         },
 
         /** 찾은 후보를 거르고 정렬해 보여 준다. */
         process: function(aItems){
-            var sQuery = this.query.toLowerCase();
-            var matched = aItems.filter(function(item){ return ~item.toLowerCase().indexOf(sQuery); });
-            var beginsWith = [], caseSensitive = [], caseInsensitive = [];
-            for (var i = 0; i < matched.length; i++) {
-                var item = matched[i];
+            const sQuery = this.query.toLowerCase();
+            let matched = aItems.filter((item) =>{ return ~item.toLowerCase().indexOf(sQuery); });
+            const beginsWith = [], caseSensitive = [], caseInsensitive = [];
+            for (let i = 0; i < matched.length; i++) {
+                const item = matched[i];
                 if (!item.toLowerCase().indexOf(sQuery)) { beginsWith.push(item); }
                 else if (~item.indexOf(this.query)) { caseSensitive.push(item); }
                 else { caseInsensitive.push(item); }
@@ -154,24 +154,24 @@
         },
 
         render: function(aItems){
-            var that = this;
+            const that = this;
             if (!this.menu) { this.menu = this._createMenu(); }
             this.menu.textContent = "";
-            aItems.forEach(function(sItem){
-                var li = document.createElement("li");
+            aItems.forEach((sItem) =>{
+                const li = document.createElement("li");
                 li.setAttribute("data-value", sItem);
                 li.setAttribute("role", "presentation");
-                var a = document.createElement("a");
+                const a = document.createElement("a");
                 a.className = "dropdown-item";
                 a.setAttribute("href", "#");
                 a.setAttribute("role", "option");
                 a.innerHTML = that.renderItem ? that.renderItem(sItem) : _highlight(sItem, that.query);
                 li.appendChild(a);
-                li.addEventListener("mouseenter", function(){
+                li.addEventListener("mouseenter", () =>{
                     that.mousedover = true;
                     that._setActive(li);
                 });
-                li.addEventListener("mouseleave", function(){
+                li.addEventListener("mouseleave", () =>{
                     that.mousedover = false;
                     if (!that.focused && that.shown) { that.hide(); }
                 });
@@ -182,14 +182,14 @@
         },
 
         _setActive: function(li){
-            var active = this.menu.querySelector(".active");
+            const active = this.menu.querySelector(".active");
             if (active) { active.classList.remove("active"); }
             if (li) { li.classList.add("active"); }
         },
 
         /** 목록을 입력란 바로 다음에 놓고 입력란의 왼쪽 아래에 맞춘다(jQuery `position()`처럼 입력란의 바깥 여백은 뺀다). */
         show: function(){
-            var input = this.input, style = window.getComputedStyle(input);
+            const input = this.input, style = window.getComputedStyle(input);
             this.menu.style.top = (input.offsetTop - parseFloat(style.marginTop) + input.offsetHeight) + "px";
             this.menu.style.left = (input.offsetLeft - parseFloat(style.marginLeft)) + "px";
             input.parentNode.insertBefore(this.menu, input.nextSibling);
@@ -208,23 +208,23 @@
 
         /** 선택 표시된 항목을 입력란에 채우고 `change`를 낸 뒤 닫는다. 선택 항목이 없으면 updater에 undefined가 가고 입력란이 비워진다(v1.6과 같다). */
         select: function(){
-            var active = this.menu && this.menu.querySelector(".active");
-            var value = this.updater(active ? active.getAttribute("data-value") : undefined);
+            const active = this.menu && this.menu.querySelector(".active");
+            const value = this.updater(active ? active.getAttribute("data-value") : undefined);
             this.input.value = value == null ? "" : value;
             this.input.dispatchEvent(new Event("change", { "bubbles": true }));
             return this.hide();
         },
 
         next: function(){
-            var active = this.menu.querySelector(".active");
-            var next = active && active.nextElementSibling;
+            const active = this.menu.querySelector(".active");
+            const next = active && active.nextElementSibling;
             if (active) { active.classList.remove("active"); }
             (next || this.menu.firstElementChild).classList.add("active");
         },
 
         prev: function(){
-            var active = this.menu.querySelector(".active");
-            var prev = active && active.previousElementSibling;
+            const active = this.menu.querySelector(".active");
+            const prev = active && active.previousElementSibling;
             if (active) { active.classList.remove("active"); }
             (prev || this.menu.lastElementChild).classList.add("active");
         },
@@ -303,8 +303,8 @@
 
     oNS.container[oNS.name] = function(sQuery, htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * Initialize component
@@ -333,10 +333,10 @@
         function _initElement(sQuery){
             try {
                 htElement.welInput = $(sQuery);
-                var elInput = htElement.welInput.get(0);
+                const elInput = htElement.welInput.get(0);
                 if (!elInput) { return; }
 
-                var htOptions = {
+                const htOptions = {
                     "source"   : htVar.htData.source || _onTypeAhead,
                     "minLength": htVar.htData.minLength || 0,
                     "maxItems" : htVar.htData.maxItems,
@@ -344,7 +344,7 @@
                     "render"   : htVar.htData.render
                 };
 
-                var oTypeahead = instances.get(elInput);
+                const oTypeahead = instances.get(elInput);
                 if (oTypeahead) {
                     oTypeahead.configure(htOptions);
                 } else {
@@ -374,7 +374,7 @@
                     "htData"    : htVar.htData,
                     "sDataType" : "json",
                     "fOnLoad"    : function(oData, oStatus, oXHR){
-                        var sContentRange = oXHR.getResponseHeader('Content-Range');
+                        let sContentRange = oXHR.getResponseHeader('Content-Range');
 
                         htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
                         htVar.sLastQuery = sQuery;
@@ -395,7 +395,7 @@
          * @return {Boolean}
          */
          function _isEntireRange(sContentRange){
-             var aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
+             const aMatch = htVar.rxContentRange.exec(sContentRange || ""); // [1]=total, [2]=items
              return (aMatch) ? !(parseInt(aMatch[1], 10) < parseInt(aMatch[2], 10)) : true;
          }
 

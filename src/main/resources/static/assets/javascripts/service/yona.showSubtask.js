@@ -6,8 +6,8 @@
  **/
 
 function _initShowSubtasks(){
-    var showSubtasksAlways = localStorage.getItem('showSubtasksAlways');
-    var $toggleShowSubtasks = $("#toggle-show-subtasks");
+    const showSubtasksAlways = localStorage.getItem('showSubtasksAlways');
+    const $toggleShowSubtasks = $("#toggle-show-subtasks");
 
     if( showSubtasksAlways  === 'true'){
         $toggleShowSubtasks.prop('checked', true);

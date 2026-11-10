@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var NO_CONTENT = 204;
-    var oNS = $yona.createNamespace(ns);
+    const NO_CONTENT = 204;
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
                 
-        var elements = {};
+        const elements = {};
         
         /**
          * initialize
@@ -50,15 +50,15 @@
         function _attachEvent(options){
             elements.btnChangeVCS.on('click', showConfirmPopup);
             elements.btnChangeVCSExec.on("click", changeVCS);
-            elements.targetVCS.on("change", function(){ showTexts(options.oTexts || {}); });
+            elements.targetVCS.on("change", () =>{ showTexts(options.oTexts || {}); });
         }
 
         /**
          * 선택한 종류에 맞게 안내와 확인 문구를 갈아 끼운다
          */
         function showTexts(texts){
-            var target = elements.targetVCS.val();
-            var text = texts[target];
+            const target = elements.targetVCS.val();
+            const text = texts[target];
             if(!text){ return; }
             $(".next-vcs").text(target);
             $(".vcs-description").text(text.description);
@@ -74,11 +74,11 @@
         }
 
         function changeVCS() {
-            var ajaxOptions = {
+            const ajaxOptions = {
                 "method" : "post",
                 "success": function(res, status, xhr){
                     // default action below:
-                    var location = xhr.getResponseHeader("Location");
+                    const location = xhr.getResponseHeader("Location");
 
                     if(xhr.status === NO_CONTENT && location){
                         document.location.href = location;

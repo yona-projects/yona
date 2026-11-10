@@ -20,11 +20,11 @@
  */
 (function(ns){
 
-    var oNS = $yona.createNamespace(ns);
+    const oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
+        const htVar = {};
+        const htElement = {};
 
         /**
          * initialize
@@ -71,8 +71,8 @@
         }
 
         function _onBlurInputLoginId(){
-            var welInput = $(this);
-            var sLoginId = $yona.getTrim(welInput.val()).toLowerCase();
+            const welInput = $(this);
+            const sLoginId = $yona.getTrim(welInput.val()).toLowerCase();
             welInput.val(sLoginId);
 
             if(_onValidateLoginId(sLoginId) === false){
@@ -87,7 +87,7 @@
 
         function _onBlurInputEmail(){
 
-            var welInput = $(this);
+            const welInput = $(this);
 
             if((welInput.val() || "").trim() !== ""){
                 doesExists(welInput, htVar.sEmailCheckUrl);
@@ -134,7 +134,7 @@
 
             $.ajax({
                 "url": sURL + welInput.val()
-            }).done(function(htData){
+            }).done((htData) =>{
                 if(htData.isExist === true){
                     showErrorMessage(welInput, Messages("validation.duplicated"));
                 } else if (htData.isReserved == true) {
@@ -150,7 +150,7 @@
          * @require validate.js
          */
         function _initFormValidator(){
-            var aRules = [
+            const aRules = [
                 {"name": 'loginId',         "rules": 'required|callback_check_loginId'},
                 {"name": 'email',           "rules": 'required|valid_email'},
                 {"name": 'password',        "rules": 'required|min_length[4]'},
@@ -182,9 +182,9 @@
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            var welTarget;
+            let welTarget;
 
-            aErrors.forEach(function(htError){
+            aErrors.forEach((htError) =>{
                 welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
                 if(welTarget){
                     showErrorMessage(welTarget, htError.message);
