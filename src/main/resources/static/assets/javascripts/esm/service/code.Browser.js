@@ -82,7 +82,7 @@ const Browser = function(htOptions){
         waFileWrap.each((i, elList) =>{
             const welList = $(elList);
             const sListPath = welList.data("listpath");
-            const welTarget = $('[data-path="' + sListPath + '"]');
+            const welTarget = _findByAttr("data-path", sListPath);
 
             welList.data("content", sListPath);
             welList.data("depth", i+1);
@@ -134,10 +134,22 @@ const Browser = function(htOptions){
      *
      * @return {String} 폴더 경로. 해시가 없으면 빈 문자열
      */
+    /**
+     * 속성 값이 [sValue]와 같은 요소를 찾는다. 경로(주소 해시나 파일 이름)를 선택자 문자열에 이어 붙이면 따옴표나 대괄호가 든 경로에서
+     * 선택자 오류가 나므로 속성 값을 직접 비교한다. 평범한 경로에서는 `[속성="값"]` 선택자와 같은 요소를 돌려준다.
+     *
+     * @param {String} sAttr 속성 이름(data-path 등)
+     * @param {String} sValue
+     * @return {Wrapped Array}
+     */
+    function _findByAttr(sAttr, sValue){
+        return $("[" + sAttr + "]").filter((i, el) => el.getAttribute(sAttr) === sValue);
+    }
+
     function _getHashPath(){
         const sHash = document.location.hash.substr(1);
 
-        if(sHash.indexOf("cb-") === 0 && $('[data-targetpath="' + sHash + '"]').length === 0){
+        if(sHash.indexOf("cb-") === 0 && _findByAttr("data-targetpath", sHash).length === 0){
             return sHash.substr(3);
         }
 
@@ -151,7 +163,7 @@ const Browser = function(htOptions){
 
         const sHash = document.location.hash.substr(1);
         const sTargetPath = _getHashPath();
-        const welList = $('[data-listpath="' + sTargetPath + '"]');
+        const welList = _findByAttr("data-listpath", sTargetPath);
         const bAnchor = (sTargetPath !== sHash);
 
         let sCheckPath = "";
@@ -186,7 +198,7 @@ const Browser = function(htOptions){
         }
 
         const sTargetPath = decodeURI(htVar.aPathQueue.shift());
-        const welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+        const welTarget = _findByAttr("data-targetpath", sTargetPath);
 
         if(_isListExistsByPath(sTargetPath)){
             _requestFolderList();
@@ -214,8 +226,8 @@ const Browser = function(htOptions){
                 }
 
                 const aHTML = _getListHTML(oRes.data, sTargetPath);
-                const welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
-                const welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
+                const welTargetItem = _findByAttr("data-path", sTargetPath).filter(".listitem");
+                const welList = $('<div class="list-wrap"></div>').attr("data-listPath", sTargetPath);
 
                 welList.data("depth", nNewDepth);
                 welList.addClass("depth-" + nNewDepth);
@@ -247,7 +259,7 @@ const Browser = function(htOptions){
      * @private
      */
     function _isListExistsByPath(sTargetPath){
-        return ($('[data-listpath="' + sTargetPath + '"]').length > 0);
+        return (_findByAttr("data-listpath", sTargetPath).length > 0);
     }
 
     /**
@@ -266,7 +278,7 @@ const Browser = function(htOptions){
             if(htSortedData[sType] instanceof Array){
                 htSortedData[sType].forEach((htFile) =>{
                     htFile = _getFileInfoForTpl(htFile, sTargetPath);
-                    aHTML.push($yona.tmpl(htVar.sTplListItem, htFile));
+                    aHTML.push($yona.tmpl(htVar.sTplListItem, _escapeFileInfo(htFile)));
                 });
             }
         });
@@ -299,6 +311,24 @@ const Browser = function(htOptions){
      * @param {Hash Table} htFile
      * @param {String} sTargetPath
      */
+    /**
+     * 템플릿에 넣을 값 중 파일 이름과 경로처럼 저장소에서 온 글자를 이스케이프한 복사본을 돌려준다.
+     * `avatarImg`, `commitMsg`, `commitDate`는 이미 만든 HTML이거나 이스케이프된 값이라 그대로 둔다.
+     * 파일 이름에 `<img src=x onerror=...>` 같은 글자가 있어도 마크업이 되지 않게 하려는 것이다.
+     *
+     * @param {Hash Table} htFile
+     * @return {Hash Table}
+     */
+    function _escapeFileInfo(htFile){
+        const htEscaped = $.extend({}, htFile);
+        ["fileName", "listPath", "targetPath", "path", "fileClass", "type", "commitUrl"].forEach((sKey) =>{
+            if(typeof htEscaped[sKey] === "string"){
+                htEscaped[sKey] = $yona.escapeHtml(htEscaped[sKey]);
+            }
+        });
+        return htEscaped;
+    }
+
     function _getFileInfoForTpl(htFile, sTargetPath){
         const sAuthorURL = (htFile.userLoginId) ? '/'+ htFile.userLoginId : 'javascript:void(0); return false;';
 
@@ -330,7 +360,7 @@ const Browser = function(htOptions){
      * @param {String} sPath
      */
     function _setCurrentPathBold(sPath){
-        const welCurrent = $('[data-path="' + sPath + '"]');
+        const welCurrent = _findByAttr("data-path", sPath);
 
         if(welCurrent.length > 0){
             $(".currentPath").removeClass("currentPath");

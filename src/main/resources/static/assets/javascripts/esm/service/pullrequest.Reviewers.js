@@ -17,15 +17,16 @@
 
 // ES 모듈은 문서 분석이 끝난 뒤 DOMContentLoaded 전에 실행된다. 아래 처리기는 문서 전체(`document`)나 준비 완료 시점에 단다.
 function formatter(result) {
+    // 이름과 아이디는 사용자가 정한 글자이므로 이스케이프해서 넣는다
+    const esc = (value) => $yona.escapeHtml(value);
     if (!result.avatarUrl) {
-        return '<div>' + result.name + '</div>';
+        return '<div>' + esc(result.name) + '</div>';
     }
-    return '<div class="usf-group" title="' + result.name + ' ' + result.loginId + '">' +
-        '<span class="avatar-wrap smaller"><img src="' + result.avatarUrl + '" width="20" height="20"></span>' +
-        '<strong class="name">' + result.name + '</strong>' +
-        '<span class="loginid">' + result.loginId + '</span></div>';
+    return '<div class="usf-group" title="' + esc(result.name) + ' ' + esc(result.loginId) + '">' +
+        '<span class="avatar-wrap smaller"><img src="' + esc(result.avatarUrl) + '" width="20" height="20"></span>' +
+        '<strong class="name">' + esc(result.name) + '</strong>' +
+        '<span class="loginid">' + esc(result.loginId) + '</span></div>';
 }
-
 function failed(xhr) {
     $yona.notify(Messages("error.failedTo", Messages("pullRequest.review.area.title"), xhr.status, xhr.statusText));
 }

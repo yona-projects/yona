@@ -2194,3 +2194,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - `.done/.fail/.always` 연결 49곳(18개 파일)을 `async/await`로 바꿨다. 핸들러가 `return false`로 기본 동작을 막는 곳(멤버 추가, 로그인 제출, 라벨 수정)은 요청만 안쪽 `async` 함수로 분리했고, 반복문 안의 업로드는 병렬 동작을 지키려고 파일마다 따로 실행한다.
 - 발견한 결함: `LoginDialog` 보안 키 로그인이 `yona.http.then(...).fail`을 이어 써서 `TypeError`로 깨져 있었다(내가 만든 `yona.http`가 일반 Promise를 돌려준 탓). `securitykey.test.mjs`로 재현하고 고쳤다. `yona.http`는 jQuery처럼 오류 응답에서도 `responseJSON`을 채우도록 맞췄고 `http.test.mjs`가 jQuery와 같은 값을 비교한다.
 - 시험의 가짜 `yona.http`는 실제처럼 `then`을 가진 Promise로 바꿨다. JS 시험 586개, 전체 Kotlin 회귀 9분 26초 모두 통과. 실제 앱 56쪽 방문 오류 0건, 별 즐겨찾기 요청이 한 번만 나가는 것까지 확인했다.
+
+## [2026-11-10] fix | 저장형 XSS 3곳 수정(11번 확인)
+
+- 분류 이름이 `issue.MassUpdate`의 "라벨 떼기" 목록에 이스케이프 없이 들어가 이슈를 체크하면 실행되던 문제, 저장소의 파일 이름과 주소 해시가 `code.Browser` 목록에 속성과 요소로 주입되던 문제를 시험으로 재현하고 고쳤다. 실제 앱에서 같은 페이로드가 `xss:1`에서 `xss:null`로 바뀐 것을 확인했다.
+- 원인은 v1.6의 `$yona.tmpl`이 값을 이스케이프하지 않는 단순 치환이라는 점이다. `$yona.escapeHtml`을 공개하고 사용자 데이터가 들어가는 호출처를 모두 거치게 했다.
+- 번들 `yona-layout.js`는 생성물이라 `npm run build`로 다시 만들어야 반영된다.

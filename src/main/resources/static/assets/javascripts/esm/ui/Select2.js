@@ -276,7 +276,7 @@
                 const avatarURL = itemElement.data("avatarUrl");
 
                 if(!avatarURL){
-                    return '<div>' + itemObject.text + '</div>';
+                    return '<div>' + $yona.escapeHtml(itemObject.text) + '</div>';
                 }
 
                 // Template text

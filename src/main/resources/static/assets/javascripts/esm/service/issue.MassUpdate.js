@@ -218,7 +218,8 @@ const MassUpdate = function(htOptions){
     function _getLabelCategoryVisibility(welList, sCategory){
         let welItem;
         let bHidden = true;
-        const waCategoryItems = welList.find('li[data-category="' + sCategory +'"]');
+        // 분류 이름에 따옴표가 있어도 선택자가 깨지지 않도록 속성 값을 직접 비교한다
+        const waCategoryItems = welList.find('li').filter((i, el) => $(el).attr("data-category") === sCategory);
 
         waCategoryItems.each((i, el) =>{
             welItem = $(el);
@@ -249,12 +250,17 @@ const MassUpdate = function(htOptions){
 
         // Category
         for(sCategory in htLabels){
-            aHTML.push('<li class="disabled" data-category="' + sCategory + '"><span>' + sCategory + '</span></li>');
+            // 분류 이름은 사용자가 정한 글자이므로 이스케이프해서 넣는다(HTML이 든 이름이 실행되던 저장형 XSS)
+            aHTML.push($yona.tmpl('<li class="disabled" data-category="${category}"><span>${category}</span></li>', {"category": $yona.escapeHtml(sCategory)}));
 
             // Label
             for(sLabelId in htLabels[sCategory]){
                 htLabel = htLabels[sCategory][sLabelId];
-                aHTML.push($yona.tmpl(sTpl, htLabel));
+                aHTML.push($yona.tmpl(sTpl, {
+                    "id"      : $yona.escapeHtml(htLabel.id),
+                    "category": $yona.escapeHtml(htLabel.category),
+                    "name"    : $yona.escapeHtml(htLabel.name)
+                }));
             }
 
             aHTML.push('<li class="divider"></li>');

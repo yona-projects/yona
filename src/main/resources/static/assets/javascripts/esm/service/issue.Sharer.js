@@ -12,7 +12,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
 
   function formatter(result){
     if(!result.avatarUrl){
-      return "<div>" + result.name + "</div>";
+      return "<div>" + $yona.escapeHtml(result.name) + "</div>";
     }
 
     // Template text. Also you can use predefined template: $("#tplSelect2FormatUser").text()
@@ -20,9 +20,9 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         "<strong class='name'>${name}</strong>";
 
     const formattedResult = $yona.tmpl(tplUserItem, {
-      "avatarURL": result.avatarUrl,
-      "name"     : result.name,
-      "loginId"  : result.loginId
+      "avatarURL": $yona.escapeHtml(result.avatarUrl),
+      "name"     : $yona.escapeHtml(result.name),
+      "loginId"  : $yona.escapeHtml(result.loginId)
     });
 
     return formattedResult;

@@ -779,6 +779,7 @@ $yona = yona.Common = (function(){
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
+        "escapeHtml": escapeTemplateValue,   // `<`, `>`, `"`, `'`만 바꾼다. $yona.tmpl은 값을 그대로 넣으므로 사용자 데이터는 먼저 이 함수를 거친다
         "render"    : render,
         "renderElement": renderElement,
         "htmlspecialchars": htmlspecialchars,

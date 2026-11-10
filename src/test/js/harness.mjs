@@ -24,6 +24,7 @@ export const COMMON_STUBS = `
       }
       return { container: parent, name: name };
     },
+    escapeHtml: function (v) { return ('' + v).split('<').join('&lt;').split('>').join('&gt;').split('"').join('&#34;').split("'").join('&#39;'); },
     alert: function (m) { (window.__alerts = window.__alerts || []).push(m); },
     showAlert: function (m) { (window.__alerts = window.__alerts || []).push(m); }
   };

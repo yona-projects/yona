@@ -20,7 +20,7 @@
 // ES 모듈은 문서 분석이 끝난 뒤 DOMContentLoaded 전에 실행된다. 아래 처리기는 문서 전체(`document`)나 준비 완료 시점에 단다.
 function formatter(result) {
     if (!result.avatarUrl) {
-        return '<div>' + result.name + '</div>';
+        return '<div>' + $yona.escapeHtml(result.name) + '</div>';
     }
     const tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="{{name}} {{loginId}}">' +
         '<span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>' +

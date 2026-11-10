@@ -10,7 +10,7 @@ import { register } from "../namespace.js";
 function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, message){
   function formatter(result){
     if(!result.avatarUrl){
-      return '<div>' + result.name + '</div>';
+      return '<div>' + $yona.escapeHtml(result.name) + '</div>';
     }
 
     // Template text
