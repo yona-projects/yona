@@ -31,8 +31,8 @@ class Jquery4ReadinessTest {
     /** 앱이 직접 쓰거나 Yona가 고쳐 쓰는 스크립트. 공식 배포 그대로인 라이브러리(jQuery, jQuery UI, select2 등)는 뺀다. */
     private fun ownScripts(): List<File> =
         File(js, "common").listFiles { f -> f.extension == "js" }!!.toList() +
-            File(js, "service").listFiles { f -> f.extension == "js" }!!.toList() +
-            File(js, "esm/service").listFiles { f -> f.extension == "js" }!!.toList() +
+            // 화면 스크립트는 모두 ES 모듈(esm)로 옮겼다. 옛 service 폴더는 비어 git에 없으므로 읽지 않는다
+            File(js, "esm").walkTopDown().filter { it.isFile && it.extension == "js" }.toList() +
             listOf(
                 "lib/viewerjs/jquery-viewer.js",
             ).map { File(js, it) }

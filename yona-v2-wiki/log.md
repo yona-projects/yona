@@ -2235,3 +2235,18 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 커밋 비교 화면(Chromium, Firefox, 폭 1280/1024/768/480px): 카드가 적을 때 변경 전후가 완전히 같다. 카드가 많으면 목록 높이만 화면 높이로 제한된다(의도). 탭, 숨김/보임 버튼, 닫힘 탭 전환에 깨짐이 없다.
 - 풀 리퀘스트 변경 화면: 검증용 DB에 Git 프로젝트 `admin/gitproj`(브랜치 `main`, `feature`)와 풀 리퀘스트 1건, 리뷰 댓글 8개를 직접 만들어 같은 검사를 했다. 3개 폭 모두 변경 전후가 같고, 숨김/보임 뒤 패널이 같은 위치와 크기로 돌아온다. 페이지 오류 0건.
 - 결론: 레이아웃이 깨진 곳은 없다. 좁은 화면(패널이 본문 아래로 쌓이는 배치)에서도 긴 목록은 화면 높이로 제한되고 안쪽에서 스크롤된다.
+
+## [2026-11-10] ci | `next`의 GitHub Actions 워크플로를 `next2`에서 동작하게 맞춤
+
+`next`의 `.github/workflows/ci.yml`을 그대로 가져온 뒤, 깨끗한 클론(`git clone`)에서 CI와 같은 명령을 돌려 `next2`와 어긋나는 곳을 찾아 고쳤다.
+
+| 문제 | 원인 | 조치 |
+|---|---|---|
+| 빌드가 GC 과부하로 중단 | `gradle.properties`가 없어 Gradle JVM 기본 힙(512MB)에서 `-Pkotlin.compiler.execution.strategy=in-process` 컴파일이 죽는다. 로컬은 빌드가 최신이라 가려져 있었다 | `gradle.properties`(Gradle과 Kotlin 데몬 힙 3GB)를 추가했다. 깨끗한 클론에서 빌드 1분 14초 |
+| `JsLibraryVersionsTest`가 클론에서만 NPE | `javascripts/service`가 비어(스크립트를 `esm/service`로 옮김) git이 저장하지 않는다. 로컬에는 빈 폴더가 남아 있었다 | 시험이 `esm/service`를 읽게 고쳤다 |
+| `push` 트리거가 `next`뿐 | 브랜치 이름이 고정되어 있었다 | `[next, next2]`, 캐시 쓰기 조건도 `next2`를 포함 |
+| `mysql` 매트릭스 | `TestDatabase`에 MySQL이 없다(`h2|postgres|mariadb|mssql|cubrid`) | 매트릭스에서 뺐다 |
+| `unit` 30분 제한 | 전체 시험이 로컬에서 16~18분 | 60분으로 늘렸다 |
+| e2e 작업 | `next2`의 `e2e`는 전 화면 확인 도구(seed, crawl, compare)이고 `npm test` 시험 묶음, `package-lock.json`, `playwright.config.ts`가 없다. `/bootstrap-setup`과 `--yona.data`, `--yona.signup.require-email-verification`, `--yona.*.base-dir` 설정도 `next2`에 없다 | 앱 기동 확인 작업(`boot`)으로 바꿨다: `--yona.data-dir`로 기동해 `/-_-actuator/health`가 UP이고 `/users/loginform`이 200인지 본다. 깨끗한 클론에서 14초 만에 UP |
+
+확인: 액션 버전(`checkout` v7, `setup-java` v6, `setup-gradle` v6, `upload/download-artifact` v7, `setup-node` v7)은 모두 실제 태그가 있다. JS 시험(633개)은 CI에 들어 있지 않다(`playwright`를 저장소 밖 `node_modules`에서 가져온다).
