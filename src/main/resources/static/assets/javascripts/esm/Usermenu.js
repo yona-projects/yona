@@ -51,7 +51,7 @@ $(() => {
 
     function afterUsermenuLoaded() {
         // used for new project list ui
-        $(".right-menu").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", () => {
+        $(".right-menu").off("click.tab").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", () => {
             updateStar();
             setTimeout(function focusToProjectSearchInput() {
                 const $projectSearch = $('.project-search');
@@ -67,7 +67,7 @@ $(() => {
 
         });
 
-        $('.myOrganizationList').on("click.orgList", function focusToOrgSearchInput() {
+        $('.myOrganizationList').off("click.orgList").on("click.orgList", function focusToOrgSearchInput() {
             setTimeout(() => {
                 const $projectSearch = $('.project-search');
                 const $orgSearch = $('.org-search');
@@ -81,6 +81,7 @@ $(() => {
 
         // search by keyword
         $(".search-input")
+            .off("keyup.search keydown.moveCursorFromInputform")
             .on("keyup.search", function (event) {
                 const value = $(this).val().toLowerCase().trim();
 
@@ -101,6 +102,7 @@ $(() => {
             });
 
         $(".project-list > .star-project, .project-breadcrumb > .user-project-list")
+            .off("click.toggleProjectFavorite")
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
@@ -118,6 +120,7 @@ $(() => {
             });
 
         $(".favorite-issue")
+            .off("click.toggleProjectFavorite")
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
@@ -137,6 +140,7 @@ $(() => {
             });
 
         $(".user-ul > .user-li, .project-ul > .user-li")
+            .off("click.project")
             .on("click.project", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -161,6 +165,7 @@ $(() => {
             });
 
         $(".org-list > .star-org")
+            .off("click.org")
             .on("click.org", function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 const that = $(this);
@@ -179,6 +184,7 @@ $(() => {
 
 
         $(".all-orgs")
+            .off("click.allOrgs")
             .on("click.allOrgs", function () {
                 const $li = $(this).closest("li").find(".hide").toggle("fast");
             });
