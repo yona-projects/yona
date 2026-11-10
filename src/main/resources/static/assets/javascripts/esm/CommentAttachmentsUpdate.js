@@ -1,3 +1,6 @@
+
+
+// ES 모듈은 문서 분석이 끝난 뒤 DOMContentLoaded 전에 실행되며, 아래 준비 완료 처리기는 그때 등록되어 문서가 준비되면 돈다.
 $(() => {
     function deleteAttachment() {
         const $this = $(this);

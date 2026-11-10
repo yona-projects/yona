@@ -1,8 +1,8 @@
-// 제목 머리말 연결(`common/yona.TitleHeadAutoCompletion.js`)을 실제 `<title-input>` 번들, 실제 jQuery와 함께 시험한다(D-102, A-408).
+// 제목 머리말 연결(`esm/TitleHeadAutoCompletion.js`)을 실제 `<title-input>` 번들, 실제 jQuery와 함께 시험한다(D-102, A-408).
 // 서버는 `page.route`의 가짜 응답이다. 라벨 선택(단일 선택 분류, select2 갱신, 알림), 진행 표시, 본문 이동(Enter)을 확인한다.
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { pageWith, JS } from './harness.mjs';
+import { pageWith, JS, classicFromEsm } from './harness.mjs';
 
 const BUNDLE = path.join(JS, 'lib/title-input/title-input.min.js');
 const HEADS = [
@@ -31,7 +31,7 @@ async function setup({ withLabels = true } = {}) {
     window.NProgress = { start: () => window.__np.push('start'), done: () => window.__np.push('done') };
   });
   await page.addScriptTag({ path: BUNDLE, type: 'module' });
-  await page.addScriptTag({ path: path.join(JS, 'common/yona.TitleHeadAutoCompletion.js') });
+  await page.addScriptTag({ content: classicFromEsm('esm/TitleHeadAutoCompletion.js') });
   await page.waitForFunction(() => customElements.get('title-input'));
   await page.evaluate(() => yonaTitleHeadModule({ target: 'title-input#title', url: 'http://yona.test/titleHeads' }));
   return page;

@@ -97,10 +97,10 @@
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 
 <link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Subtask.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/Subtask.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/issue.Assginee.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/lib/title-input/title-input.min.js}"></script>
-<script type="text/jAvascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/TitleHeadAutoCompletion.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/issue.Write.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(function(){

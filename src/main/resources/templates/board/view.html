@@ -155,9 +155,9 @@
 
 <link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/elevator/jquery.elevator.css}">
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Tasklist.js}"></script>
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.SubComment.js}"></script>
-<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.CommentAttachmentsUpdate.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/Tasklist.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/SubComment.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/CommentAttachmentsUpdate.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/board.View.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){

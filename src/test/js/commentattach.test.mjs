@@ -12,7 +12,7 @@ const STUBS = { content: `
 async function upload(ids, doDelete) {
   const page = await pageWith({ html: HTML, scripts: [STUBS] });
   await page.evaluate(() => { window.__src = null; });
-  await page.addScriptTag({ path: (await import('./harness.mjs')).JS + '/common/yona.CommentAttachmentsUpdate.js' });
+  await page.addScriptTag({ path: (await import('./harness.mjs')).JS + '/esm/CommentAttachmentsUpdate.js' });
   const state = await page.evaluate(async ([list, doDelete]) => {
     var n = 0;
     ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () {

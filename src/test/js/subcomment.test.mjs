@@ -1,4 +1,4 @@
-// 하위 댓글(대댓글) 입력란 `common/yona.SubComment.js`(R-143): "대댓글 추가"를 누르면 입력란이 열리고, 입력란에서 Esc를 누르면 닫히며, 다시 누르면 다시 열린다.
+// 하위 댓글(대댓글) 입력란 `esm/SubComment.js`(R-143): "대댓글 추가"를 누르면 입력란이 열리고, 입력란에서 Esc를 누르면 닫히며, 다시 누르면 다시 열린다.
 // v1.6은 Esc에서 `display: none`과 `visibility: hidden`을 함께 넣어 다시 열어도 `visibility: hidden`이 남아 보이지 않았다. 처음 상태는 CSS의 `display: none`뿐(visibility는 기본값 visible)이다.
 import assert from 'node:assert/strict';
 import { pageWith } from './harness.mjs';
@@ -6,7 +6,7 @@ import { pageWith } from './harness.mjs';
 const HTML = `<style>.child-comment-input-form{display:none}</style>
   <ul><li class="comment" id="c1"><a class="add-a-comment">대댓글 추가</a><div class="child-comment-input-form" id="f1"><form><textarea id="t1"></textarea></form></div></li>
   <li class="comment" id="c2"><a class="add-a-comment">대댓글 추가</a><div class="child-comment-input-form" id="f2"><form><textarea id="t2"></textarea></form></div></li></ul>`;
-const open = () => pageWith({ html: HTML, scripts: ['common/yona.Common.js', 'common/yona.SubComment.js'], stubs: false });
+const open = () => pageWith({ html: HTML, scripts: ['common/yona.Common.js', 'esm/SubComment.js'], stubs: false });
 const state = (page, id) => page.evaluate((i) => { const cs = getComputedStyle(document.getElementById(i)); return { display: cs.display, visibility: cs.visibility, h: Math.round(document.getElementById(i).getBoundingClientRect().height) }; }, id);
 const shown = (s) => s.display !== 'none' && s.visibility !== 'hidden';
 

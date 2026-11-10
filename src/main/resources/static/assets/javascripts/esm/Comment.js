@@ -5,7 +5,9 @@
  * https://yona.io
  **/
 
-yona.Comment = (function(){
+import { register } from "./namespace.js";
+
+const Comment = (function(){
     const htElement = {};
 
     /**
@@ -72,3 +74,5 @@ yona.Comment = (function(){
         "init"  : _init,
     };
 })();
+
+register("yona.Comment", Comment);

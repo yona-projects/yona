@@ -5,7 +5,7 @@ const HTML = '<form><textarea id="t"></textarea><input class="parentCommentId"><
 const STUBS = { content: 'window.NProgress = { done: function () {} };' };
 
 async function run(response) {
-  const page = await pageWith({ html: HTML, scripts: [STUBS, 'common/yona.ReceiverList.js'] });
+  const page = await pageWith({ html: HTML, scripts: [STUBS, 'esm/ReceiverList.js'] });
   const out = await page.evaluate(async (resp) => {
     ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function () { var d = $.Deferred(); setTimeout(function () { d.resolve(resp); }, 0); return d.promise(); };
     findNotiReceiversHandler($('#t'), '/r');

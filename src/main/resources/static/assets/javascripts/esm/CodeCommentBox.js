@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 
-yona = yona || {};
+import { register } from "./namespace.js";
 
-yona.CodeCommentBox = (function(){
+const CodeCommentBox = (function(){
     "use strict";
 
     const htVar = {};
@@ -300,3 +300,5 @@ yona.CodeCommentBox = (function(){
         "offset": _getWrapOffset
     };
 })();
+
+register("yona.CodeCommentBox", CodeCommentBox);

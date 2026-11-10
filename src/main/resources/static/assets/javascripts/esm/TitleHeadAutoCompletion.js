@@ -14,6 +14,9 @@
  *
  * @param {{target: string, url?: string}} htOptions `target`은 `<title-input>`의 선택자, `url`은 머리말 후보를 묻는 주소(`src`가 없을 때만 쓴다)
  */
+
+import { register } from "./namespace.js";
+
 function yonaTitleHeadModule(htOptions){
     let htVar = {};
     let welTarget = null;
@@ -110,3 +113,6 @@ function yonaTitleHeadModule(htOptions){
 
     _init(htOptions || {});
 }
+
+// 템플릿의 인라인 스크립트가 전역 이름으로 부른다
+register("yonaTitleHeadModule", yonaTitleHeadModule);

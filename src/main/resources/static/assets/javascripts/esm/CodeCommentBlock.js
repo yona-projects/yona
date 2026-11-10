@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 
-yona = yona || {};
+import { register } from "./namespace.js";
 
-yona.CodeCommentBlock = (function(){
+const CodeCommentBlock = (function(){
     const htVar = {};
     const htElement = {};
     let htBlockInfo = {};
@@ -453,3 +453,5 @@ yona.CodeCommentBlock = (function(){
         "getData"     : _getBlockData
     };
 })();
+
+register("yona.CodeCommentBlock", CodeCommentBlock);

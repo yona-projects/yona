@@ -77,7 +77,7 @@ class TitleInputIntegrationTest {
 
     @Test
     fun `머리말 모듈은 At js와 jQuery browser 없이 title-input 이벤트로 라벨을 고른다`() {
-        val text = code(File(js, "common/yona.TitleHeadAutoCompletion.js"))
+        val text = code(File(js, "esm/TitleHeadAutoCompletion.js"))
         for (banned in listOf("atwho", "jQuery.browser", "keypress", "nKeyupEventGenerator", "remoteFilter")) assertFalse(text.contains(banned), "$banned 가 남아 있다")
         for (needed in listOf("title-input-select", "preventDefault", "labelIds", "change.select2", "title-input-loadstart", "title-input-loadend", "yonaTitleHeadModule")) {
             assertTrue(text.contains(needed), "$needed 가 있어야 한다")
