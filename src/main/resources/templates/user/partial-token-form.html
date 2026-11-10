@@ -42,7 +42,7 @@
 <div th:fragment="nameField(value)" class="token-field">
     <label class="token-label" for="token-name" th:text="#{apiToken.create.name}"></label>
     <div class="token-help" th:text="#{apiToken.name.help}"></div>
-    <input type="text" id="token-name" name="name" maxlength="100" class="text token-text form-control" th:value="${value}" autocomplete="off">
+    <input type="text" id="token-name" name="name" maxlength="100" class="text token-text form-control w-100" th:value="${value}" autocomplete="off">
 </div>
 
 <div th:fragment="scopeField(options, selected)" class="token-field">
@@ -65,7 +65,7 @@
     </select>
     <!--/* 사용자 지정을 고르면 달력(vanilla-calendar-pro)으로 만료 날짜를 정한다. 내일 이후만 고를 수 있다 */-->
     <div class="token-custom">
-        <input type="text" name="expiresDate" class="text token-expires-date form-control" autocomplete="off" placeholder="yyyy-MM-dd" th:attr="aria-label=#{apiToken.create.expiresDate}">
+        <input type="text" name="expiresDate" class="text token-expires-date form-control w-100" autocomplete="off" placeholder="yyyy-MM-dd" th:attr="aria-label=#{apiToken.create.expiresDate}">
         <div class="token-expires-picker date-picker"></div>
     </div>
 </div>

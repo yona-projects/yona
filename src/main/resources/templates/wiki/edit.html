@@ -16,7 +16,7 @@
                 <div th:if="${errorKey != null}" class="wiki-error alert alert-danger" th:text="#{${errorKey}}">Error</div>
                 <form th:action="${formAction}" method="post" class="wiki-form">
                     <div class="mb-3">
-                        <input type="text" name="title" class="form-control" maxlength="200" tabindex="1" required th:value="${titleValue}" th:placeholder="#{wiki.page.title}">
+                        <input type="text" name="title" class="form-control w-100" maxlength="200" tabindex="1" required th:value="${titleValue}" th:placeholder="#{wiki.page.title}">
                         <div class="form-text" th:text="#{wiki.page.title.help}">Spaces become hyphens in the page name.</div>
                     </div>
                     <div class="mb-3">
@@ -29,7 +29,7 @@
                         <div class="wiki-attach-error text-danger small d-none" th:attr="data-message=#{wiki.attach.failed}"></div>
                     </div>
                     <div class="mb-3">
-                        <input type="text" name="message" class="form-control" maxlength="250" tabindex="3" th:value="${messageValue}" th:placeholder="#{wiki.page.message}">
+                        <input type="text" name="message" class="form-control w-100" maxlength="250" tabindex="3" th:value="${messageValue}" th:placeholder="#{wiki.page.message}">
                     </div>
                     <div class="actions">
                         <button type="submit" class="wiki-save ybtn ybtn-success" tabindex="4" th:text="#{wiki.page.save}">Save Page</button>
