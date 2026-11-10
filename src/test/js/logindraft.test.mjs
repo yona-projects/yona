@@ -61,7 +61,7 @@ export const tests = [
 
   { name: '임시 저장: 키를 치고 5초 뒤 현재 경로 키로 localStorage에 저장하고, 비우면 지운다', run: async () => {
     const page = await pageWith({ stubs: false, html: `<div class="editor-notice-label"><b>x</b></div><textarea id="t"></textarea>`, scripts: [MSG, 'common/yona.Common.js'] });
-    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) } }); window.__ls = m; window.__real = window.setTimeout; window.setTimeout = (fn, ms) => window.__real(fn, ms === 5000 ? 30 : ms); });
+    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i], get length() { return m.size; } } }); window.__ls = m; window.__real = window.setTimeout; window.setTimeout = (fn, ms) => window.__real(fn, ms === 5000 ? 30 : ms); });
     await page.addScriptTag({ content: classicFromEsm('esm/service/temporarySaveHandler.js') });
     await page.evaluate(() => { temporarySaveHandler($('#t')); $('#t').val('초안').trigger('keyup'); }); await page.waitForTimeout(100);
     const key = await page.evaluate(() => location.pathname); assert.equal(await page.evaluate((k) => window.__ls.get(k), key), '초안'); assert.equal(await page.evaluate(() => $('.editor-notice-label').text()), 'Draft saved');
@@ -69,7 +69,7 @@ export const tests = [
   } },
   { name: '임시 저장: 수정 댓글 입력칸은 별도 키(-last-comment-update-draft)에 저장한다. 저장된 초안이 있으면 입력칸을 채우고, 마지막 수정 댓글과 같으면 초안을 지운다', run: async () => {
     const page = await pageWith({ stubs: false, html: `<div class="editor-notice-label"></div><textarea id="t"></textarea><textarea id="u" data-editor-mode="update-comment-body"></textarea>`, scripts: [MSG, 'common/yona.Common.js'] });
-    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) } }); window.__ls = m; window.__real = window.setTimeout; window.setTimeout = (fn, ms) => window.__real(fn, ms === 5000 ? 30 : ms); });
+    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i], get length() { return m.size; } } }); window.__ls = m; window.__real = window.setTimeout; window.setTimeout = (fn, ms) => window.__real(fn, ms === 5000 ? 30 : ms); });
     await page.addScriptTag({ content: classicFromEsm('esm/service/temporarySaveHandler.js') });
     await page.evaluate(() => { temporarySaveHandler($('#u')); $('#u').val('수정초안').trigger('keyup'); }); await page.waitForTimeout(100);
     assert.equal(await page.evaluate(() => window.__ls.get(location.pathname + '-last-comment-update-draft')), '수정초안'); assert.equal(await page.evaluate(() => window.__ls.has(location.pathname)), false);
@@ -79,7 +79,7 @@ export const tests = [
   } },
   { name: '임시 저장: contentInitialized가 false면 저장된 초안으로 입력칸을 채우지 않는다. removeCurrentPage...는 두 키를 모두 지운다', run: async () => {
     const page = await pageWith({ stubs: false, html: `<textarea id="t"></textarea>`, scripts: [MSG, 'common/yona.Common.js'] });
-    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) } }); window.__ls = m; });
+    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i], get length() { return m.size; } } }); window.__ls = m; });
     await page.addScriptTag({ content: classicFromEsm('esm/service/temporarySaveHandler.js') });
     await page.evaluate(() => { window.__ls.set(location.pathname, 'x'); window.__ls.set(location.pathname + '-last-comment-update-draft', 'y'); temporarySaveHandler($('#t'), false); });
     assert.equal(await page.evaluate(() => $('#t').val()), '');

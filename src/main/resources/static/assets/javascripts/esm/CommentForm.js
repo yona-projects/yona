@@ -47,7 +47,7 @@ $(() =>{
     function onSubmitCommentForm(event){
         removeCurrentPageTemprarySavedContent();
         elements.textarea.off();
-        clearTimeout(window.draftSavingTimeout);
+        cancelAllDraftTimers();
 
         event.preventDefault();
         const that = this;
