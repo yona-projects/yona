@@ -29,14 +29,17 @@ class ApiScopeInterceptor(
             ?: providers.firstNotNullOfOrNull { it.rules()[request.method.uppercase() to pattern] }
             ?: return deny(response, 403, "no scope is defined for this API path", request)
         if (requirement == ApiRequirement.None) return true
-        val scopes = (SecurityContextHolder.getContext().authentication as? YonaAuthentication)?.scopes ?: return deny(response, 401, "unauthorized request")
+        // 범위 제한이 없는 인증(세션 등)은 scopes가 null이라 401이고, 토큰이면 스프링 인증의 SCOPE_ 권한으로 판정한다(X-49)
+        val authentication = (SecurityContextHolder.getContext().authentication as? YonaAuthentication)?.takeIf { it.scopes != null }
+            ?: return deny(response, 401, "unauthorized request")
+        val authorities = authentication.authorities.mapNotNull { it.authority }.toSet()
         @Suppress("UNCHECKED_CAST")
         val variables = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) as? Map<String, String>
         val owner = variables?.get("owner")
         val name = variables?.get("projectName")
         val project = if (owner != null && name != null) projects.findByOwnerAndProjectName(owner, name) else null
         val projectPublic = if (owner != null && name != null) project?.projectScope == ProjectScope.PUBLIC else null
-        if (!ApiScopeRules.allows(requirement, scopes, projectPublic)) return deny(response, 403, "the token scope does not allow this request", request)
+        if (!ApiScopeRules.allowsAuthorities(requirement, authorities, projectPublic)) return deny(response, 403, "the token scope does not allow this request", request)
         return checkOrgPolicy(request, response, project, owner, variables?.get("org"))
     }
 

@@ -215,15 +215,25 @@ object ApiScopeRules {
      * [scopes]를 가진 토큰이 [requirement]를 채우는지 판정한다. [projectPublic]은 요청이 가리키는 프로젝트가 공개(`PUBLIC`)인지이며
      * 프로젝트를 모르면 `null`이다. `public_repo`는 공개 프로젝트가 확인된 경우에만 채운다.
      */
-    fun allows(requirement: ApiRequirement, scopes: Set<String>, projectPublic: Boolean?): Boolean = when (requirement) {
-        ApiRequirement.None -> true
-        ApiRequirement.RepoOnly -> ApiScopes.implies(scopes, ApiScopes.REPO)
-        ApiRequirement.AnyRepo -> ApiScopes.implies(scopes, ApiScopes.REPO) || ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO)
-        ApiRequirement.RepoOnlyRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO)
-        ApiRequirement.AnyRepoRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO) || ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO)
-        ApiRequirement.RepoRead -> ApiScopes.implies(scopes, ApiScopes.READ_REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && projectPublic == true)
-        ApiRequirement.Repo -> ApiScopes.implies(scopes, ApiScopes.REPO) || (ApiScopes.implies(scopes, ApiScopes.PUBLIC_REPO) && projectPublic == true)
-        is ApiRequirement.Scope -> ApiScopes.implies(scopes, requirement.name)
+    fun allows(requirement: ApiRequirement, scopes: Set<String>, projectPublic: Boolean?): Boolean =
+        allowsAuthorities(requirement, ScopeAuthorities.of(scopes).mapNotNull { it.authority }.toSet(), projectPublic)
+
+    /**
+     * [authorities](`SCOPE_` 접두사의 표준 권한. 포함 관계는 이미 펼쳐져 있다)가 [requirement]를 채우는지 판정한다(X-49 수준 2). 판정 규칙은 [allows]와 같다.
+     * 스프링 시큐리티가 만든 인증의 권한을 그대로 읽을 수 있도록 범위 집합 대신 권한 이름을 받는다.
+     */
+    fun allowsAuthorities(requirement: ApiRequirement, authorities: Set<String>, projectPublic: Boolean?): Boolean {
+        fun has(scope: String) = (ScopeAuthorities.PREFIX + scope) in authorities
+        return when (requirement) {
+            ApiRequirement.None -> true
+            ApiRequirement.RepoOnly -> has(ApiScopes.REPO)
+            ApiRequirement.AnyRepo -> has(ApiScopes.REPO) || has(ApiScopes.PUBLIC_REPO)
+            ApiRequirement.RepoOnlyRead -> has(ApiScopes.READ_REPO)
+            ApiRequirement.AnyRepoRead -> has(ApiScopes.READ_REPO) || has(ApiScopes.PUBLIC_REPO)
+            ApiRequirement.RepoRead -> has(ApiScopes.READ_REPO) || (has(ApiScopes.PUBLIC_REPO) && projectPublic == true)
+            ApiRequirement.Repo -> has(ApiScopes.REPO) || (has(ApiScopes.PUBLIC_REPO) && projectPublic == true)
+            is ApiRequirement.Scope -> has(requirement.name)
+        }
     }
 }
 
