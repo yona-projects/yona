@@ -146,7 +146,7 @@
         }
 
         /**
-         * initialize FormValidator
+         * initialize yona.ui.FormValidator
          * @require validate.js
          */
         function _initFormValidator(){
@@ -157,7 +157,7 @@
                 {"name": 'retypedPassword', "rules": 'required|matches[password]'}
             ];
 
-            htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
+            htVar.oValidator = new yona.ui.FormValidator('signup', aRules, _onFormValidate);
             htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId);
 
             // set error message

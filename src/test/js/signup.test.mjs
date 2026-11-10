@@ -8,7 +8,7 @@ const STUBS = {
     window.__popovers = [];
     $yona.showPopover = function (el, o) { window.__popovers.push(el.attr('name') + ':' + o.content); };
     $yona.hidePopover = function () {};
-    window.FormValidator = function () { this.registerCallback = function () {}; this.setMessage = function () {}; };`
+    window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.FormValidator = function () { this.registerCallback = function () {}; this.setMessage = function () {}; };`
 };
 
 export const tests = [{

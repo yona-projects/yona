@@ -81,7 +81,7 @@
             // rules: rules to apply to the input element.
             var aRules = [];
 
-            htVar.oValidator = new FormValidator(htVar.sFormName, aRules, function(aErrors){
+            htVar.oValidator = new yona.ui.FormValidator(htVar.sFormName, aRules, function(aErrors){
                 var oForm = $(document.forms[htVar.sFormName]);
                 var oElement = oForm.find("input[name=name]");
                 var sOrgName = oElement.val();

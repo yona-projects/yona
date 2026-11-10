@@ -34,7 +34,7 @@ const STUBS = `
     attach: function (h, id) { this.handlers[id || 'default'] = h; },
     getUploader: function () {}, getEnv: function () { return {}; },
     uploadFile: function (file, id) { window.__uploads.push({ file: file, id: id }); }, deleteFile: function () {} };
-  window.FormValidator = function () { this._validateForm = function () {}; this.setMessage = function () {}; };
+  window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.FormValidator = function () { this.validate = function () {}; this.setMessage = function () {}; };
   $yona.isImageFile = function () { return true; }; $yona.showTab = function () {}; $yona.showPopover = function () {}; $yona.hidePopover = function () {};
   $yona.alert = function (m) { window.__alerts.push(m); };
 `;

@@ -4,7 +4,6 @@
     "$",
     "$yona",
     "Filter",
-    "FormValidator",
     "NProgress",
     "Validator",
     "assert",
@@ -269,7 +268,8 @@
     "zclip",
     "ZeroClipboardPath",
     "RGBColor",
-    "humanize"
+    "humanize",
+    "FormValidator"
   ],
   "yona": [
     "Attachments",

@@ -100,7 +100,7 @@ class SignupTest : AbstractIntegrationTest() {
         assertEquals("User ID (lower case)", form.selectFirst("label[for=loginId]")?.text())
         assertEquals("Sign up", form.selectFirst("button[type=submit]")?.text())
         assertEquals("/users/loginform", form.selectFirst("a.go-login")?.attr("href"))
-        assertTrue(page.select("script").any { it.attr("src").endsWith("/assets/javascripts/lib/validate.js") })
+        assertTrue(page.select("script").any { it.attr("src").endsWith("/assets/javascripts/common/yona.ui.FormValidator.js") })
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "user.SignUp" in it }
         assertTrue("\"sLogindIdCheckUrl\"" in script && "/user/isUsed?name=" in script && "/user/isEmailExist?email=" in script, script)
     }

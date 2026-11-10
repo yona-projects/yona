@@ -138,7 +138,7 @@ class JsLibraryVersionsTest {
         val inputs = Regex("""`\$\{(JS|BS)}/([^`]+)`""").findAll(text).map {
             (if (it.groupValues[1] == "JS") "javascripts/" else "bootstrap/js/") + it.groupValues[2]
         }.toList()
-        assertTrue(inputs.size >= 22, "입력이 너무 적다: ${inputs.size}")
+        assertTrue(inputs.size >= 21, "입력이 너무 적다: ${inputs.size}")
         assertEquals(emptyList(), inputs.filterNot { asset(it).isFile }, "없는 번들 입력 파일")
         assertTrue(!java.io.File("build-tools/minify-js.sh").readText().contains("compiler.jar"), "번들은 vite로 만든다(D-92)")
     }
@@ -319,5 +319,16 @@ class JsLibraryVersionsTest {
         assertTrue(asset("javascripts/common/yona.ui.Elevator.js").isFile)
         val scripts = File("src/main/resources/static/assets/javascripts").walkTopDown().filter { it.isFile && it.extension == "js" && "/lib/" !in it.path && !it.name.startsWith("yona-") }.joinToString("\n") { it.readLines().filter { line -> !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(line) }.joinToString("\n") }
         assertTrue(!Regex("humanize\\.|new RGBColor|parseUri\\(|\\$\\.elevator").containsMatchIn(scripts), "옛 호출이 남아 있다")
+    }
+
+    @Test
+    fun `favico와 validate_js는 작은 직접 구현으로 바뀌었다`() {
+        // D-122 3단계: Favico.js(유지 중단)는 yona.ui.Favicon.js, validate.js(FormValidator)는 yona.ui.FormValidator.js
+        listOf("javascripts/lib/favico/favico.min.js", "javascripts/lib/validate.js").forEach { assertTrue(!asset(it).exists(), it) }
+        assertTrue(asset("javascripts/common/yona.ui.Favicon.js").isFile && asset("javascripts/common/yona.ui.FormValidator.js").isFile)
+        val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
+        assertTrue(!templates.contains("favico.min.js") && !templates.contains("lib/validate.js"))
+        val scripts = File("src/main/resources/static/assets/javascripts/service").listFiles()!!.joinToString("\n") { f -> f.readLines().filter { !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(it) }.joinToString("\n") }
+        assertTrue(!Regex("new Favico\\(|new FormValidator\\(").containsMatchIn(scripts), "옛 호출이 남아 있다")
     }
 }

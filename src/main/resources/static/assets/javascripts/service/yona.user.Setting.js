@@ -343,11 +343,11 @@
         }
 
         function _onBlurInputPassword(){
-            htVar.oValidator._validateForm();
+            htVar.oValidator.validate();
         }
 
         /**
-         * initialize FormValidator
+         * initialize yona.ui.FormValidator
          * @require validate.js
          */
         function _initFormValidator(){
@@ -357,7 +357,7 @@
                 {"name": 'retypedPassword', "rules": 'required|matches[password]'}
             ];
 
-            htVar.oValidator = new FormValidator('frmPassword', aRules, _onFormValidate);
+            htVar.oValidator = new yona.ui.FormValidator('frmPassword', aRules, _onFormValidate);
 
             htVar.oValidator.setMessage('required',   Messages("validation.required"));
             htVar.oValidator.setMessage('min_length', Messages("validation.tooShortPassword"));

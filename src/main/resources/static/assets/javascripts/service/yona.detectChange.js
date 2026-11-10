@@ -5,10 +5,9 @@
  * https://yona.io
  **/
 
-var favicon=new Favico({
+var favicon = new yona.ui.Favicon({
     position: 'up',
-    bgColor: '#4183c4',
-    animation:'none'
+    bgColor: '#4183c4'
 });
 
 function detectPageChange(url){
