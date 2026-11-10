@@ -67,4 +67,19 @@ object ApiScopes {
 
     /** [granted]가 [required] 범위를 허용하면 `true`이다(포함 관계를 따른다). */
     fun implies(granted: Set<String>, required: String): Boolean = granted.any { it == required || required in INCLUDES[it].orEmpty() }
+
+    /**
+     * [granted]에 포함 관계를 펼쳐 더한 범위 집합이다. `repo`는 `read:repo`, `public_repo`, 프로젝트 웹훅 범위를 포함하므로 모두 들어간다.
+     * 모르는 범위는 뺀다. 결과는 [implies]와 같은 답을 낸다(`required in expand(granted)`는 `implies(granted, required)`와 같다).
+     */
+    fun expand(granted: Set<String>): Set<String> {
+        val known = GENERAL.toSet() + SITE_ADMIN
+        val result = LinkedHashSet<String>()
+        for (scope in granted) {
+            if (scope !in known) continue
+            result += scope
+            result += INCLUDES[scope].orEmpty()
+        }
+        return result
+    }
 }

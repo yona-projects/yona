@@ -19,7 +19,7 @@ data class YonaPrincipal(val userId: Long, val loginId: String?, val name: Strin
 }
 
 /**
- * 로그인한 사용자를 나타내는 Spring Security 인증 객체이다. 권한(role)은 쓰지 않는다.
+ * 로그인한 사용자를 나타내는 Spring Security 인증 객체이다. 역할(role)은 쓰지 않고, 토큰으로 인증했으면 그 범위를 `SCOPE_` 표준 권한([ScopeAuthorities])으로 가진다(X-49).
  *
  * @property viaToken 개인용 API 토큰으로 인증되었으면 `true`이다. 화면 레이아웃과 세션 기억(`/-_-api` 홈 별칭이 그린다)이 세션 값을 쓰지 않게 가르는 데 쓴다.
  *   잠기거나 삭제된 사용자의 토큰은 인증 단계에서 거절하므로(`decisions.md` A-206) v1.6처럼 계정 상태를 건너뛰는 예외는 두지 않는다([refactoring-backlog.md] R-04).
@@ -38,7 +38,7 @@ class YonaAuthentication(
     /** OAuth 액세스 토큰으로 인증했으면 그 토큰을 받은 앱의 행 번호이다(X-39). 조직의 OAuth 앱 정책이 어느 앱의 요청인지 알아보는 데 쓴다. */
     val oauthClientRowId: Long? = null
 ) :
-    AbstractAuthenticationToken(emptyList()) {
+    AbstractAuthenticationToken(ScopeAuthorities.of(scopes)) {
 
     init {
         isAuthenticated = true
