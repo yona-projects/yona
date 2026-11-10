@@ -117,6 +117,7 @@ class SiteUserService(
             // 추가 항목(X-27): 대기 중인 리뷰 요청에서도 뺀다
             entityManager.createNativeQuery("delete from pull_request_review_request where user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-5): 삭제 처리한 사용자의 API 토큰은 모두 지운다
+            entityManager.createNativeQuery("delete from api_token_scope where api_token_id in (select id from api_token where user_id = :id)").setParameter("id", id).executeUpdate()
             entityManager.createNativeQuery("delete from api_token where user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-4): GPG 키도 지운다. 하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다
             entityManager.createNativeQuery("delete from gpg_key where user_id = :id and parent_id is not null").setParameter("id", id).executeUpdate()

@@ -25,8 +25,8 @@ class V16MigrationNotice(
             val pending = migration.pending()
             if (pending.total > 0) {
                 log.warn(
-                    "v1.6 data has not been migrated: pullRequests={}, legacyTokens={}, reviewerSettings={}, missingApprovals={}. " +
-                        "Stop the server and run scripts/migrate-v16.sh", pending.pullRequests, pending.legacyTokens, pending.reviewerSettings, pending.missingApprovals
+                    "v1.6 data has not been migrated: pullRequests={}, legacyTokens={}, reviewerSettings={}, missingApprovals={}, scopeColumns={}. " +
+                        "Stop the server and run scripts/migrate-v16.sh", pending.pullRequests, pending.legacyTokens, pending.reviewerSettings, pending.missingApprovals, pending.scopeColumns
                 )
             }
         } catch (e: Exception) {

@@ -404,7 +404,8 @@ class DataExchangeTest : AbstractIntegrationTest() {
         // v1.6의 사용자 내보내기에는 `token` 열이 없으므로(옛 파일로 가져오면 토큰을 잃는 것은 v1.6과 같다) 이관할 값도 없다.
         // 옛 파일의 사용자 번호가 바뀔 수 있어 남은 토큰이 엉뚱한 사용자에 붙지 않게 비운다
         insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881201L, "tkold", "옛")
-        insertWithId("insert into api_token(id, user_id, name, token_hash, token_prefix, scopes, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881201L, "남은", "h", "p", "repo", false)
+        insertWithId("insert into api_token(id, user_id, name, token_hash, token_prefix, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881201L, "남은", "h", "p", false)
+        jdbc.update("insert into api_token_scope(api_token_id, scope) values (?, ?)", 1L, "repo")
         val row = DataTables.find("N4USER")!!.columns.joinToString(", ") { c ->
             val value = when (c.name) {
                 "id" -> "881201"
@@ -420,6 +421,20 @@ class DataExchangeTest : AbstractIntegrationTest() {
         }
         import("""{"N4USER": [{$row}]}""")
         assertEquals(0, jdbc.queryForObject("select count(*) from api_token", Int::class.java))
+        assertEquals(0, jdbc.queryForObject("select count(*) from api_token_scope", Int::class.java), "범위 행도 함께 비운다")
+    }
+
+    @Test
+    fun `토큰의 범위는 범위당 한 행의 API_TOKEN_SCOPE 테이블로 내보내고 가져온다 (D-126)`() {
+        insertWithId("insert into n4user(id, login_id, name) values (?, ?, ?)", 881301L, "tkscope", "범위")
+        insertWithId("insert into api_token(id, user_id, name, token_hash, token_prefix, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, current_timestamp)", 881302L, 881301L, "범위 토큰", "hx", "px", false)
+        jdbc.update("insert into api_token_scope(api_token_id, scope) values (?, ?)", 881302L, "read:user")
+        jdbc.update("insert into api_token_scope(api_token_id, scope) values (?, ?)", 881302L, "repo")
+        val tree = exported()
+        assertEquals(setOf("read:user", "repo"), tree.get("API_TOKEN_SCOPE").filter { it.get("api_token_id").asLong() == 881302L }.map { it.get("scope").asText() }.toSet())
+        assertEquals(false, tree.get("API_TOKEN").any { it.has("scopes") }, "문자열 범위 열은 내보내지 않는다")
+        import(ByteArrayOutputStream().also { service.export(it) }.toString(Charsets.UTF_8))
+        assertEquals(listOf("read:user", "repo"), jdbc.queryForList("select scope from api_token_scope where api_token_id = 881302 order by scope", String::class.java))
     }
 
     @Test

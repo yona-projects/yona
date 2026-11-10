@@ -118,6 +118,8 @@ OpenSSH 공개키 한 줄(`~/.ssh/id_*.pub`)을 MINA의 `PublicKeyEntry`로 읽�
 
 범위가 늘어 전체 범위 문자열이 255자를 넘으므로 `api_token.scopes`, `device_authorization.scopes`, `audit_log.token_scopes`를 1000자로 넓혔다. `ddl-auto: update`는 이미 있는 열을 넓히지 못해 `SchemaColumnWidener`가 시작할 때 좁은 열을 찾아 `alter`한다(H2, PostgreSQL, MySQL/MariaDB, MSSQL, Cubrid 문법). 실패해도 시작을 막지 않고 경고만 남긴다(A-323).
 
+> **정정(2026-11-10, D-126)**: 위의 열 넓히기(`SchemaColumnWidener`)는 없앴다. 토큰과 기기 인증 요청의 범위는 한 칸에 쉼표로 이은 문자열이 아니라 범위마다 한 행(`api_token_scope`, `device_authorization_scope`)으로 저장하고, `audit_log.token_scopes`는 `TEXT` 형식이다. 옛 문자열은 이관 명령의 첫 단계가 행으로 옮긴다.
+
 ## 한계
 
 - 포트 22를 쓰려면 내장 서버는 root 권한이나 포트 전달이 필요하다. 시스템 sshd 연동을 쓰면 sshd가 22번 포트를 받는다.

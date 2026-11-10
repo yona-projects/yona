@@ -105,7 +105,6 @@ Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 서버 관련 설정들
 ---
 - [application.conf 설명](docs/ko/application-conf-desc.md)
-- [소셜 로그인 설정](docs/ko/yona-social-login-settings.md)
 
 Google Analytics
 ---
@@ -157,7 +156,6 @@ Yona is designed to increase the speed and efficiency of team work and team deve
 - Pull requests & Block-based code review
 - Online Commits
 - LDAP support
-- Social login
 - Migration to/from other services or Yona instances
      - Github/Github Enterprise, Redmine, Yona
 
@@ -203,7 +201,6 @@ Start/Upgrade/Backup/Trouble Shootings
 Server Settings
 ---
 - [application.conf Settings](docs/application-conf-desc.md)
-- [Social Login Settings](docs/yona-social-login-settings.md)
 
 Migration
 ---

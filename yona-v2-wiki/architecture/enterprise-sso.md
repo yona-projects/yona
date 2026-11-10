@@ -78,3 +78,7 @@ updated: 2026-11-02
 
 - **가짜 IdP(자동 시험)**: OIDC는 JDK HTTP 서버가 Discovery, JWKS, 토큰을 흉내 낸다(`FakeOidcIdp`). SAML은 OpenSAML로 서명, 암호화한 응답을 만든다(`FakeSamlIdp`). 서명, 발급자, 대상, 수신 주소, 요청 ID, 만료, 재사용, 이메일 미확인, 잠긴 사용자, 열린 리디렉션, IdP 시작 로그인, 암호화 어설션, 키 교체, SSO 전용 모드를 확인한다.
 - **실제 IdP(수동 확인, 2026-11-02)**: Keycloak 26.4 컨테이너(`e2e/keycloak/realm-corp.json`, 실행은 `e2e/ssokeycloak.mjs`)로 OIDC와 SAML 2 로그인(서명된 응답과 **암호화된 어설션**), IdP 시작 SAML 로그인, 이메일 미확인 거절, 연결된 계정, SSO 전용 모드를 Playwright로 15건 확인했다. 관리자 화면에서 설정하고 IdP 메타데이터는 **주소로 가져왔다**.
+
+## SSO 사용자의 비밀번호 (D-128, 2026-11-10)
+
+SSO로 연결된 사용자는 비밀번호를 만들 수 없다. 이메일 재설정, 재설정 주소, 사이트 관리자의 임시 비밀번호가 모두 막히고(`PasswordResetController.ssoBlocked`), 사이트 관리자는 SSO 전용 모드의 비상 로그인을 위해 예외이다. IdP에서 사용자를 지워도 Yona는 반응하지 않는다. 표준 통지가 없고(SCIM, 백채널 로그아웃은 별도 기능), 기존 세션과 개인용 토큰은 Yona에서 사용자를 잠그거나 지울 때까지 유효하다.

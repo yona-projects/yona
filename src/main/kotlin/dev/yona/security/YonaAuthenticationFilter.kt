@@ -30,12 +30,16 @@ class YonaAuthenticationFilter(
     private val apiTokens: ApiTokenService,
     private val failures: TokenFailureLimiter,
     private val audit: dev.yona.domain.audit.AuditBoundary,
-    private val gate: TwoFactorGate,
     private val oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
-    private val rememberMe: RememberMeCookies
+    private val rememberMeServices: YonaRememberMeServices
 ) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
+
+    /** 외부 API의 토큰 인증이다. OAuth 액세스 토큰을 먼저 보고 아니면 개인용 토큰을 본다. 빈이 아니라 필터가 직접 조립한다. */
+    private val tokenManager = org.springframework.security.authentication.ProviderManager(
+        OAuthAccessTokenAuthenticationProvider(oauthTokens), ApiTokenAuthenticationProvider(apiTokens)
+    )
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         if (isApiPath(request)) {
@@ -72,32 +76,22 @@ class YonaAuthenticationFilter(
             response.writer.write("{\"message\":\"too many failed token attempts\"}")
             return false
         }
-        if (value.startsWith(dev.yona.domain.oauth2server.OAuthAccessTokenService.PREFIX)) {
-            // OAuth 액세스 토큰(X-1): 개인용 토큰과 같은 실패 제한과 범위 검사를 받는다
-            val grant = oauthTokens.authenticate(value)
-            if (grant == null) {
-                failures.recordFailure(address)
-                audit.tokenFailure("oauth")
-                return true
-            }
-            // 토큰의 대상(RFC 8707): `resource` 없이 발급되었거나 외부 API를 가리켜 발급된 토큰만 받는다. 다른 자원(MCP)용 토큰은 여기서 쓸 수 없다
-            if (!grant.allows(dev.yona.oauth2server.ProtectedResources.api(request), default = true)) return true
-            failures.recordSuccess(address)
-            val oauthContext = SecurityContextHolder.createEmptyContext()
-            oauthContext.authentication = YonaAuthentication.of(grant.user, viaToken = true, scopes = grant.scopes, oauthClientRowId = grant.clientRowId)
-            SecurityContextHolder.setContext(oauthContext)
+        val oauth = value.startsWith(dev.yona.domain.oauth2server.OAuthAccessTokenService.PREFIX)
+        val kind = if (oauth) "oauth" else "api"
+        val authentication = try {
+            // 보호 자원의 주소는 OAuth 토큰의 대상(RFC 8707) 확인에만 쓰므로 개인용 토큰에서는 구하지 않는다
+            tokenManager.authenticate(ApiTokenAuthenticationToken(value, if (oauth) dev.yona.oauth2server.ProtectedResources.api(request) else ""))
+        } catch (e: org.springframework.security.authentication.InsufficientAuthenticationException) {
+            // 토큰의 대상(RFC 8707)이 외부 API가 아니다. 토큰은 맞으므로 실패로 세지 않고 익명으로 둔다
             return true
-        }
-        val token = apiTokens.authenticate(value)
-        val owner = token?.user
-        if (token == null || owner == null) {
+        } catch (e: org.springframework.security.core.AuthenticationException) {
             failures.recordFailure(address)
-            audit.tokenFailure("api")
+            audit.tokenFailure(kind)
             return true
         }
         failures.recordSuccess(address)
         val context = SecurityContextHolder.createEmptyContext()
-        context.authentication = YonaAuthentication.of(owner, viaToken = true, scopes = ApiScopes.parse(token.scopes), tokenId = token.id)
+        context.authentication = authentication
         SecurityContextHolder.setContext(context)
         return true
     }
@@ -115,25 +109,17 @@ class YonaAuthenticationFilter(
         return true
     }
 
-    private fun authenticateByRememberMeCookie(request: HttpServletRequest, response: HttpServletResponse): Boolean {
-        val cookie = request.cookies?.firstOrNull { it.name == REMEMBER_ME_COOKIE } ?: return false
-        val user = RememberMeCookies.loginIdOf(cookie.value)?.let { users.findByLoginId(it) }
-        // 서명이 맞지 않거나 기간이 지났거나 비밀번호가 바뀌었거나 옛 형식이면 쿠키를 지운다. 잠기거나 지워진 계정도 쿠키로 로그인되지 않는다.
-        // v1.6은 쿠키의 해시가 비밀번호와 같기만 하면 잠기거나 지워진 계정도 로그인 상태로 보았다(R-05, R-107)
-        if (user == null || user.state.isLockedOut() || !rememberMe.verify(cookie.value, user)) {
-            discardRememberMeCookie(response)
-            return false
-        }
-        // 2단계 인증을 켠 사용자는 알려진 기기 쿠키가 함께 있을 때만 이 쿠키로 인정한다(X-2, D-69). 쿠키는 지우지 않고 익명으로 둔다
-        if (!gate.passes(user, request)) return false
-        val authentication = YonaAuthentication.of(user, viaCookie = true)
+    /**
+     * 로그인 유지 쿠키로 인증한다. 쿠키의 판정은 [YonaRememberMeServices.autoLogin]이 맡고(잘못된 쿠키는 거기서 지운다), 이 필터는 결과를 세션과 서버 캐시에 기록한다.
+     */
+    private fun authenticateByRememberMeCookie(request: HttpServletRequest, response: HttpServletResponse) {
+        val authentication = rememberMeServices.autoLogin(request, response) as? YonaAuthentication ?: return
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = authentication
         SecurityContextHolder.setContext(context)
         securityContextRepository.saveContext(context, request, response)
         // v1.6 initTokenUser: 세션이 비어 있는 쿠키 사용자는 addUserInfoToSession으로 서버 캐시에도 들어간다
-        sessionUsers.remember(requireNotNull(user.id))
-        return true
+        sessionUsers.remember(authentication.principal.userId)
     }
 
     companion object {

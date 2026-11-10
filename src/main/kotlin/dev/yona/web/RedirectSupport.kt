@@ -77,6 +77,8 @@ object RedirectSupport {
     fun saveFlashBeforeDispatch(request: HttpServletRequest, response: HttpServletResponse, flash: Map<String, Any>) {
         val flashMap = FlashMap().apply { putAll(flash); this[ORDER] = flash.keys.joinToString("\u0001") }
         org.springframework.web.servlet.support.SessionFlashMapManager().saveOutputFlashMap(flashMap, request, response)
+        // 디스패처 서블릿이 요청 속성에 노출하던 출력 flash를 같게 노출한다. 필터가 응답을 끝내면 디스패처가 돌지 않아 이 속성이 비기 때문이다(MockMvc의 flash() 매처도 이것을 읽는다)
+        request.setAttribute(org.springframework.web.servlet.DispatcherServlet.OUTPUT_FLASH_MAP_ATTRIBUTE, flashMap)
     }
 
     /**

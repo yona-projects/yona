@@ -28,14 +28,14 @@ class PendingLogin(
 
 /** 로그인을 끝낸다(언어 갱신, 로그인 유지 쿠키, 세션 시작). 비밀번호 로그인과 2단계 뒤의 로그인이 같은 일을 하도록 한곳에 둔다. v1.6 `UserApp`의 로그인 성공 처리에 해당한다. */
 @Component
-class LoginCompletion(private val users: UserRepository, private val loginSession: LoginSessionService, private val rememberMeCookies: RememberMeCookies) {
+class LoginCompletion(private val users: UserRepository, private val loginSession: LoginSessionService, private val rememberMeServices: YonaRememberMeServices) {
 
     /**
      * [user]를 로그인시킨다. [rememberMe]이면 로그인 유지 쿠키를 만든다. [twoFactorVerified]는 2단계를 마쳤음을 뜻하며, 2단계 인증을 켠 사용자는 이 값이 참이어야 한다([LoginSessionService.start]).
      */
     fun complete(request: HttpServletRequest, response: HttpServletResponse, user: User, rememberMe: Boolean, twoFactorVerified: Boolean) {
         if (rememberMe) {
-            response.addCookie(rememberMeCookies.create(user, secure = request.isSecure))
+            rememberMeServices.loginSuccess(request, response, YonaAuthentication.of(user))
         }
         user.lang = LocaleContextHolder.getLocale().toLanguageTag()
         users.save(user)

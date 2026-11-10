@@ -63,11 +63,10 @@ data class UserProjectRow(
  * 사용자 페이지 프로필 상자의 값이다.
  *
  * @property since 가입일(`MMM dd, yyyy`, 영어)
- * @property providers 연결된 소셜 로그인의 로고 HTML이다. 자격 증명마다 제공자 순서대로 담는다
  */
 data class UserProfileView(
     val loginId: String, val name: String, val englishName: String?, val email: String?, val avatarUrl: String,
-    val guest: Boolean, val siteManager: Boolean, val locked: Boolean, val since: String, val providers: List<String>,
+    val guest: Boolean, val siteManager: Boolean, val locked: Boolean, val since: String,
     val ownPage: Boolean
 )
 

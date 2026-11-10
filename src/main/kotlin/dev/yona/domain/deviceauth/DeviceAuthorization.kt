@@ -1,7 +1,10 @@
 package dev.yona.domain.deviceauth
 
 import dev.yona.domain.user.User
+import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.FetchType
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -9,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OrderColumn
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.springframework.data.jpa.repository.JpaRepository
@@ -35,7 +39,7 @@ enum class DeviceAuthorizationStatus {
  * @property deviceCodeHash 기기 코드의 SHA-256 16진수. 유일하다. CLI만 원문을 안다
  * @property userCode 사용자가 웹에서 입력하는 코드(`BCDF-GHJK` 모양). 유일하다
  * @property clientName CLI가 밝힌 기기 이름. 토큰 이름(`Yona CLI: <이름>`)과 승인 화면에 쓴다
- * @property scopes 요청한 범위(쉼표로 이은 [dev.yona.domain.apitoken.ApiScopes]). 승인할 때 승인한 사용자가 가질 수 있는 범위로 줄어든다
+ * @property scopes 요청한 범위([dev.yona.domain.apitoken.ApiScopes]). 범위마다 한 행씩 `device_authorization_scope`에 요청한 순서(`position`)대로 저장한다. 승인할 때 승인한 사용자가 가질 수 있는 범위로 줄어든다
  * @property status 진행 상태
  * @property user 승인한 사용자. 승인 전에는 없다
  * @property createdDate 요청한 시각
@@ -58,8 +62,11 @@ class DeviceAuthorization(
     var userCode: String? = null,
     @Column(name = "client_name", length = 100)
     var clientName: String? = null,
-    @Column(length = 1000)
-    var scopes: String? = null,
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "device_authorization_scope", joinColumns = [JoinColumn(name = "device_authorization_id")])
+    @OrderColumn(name = "position")
+    @Column(name = "scope", length = 50)
+    var scopes: MutableList<String> = mutableListOf(),
     @Column(length = 20)
     var status: String = DeviceAuthorizationStatus.PENDING.name,
     @ManyToOne @JoinColumn(name = "user_id")

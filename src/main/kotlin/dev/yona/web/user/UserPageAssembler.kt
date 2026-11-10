@@ -21,7 +21,6 @@ import dev.yona.domain.user.UserCredentialRepository
 import dev.yona.domain.user.UserDisplay
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.AvatarService
-import dev.yona.web.ProviderLogos
 import dev.yona.web.TemplateHelper
 import dev.yona.web.issue.IssueListAssembler
 import dev.yona.web.project.ProjectViewFactory
@@ -46,8 +45,6 @@ class UserPageAssembler(
     private val projects: ProjectRepository,
     private val projectUsers: ProjectUserRepository,
     private val users: UserRepository,
-    private val credentials: UserCredentialRepository,
-    private val linkedAccounts: LinkedAccountRepository,
     private val siteAdmins: SiteAdminRepository,
     private val commentThreads: CommentThreadRepository,
     private val issueItems: IssueListAssembler,
@@ -66,14 +63,8 @@ class UserPageAssembler(
         siteManager = siteAdmins.existsByAdminId(requireNotNull(user.id)), locked = user.state == UserState.LOCKED, // 삭제한 사용자에는 붙이지 않는다(v1.6은 붙였다, R-52-4)
         
         since = user.createdDate?.let { SimpleDateFormat("MMM dd, yyyy", Locale.US).format(it) }.orEmpty(),
-        providers = providerLogos(user), ownPage = viewer != null && viewer.loginId == user.loginId
+        ownPage = viewer != null && viewer.loginId == user.loginId
     )
-
-    /** 연결된 소셜 로그인의 로고이다. 자격 증명마다 제공자를 한 번씩 담는다 (v1.6 `UserCredential.getProviders`). */
-    private fun providerLogos(user: User): List<String> =
-        credentials.findByUserId(requireNotNull(user.id)).flatMap { credential ->
-            linkedAccounts.findByUserCredentialId(requireNotNull(credential.id)).mapNotNull { it.providerKey }.distinct()
-        }.map { ProviderLogos.of(it) }.filter { it.isNotEmpty() }
 
     /**
      * 활동 탭의 값이다. 사이트가 프로젝트 목록을 숨기고(`hideProjectListing`) 보는 사람이 익명이면 모두 비어 있다.

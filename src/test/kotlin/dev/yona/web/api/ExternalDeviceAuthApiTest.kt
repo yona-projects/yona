@@ -80,7 +80,7 @@ class ExternalDeviceAuthApiTest : AbstractIntegrationTest() {
     fun `scope를 주지 않으면 사이트 관리자 범위를 뺀 모든 일반 범위를 요청한 것으로 본다`() {
         val (device, _) = issue()
         val stored = devices.findAll().single { true }
-        assertEquals(ApiScopes.selectable(false).toSet(), ApiScopes.parse(stored.scopes))
+        assertEquals(ApiScopes.selectable(false).toSet(), stored.scopes.toSet())
         assertTrue(device.length >= 32)
     }
 

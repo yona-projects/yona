@@ -39,8 +39,7 @@ class ApiTokenMigrationTest : AbstractIntegrationTest() {
         val row = tokens.findByUserIdOrderByCreatedDateDescIdDesc(u.id!!).single()
         assertEquals(TokenHasher.sha256Hex(old), row.tokenHash); assertEquals(true, row.isLegacy); assertEquals(ApiTokenService.LEGACY_TOKEN_NAME, row.name)
         assertNull(row.expiresDate, "이관한 토큰은 만료가 없다"); assertEquals(old.take(4), row.tokenPrefix)
-        val scopes = ApiScopes.parse(row.scopes)
-        assertTrue(scopes.containsAll(ApiScopes.selectable(siteManager = true)), scopes.toString())
+        assertTrue(row.scopes.isEmpty(), "v1.6 토큰에는 범위가 없었으므로 범위 행을 만들지 않는다")
         assertNull(users.findById(u.id!!).get().token, "평문 열은 비운다")
         assertNotNull(service.authenticate(old), "같은 값이 계속 동작한다")
     }
@@ -57,7 +56,7 @@ class ApiTokenMigrationTest : AbstractIntegrationTest() {
     @Test
     fun `이미 이관 행이 있는 사용자의 열은 다시 옮기지 않는다`() {
         val u = user(null)
-        tokens.save(ApiToken(user = u, name = ApiTokenService.LEGACY_TOKEN_NAME, tokenHash = TokenHasher.sha256Hex("first"), tokenPrefix = "firs", scopes = "repo", isLegacy = true, createdDate = java.util.Date()))
+        tokens.save(ApiToken(user = u, name = ApiTokenService.LEGACY_TOKEN_NAME, tokenHash = TokenHasher.sha256Hex("first"), tokenPrefix = "firs", scopes = mutableSetOf("repo"), isLegacy = true, createdDate = java.util.Date()))
         u.token = "second-value-from-an-old-export-file-xx=="; users.save(u); em.flush()
         assertEquals(0, service.migrateLegacyTokens())
         assertEquals(1, tokens.findByUserIdOrderByCreatedDateDescIdDesc(u.id!!).size)

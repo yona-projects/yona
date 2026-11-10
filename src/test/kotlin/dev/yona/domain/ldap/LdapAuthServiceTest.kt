@@ -155,12 +155,4 @@ class LdapAuthServiceTest : AbstractIntegrationTest() {
         assertEquals("taken-yona", created.loginId)
         assertEquals("taken", existing.loginId)
     }
-
-    @Test
-    fun `Git 기본 인증도 LDAP으로 확인한다`() {
-        Mockito.`when`(directory.authenticate("gitldap", "pw")).thenReturn(ldapUser(login = "gitldap"))
-        assertEquals("gitldap", authenticator.authenticateBasic("gitldap", "pw")?.loginId)
-        Mockito.`when`(directory.authenticate("gitbad", "pw")).thenThrow(AuthenticationException("bad"))
-        assertNull(authenticator.authenticateBasic("gitbad", "pw"))
-    }
 }

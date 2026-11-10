@@ -5,7 +5,6 @@ import dev.yona.access.AccessControl
 import dev.yona.domain.notification.PasswordResetRequestedEvent
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.CurrentUserProvider
-import dev.yona.security.LegacyPasswordHasher
 import dev.yona.security.PasswordResetTokens
 import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.web.RedirectSupport
@@ -29,6 +28,9 @@ import org.springframework.web.servlet.ModelAndView
  *
  * 흐름: 아이디와 이메일을 입력해 요청하면 일회용 재설정 주소를 만들어 메일로 보내고(메일은 이벤트로 알린다, A-25),
  * 그 주소에서 새 비밀번호를 입력하면 바뀐다. 사이트 관리자는 사용자의 비밀번호를 임시 값으로 바꿀 수 있다.
+ *
+ * SSO(OIDC, SAML2)로 연결된 사용자는 어느 길로도 비밀번호를 만들 수 없다(`decisions.md` D-128). IdP가 신원의 기준이기 때문이다. SSO 전용 모드의
+ * 비상 로그인에 쓰는 사이트 관리자는 예외이다.
  */
 @Controller
 class PasswordResetController(
@@ -39,7 +41,9 @@ class PasswordResetController(
     private val flashTranslator: FlashMessageTranslator,
     private val events: ApplicationEventPublisher,
     private val sessionUsers: dev.yona.security.SessionUserCache,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val linkedAccounts: dev.yona.domain.sso.LinkedAccountService,
+    private val passwords: dev.yona.security.UserPasswordService
 ) {
 
     @GetMapping("/lostPassword")
@@ -62,6 +66,10 @@ class PasswordResetController(
             return lostPasswordView(sent = false, errorKey = "site.resetPasswordEmail.invalidRequest")
         }
 
+        if (ssoBlocked(target)) {
+            audit.record(dev.yona.domain.audit.auditUser("account.password_reset_requested", target, mapOf("reason" to "sso_user")))
+            return lostPasswordView(sent = false, errorKey = "site.resetPasswordEmail.ssoUser")
+        }
         val token = tokens.issue(requireNotNull(target.loginId))
         val event = PasswordResetRequestedEvent(target, token)
         events.publishEvent(event)
@@ -83,7 +91,12 @@ class PasswordResetController(
 
         val loginId = requireNotNull(tokens.loginIdOf(hashString))
         val user = requireNotNull(users.findByLoginId(loginId))
-        user.password = LegacyPasswordHasher.hash(requireNotNull(newPassword), requireNotNull(user.passwordSalt))
+        // 주소를 받은 뒤에 SSO로 연결되었을 수도 있으므로 쓰는 때에도 막는다
+        if (ssoBlocked(user)) {
+            tokens.remove(hashString)
+            return ErrorViews.badRequest("site.resetPasswordEmail.ssoUser")
+        }
+        passwords.set(user, requireNotNull(newPassword))
         users.save(user)
         audit.record(dev.yona.domain.audit.auditUser("account.password_changed", user, mapOf("via" to "reset_token")))
         // v1.6 User.resetPassword: 새로 읽은 사용자 인스턴스를 서버 캐시에 넣는다
@@ -105,14 +118,18 @@ class PasswordResetController(
         val target = users.findByLoginId(loginId)
         val isSiteManager = permissions.siteManager(actor?.id)
         if (target == null || !isSiteManager) return json(HttpStatus.FORBIDDEN, mapOf("isSuccess" to false, "reason" to "FORBIDDEN"))
+        if (ssoBlocked(target)) return json(HttpStatus.FORBIDDEN, mapOf("isSuccess" to false, "reason" to "SSO_USER"))
 
         val newPassword = tokens.generate(loginId).substring(0, TEMPORARY_PASSWORD_LENGTH)
-        target.password = LegacyPasswordHasher.hash(newPassword, requireNotNull(target.passwordSalt))
+        passwords.set(target, newPassword)
         users.save(target)
         audit.record(dev.yona.domain.audit.auditUser("account.password_changed", target, mapOf("via" to "admin_reset")))
         sessionUsers.remember(requireNotNull(target.id))
         return json(HttpStatus.OK, mapOf("loginId" to loginId, "name" to target.name.orEmpty(), "newPassword" to newPassword, "isSuccess" to true))
     }
+
+    /** SSO로 연결된 사용자이면 `true`이다. 사이트 관리자는 SSO 전용 모드의 비상 로그인을 위해 막지 않는다. */
+    private fun ssoBlocked(user: dev.yona.domain.user.User): Boolean = linkedAccounts.hasSso(user) && !permissions.siteManager(user.id)
 
     private fun lostPasswordView(sent: Boolean, errorKey: String?): ModelAndView =
         ModelAndView("site/lost-password")

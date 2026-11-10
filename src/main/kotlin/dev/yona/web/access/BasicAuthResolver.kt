@@ -71,7 +71,7 @@ class BasicAuthResolver(
         val owner = token?.user
         if (token != null && owner != null && owner.loginId.equals(credentials.loginId, ignoreCase = true)) {
             failures.recordSuccess(address)
-            val scopes = ApiScopes.parse(token.scopes)
+            val scopes = apiTokens.scopesOf(token)
             // 이 요청에서만 토큰의 사용자로 본다(세션에 저장하지 않는다). 푸시 훅의 감사 기록이 행위자(토큰과 범위)를 남길 수 있다
             SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext().also { it.authentication = YonaAuthentication.of(owner, viaToken = true, scopes = scopes, tokenId = token.id) })
             return BasicIdentity(owner, scopes)

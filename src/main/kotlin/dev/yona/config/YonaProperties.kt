@@ -42,7 +42,6 @@ import java.time.temporal.ChronoUnit
  * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
  * @property update 업데이트 확인 설정이다
  * @property github 이전(Migration) 화면의 GitHub 연동 설정이다
- * @property social 소셜 로그인(GitHub, Google) 설정이다
  * @property imap 메일 수신(IMAP) 설정이다
  * @property mailboxPollingInterval IDLE을 쓸 수 없을 때 새 메일을 확인하는 주기(밀리초) (`application.mailbox.polling.interval`, 기본 5분)
  * @property ldap LDAP 로그인 설정이다
@@ -58,7 +57,6 @@ import java.time.temporal.ChronoUnit
  * @property noreferrer 외부 링크에 `rel="noreferrer"`를 붙인다 (`application.noreferrer`)
  * @property applicationContext 서버를 하위 경로에 둘 때의 경로. 앞뒤 슬래시 없이 쓴다 (`application.context`)
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
- * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
  * @property auditRetentionDays 감사 로그를 보존하는 날수(`yona.audit-retention-days`, 기본 365). 0이면 영구 보존한다. 만료 기록은 삭제 전에 보관 파일로 옮긴다(X-9, D-62)
  * @property auditGitRetentionDays `git.*` 이벤트의 보존 일수(`yona.audit-git-retention-days`, 기본 90). 지나면 보관 파일로 옮기고 개인정보 필드를 비운다(행은 남는다). 0이면 따로 비우지 않고 `auditRetentionDays`를 따른다(D-63)
  * @property auditStreamWebhookUrl 감사 기록을 JSON으로 POST해 보낼 웹훅 주소(`yona.audit-stream-webhook-url`). 비어 있거나 http와 https가 아니면 보내지 않는다(D-63)
@@ -125,7 +123,6 @@ data class YonaProperties(
     @DurationUnit(ChronoUnit.MILLIS) val notificationMailInterval: Duration = Duration.ofSeconds(60),
     @DurationUnit(ChronoUnit.MILLIS) val notificationMailDelay: Duration = Duration.ofSeconds(180),
     val github: Github = Github(),
-    val social: Social = Social(),
     val imap: Imap = Imap(),
     @DurationUnit(ChronoUnit.MILLIS) val mailboxPollingInterval: Duration = Duration.ofMinutes(5),
     val ldap: Ldap = Ldap(),
@@ -149,7 +146,6 @@ data class YonaProperties(
     val useEmailVerification: Boolean = false,
     val allowedSendingMailDomains: String = "",
     val allowsAnonymousAccess: Boolean = true,
-    val socialLoginOnly: Boolean = false,
     val maxFileSize: Long = 2147483454L,
     val signup: Signup = Signup(),
     val gravatar: Gravatar = Gravatar(),
@@ -302,50 +298,6 @@ data class YonaProperties(
         val useEmailBaseLogin: Boolean = false,
         val fallbackToLocalLogin: Boolean = false,
         val englishNameAttributeName: String = "givenName"
-    )
-
-    /**
-     * 소셜 로그인 설정이다. v1.6 `application.social.login.*`와 `conf/social-login.conf`(play-authenticate)에 해당한다.
-     * v1.6의 기본 설정 파일에 들어 있던 시험용 클라이언트 ID와 비밀은 옮기지 않는다. 쓰려면 직접 발급해 넣는다(A-95).
-     *
-     * @property loginSupport 로그인 화면에 보이고 쓸 수 있는 제공자를 쉼표로 이은 값. 예: `github, google`. 비우면 쓰지 않는다 (`application.social.login.support`)
-     * @property nameSync 로그인할 때마다 소셜 계정의 이름으로 사용자 이름을 고친다 (`application.use.social.login.name.sync`)
-     * @property githubName 로그인 화면의 GitHub 버튼에 쓰는 이름 (`application.social.login.github.name`)
-     * @property github GitHub 제공자 설정이다. GitHub Enterprise는 주소 세 개를 바꿔 쓴다
-     * @property google Google 제공자 설정이다
-     */
-    data class Social(
-        val loginSupport: String = "",
-        val nameSync: Boolean = false,
-        val githubName: String = "github",
-        val github: OAuthProvider = OAuthProvider(),
-        val google: OAuthProvider = OAuthProvider()
-    ) {
-        /** 허용된 제공자 키 목록이다. 공백은 무시한다 (v1.6 `TemplateHelper.isAllowedOAuthProvider`). */
-        fun allowedProviders(): List<String> = loginSupport.replace(" ", "").split(",").filter { it.isNotEmpty() }
-    }
-
-    /**
-     * OAuth 제공자 한 곳의 설정이다 (v1.6 `play-authenticate.<제공자>`).
-     *
-     * @property clientId 발급받은 클라이언트 ID
-     * @property clientSecret 발급받은 클라이언트 비밀
-     * @property scope 요청할 권한 범위
-     * @property authorizationUrl 사용자를 보낼 인증 화면 주소
-     * @property accessTokenUrl 인증 코드를 접근 토큰으로 바꾸는 주소
-     * @property userInfoUrl 접근 토큰으로 사용자 정보를 읽는 주소
-     * @property redirectSecure 돌아올 주소(redirect_uri)를 `https`로 만든다. 기본은 `http`이다 (`redirectUri.secure`)
-     * @property redirectHost 돌아올 주소의 호스트. 비우면 요청의 호스트를 쓴다 (`redirectUri.host`)
-     */
-    data class OAuthProvider(
-        val clientId: String = "",
-        val clientSecret: String = "",
-        val scope: String = "",
-        val authorizationUrl: String = "",
-        val accessTokenUrl: String = "",
-        val userInfoUrl: String = "",
-        val redirectSecure: Boolean = false,
-        val redirectHost: String = ""
     )
 
     /**

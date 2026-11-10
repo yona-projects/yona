@@ -104,7 +104,7 @@ class DeviceAuthorizationService(
         devices.save(
             DeviceAuthorization(
                 deviceCodeHash = TokenHasher.sha256Hex(deviceCode), userCode = userCode, clientName = clientName?.trim()?.take(ApiTokenService.NAME_MAX - TOKEN_NAME_PREFIX.length)?.ifEmpty { null } ?: DEFAULT_CLIENT_NAME,
-                scopes = ApiScopes.format(requested), createdDate = now, expiresDate = Date(now.time + EXPIRES_IN * 1000L), intervalSeconds = INTERVAL
+                scopes = requested.toMutableList(), createdDate = now, expiresDate = Date(now.time + EXPIRES_IN * 1000L), intervalSeconds = INTERVAL
             )
         )
         return DeviceStart.Issued(DeviceCode(deviceCode, userCode, EXPIRES_IN, INTERVAL))
@@ -123,16 +123,17 @@ class DeviceAuthorizationService(
 
     /** [auth]가 [user]의 승인으로 받게 될 범위이다. 요청한 범위에서 [user]가 가질 수 없는 것(사이트 관리자 범위 등)을 뺀다. */
     fun grantableScopes(auth: DeviceAuthorization, user: User): Set<String> =
-        ApiScopes.parse(auth.scopes).filter { it in ApiScopes.selectable(accessControl.isSiteManager(user)) }.toSet()
+        auth.scopes.filter { it in ApiScopes.selectable(accessControl.isSiteManager(user)) }.toSet()
 
     /** [user]가 승인한다. 이후 교환 요청이 토큰을 만든다. */
     @Transactional
     fun approve(auth: DeviceAuthorization, user: User) {
         auth.user = user
-        auth.scopes = ApiScopes.format(grantableScopes(auth, user))
+        val granted = grantableScopes(auth, user)
+        auth.scopes.clear(); auth.scopes.addAll(granted)
         auth.status = DeviceAuthorizationStatus.APPROVED.name
         devices.save(auth)
-        audit.record(deviceEvent("token.device_approved", auth, mapOf("scopes" to ApiScopes.parse(auth.scopes).sorted())))
+        audit.record(deviceEvent("token.device_approved", auth, mapOf("scopes" to auth.scopes.sorted())))
     }
 
     /** 사용자가 거절한다. 다음 교환 요청이 `access_denied`를 받고 요청은 지워진다. */
@@ -140,7 +141,7 @@ class DeviceAuthorizationService(
     fun deny(auth: DeviceAuthorization) {
         auth.status = DeviceAuthorizationStatus.DENIED.name
         devices.save(auth)
-        audit.record(deviceEvent("token.device_denied", auth, mapOf("scopes" to ApiScopes.parse(auth.scopes).sorted())))
+        audit.record(deviceEvent("token.device_denied", auth, mapOf("scopes" to auth.scopes.sorted())))
     }
 
     /** 기기 인증 이벤트이다. 기기 코드와 사용자 코드는 넣지 않고 기기 이름과 범위만 남긴다. */
@@ -176,7 +177,7 @@ class DeviceAuthorizationService(
     private fun grant(auth: DeviceAuthorization, now: Date): DevicePoll {
         val user = requireNotNull(auth.user)
         val name = TOKEN_NAME_PREFIX + auth.clientName
-        val scopes = ApiScopes.parse(auth.scopes)
+        val scopes = auth.scopes.toSet()
         tokenRepository.findByUserIdOrderByCreatedDateDescIdDesc(requireNotNull(user.id)).filter { it.name == name }.forEach { apiTokens.delete(user, requireNotNull(it.id)) }
         val maxDays = properties.apiTokenMaxDays
         val expires = if (maxDays > 0) Date(now.time + maxDays * 86_400_000L) else null

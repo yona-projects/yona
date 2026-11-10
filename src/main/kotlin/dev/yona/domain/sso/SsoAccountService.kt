@@ -12,7 +12,6 @@ import dev.yona.domain.user.UserCredential
 import dev.yona.domain.user.UserCredentialRepository
 import dev.yona.domain.user.UserLookup
 import dev.yona.domain.user.UserRepository
-import dev.yona.security.LegacyPasswordHasher
 import dev.yona.util.HtmlSanitizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,7 +20,7 @@ import java.util.Base64
 import java.util.Date
 
 /**
- * SSO 신원을 로컬 계정에 맞춘다(추가 개발 항목 X-16, `decisions.md` D-80 6~10번). 소셜 로그인의 [dev.yona.domain.social.SocialAccountService]와 같은 자리이고 같은 테이블
+ * SSO 신원을 로컬 계정에 맞춘다(추가 개발 항목 X-16, `decisions.md` D-80 6~10번). 계정 연결 테이블
  * (`user_credential`, `linked_account`)을 쓴다. 규칙은 이전 구현의 시제품과 다르게 **이메일만 보고 계정에 붙지 않는다**:
  * 1. 안정 식별자(발급자와 subject)로 먼저 찾는다. 이메일이 바뀌어도 같은 사람이다.
  * 2. 처음이면 같은 이메일의 로컬 사용자에게 **IdP가 이메일을 확인했다고 알린 경우에만**(설정으로 완화) 연결한다.
@@ -36,7 +35,8 @@ class SsoAccountService(
     private val users: UserRepository,
     private val lookup: UserLookup,
     private val signup: SignupService,
-    private val audit: AuditRecorder
+    private val audit: AuditRecorder,
+    private val passwords: dev.yona.security.UserPasswordService
 ) {
 
     private val random = SecureRandom()
@@ -76,11 +76,11 @@ class SsoAccountService(
      * (저장소는 개인용 토큰으로 쓴다, D-70). 인증 메일을 보내지 않으려고 [SignupService.create]를 거치지 않고 직접 만든다.
      */
     private fun create(identity: SsoIdentity, email: String): User {
-        val salt = LegacyPasswordHasher.generateSalt()
+        val credentials = passwords.newCredentials(randomPassword())
         val user = users.save(
             User(
                 loginId = newLoginId(identity, email), name = HtmlSanitizer.defaultSanitize(identity.name?.takeIf { it.isNotBlank() } ?: email.substringBefore('@')), email = email,
-                passwordSalt = salt, password = LegacyPasswordHasher.hash(randomPassword(), salt), state = UserState.ACTIVE, createdDate = Date()
+                passwordSalt = credentials.salt, password = credentials.hash, state = UserState.ACTIVE, createdDate = Date()
             )
         )
         audit.record(auditUser("account.signup", user, mapOf("state" to user.state?.name, "source" to identity.protocol.providerKey)))

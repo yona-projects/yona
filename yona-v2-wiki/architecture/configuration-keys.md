@@ -29,7 +29,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.port` | `yona.port` | 없음 | 사용 중(80이면 주소에서 생략) |
 | `application.scheme` | `yona.scheme` | 빈 문자열(`http`; 요청의 https 여부는 보지 않는다. HTTPS 뒤에서는 `https`로 설정) | 사용 중 |
 | `application.allowsAnonymousAccess` | `yona.allows-anonymous-access` | `true` | 사용 중 |
-| `application.use.social.login.only` | `yona.social-login-only` | `false` | 사용 중(로그인, 로그인 대화상자, 가입 화면과 `LoginController`의 POST 로그인) |
+| `application.use.social.login.only` | (없음) | - | **제거됨(X-48, D-127)**: 소셜 로그인과 함께 없앴다 |
 | `application.maxFileSize` | `yona.max-file-size` | `2147483454` | 사용 중 |
 | `signup.require.admin.confirm` | `yona.signup.require-admin-confirm` | `false` | 사용 중 |
 | `notification.bymail.enabled` | `yona.notification-mail-enabled` | `true` | 사용 중(알림 메일 스케줄러) |

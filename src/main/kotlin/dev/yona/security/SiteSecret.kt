@@ -24,7 +24,8 @@ import java.security.SecureRandom
 class SiteSecret(
     private val properties: YonaProperties,
     private val users: UserRepository,
-    private val dataDirectory: DataDirectory
+    private val dataDirectory: DataDirectory,
+    private val passwords: UserPasswordService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -65,11 +66,11 @@ class SiteSecret(
         // v1.6은 admin 사용자가 없으면 NPE였다(C034). 없으면 계정은 건너뛰고 비밀 키만 정한다
         users.findByLoginIdIgnoreCase(DEFAULT_ADMIN_LOGIN_ID)?.let { admin ->
             // 솔트는 일반 가입과 같은 방식(Base64)으로 만든다. v1.6은 16바이트 난수의 Arrays.toString 문자열("[12, -3, ...]")로 만들었다(R-100)
-            val salt = LegacyPasswordHasher.generateSalt()
+            val credentials = passwords.newCredentials(password)
             admin.name = name
             admin.email = email
-            admin.passwordSalt = salt
-            admin.password = LegacyPasswordHasher.hash(password, salt)
+            admin.passwordSalt = credentials.salt
+            admin.password = credentials.hash
             users.save(admin)
         }
         restart = true

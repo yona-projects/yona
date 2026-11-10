@@ -29,7 +29,7 @@
 - [풀 리퀘스트 리뷰 판정](web/pull-request-review.md): Comment, Approve, Request changes를 하나의 리뷰 모델로 합치고 v1.6 리뷰 완료를 흡수, 병합 조건과 기존 데이터 보정, 리뷰 요청(X-12 D-35, X-27 D-37)
 - [이메일 수신(IMAP)](web/mailbox.md): 받은 메일로 이슈와 댓글 만들기, IMAP 연결과 UID 기록, 진단
 - [LDAP 인증](web/ldap.md): LDAP 로그인, 로컬 사용자 동기화, Git 기본 인증
-- [소셜 로그인](web/social-login.md): GitHub, Google OAuth 로그인, 계정 연결, 소셜 로그아웃, `/restricted`
+- [소셜 로그인(제거됨)](web/social-login.md): v1.6 GitHub, Google OAuth 로그인의 기록. v2에서는 X-48로 제거했다
 - [최초 기동 화면](web/welcome.md): `yona.secret`이 기본값일 때 기본 관리자 계정 설정과 재시작 안내
 - [데이터 내보내기와 가져오기](subsystems/data-exchange.md): 47개 테이블 JSON, 교체 규칙, DB별 처리
 - [사이트 관리](web/site-admin.md): `/sites/userList` 등 사용자 관리와 사이트 관리 틀
@@ -123,7 +123,7 @@
 - [Apache Magpie 연동](architecture/magpie-integration-plan.md): X-23 계획, 결정, 구현 결과. 어댑터 문서는 저장소의 `docs/magpie/tools-yona/`에 있다
 - [Cubrid·MSSQL 지원](architecture/cubrid-mssql-support.md): X-46 데이터베이스별 차이와 처리, 시험 결과
 - [조직 팀 기능 계획](architecture/team-plan.md): X-44 팀(공개·비밀, 중첩), 프로젝트 권한 5단계, 팀 멘션과 리뷰 요청, 규칙 묶음 대상. 계획 작성 완료, v2.1.0에서 구현(D-84)
-- [인증 구조 표준화 계획](architecture/auth-standardization-plan.md): X-43 비밀번호 처리를 한 곳으로(1단계), 토큰과 쿠키를 제공자와 `RememberMeServices`로(2단계), `formLogin`(3단계). 데이터 형식은 바꾸지 않는다. 계획 작성 완료, 착수 전(승인 사항 5가지)
+- [인증 구조 표준화 계획](architecture/auth-standardization-plan.md): X-43 비밀번호 처리를 한 곳으로(1단계), 토큰과 쿠키를 제공자와 `RememberMeServices`로(2단계), `formLogin`(3단계). 데이터 형식은 바꾸지 않는다. 2026-11-10 현재 코드에 맞게 갱신, 착수 승인(D-129), 1~3단계 구현 완료(2-4 제외), 전체 시험 대기
 - [v1.6에서 그대로 유지한 결함 목록](architecture/v16-retained-defects.md): 묶여 있던 결함을 한 건씩 나누어(`R-59-3`은 R-59의 (3)번) 현재 코드로 다시 판정한 결과. 330건 중 재현 296, 해결 24, 결함 아님 5, 일부 4, 해당 없음 1. 0절 보안 점검(로그인 없이 저장소가 지워지는 `/_init` 등), 4절 몇 줄이면 고칠 수 있는 결함
 - [정상 흐름을 바꾸지 않는 결함 수정 후보](architecture/v16-safe-fix-candidates.md): 재현 결함 중 오류를 정상 처리로, 문구와 링크와 표시의 오타, 화면 스크립트 오류만 추린 104건. 권한, 데이터, 알림, 규칙이 달라지는 것은 뺌
 - [엔터프라이즈 SSO 구현 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)

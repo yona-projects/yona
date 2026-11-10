@@ -94,7 +94,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         val value = doc.selectFirst("#new-token-value")!!.attr("value")
         assertTrue(Regex("yona_pat_[0-9A-Za-z]{40}").matches(value), value)
         val saved = tokens.list(u).single()
-        assertEquals("내 노트북", saved.name); assertEquals(setOf("repo", "user"), ApiScopes.parse(saved.scopes))
+        assertEquals("내 노트북", saved.name); assertEquals(setOf("repo", "user"), saved.scopes.toSet())
         assertNotNull(saved.expiresDate); assertTrue(saved.expiresDate!!.time > System.currentTimeMillis() + 29 * 86_400_000L)
         // 다시 열면 값은 없고 접두사만 있다
         val again = page(s)
@@ -176,7 +176,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
     fun `편집을 저장하면 이름과 범위가 바뀌고 목록으로 돌아간다`() {
         val u = user(); val s = login(u); val t = (tokens.create(u, "처음", setOf("repo"), null) as TokenCreation.Created).token
         mockMvc.perform(post("/user/token/${t.id}").session(s).param("name", "바꿈").param("scopes", "user", "read:org")).andExpect(status().isSeeOther).andExpect(redirectedUrl("/user/editform/token"))
-        val saved = tokens.list(u).single(); assertEquals("바꿈", saved.name); assertEquals(setOf("user", "read:org"), ApiScopes.parse(saved.scopes))
+        val saved = tokens.list(u).single(); assertEquals("바꿈", saved.name); assertEquals(setOf("user", "read:org"), saved.scopes.toSet())
         mockMvc.perform(post("/user/token/${t.id}").session(s).param("name", " ")).andExpect(status().isBadRequest)
         mockMvc.perform(post("/user/token/${t.id}").session(login(user())).param("name", "x")).andExpect(status().isNotFound)
     }

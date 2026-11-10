@@ -50,9 +50,11 @@ class SecurityConfig {
     fun securityFilterChain(
         http: HttpSecurity, users: UserRepository, sessionUsers: dev.yona.security.SessionUserCache,
         apiTokens: dev.yona.domain.apitoken.ApiTokenService, tokenFailures: dev.yona.security.TokenFailureLimiter,
-        audit: dev.yona.domain.audit.AuditBoundary, properties: YonaProperties, gate: dev.yona.security.TwoFactorGate,
+        audit: dev.yona.domain.audit.AuditBoundary, properties: YonaProperties,
         oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService, siteSettings: dev.yona.domain.site.SiteSettingService,
-        rememberMe: dev.yona.security.RememberMeCookies
+        rememberMe: dev.yona.security.YonaRememberMeServices, authenticator: dev.yona.security.LocalAuthenticator,
+        passwordLoginSuccess: dev.yona.web.user.PasswordLoginSuccessHandler, passwordLoginFailure: dev.yona.web.user.PasswordLoginFailureHandler,
+        transactions: org.springframework.transaction.support.TransactionTemplate
     ): SecurityFilterChain =
         http
             .csrf { csrf ->
@@ -73,8 +75,13 @@ class SecurityConfig {
                 }
                 headers.cacheControl { it.disable() }
             }
-            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, gate, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
             .addFilterAfter(dev.yona.security.CsrfCookieFilter(), org.springframework.security.web.csrf.CsrfFilter::class.java)
+            // 비밀번호 로그인(POST /users/login)은 스프링의 인증 필터가 처리한다(X-43 3단계, D-129). 요청 위조 검사(CsrfFilter) 뒤에 둔다
+            .addFilterBefore(
+                dev.yona.web.user.PasswordLoginFilter(authenticator.authenticationManager, passwordLoginSuccess, passwordLoginFailure, transactions),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter::class.java
+            )
             .addFilterAfter(dev.yona.mcp.McpAccessFilter(siteSettings, oauthTokens, tokenFailures, audit), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.oauth2server.ProtectedResourceChallengeFilter(), YonaAuthenticationFilter::class.java)
             .addFilterAfter(dev.yona.security.AccessDeniedAuditFilter(audit), YonaAuthenticationFilter::class.java)

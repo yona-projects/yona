@@ -84,10 +84,10 @@ class ApiTokenService(
         val saved = tokens.save(
             ApiToken(
                 user = user, name = trimmed, tokenHash = TokenHasher.sha256Hex(value), tokenPrefix = value.take(NEW_PREFIX_LENGTH),
-                scopes = ApiScopes.format(scopes), isLegacy = false, createdDate = now, expiresDate = expiresDate
+                scopes = scopes.toCollection(LinkedHashSet()), isLegacy = false, createdDate = now, expiresDate = expiresDate
             )
         )
-        audit.record(tokenEvent("token.created", saved, mapOf("scopes" to ApiScopes.parse(saved.scopes).sorted(), "expires" to saved.expiresDate?.toInstant()?.toString())))
+        audit.record(tokenEvent("token.created", saved, mapOf("scopes" to saved.scopes.sorted(), "expires" to saved.expiresDate?.toInstant()?.toString())))
         return TokenCreation.Created(value, saved)
     }
 
@@ -104,13 +104,13 @@ class ApiTokenService(
         val token = find(user, id) ?: return TokenEdit.NotFound
         val trimmed = name.trim()
         invalidName(trimmed)?.let { return TokenEdit.Rejected(it) }
-        val allowed = ApiScopes.selectable(siteManager) + ApiScopes.parse(token.scopes)
+        val allowed = ApiScopes.selectable(siteManager) + token.scopes
         if (scopes.any { it !in allowed }) return TokenEdit.Rejected("apiToken.error.scope")
-        val before = mapOf("name" to token.name, "scopes" to ApiScopes.parse(token.scopes).sorted())
+        val before = mapOf("name" to token.name, "scopes" to token.scopes.sorted())
         token.name = trimmed
-        token.scopes = ApiScopes.format(scopes)
+        token.scopes.clear(); token.scopes.addAll(scopes)
         val saved = tokens.save(token)
-        audit.record(tokenEvent("token.updated", saved, mapOf("name" to mapOf("from" to before["name"], "to" to saved.name), "scopes" to mapOf("from" to before["scopes"], "to" to ApiScopes.parse(saved.scopes).sorted()))))
+        audit.record(tokenEvent("token.updated", saved, mapOf("name" to mapOf("from" to before["name"], "to" to saved.name), "scopes" to mapOf("from" to before["scopes"], "to" to saved.scopes.sorted()))))
         return TokenEdit.Done(saved)
     }
 
@@ -119,12 +119,14 @@ class ApiTokenService(
      * 만료 검사는 [create]와 같다. 없거나 다른 사용자의 토큰이면 `null`이다.
      */
     @Transactional
-    fun regenerate(user: User, id: Long, expiresDate: Date?, maxDays: Int = 0, now: Date = Date()): TokenCreation? {
+    fun regenerate(user: User, id: Long, expiresDate: Date?, maxDays: Int = 0, now: Date = Date(), siteManager: Boolean = false): TokenCreation? {
         val token = find(user, id) ?: return null
         invalidExpiry(expiresDate, maxDays, now)?.let { return TokenCreation.Rejected(it) }
         val value = TOKEN_PREFIX + randomString()
         token.tokenHash = TokenHasher.sha256Hex(value)
         token.tokenPrefix = value.take(NEW_PREFIX_LENGTH)
+        // 범위 제한 없던 옛 토큰은 일반 토큰이 되므로, 그때 사용자가 고를 수 있는 모든 범위를 행으로 갖는다
+        if (token.isLegacy == true && token.scopes.isEmpty()) token.scopes.addAll(ApiScopes.selectable(siteManager))
         token.isLegacy = false
         token.expiresDate = expiresDate
         token.lastUsedDate = null
@@ -132,6 +134,13 @@ class ApiTokenService(
         audit.record(tokenEvent("token.regenerated", saved, mapOf("expires" to saved.expiresDate?.toInstant()?.toString())))
         return TokenCreation.Created(value, saved)
     }
+
+    /**
+     * 토큰이 접속할 때 가지는 범위이다. 범위 행이 없는 옛 토큰(v1.6 사용자 토큰)은 범위 제한이 없으므로 고를 수 있는 모든 범위로 보고,
+     * 실제로 할 수 있는 일은 사용자의 권한이 정한다(토큰 범위와 사용자 권한의 교집합). 그 밖의 토큰은 저장된 범위이다.
+     */
+    fun scopesOf(token: ApiToken): Set<String> =
+        if (token.isLegacy == true && token.scopes.isEmpty()) ApiScopes.selectable(siteManager = true).toSet() else token.scopes.toSet()
 
     /** 토큰 이벤트이다. 토큰 값과 해시는 넣지 않고 이름, 번호, 범위만 남긴다. */
     private fun tokenEvent(action: String, token: ApiToken, details: Map<String, Any?>): dev.yona.domain.audit.AuditEvent {
@@ -182,7 +191,7 @@ class ApiTokenService(
         val token = tokens.findById(id).orElse(null) ?: return false
         if (token.user?.id != user.id) return false
         tokens.delete(token)
-        audit.record(tokenEvent("token.deleted", token, mapOf("scopes" to ApiScopes.parse(token.scopes).sorted())))
+        audit.record(tokenEvent("token.deleted", token, mapOf("scopes" to token.scopes.sorted())))
         return true
     }
 
@@ -208,7 +217,7 @@ class ApiTokenService(
                 tokens.save(
                     ApiToken(
                         user = owner, name = LEGACY_TOKEN_NAME, tokenHash = TokenHasher.sha256Hex(value), tokenPrefix = value.take(LEGACY_PREFIX_LENGTH),
-                        scopes = ApiScopes.format(ApiScopes.selectable(siteManager = true)), isLegacy = true, createdDate = Date()
+                        isLegacy = true, createdDate = Date()
                     )
                 )
                 migrated++

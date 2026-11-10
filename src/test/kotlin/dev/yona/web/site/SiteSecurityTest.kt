@@ -99,7 +99,7 @@ class SiteSecurityTest : AbstractIntegrationTest() {
         mockMvc.perform(get("/user/editform/two-factor").session(s)).andExpect(status().isOk)
         mockMvc.perform(post("/user/two-factor/begin").session(s)).andExpect(status().isOk)
         mockMvc.perform(get("/messages.js").session(s)).andExpect(status().isOk)
-        mockMvc.perform(get("/logout").session(s)).andExpect(status().is3xxRedirection).andExpect(header().string("Location", org.hamcrest.Matchers.not("/user/editform/two-factor")))
+        mockMvc.perform(get("/users/logout").session(s)).andExpect(status().is3xxRedirection).andExpect(header().string("Location", org.hamcrest.Matchers.not("/user/editform/two-factor")))
     }
 
     @Test

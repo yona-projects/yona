@@ -47,7 +47,7 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
         assertEquals(64, c.token.tokenHash!!.length)
         em.flush()
         assertEquals(0L, (em.createNativeQuery("select count(*) from api_token where token_hash = :v or token_prefix = :v").setParameter("v", c.value).singleResult as Number).toLong(), "원문은 저장하지 않는다")
-        assertEquals(setOf("repo", "user"), ApiScopes.parse(c.token.scopes)); assertEquals(false, c.token.isLegacy); assertEquals(u.id, c.token.user?.id)
+        assertEquals(setOf("repo", "user"), c.token.scopes.toSet()); assertEquals(false, c.token.isLegacy); assertEquals(u.id, c.token.user?.id)
         assertNotNull(c.token.createdDate); assertNull(c.token.lastUsedDate)
     }
 
@@ -137,7 +137,7 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
         val stale = created(service.create(u, "오래됨", emptySet(), null)); stale.token.createdDate = days(-400); stale.token.lastUsedDate = days(-370); tokens.save(stale.token)
         val neverUsedOld = created(service.create(u, "안 쓴 옛것", emptySet(), null)); neverUsedOld.token.createdDate = days(-400); tokens.save(neverUsedOld.token)
         val fresh = created(service.create(u, "최근", emptySet(), null))
-        val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = TokenHasher.sha256Hex("legacy-value"), tokenPrefix = "lega", scopes = "repo", isLegacy = true, createdDate = days(-800)))
+        val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = TokenHasher.sha256Hex("legacy-value"), tokenPrefix = "lega", scopes = mutableSetOf("repo"), isLegacy = true, createdDate = days(-800)))
         em.flush()
         assertEquals(2, service.deleteUnused())
         assertEquals(setOf("최근", "이전 토큰"), service.list(u).map { it.name }.toSet())
@@ -163,7 +163,7 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
         val u = user(); val c = created(service.create(u, "처음", setOf("repo"), days(30)))
         val expires = c.token.expiresDate
         val done = service.update(u, c.token.id!!, "바꿈", setOf("user", "read:org")) as TokenEdit.Done
-        assertEquals("바꿈", done.token.name); assertEquals(setOf("user", "read:org"), ApiScopes.parse(done.token.scopes))
+        assertEquals("바꿈", done.token.name); assertEquals(setOf("user", "read:org"), done.token.scopes.toSet())
         assertEquals(expires, done.token.expiresDate); assertNotNull(service.authenticate(c.value), "값은 그대로 유효하다")
     }
 
@@ -179,7 +179,7 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
 
     @Test
     fun `이미 가진 범위는 편집에서 그대로 둘 수 있다 (이관한 옛 토큰은 모든 범위를 가진다)`() {
-        val u = user(); val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h1", tokenPrefix = "abcd", scopes = ApiScopes.format(ApiScopes.selectable(true)), isLegacy = true, createdDate = Date()))
+        val u = user(); val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h1", tokenPrefix = "abcd", scopes = ApiScopes.selectable(true).toMutableSet(), isLegacy = true, createdDate = Date()))
         val done = service.update(u, legacy.id!!, "이름 붙임", ApiScopes.selectable(true).toSet()) as TokenEdit.Done
         assertEquals("이름 붙임", done.token.name)
     }
@@ -192,14 +192,14 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
         em.flush(); em.clear()
         assertNull(service.authenticate(c.value)); assertNotNull(service.authenticate(again.value))
         val row = tokens.findById(c.token.id!!).get()
-        assertEquals(again.value.take(13), row.tokenPrefix); assertEquals(setOf("repo"), ApiScopes.parse(row.scopes)); assertEquals("a", row.name)
+        assertEquals(again.value.take(13), row.tokenPrefix); assertEquals(setOf("repo"), row.scopes.toSet()); assertEquals("a", row.name)
         assertTrue(row.expiresDate!!.time > System.currentTimeMillis() + 89 * 86_400_000L)
     }
 
     @Test
     fun `다시 만들기의 만료 검사는 만들기와 같고 옛 토큰은 일반 토큰이 된다`() {
         val u = user()
-        val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h2", tokenPrefix = "abcd", scopes = "repo", isLegacy = true, createdDate = Date()))
+        val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h2", tokenPrefix = "abcd", scopes = mutableSetOf("repo"), isLegacy = true, createdDate = Date()))
         assertEquals("apiToken.error.expires", (service.regenerate(u, legacy.id!!, days(-1)) as TokenCreation.Rejected).messageKey)
         assertEquals("apiToken.error.expires", (service.regenerate(u, legacy.id!!, null, maxDays = 30) as TokenCreation.Rejected).messageKey)
         val again = service.regenerate(u, legacy.id!!, null) as TokenCreation.Created

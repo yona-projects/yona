@@ -15,7 +15,7 @@ import java.util.Date
  * @property name 사용자가 붙인 이름
  * @property tokenHash 토큰 값의 SHA-256 16진수. 유일하다
  * @property tokenPrefix 목록에 보일 앞부분(새 토큰은 `yona_pat_` 포함 13자, 이관한 옛 토큰은 4자)
- * @property scopes 쉼표로 이은 범위([ApiScopes])
+ * @property scopes 토큰이 가진 범위([ApiScopes])이다. 범위마다 한 행씩 `api_token_scope`에 저장한다. 옛 토큰(`isLegacy`)은 범위가 없던 v1.6 토큰이므로 비어 있고, 비어 있으면 범위 제한 없이 사용자의 실제 권한만 적용한다([ApiTokenService.scopesOf])
  * @property isLegacy v1.6의 사용자 토큰(`n4user.token`)에서 옮긴 것이면 `true`이다. 값이 추측 가능해 설정 화면에 경고를 보인다
  * @property createdDate 만든 시각
  * @property expiresDate 만료 시각. 없으면 만료 없음이다
@@ -38,8 +38,13 @@ class ApiToken(
     var tokenHash: String? = null,
     @Column(name = "token_prefix", length = 16)
     var tokenPrefix: String? = null,
-    @Column(length = 1000)
-    var scopes: String? = null,
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "api_token_scope", joinColumns = [JoinColumn(name = "api_token_id")],
+        uniqueConstraints = [UniqueConstraint(name = "uq_api_token_scope", columnNames = ["api_token_id", "scope"])]
+    )
+    @Column(name = "scope", length = 50)
+    var scopes: MutableSet<String> = linkedSetOf(),
     @Column(name = "is_legacy")
     var isLegacy: Boolean? = false,
     @Column(name = "created_date")

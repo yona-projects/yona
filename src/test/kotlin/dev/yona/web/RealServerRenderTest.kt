@@ -42,12 +42,13 @@ class RealServerRenderTest {
         HttpClient.newHttpClient().send(HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).GET().build(), HttpResponse.BodyHandlers.ofString())
 
     @Test
-    fun `홈과 로그인과 오류 화면은 끝까지 그려지고 세션 쿠키가 만들어진다`() {
+    fun `홈과 로그인과 오류 화면은 끝까지 그려진다`() {
         for (path in listOf("/", "/users/login", "/no%2Fsuch")) {
             val response = get(path)
             val body = response.body()
             assertTrue(body.trimEnd().endsWith("</html>"), "$path 화면이 끝까지 그려지지 않았다(${body.length}자): ...${body.takeLast(80)}")
-            assertTrue(response.headers().allValues("Set-Cookie").any { it.startsWith("JSESSIONID=") }, "$path 에서 세션 쿠키가 만들어지지 않았다")
+            // 익명 방문은 세션을 만들지 않는다. 예전에는 소셜 로그인의 돌아갈 주소 기억(`rememberOriginalUrl`)이 화면을 그리다 세션을 만들었다(X-48, D-127)
+            assertTrue(response.headers().allValues("Set-Cookie").none { it.startsWith("JSESSIONID=") }, "$path 에서 불필요하게 세션이 만들어졌다")
         }
         assertEquals(200, get("/").statusCode())
     }

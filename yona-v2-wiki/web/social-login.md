@@ -2,8 +2,10 @@
 title: 소셜 로그인
 type: web
 sources: [app/controllers/Application.java:65-143, app/Global.java:184-235, app/service/YonaUserServicePlugin.java, app/models/UserCredential.java, app/models/LinkedAccount.java, app/controllers/UserApp.java:132-152,417-475,1278-1312, app/controllers/Secured.java, app/controllers/Restricted.java, app/views/user/login.scala.html, app/views/common/usermenu.scala.html, conf/social-login.conf.default, conf/routes:12-16]
-updated: 2026-10-25
+updated: 2026-11-10
 ---
+
+> **제거됨(2026-11-10, 로드맵 X-48, 결정 D-127)**: 개인 소셜 로그인(GitHub, Google)은 v2에서 일체 제거했다. 아래는 v1.6이 하던 동작의 기록이며 v2 코드에는 없다. 사내 IdP 로그인(OIDC, SAML2, LDAP)은 그대로이다. 소셜 계정 테이블(`user_credential`, `linked_account`)은 v1.6 DB를 그대로 붙일 수 있도록, 그리고 SSO가 같은 테이블을 쓰므로 남겼다.
 
 # 소셜 로그인 (GitHub, Google)
 

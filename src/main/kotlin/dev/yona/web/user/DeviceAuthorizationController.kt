@@ -70,7 +70,7 @@ class DeviceAuthorizationController(
     private fun done(messageKey: String): ModelAndView = ModelAndView("user/device").addObject("title", TITLE).addObject("mode", "done").addObject("doneMessage", messageKey)
 
     /** 요청한 순서를 지킨다(`repo`, `read:org`처럼 CLI가 준 순서가 화면에도 그대로 보이게 한다). */
-    private fun order(auth: DeviceAuthorization, scope: String): Int = auth.scopes.orEmpty().split(',').indexOf(scope)
+    private fun order(auth: DeviceAuthorization, scope: String): Int = auth.scopes.indexOf(scope)
 
     private companion object {
         const val TITLE = "deviceAuth.title"

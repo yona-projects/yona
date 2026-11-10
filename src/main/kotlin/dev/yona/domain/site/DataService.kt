@@ -230,7 +230,12 @@ class DataService(
     private fun cleanTokens(connection: Connection, imported: List<String>) {
         try {
             connection.createStatement().use { statement ->
-                if ("N4USER" in imported && "API_TOKEN" !in imported) statement.executeUpdate("delete from api_token")
+                // 범위 행(api_token_scope)이 토큰 행을 가리키므로 토큰보다 먼저 지운다
+                if ("N4USER" in imported && "API_TOKEN" !in imported) {
+                    statement.executeUpdate("delete from api_token_scope")
+                    statement.executeUpdate("delete from api_token")
+                }
+                statement.executeUpdate("delete from api_token_scope where api_token_id in (select id from api_token where user_id not in (select id from n4user))")
                 statement.executeUpdate("delete from api_token where user_id not in (select id from n4user)")
             }
             connection.commit()

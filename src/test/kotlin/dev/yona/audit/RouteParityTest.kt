@@ -69,6 +69,8 @@ class RouteParityTest : AbstractIntegrationTest() {
             "POST /{}/{}/pullRequest/{}/review", "POST /{}/{}/pullRequest/{}/unreview",
             // X-5(D-36): 비밀번호로 토큰과 세션 쿠키를 발급하던 주소를 삭제했다
             "POST /-_-api/v1/users/token",
+            // X-48(D-127): 개인 소셜 로그인(GitHub, Google)을 일체 제거했다. 인증 시작과 거절 돌아옴, 소셜 로그아웃, 소셜 세션 시험 화면이 없어졌다
+            "GET /authenticate/{}", "GET /authenticate/{}/denied", "GET /logout", "GET /restricted",
             // X-5(D-36): 웹 화면 AJAX 24개를 `/-_-api/v1`(토큰 전용 외부 API)에서 일반 웹 경로 이름으로 옮겼다
             "GET /-_-api/v1/favoriteIssues",
             "GET /-_-api/v1/favoriteOrganizations",

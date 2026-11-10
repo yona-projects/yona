@@ -61,7 +61,7 @@ Cubrid는 스키마 생성까지만 확인했고 전체 시험은 아직 돌리�
 |---|---|
 | 사이트 데이터 가져오기 | `SET IDENTITY_INSERT` 켜기와 끄기, 테이블마다 `nocheck constraint all`로 외래 키 일시 해제, 가져온 뒤 `DBCC CHECKIDENT RESEED`로 다음 번호 복원, `IS_AUTOINCREMENT`로 식별 열 판단 |
 | 자기 참조 `on delete set null` | `SqlServerSelfReferenceTrigger`가 네 테이블에 `after delete` 트리거를 만든다(직접 삭제, cascade, 가져오기 모두 같은 결과) |
-| 문자열 | `use_nationalized_character_data`로 `nvarchar`. HQL의 `cast(x as string)`이 `varchar(max)`로 바뀌어 한글이 깨지므로 `YonaSqlServerDialect`가 `nvarchar(max)`로 바꾼다. `SchemaColumnWidener`도 `nvarchar`를 유지한다 |
+| 문자열 | `use_nationalized_character_data`로 `nvarchar`. HQL의 `cast(x as string)`이 `varchar(max)`로 바뀌어 한글이 깨지므로 `YonaSqlServerDialect`가 `nvarchar(max)`로 바꾼다 |
 | 운영 설정 자동화 | `DatabaseDefaults`(환경 후처리기)가 접속 주소 `jdbc:sqlserver:`, `jdbc:cubrid:`를 보고 방언과 문자열 설정을 기본값으로 정한다 |
 | 시험 구조 | 컨텍스트마다 별도 데이터베이스(`model`에 `READ_COMMITTED_SNAPSHOT`을 켜 둠)를 만들고 실행이 끝나면 한 훅에서 `OFFLINE` 후 지운다. `lockTimeout=20000` |
 | 건너뛰는 시험 | `@Transactional` 시험이 커밋하지 않은 행을 별도 연결의 사이트 데이터 올리기가 기다리는 시험 8건(`SiteDataTest` 6, `AuditSiteDataTest` 1, `ExternalSiteBackupApiTest` 1)은 MSSQL에서 건너뛴다. 같은 코드는 커밋하는 `DataExchangeTest`가 확인한다 |

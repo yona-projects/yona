@@ -94,11 +94,16 @@ object DataTables {
             DataColumn("name", STRING),
             DataColumn("token_hash", STRING),
             DataColumn("token_prefix", STRING),
-            DataColumn("scopes", STRING),
             DataColumn("is_legacy", BOOLEAN),
             DataColumn("created_date", TIMESTAMP),
             DataColumn("expires_date", TIMESTAMP),
             DataColumn("last_used_date", TIMESTAMP)
+        ),
+        // 토큰의 범위는 범위마다 한 행이다(D-126). 범위 행이 없는 옛 토큰은 범위 제한이 없다. 이전 빌드의 내보내기 파일에 있던 `scopes` 문자열 열은 읽지 않는다
+        DataTable(
+            "API_TOKEN_SCOPE", false,
+            DataColumn("api_token_id", LONG),
+            DataColumn("scope", STRING)
         ),
         DataTable(
             "ASSIGNEE", true,

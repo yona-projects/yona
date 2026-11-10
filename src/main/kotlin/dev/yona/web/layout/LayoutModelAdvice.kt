@@ -49,15 +49,10 @@ class LayoutModelFactory(
     private val templateHelper: dev.yona.web.TemplateHelper,
     private val messages: org.springframework.context.MessageSource,
     private val updates: dev.yona.domain.site.UpdateCheckService,
-    private val socialProviders: dev.yona.domain.social.SocialProviders,
-    private val socialSession: dev.yona.web.social.SocialSession,
     private val ssoLoginOptions: dev.yona.sso.SsoLoginOptions
 ) {
 
     /** 업데이트 알림이다. [version]은 새 버전, [url]은 릴리스 페이지이다. */
-    /** 로그인 화면의 소셜 로그인 버튼이다. [html]은 버튼 안에 넣을 로고와 문구이다. */
-    data class SocialButton(val key: String, val html: String)
-
     data class UpdateNotice(val version: String, val url: String)
 
     /** 새 버전이 있고 알림을 끄지 않았으며 사이트 관리자일 때만 알림을 만든다 (v1.6 `partial_update_notification`). */
@@ -82,9 +77,6 @@ class LayoutModelFactory(
         // v1.6 `flash()`는 이 요청에서 심은 값도 같은 화면에 보이므로, 앞 요청이 남긴 값에 이 요청이 심은 값을 더해 보인다
         "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty() + RequestContextUtils.getOutputFlashMap(request)),
         "helper" to templateHelper,
-        "socialProviders" to socialProviders.available().map { SocialButton(it, dev.yona.web.ProviderLogos.signIn(it, properties.social.githubName, request.contextPath)) },
-        "socialLoginSupported" to socialProviders.available().isNotEmpty(),
-        "socialLoggedIn" to socialSession.hasKeys(request),
         "ssoLogin" to ssoLoginOptions.view(),
         // 안쪽으로 넘긴(forward) 요청도 처음 요청한 경로를 쓴다. v1.6 `request().path()`가 `/go` 같은 주소를 그대로 보여 주기 때문이다
         "requestPath" to ((request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI) as? String) ?: request.requestURI),

@@ -121,3 +121,14 @@ v1.6의 marked 1.2.9 결과와 같은 입력 856건을 비교했다(`MarkedUpgra
 - 소유자 머리글은 v1.6이 렌더링 횟수에 따라 달라지는 함수(`isNewOwner`)로 그렸으나, 걸러진 목록에서 앞 항목과 소유자가 다를 때 그리는 계산으로 바꿨다. 화면 결과는 같다.
 - 시간 초과(`Timeout!`)는 AngularJS의 `$timeout`처럼 기록만 하고 넘어간다.
 
+## 개인 소셜 로그인 제거 (선생님 지시 D-127, 로드맵 X-48, 2026-11-10)
+
+v1.6의 개인 소셜 로그인(GitHub, Google)을 일체 없앴다. 사용자가 보는 차이는 다음과 같다.
+
+- 로그인 화면, 로그인 대화상자에서 GitHub, Google 단추와 "또는" 구분선이 없어졌다(사내 IdP 단추 앞의 구분선은 그대로이다).
+- `/authenticate/{제공자}`, `/authenticate/{제공자}/denied`, 소셜 로그아웃 `/logout`, 소셜 세션 시험 화면 `/restricted`가 없어졌다. 로그아웃은 `/users/logout` 하나이다.
+- 설정 `application.social.login.*`와 `application.use.social.login.only`(소셜 로그인만 허용)가 없어졌다. 가입과 로그인 화면은 항상 비밀번호 입력을 보인다.
+- 사용자 페이지의 "연결된 소셜 로그인" 로고 영역이 없어졌다.
+- 익명 방문 때 세션이 만들어지지 않는다. v1.6은 소셜 로그인이 돌아갈 주소를 기억하느라 화면을 그릴 때마다 세션 쿠키를 만들었다.
+- 소셜 계정으로만 로그인하던 사용자는 이메일 비밀번호 재설정(`/lostPassword`)으로 비밀번호를 만들어 계속 쓴다.
+- 테이블은 그대로이다: `user_credential`, `linked_account`는 v1.6 DB 호환과 SSO(OIDC, SAML2) 때문에 남겼다.

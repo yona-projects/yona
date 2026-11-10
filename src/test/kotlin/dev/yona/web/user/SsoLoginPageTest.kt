@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
 
 /**
  * 로그인 화면의 SSO 단추와 SSO 전용 모드(X-16 단계 5, `decisions.md` D-80 12번)를 검증한다. 켠 SSO마다 단추가 생기고 돌아갈 주소를 이어 붙이며, SSO 전용 모드에서는 로컬 비밀번호
- * 로그인과 LDAP, 소셜 로그인을 막고 사이트 관리자만 비상 경로(로컬 로그인)를 쓴다.
+ * 로그인과 LDAP을 막고 사이트 관리자만 비상 경로(로컬 로그인)를 쓴다.
  */
 @AutoConfigureMockMvc
 @Transactional
@@ -136,13 +136,6 @@ class SsoLoginPageTest : AbstractIntegrationTest() {
         val session = MockHttpSession()
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", a.loginId!!).param("password", "1234"))
         assertEquals(200, mockMvc.perform(get("/user/editform").session(session)).andReturn().response.status)
-    }
-
-    @Test
-    fun `SSO 전용 모드에서는 소셜 로그인도 막는다`() {
-        enableOidc(); siteSettings.setSsoOnly(true)
-        val response = mockMvc.perform(get("/authenticate/github")).andReturn().response
-        assertTrue(response.getHeader("Location")?.startsWith("/users/loginform") == true || response.status == 404, "${response.status} ${response.getHeader("Location")}")
     }
 
     @Test

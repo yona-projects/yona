@@ -2260,3 +2260,33 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 시작 때 자동으로 돌던 네 보정(`PullRequestStartup`, `ApiTokenService.migrateLegacyTokens`, `ReviewerSettingMigration`, `PullRequestReviewBackfill`)에서 `ApplicationRunner`를 떼고 `V16DataMigration`이 순서대로 돌리게 했다. 서버를 끈 상태에서 `scripts/migrate-v16.sh <jar>`(`--yona.migrate=v16`)로 실행하며, 이관하지 않고 시작하면 `V16MigrationNotice`가 경고만 남긴다. TDD로 `V16DataMigrationTest` 3건과 `V16MigrationWiringTest` 2건을 먼저 써서 컴파일 실패를 확인한 뒤 구현했다. 실제 실행으로 확인한 것: 빈 DB에서 종료 코드 0, 옛 토큰을 심은 파일 DB에서 서버가 경고하고 정상 시작, 이관 명령이 토큰 1건을 옮기고 종료 코드 0, 다시 돌리면 변화 0건. 실행해 보고서 웹 계층을 끄는 방식이 시작에 실패하는 것을 알아 임의 포트로 바꿨다.
 
 전체 H2 시험(이관 명령 분리 뒤): 4,952건, 실패 0, 건너뜀 2, 16분 18초.
+
+## 2026-11-10 토큰 범위를 범위당 한 행으로 바꿨다 (D-126, A-440)
+
+선생님 지적으로 옛 토큰에 모든 범위를 적고 컬럼을 넓히던 설계를 바로잡았다. 토큰과 기기 인증 요청의 범위를 `api_token_scope`, `device_authorization_scope`에 한 행씩 저장하고, 옛 토큰은 범위 행 없이 접속 때 사용자 권한만 적용한다. `audit_log.token_scopes`는 `TEXT`로 바꾸고 `SchemaColumnWidener`와 그 시험을 없앴다. TDD로 `ApiTokenScopeRowsTest` 6건, `ApiScopeColumnMigrationTest` 5건, `ScopeColumnMigratorTest` 4건을 먼저 써서 컴파일 실패를 확인한 뒤 구현했다. 이전 빌드의 문자열 범위는 이관 명령의 0번 단계가 행으로 옮긴다.
+
+전체 시험을 돌리던 중 실패 3종류를 찾아 고쳤다: `DataExchangeTest`(내보내기가 `API_TOKEN.scopes` 열을 읽어 `API_TOKEN_SCOPE` 표로 바꾸고 시험 2건 수정·추가), `ThemeColorTest`(배지를 `text-bg-warning`으로), `MessageParityTest`(새 키 `apiToken.scopes.unrestricted`를 의도적으로 더한 키 목록에 추가). 실제 앱 e2e(`e2e/token-scope.mjs`)는 이전 빌드의 DB 사본에서 이관 명령을 돌린 뒤 29건 모두 통과했다: 범위 생성, 편집 저장, 포함 관계, 모두 해제, 문자열에서 이관한 토큰, 범위 제한 없는 옛 토큰과 범위를 고른 뒤의 변화, 삭제.
+
+## 2026-11-10 개인 소셜 로그인을 일체 제거했다 (X-48, D-127)
+
+TDD로 `SocialLoginRemovedTest` 5건(클래스, 설정, 경로, 화면 틀, 로그인 화면에 단추 없음)을 먼저 써서 5건 모두 실패하는 것을 확인한 뒤 지웠다. 지운 것: `domain/social`, `web/social`, `ProviderLogos`, `restricted.html`, 설정 `social`·`socialLoginOnly`, 로그인·로그인 대화상자·가입·사이드바·사용자 메뉴·사용자 페이지의 소셜 부분, 로그인 화면 진입 때의 소셜 세션 이어받기, 소셜 시험 11개 파일, 소셜 설정 안내 문서 2개와 README 링크. 고친 시험: `RouteParityTest`·`RouteCoverageTest`(제거한 경로를 의도한 누락으로 등록), `SiteSecurityTest`(`/logout`을 `/users/logout`으로), `RealServerRenderTest`(익명 방문은 세션을 만들지 않는다), `SsoLoginPageTest`(소셜을 막는 시험 삭제), `AuditCoverageTest`. 영향 있는 5개 클래스는 통과했다.
+
+## 2026-11-10 SSO로 연결된 사용자의 비밀번호 생성을 막았다 (D-128)
+
+실제 SSO 로그인 흐름(가짜 OIDC IdP, Playwright)에서 로그인, 사이드바의 로그아웃 링크, 다시 로그인을 확인하다가 SSO 사용자가 비밀번호 재설정으로 로컬 비밀번호를 만들 수 있음을 알렸고, 선생님이 막으라고 하셨다. TDD로 `PasswordResetSsoTest` 6건을 먼저 써서 4건 실패를 확인한 뒤 `PasswordResetController`에서 막았다. 같은 흐름에서 `OAuthAuthorizationPurger`의 `@Transactional` 자기 호출 결함(하루 한 번 정리가 항상 실패)을 발견했고, 고치기 전이다.
+
+## [2026-11-10] build | X-43 인증 구조 표준화 계획 갱신과 착수 결정 (D-129)
+
+선생님이 "x-43 진행하자"고 하셔서 2026-11-04 계획서를 현재 코드와 대조해 다시 썼다. 전제가 바뀐 곳 일곱 가지: 로그인 유지 쿠키는 이미 서명 방식으로 재설계되었고(R-05 해결, `yona.token`), 소셜 제거로 쿠키를 만드는 곳이 한 곳이 되었으며, 해시 호출 지점은 8개 파일로 확정되었고, 토큰 범위 판정(`scopesOf`)과 SSO 비밀번호 차단(D-128)이 생겼고, 전체 시험은 선생님 지시 때만 돌리는 규칙이 생겼고, `authenticateBasic`은 아직 죽은 코드로 남아 있다. 1단계를 작업 다섯 개(특성화, 부품, 호출 지점 이동, 상수 시간 비교, 제공자)로, 2단계를 다섯 개로 쪼갰다. 코드는 아직 바꾸지 않았다.
+
+## [2026-11-10] build | X-43 1단계 구현: 비밀번호 처리를 한 곳으로 (D-129, A-441)
+
+TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, `LocalAuthenticatorLdapOrderTest`)을 먼저 고정하고, `UserPasswordService`, `LegacyPasswordEncoder`, 구조 시험 `PasswordHashingStructureTest`(7개 파일을 목록으로 보이며 Red), `YonaPasswordAuthenticationProvider` 순으로 시험을 먼저 썼다. 호출 지점 7개 파일을 옮기고 `authenticateBasic`을 지웠다. 영향받는 클래스 시험은 모두 수정 없이 통과했고(보안·로그인·LDAP·SSO 묶음 70초, 로그인 관련 화면 묶음 69초), 전체 시험은 돌리지 않았다. 계획과 달리 `YonaUserDetailsService`는 만들지 않았고 제공자는 빈이 아니다(A-441).
+
+## [2026-11-10] build | X-43 2단계 구현: 쿠키와 토큰을 표준 부품으로 (2-1~2-3, A-442)
+
+특성화 시험 8건(`RememberMeAuthenticationTest`)으로 쿠키 인증을 고정한 뒤 `YonaRememberMeServices`(시험 6건 먼저), 토큰 제공자 둘(시험 7건 먼저)을 만들고 필터를 줄였다. 영향받는 시험 묶음(보안, 토큰, OAuth, 감사, Git 토큰, MCP, 2단계 인증, 로그인)은 수정 없이 통과했다(44초). 2-4(인증 이벤트)는 토큰 실패 횟수를 부르는 곳이 네 곳인데 세 곳이 `ProviderManager`를 쓰지 않고 로그인 감사도 흐름에 따라 달라, 그대로 옮기면 흩어진다고 판단해 범위 축소를 제안했다.
+
+## [2026-11-10] build | X-43 3단계 구현: 비밀번호 로그인을 스프링 인증 필터로 (A-443)
+
+선생님이 2-4를 접고 3단계로 바로 진행하라고 하셔서 `LoginController`의 비밀번호 로그인 판정과 성공, 실패 처리를 `PasswordLoginFilter`와 처리기 둘로 옮겼다. 시험 먼저: 특성화 7건(세션 식별자 회전, 캐시 금지 헤더, 감사 기록), 제공자의 SSO 전용 관문 2건, 매처 4건, 구조 시험 3건(Red 확인). 로그인 관련 묶음이 **수정 없이** 통과했고(46초, 48초) 실제 브라우저 16건(`e2e/login-flow.mjs`)도 통과했다. 실패 4건은 필터가 디스패처 서블릿 앞에서 응답을 끝내 `flash()` 매처가 읽는 출력 플래시 요청 속성이 비었던 것이며, `saveFlashBeforeDispatch`가 그 속성에도 노출하게 고쳤다. 전체 시험은 돌리지 않았다.

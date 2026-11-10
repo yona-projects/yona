@@ -120,7 +120,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 | `name` | `VARCHAR(100)` | 사용자가 붙인 이름 |
 | `token_hash` | `VARCHAR(64)` | SHA-256 16진수. 유일 색인. 토큰 값은 임의 값이라 소금 없이 쓴다 |
 | `token_prefix` | `VARCHAR(16)` | 목록에 보일 앞부분(`yona_pat_ab12`) |
-| `scopes` | `VARCHAR` | 쉼표로 이은 범위 |
+| (범위) | 별도 표 `api_token_scope` | 범위마다 한 행(`api_token_id`, `scope`). 옛 토큰은 행이 없고 범위 제한이 없다(D-126) |
 | `is_legacy` | `BOOLEAN` | 옛 사용자 토큰에서 옮긴 것 |
 | `created_date`, `expires_date`, `last_used_date` | 시각 | 만료와 마지막 사용은 없을 수 있다 |
 
@@ -147,7 +147,7 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 |---|---|---|
 | 값 | 지금 값 그대로(시각 해시, 추측 가능) | `yona_pat_` + 임의 40자(`SecureRandom`) |
 | 저장 | 값을 해시해 새 테이블 행으로 이관, `n4user.token`은 비움 | 해시만 저장 |
-| 범위 | 그 사용자가 가질 수 있는 **모든 범위를 명시한 목록**(`repo`, `read:org`, `user` 등. 사이트 관리자는 `site_admin`도). 특수 값 `*`가 아니라 일반 범위 목록이다 | 고른 범위 |
+| 범위 | **범위 행이 없다**(v1.6 토큰에는 범위가 없었다). 접속할 때 범위 제한 없이 사용자의 실제 권한만 적용한다(D-126). 사용자가 범위를 골라 저장하거나 값을 새로 발급하면 그때부터 일반 범위 행을 가진다. 특수 값 `*`는 저장하지 않는다 | 고른 범위(범위당 한 행, `api_token_scope`) |
 | Git, SVN HTTP | 범위에 `repo`가 있으므로 **쓸 수 있다** | `repo`나 `public_repo`가 있으면 쓸 수 있다 |
 | 만료 | 없음(무제한, 기존 사용자 유지) | 기본 30일(선택) |
 | 표시 | 이름 "이전 토큰", `is_legacy` 표시와 경고(추측 가능한 값이니 새로 만들 것) | |

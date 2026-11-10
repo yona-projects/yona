@@ -43,7 +43,7 @@ class TwoFactorEnforcementInterceptor(
 
     private fun isExempt(request: HttpServletRequest): Boolean {
         val path = request.requestURI.removePrefix(request.contextPath.orEmpty())
-        return path == SETUP_PATH || path == "/sites/security" || path.startsWith("/user/two-factor/") || path == "/logout" || path.startsWith("/users/") || path.startsWith("/assets/") ||
+        return path == SETUP_PATH || path == "/sites/security" || path.startsWith("/user/two-factor/") || path.startsWith("/users/") || path.startsWith("/assets/") ||
             path == "/messages.js" || path == "/favicon.ico" || path.startsWith("/-_-api")
     }
 

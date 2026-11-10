@@ -39,14 +39,6 @@
                     <strong th:text="#{userinfo.since}"></strong>
                     <span class="since" th:text="${profile.since}"></span>
                 </div>
-                <div class="user-since">
-                    <div>
-                        <strong th:text="#{user.connected.social.login}"></strong>
-                    </div>
-                    <div class="auth-provider-logo">
-                        <th:block th:each="logo : ${profile.providers}" th:utext="${logo}"></th:block>
-                    </div>
-                </div>
             </div>
 
             <div class="user-stream-box">

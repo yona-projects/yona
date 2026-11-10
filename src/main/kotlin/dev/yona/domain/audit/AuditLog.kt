@@ -38,7 +38,7 @@ enum class AuditOutcome { SUCCESS, FAILURE, DENIED }
  * @property userAgent 요청의 `User-Agent`(500자까지)
  * @property requestId 요청 번호. 같은 요청에서 남긴 기록이 함께 쓴다
  * @property tokenId 개인용 API 토큰으로 한 일이면 그 토큰 번호
- * @property tokenScopes 그 토큰의 범위(쉼표로 이은 값)
+ * @property tokenScopes 그 토큰의 범위(쉼표로 이은 값). 그때의 범위를 한 줄로 고정하는 기록이라 `TEXT` 형식이다(D-126)
  * @property details 상세(JSON 글). 비밀 값은 가린다([AuditDetails])
  * @property prevHash 이전 기록의 해시(첫 기록은 0 64개)
  * @property hash 이 기록의 해시. 내용 해시가 있는 기록(v2)은 `SHA-256(이전 해시 + 내용 해시)`이다([AuditHash])
@@ -89,7 +89,7 @@ class AuditLog(
     var requestId: String? = null,
     @Column(name = "token_id")
     var tokenId: Long? = null,
-    @Column(name = "token_scopes", length = 1000)
+    @Column(name = "token_scopes", length = LONG_TEXT)
     var tokenScopes: String? = null,
     @Column(length = LONG_TEXT)
     var details: String? = null,

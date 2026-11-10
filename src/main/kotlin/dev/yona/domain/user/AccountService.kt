@@ -6,7 +6,6 @@ import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.misc.AttachmentService
 import dev.yona.domain.notification.EmailValidationRequestedEvent
 import dev.yona.domain.project.RecentProjectRepository
-import dev.yona.security.LegacyPasswordHasher
 import dev.yona.util.HtmlSanitizer
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -28,7 +27,8 @@ class AccountService(
     private val recentProjects: RecentProjectRepository,
     private val signup: SignupService,
     private val events: ApplicationEventPublisher,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val passwords: dev.yona.security.UserPasswordService
 ) {
 
     private val random = SecureRandom()
@@ -77,12 +77,15 @@ class AccountService(
 
     /** 현재 비밀번호가 맞으면 `true`이다. */
     @Transactional(readOnly = true)
-    fun isValidPassword(user: User, password: String): Boolean =
-        user.password == LegacyPasswordHasher.hash(password, requireNotNull(user.passwordSalt))
+    fun isValidPassword(user: User, password: String): Boolean {
+        // v1.6 `hashedPassword`처럼 솔트가 없으면 예외이고, 저장된 해시가 없으면 틀린 것으로 본다
+        requireNotNull(user.passwordSalt)
+        return user.password != null && passwords.matches(user, password)
+    }
 
     /** 비밀번호를 바꾼다. 소금은 그대로 쓴다. 감사 로그에는 바꾼 일만 남기고 값과 해시는 남기지 않는다. */
     fun resetPassword(user: User, newPassword: String) {
-        user.password = LegacyPasswordHasher.hash(newPassword, requireNotNull(user.passwordSalt))
+        passwords.set(user, newPassword)
         users.save(user)
         audit.record(dev.yona.domain.audit.auditUser("account.password_changed", user, mapOf("via" to "settings")))
     }

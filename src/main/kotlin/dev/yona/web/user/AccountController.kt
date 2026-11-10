@@ -68,7 +68,7 @@ class AccountController(
     /** 토큰 목록의 한 줄이다. 원문은 만들 때 한 번만 보이므로 접두사만 있다. */
     data class TokenRow(
         val id: Long, val name: String, val prefix: String, val scopes: List<String>, val createdText: String, val lastUsedText: String?, val expiresText: String?,
-        val expired: Boolean, val legacy: Boolean
+        val expired: Boolean, val legacy: Boolean, val unrestricted: Boolean = false
     )
 
     /** 알림 설정 탭의 프로젝트 한 칸이다. */
@@ -311,7 +311,7 @@ class AccountController(
         } catch (e: IllegalArgumentException) {
             return editTokenView(user, token, "apiToken.error.expires").also { it.status = HttpStatus.BAD_REQUEST }
         }
-        return when (val result = apiTokens.regenerate(user, id, expires.value, properties.apiTokenMaxDays)) {
+        return when (val result = apiTokens.regenerate(user, id, expires.value, properties.apiTokenMaxDays, siteManager = accessControl.isSiteManager(user))) {
             is dev.yona.domain.apitoken.TokenCreation.Created -> tokenView(user, result.value)
             is dev.yona.domain.apitoken.TokenCreation.Rejected -> editTokenView(user, token, result.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
             null -> ErrorViews.notFound()
@@ -351,16 +351,16 @@ class AccountController(
     }
 
     private fun rowOf(it: dev.yona.domain.apitoken.ApiToken) = TokenRow(
-        requireNotNull(it.id), it.name.orEmpty(), it.tokenPrefix.orEmpty(), dev.yona.domain.apitoken.ApiScopes.parse(it.scopes).toList(),
+        requireNotNull(it.id), it.name.orEmpty(), it.tokenPrefix.orEmpty(), it.scopes.toList(),
         helper.dateString(it.createdDate), it.lastUsedDate?.let(helper::agoOrDateString), it.expiresDate?.let(helper::dateString),
-        it.expiresDate != null && it.expiresDate!!.time <= System.currentTimeMillis(), it.isLegacy == true
+        it.expiresDate != null && it.expiresDate!!.time <= System.currentTimeMillis(), it.isLegacy == true, it.isLegacy == true && it.scopes.isEmpty()
     )
 
     /** 토큰 편집 화면이다. [error]는 입력 오류의 메시지 키이다. */
     private fun editTokenView(user: User, token: dev.yona.domain.apitoken.ApiToken, error: String?): ModelAndView = tabView("user/edit-token-edit", user, "token")
         .addObject("token", rowOf(token))
-        .addObject("tokenScopes", dev.yona.domain.apitoken.ApiScopes.parse(token.scopes).toList())
-        .addObject("scopeOptions", (dev.yona.domain.apitoken.ApiScopes.selectable(accessControl.isSiteManager(user)) + dev.yona.domain.apitoken.ApiScopes.parse(token.scopes)).distinct())
+        .addObject("tokenScopes", token.scopes.toList())
+        .addObject("scopeOptions", (dev.yona.domain.apitoken.ApiScopes.selectable(accessControl.isSiteManager(user)) + token.scopes).distinct())
         .addObject("maxDays", properties.apiTokenMaxDays)
         .addObject("tokenError", error)
 

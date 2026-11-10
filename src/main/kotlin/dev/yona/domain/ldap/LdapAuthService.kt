@@ -7,7 +7,6 @@ import dev.yona.domain.user.SignupService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserLookup
 import dev.yona.domain.user.UserRepository
-import dev.yona.security.LegacyPasswordHasher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -39,7 +38,8 @@ class LdapAuthService(
     private val lookup: UserLookup,
     private val signup: SignupService,
     private val properties: YonaProperties,
-    private val settings: LdapSettingsService
+    private val settings: LdapSettingsService,
+    private val passwords: dev.yona.security.UserPasswordService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -84,7 +84,7 @@ class LdapAuthService(
         log.warn("fallback to local login: {}", loginIdOrEmail)
         // v1.6 `authenticateWithPlainPassword`는 로그인 ID로만 찾고 계정 상태는 보지 않았다. 로그인 ID나 이메일로 찾고 활성 계정만 받는다(R-60-7)
         val user = users.findByLoginKey(loginIdOrEmail)?.takeIf { it.state == UserState.ACTIVE }
-            ?.takeIf { LegacyPasswordHasher.matches(password, it.passwordSalt.orEmpty(), it.password.orEmpty()) }
+            ?.takeIf { passwords.matchesLenient(it, password) }
         // v1.6는 폴백이 성공해도 인증 실패 안내를 남겼다(R-60-6). 로그인되었으면 안내를 남기지 않는다
         return LdapAuthResult(user, if (user == null) flash else emptyMap())
     }

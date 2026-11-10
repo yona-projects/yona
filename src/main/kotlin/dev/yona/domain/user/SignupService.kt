@@ -5,7 +5,6 @@ import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.notification.UserVerificationRequestedEvent
 import dev.yona.domain.project.OrganizationRepository
-import dev.yona.security.LegacyPasswordHasher
 import dev.yona.util.HtmlSanitizer
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -32,7 +31,8 @@ class SignupService(
     private val organizations: OrganizationRepository,
     private val properties: YonaProperties,
     private val events: ApplicationEventPublisher,
-    private val audit: dev.yona.domain.audit.AuditRecorder
+    private val audit: dev.yona.domain.audit.AuditRecorder,
+    private val passwords: dev.yona.security.UserPasswordService
 ) {
 
     /** 가입 입력이 올바르지 않으면 `true`이다. v1.6처럼 어느 항목이 틀렸는지는 화면에 알리지 않는다. */
@@ -103,11 +103,11 @@ class SignupService(
      * 이메일 인증을 쓰면 인증 정보를 만들어 인증 메일 요청을 알린다.
      */
     fun create(form: SignupForm): User {
-        val salt = LegacyPasswordHasher.generateSalt()
+        val credentials = passwords.newCredentials(requireNotNull(form.password))
         val user = users.save(
             User(
                 loginId = form.loginId, name = HtmlSanitizer.defaultSanitize(form.name), email = form.email,
-                passwordSalt = salt, password = LegacyPasswordHasher.hash(requireNotNull(form.password), salt),
+                passwordSalt = credentials.salt, password = credentials.hash,
                 state = if (requiresAdminConfirm() || usesEmailVerification()) UserState.LOCKED else UserState.ACTIVE,
                 createdDate = Date()
             )
