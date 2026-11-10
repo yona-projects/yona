@@ -341,7 +341,7 @@ class JsLibraryVersionsTest {
         assertTrue(asset("javascripts/esm/ui/Favicon.js").isFile && asset("javascripts/esm/ui/FormValidator.js").isFile)
         val templates = File("src/main/resources/templates").walkTopDown().filter { it.isFile }.joinToString("\n") { it.readText() }
         assertTrue(!templates.contains("favico.min.js") && !templates.contains("lib/validate.js"))
-        val scripts = File("src/main/resources/static/assets/javascripts/service").listFiles()!!.joinToString("\n") { f -> f.readLines().filter { !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(it) }.joinToString("\n") }
+        val scripts = File("src/main/resources/static/assets/javascripts/esm/service").listFiles()!!.joinToString("\n") { f -> f.readLines().filter { !Regex("^\\s*(\\*|//|/\\*)").containsMatchIn(it) }.joinToString("\n") }
         assertTrue(!Regex("new Favico\\(|new FormValidator\\(").containsMatchIn(scripts), "옛 호출이 남아 있다")
     }
 
