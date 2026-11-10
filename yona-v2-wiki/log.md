@@ -2254,3 +2254,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 ## 2026-11-10 소셜, SSO, LDAP 자동 생성 로그인 ID가 조직 이름과 겹치지 않게 했다 (R-59-15)
 
 열린 PR 10건을 현재 `next`와 대조하다가 #847이 지적한 틈을 확인했다. v1.6의 가입 폼과 `isUsed`는 사용자 ID와 조직 이름을 함께 확인하지만, 소셜 로그인의 자동 생성(`newLoginIdWithoutDup`)은 사용자 ID만 확인한다. `generateLoginId`를 쓰는 소셜, SSO, LDAP 신규 생성이 모두 같은 틈이 있었다. TDD로 `SignupServiceLoginIdTest`에 3건(조직 이름 겹침, 대소문자와 `-yona` 겹침, 가입 폼 사용 여부 확인과 일치)을 먼저 추가해 실패를 확인하고 `SignupService.isFree`로 고쳤다. 관련 시험(social, sso, ldap, signup)은 통과했다. 장부는 `v16-retained-defects.md` R-59-15.
+
+## 2026-11-10 v1.6 데이터 보정 4건을 이관 명령으로 분리했다 (D-125, A-439)
+
+시작 때 자동으로 돌던 네 보정(`PullRequestStartup`, `ApiTokenService.migrateLegacyTokens`, `ReviewerSettingMigration`, `PullRequestReviewBackfill`)에서 `ApplicationRunner`를 떼고 `V16DataMigration`이 순서대로 돌리게 했다. 서버를 끈 상태에서 `scripts/migrate-v16.sh <jar>`(`--yona.migrate=v16`)로 실행하며, 이관하지 않고 시작하면 `V16MigrationNotice`가 경고만 남긴다. TDD로 `V16DataMigrationTest` 3건과 `V16MigrationWiringTest` 2건을 먼저 써서 컴파일 실패를 확인한 뒤 구현했다. 실제 실행으로 확인한 것: 빈 DB에서 종료 코드 0, 옛 토큰을 심은 파일 DB에서 서버가 경고하고 정상 시작, 이관 명령이 토큰 1건을 옮기고 종료 코드 0, 다시 돌리면 변화 0건. 실행해 보고서 웹 계층을 끄는 방식이 시작에 실패하는 것을 알아 임의 포트로 바꿨다.
+
+전체 H2 시험(이관 명령 분리 뒤): 4,952건, 실패 0, 건너뜀 2, 16분 18초.

@@ -3,14 +3,13 @@ package dev.yona.domain.pullrequest
 import dev.yona.domain.enumeration.State
 import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 
 /**
- * 서버를 시작할 때 이전 데이터를 바로잡는다. v1.6 `Global.onStart`가 부르는 `PullRequest.onStart()`이다.
+ * 이전 데이터를 바로잡는다. v1.6 `Global.onStart`가 부르는 `PullRequest.onStart()`이다. 서버를 시작할 때 자동으로 돌지 않고
+ * 이관 명령([dev.yona.domain.upgrade.V16DataMigration])이 부른다.
  *
  * - 번호가 비어 있는 풀 리퀘스트에 받는 프로젝트별로 다음 번호를 붙인다(`regulateNumbers`). 번호가 빈 요청이 하나도 없으면 아무것도 하지 않는다.
  * - 상태가 `REJECTED`인 요청을 `CLOSED`로 바꾸고 받은 시각을 지금으로 한다(`changeStateToClosed`).
@@ -19,11 +18,9 @@ import java.util.Date
  * Yobi 시절의 데이터가 든 v1.6 DB를 그대로 이어받을 때만 일한다([decisions.md] A-104).
  */
 @Component
-class PullRequestStartup(private val entityManager: EntityManager) : ApplicationRunner {
+class PullRequestStartup(private val entityManager: EntityManager) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-
-    override fun run(args: ApplicationArguments) = regulate()
 
     /** 번호를 붙이고 `REJECTED`를 닫는다. 두 작업 모두 v1.6과 같은 순서이다. */
     @Transactional

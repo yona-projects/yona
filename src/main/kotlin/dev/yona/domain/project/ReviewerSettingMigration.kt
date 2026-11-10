@@ -2,16 +2,13 @@ package dev.yona.domain.project
 
 import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 
 /**
  * v1.6의 프로젝트 전체 리뷰어 설정(`project.is_using_reviewer_count`, `default_reviewer_count`)을 규칙 묶음으로 옮긴다(추가 개발 항목 X-33, X-34, `decisions.md` D-45 4번, D-46, A-257).
- * 서버를 시작할 때와 데이터를 가져온 뒤에 돈다.
+ * 서버를 시작할 때 자동으로 돌지 않고 이관 명령([dev.yona.domain.upgrade.V16DataMigration])과 데이터를 가져온 뒤에 돈다.
  *
  * 리뷰어 사용이 켜진 Git 프로젝트마다 **지금 있는 브랜치 하나당 규칙 묶음 하나**를 명시적으로 만든다. 이름은 [MIGRATED_NAME] 뒤에 괄호로 브랜치 이름을 붙이고
  * (`이전된 리뷰어 설정 (master)`), 대상은 그 브랜치 이름 그대로이다(와일드카드를 쓰지 않는다). 리뷰어 수만큼의 승인만 요구한다. v1.6에는 변경 요청이라는 개념이 없어 승인 수만 병합을 막았으므로 변경 요청 해결과 대화 해결은 켜지 않는다(리뷰어가 변경을 요청해도
@@ -24,20 +21,13 @@ import java.util.Date
  * 멱등하다. 이전한 프로젝트는 사용 여부가 꺼지므로 다시 돌려도 건너뛴다. 같은 이름의 규칙 묶음이 이미 있으면 그것은 건드리지 않는다.
  */
 @Component
-@Order(10)
 class ReviewerSettingMigration(
     private val entityManager: EntityManager,
-    private val transactions: org.springframework.transaction.support.TransactionTemplate,
     private val repositories: dev.yona.repository.RepositoryService,
     private val properties: dev.yona.config.YonaProperties
-) : ApplicationRunner {
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-
-    /** 서버를 시작할 때 도는 경로이다. 자기 자신을 부르면 트랜잭션이 걸리지 않으므로 직접 트랜잭션 안에서 돌린다. */
-    override fun run(args: ApplicationArguments) {
-        transactions.executeWithoutResult { migrate() }
-    }
 
     /** 옮긴 프로젝트 수를 돌려준다. Git이 아니라 사용 여부만 끈 프로젝트는 세지 않는다. */
     @Transactional
