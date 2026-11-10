@@ -2382,3 +2382,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | 알림 More 단추 400 결함 수정, 알림 종류 전수 시험, 확인 항목 마무리 (A-456)
 
 검증용 DB에 알림 47개를 채워 More를 눌러 보다가 요청 주소에 `&amp;`가 글자로 남아 400이 나는 결함을 찾아 TDD로 고쳤다. `NotificationEveryTypeTest`(34종, ko/en)를 더했고, 일반 소유자 상단 바, 비로그인 홈, 핀 사이드바 안의 화면, 응답 헤더(CSP 없음)를 확인해 IA 문서 9절의 미확인 항목을 정리했다.
+
+## [2026-11-11] build | 단축키 v2 동작 확인 마무리, 코드 이력 `A` 덮어쓰기 결함 기록 (R-147)
+
+`L E ← → CTRL+A Q S CTRL+ENTER`가 동작하고 `CTRL+SHIFT+ENTER`는 v1.6처럼 동작하지 않음을 Playwright로 확인했다. 25개를 넘는 이력을 만들어 코드 이력의 `A`가 전역 `A`에 덮이는 v1.6 결함을 찾아 장부(R-147)에 올렸다.
