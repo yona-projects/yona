@@ -1,0 +1,22 @@
+dn: ou=user,dc=example,dc=com
+objectClass: organizationalUnit
+ou: user
+
+dn: CN=alice,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: alice
+sn: Kim
+uid: alice
+mail: alice@example.com
+displayName: Alice Kim
+givenName: Alice
+userPassword: secret-alice
+
+dn: CN=bob,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: bob
+sn: Lee
+uid: bob
+mail: bob@example.com
+displayName: Bob Lee
+userPassword: secret-bob

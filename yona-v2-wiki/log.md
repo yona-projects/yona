@@ -2306,3 +2306,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-10] build | LDAP 접속과 검색을 스프링 시큐리티 LDAP 부품으로 교체 (D-132, A-447)
 
 선생님 지시로 `JndiLdapDirectory`를 `SpringLdapDirectory`로 바꿨다. 시험 먼저: 실제 메모리 LDAP 서버 시험 8건을 새 클래스 이름으로 옮기고 특수 문자 이름, 제한 시간 시험을 더해 Red(컴파일 실패)를 확인한 뒤 구현했다. 기존 동작 시험이 수정 없이 통과했다(LDAP, 로그인, 보안, SSO 설정, OAuth 재개, 지표 묶음 59초). 설정 화면 코드는 바꾸지 않았다(작업 전 캡처 3장은 `shots/sso-before`).
+
+## [2026-11-10] build | LDAP 서버별 호환성 시험 (A-448)
+
+선생님 요청으로 OpenLDAP 3종(익명 허용, 익명 차단, 본인 항목만 읽기)과 Apache DS를 컨테이너로 띄워 `SpringLdapDirectory`를 확인했다. 로그인은 익명 설정과 무관하게 되지만, 로그인 사용자가 검색 기준 항목을 읽지 못하면(OpenLDAP 기본 규칙) 실패한다. 이메일 형식 바인드는 두 서버 모두 거부한다. Apache DS 익명 차단은 구성하지 못했다. 실제 서버 시험 7건 통과(스크립트 전체 10초).
