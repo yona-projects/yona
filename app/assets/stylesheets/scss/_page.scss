@@ -8139,6 +8139,9 @@ text-expander {
     .option-text small { color:#666; }
     .tf-actions { display:flex; gap:12px; margin-top:16px; .btn { height:40px; } }
 }
+// SSO 설정 화면(LDAP, OIDC, SAML 2): 입력란은 칸을 채우고(`w-100`) 화면 폭은 한 값으로 맞춘다. 옵션 카드도 입력란과 같은 폭으로 늘려 오른쪽 끝이 어긋나지 않게 한다
+.page-wrap-outer .sso-form { max-width: 46rem; }
+.page-wrap-outer .sso-form .security-settings .option { max-width: none; }
 .two-factor-page .tf-steps label.form-label { display:block; margin:16px 0 6px; font-weight:bold; }
 .two-factor-page .alert { margin-top:16px; }
 

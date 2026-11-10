@@ -133,6 +133,18 @@ class SiteSsoTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `SSO 설정 화면의 글 입력란은 칸 너비를 채우도록 폭 클래스를 가진다 (A-377의 206px 고정 규칙 대상이 아니다)`() {
+        // 폭 클래스(w-*)가 없는 글 입력란은 v1.6 모양을 재현하는 규칙(_page.scss, A-377)이 206px로 고정한다. 이 화면은 v2에서 새로 만든 격자 배치라 칸을 채워야 한다
+        val s = admin()
+        for (tab in listOf("general", "ldap", "oidc", "saml2", "saml2-keys")) {
+            val doc = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=$tab").session(s)).andReturn().response.contentAsString)
+            assertNotNull(doc.selectFirst(".tab-content.sso-form"), "$tab 탭: 화면 너비를 한 값으로 맞추는 영역 클래스")
+            val narrow = doc.select(".tab-content input.form-control").filter { it.attr("type") in setOf("text", "email", "password", "") }.filterNot { it.hasClass("w-100") }
+            assertEquals(emptyList(), narrow.map { it.id().ifEmpty { it.attr("name") } }, "$tab 탭에서 폭 클래스가 없는 글 입력란")
+        }
+    }
+
+    @Test
     fun `LDAP 탭의 조회용 계정은 DN을 보이고 비밀번호는 다시 보이지 않는다 (D-133)`() {
         val s = admin()
         val before = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=ldap").session(s)).andReturn().response.contentAsString)

@@ -2314,3 +2314,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-10] build | LDAP 먼저 검색해 DN 찾기와 조회용 계정 (D-133, A-449)
 
 선생님 승인(yes)으로 LDAP을 "검색으로 DN 찾기 후 바인드"로 바꾸고 조회용 계정(DN, 암호화한 비밀번호)을 선택 입력으로 더했다. 익명 검색이 안 되면 v1.6 방식으로 되돌아간다. 시험 먼저: 디렉터리 9건(Red 확인), 설정 저장 7건, 화면 2건. 실제 서버 시험 9건(OpenLDAP 3종과 Apache DS)과 브라우저 8건 통과, 영향 범위 묶음 80초. 전체 시험은 돌리지 않았다.
+
+## [2026-11-10] build | 정리 작업 확인, 쓰이지 않는 코드 제거, SSO 설정 화면 입력란 배치 (A-450)
+
+`TemporaryFileCleaner`의 실제 실행 경로를 트랜잭션 없이 시험했고 지우기는 실패하지 않았다(원자성만 없음). `LegacyPasswordEncoder`와 `LdapQueries.filterOf`, `escapeFilterValue`를 시험과 함께 지웠다. SSO 설정 화면은 A-377의 206px 고정 규칙 때문에 입력란이 칸을 채우지 못했던 것이라 `w-100`과 `sso-form`(46rem)으로 고쳤다. 영향 범위 묶음(site, ldap, security, 정리 작업, 메시지, 테마) 73초.

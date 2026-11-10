@@ -19,7 +19,7 @@
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2" id="sso-tab-saml2" th:text="#{site.sso.tab.saml2}"></button></li>
     <li class="nav-item" role="presentation"><button type="button" class="nav-link" th:classappend="${tab == 'saml2-keys'} ? 'active'" data-bs-toggle="tab" data-bs-target="#sso-pane-saml2-keys" id="sso-tab-saml2-keys" th:text="#{site.sso.tab.saml2Keys}"></button></li>
 </ul>
-<div class="tab-content">
+<div class="tab-content sso-form">
 <div class="tab-pane fade" th:classappend="${tab == 'general'} ? 'show active'" id="sso-pane-general" role="tabpanel">
 <h4 th:text="#{site.sso.summary.title}"></h4>
 <ul class="list-unstyled sso-summary">
@@ -50,31 +50,31 @@
         <div class="col-lg-2 mb-3"><label for="ldap-protocol" class="form-label" th:text="#{site.sso.ldap.protocol}"></label>
             <select id="ldap-protocol" name="protocol" class="form-select"><option value="ldap" th:selected="${ldapProtocol == 'ldap'}">ldap</option><option value="ldaps" th:selected="${ldapProtocol == 'ldaps'}">ldaps</option></select></div>
         <div class="col-lg-7 mb-3"><label for="ldap-host" class="form-label" th:text="#{site.sso.ldap.host}"></label>
-            <input id="ldap-host" type="text" name="host" class="form-control" th:value="${ldap.host}"></div>
+            <input id="ldap-host" type="text" name="host" class="form-control w-100" th:value="${ldap.host}"></div>
         <div class="col-lg-3 mb-3"><label for="ldap-port" class="form-label" th:text="#{site.sso.ldap.port}"></label>
-            <input id="ldap-port" type="text" name="port" class="form-control" th:value="${ldap.port}"></div>
+            <input id="ldap-port" type="text" name="port" class="form-control w-100" th:value="${ldap.port}"></div>
     </div>
     <div class="mb-3"><label for="ldap-base-dn" class="form-label" th:text="#{site.sso.ldap.baseDn}"></label>
-        <input id="ldap-base-dn" type="text" name="baseDn" class="form-control" th:value="${ldap.baseDn}"><div class="form-text" th:text="#{site.sso.ldap.baseDn.help}"></div></div>
+        <input id="ldap-base-dn" type="text" name="baseDn" class="form-control w-100" th:value="${ldap.baseDn}"><div class="form-text" th:text="#{site.sso.ldap.baseDn.help}"></div></div>
     <div class="mb-3"><label for="ldap-postfix" class="form-label" th:text="#{site.sso.ldap.postfix}"></label>
-        <input id="ldap-postfix" type="text" name="distinguishedNamePostfix" class="form-control" th:value="${ldap.distinguishedNamePostfix}"><div class="form-text" th:text="#{site.sso.ldap.postfix.help}"></div></div>
+        <input id="ldap-postfix" type="text" name="distinguishedNamePostfix" class="form-control w-100" th:value="${ldap.distinguishedNamePostfix}"><div class="form-text" th:text="#{site.sso.ldap.postfix.help}"></div></div>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="ldap-login-prop" class="form-label" th:text="#{site.sso.ldap.loginProperty}"></label>
-            <input id="ldap-login-prop" type="text" name="loginProperty" class="form-control" th:value="${ldap.loginProperty}"></div>
+            <input id="ldap-login-prop" type="text" name="loginProperty" class="form-control w-100" th:value="${ldap.loginProperty}"></div>
         <div class="col-lg-4 mb-3"><label for="ldap-user-prop" class="form-label" th:text="#{site.sso.ldap.userNameProperty}"></label>
-            <input id="ldap-user-prop" type="text" name="userNameProperty" class="form-control" th:value="${ldap.userNameProperty}"></div>
+            <input id="ldap-user-prop" type="text" name="userNameProperty" class="form-control w-100" th:value="${ldap.userNameProperty}"></div>
         <div class="col-lg-4 mb-3"><label for="ldap-email-prop" class="form-label" th:text="#{site.sso.ldap.emailProperty}"></label>
-            <input id="ldap-email-prop" type="text" name="emailProperty" class="form-control" th:value="${ldap.emailProperty}"></div>
+            <input id="ldap-email-prop" type="text" name="emailProperty" class="form-control w-100" th:value="${ldap.emailProperty}"></div>
         <div class="col-lg-4 mb-3"><label for="ldap-display-prop" class="form-label" th:text="#{site.sso.ldap.displayNameProperty}"></label>
-            <input id="ldap-display-prop" type="text" name="displayNameProperty" class="form-control" th:value="${ldap.displayNameProperty}"></div>
+            <input id="ldap-display-prop" type="text" name="displayNameProperty" class="form-control w-100" th:value="${ldap.displayNameProperty}"></div>
         <div class="col-lg-4 mb-3"><label for="ldap-english-prop" class="form-label" th:text="#{site.sso.ldap.englishNameAttributeName}"></label>
-            <input id="ldap-english-prop" type="text" name="englishNameAttributeName" class="form-control" th:value="${ldap.englishNameAttributeName}"></div>
+            <input id="ldap-english-prop" type="text" name="englishNameAttributeName" class="form-control w-100" th:value="${ldap.englishNameAttributeName}"></div>
     </div>
     <div class="row">
         <div class="col-lg-6 mb-3"><label for="ldap-bind-dn" class="form-label" th:text="#{site.sso.ldap.bindDn}"></label>
-            <input id="ldap-bind-dn" type="text" name="bindDn" class="form-control" th:value="${ldap.bindDn}" autocomplete="off"><div class="form-text" th:text="#{site.sso.ldap.bindDn.help}"></div></div>
+            <input id="ldap-bind-dn" type="text" name="bindDn" class="form-control w-100" th:value="${ldap.bindDn}" autocomplete="off"><div class="form-text" th:text="#{site.sso.ldap.bindDn.help}"></div></div>
         <div class="col-lg-6 mb-3"><label for="ldap-bind-password" class="form-label" th:text="#{site.sso.ldap.bindPassword}"></label>
-            <input id="ldap-bind-password" type="password" name="bindPassword" class="form-control" autocomplete="new-password" value="" th:placeholder="${ldapBindPasswordSet} ? #{site.sso.secret.keep}"><div class="form-text" th:text="#{site.sso.ldap.bindPassword.help}"></div></div>
+            <input id="ldap-bind-password" type="password" name="bindPassword" class="form-control w-100" autocomplete="new-password" value="" th:placeholder="${ldapBindPasswordSet} ? #{site.sso.secret.keep}"><div class="form-text" th:text="#{site.sso.ldap.bindPassword.help}"></div></div>
     </div>
     <label class="option" for="ldap-email-login"><input class="form-check-input" type="checkbox" name="useEmailBaseLogin" id="ldap-email-login" value="true" th:checked="${ldap.useEmailBaseLogin}">
         <span class="option-text"><strong th:text="#{site.sso.ldap.useEmailBaseLogin}"></strong><small th:text="#{site.sso.ldap.useEmailBaseLogin.help}"></small></span></label>
@@ -101,7 +101,7 @@
     </label>
     <div class="mb-3 mt-3">
         <label for="oidc-display" class="form-label" th:text="#{site.sso.displayName}"></label>
-        <input id="oidc-display" type="text" name="displayName" maxlength="100" class="form-control" th:value="${oidc.displayName}">
+        <input id="oidc-display" type="text" name="displayName" maxlength="100" class="form-control w-100" th:value="${oidc.displayName}">
         <div class="form-text" th:text="#{site.sso.displayName.help}"></div>
     </div>
     <div class="mb-3">
@@ -111,25 +111,25 @@
     </div>
     <div class="mb-3">
         <label for="oidc-client-id" class="form-label" th:text="#{site.sso.oidc.clientId}"></label>
-        <input id="oidc-client-id" type="text" name="clientId" class="form-control" th:value="${oidc.clientId}" autocomplete="off">
+        <input id="oidc-client-id" type="text" name="clientId" class="form-control w-100" th:value="${oidc.clientId}" autocomplete="off">
     </div>
     <div class="mb-3">
         <label for="oidc-client-secret" class="form-label" th:text="#{site.sso.oidc.clientSecret}"></label>
-        <input id="oidc-client-secret" type="password" name="clientSecret" value="" class="form-control" autocomplete="new-password"
+        <input id="oidc-client-secret" type="password" name="clientSecret" value="" class="form-control w-100" autocomplete="new-password"
                th:placeholder="${oidcSecretSet} ? #{site.sso.secret.keep} : ''">
         <div class="form-text" th:text="#{site.sso.oidc.clientSecret.help}"></div>
     </div>
     <div class="mb-3">
         <label for="oidc-scopes" class="form-label" th:text="#{site.sso.oidc.scopes}"></label>
-        <input id="oidc-scopes" type="text" name="scopes" class="form-control" th:value="${oidc.scopes}">
+        <input id="oidc-scopes" type="text" name="scopes" class="form-control w-100" th:value="${oidc.scopes}">
     </div>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="oidc-email-claim" class="form-label" th:text="#{site.sso.claim.email}"></label>
-            <input id="oidc-email-claim" type="text" name="emailClaim" class="form-control" th:value="${oidc.emailClaim}"></div>
+            <input id="oidc-email-claim" type="text" name="emailClaim" class="form-control w-100" th:value="${oidc.emailClaim}"></div>
         <div class="col-lg-4 mb-3"><label for="oidc-name-claim" class="form-label" th:text="#{site.sso.claim.name}"></label>
-            <input id="oidc-name-claim" type="text" name="nameClaim" class="form-control" th:value="${oidc.nameClaim}"></div>
+            <input id="oidc-name-claim" type="text" name="nameClaim" class="form-control w-100" th:value="${oidc.nameClaim}"></div>
         <div class="col-lg-4 mb-3"><label for="oidc-loginid-claim" class="form-label" th:text="#{site.sso.claim.loginId}"></label>
-            <input id="oidc-loginid-claim" type="text" name="loginIdClaim" class="form-control" th:value="${oidc.loginIdClaim}"></div>
+            <input id="oidc-loginid-claim" type="text" name="loginIdClaim" class="form-control w-100" th:value="${oidc.loginIdClaim}"></div>
     </div>
     <h5 th:text="#{site.sso.accounts.title}"></h5>
     <label class="option" for="oidc-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="oidc-auto-create" value="true" th:checked="${oidc.autoCreate}">
@@ -144,7 +144,7 @@
         <span class="option-text"><strong th:text="#{site.sso.initiate}"></strong><small th:text="#{site.sso.initiate.oidc.help}"></small></span></label>
     <div class="mb-3 mt-3">
         <label for="oidc-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
-        <input id="oidc-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control tf-wide" th:value="${oidc.clockSkewSeconds}">
+        <input id="oidc-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control w-25" th:value="${oidc.clockSkewSeconds}">
         <div class="form-text" th:text="#{site.sso.clockSkew.help}"></div>
     </div>
     <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
@@ -180,12 +180,12 @@
     </label>
     <div class="mb-3 mt-3">
         <label for="saml2-display" class="form-label" th:text="#{site.sso.displayName}"></label>
-        <input id="saml2-display" type="text" name="displayName" maxlength="100" class="form-control" th:value="${saml2.displayName}">
+        <input id="saml2-display" type="text" name="displayName" maxlength="100" class="form-control w-100" th:value="${saml2.displayName}">
         <div class="form-text" th:text="#{site.sso.displayName.help}"></div>
     </div>
     <div class="mb-3">
         <label for="saml2-idp-entity" class="form-label" th:text="#{site.sso.saml2.idpEntityId}"></label>
-        <input id="saml2-idp-entity" type="text" name="idpEntityId" class="form-control" th:value="${saml2.idpEntityId}">
+        <input id="saml2-idp-entity" type="text" name="idpEntityId" class="form-control w-100" th:value="${saml2.idpEntityId}">
     </div>
     <div class="mb-3">
         <label for="saml2-idp-sso" class="form-label" th:text="#{site.sso.saml2.idpSsoUrl}"></label>
@@ -208,20 +208,20 @@
     </div>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="saml2-email-attr" class="form-label" th:text="#{site.sso.attr.email}"></label>
-            <input id="saml2-email-attr" type="text" name="emailAttribute" class="form-control" th:value="${saml2.emailAttribute}"></div>
+            <input id="saml2-email-attr" type="text" name="emailAttribute" class="form-control w-100" th:value="${saml2.emailAttribute}"></div>
         <div class="col-lg-4 mb-3"><label for="saml2-name-attr" class="form-label" th:text="#{site.sso.attr.name}"></label>
-            <input id="saml2-name-attr" type="text" name="nameAttribute" class="form-control" th:value="${saml2.nameAttribute}"></div>
+            <input id="saml2-name-attr" type="text" name="nameAttribute" class="form-control w-100" th:value="${saml2.nameAttribute}"></div>
         <div class="col-lg-4 mb-3"><label for="saml2-loginid-attr" class="form-label" th:text="#{site.sso.attr.loginId}"></label>
-            <input id="saml2-loginid-attr" type="text" name="loginIdAttribute" class="form-control" th:value="${saml2.loginIdAttribute}"></div>
+            <input id="saml2-loginid-attr" type="text" name="loginIdAttribute" class="form-control w-100" th:value="${saml2.loginIdAttribute}"></div>
     </div>
     <div class="mb-3">
         <label for="saml2-sp-entity" class="form-label" th:text="#{site.sso.saml2.spEntityId}"></label>
-        <input id="saml2-sp-entity" type="text" name="spEntityId" class="form-control" th:value="${saml2.spEntityId}" th:placeholder="${entityId}">
+        <input id="saml2-sp-entity" type="text" name="spEntityId" class="form-control w-100" th:value="${saml2.spEntityId}" th:placeholder="${entityId}">
         <div class="form-text" th:text="#{site.sso.saml2.spEntityId.help}"></div>
     </div>
     <div class="mb-3">
         <label for="saml2-nameid" class="form-label" th:text="#{site.sso.saml2.nameIdFormat}"></label>
-        <input id="saml2-nameid" type="text" name="nameIdFormat" class="form-control" th:value="${saml2.nameIdFormat}" placeholder="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
+        <input id="saml2-nameid" type="text" name="nameIdFormat" class="form-control w-100" th:value="${saml2.nameIdFormat}" placeholder="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
     </div>
     <h5 th:text="#{site.sso.accounts.title}"></h5>
     <label class="option" for="saml2-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="saml2-auto-create" value="true" th:checked="${saml2.autoCreate}">
@@ -236,7 +236,7 @@
         <span class="option-text"><strong th:text="#{site.sso.saml2.signRequests}"></strong><small th:text="#{site.sso.saml2.signRequests.help}"></small></span></label>
     <div class="mb-3 mt-3">
         <label for="saml2-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
-        <input id="saml2-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control tf-wide" th:value="${saml2.clockSkewSeconds}">
+        <input id="saml2-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control w-25" th:value="${saml2.clockSkewSeconds}">
     </div>
     <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
 </form>

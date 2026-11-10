@@ -3,20 +3,16 @@ package dev.yona.domain.ldap
 import dev.yona.config.YonaProperties
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-/** LDAP 검색 조건과 접속 설정을 검증한다(R-60-2, R-60-10). */
+/** LDAP 바인드 주체와 검색 속성을 검증한다(R-60-2). 검색 조건의 이스케이프는 `SpringLdapDirectoryTest`가 실제 서버로 확인한다. */
 class LdapQueriesTest {
 
     private val queries = LdapQueries("CN", "OU=user,DC=abc,DC=com", "sAMAccountName", "mail")
 
     @Test
-    fun `검색 조건의 특수 문자는 이스케이프한다 (R-60-2)`() {
-        // v1.6은 사용자 입력을 그대로 이어 붙여 `*`나 `)(`로 검색 조건을 바꿀 수 있었다
-        assertEquals("(sAMAccountName=alice)", queries.filterOf("alice"))
-        assertEquals("(sAMAccountName=a\\2a\\29\\28uid=\\2a)", queries.filterOf("a*)(uid=*"))
-        assertEquals("(sAMAccountName=back\\5cslash)", queries.filterOf("back\\slash"))
-        assertEquals("(mail=bob@corp.test)", queries.filterOf("bob@corp.test"))
+    fun `검색 속성은 이메일이면 이메일 속성이고 아니면 로그인 속성이다`() {
+        assertEquals("sAMAccountName", queries.filterAttributeOf("alice"))
+        assertEquals("mail", queries.filterAttributeOf("bob@corp.test"))
     }
 
     @Test

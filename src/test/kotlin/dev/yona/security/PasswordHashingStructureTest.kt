@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
 class PasswordHashingStructureTest {
 
     /** 해시 알고리즘을 직접 다뤄도 되는 파일이다. */
-    private val allowed = setOf("UserPasswordService.kt", "LegacyPasswordEncoder.kt", "LegacyPasswordHasher.kt")
+    private val allowed = setOf("UserPasswordService.kt", "LegacyPasswordHasher.kt")
 
     @Test
     fun `운영 코드는 LegacyPasswordHasher를 UserPasswordService 밖에서 부르지 않는다`() {

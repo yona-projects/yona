@@ -57,18 +57,7 @@ class LdapQueries(
     /** 검색에 쓸 속성 이름이다. */
     fun filterAttributeOf(username: String): String = if (username.contains("@")) emailProperty else loginProperty
 
-    /** 검색 조건이다. 사용자 입력의 특수 문자를 RFC 4515로 이스케이프한다. v1.6은 그대로 이어 붙여 검색 조건을 바꿀 수 있었다(R-60-2). */
-    fun filterOf(username: String): String = "(${filterAttributeOf(username)}=${escapeFilterValue(username)})"
-
     companion object {
-        /** RFC 4515: `\`, `*`, `(`, `)`, NUL을 `\XX` 16진수로 바꾼다. */
-        fun escapeFilterValue(value: String): String = buildString {
-            for (c in value) when (c) {
-                '\\' -> append("\\5c"); '*' -> append("\\2a"); '(' -> append("\\28"); ')' -> append("\\29"); '\u0000' -> append("\\00")
-                else -> append(c)
-            }
-        }
-
         /** RFC 4514: DN 값의 구분자(`,`, `+`, `"`, `\`, `<`, `>`, `;`, `=`)와 앞의 `#`, 앞뒤 공백을 `\`로 이스케이프한다. */
         fun escapeDnValue(value: String): String = buildString {
             value.forEachIndexed { i, c ->
