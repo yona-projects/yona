@@ -2200,3 +2200,9 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 분류 이름이 `issue.MassUpdate`의 "라벨 떼기" 목록에 이스케이프 없이 들어가 이슈를 체크하면 실행되던 문제, 저장소의 파일 이름과 주소 해시가 `code.Browser` 목록에 속성과 요소로 주입되던 문제를 시험으로 재현하고 고쳤다. 실제 앱에서 같은 페이로드가 `xss:1`에서 `xss:null`로 바뀐 것을 확인했다.
 - 원인은 v1.6의 `$yona.tmpl`이 값을 이스케이프하지 않는 단순 치환이라는 점이다. `$yona.escapeHtml`을 공개하고 사용자 데이터가 들어가는 호출처를 모두 거치게 했다.
 - 번들 `yona-layout.js`는 생성물이라 `npm run build`로 다시 만들어야 반영된다.
+
+## [2026-11-10] refactor | moment 제거: 날짜 검증과 상대 시각을 esm/dates.js로(동작 차이 13번 해결)
+
+- `moment(값).isValid()`와 `moment(날짜).fromNow()`를 moment 2.31.0 규칙 그대로 옮긴 `esm/dates.js`로 바꿨다. 언어는 `scripts.html`이 `window.yonaLanguage`로 넘긴다.
+- `dates.test.mjs`가 실제 moment와 비교한다: 날짜 검증 약 1만 건, 상대 시각 약 39만 건(Asia/Seoul, UTC, America/New_York, Europe/Moscow × en, ko, ja, ru, uz, fr) 모두 차이 0건.
+- 템플릿(`code/view.html`, `common/calendar.html`)이 moment를 더 부르지 않는다. 라이브러리 파일은 시험의 기준으로 남겼고 삭제는 사용자 확인을 기다린다.

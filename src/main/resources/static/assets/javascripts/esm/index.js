@@ -23,6 +23,7 @@ import "./ui/Favicon.js";
 import "./ui/FormValidator.js";
 import "./http.js";
 import "./util.js";
+import "./dates.js";
 import "./service/temporarySaveHandler.js";
 // 번들 yona-lib.js와 yona-common.js에 있던 순서 그대로 불러온다
 import "./Request.js";

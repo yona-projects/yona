@@ -27,7 +27,6 @@ const HTML = `<style>.x{}</style>${TPL}
   </div>`;
 const STUBS = `
   window.NProgress = { start: function () {}, done: function () {} };
-  window.moment = function () { return { fromNow: function () { return 'a day ago'; } }; };
   window.__ajax = [];
   ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url, o) { window.__ajax.push(url); if (window.__listing && o && o.success) o.success({ data: window.__listing }); };`;
 

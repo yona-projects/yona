@@ -71,10 +71,8 @@
             bootstrap.Tooltip.getOrCreateInstance(this).show();
         });
 
-        // current language set!
-        if (typeof window.moment == "function" && typeof window.moment.lang == "function") {
-            moment.locale([[${#locale.language}]]);
-        }
+        // current language set! 상대 시각("3일 전")을 이 언어로 그린다(esm/dates.js). 예전에는 moment.locale에 같은 값을 넘겼다
+        window.yonaLanguage = [[${#locale.language}]];
 
      	// yona.Dropdown
      	var sActivation;

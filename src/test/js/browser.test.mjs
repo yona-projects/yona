@@ -15,7 +15,6 @@ const HTML = `
   </div>`;
 const STUBS = `
   window.NProgress = { start: function () {}, done: function () {} };
-  window.moment = function () { return { fromNow: function () { return ''; } }; };
   $yona.xssClean = function (s) { return s; };
   window.__ajax = [];
   ((window.yona = window.yona || {}).http = (window.yona.http || {})).ajax = function (url) { window.__ajax.push(url); };`;

@@ -13,7 +13,6 @@ async function open(html, file, ctor, options, { extra = '' } = {}) {
     window.temporarySaveHandler = () => { window.__saved++; }; window.removeCurrentPageTemprarySavedContent = () => { window.__cleared++; };
     yona.Files = { getUploader: () => null }; yona.Attachments = function () {};
     yona.ui = yona.ui || {}; yona.ui.Dropdown = function (o) { window.__dd.push(o.elContainer); };
-    window.moment = (s) => ({ isValid: () => !isNaN(Date.parse(s)) });
     $yona.alert = (m, cb) => { window.__alerts.push(m); if (cb) cb(); }; $yona.showAlert = $yona.alert; $yona.notify = (m) => window.__notes.push(m);
     yona.http = { get: (url, cb) => { window.__got = url; setTimeout(() => cb('<!DOCTYPE html><html><body><div class="wrap"><div id="milestoneOption">new</div></div></body></html>'), 0); return {}; } };
     eval(extra);

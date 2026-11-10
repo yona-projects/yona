@@ -6,6 +6,7 @@
  **/
 
 import { register } from "../namespace.js";
+import { isValidDate } from "../dates.js";
 
 const View = function(options){
 
@@ -117,7 +118,7 @@ const View = function(options){
         const dueDate = (element.val() || "").trim();
 
         // if dueDate is not empty and invalid
-        if(dueDate && !moment(dueDate).isValid()){
+        if(dueDate && !isValidDate(dueDate)){
             $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
             element.focus();
             return;

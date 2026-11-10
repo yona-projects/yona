@@ -19,7 +19,6 @@ async function open({ ajax = {}, timelineHtml = null, period = 60000 } = {}) {
   const page = await pageWith({ stubs: false, html: HTML, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
   await page.evaluate(({ ajax, timelineHtml }) => {
     window.__ajax = []; window.__posts = []; window.__gets = []; window.__notes = []; window.__shortcuts = [];
-    window.moment = (s) => ({ isValid: () => !isNaN(Date.parse(s)) });
     $yona.notify = (m) => window.__notes.push(m);
     yona.Files = { getUploader: () => null }; yona.Attachments = function () {};
     yona.Markdown = { enableMarkdown() {} }; yona.Request = { bind() {} };

@@ -6,6 +6,7 @@
  **/
 
 import { register } from "../namespace.js";
+import { isValidDate } from "../dates.js";
 
 const Write = function(htOptions){
 
@@ -118,7 +119,7 @@ const Write = function(htOptions){
 
         const sDueDate = $yona.getTrim(htElement.welDueDate.val());
 
-        if (sDueDate && !moment(sDueDate).isValid()) {
+        if (sDueDate && !isValidDate(sDueDate)) {
             $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
             htElement.welDueDate.focus();
             return false;

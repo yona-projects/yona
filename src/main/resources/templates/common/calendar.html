@@ -4,10 +4,9 @@
   https://yona.io
 
   이식 원본: app/views/common/calendar.scala.html
-  달력 위젯(vanilla-calendar-pro)과 래퍼 스크립트를 불러온다. moment는 마감일 검증(`moment(값).isValid()`)이 쓰므로 그대로 둔다.
+  달력 위젯(vanilla-calendar-pro)과 래퍼 스크립트를 불러온다. 마감일 검증은 esm/dates.js가 하므로 moment는 불러오지 않는다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="calendar">
-<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-locales.min.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/vanilla-calendar-pro/index.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/ui/Calendar.js}"></script>
 </th:block>

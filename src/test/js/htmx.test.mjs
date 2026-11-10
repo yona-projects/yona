@@ -48,7 +48,6 @@ function fullPage(query, title = 'list') {
 <script>
   window.__np = { start: 0, done: 0 }; window.__twoColumn = 0; window.__notified = [];
   window.NProgress = { start: function () { window.__np.start++; }, done: function () { window.__np.done++; } };
-  window.moment = function (v) { return { isValid: function () { return /^\\d{4}-\\d{2}-\\d{2}$/.test(v); } }; };
   window._initTwoColumnMode = function () { window.__twoColumn++; };
   window.__select2 = 0;
   window.$yona = { createNamespace: function (ns) { var p = ns.split('.'), parent = window, name = null; for (var i = 0; i < p.length; i++) { name = p[i]; if (i === p.length - 1) break; if (typeof parent[name] !== 'object') parent[name] = {}; parent = parent[name]; } return { container: parent, name: name }; },
