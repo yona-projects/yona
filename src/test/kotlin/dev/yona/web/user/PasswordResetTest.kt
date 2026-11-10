@@ -170,7 +170,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         assertTrue(body.contains("Please log in with the new password!"))
         users.flush()
         val saved = users.findById(user.id!!).get()
-        assertEquals(LegacyPasswordHasher.hash("brand-new", saved.passwordSalt!!), saved.password)
+        assertTrue(dev.yona.security.UserPasswordService().matches(saved, "brand-new"))
         assertTrue(!tokens.isValid(token))
     }
 
@@ -235,7 +235,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         assertEquals(6, newPassword.length)
         users.flush()
         val saved = users.findById(target.id!!).get()
-        assertEquals(LegacyPasswordHasher.hash(newPassword, saved.passwordSalt!!), saved.password)
+        assertTrue(dev.yona.security.UserPasswordService().matches(saved, newPassword))
     }
 
     @Test

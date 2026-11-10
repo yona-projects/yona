@@ -305,7 +305,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         assertEquals("/users/loginform", result.response.getHeader("Location"))
         users.flush()
         val saved = users.findById(user.id!!).get()
-        assertEquals(LegacyPasswordHasher.hash("new-pass", saved.passwordSalt!!), saved.password)
+        assertTrue(dev.yona.security.UserPasswordService().matches(saved, "new-pass"))
         mockMvc.perform(get("/user/editform").session(session)).andExpect(status().isSeeOther)
     }
 
@@ -317,7 +317,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         assertTrue(result.response.contentAsString.contains("Wrong password!"))
         assertNotNull(Jsoup.parse(result.response.contentAsString).selectFirst("form#frmBasic"))
         users.flush()
-        assertEquals(LegacyPasswordHasher.hash("old-pass", user.passwordSalt!!), users.findById(user.id!!).get().password)
+        assertTrue(dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "old-pass"), "현재 비밀번호가 틀리면 비밀번호는 그대로이다")
     }
 
     @Test

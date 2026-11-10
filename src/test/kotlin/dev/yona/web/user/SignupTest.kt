@@ -127,7 +127,7 @@ class SignupTest : AbstractIntegrationTest() {
         assertEquals(UserState.ACTIVE, user.state)
         assertEquals("앨리스", user.name)
         assertNotNull(user.createdDate)
-        assertEquals(LegacyPasswordHasher.hash("pw1234", user.passwordSalt!!), user.password)
+        assertTrue(dev.yona.security.UserPasswordService().matches(user, "pw1234")); assertTrue(user.password!!.startsWith("\$argon2id\$"))
         // 로그인된 상태이다.
         val home = mockMvc.perform(get("/").session(session)).andReturn().response.contentAsString
         assertTrue(home.contains("alice-new") || home.contains("앨리스"))

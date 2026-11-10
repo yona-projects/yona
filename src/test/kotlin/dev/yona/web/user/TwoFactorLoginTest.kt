@@ -206,6 +206,8 @@ class TwoFactorLoginTest : AbstractIntegrationTest() {
     @Test
     fun `로그인 유지 쿠키는 2단계 인증 사용자에게 알려진 기기 쿠키와 함께일 때만 통한다`() {
         val e = enrolled()
+        // 비밀번호 로그인에 성공하면 해시가 argon2id로 바뀌고 쿠키 서명이 해시를 쓰므로, 바뀐 뒤에 쿠키를 만든다(D-131)
+        passwordLogin(e, MockHttpSession())
         val remember = rememberMeCookies.create(e.user, secure = false)
         val bare = mockMvc.perform(get("/user/editform").cookie(remember)).andReturn().response
         assertTrue(bare.status != 200, "기기 쿠키 없이는 로그인 유지 쿠키만으로 들어갈 수 없다")

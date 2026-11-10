@@ -18,6 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 /**
@@ -34,6 +35,7 @@ class YonaPasswordAuthenticationProviderTest : AbstractIntegrationTest() {
     @Autowired private lateinit var passwords: UserPasswordService
     @Autowired private lateinit var siteSettings: SiteSettingService
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
+    @Autowired private lateinit var rememberCookies: RememberMeCookies
 
     /** 제공자는 빈이 아니다(전역 인증 관리자에 자동으로 등록되지 않게 한다). 시험이 같은 부품으로 직접 만든다. */
     private val provider by lazy { YonaPasswordAuthenticationProvider(users, properties, ldap, passwords, siteSettings, siteAdmins) }
@@ -66,6 +68,33 @@ class YonaPasswordAuthenticationProviderTest : AbstractIntegrationTest() {
         assertEquals(user.id, details.user.id)
         assertEquals(emptyMap(), details.flash)
         assertEquals(null, authentication.scopes, "비밀번호 로그인은 범위 검사를 받지 않는다")
+    }
+
+    @Test
+    fun `v1_6 해시 사용자가 로그인하면 해시를 argon2id로 바꿔 저장하고 이후에도 같은 비밀번호로 로그인한다`() {
+        val user = user()
+        assertTrue(passwords.needsUpgrade(user))
+        provider.authenticate(token(user.loginId!!, "1234"))
+        val saved = users.findById(user.id!!).get()
+        assertTrue(saved.password!!.startsWith("\$argon2id\$"), "로그인에 성공하면 새 방식으로 바꾼다")
+        assertFalse(passwords.needsUpgrade(saved))
+        assertIs<YonaAuthentication>(provider.authenticate(token(user.loginId!!, "1234")))
+    }
+
+    @Test
+    fun `해시를 바꾸면 로그인 유지 쿠키의 서명도 달라져 이전 쿠키는 한 번 무효가 된다`() {
+        val user = user()
+        val before = rememberCookies.create(user, secure = false).value
+        provider.authenticate(token(user.loginId!!, "1234"))
+        val after = rememberCookies.create(users.findById(user.id!!).get(), secure = false).value
+        assertNotEquals(before, after, "쿠키 서명이 저장된 해시를 쓰므로 해시가 바뀌면 이전 쿠키는 통하지 않는다(비밀번호를 바꿀 때와 같다)")
+    }
+
+    @Test
+    fun `비밀번호가 틀리면 해시를 바꾸지 않는다`() {
+        val user = user(); val before = user.password
+        assertFailsWith<LoginDeniedException> { provider.authenticate(token(user.loginId!!, "wrong")) }
+        assertEquals(before, users.findById(user.id!!).get().password)
     }
 
     @Test

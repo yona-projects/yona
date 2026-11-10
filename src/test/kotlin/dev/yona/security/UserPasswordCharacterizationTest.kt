@@ -63,7 +63,8 @@ class UserPasswordCharacterizationTest : AbstractIntegrationTest() {
         return signup.create(SignupForm("pc$n-$stamp", "pc$n", "pc$n-$stamp@example.com", password)).also { it.state = UserState.ACTIVE; users.save(it) }
     }
 
-    private fun matches(user: User, raw: String) = user.password == LegacyPasswordHasher.hash(raw, requireNotNull(user.passwordSalt))
+    /** 저장된 해시가 [raw]와 맞는지를 운영과 같은 입구로 확인한다. 저장 방식(argon2id 또는 v1.6)은 신경 쓰지 않는다(D-131). */
+    private fun matches(user: User, raw: String) = UserPasswordService().matches(user, raw)
 
     // --- 만들기 ---
 
@@ -75,6 +76,7 @@ class UserPasswordCharacterizationTest : AbstractIntegrationTest() {
         assertNotEquals(a.password, b.password, "같은 비밀번호라도 솔트가 달라 해시가 다르다")
         assertTrue(matches(a, "same-pass")); assertTrue(matches(b, "same-pass"))
         assertNotEquals("same-pass", a.password, "평문을 저장하지 않는다")
+        assertTrue(a.password!!.startsWith("\$argon2id\$"), "새 가입은 argon2id로 저장한다")
         assertFalse(matches(a, "other-pass"))
     }
 

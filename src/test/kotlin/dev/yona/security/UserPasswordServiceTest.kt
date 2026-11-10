@@ -23,10 +23,12 @@ class UserPasswordServiceTest {
     @Test
     fun `새 비밀번호 정보는 새 솔트와 그 솔트로 만든 해시이고 호출마다 솔트가 다르다`() {
         val a = service.newCredentials("pw"); val b = service.newCredentials("pw")
-        assertEquals(24, a.salt.length)
-        assertEquals(LegacyPasswordHasher.hash("pw", a.salt), a.hash)
+        assertEquals(24, a.salt.length, "솔트 열의 형식은 그대로 24글자이다(argon2id는 솔트가 해시 문자열 안에 있어 이 값은 쓰이지 않는다)")
+        assertTrue(a.hash.startsWith("\$argon2id\$"), "새 해시는 argon2id이다: ${a.hash}")
         assertNotEquals(a.salt, b.salt)
         assertNotEquals(a.hash, b.hash)
+        assertTrue(service.matches(user(salt = a.salt, password = a.hash), "pw"))
+        assertFalse(service.matches(user(salt = a.salt, password = a.hash), "PW"))
     }
 
     @Test
@@ -34,7 +36,9 @@ class UserPasswordServiceTest {
         val user = user(salt = "kept-salt", password = "old-hash")
         service.set(user, "new-pass")
         assertEquals("kept-salt", user.passwordSalt)
-        assertEquals(LegacyPasswordHasher.hash("new-pass", "kept-salt"), user.password)
+        assertTrue(user.password!!.startsWith("\$argon2id\$"), "바꾼 해시는 argon2id이다")
+        assertTrue(service.matches(user, "new-pass"))
+        assertFalse(service.matches(user, "old"))
     }
 
     @Test
@@ -61,8 +65,22 @@ class UserPasswordServiceTest {
     }
 
     @Test
-    fun `지금 해시는 갱신이 필요하지 않다`() {
-        assertFalse(service.needsUpgrade(user(salt = "s", password = LegacyPasswordHasher.hash("pw", "s"))))
+    fun `v1_6 해시는 갱신이 필요하고 argon2id 해시는 필요하지 않다`() {
+        assertTrue(service.needsUpgrade(user(salt = "s", password = LegacyPasswordHasher.hash("pw", "s"))))
+        assertFalse(service.needsUpgrade(user(salt = "s", password = service.newCredentials("pw").hash)))
+        assertFalse(service.needsUpgrade(user(salt = "s", password = null)), "해시가 없으면 갱신할 것이 없다")
+    }
+
+    @Test
+    fun `v1_6 해시는 새 방식으로 바꾼 뒤에도 같은 비밀번호로 확인된다`() {
+        val user = user(salt = "s", password = LegacyPasswordHasher.hash("pw", "s"))
+        assertTrue(service.matches(user, "pw"))
+        service.set(user, "pw")
+        assertTrue(user.password!!.startsWith("\$argon2id\$"))
+        assertTrue(service.matches(user, "pw"))
+        assertFalse(service.needsUpgrade(user))
+        assertTrue(service.matchesLenient(user, "pw"))
+        assertFalse(service.matchesLenient(user, "other"))
     }
 
     @Test

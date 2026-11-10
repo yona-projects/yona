@@ -75,6 +75,11 @@ class YonaPasswordAuthenticationProvider(
             flash = result.flash
         } else {
             user = source?.takeIf { passwords.matches(it, password) }
+            // v1.6 해시로 로그인에 성공했으면 그 자리에서 argon2id로 바꿔 저장한다(D-131). 상태 확인(잠금) 전이지만 비밀번호는 맞은 것이다
+            if (user != null && passwords.needsUpgrade(user)) {
+                passwords.set(user, password)
+                users.save(user)
+            }
         }
         if (user == null) throw LoginDeniedException(if (flash.isEmpty()) LoginResult.InvalidCredentials else LoginResult.InvalidWithNotice(flash))
         if (user.state == UserState.LOCKED) throw LoginDeniedException(LoginResult.LockedAfterAuthentication)
