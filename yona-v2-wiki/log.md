@@ -2362,3 +2362,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | 새 UI 클라이언트 저장소(IndexedDB) 설계 (D-135, 확인 대기)
 
 선생님이 새 UI는 IndexedDB를 적극 활용하라고 하셨다. 지금의 저장소 사용(localStorage 초안, 사이드바, 2단 보기, 탭, 안내 등)을 코드에서 조사하고 `architecture/ui-client-storage.md`를 썼다. 담을 것과 담지 않을 것(세션, 토큰, 비밀, 본문), 하이브리드(첫 그림 값만 동기 거울), `idb`, 시험, 결정 6가지를 담았다. IA의 깜빡임 방지와 IndexedDB의 비동기가 충돌해 하이브리드를 권했다. 구현하지 않았다.
+
+## [2026-11-11] build | 새 UI htmx 활용 설계 (D-136, 확인 대기)
+
+선생님이 htmx도 적극 활용하라고 하셨다. 현재 htmx 사용(D-96, 목록 영역 교체 5곳, `HX-Request` 계약, 서버 재로드 이력, 전체 이동 대체, CSRF는 `yona.Csrf.js`)을 코드로 확인하고 `architecture/ui-htmx-plan.md`를 썼다. 셸 이동, 폼 422, 행 갱신, 지연 불러오기, 폴링, 전환기 캐시, `Vary: HX-Request`, 화면 단위 옵트인(swap-safe 문턱), 시험, 결정 8가지를 담았다. IA의 전환 문장과 저장소 설계의 `switcher` 값(조각 문자열)을 맞춰 고쳤다. 구현하지 않았다.
