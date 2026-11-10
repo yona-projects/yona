@@ -125,6 +125,7 @@
 - [조직 팀 기능 계획](architecture/team-plan.md): X-44 팀(공개·비밀, 중첩), 프로젝트 권한 5단계, 팀 멘션과 리뷰 요청, 규칙 묶음 대상. 계획 작성 완료, v2.1.0에서 구현(D-84)
 - [인증 구조 표준화 계획](architecture/auth-standardization-plan.md): X-43 비밀번호 처리를 한 곳으로(1단계), 토큰과 쿠키를 제공자와 `RememberMeServices`로(2단계), `formLogin`(3단계). 데이터 형식은 바꾸지 않는다. 2026-11-10 현재 코드에 맞게 갱신, 착수 승인(D-129), 1~3단계 구현 완료(2-4 제외), 전체 시험 대기
 - [LDAP 서버별 호환성 시험 결과](architecture/ldap-server-compat.md): `SpringLdapDirectory`(D-132)를 OpenLDAP(익명 허용, 익명 차단, 본인 항목만 읽기)와 Apache DS에 붙인 결과. 먼저 검색해 DN을 찾고(D-133) 조회용 계정은 선택. 본인 항목만 읽는 서버도 조회용 계정을 주면 된다. AD와 Apache DS의 익명 차단은 확인하지 못했다
+- [GitLab 방식 UI 정보 구조(IA) 제안](architecture/ui-ia-gitlab.md): 맥락(전역, 프로젝트, 조직, 사용자 설정, 사이트 관리)마다 왼쪽 사이드바 하나, 경로와 페이지 머리. 현재 화면 목록과 새 위치 대응표, 단계 계획, 결정할 6가지(D-134, 확인 대기). 주소와 계약은 바꾸지 않는다
 - [v1.6에서 그대로 유지한 결함 목록](architecture/v16-retained-defects.md): 묶여 있던 결함을 한 건씩 나누어(`R-59-3`은 R-59의 (3)번) 현재 코드로 다시 판정한 결과. 330건 중 재현 296, 해결 24, 결함 아님 5, 일부 4, 해당 없음 1. 0절 보안 점검(로그인 없이 저장소가 지워지는 `/_init` 등), 4절 몇 줄이면 고칠 수 있는 결함
 - [정상 흐름을 바꾸지 않는 결함 수정 후보](architecture/v16-safe-fix-candidates.md): 재현 결함 중 오류를 정상 처리로, 문구와 링크와 표시의 오타, 화면 스크립트 오류만 추린 104건. 권한, 데이터, 알림, 규칙이 달라지는 것은 뺌
 - [엔터프라이즈 SSO 구현 계획](architecture/enterprise-sso-plan.md): X-16 계획과 결정 질문(D-80)
