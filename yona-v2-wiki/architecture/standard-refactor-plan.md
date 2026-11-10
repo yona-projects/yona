@@ -24,7 +24,16 @@ updated: 2026-11-10
 1. **(완료)** 소규모 lib 교체와 문법 현대화(D-122, A-438)
 2. **(완료)** ES 모듈 뼈대와 모듈 3개(`esm/ui/Elevator.js`, `Favicon.js`, `FormValidator.js`). 템플릿은 진입점 `<script type="module">` 하나(`esm-skeleton.md`)
 3. **(완료)** 공용 `esm/http.js`(fetch 래퍼, jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교)를 만들고 `$.ajax`, `$.get`, `$.post`, `$.getJSON` 76곳(44개 파일, 템플릿 인라인 포함)을 `yona.http.*`로 옮겼다. 콜백을 `await`로 바꾸는 일은 4단계에서 파일을 모듈로 옮길 때 함께 한다
-4. 화면별 스크립트를 한 파일씩 ES 모듈로 옮긴다. 시험이 없는 파일은 특성 시험을 먼저 만든다. 옮길 때 그 화면 템플릿의 `<script>` 태그는 `type="module"`로 바꾼다
+4. **(진행 중)** 화면별 스크립트를 ES 모듈로 옮긴다. 묶음은 아래 표.
+
+| 묶음 | 대상 | 상태 |
+|---|---|---|
+| 4-1 | `service/` 네임스페이스형 26개(`board.*`, `code.*`, `git.View`, `issue.MassUpdate`, `issue.Write`, `milestone.*`, `organization.Member/New/Setting`, `project.*`, `site.MassMail`, `user.*`) | 완료 |
+| 4-2 | `service/` 네임스페이스형 11개(`git.Write`, `organization.Global/View`, `project.Global/Webhook/ChangeVCS`, `resetPassword`, `issue.LabelEditor/List/View`, `review.List`) | 완료 |
+| 4-3 | `service/` 전역 함수형 10개(`Migration`, `detectChange`, `issue.Assginee`, `issue.Sharer`, `pullrequest.Meta`, `pullrequest.Reviewers`, `review.CommentEdit`, `showSubtask`, `temporarySaveHandler`, `twoColumnMode`) | 남음(각각 구조가 달라 손으로 옮긴다) |
+| 4-4 | `common/` 34개(번들 3개가 불러오는 파일 포함) | 남음 |
+
+(원래 문장) 화면별 스크립트를 한 파일씩 ES 모듈로 옮긴다. 시험이 없는 파일은 특성 시험을 먼저 만든다. 옮길 때 그 화면 템플릿의 `<script>` 태그는 `type="module"`로 바꾼다
 5. 직접 만든 지연 호출, 스크롤 처리기, 문자열 HTML, 날짜 계산을 파일을 열 때 함께 정리한다
 
 각 단계는 시험 통과와 실제 앱 확인 뒤에 커밋하고, 달라진 구조는 `decisions.md`에 적는다.

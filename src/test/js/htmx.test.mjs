@@ -40,7 +40,7 @@ function listBody(query) {
 }
 
 function fullPage(query, title = 'list') {
-  const scripts = ['lib/htmx.js', 'common/yona.Htmx.js', 'common/yona.Pagination.js', 'service/yona.issue.List.js'];
+  const scripts = ['lib/htmx.js', 'common/yona.Htmx.js', 'common/yona.Pagination.js', 'esm/service/issue.List.js'];
   // 스크립트를 문서 파싱 중에 불러온다(실제 레이아웃 번들과 같은 시점). 공통 도우미와 대역은 htmx보다 먼저 정한다
   return `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
 <style>body { margin: 0; }</style>
@@ -55,7 +55,7 @@ function fullPage(query, title = 'list') {
     notify: function (m) { window.__notified.push(m); }, getTrim: function (s) { return $.trim(s); } };
   window.Messages = function (k) { return k; }; window.yona = window.yona || {}; yona.ui = yona.ui || {}; yona.ui.Select2 = function (el) { window.__select2++; $(el).addClass('select2-hidden-accessible').attr('tabindex', '-1'); };
 </script>
-${scripts.map((s) => `<script src="${ORIGIN}/assets/${s}"></script>`).join('\n')}
+${scripts.map((s) => (s.startsWith('esm/') ? `<script type="module" src="${ORIGIN}/assets/${s}"></script>` : `<script src="${ORIGIN}/assets/${s}"></script>`)).join('\n')}
 </head><body>
 ${listBody(query)}
 </body></html>`;

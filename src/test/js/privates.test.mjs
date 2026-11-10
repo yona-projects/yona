@@ -14,7 +14,7 @@ export const tests = [
     assert.equal(out, 'ok', out);
   } },
   { name: '이슈 목록을 읽은 뒤 하위 이슈 스크립트가 없는 화면에서도 오류가 나지 않는다 (R-69)', async run() {
-    const code = sourceSnippet('service/yona.issue.List.js', 'function _onLoadIssueList(){', 'function _listHoverEffect');
+    const code = sourceSnippet('esm/service/issue.List.js', 'function _onLoadIssueList(){', 'function _listHoverEffect');
     const page = await pageWith({ html: '' });
     const out = await page.evaluate((src) => {
       var noop = 'var NProgress={done:function(){}},htInitialOptions={};' +

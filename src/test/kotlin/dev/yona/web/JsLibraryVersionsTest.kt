@@ -222,7 +222,7 @@ class JsLibraryVersionsTest {
         assertTrue(!java.io.File("build-tools/js-bundle/bundles.mjs").readText().contains("bootstrap-typeahead.js"), "번들 입력에서 빠져야 한다")
         assertTrue(!template("common/scripts.html").contains("typeahead"), "scripts.html은 플러그인을 불러오지 않는다")
         assertEquals(emptyList(), templateFiles().filter { it.readText().contains("data-provider=\"typeahead\"") }.map { it.path }, "BS2 자동 연결용 속성(동작하지도 않던 오타 data-provider)이 남은 템플릿")
-        for (script in listOf("esm/service/project.Member.js", "esm/service/organization.Member.js", "service/yona.issue.LabelEditor.js", "esm/service/site.MassMail.js")) {
+        for (script in listOf("esm/service/project.Member.js", "esm/service/organization.Member.js", "esm/service/issue.LabelEditor.js", "esm/service/site.MassMail.js")) {
             val text = asset("javascripts/$script").readText()
             assertTrue(!text.contains("\$menu") && !text.contains("options.item") && !Regex("""\.typeahead\(""").containsMatchIn(text) && !text.contains("data(\"typeahead\")"), "$script 는 플러그인 내부에 기대지 않는다")
         }
