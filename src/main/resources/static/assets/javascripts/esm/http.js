@@ -143,6 +143,10 @@ export function ajax(urlOrOptions, maybeOptions) {
       const xhr = createXhr(response, text);
       const ok = (response.status >= 200 && response.status < 300) || response.status === 304;
       if (!ok) {
+        // jQuery는 오류 응답도 dataType(없으면 응답 Content-Type)에 따라 읽어 responseJSON을 채운다. 읽지 못하면 비워 둔다
+        if (dataType === "json" || (!dataType && /json/i.test(response.headers.get("Content-Type") || ""))) {
+          try { xhr.responseJSON = JSON.parse(text); } catch (e) { /* 본문이 JSON이 아니면 responseJSON은 없다 */ }
+        }
         throw { xhr, textStatus: "error", error: response.statusText };
       }
       let data = text;

@@ -89,22 +89,23 @@ $(() =>{
     }
 
     // Security key (WebAuthn) as the second step. It uses the same attempt counter as the code input.
-    function _useSecurityKey(){
+    async function _useSecurityKey(){
         const welButton = htElement.welSecurityKeyStep.find(".security-key-use");
         htElement.welLoginError.hide();
-        yona.http.post(welButton.data("options-uri"), null, null, "text").then((sOptions) =>{
-            return YonaWebAuthn.authenticate(sOptions);
-        }).then((sCredential) =>{
-            return yona.http.post(welButton.data("submit-uri"), {
+        // jQuery의 then은 .fail을 가진 약속을 돌려줬지만 yona.http.then은 일반 Promise라서 await와 try/catch로 쓴다(거절 값은 xhr 또는 인증 오류이다)
+        try{
+            const sOptions = await yona.http.post(welButton.data("options-uri"), null, null, "text");
+            const sCredential = await YonaWebAuthn.authenticate(sOptions);
+            await yona.http.post(welButton.data("submit-uri"), {
                 "credential": sCredential,
                 "rememberDevice": htElement.welInputRememberDevice.is(":checked")
             }, null, "json");
-        }).then(() =>{
-            document.location.reload();
-        }).fail((htResult) =>{
+        }catch(htResult){
             const sKey = htResult && htResult.responseJSON && htResult.responseJSON.message;
             _showDialogError(Messages(sKey || "user.twoFactor.invalid"));
-        });
+            return;
+        }
+        document.location.reload();
     }
 
     function _showTwoFactorStep(bSecurityKey){

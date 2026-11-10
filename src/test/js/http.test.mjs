@@ -41,7 +41,7 @@ async function both(page, requests, source) {
     requests.length = 0;
     out[impl] = { events: await page.evaluate(async ([src, which]) => {
       const events = []; const ctx = { id: 'ctx' };
-      const rec = (label) => function (a, b, c) { const xhr = [a, b, c].find((v) => v && typeof v === 'object' && typeof v.getResponseHeader === 'function'); events.push([label, typeof a === 'object' && a && a.getResponseHeader ? undefined : a, typeof b === 'string' ? b : undefined, xhr ? xhr.status : undefined, xhr ? xhr.getResponseHeader('X-T') : undefined, this === ctx ? 'ctx' : 'other']); };
+      const rec = (label) => function (a, b, c) { const xhr = [a, b, c].find((v) => v && typeof v === 'object' && typeof v.getResponseHeader === 'function'); events.push([label, typeof a === 'object' && a && a.getResponseHeader ? undefined : a, typeof b === 'string' ? b : undefined, xhr ? xhr.status : undefined, xhr ? xhr.getResponseHeader('X-T') : undefined, this === ctx ? 'ctx' : 'other', xhr ? JSON.stringify(xhr.responseJSON) : undefined]); };
       const api = which === 'jquery' ? $ : { ajax: yona.http.ajax, get: yona.http.get, post: yona.http.post, getJSON: yona.http.getJSON };
       const fn = new Function('api', 'rec', 'ctx', `return (${src});`);
       const jq = fn(api, rec, ctx);
@@ -67,6 +67,8 @@ const CASES = [
   ['HTML 응답', "api.ajax({ url: '/api/html', dataType: 'html', success: rec('success') })"],
   ['404는 error(xhr, textStatus, 오류 글자)', "api.ajax({ url: '/api/404', success: rec('success'), error: rec('error'), complete: rec('complete') })"],
   ['500 JSON 본문도 error이고 xhr 상태를 읽을 수 있다', "api.ajax({ url: '/api/500json', dataType: 'json', error: rec('error') })"],
+  ['500 JSON 본문은 dataType이 없어도 Content-Type으로 읽어 responseJSON을 채운다', "api.ajax({ url: '/api/500json', error: rec('error') })"],
+  ['404 HTML 본문은 responseJSON이 없다', "api.ajax({ url: '/api/404', dataType: 'json', error: rec('error') })"],
   ['dataType json인데 본문이 비었으면 parsererror', "api.ajax({ url: '/api/emptyjson', dataType: 'json', success: rec('success'), error: rec('error') })"],
   ['dataType json인데 JSON이 깨졌으면 parsererror', "api.ajax({ url: '/api/badjson', dataType: 'json', success: rec('success'), error: rec('error') })"],
   ['304는 success(notmodified)', "api.ajax({ url: '/api/notmod', success: rec('success'), error: rec('error') })"],
