@@ -71,7 +71,9 @@ enum class SsoSaveError(val messageKey: String) {
     LDAP_PORT_INVALID("sso.admin.error.ldapPort"),
     LDAP_BASE_DN_REQUIRED("sso.admin.error.ldapBaseDn"),
     LDAP_PROTOCOL_INVALID("sso.admin.error.ldapProtocol"),
-    LDAP_UNREACHABLE("sso.admin.error.ldapUnreachable")
+    LDAP_UNREACHABLE("sso.admin.error.ldapUnreachable"),
+    LDAP_BIND_PASSWORD_REQUIRED("sso.admin.error.ldapBindPasswordRequired"),
+    LDAP_BIND_FAILED("sso.admin.error.ldapBindFailed")
 }
 
 /** [SsoSettingsService.saveOidc]의 결과이다. */

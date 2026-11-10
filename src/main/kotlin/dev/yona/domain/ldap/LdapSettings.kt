@@ -40,6 +40,10 @@ class LdapSettings(
     @Column(name = "use_email_base_login") var useEmailBaseLogin: Boolean? = false,
     @Column(name = "fallback_to_local_login") var fallbackToLocalLogin: Boolean? = false,
     @Column(name = "english_name_attribute_name", length = 100) var englishNameAttributeName: String? = null,
+    /** 조회용 계정의 DN(D-133). 비어 있으면 익명으로 사용자를 찾는다. */
+    @Column(name = "bind_dn", length = 500) var bindDn: String? = null,
+    /** 조회용 계정의 비밀번호. `SecretCipher`로 암호화한 글(`v1.…`)이다. */
+    @Column(name = "bind_password", length = 1000) var bindPassword: String? = null,
     @Column(name = "updated_date") var updatedDate: Date? = null
 )
 
@@ -49,15 +53,21 @@ interface LdapSettingsRepository : JpaRepository<LdapSettings, Long>
 /** 관리자 화면이 보내는 LDAP 설정 입력이다. */
 data class LdapSettingsForm(
     val enabled: Boolean, val protocol: String, val host: String, val port: String, val baseDn: String, val distinguishedNamePostfix: String, val loginProperty: String,
-    val displayNameProperty: String, val userNameProperty: String, val emailProperty: String, val useEmailBaseLogin: Boolean, val fallbackToLocalLogin: Boolean, val englishNameAttributeName: String
+    val displayNameProperty: String, val userNameProperty: String, val emailProperty: String, val useEmailBaseLogin: Boolean, val fallbackToLocalLogin: Boolean, val englishNameAttributeName: String,
+    /** 조회용 계정의 DN. 비우면 조회용 계정을 쓰지 않고 저장된 비밀번호도 지운다. */
+    val bindDn: String = "",
+    /** 조회용 계정의 비밀번호. 비어 있으면 저장된 비밀번호를 유지한다. */
+    val bindPassword: String? = null
 )
 
 /**
  * LDAP 설정의 읽기와 저장이다(`decisions.md` D-82). 화면에서 한 번도 저장하지 않았으면 설정 파일 값을 그대로 쓰고(v1.6에서 올라온 사이트의 로그인이 끊기지 않게), 저장하면 그 뒤로는 화면 값이 이긴다.
- * 바인드 비밀번호는 저장하지 않는다(로그인하는 사용자가 입력한 비밀번호로 바인드한다).
+ * 사용자의 비밀번호는 저장하지 않는다(로그인하는 사용자가 입력한 비밀번호로 바인드한다). 조회용 계정(D-133)의 비밀번호만 `SecretCipher`로 암호화해 저장하고 화면에 다시 보이지 않는다.
  */
 @Service
 class LdapSettingsService(private val repository: LdapSettingsRepository, private val properties: YonaProperties, private val audit: AuditRecorder) {
+
+    private val cipher by lazy { dev.yona.domain.twofactor.SecretCipher(properties.secret, "yona.ldap.secret") }
 
     /** 화면에서 저장한 적이 있으면 `true`이다. */
     @Transactional(readOnly = true)
@@ -72,9 +82,14 @@ class LdapSettingsService(private val repository: LdapSettingsRepository, privat
             enabled = row.enabled == true, host = row.host ?: file.host, port = row.port ?: file.port, baseDn = row.baseDn ?: file.baseDn,
             distinguishedNamePostfix = row.distinguishedNamePostfix ?: file.distinguishedNamePostfix, loginProperty = row.loginProperty ?: file.loginProperty,
             displayNameProperty = row.displayNameProperty ?: file.displayNameProperty, userNameProperty = row.userNameProperty ?: file.userNameProperty, emailProperty = row.emailProperty ?: file.emailProperty,
-            useEmailBaseLogin = row.useEmailBaseLogin == true, fallbackToLocalLogin = row.fallbackToLocalLogin == true, englishNameAttributeName = row.englishNameAttributeName ?: file.englishNameAttributeName
+            useEmailBaseLogin = row.useEmailBaseLogin == true, fallbackToLocalLogin = row.fallbackToLocalLogin == true, englishNameAttributeName = row.englishNameAttributeName ?: file.englishNameAttributeName,
+            bindDn = row.bindDn.orEmpty(), bindPassword = row.bindPassword?.takeIf { it.isNotBlank() }?.let { String(cipher.decrypt(it)) }.orEmpty()
         )
     }
+
+    /** 조회용 계정의 비밀번호가 저장되어 있으면 `true`이다. 화면은 값을 보이지 않고 이 여부만 알린다. */
+    @Transactional(readOnly = true)
+    fun hasBindPassword(): Boolean = !repository.findById(ROW).orElse(null)?.bindPassword.isNullOrBlank()
 
     /** 지금 적용되는 접속 프로토콜(`ldap` 또는 `ldaps`)이다. */
     @Transactional(readOnly = true)
@@ -97,31 +112,47 @@ class LdapSettingsService(private val repository: LdapSettingsRepository, privat
             if (port.toIntOrNull()?.let { it in 1..65535 } != true) return SsoSaveResult.Rejected(SsoSaveError.LDAP_PORT_INVALID)
             if (baseDn.isEmpty()) return SsoSaveResult.Rejected(SsoSaveError.LDAP_BASE_DN_REQUIRED)
         } else if (host.isNotEmpty() && !HOST.matches(host)) return SsoSaveResult.Rejected(SsoSaveError.LDAP_HOST_REQUIRED)
-        val row = repository.findById(ROW).orElseGet { LdapSettings() }
+        val existing = repository.findById(ROW).orElse(null)
+        val bindDn = form.bindDn.trim()
+        val newPassword = form.bindPassword?.takeIf { it.isNotEmpty() }
+        if (bindDn.isNotEmpty() && newPassword == null && existing?.bindPassword.isNullOrBlank()) return SsoSaveResult.Rejected(SsoSaveError.LDAP_BIND_PASSWORD_REQUIRED)
+        val row = existing ?: LdapSettings()
         row.enabled = form.enabled; row.protocol = protocol; row.host = host.ifEmpty { null }; row.port = port.ifEmpty { null }; row.baseDn = baseDn.ifEmpty { null }
         row.distinguishedNamePostfix = form.distinguishedNamePostfix.trim().ifEmpty { null }; row.loginProperty = form.loginProperty.trim().ifEmpty { null }
         row.displayNameProperty = form.displayNameProperty.trim().ifEmpty { null }; row.userNameProperty = form.userNameProperty.trim().ifEmpty { null }; row.emailProperty = form.emailProperty.trim().ifEmpty { null }
         row.useEmailBaseLogin = form.useEmailBaseLogin; row.fallbackToLocalLogin = form.fallbackToLocalLogin; row.englishNameAttributeName = form.englishNameAttributeName.trim()
+        row.bindDn = bindDn.ifEmpty { null }
+        // DN을 비우면 비밀번호도 지운다. 비밀번호 칸이 비어 있으면 저장된 값을 유지한다
+        if (bindDn.isEmpty()) row.bindPassword = null else newPassword?.let { row.bindPassword = cipher.encrypt(it.toByteArray()) }
         row.updatedDate = Date()
         repository.save(row)
         audit.record(
             AuditEvent(
                 "site.sso_changed", targetType = "site", details = mapOf("protocol" to "ldap", "enabled" to form.enabled, "host" to host, "port" to port, "base_dn" to baseDn, "ldap_protocol" to protocol,
-                    "use_email_base_login" to form.useEmailBaseLogin, "fallback_to_local_login" to form.fallbackToLocalLogin),
+                    "use_email_base_login" to form.useEmailBaseLogin, "fallback_to_local_login" to form.fallbackToLocalLogin, "bind_dn" to bindDn),
                 actor = actor?.let { AuditActor(AuditActorType.USER, it.id, it.loginId) }
             )
         )
         return SsoSaveResult.Saved(row)
     }
 
-    /** 서버의 주소와 포트로 연결할 수 있는지 본다(5초 안에). 연결하면 `null`, 못 하면 [SsoSaveError.LDAP_UNREACHABLE]이다. 바인드는 하지 않는다. */
+    /**
+     * 서버의 주소와 포트로 연결할 수 있는지 본다(5초 안에). 연결하지 못하면 [SsoSaveError.LDAP_UNREACHABLE]이다. 조회용 계정이 있으면 그 계정으로 바인드해 보고
+     * 실패하면 [SsoSaveError.LDAP_BIND_FAILED]이다(설정 오류가 로그인 실패로만 드러나지 않게). 모두 되면 `null`이다. 사용자 바인드는 하지 않는다.
+     */
     fun check(): SsoSaveError? {
         val config = effective()
-        return try {
+        try {
             Socket().use { it.connect(InetSocketAddress(config.host, config.port.toInt()), TIMEOUT_MILLIS) }
-            null
         } catch (e: Exception) {
-            SsoSaveError.LDAP_UNREACHABLE
+            return SsoSaveError.LDAP_UNREACHABLE
+        }
+        if (config.bindDn.isBlank()) return null
+        return try {
+            SpringLdapDirectory(config, protocol()).checkServiceAccount()
+            null
+        } catch (e: javax.naming.NamingException) {
+            SsoSaveError.LDAP_BIND_FAILED
         }
     }
 

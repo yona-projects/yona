@@ -20,3 +20,13 @@ uid: bob
 mail: bob@example.com
 displayName: Bob Lee
 userPassword: secret-bob
+
+dn: CN=Carol Park,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Carol Park
+sn: Park
+uid: carol
+mail: carol@example.com
+displayName: Carol Park
+givenName: Carol
+userPassword: secret-carol

@@ -297,7 +297,11 @@ data class YonaProperties(
         val emailProperty: String = "mail",
         val useEmailBaseLogin: Boolean = false,
         val fallbackToLocalLogin: Boolean = false,
-        val englishNameAttributeName: String = "givenName"
+        val englishNameAttributeName: String = "givenName",
+        /** 조회용 계정의 DN. 비우면 익명으로 사용자를 찾는다(추가 개발 항목, `decisions.md` D-133). v1.6에는 없다. */
+        val bindDn: String = "",
+        /** 조회용 계정의 비밀번호. 화면에서 저장한 값은 암호화되어 있고 [LdapSettingsService.effective]가 풀어 준다. */
+        val bindPassword: String = ""
     )
 
     /**

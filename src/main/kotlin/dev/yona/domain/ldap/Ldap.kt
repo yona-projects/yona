@@ -80,16 +80,23 @@ class LdapQueries(
 }
 
 /**
- * [LdapDirectory]의 스프링 시큐리티 LDAP 구현이다(로드맵 X-43, `decisions.md` D-132). v1.6 `utils.LdapService.authenticate`(`app/utils/LdapService.java:41-130`)에 해당한다.
+ * [LdapDirectory]의 스프링 시큐리티 LDAP 구현이다(로드맵 X-43, `decisions.md` D-132, D-133). v1.6 `utils.LdapService.authenticate`(`app/utils/LdapService.java:41-130`)에 해당한다.
  *
  * 접속은 [DefaultSpringSecurityContextSource]가, 검색은 스프링 시큐리티가 `BindAuthenticator`에서 쓰는 검색 도우미
- * ([SpringSecurityLdapTemplate.searchForSingleEntryInternal])가 맡는다. 순서는 v1.6과 같다: 사용자 이름으로 바인드 주체를 만들어 **그 사용자로 바인드**하고, 바인드한 연결로
- * 기준 DN 아래에서 그 사용자를 찾는다(`BindAuthenticator`는 관리자 연결로 먼저 찾은 뒤 바인드하므로 이 순서를 지킬 수 없어 부품만 가져다 쓴다).
+ * ([SpringSecurityLdapTemplate.searchForSingleEntryInternal])가 맡는다.
+ *
+ * **1. 먼저 검색해 DN을 찾고 그 DN으로 바인드한다**(D-133). 검색은 조회용 계정([YonaProperties.Ldap.bindDn])이 있으면 그 계정으로, 없으면 익명으로 한다. 검색 조건은 입력에 `@`가 있으면
+ * 이메일 속성, 없으면 로그인 속성이다. DN을 만들지 않고 찾으므로 `CN`이 로그인 ID와 달라도 되고 이메일로도 로그인된다. 찾은 사용자가 둘 이상이면 `null`이다.
+ * 바인드한 연결로 그 사용자의 속성을 읽는다.
+ *
+ * **2. 익명 검색이 안 되면 이전 방식으로 되돌아간다**(v1.6 방식, D-132). 조회용 계정이 없고 서버가 익명 검색을 막았거나 사용자를 찾지 못했을 때, 입력으로 바인드 주체를 만들어
+ * 그 사용자로 바인드한 뒤 그 연결로 검색한다. 기존 설치는 설정을 바꾸지 않아도 이전과 같이 동작한다. 조회용 계정이 있으면 되돌아가지 않는다(설정 오류를 숨기지 않는다).
  *
  * 연결과 읽기, 검색 제한 시간은 각각 5초이다. 검색 조건의 사용자 입력은 매개변수(`{0}`)로 넘겨 JNDI가 이스케이프하고, 바인드 주체의 DN 값은 [LdapQueries]가 이스케이프한다
  * (v1.6은 이스케이프 없이 이어 붙이고 연결 제한 시간만 있었다, R-60-2, R-60-10).
  *
- * 예외는 이전과 같은 JNDI 예외로 알린다. 스프링 LDAP는 JNDI 예외를 감싸 던지므로 원인을 꺼내 다시 던진다([LdapAuthService]가 `AuthenticationException`, `CommunicationException`으로 가린다).
+ * 예외는 JNDI 예외로 알린다. 스프링 LDAP는 JNDI 예외를 감싸 던지므로 원인을 꺼내 다시 던진다([LdapAuthService]가 `AuthenticationException`, `CommunicationException`으로 가린다).
+ * 조회용 계정의 바인드 실패는 사용자의 잘못된 비밀번호로 오해하지 않도록 `AuthenticationException`이 아닌 일반 [javax.naming.NamingException]으로 알린다.
  */
 class SpringLdapDirectory(private val config: YonaProperties.Ldap, private val protocol: String) : LdapDirectory {
 
@@ -106,10 +113,88 @@ class SpringLdapDirectory(private val config: YonaProperties.Ldap, private val p
 
     private val contextSource = DefaultSpringSecurityContextSource("$protocol://${config.host}:${config.port}").apply {
         setBaseEnvironmentProperties(baseEnvironment)
+        isAnonymousReadOnly = true
         afterPropertiesSet()
     }
 
-    override fun authenticate(username: String, password: String): LdapUser? {
+    /** 사용자를 찾은 결과이다. */
+    private sealed interface Lookup {
+        /** 한 명을 찾았다. [dn]은 바인드할 DN이다. */
+        data class Found(val dn: String) : Lookup
+
+        /** 둘 이상이라 사용자를 정할 수 없다. */
+        data object Ambiguous : Lookup
+
+        /** 조회용 계정이 있는데 사용자를 찾지 못했다. */
+        data object Missing : Lookup
+
+        /** 조회용 계정이 없고 익명 검색이 되지 않았거나 사용자를 찾지 못했다. 이전 방식으로 확인한다. */
+        data object Unavailable : Lookup
+    }
+
+    override fun authenticate(username: String, password: String): LdapUser? = when (val found = lookup(username)) {
+        is Lookup.Found -> authenticateAs(found.dn, password)
+        Lookup.Ambiguous, Lookup.Missing -> null
+        Lookup.Unavailable -> bindThenSearch(username, password)
+    }
+
+    private val serviceAccount: Boolean get() = config.bindDn.isNotBlank()
+
+    /** 조회용 계정으로 바인드할 수 있는지 확인한다(설정 화면의 연결 확인). 바인드에 실패하면 JNDI 예외를 던진다. */
+    fun checkServiceAccount() {
+        val context = try {
+            contextSource.getContext(config.bindDn, config.bindPassword)
+        } catch (e: org.springframework.ldap.NamingException) {
+            throw unwrap(e)
+        }
+        LdapUtils.closeContext(context)
+    }
+
+    /** 조회용 계정(없으면 익명)으로 [username]의 항목을 찾는다. 서버에 연결하지 못하면 통신 예외를 그대로 던진다. */
+    private fun lookup(username: String): Lookup {
+        val context = try {
+            if (serviceAccount) contextSource.getContext(config.bindDn, config.bindPassword) else contextSource.readOnlyContext
+        } catch (e: org.springframework.ldap.NamingException) {
+            return failedLookup(unwrap(e))
+        }
+        try {
+            val controls = SearchControls().apply { searchScope = SearchControls.SUBTREE_SCOPE; timeLimit = TIMEOUT; returningAttributes = arrayOf("1.1") }
+            val entry = try {
+                SpringSecurityLdapTemplate.searchForSingleEntryInternal(context, controls, config.baseDn, "(${queries.filterAttributeOf(username)}={0})", arrayOf<Any>(username))
+            } catch (e: IncorrectResultSizeDataAccessException) {
+                return if (e.actualSize > 1) Lookup.Ambiguous else if (serviceAccount) Lookup.Missing else Lookup.Unavailable
+            }
+            return Lookup.Found(entry.nameInNamespace)
+        } catch (e: javax.naming.NamingException) {
+            return failedLookup(e)
+        } finally {
+            LdapUtils.closeContext(context)
+        }
+    }
+
+    /** 검색 단계의 실패를 정한다. 서버에 연결하지 못한 것은 그대로 알리고, 조회용 계정의 실패는 설정 오류이고, 익명 검색의 실패는 이전 방식으로 되돌아간다. */
+    private fun failedLookup(cause: javax.naming.NamingException): Lookup {
+        if (cause is javax.naming.CommunicationException) throw cause
+        if (serviceAccount) throw javax.naming.NamingException("LDAP 조회용 계정으로 사용자를 찾지 못했습니다: ${cause.message}").also { it.initCause(cause) }
+        return Lookup.Unavailable
+    }
+
+    /** 찾은 [dn]으로 바인드하고, 바인드한 연결로 그 사용자의 속성을 읽는다. 비밀번호가 틀리면 인증 예외이다. */
+    private fun authenticateAs(dn: String, password: String): LdapUser {
+        val context = try {
+            contextSource.getContext(dn, password)
+        } catch (e: org.springframework.ldap.NamingException) {
+            throw unwrap(e)
+        }
+        try {
+            return toUser(context.getAttributes(javax.naming.ldap.LdapName(dn)))
+        } finally {
+            LdapUtils.closeContext(context)
+        }
+    }
+
+    /** v1.6 방식이다. 입력으로 바인드 주체를 만들어 그 사용자로 바인드하고, 바인드한 연결로 기준 DN 아래에서 그 사용자를 찾는다. */
+    private fun bindThenSearch(username: String, password: String): LdapUser? {
         val context = try {
             contextSource.getContext(queries.principalOf(username), password)
         } catch (e: org.springframework.ldap.NamingException) {
@@ -123,19 +208,21 @@ class SpringLdapDirectory(private val config: YonaProperties.Ldap, private val p
             } catch (e: IncorrectResultSizeDataAccessException) {
                 return null
             }
-            fun text(name: String): String = entry.getStringAttribute(name).orEmpty()
-            return LdapUser(
-                displayName = text(config.displayNameProperty),
-                email = text(config.emailProperty),
-                loginId = text(config.loginProperty),
-                department = text("department"),
-                englishName = if (config.englishNameAttributeName.isNotBlank()) text(config.englishNameAttributeName) else ""
-            )
-        } catch (e: org.springframework.ldap.NamingException) {
-            throw unwrap(e)
+            return toUser(entry.attributes)
         } finally {
             LdapUtils.closeContext(context)
         }
+    }
+
+    private fun toUser(attributes: javax.naming.directory.Attributes): LdapUser {
+        fun text(name: String): String = attributes.get(name)?.get()?.toString().orEmpty()
+        return LdapUser(
+            displayName = text(config.displayNameProperty),
+            email = text(config.emailProperty),
+            loginId = text(config.loginProperty),
+            department = text("department"),
+            englishName = if (config.englishNameAttributeName.isNotBlank()) text(config.englishNameAttributeName) else ""
+        )
     }
 
     /** 스프링 LDAP가 감싼 JNDI 예외를 꺼낸다. 원인이 JNDI 예외가 아니면 같은 메시지의 일반 JNDI 예외로 바꾼다. */

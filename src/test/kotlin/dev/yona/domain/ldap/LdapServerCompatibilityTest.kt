@@ -13,7 +13,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -28,13 +27,25 @@ import kotlin.test.assertTrue
 @EnabledIfSystemProperty(named = "yona.ldap.compat", matches = "true")
 class LdapServerCompatibilityTest {
 
-    private fun directory(port: Int, english: String = "givenName") = SpringLdapDirectory(
+    private fun directory(port: Int, english: String = "givenName", bindDn: String = "", bindPassword: String = "") = SpringLdapDirectory(
         YonaProperties.Ldap(
             enabled = true, host = "127.0.0.1", port = port.toString(), baseDn = "dc=example,dc=com", distinguishedNamePostfix = "ou=user,dc=example,dc=com",
-            loginProperty = "uid", displayNameProperty = "displayName", userNameProperty = "CN", emailProperty = "mail", englishNameAttributeName = english
+            loginProperty = "uid", displayNameProperty = "displayName", userNameProperty = "CN", emailProperty = "mail", englishNameAttributeName = english,
+            bindDn = bindDn, bindPassword = bindPassword
         ),
         protocol = "ldap"
     )
+
+    /** OpenLDAP 관리자 계정을 조회용 계정으로 쓰는 디렉터리이다(관리자는 모든 항목을 읽을 수 있다). */
+    private fun withServiceAccount(port: Int) = directory(port, bindDn = "cn=admin,dc=example,dc=com", bindPassword = "admin-pw")
+
+    /** `CN`이 로그인 ID와 다른 사용자(carol)와 이메일 입력이 모두 로그인되는지 확인한다. 먼저 검색해 DN을 찾는 방식이어야 된다(D-133). */
+    private fun assertSearchFirstLogins(d: SpringLdapDirectory) {
+        assertEquals("carol", assertNotNull(d.authenticate("carol", "secret-carol")).loginId)
+        assertEquals("carol", assertNotNull(d.authenticate("carol@example.com", "secret-carol")).loginId)
+        assertEquals("alice", assertNotNull(d.authenticate("alice@example.com", "secret-alice")).loginId)
+        assertFailsWith<AuthenticationException> { d.authenticate("carol", "wrong") }
+    }
 
     /** 서버에 익명으로 접속해 기준 항목 아래를 검색할 수 있으면 `true`이다. 접속과 검색이 거부되면 `false`이다. */
     private fun anonymousSearchWorks(port: Int): Boolean = try {
@@ -63,51 +74,65 @@ class LdapServerCompatibilityTest {
     // --- OpenLDAP ---
 
     @Test
-    fun `OpenLDAP 익명 읽기 허용 서버에서 로그인된다`() {
+    fun `OpenLDAP 익명 읽기 허용 서버에서는 조회용 계정 없이도 먼저 검색해 로그인된다`() {
         val port = port("openldap-allow")
         assertTrue(anonymousSearchWorks(port), "이 서버는 익명 검색을 허용한다")
         assertLogsIn(port)
+        assertSearchFirstLogins(directory(port))
     }
 
     @Test
-    fun `OpenLDAP 익명 차단 서버에서도 로그인된다 (인증한 사용자는 읽을 수 있는 설정)`() {
+    fun `OpenLDAP 익명 차단 서버에서는 조회용 계정이 없으면 이전 방식으로 로그인된다`() {
         val port = port("openldap-deny")
         assertFalse(anonymousSearchWorks(port), "이 서버는 익명 접속을 막는다")
         assertLogsIn(port)
+        // 이전 방식은 CN이 로그인 ID와 같은 사용자만 된다. CN이 다른 사용자와 이메일 입력은 DN을 만들 수 없어 실패한다(이전과 같은 한계)
+        assertFailsWith<AuthenticationException> { directory(port).authenticate("carol", "secret-carol") }
+        assertTrue(runCatching { directory(port).authenticate("alice@example.com", "secret-alice") }.exceptionOrNull() is NamingException)
     }
 
     @Test
-    fun `OpenLDAP 본인 항목만 읽게 한 서버에서는 비밀번호가 맞아도 검색 기준 항목을 읽지 못해 실패한다`() {
+    fun `OpenLDAP 익명 차단 서버에서 조회용 계정을 주면 CN이 다른 사용자와 이메일도 로그인된다`() {
+        assertSearchFirstLogins(withServiceAccount(port("openldap-deny")))
+    }
+
+    @Test
+    fun `OpenLDAP 본인 항목만 읽게 한 서버에서는 조회용 계정이 없으면 검색 기준 항목을 읽지 못해 실패한다`() {
         val port = port("openldap-selfonly")
         assertFalse(anonymousSearchWorks(port))
-        // 바인드에는 성공하지만 사용자가 기준 항목(dc=example,dc=com)을 볼 수 없어 서버가 '없는 객체'로 답한다. 로그인 서비스는 이를 실패로 처리한다(NamingException)
+        // 익명 검색이 막혀 이전 방식으로 되돌아가고, 바인드에는 성공하지만 사용자가 기준 항목을 볼 수 없어 서버가 '없는 객체'로 답한다
         assertFailsWith<javax.naming.NameNotFoundException> { directory(port).authenticate("alice", "secret-alice") }
-        // 비밀번호가 틀린 것은 여전히 인증 예외이다
         assertFailsWith<AuthenticationException> { directory(port).authenticate("alice", "wrong") }
     }
 
     @Test
-    fun `OpenLDAP은 이메일 형식 이름의 바인드를 받지 않는다`() {
-        // Active Directory와 달리 이메일 모양의 이름(UPN)으로 바인드하지 못한다. 이메일로 로그인하려면 서버가 그 형식을 지원해야 한다
-        val outcome = runCatching { directory(port("openldap-deny")).authenticate("alice@example.com", "secret-alice") }
-        assertNull(outcome.getOrNull(), "이메일 형식 이름으로는 사용자를 돌려주지 않는다")
-        assertTrue(outcome.exceptionOrNull() is NamingException, "서버가 바인드를 거부한다: ${outcome.exceptionOrNull()}")
+    fun `OpenLDAP 본인 항목만 읽게 한 서버도 조회용 계정을 주면 로그인된다`() {
+        val d = withServiceAccount(port("openldap-selfonly"))
+        assertSearchFirstLogins(d)
+        assertEquals("Alice Kim", assertNotNull(d.authenticate("alice", "secret-alice")).displayName)
+    }
+
+    @Test
+    fun `조회용 계정의 비밀번호가 틀리면 사용자 인증 예외가 아니라 설정 오류이다`() {
+        val d = directory(port("openldap-deny"), bindDn = "cn=admin,dc=example,dc=com", bindPassword = "wrong")
+        val e = assertFailsWith<NamingException> { d.authenticate("alice", "secret-alice") }
+        assertFalse(e is AuthenticationException, "조회용 계정의 오류를 사용자의 잘못된 비밀번호로 오해하지 않는다: $e")
     }
 
     // --- Apache Directory Server ---
 
     @Test
-    fun `ApacheDS 익명 허용 서버에서 로그인된다`() {
+    fun `ApacheDS 익명 허용 서버에서는 조회용 계정 없이도 먼저 검색해 로그인된다`() {
         val port = port("apacheds-allow")
         assertTrue(anonymousSearchWorks(port), "이 서버는 익명 검색을 허용한다")
         assertLogsIn(port)
+        assertSearchFirstLogins(directory(port))
     }
 
     @Test
-    fun `ApacheDS는 이메일 형식 이름의 바인드를 받지 않는다`() {
-        val outcome = runCatching { directory(port("apacheds-allow")).authenticate("alice@example.com", "secret-alice") }
-        assertNull(outcome.getOrNull())
-        assertTrue(outcome.exceptionOrNull() is NamingException, "서버가 바인드를 거부한다: ${outcome.exceptionOrNull()}")
+    fun `ApacheDS는 조회용 계정으로도 로그인된다`() {
+        val d = directory(port("apacheds-allow"), bindDn = "uid=admin,ou=system", bindPassword = "secret")
+        assertSearchFirstLogins(d)
     }
 
     @Test

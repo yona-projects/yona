@@ -81,4 +81,72 @@ class LdapSettingsServiceTest : AbstractIntegrationTest() {
         service.save(form(), null)
         assertTrue(logs.findAll().any { it.action == "site.sso_changed" && it.details!!.contains("ldap") })
     }
+
+    // --- 조회용 계정(D-133) ---
+
+    @Test
+    fun `조회용 계정을 저장하면 적용되는 설정에 DN과 풀어 낸 비밀번호가 들어간다`() {
+        assertIs<SsoSaveResult.Saved>(service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw"), null))
+        assertEquals("cn=svc,dc=corp,dc=example", service.effective().bindDn)
+        assertEquals("svc-pw", service.effective().bindPassword)
+        assertTrue(service.hasBindPassword())
+    }
+
+    @Test
+    fun `저장한 비밀번호는 평문이 아니라 암호화한 글이다`() {
+        service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw"), null)
+        val stored = requireNotNull(repository.findById(1L).get().bindPassword)
+        assertFalse(stored.contains("svc-pw"))
+        assertTrue(stored.startsWith("v1."), "SecretCipher의 봉인 형식이다: $stored")
+    }
+
+    @Test
+    fun `비밀번호 칸을 비워 저장하면 저장된 비밀번호를 유지한다`() {
+        service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw"), null)
+        assertIs<SsoSaveResult.Saved>(service.save(form().copy(bindDn = "cn=svc2,dc=corp,dc=example", bindPassword = ""), null))
+        assertEquals("cn=svc2,dc=corp,dc=example", service.effective().bindDn)
+        assertEquals("svc-pw", service.effective().bindPassword, "비밀번호는 바꿀 때만 입력한다")
+    }
+
+    @Test
+    fun `DN을 비우면 조회용 계정과 비밀번호를 모두 지운다`() {
+        service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw"), null)
+        assertIs<SsoSaveResult.Saved>(service.save(form().copy(bindDn = "", bindPassword = ""), null))
+        assertEquals("", service.effective().bindDn); assertEquals("", service.effective().bindPassword)
+        assertFalse(service.hasBindPassword())
+    }
+
+    @Test
+    fun `DN만 있고 저장된 비밀번호도 입력한 비밀번호도 없으면 거절한다`() {
+        assertEquals(
+            SsoSaveError.LDAP_BIND_PASSWORD_REQUIRED,
+            assertIs<SsoSaveResult.Rejected>(service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = ""), null)).error
+        )
+        assertFalse(service.isSaved())
+    }
+
+    @Test
+    fun `감사 기록에는 조회용 계정의 DN만 남고 비밀번호는 남지 않는다`() {
+        service.save(form().copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw-secret"), null)
+        val details = logs.findAll().first { it.action == "site.sso_changed" && it.details!!.contains("ldap") }.details!!
+        assertTrue(details.contains("cn=svc,dc=corp,dc=example"))
+        assertFalse(details.contains("svc-pw-secret"))
+    }
+
+    @Test
+    fun `연결 확인은 조회용 계정이 있으면 그 계정으로 바인드해 본다`() {
+        val server = com.unboundid.ldap.listener.InMemoryDirectoryServer(
+            com.unboundid.ldap.listener.InMemoryDirectoryServerConfig("dc=corp,dc=example").apply {
+                setListenerConfigs(com.unboundid.ldap.listener.InMemoryListenerConfig.createLDAPConfig("default", 0))
+                addAdditionalBindCredentials("cn=svc,dc=corp,dc=example", "svc-pw")
+            }
+        ).also { it.startListening() }
+        try {
+            val base = form(host = "127.0.0.1", port = server.listenPort.toString())
+            service.save(base.copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "svc-pw"), null)
+            assertEquals(null, service.check())
+            service.save(base.copy(bindDn = "cn=svc,dc=corp,dc=example", bindPassword = "wrong"), null)
+            assertEquals(SsoSaveError.LDAP_BIND_FAILED, service.check())
+        } finally { server.shutDown(true) }
+    }
 }

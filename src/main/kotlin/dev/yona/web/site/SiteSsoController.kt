@@ -48,7 +48,7 @@ class SiteSsoController(
         val oidc = settings.oidc(); val saml2 = settings.saml2()
         val origin = siteUrls.origin()
         return ModelAndView("site/sso").addObject("title", "site.sidebar.sso").addObject("tab", tab?.takeIf { it in TABS } ?: "general").addObject("oidc", oidc).addObject("saml2", saml2)
-            .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("ldap", ldapSettings.effective()).addObject("ldapProtocol", ldapSettings.protocol()).addObject("ldapSaved", ldapSettings.isSaved())
+            .addObject("ssoOnly", siteSettings.ssoOnly()).addObject("ldap", ldapSettings.effective().copy(bindPassword = "")).addObject("ldapBindPasswordSet", ldapSettings.hasBindPassword()).addObject("ldapProtocol", ldapSettings.protocol()).addObject("ldapSaved", ldapSettings.isSaved())
             .addObject("ldapEnabled", ldapSettings.enabled()).addObject("oidcEnabled", oidc.enabled == true).addObject("saml2Enabled", saml2.enabled == true).addObject("oidcSecretSet", !oidc.clientSecret.isNullOrBlank())
             .addObject("redirectUri", origin + siteUrls.path("/sso/oidc/callback/oidc")).addObject("initiateUrl", origin + siteUrls.path("/sso/oidc/initiate"))
             .addObject("acsUrl", origin + siteUrls.path("/sso/saml2/acs")).addObject("entityId", saml2.spEntityId?.takeIf { it.isNotBlank() } ?: (origin + siteUrls.path("/sso/saml2/metadata/saml2")))
@@ -72,7 +72,9 @@ class SiteSsoController(
             enabled = request.getParameter("enabled") == "true", protocol = text("protocol").ifEmpty { "ldap" }, host = text("host"), port = text("port"), baseDn = text("baseDn"),
             distinguishedNamePostfix = text("distinguishedNamePostfix"), loginProperty = text("loginProperty"), displayNameProperty = text("displayNameProperty"), userNameProperty = text("userNameProperty"),
             emailProperty = text("emailProperty"), useEmailBaseLogin = request.getParameter("useEmailBaseLogin") == "true", fallbackToLocalLogin = request.getParameter("fallbackToLocalLogin") == "true",
-            englishNameAttributeName = text("englishNameAttributeName")
+            englishNameAttributeName = text("englishNameAttributeName"),
+            // 조회용 계정(D-133). 비밀번호는 다듬지 않고 그대로 받는다. 비어 있으면 저장된 값을 유지한다
+            bindDn = text("bindDn"), bindPassword = request.getParameter("bindPassword")
         )
         return result(request, response, ldapSettings.save(form, actor()), "ldap")
     }

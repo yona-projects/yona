@@ -133,6 +133,32 @@ class SiteSsoTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `LDAP 탭의 조회용 계정은 DN을 보이고 비밀번호는 다시 보이지 않는다 (D-133)`() {
+        val s = admin()
+        val before = Jsoup.parse(mockMvc.perform(get("/sites/sso?tab=ldap").session(s)).andReturn().response.contentAsString)
+        assertEquals("", before.selectFirst("#ldap-bind-dn")!!.attr("value"))
+        assertEquals("password", before.selectFirst("#ldap-bind-password")!!.attr("type"))
+        flashed(s, "/sites/sso/ldap", *ldapParams(), "bindDn" to "cn=svc,dc=corp,dc=example", "bindPassword" to "svc-pw-visible?")
+        assertEquals("cn=svc,dc=corp,dc=example", ldap.effective().bindDn); assertEquals("svc-pw-visible?", ldap.effective().bindPassword)
+        val html = mockMvc.perform(get("/sites/sso?tab=ldap").session(s)).andReturn().response.contentAsString
+        val after = Jsoup.parse(html)
+        assertEquals("cn=svc,dc=corp,dc=example", after.selectFirst("#ldap-bind-dn")!!.attr("value"))
+        assertEquals("", after.selectFirst("#ldap-bind-password")!!.attr("value"), "저장된 비밀번호는 입력란에 채우지 않는다")
+        assertTrue(after.selectFirst("#ldap-bind-password")!!.attr("placeholder").isNotBlank(), "저장되어 있음을 알린다")
+        assertFalse(html.contains("svc-pw-visible?"), "비밀번호는 화면에 나오지 않는다")
+        // 비밀번호 칸을 비워 다시 저장해도 유지된다
+        flashed(s, "/sites/sso/ldap", *ldapParams(), "bindDn" to "cn=svc,dc=corp,dc=example", "bindPassword" to "")
+        assertEquals("svc-pw-visible?", ldap.effective().bindPassword)
+    }
+
+    @Test
+    fun `조회용 계정 DN만 보내고 비밀번호가 없으면 저장하지 않는다`() {
+        val s = admin()
+        flashed(s, "/sites/sso/ldap", *ldapParams(), "bindDn" to "cn=svc,dc=corp,dc=example", "bindPassword" to "")
+        assertFalse(ldap.isSaved())
+    }
+
+    @Test
     fun `잘못된 LDAP 설정은 저장하지 않는다`() {
         val s = admin()
         flashed(s, "/sites/sso/ldap", *ldapParams(host = "")); flashed(s, "/sites/sso/ldap", *ldapParams(port = "x")); flashed(s, "/sites/sso/ldap", *ldapParams(baseDn = ""))

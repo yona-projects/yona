@@ -10,6 +10,7 @@ import javax.naming.AuthenticationException
 import javax.naming.CommunicationException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -20,15 +21,20 @@ import kotlin.test.assertNull
 class SpringLdapDirectoryTest {
 
     companion object {
-        private val server = InMemoryDirectoryServer(
-            InMemoryDirectoryServerConfig("dc=example,dc=com").apply { setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("default", 0)) }
+        /** 시험용 서버를 만든다. [restrictSearch]이면 검색에 인증이 필요하다(익명 검색을 막은 서버). 조회용 계정 `cn=svc,dc=example,dc=com`(비밀번호 `svc-pw`)이 있다. */
+        private fun newServer(restrictSearch: Boolean): InMemoryDirectoryServer = InMemoryDirectoryServer(
+            InMemoryDirectoryServerConfig("dc=example,dc=com").apply {
+                setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("default", 0))
+                addAdditionalBindCredentials("cn=svc,dc=example,dc=com", "svc-pw")
+                if (restrictSearch) setAuthenticationRequiredOperationTypes(com.unboundid.ldap.sdk.OperationType.SEARCH)
+            }
         ).also { s ->
             s.add("dn: dc=example,dc=com", "objectClass: top", "objectClass: domain", "dc: example")
             s.add("dn: ou=user,dc=example,dc=com", "objectClass: top", "objectClass: organizationalUnit", "ou: user")
             fun person(cn: String, login: String, mail: String, display: String, department: String? = null, given: String? = null) = s.add(
                 *listOfNotNull(
                     "dn: CN=$cn,ou=user,dc=example,dc=com", "objectClass: top", "objectClass: person", "objectClass: organizationalPerson", "objectClass: inetOrgPerson",
-                    "cn: $cn", "sn: $cn", "uid: $login", "mail: $mail", "displayName: $display", "userPassword: secret-$cn",
+                    "cn: $cn", "sn: $cn", "uid: $login", "mail: $mail", "displayName: $display", "userPassword: secret-$login",
                     department?.let { "departmentNumber: $it" }, given?.let { "givenName: $it" }
                 ).toTypedArray()
             )
@@ -37,22 +43,32 @@ class SpringLdapDirectoryTest {
             // 같은 로그인 속성(uid) 값을 가진 항목이 둘이면 검색 결과가 둘이다.
             person("shared", "shared", "shared1@example.com", "공유1")
             person("shared2", "shared", "shared2@example.com", "공유2")
+            // CN이 로그인 ID와 다른 사용자(실제 Active Directory처럼 CN이 표시 이름인 경우)
+            person("Carol Park", "carol", "carol@example.com", "캐롤")
             s.startListening()
         }
 
+        private val server = newServer(restrictSearch = false)
+        private val restricted = newServer(restrictSearch = true)
+
         @JvmStatic
         @AfterAll
-        fun stop() = server.shutDown(true)
+        fun stop() { server.shutDown(true); restricted.shutDown(true) }
     }
 
-    private fun directory(port: Int = server.listenPort, loginProperty: String = "uid", postfix: String = "ou=user,dc=example,dc=com", english: String = "givenName") =
-        SpringLdapDirectory(
-            YonaProperties.Ldap(
-                enabled = true, host = "127.0.0.1", port = port.toString(), baseDn = "dc=example,dc=com", distinguishedNamePostfix = postfix,
-                loginProperty = loginProperty, displayNameProperty = "displayName", userNameProperty = "CN", emailProperty = "mail", englishNameAttributeName = english
-            ),
-            protocol = "ldap"
-        )
+    private fun directory(
+        port: Int = server.listenPort, loginProperty: String = "uid", postfix: String = "ou=user,dc=example,dc=com", english: String = "givenName",
+        bindDn: String = "", bindPassword: String = ""
+    ) = SpringLdapDirectory(
+        YonaProperties.Ldap(
+            enabled = true, host = "127.0.0.1", port = port.toString(), baseDn = "dc=example,dc=com", distinguishedNamePostfix = postfix,
+            loginProperty = loginProperty, displayNameProperty = "displayName", userNameProperty = "CN", emailProperty = "mail", englishNameAttributeName = english,
+            bindDn = bindDn, bindPassword = bindPassword
+        ),
+        protocol = "ldap"
+    )
+
+    private val restrictedPort get() = restricted.listenPort
 
     @Test
     fun `바인드에 성공하면 사용자 속성을 담아 돌려준다`() {
@@ -112,6 +128,64 @@ class SpringLdapDirectoryTest {
         assertEquals("5000", directory.baseEnvironment["com.sun.jndi.ldap.read.timeout"])
         assertEquals("5000", directory.baseEnvironment["com.sun.jndi.ldap.connect.timeout"])
         assertEquals(5000, directory.searchTimeLimitMillis)
+    }
+
+    // --- 먼저 검색해 DN을 찾는 방식(D-133) ---
+
+    @Test
+    fun `CN이 로그인 ID와 다른 사용자도 익명 검색으로 DN을 찾아 로그인된다`() {
+        val user = assertNotNull(directory().authenticate("carol", "secret-carol"))
+        assertEquals("캐롤", user.displayName)
+        assertEquals("carol", user.loginId)
+    }
+
+    @Test
+    fun `이메일로 입력해도 검색 조건이 이메일 속성이라 DN을 찾아 로그인된다`() {
+        assertEquals("carol", assertNotNull(directory().authenticate("carol@example.com", "secret-carol")).loginId)
+        assertEquals("alice", assertNotNull(directory().authenticate("alice@example.com", "secret-alice")).loginId)
+    }
+
+    @Test
+    fun `먼저 검색해 찾은 사용자도 비밀번호가 틀리면 인증 예외이다`() {
+        assertFailsWith<AuthenticationException> { directory().authenticate("carol", "wrong") }
+    }
+
+    @Test
+    fun `먼저 검색했을 때 둘 이상이면 null이고 없으면 이전 방식으로 확인해 인증 예외이다`() {
+        assertNull(directory().authenticate("shared", "secret-shared"))
+        assertFailsWith<AuthenticationException> { directory().authenticate("nobody", "x") }
+    }
+
+    @Test
+    fun `익명 검색이 막혀 있고 조회용 계정이 없으면 이전 방식으로 로그인된다 (CN이 로그인 ID와 같은 사용자)`() {
+        assertEquals("alice", assertNotNull(directory(port = restrictedPort).authenticate("alice", "secret-alice")).loginId)
+    }
+
+    @Test
+    fun `익명 검색이 막혀 있고 조회용 계정이 없으면 CN이 다른 사용자는 로그인되지 않는다 (이전과 같은 한계)`() {
+        assertFailsWith<AuthenticationException> { directory(port = restrictedPort).authenticate("carol", "secret-carol") }
+    }
+
+    @Test
+    fun `조회용 계정이 있으면 익명이 막힌 서버에서도 CN이 다른 사용자가 로그인된다`() {
+        val d = directory(port = restrictedPort, bindDn = "cn=svc,dc=example,dc=com", bindPassword = "svc-pw")
+        assertEquals("carol", assertNotNull(d.authenticate("carol", "secret-carol")).loginId)
+        assertEquals("carol", assertNotNull(d.authenticate("carol@example.com", "secret-carol")).loginId)
+    }
+
+    @Test
+    fun `조회용 계정이 있으면 사용자 비밀번호가 틀릴 때 인증 예외이고 없는 사용자는 null이다`() {
+        val d = directory(port = restrictedPort, bindDn = "cn=svc,dc=example,dc=com", bindPassword = "svc-pw")
+        assertFailsWith<AuthenticationException> { d.authenticate("carol", "wrong") }
+        assertNull(d.authenticate("nobody", "x"))
+        assertNull(d.authenticate("shared", "secret-shared"), "검색 결과가 둘 이상이면 null이다")
+    }
+
+    @Test
+    fun `조회용 계정의 비밀번호가 틀리면 사용자 인증 예외가 아니라 일반 오류이다`() {
+        val d = directory(port = restrictedPort, bindDn = "cn=svc,dc=example,dc=com", bindPassword = "wrong")
+        val e = assertFailsWith<javax.naming.NamingException> { d.authenticate("carol", "secret-carol") }
+        assertFalse(e is AuthenticationException, "조회용 계정의 설정 오류를 사용자의 잘못된 비밀번호로 오해하지 않는다: $e")
     }
 
     @Test

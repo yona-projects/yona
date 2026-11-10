@@ -70,6 +70,12 @@
         <div class="col-lg-4 mb-3"><label for="ldap-english-prop" class="form-label" th:text="#{site.sso.ldap.englishNameAttributeName}"></label>
             <input id="ldap-english-prop" type="text" name="englishNameAttributeName" class="form-control" th:value="${ldap.englishNameAttributeName}"></div>
     </div>
+    <div class="row">
+        <div class="col-lg-6 mb-3"><label for="ldap-bind-dn" class="form-label" th:text="#{site.sso.ldap.bindDn}"></label>
+            <input id="ldap-bind-dn" type="text" name="bindDn" class="form-control" th:value="${ldap.bindDn}" autocomplete="off"><div class="form-text" th:text="#{site.sso.ldap.bindDn.help}"></div></div>
+        <div class="col-lg-6 mb-3"><label for="ldap-bind-password" class="form-label" th:text="#{site.sso.ldap.bindPassword}"></label>
+            <input id="ldap-bind-password" type="password" name="bindPassword" class="form-control" autocomplete="new-password" value="" th:placeholder="${ldapBindPasswordSet} ? #{site.sso.secret.keep}"><div class="form-text" th:text="#{site.sso.ldap.bindPassword.help}"></div></div>
+    </div>
     <label class="option" for="ldap-email-login"><input class="form-check-input" type="checkbox" name="useEmailBaseLogin" id="ldap-email-login" value="true" th:checked="${ldap.useEmailBaseLogin}">
         <span class="option-text"><strong th:text="#{site.sso.ldap.useEmailBaseLogin}"></strong><small th:text="#{site.sso.ldap.useEmailBaseLogin.help}"></small></span></label>
     <label class="option" for="ldap-fallback"><input class="form-check-input" type="checkbox" name="fallbackToLocalLogin" id="ldap-fallback" value="true" th:checked="${ldap.fallbackToLocalLogin}">
