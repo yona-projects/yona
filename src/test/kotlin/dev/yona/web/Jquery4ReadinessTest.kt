@@ -79,7 +79,7 @@ class Jquery4ReadinessTest {
         // canvas-to-blob.js(blueimp 2.0.5)는 toBlob이 없는 브라우저에서만 toBlob을 채우고 dataURLtoBlob은 어디서도 부르지 않았다.
         // Chromium과 Firefox의 toBlob이 PNG를 돌려주는 것을 확인했고, 양쪽에서 폴리필은 아무것도 바꾸지 않았다.
         val text = code(File(js, "service/yona.user.Setting.js")).joinToString("\n")
-        assertTrue(text.contains("elCanvas.toBlob(function(oFile)"), "자르기 결과는 표준 toBlob으로 만든다")
+        assertTrue(Regex("""elCanvas\.toBlob\((function)?\s*\(?oFile""").containsMatchIn(text), "자르기 결과는 표준 toBlob으로 만든다")
         assertFalse(text.contains("dataURLtoBlob"))
     }
 

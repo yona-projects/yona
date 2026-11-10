@@ -2155,3 +2155,5 @@ Nashorn 15.7도 marked 18을 읽지 못해 4.3.0으로 정했다. 입력 856건 
 ## [2026-11-10] feat | 소규모 lib 파일과 화면별 JS 현대화 4단계와 ES 모듈 뼈대(D-122, A-438)
 
 죽은 코드 3개, humanize, rgbcolor, parseuri, jquery.elevator, Favico.js, validate.js를 없애고 문법 자동 고침(83개 파일)과 ES 모듈 뼈대를 더했다.
+
+회귀(web, audit, i18n, markdown)는 소규모 lib 교체, 문법 현대화, ES 모듈 뼈대 뒤 9분 29초에 1건 실패(문법 고침으로 화살표 함수가 된 소스 문자열을 찾던 시험)했고 고친 뒤 통과했다.
