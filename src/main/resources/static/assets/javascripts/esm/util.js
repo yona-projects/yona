@@ -34,4 +34,33 @@ export function debounce(fn, wait) {
   return debounced;
 }
 
-register("yona.util", { debounce });
+/**
+ * 연달아 불러도 다음 화면 갱신(`requestAnimationFrame`) 때 마지막 호출만 한 번 실행하는 함수를 만든다. 스크롤처럼 프레임보다 자주 오는
+ * 이벤트에서 화면 갱신을 프레임당 한 번으로 줄일 때 쓴다. 실행할 때의 `this`와 인자는 마지막 호출의 것이다.
+ *
+ * @param {Function} fn 프레임마다 한 번만 부를 함수
+ * @returns {Function} 묶인 함수(`cancel` 속성을 가진다)
+ */
+export function rafThrottle(fn) {
+  let frame = 0;
+  let lastThis;
+  let lastArgs;
+  const throttled = function (...args) {
+    lastThis = this;
+    lastArgs = args;
+    if (frame) {
+      return;
+    }
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      fn.apply(lastThis, lastArgs);
+    });
+  };
+  throttled.cancel = () => {
+    cancelAnimationFrame(frame);
+    frame = 0;
+  };
+  return throttled;
+}
+
+register("yona.util", { debounce, rafThrottle });

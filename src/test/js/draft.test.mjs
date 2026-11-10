@@ -69,4 +69,35 @@ export const tests = [
     await page.evaluate(() => { temporarySaveHandler($('#e11'), false); $('#e11').val('수정 중').trigger('keyup'); $('#a').val('').closest('form').trigger('submit'); });
     await page.clock.runFor(6000); assert.deepEqual(await stored(page), {}, '제출 뒤에 초안이 저장되었다'); await page.close();
   } },
+  { name: '만료: 마지막 저장 뒤 1시간이 지나도 제출되지 않은 초안은 지워진다(5분마다 점검)', run: async () => {
+    const page = await open(); const path = await page.evaluate(() => location.pathname);
+    await type(page, 'a', '남은 초안'); await page.clock.runFor(6000); assert.equal((await stored(page))[path], '남은 초안');
+    await page.clock.runFor(55 * 60 * 1000); assert.equal((await stored(page))[path], '남은 초안', '1시간 전에는 남아 있어야 한다');
+    await page.clock.runFor(10 * 60 * 1000); const s = await stored(page);
+    assert.equal(s[path], undefined, '1시간이 지난 초안이 남아 있다'); assert.equal(s['yona.draftTimes'], undefined, '시간 기록도 지워야 한다'); await page.close();
+  } },
+  { name: '만료: 다시 쳐서 저장하면 저장 시각이 갱신되어 그 시점부터 1시간이다', run: async () => {
+    const page = await open(); const path = await page.evaluate(() => location.pathname);
+    await type(page, 'a', '하나'); await page.clock.runFor(6000); await page.clock.runFor(50 * 60 * 1000);
+    await type(page, 'a', '하나 둘'); await page.clock.runFor(6000); await page.clock.runFor(50 * 60 * 1000);
+    assert.equal((await stored(page))[path], '하나 둘', '다시 저장한 뒤 50분이므로 남아 있어야 한다'); await page.clock.runFor(15 * 60 * 1000);
+    assert.equal((await stored(page))[path], undefined); await page.close();
+  } },
+  { name: '만료: 페이지를 열 때 이미 1시간이 지난 초안은 입력란에 되살리지 않고 지운다. 1시간 안의 초안은 되살린다', run: async () => {
+    const page = await pageWith({ stubs: false, html: HTML, scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'common/yona.Common.js'] });
+    await page.clock.install({ time: new Date('2026-11-10T12:00:00Z') });
+    await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i], get length() { return m.size; } } }); window.__ls = m; });
+    await page.addScriptTag({ content: classicFromEsm('esm/service/temporarySaveHandler.js') });
+    const now = Date.parse('2026-11-10T12:00:00Z');
+    const restored = await page.evaluate((now) => { const p = location.pathname; __ls.set(p, '오래된'); __ls.set('yona.draftTimes', JSON.stringify({ [p]: now - 61 * 60 * 1000 })); temporarySaveHandler($('#a')); const old = [$('#a').val(), __ls.get(p)]; $('#a').val('');
+      __ls.set(p, '최근'); __ls.set('yona.draftTimes', JSON.stringify({ [p]: now - 30 * 60 * 1000 })); temporarySaveHandler($('#a')); return { old, recent: [$('#a').val(), __ls.get(p)] }; }, now);
+    assert.deepEqual(restored.old, ['', undefined]); assert.deepEqual(restored.recent, ['최근', '최근']); await page.close();
+  } },
+  { name: '만료: 제출로 초안을 지우면 시간 기록도 함께 지운다. 수정 댓글 초안도 같은 규칙이다', run: async () => {
+    const page = await open(); const path = await page.evaluate(() => location.pathname);
+    await type(page, 'a', '본문'); await type(page, 'e11', '수정'); await page.clock.runFor(6000);
+    assert.equal(Object.keys(JSON.parse((await stored(page))['yona.draftTimes'])).length, 2);
+    await page.evaluate(() => removeCurrentPageTemprarySavedContent()); assert.deepEqual(await stored(page), {});
+    await type(page, 'e11', '다시 수정'); await page.clock.runFor(6000); await page.clock.runFor(66 * 60 * 1000); assert.deepEqual(await stored(page), {}); await page.close();
+  } },
 ];

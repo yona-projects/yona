@@ -2214,3 +2214,5 @@ service/ 폴더가 비었다. 남은 것은 common/ 34개(4-4).
 - 5번: 초안 저장 타이머를 입력란별로 나누고 수정 댓글은 댓글 번호 키로 저장한다. 댓글 제출 때와 1시간마다 모든 초안 타이머를 취소한다.
 - 10번: `issue.MassUpdate`의 `stuck` 판정을 `IntersectionObserver`로, `code.Diff` 코드 영역의 스레드 가로 고정을 CSS `sticky`로 바꿨다. 실제 커밋 화면에서 옛 방식과 6개 스크롤 지점의 위치가 같다.
 - 발견한 결함: `$(document.body).scrollTop()`이 표준 모드에서 항상 0이라 미니맵 현재 위치 표시가 움직이지 않았다(`code.Diff`, `code.SvnDiff`). 고쳤다.
+
+- 같은 날 이어서: 초안 1시간 만료(시간 기록 `yona.draftTimes`), 미니맵 처리기를 `rafThrottle`+`passive`+`ResizeObserver`로 바꿨다. 리뷰 목록 높이는 바꾸지 않고 비교 스크린샷을 `architecture/review-list-height/`에 보관했다.

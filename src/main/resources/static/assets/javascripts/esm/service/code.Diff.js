@@ -20,6 +20,7 @@
  */
 
 import { register } from "../namespace.js";
+import { rafThrottle } from "../util.js";
 
 const Diff = function(htOptions){
 
@@ -101,10 +102,7 @@ const Diff = function(htOptions){
     function _attachEvent(){
         htElement.welBtnWatch.on("click", _onClickBtnWatchToggle);
 
-        $(window).on({
-            "resize": _initMiniMap,
-            "scroll": _updateMiniMapCurr
-        });
+        _attachMiniMapEvent();
 
         htElement.waBtnToggleReviewWrap.on("click", () =>{
             htElement.welContainer.toggleClass("diffs-only");
@@ -582,6 +580,21 @@ const Diff = function(htOptions){
 
         if(yona.CodeCommentBox.isVisible() && htVar.htBlockInfo){
             yona.CodeCommentBlock.block(htVar.htBlockInfo);
+        }
+    }
+
+    /**
+     * 미니맵을 갱신하는 처리기를 붙인다(D-124, 동작 차이 10번). 예전에는 스크롤과 창 크기 변경 이벤트마다 바로 계산했다.
+     * 지금은 스크롤을 프레임당 한 번(`requestAnimationFrame`)만 반영하고 `passive`로 등록해 스크롤을 막지 않게 한다.
+     * 문서 크기가 바뀌는 것(내용 추가, 창 너비 변경)은 `ResizeObserver`가 알려 주고, 창 높이만 바뀌는 경우는 문서 크기가 그대로라
+     * 관찰자가 알 수 없으므로 `resize`로 받는다. 스크롤 위치를 비율로 바꾸는 계산이라 스크롤 처리기 자체는 관찰자로 대체할 수 없다.
+     */
+    function _attachMiniMapEvent(){
+        window.addEventListener("scroll", rafThrottle(_updateMiniMapCurr), {"passive": true});
+        const onResize = rafThrottle(_initMiniMap);
+        window.addEventListener("resize", onResize, {"passive": true});
+        if(typeof ResizeObserver === "function"){
+            new ResizeObserver(onResize).observe(document.documentElement);
         }
     }
 

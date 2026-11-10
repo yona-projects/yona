@@ -13,8 +13,71 @@ const pendingDrafts = new Map();
 /** 초안을 기다리는 시간(밀리초). 마지막 입력 뒤 이만큼 지나야 저장한다. */
 const DRAFT_DELAY = 5000;
 
+/** 초안을 보관하는 시간(밀리초). 마지막 저장 뒤 이 시간이 지나도 제출되지 않은 초안은 지운다(D-124). */
+const DRAFT_TTL = 3600 * 1000;
+
+/** 초안 키별 마지막 저장 시각(밀리초)을 JSON으로 담아 두는 localStorage 키. */
+const DRAFT_TIMES_KEY = 'yona.draftTimes';
+
+/** 만료된 초안을 점검하는 간격(밀리초). */
+const SWEEP_INTERVAL = 5 * 60 * 1000;
+
 /** 수정 댓글 초안의 키 접두어. 입력란마다 댓글 번호를 붙여 서로 덮어쓰지 않게 한다. */
 const UPDATE_DRAFT_KEY = '-last-comment-update-draft';
+
+/** 초안 저장 시각 표를 읽는다. 없거나 깨져 있으면 빈 표이다. */
+function readDraftTimes() {
+    try {
+        return JSON.parse(localStorage.getItem(DRAFT_TIMES_KEY) || '{}') || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+/** 초안 저장 시각 표를 저장한다. 비었으면 키 자체를 지운다. */
+function writeDraftTimes(times) {
+    if (Object.keys(times).length === 0) {
+        localStorage.removeItem(DRAFT_TIMES_KEY);
+    } else {
+        localStorage.setItem(DRAFT_TIMES_KEY, JSON.stringify(times));
+    }
+}
+
+/** [key] 초안의 저장 시각을 지금으로 적는다. */
+function touchDraft(key) {
+    const times = readDraftTimes();
+    times[key] = Date.now();
+    writeDraftTimes(times);
+}
+
+/** [key] 초안의 시간 기록을 지운다. */
+function forgetDraft(key) {
+    const times = readDraftTimes();
+    if (key in times) {
+        delete times[key];
+        writeDraftTimes(times);
+    }
+}
+
+/**
+ * 마지막 저장 뒤 1시간이 지난 초안을 지운다. 페이지를 열 때와 5분마다 부른다.
+ * 시간 기록이 없는 초안(이 기능이 생기기 전에 저장된 것)은 그 시점부터 1시간을 센다.
+ */
+function removeExpiredDrafts() {
+    const times = readDraftTimes();
+    const now = Date.now();
+    let changed = false;
+    Object.keys(times).forEach((key) => {
+        if (now - times[key] > DRAFT_TTL) {
+            localStorage.removeItem(key);
+            delete times[key];
+            changed = true;
+        }
+    });
+    if (changed) {
+        writeDraftTimes(times);
+    }
+}
 
 /**
  * 입력란이 초안을 저장할 localStorage 키를 돌려준다. 새 글과 새 댓글은 현재 경로이고, 수정 댓글은
@@ -52,6 +115,7 @@ function temporarySaveHandler($textarea, contentInitialized) {
 
             if ($input.val() === "") {
                 localStorage.removeItem(key);
+                forgetDraft(key);
                 return;
             }
 
@@ -60,6 +124,7 @@ function temporarySaveHandler($textarea, contentInitialized) {
             pendingDrafts.set(element, setTimeout(() => {
                 pendingDrafts.delete(element);
                 localStorage.setItem(key, $input.val());
+                touchDraft(key);
                 if ($input.data("editorMode") === "update-comment-body") {
                     return;
                 }
@@ -67,6 +132,12 @@ function temporarySaveHandler($textarea, contentInitialized) {
             }, DRAFT_DELAY));
         }
     });
+
+    // 오래 두어 만료된 초안은 되살리지 않고 지운다
+    removeExpiredDrafts();
+    if (localStorage.getItem(location.pathname) !== null && !(location.pathname in readDraftTimes())) {
+        touchDraft(location.pathname);   // 시간 기록이 없는 옛 초안은 지금부터 1시간을 센다
+    }
 
     if (contentInitialized === undefined || contentInitialized === true) {     // default: true
         const lastTextAreaText = $("textarea.content[data-editor-mode='update-comment-body']").last().val();
@@ -92,8 +163,10 @@ function cancelAllDraftTimers() {
 /** 현재 페이지의 초안을 지운다. 본문 키와 수정 댓글 키(번호가 붙은 것 포함)를 모두 지운다. */
 function removeCurrentPageTemprarySavedContent() {
     localStorage.removeItem(location.pathname);
+    forgetDraft(location.pathname);
     const prefix = location.pathname + UPDATE_DRAFT_KEY;
     localStorage.removeItem(prefix);
+    forgetDraft(prefix);
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const name = localStorage.key(i);
@@ -101,11 +174,12 @@ function removeCurrentPageTemprarySavedContent() {
             keys.push(name);
         }
     }
-    keys.forEach((name) => { localStorage.removeItem(name); });
+    keys.forEach((name) => { localStorage.removeItem(name); forgetDraft(name); });
 }
 
-// 오래 열어 둔 탭에 남은 초안 타이머를 시스템이 1시간마다 취소한다(D-124)
+// 오래 열어 둔 탭에 남은 초안 타이머를 시스템이 1시간마다 취소하고, 1시간 넘게 제출되지 않은 초안은 5분마다 점검해 지운다(D-124)
 setInterval(cancelAllDraftTimers, 3600 * 1000);
+setInterval(removeExpiredDrafts, SWEEP_INTERVAL);
 
 // 번들(yona-lib.js)에서 전역 함수로 불리던 것이라, 댓글과 글 작성 화면의 클래식 스크립트가 같은 이름으로 부른다
 register("temporarySaveHandler", temporarySaveHandler);

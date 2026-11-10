@@ -25,4 +25,12 @@ export const tests = [
     const r = await run(async () => { const calls = []; const a = yona.util.debounce(() => calls.push('a'), 60); const b = yona.util.debounce(() => calls.push('b'), 60); a(); b(); a(); await new Promise((x) => setTimeout(x, 150)); return calls.sort(); });
     assert.deepEqual(r, ['a', 'b']);
   } },
+  { name: 'rafThrottle: 한 프레임 안의 여러 호출은 프레임이 끝날 때 마지막 인자로 한 번만 실행된다', run: async () => {
+    const r = await run(async () => { const calls = []; const f = yona.util.rafThrottle((v) => calls.push(v)); f(1); f(2); f(3); const before = calls.slice(); await new Promise((x) => requestAnimationFrame(() => requestAnimationFrame(x))); f(4); await new Promise((x) => requestAnimationFrame(() => requestAnimationFrame(x))); return { before, calls }; });
+    assert.deepEqual(r, { before: [], calls: [3, 4] });
+  } },
+  { name: 'rafThrottle: cancel()은 아직 실행하지 않은 호출을 취소한다', run: async () => {
+    const r = await run(async () => { const calls = []; const f = yona.util.rafThrottle(() => calls.push(1)); f(); f.cancel(); await new Promise((x) => requestAnimationFrame(() => requestAnimationFrame(x))); return calls; });
+    assert.deepEqual(r, []);
+  } },
 ];
