@@ -92,7 +92,8 @@ class ForkController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val user = requireNotNull(currentUserProvider.get().user)
-        val scope = bind(forkName, projectScope)
+        // v1.6은 `form.get()` 예외로 500이었다(pullrequest-F17). 입력 검사 오류로 400 오류 화면을 보인다.
+        val scope = bind(forkName, projectScope) ?: return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
         val destination = forks.destination(request.getParameter("owner"), user)
         val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
 
@@ -125,9 +126,10 @@ class ForkController(
     ): Map<String, String> {
         val original = projectService.findByOwnerAndProjectName(owner, name)
         val user = requireNotNull(currentUserProvider.get().user)
-        val scope = bind(forkName, projectScope)
         val destination = forks.destination(request.getParameter("owner"), user)
         val failed = linkedMapOf("status" to "failed", "url" to siteUrls.path("${dev.yona.util.UrlPaths.projectPath(original?.owner, original?.name)}/pullRequests"))
+        // v1.6은 이름이나 공개 범위가 규칙에 맞지 않으면 500이었다(pullrequest-F17). 다른 실패와 같이 실패로 답해 화면이 알리게 한다.
+        val scope = bind(forkName, projectScope) ?: return failed
         if (original == null || forks.nameTaken(destination, forkName.orEmpty())) return failed
         return try {
             val fork = forks.fork(original, destination, requireNotNull(forkName), scope, user)
@@ -138,11 +140,10 @@ class ForkController(
         }
     }
 
-    /** 폼 값이 프로젝트 규칙에 맞는지 보고 공개 범위를 돌려준다. 맞지 않으면 v1.6의 `form.get()` 예외처럼 500이 난다. */
-    private fun bind(name: String?, projectScope: String?): ProjectScope {
-        check(ProjectNameRules.violations(name).isEmpty()) { "Cannot get value if form contains errors" }
+    /** 폼 값이 프로젝트 규칙에 맞는지 보고 공개 범위를 돌려준다. 맞지 않으면 `null`이다(v1.6은 `form.get()` 예외로 500이었다). */
+    private fun bind(name: String?, projectScope: String?): ProjectScope? {
+        if (ProjectNameRules.violations(name).isNotEmpty()) return null
         return projectScope?.let { value -> ProjectScope.entries.firstOrNull { it.name == value } }
-            ?: throw IllegalStateException("Cannot get value if form contains errors")
     }
 
     private fun adminOrganizations(user: dev.yona.domain.user.User) = forks.adminOrganizationNames(user)
