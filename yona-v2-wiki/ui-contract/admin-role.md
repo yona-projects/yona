@@ -136,8 +136,8 @@ updated: 2026-11-11
 |---|---|---|---|
 | `@SiteManagerOnly` | `SiteManagerOnlyStage.run`(`web/access/SiteManagerOnly.kt:32-35`) | 관리자가 아니면 막는다(이것이 관리자 전용 문이다) | `ViewResultException(ErrorViews.forbidden("error.auth.unauthorized.waringMessage"))` = 403 오류 화면. 익명도 로그인 폼이 아니라 403 |
 | `@AnonymousCheck` | `AnonymousCheckStage.run`(`AnonymousCheckStage.kt:25-37`) | 관리자 분기 없음. `!allowsAnonymousAccess || requiresLogin`이고 익명이면 `/users/loginform?redirectUrl=<uri>`로 303(GET 요청이면 질의 문자열을 `%3F`로 인코딩해 `redirectUrl` 값에 덧붙인다, oauth-F7) | 303 리다이렉트 + 필요하면 flash `user.login.alert` |
-| `@GuestProhibit` | `ProjectCheckStage.guestPassed`(`ProjectCheckStage.kt:115-123`) | 관리자 분기 없음. `user.isGuest == true`이면 `/`로 리다이렉트 | 303 + flash `error.forbidden.or.not.allowed` |
-| `@IsAllowed`, `@IsCreatable`, `@DefaultProjectCheck`, `@RequiresVcs`, `@CodeAccessCheck` | `ProjectCheckStage.run`(`:57-83`). 프로젝트를 찾고 읽을 수 있는지(`readableProject`, `:86`)를 한 번 확인한 뒤 `checkMenuEnabled`(`:98`)를 거친다 | 모두 `AccessControl`(2-2)나 `ProjectService.hasMember`(2-3)를 거쳐 관리자는 통과. **`checkMenuEnabled`는 관리자 분기가 없다**: 프로젝트 설정에서 이슈 메뉴를 끈 프로젝트의 `issues`, `issue`(라벨 관리 `issue/label*`은 제외), `issueform`, `copyLabels` 주소와 마일스톤 메뉴를 끈 프로젝트의 `milestones`, `milestone`, `newMilestoneForm` 주소는 **관리자에게도 404**이다(issue-F24, API 경로 `-_-api`는 제외) | 익명: 로그인 화면 403. 로그인: 오류 화면 403 (`error.forbidden.or.notfound` 또는 `error.forbidden`). 프로젝트 없음은 403(`projectNotFound`). 메뉴를 끈 주소는 404 오류 화면(`error.notfound`) |
+| `@GuestProhibit` | `ProjectCheckStage.guestPassed`(`ProjectCheckStage.kt:118-126`) | 관리자 분기 없음. `user.isGuest == true`이면 `/`로 리다이렉트 | 303 + flash `error.forbidden.or.not.allowed` |
+| `@IsAllowed`, `@IsCreatable`, `@DefaultProjectCheck`, `@RequiresVcs`, `@CodeAccessCheck`(그리고 `@NullProjectCheck`는 메뉴 검사만) | `ProjectCheckStage.run`(`:57-83`). 프로젝트를 찾고 읽을 수 있는지(`readableProject`, `:86`)를 한 번 확인한 뒤 `checkMenuEnabled`(`:98`)를 거친다 | 모두 `AccessControl`(2-2)나 `ProjectService.hasMember`(2-3)를 거쳐 관리자는 통과. **`checkMenuEnabled`는 관리자 분기가 없다**: 프로젝트 설정에서 이슈 메뉴를 끈 프로젝트의 `issues`, `issue`(라벨 관리 `issue/label*`은 제외), `issueform`, `copyLabels` 주소와 마일스톤 메뉴를 끈 프로젝트의 `milestones`, `milestone`, `newMilestoneForm` 주소는 **관리자에게도 404**이다(issue-F24, API 경로 `-_-api`는 제외) | 익명: 로그인 화면 403. 로그인: 오류 화면 403 (`error.forbidden.or.notfound` 또는 `error.forbidden`). 프로젝트 없음은 403(`projectNotFound`). 메뉴를 끈 주소는 404 오류 화면(`error.notfound`) |
 | `@NullProjectCheck` | 같은 단계 | 프로젝트 존재만 본다. 권한 분기 없음 | 없으면 403 오류 화면(익명은 로그인 화면) |
 
 `@SiteManagerOnly`가 `@AnonymousCheck`보다 **바깥**에 있는 컨트롤러가 대부분이다(`@SiteManagerOnly` 다음 `@AnonymousCheck`, 예: `SiteUserController.kt:35-36`). 그래서 사이트가 익명을 막아도 익명은 로그인 폼이 아니라 403을 받는다(`SiteManagerOnly.kt:22-24`). 순서는 `AccessChainOrderTest`가 지킨다.
@@ -160,7 +160,7 @@ updated: 2026-11-11
 
 | 위치 | 규칙 | 관리자일 때 |
 |---|---|---|
-| `ProjectService.hasMember`(`domain/project/ProjectService.kt:116-122`) | 구성원 여부. `project_user` 행이거나 매니저이거나 **사이트 관리자** | 모든 프로젝트의 구성원으로 취급. `@CodeAccessCheck`(코드 열람을 구성원으로 제한한 프로젝트, `ProjectCheckStage.kt:72-76`)를 통과 |
+| `ProjectService.hasMember`(`domain/project/ProjectService.kt:116-122`) | 구성원 여부. `project_user` 행이거나 매니저이거나 **사이트 관리자** | 모든 프로젝트의 구성원으로 취급. `@CodeAccessCheck`(코드 열람을 구성원으로 제한한 프로젝트, `ProjectCheckStage.kt:75-79`)를 통과 |
 | `ProjectService.isGuest`(`:107-110`), `ProjectViewContext.guest`(`:102-105`) | 역할이 없는 로그인 사용자 | 관리자는 게스트가 아니다 (v1.6 `ProjectUser.isGuest`) |
 | `OrganizationViewContext.guest`(`:74-77`), `EnrollController.isOrganizationGuest`(`web/EnrollController.kt:122-126`) | 조직에 속하지 않은 로그인 사용자 | 관리자는 조직 게스트가 아니다. 그래서 조직 가입 신청 취소의 400 검사를 통과하지 못하는 쪽이 된다(관리자는 신청 기록이 없고 게스트도 아니므로 `ResponseEntity.badRequest()`, `EnrollController.kt:111-112`) |
 | `OrganizationService.visibleProjects`(`domain/project/OrganizationService.kt:99`) | 조직의 프로젝트 목록 | 조직 관리자 또는 **사이트 관리자**는 전부. `hideProjectListing`이 켜져도 관리자는 전부(첫 분기가 앞섬) |

@@ -35,7 +35,7 @@ updated: 2026-11-11
 | 항목 | 내용 |
 |---|---|
 | URL | `GET /:user/:project/issue/:number`(번호는 숫자만, `IssueViewController.kt:61`) |
-| 어노테이션 | `@NullProjectCheck`(62), 클래스 `@AnonymousCheck`. 읽기 권한은 메서드 안에서 직접 검사(87). `@NullProjectCheck`는 프로젝트가 있는지만 보므로 이슈 메뉴를 끈 프로젝트에서도 이 화면은 열린다(`issue-F26`) |
+| 어노테이션 | `@NullProjectCheck`(62), 클래스 `@AnonymousCheck`. 읽기 권한은 메서드 안에서 직접 검사(87). `@NullProjectCheck` 단계도 이슈 메뉴를 끈 프로젝트의 주소를 404로 막는다(2026-11-11부터, `issue-F26`) |
 | 템플릿 | `T/issue/view.html`, 레이아웃 `project-layout(제목, projectView, 'ISSUE', viewPage)` + `project/menu :: projectMenu(..., 'main-menu-only')` |
 | 모델 | `title`(`이슈제목 |:| 본문 앞 200자`), `projectView`, `issue`(`IssueDetail`), `listUrl`, `issueResourceId`, `nextState`(`open`/`closed`)(`IssueViewController.kt:105-111`) |
 | 응답 분기 | Accept가 JSON 선호면 `{id,title,state,body(200자 줄임),createdDate,link}`, 없는 이슈는 JSON이면 `200 {"title":번호,"body":"..."}`, 아니면 404 프로젝트 오류 화면. `Vary: Accept`(74, 78-83, 94-101) |
@@ -248,4 +248,4 @@ updated: 2026-11-11
 - 줄 번호만 고친 곳: 약 25곳(`IssueViewController.kt`, `IssueApiController.kt`, `issue.View.js`, `AccessControl.kt`, `IssueService.kt`, 시험).
 - 더한 행: 요청 표의 `nextstate` 행, 권한 행렬의 "번역 단추, 변경 감지 요청, 새 이슈 링크" 행.
 - 없앤 행: 없음.
-- 새 발견 사항: 없음(`issue.md`의 F26: 이슈 메뉴를 끈 프로젝트에서도 이슈 보기는 열린다).
+- 새 발견 사항: 없음(`issue.md`의 F26: 이슈 메뉴를 끈 프로젝트의 이슈 보기를 막도록 고쳤다, A-466).

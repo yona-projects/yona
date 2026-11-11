@@ -49,7 +49,7 @@ updated: 2026-11-11
 | 조직 범위에서 없는 조직 | 400(404가 아니다) | `:74` |
 | 조직 범위에서 `yona.hide-project-listing`이 켜져 있고 보는 사람이 그 조직의 구성원도 관리자도 아님 | 400 | `:69-72` |
 | `pageNum`이 숫자가 아니거나 1보다 작음 | 400 | `:98-102` |
-| 프로젝트 범위에서 프로젝트를 읽을 수 없음 | `@IsAllowed(READ)`가 먼저 막아 403(익명은 로그인 화면) 또는 404 | `:82`, `ProjectCheckStage.kt:63-71` |
+| 프로젝트 범위에서 프로젝트를 읽을 수 없음 | `@IsAllowed(READ)`가 먼저 막아 403(익명은 로그인 화면) 또는 404 | `:82`, `ProjectCheckStage.kt:66-74` |
 
 - 접근 검사 순서: `/search`와 조직 범위는 클래스의 `@AnonymousCheck`만 있어, 사이트가 익명 접근을 막았으면(`allows-anonymous-access=false`) 익명을 `/users/loginform?redirectUrl=<요청 경로>`로 보낸다(`AnonymousCheckStage.kt:25-36`, GET이면 질의 문자열도 `redirectUrl` 값에 `%3F`와 함께 실린다).
 - 응답은 항상 HTML이다(JSON 분기 없음). 읽기 전용 트랜잭션.

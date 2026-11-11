@@ -44,7 +44,7 @@ updated: 2026-11-11
 | 고치기 제출, 열기, 닫기 | `@IsAllowed(UPDATE, MILESTONE)` | |
 | 삭제 | `@IsAllowed(DELETE, MILESTONE)` | |
 
-**마일스톤 메뉴 검사**: 프로젝트 설정에서 마일스톤 메뉴(`menuSetting.milestone`)를 끈 프로젝트에서는 이 표의 요청 전부(`/milestones`, `/milestone/...`, `/newMilestoneForm`, 곧 경로 셋째 구간이 `milestones`, `milestone`, `newMilestoneForm`인 것)가 위 어노테이션보다 먼저, 프로젝트 읽기를 확인한 직후 404(`error.notfound`, 프로젝트 레이아웃)이다(`ProjectCheckStage.checkMenuEnabled`, `ProjectCheckStage.kt:86-111`). 데이터는 지우지 않으므로 메뉴를 다시 켜면 열린다. **프로젝트 소속 확인**: 권한 검사는 마일스톤을 경로 4번째 구간의 번호로만 찾는다(`ProjectResourceLocator.kt:54`). 숫자가 아니면 404, 없으면 404(`error.notfound`, 프로젝트 레이아웃). 컨트롤러는 거기에 더해 마일스톤이 경로의 프로젝트 소속인지 확인해(`inProject`, `MilestoneController.kt:266`) 상세, 고치기 폼, 고치기 제출, 삭제, 열기, 닫기 여섯 요청 모두 다른 프로젝트의 마일스톤이면 404(`ErrorViews.notFound()`)를 돌려준다. 권한 규칙은 [project.md](project.md) 1.1: 만들기와 UPDATE는 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버, 그룹 구성원이고, DELETE는 그룹 구성원만으로는 안 된다(`AccessControl.kt:221`).
+**마일스톤 메뉴 검사**: 프로젝트 설정에서 마일스톤 메뉴(`menuSetting.milestone`)를 끈 프로젝트에서는 이 표의 요청 전부(`/milestones`, `/milestone/...`, `/newMilestoneForm`, 곧 경로 셋째 구간이 `milestones`, `milestone`, `newMilestoneForm`인 것)가 위 어노테이션보다 먼저, 프로젝트 읽기를 확인한 직후 404(`error.notfound`, 프로젝트 레이아웃)이다(`ProjectCheckStage.checkMenuEnabled`, `ProjectCheckStage.kt:89-114`). 데이터는 지우지 않으므로 메뉴를 다시 켜면 열린다. **프로젝트 소속 확인**: 권한 검사는 마일스톤을 경로 4번째 구간의 번호로만 찾는다(`ProjectResourceLocator.kt:54`). 숫자가 아니면 404, 없으면 404(`error.notfound`, 프로젝트 레이아웃). 컨트롤러는 거기에 더해 마일스톤이 경로의 프로젝트 소속인지 확인해(`inProject`, `MilestoneController.kt:266`) 상세, 고치기 폼, 고치기 제출, 삭제, 열기, 닫기 여섯 요청 모두 다른 프로젝트의 마일스톤이면 404(`ErrorViews.notFound()`)를 돌려준다. 권한 규칙은 [project.md](project.md) 1.1: 만들기와 UPDATE는 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버, 그룹 구성원이고, DELETE는 그룹 구성원만으로는 안 된다(`AccessControl.kt:221`).
 
 ## 2. 목록 (`milestone/list.html`)
 

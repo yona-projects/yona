@@ -41,7 +41,7 @@ updated: 2026-11-11
 
 원본 파일 경로: `GET .../rawcode/:rev/*path`(`text/plain`), `.../image/:rev/*path`, `.../files/:rev/*path`, `.../code/:branch/download`(zip), `GET .../code/!`와 `.../code/:branch/!`(+`/!/*path`, 폴더 메타 JSON), `GET .../lfs/:oid`(LFS 객체)가 이 화면의 링크 대상이다(응답 형식은 [web/code-browser.md](../web/code-browser.md)).
 
-공통 권한 어노테이션: `@CodeAccessCheck`(읽기 권한 + `isCodeAccessibleMemberOnly`이면 구성원만, 아니면 익명 로그인 화면 `403`, 로그인 사용자 `403 error.forbidden.or.notfound`, `K:access/ProjectCheckStage.kt:72-76`)가 `code/:branch...`, `commits...`, `commit/:id`, `rawcode`, `image`, `files`, `compare`, `branches`, `tags`, `lfs`에 있다(`files`와 `compare`는 발견 code-F3 수정으로 더해졌다). `/code`는 `@IsAllowed(READ)` 뒤 본문에서 같은 제한을 다시 검사한다(`403 error.forbidden`, 프로젝트 레이아웃). 프로젝트 메뉴의 단축키 `C`(코드)와 `P`(코드 주고받기)는 `view.codeAccessible`(코드 접근을 구성원으로 제한한 프로젝트에서는 구성원)일 때만 등록한다(`T:project/menu.html:74-90`, `K:project/ProjectViewContext.kt:146`). 탭 링크와 같은 조건이다. 저장소 종류를 모르는 프로젝트의 `/code`와 하위는 `501`(`<vcs> is not supported!`, text/plain)이다.
+공통 권한 어노테이션: `@CodeAccessCheck`(읽기 권한 + `isCodeAccessibleMemberOnly`이면 구성원만, 아니면 익명 로그인 화면 `403`, 로그인 사용자 `403 error.forbidden.or.notfound`, `K:access/ProjectCheckStage.kt:75-79`)가 `code/:branch...`, `commits...`, `commit/:id`, `rawcode`, `image`, `files`, `compare`, `branches`, `tags`, `lfs`에 있다(`files`와 `compare`는 발견 code-F3 수정으로 더해졌다). `/code`는 `@IsAllowed(READ)` 뒤 본문에서 같은 제한을 다시 검사한다(`403 error.forbidden`, 프로젝트 레이아웃). 프로젝트 메뉴의 단축키 `C`(코드)와 `P`(코드 주고받기)는 `view.codeAccessible`(코드 접근을 구성원으로 제한한 프로젝트에서는 구성원)일 때만 등록한다(`T:project/menu.html:74-90`, `K:project/ProjectViewContext.kt:146`). 탭 링크와 같은 조건이다. 저장소 종류를 모르는 프로젝트의 `/code`와 하위는 `501`(`<vcs> is not supported!`, text/plain)이다.
 
 ---
 

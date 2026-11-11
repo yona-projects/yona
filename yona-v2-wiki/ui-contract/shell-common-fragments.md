@@ -122,12 +122,12 @@ updated: 2026-11-11
 | 사건 | 동작 | 요청 | 응답 처리 | 근거 |
 |---|---|---|---|---|
 | `[data-login=required]` 클릭(문서 위임) | 모달을 열고 입력을 비우고 첫 단계로 돌리고 아이디에 초점. **경로가 `/users/…`이면 처리기를 달지 않는다**(`LoginDialog.js:33-35`) | 없음 | | `LoginDialog.js:33-35,57,62-78` |
-| 제출(비밀번호 단계) | ajax JSON | `POST /users/login` `{loginIdOrEmail, password, rememberMe}` | `200`이고 `{twoFactor:true, securityKey}`면 코드 단계, 아니면 화면 새로 고침. 실패는 아래 | `LoginDialog.js:132-169`, `PasswordLoginHandlers.kt:72-115` |
+| 제출(비밀번호 단계) | ajax JSON | `POST /users/login` `{loginIdOrEmail, password, rememberMe}` | `200`이고 `{twoFactor:true, securityKey}`면 코드 단계, 아니면 화면 새로 고침. 실패는 아래 | `LoginDialog.js:132-169`, `PasswordLoginHandlers.kt:72-116` |
 | 제출(코드 단계) | | `POST /users/login/2fa` `{code, rememberDevice}` | 성공이면 새로 고침 | `TwoFactorLoginController.kt:57` |
 | 보안 키 | `options`를 받아 `navigator.credentials.get`, 결과를 제출 | `POST /users/login/2fa/webauthn/options`, `POST /users/login/2fa/webauthn` | 성공 새로 고침, 실패 `Messages(message \|\| 'user.twoFactor.invalid')` | `LoginDialog.js:92-109` |
 | 실패 | 응답이 없는 연결 실패(`readyState` 0)이면 `user.login.failed.network`(F2). 아니면 서버 JSON `message`(`user.login.invalid`, `user.locked`, `user.login.tooMany`, `sso.error.ssoOnly`)를 `Messages()`로 번역해 오류칸에 보이고 대화상자를 흔든다. 본문이 JSON이 아니면 상태별 문구(4xx `user.login.failed.client`, 5xx `.server`, 그 밖 `user.login.failed`) | | | `LoginDialog.js:148-190` |
 
-서버 상태: 자격 오류 403 `user.login.invalid`(없는 사용자와 **삭제된 계정**도 같다. 계정의 존재를 알리지 않는다, usersec-F11), 승인 대기 잠김 403 `user.locked`, SSO 전용 403 `sso.error.ssoOnly`, 같은 아이디로 5번 틀린 뒤 15분 동안 429 `user.login.tooMany`(잠긴 동안의 요청은 비밀번호를 확인하지 않고 횟수에 세지 않는다. 횟수는 서버 DB `attempt_record`에 있다), 입력 누락 400 `user.login.required`(`PasswordLoginHandlers.kt:146-186`, `LoginController.kt:31-42`). 2단계 인증을 켠 사용자의 성공 응답 `200 {"twoFactor":true,"securityKey":bool}`, 아니면 `text/plain` `{}`. 로그인 처리 자체의 계약은 사용자 영역 문서를 본다.
+서버 상태: 자격 오류 403 `user.login.invalid`(없는 사용자와 **삭제된 계정**도 같다. 계정의 존재를 알리지 않는다, usersec-F11), 승인 대기 잠김 403 `user.locked`, SSO 전용 403 `sso.error.ssoOnly`, 같은 아이디로 5번 틀린 뒤 15분 동안 429 `user.login.tooMany`(잠긴 동안의 요청은 비밀번호를 확인하지 않고 횟수에 세지 않는다. 횟수는 서버 DB `attempt_record`에 있다), 입력 누락 400 `user.login.required`(`PasswordLoginHandlers.kt:156-196`, `LoginController.kt:31-42`). 2단계 인증을 켠 사용자의 성공 응답 `200 {"twoFactor":true,"securityKey":bool}`, 아니면 `text/plain` `{}`. 로그인 처리 자체의 계약은 사용자 영역 문서를 본다.
 
 ### 1.8 `common/markdown`과 `help/markdown`
 

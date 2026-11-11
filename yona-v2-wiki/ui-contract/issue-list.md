@@ -31,7 +31,7 @@ updated: 2026-11-11
 | 항목 | 내용 |
 |---|---|
 | URL | `GET /:user/:project/issues` (`K/web/issue/IssueListController.kt:72`) |
-| 권한 어노테이션 | 메서드 `@IsAllowed(READ)`(73), 클래스 `@AnonymousCheck`(`IssueListController.kt:54`). 프로젝트의 이슈 메뉴(`menuSetting.issue`)가 꺼져 있으면 읽기 검사 단계에서 `404`(`error/notfound`)이다. 일괄 변경 `POST`는 `@NullProjectCheck`라 이 검사를 거치지 않는다(`K/web/access/ProjectCheckStage.kt:88-111`, 시험 `src/test/kotlin/dev/yona/web/access/ProjectMenuOffAccessTest.kt:53`, `issue-F24`) |
+| 권한 어노테이션 | 메서드 `@IsAllowed(READ)`(73), 클래스 `@AnonymousCheck`(`IssueListController.kt:54`). 프로젝트의 이슈 메뉴(`menuSetting.issue`)가 꺼져 있으면 읽기 검사 단계에서 `404`(`error/notfound`)이다. 일괄 변경 `POST`는 `@NullProjectCheck`라 이 검사를 거치지 않는다(`K/web/access/ProjectCheckStage.kt:91-114`, 시험 `src/test/kotlin/dev/yona/web/access/ProjectMenuOffAccessTest.kt:53`, `issue-F24`) |
 | 템플릿 | 전체 화면 `T/issue/list.html`, 조각 `T/issue/partial-list-wrap.html :: listWrap`(`IssueListController.kt:94`) |
 | 레이아웃 | `layout/project-layout :: projectLayout(제목, projectView, 'ISSUE', 본문)`(`list.html:11`), 본문 맨 위에 `project/menu :: projectMenu(..., 'main-menu-only')`(`list.html:13`) |
 | 문서 제목 | `프로젝트이름 - ` + `menu.issue` 메시지(`list.html:11`, 모델 `title="menu.issue"`) |
@@ -213,7 +213,7 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(87행
 
 ### 7.1 `POST /:user/:project/issues`(일괄 변경, 이슈 보기 오른쪽 창도 같은 주소)
 
-`K/web/issue/IssueMassUpdateController.kt:58-121`. 권한 어노테이션은 `@NullProjectCheck`(프로젝트가 있는지만. 메뉴를 끈 프로젝트의 404 검사는 이 경로에 걸리지 않는다)이고 권한은 이슈마다 안에서 검사한다.
+`K/web/issue/IssueMassUpdateController.kt:58-121`. 권한 어노테이션은 `@NullProjectCheck`(프로젝트가 있는지와 메뉴를 끈 프로젝트의 404만 본다)이고 권한은 이슈마다 안에서 검사한다.
 
 | 조건 | 응답 |
 |---|---|

@@ -66,9 +66,9 @@ updated: 2026-11-11
 
 | 메서드 | 어노테이션(실행 순서) | 익명이 요청하면 |
 |---|---|---|
-| `posts`, `post` | `@IsAllowed(READ ...)` 다음 `@AnonymousCheck` | 사이트가 익명을 허용하고 프로젝트가 공개이면 통과. 아니면 로그인 화면이 403으로 나온다(`ProjectCheckStage.kt:127-133`, `:148-157`). 이슈와 마일스톤 메뉴를 끈 프로젝트의 주소만 404로 막는 `checkMenuEnabled`(`:97-111`)는 게시판 주소(`posts`, `post`)에는 적용되지 않는다. 게시판 메뉴를 꺼도 주소로는 계속 열린다 |
+| `posts`, `post` | `@IsAllowed(READ ...)` 다음 `@AnonymousCheck` | 사이트가 익명을 허용하고 프로젝트가 공개이면 통과. 아니면 로그인 화면이 403으로 나온다(`ProjectCheckStage.kt:130-136`, `:148-157`). 이슈와 마일스톤 메뉴를 끈 프로젝트의 주소만 404로 막는 `checkMenuEnabled`(`:97-111`)는 게시판 주소(`posts`, `post`)에는 적용되지 않는다. 게시판 메뉴를 꺼도 주소로는 계속 열린다 |
 | `newPostForm` | `@AnonymousCheck(requiresLogin, flash)` 다음 `@IsCreatable(BOARD_POST)` | 로그인 폼으로 303(`/users/loginform?redirectUrl=<요청 경로>`, GET이고 질의 문자열이 있으면 `%3F`와 인코딩한 질의 문자열이 뒤에 붙는다)이고 `user.login.alert` 안내가 붙는다(`AnonymousCheckStage.kt:25-36`) |
-| `newPost` | `@IsCreatable(BOARD_POST)` 다음 `@AnonymousCheck` | 익명은 만들 권한이 없어 `error.forbidden` 403 화면(`ProjectCheckStage.kt:188-192`). 로그인 이동이 아니다 |
+| `newPost` | `@IsCreatable(BOARD_POST)` 다음 `@AnonymousCheck` | 익명은 만들 권한이 없어 `error.forbidden` 403 화면(`ProjectCheckStage.kt:191-195`). 로그인 이동이 아니다 |
 | `editPostForm`, `editPost` | `@NullProjectCheck` 다음 `@AnonymousCheck`. 글 읽기 검사는 컨트롤러 안에서 한다(`editPost`는 입력 검사보다 먼저, `BoardWriteController.kt:134`, `:151`) | 프로젝트가 없으면 404(로그인한 사용자는 403 `error.forbidden.or.notfound`). 글을 읽을 수 없으면 403 `error.forbidden` |
 | `deletePost` | `@IsAllowed(DELETE, BOARD_POST)` 다음 `@AnonymousCheck` | 403 |
 | `newComment` | `@IsAllowed(READ, BOARD_POST)`, `@NullProjectCheck`, `@AnonymousCheck` | 읽을 수 있으면 컨트롤러가 `viewer == null` 또는 댓글 만들기 권한 없음을 403으로 막는다(`BoardCommentController.kt:63-65`) |
@@ -342,7 +342,7 @@ updated: 2026-11-11
 
 | 조건 | 응답 | 근거 |
 |---|---|---|
-| 익명 또는 만들기 권한 없음 | 403 `error.forbidden`(프로젝트 틀) | `ProjectCheckStage.kt:166-170` |
+| 익명 또는 만들기 권한 없음 | 403 `error.forbidden`(프로젝트 틀) | `ProjectCheckStage.kt:169-173` |
 | `title`이 비었음 | 400, `board/create`를 `errors={"title":["error.required"]}`로 다시 그림. 제출한 제목과 본문이 입력란에 되돌아온다 | `:199-206`, `:97` |
 | `title` 길이 255 초과 | 400, `error.maxLength` | `:203` |
 | `body` 파라미터 없음 | 413 `error/request-text-entity-too-large` | `:98` |
@@ -455,7 +455,7 @@ updated: 2026-11-11
 | board-F11 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 라벨 API는 `findAllById`로 라벨을 찾고 그 라벨이 이 프로젝트의 것인지 확인하지 않아 다른 프로젝트의 라벨 번호도 글에 붙일 수 있었다. (2026-11-11 수정: 이 프로젝트의 것이 아닌 라벨이 있으면 400 `Wrong label id`) | `BoardApiController.kt:55-71` |
 | board-F12 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 댓글 삭제 `DELETE .../post/{n}/comment/{commentId}/delete`의 `{n}`은 댓글이 속한 글과 대조하지 않고 리다이렉트 주소에만 쓰였다. (2026-11-11 수정: 주소의 소유자, 프로젝트 이름, 글 번호가 댓글의 것과 다르면 404) | `BoardCommentController.kt:86-93` |
 | board-F13 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 댓글 수정 아이콘은 `c.canRead` 기준으로 보여서 수정 권한이 없는 로그인 사용자도 수정 폼을 열 수 있고 저장하지 못했다. (2026-11-11 수정: 아이콘이 `c.canUpdate`일 때만 보인다) | `partial-comments.html:38`, `common/comment-update-form.html` |
-| board-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `AccessControl.kt`의 `isAllowedIfAuthor`는 `BOARD_POST`가 `AUTHOR_TYPES`에 있어서 글 작성자가 프로젝트 구성원이 아니게 되어도 자기 글을 고칠 수 있었다(읽기와 삭제는 막히는데 수정만 열림). (2026-11-11 수정: 작성자 몫은 프로젝트가 공개이거나 직접 구성원이거나 조직 구성원 규칙을 만족할 때만 준다. `IsAllowed`는 프로젝트 읽기를 먼저 요구한다) | `AccessControl.kt:195-198`, `:313-316`, `ProjectCheckStage.kt:63-71`, `:177-186` |
+| board-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `AccessControl.kt`의 `isAllowedIfAuthor`는 `BOARD_POST`가 `AUTHOR_TYPES`에 있어서 글 작성자가 프로젝트 구성원이 아니게 되어도 자기 글을 고칠 수 있었다(읽기와 삭제는 막히는데 수정만 열림). (2026-11-11 수정: 작성자 몫은 프로젝트가 공개이거나 직접 구성원이거나 조직 구성원 규칙을 만족할 때만 준다. `IsAllowed`는 프로젝트 읽기를 먼저 요구한다) | `AccessControl.kt:195-198`, `:313-316`, `ProjectCheckStage.kt:66-74`, `:177-186` |
 | board-F15 **[검증: v2 신규 결함, 수정됨 A-460]** | `view.html`의 변경 이력 링크(익명)는 `href`가 로그인 주소인데 `data-bs-toggle="modal"`이 함께 붙어 있었다. (2026-11-11 수정: 익명 링크에서 모달 속성을 뺐다) | `view.html:44-46` |
 | board-F16 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `create.html`, `edit.html`의 취소 링크와 `form action`은 `javascript:history.back()`, 편집 화면의 `tabindex`는 저장이 3, 취소가 4인데 편집기의 `tabindex=3`과 겹친다(작성 화면). 동작에는 영향이 없다 | `create.html:37`, `:67-68` |
 | board-F17 **[재조사 2026-11-11]** | 글 보기의 수정 아이콘 두 곳은 `onclick`에 `window.location = '${base}/post/{n}/editform'`을 쓰고, 본문 체크리스트 폼의 `action`은 `'/' + owner + '/' + project + '/post/' + n + '/content'`이다. 둘 다 `@{}`로 감싸지 않아 컨텍스트 경로 접두어가 붙지 않는다(`#paths.project`는 접두어를 붙이지 않는다, `TemplatePaths.kt:21`). 같은 화면의 나머지 링크는 `@{}`이다. 체크리스트의 `Tasklist.js`는 이 `action`을 그대로 PATCH 주소로 쓴다 | `view.html:56`, `:78`, `:116`, `Tasklist.js:32` |
