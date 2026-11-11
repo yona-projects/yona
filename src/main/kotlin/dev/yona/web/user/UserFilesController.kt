@@ -49,6 +49,8 @@ class UserFilesController(
             .addObject("title", "User Files")
             .addObject("rows", rows)
             .addObject("totalPages", page.totalPages)
+            // user-F8: v1.6는 검색 입력란이 늘 비어 있어 검색어가 화면에 남지 않았다. 검색한 값을 입력란에 다시 보인다.
+            .addObject("filter", filter.orEmpty())
             .addObject("menuTab", "TAB_MY_FILES")
     }
 

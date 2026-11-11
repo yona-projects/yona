@@ -75,6 +75,24 @@ const View = function(htOptions){
         htElement.welDaysAgo.on("keypress", _onKeypressDaysAgo);
         htElement.waLeaveProject.on("click", _onClickBtnLeaveProject);
         htElement.waBtnWatch.on("click",_onClickBtnWatch);
+        htElement.waTabs.each(function(){
+            this.addEventListener("shown.bs.tab", _onShownTab);
+        });
+    }
+
+    /**
+     * 위쪽 탭(이슈, 풀 리퀘스트, 프로젝트)을 눌러 바뀌면 지금 탭을 기억한다.
+     * v1.6은 처음 선택값만 써서 탭을 바꾼 뒤 `daysAgo`에 Enter를 치면 예전 탭으로 돌아갔다(user-F4).
+     * 하위 탭(열림, 닫힘)은 `selected` 값이 아니므로 무시한다.
+     *
+     * @param {Event} evt Bootstrap의 `shown.bs.tab`
+     */
+    function _onShownTab(evt){
+        const sTab = (evt.target.getAttribute("href") || "").replace(/^#/, "");
+        if(["issues", "pullRequests", "projects", "postings"].indexOf(sTab) < 0){
+            return;
+        }
+        _rememberCurrentTab(sTab);
     }
 
     /**

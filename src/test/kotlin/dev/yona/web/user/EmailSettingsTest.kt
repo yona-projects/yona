@@ -212,13 +212,13 @@ class EmailSettingsTest : AbstractIntegrationTest() {
     // --- 인증 메일과 링크 ---
 
     @Test
-    fun `인증 메일을 요청하면 숫자 50자 토큰을 만들고 이벤트를 알린다`() {
+    fun `인증 메일을 요청하면 숫자 50자 토큰을 만들고 이벤트를 알린다 (안내는 메시지 키이다 v1_6은 한국어 고정 문구였다, 고쳤다 user-F3)`() {
         val user = newUser()
         val email = sub(user, "check@example.com", false)
         mockMvc.perform(post("/user/email/sendValidationEmail/${email.id}").session(login(user)))
             .andExpect(status().isSeeOther)
             .andExpect(header().string("Location", "/user/editform"))
-            .andExpect(flash().attribute("warning", "확인 메일을 전송했습니다."))
+            .andExpect(flash().attribute("warning", "user.email.validationSent"))
         emails.flush()
         val saved = emails.findById(email.id!!).get()
         assertEquals(50, saved.token!!.length)
