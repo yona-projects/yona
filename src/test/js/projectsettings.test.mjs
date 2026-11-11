@@ -83,6 +83,13 @@ export const tests = [
     const ajax = await get(page, '__ajax'); assert.equal(ajax.length, 1); assert.deepEqual([ajax[0][0], ajax[0][1].method], ['/transfer?owner=newowner', 'put']);
     await page.evaluate(() => { window.__ajax[0][1].error(); }); assert.deepEqual(await get(page, '__hidden'), ['alertTransfer']); assert.deepEqual((await get(page, '__alerts')).slice(-1), ['project.transfer.error']); await page.close();
   } },
+  { name: '프로젝트 이전: 실패한 뒤 다시 "예"를 누르면 다시 요청한다 (v1_6은 .one이라 한 번 실패하면 아무 반응이 없었다, 고쳤다, project-F19)', run: async () => {
+    const page = await base(`<input type="checkbox" id="accept"><button id="btnTransfer"></button><button id="btnTransferExec"></button><input id="owner" value="newowner"><div id="alertTransfer"></div>`, 'esm/service/project.Transfer.js', 'yona.project.Transfer', { sTransferURL: '/transfer' });
+    await page.evaluate(() => { $('#btnTransferExec').trigger('click'); });
+    await page.evaluate(() => { window.__ajax[0][1].error(); });
+    await page.evaluate(() => { $('#btnTransferExec').trigger('click'); });
+    assert.equal((await get(page, '__ajax')).length, 2); await page.close();
+  } },
   { name: '프로젝트 삭제: 동의 체크가 없으면 알림으로 막고, 실행은 DELETE 요청을 보내며 실패(ok=false)면 모달을 닫고 알린다', run: async () => {
     const page = await base(`<input type="checkbox" id="accept"><button id="btnDelete"></button><button id="btnDeleteExec"></button><div id="alertDeletion"></div>`, 'esm/service/project.Delete.js', 'yona.project.Delete', { sDeleteURL: '/delete' });
     assert.equal(await clickResult(page, '#btnDelete'), true); // 처리기가 false를 돌려주면 기본 동작이 막힌다
