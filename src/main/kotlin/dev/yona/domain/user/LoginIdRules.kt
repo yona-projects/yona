@@ -3,13 +3,17 @@ package dev.yona.domain.user
 /**
  * 로그인 ID와 조직 이름의 형식 및 예약어 규칙이다. v1.6 `User.LOGIN_ID_PATTERN`과 `utils.ReservedWordsValidator`이다.
  *
- * 형식: 영문, 숫자, 한글, `-`로 시작하고, `_` 또는 `.`을 사이에 두고 이어 쓸 수 있다.
+ * 형식: 영문, 숫자, 한글, `-`로 시작하고, `_` 또는 `.`을 한 글자씩 사이에 두고 이어 쓸 수 있다(연달아 쓸 수는 없다). 한글 아이디를 공식으로 허용한다(usersec-F3).
  * 예약어: 주소의 첫 구간으로 이미 쓰이는 이름이다. 이 이름은 사용자나 조직, 프로젝트 소유자가 될 수 없다.
  */
 object LoginIdRules {
 
-    /** v1.6 `User.LOGIN_ID_PATTERN`. */
-    const val LOGIN_ID_PATTERN = "[a-zA-Z0-9가-힣-]+([_.][a-z_.A-Z0-9가-힣-]+)*"
+    /**
+     * v1.6 `User.LOGIN_ID_PATTERN`은 `[a-zA-Z0-9가-힣-]+([_.][a-z_.A-Z0-9가-힣-]+)*`로 구분 기호 뒤에도 `_`와 `.`를 받아 `a..b` 같은 이름이 서버에서만 통과했다.
+     * 만들기와 설정 화면의 규칙(`^[a-zA-Z0-9-가-힣]+([_.][a-zA-Z0-9-가-힣]+)*$`)에 맞춰 구분 기호를 연달아 쓰지 못하게 했다(organization-F5).
+     * 이미 만들어진 이름은 그대로 두고, 새로 만들 때 검사에만 적용한다.
+     */
+    const val LOGIN_ID_PATTERN = "[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*"
 
     private val FORMAT = Regex("^$LOGIN_ID_PATTERN$")
 
