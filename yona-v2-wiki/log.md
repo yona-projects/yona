@@ -66,3 +66,7 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 ## [2026-11-11] feat | 사이트 관리 데이터 화면 6개 swap-safe
 
 브라우저 교체 6회 오류와 404 없음, 삭제 모달 동작 확인.
+
+## [2026-11-11] feat | 프로젝트 설정 deploykeys, lfs, webhooks swap-safe
+
+브라우저 교체 5회 오류 없음.

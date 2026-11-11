@@ -13,7 +13,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner webhook-editor-wrap">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
             <strong class="form-legend" th:text="#{project.webhook.new}"></strong>
@@ -69,12 +69,9 @@
             </th:block>
         </div>
     
-        </div><!--/* .shell-main */-->
-    </div>
-</div>
-
-<script type="module" th:src="@{/assets/javascripts/esm/service/project.Webhook.js}"></script>
-<script type="text/javascript">
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/project.Webhook.js}]]);
     $(function(){
         $yona.loadModule("project.Webhook", {
             "form": "#formNewWebhook",
@@ -92,5 +89,9 @@
         });
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
+
 </th:block>
 </html>
