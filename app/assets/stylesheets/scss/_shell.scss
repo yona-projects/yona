@@ -150,6 +150,7 @@ $shell-gap: 14px;
 .gnb-switcher {
     display: flex;
     align-items: center;
+    height: 40px; // 상단 바 줄 높이(.gnb-inner)와 같게 해야 단추가 로고, 검색창과 같은 가운데 선에 놓인다.
 }
 
 .shell-switcher-btn {
