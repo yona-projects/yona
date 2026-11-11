@@ -42,7 +42,7 @@
                     </a>
                     <th:block th:if="${post.historyHtml != null}">
                         <div th:if="${post.viewerAnonymous}" class="posting-history">
-                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" data-bs-toggle="modal" th:text="#{change.history}"></a>
+                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" th:text="#{change.history}"></a>
                         </div>
                         <div th:unless="${post.viewerAnonymous}" class="posting-history">
                             <a href="#-yona-posting-history" data-bs-toggle="modal" th:text="#{change.history}"></a>

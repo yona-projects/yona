@@ -104,7 +104,7 @@ $(function(){
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    $('.search-content-body, .title').each(function() {
+    $('.search-result-wrap .search-content-body, .search-result-wrap .title').each(function() {
         var text = $(this).text();
         var matchKeyword = ($("#searchKeyword").val() || "").trim()
                             .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");

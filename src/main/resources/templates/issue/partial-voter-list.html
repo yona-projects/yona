@@ -26,7 +26,7 @@
         </ul>
     </div>
     <div class="modal-footer">
-        <button th:if="${site.showUserEmail}" id="copyEmailBtn" class="ybtn ybtn-info ybtn-small"
+        <button th:if="${site.showUserEmail}" class="copy-email-btn ybtn ybtn-info ybtn-small"
                 th:attr="data-copy-text=${#strings.listJoin(voters.![name + ' <' + email + '>;'], '')}" th:text="#{button.copy.email}"></button>
         <button class="ybtn ybtn-info ybtn-small" data-bs-dismiss="modal" aria-hidden="true" th:text="#{button.close}"></button>
     </div>
