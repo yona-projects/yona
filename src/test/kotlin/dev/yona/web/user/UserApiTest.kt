@@ -66,6 +66,14 @@ class UserApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름에 태그가 들어 있어도 HTML 조각에는 이스케이프해서 담는다 (v1_6은 그대로 담았다, 고쳤다, project-F22)`() {
+        newUser("tagname-user", "<i>zzbold</i>")
+        val body = search("zzbold").andReturn().response.contentAsString
+        assertEquals(false, body.contains("<i>zzbold</i>"), body)
+        assertEquals(true, body.contains("<b class='mention_name'>&lt;i&gt;zzbold&lt;/i&gt;</b>"), body)
+    }
+
+    @Test
     fun `삭제된 사용자는 제외한다`() {
         newUser("gone-user", state = UserState.DELETED)
         search("gone-user").andExpect(jsonPath("$.length()").value(0))
