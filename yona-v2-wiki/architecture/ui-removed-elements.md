@@ -31,9 +31,9 @@ updated: 2026-11-11
 | 사용자 오른쪽 패널 `#mySidenav`(아바타를 누르면 열림) | `common/usermenu` | 합침 | 같은 목록(즐겨찾기, 프로젝트, 최근 읽은 이슈)이 핀 사이드바와 두 곳에 있었다 | D-134 결정 9, D-141 | 아바타 짧은 드롭다운(프로필, 설정, 로그아웃)과 상단 바 "전환 ▾" | 계획 |
 | iframe 핀 사이드바와 그것을 켜는 왼쪽 화살표 | `layout/layout-framed`, `common/sidebar` | 합침 | iframe이라 맥락 메뉴를 넣을 수 없고 사용자 패널과 목록이 중복이다. 켠 상태를 기억하는 키 `shallWeOpenLeftNavigation`과 `/user/sidebar` 주소는 이어 쓴다 | D-134 결정 7, D-141 | 상단 바 "전환 ▾" 드롭다운(탭 3개와 이름 필터는 그대로) | 계획 |
 | 홈 본문 위 탭 3개(알림, 내 이슈, 내 파일) | `common/my-series-menu-tab` | 옮김 | 맥락 메뉴를 한 곳으로 모으기 위해 | D-134, D-141 | 프로젝트 밖 사이드바의 같은 이름 항목. 화면 안 탭은 사이드바와 중복이므로 새 화면에서 뺀다(**확인 필요**: 선생님이 없앨지 정해 주실 것) | 계획 |
-| 프로젝트 머리 아래 가로 메뉴(홈, 코드, 이슈, 코드 주고받기, 리뷰, 마일스톤, 게시판, 위키) | `project/menu` | 옮김 | 맥락마다 메뉴를 사이드바 하나로 모은다. 이름과 순서는 그대로이다 | D-140 | 프로젝트 사이드바(`ShellNav.project`) | 계획 |
-| 프로젝트 가로 메뉴의 짧은 글자 `short-menu`(H, C, I…)와 숨김 글자 `.blind` | `project/menu` | 합침 | 좁은 화면에서 글자 대신 쓰던 장치이다. 사이드바는 서랍으로 접히므로 필요 없다. 단축키는 항목에서 파생된다 | D-137, D-141 | 사이드바 항목의 글자와 `data-shortcut` | 계획 |
-| 프로젝트 설정 탭 10개(두 줄로 넘침) | `project/partial-settingmenu` | 옮김 | 가로 탭이 넘친다 | D-141 | 설정을 누르면 바뀌는 설정 전용 사이드바(`ShellNav.projectSettings`). 항목은 그대로 10개이고 "위험 구역" 한 항목으로 합치지 않았다(이전, 삭제, 저장소 종류 변경이 화면 셋이라 허브 화면이 새로 필요해지기 때문, A-471) | 계획 |
+| 프로젝트 머리 아래 회색 가로 메뉴(홈, 코드, 이슈, 코드 주고받기, 리뷰, 마일스톤, 게시판, 위키, 설정 톱니) | `project/menu` | 옮김 | 맥락마다 메뉴를 사이드바 하나로 모은다. 이름과 순서는 그대로이다. 배너 머리(배경 이미지, 로고, 이름, 지켜보기)는 그대로 둔다 | D-140, D-141 | 프로젝트 사이드바(`ShellNav.project`) | 완료 d112d36d5, 캡처 `shots/compare/new-proj_*` |
+| 프로젝트 가로 메뉴의 짧은 글자 `short-menu`(H, C, I…)와 숨김 글자 `.blind` | `project/menu` | 합침 | 좁은 화면에서 글자 대신 쓰던 장치이다. 사이드바는 서랍으로 접히므로 필요 없다. 단축키는 항목에서 파생된다(`NavMenu.shortcuts()`). 리뷰와 위키는 지금처럼 단축키가 없다 | D-137, D-141 | 사이드바 항목의 글자와 단축키 스크립트 | 완료 d112d36d5 |
+| 프로젝트 설정 탭 10개(두 줄로 넘침) | `project/partial-settingmenu` | 옮김 | 가로 탭이 넘친다 | D-141 | 설정 전용 사이드바(`ShellNav.projectSettings`). 항목과 순서가 지금의 탭과 같다. "위험 구역" 한 항목으로 합치지 않았다(A-471) | 완료 d112d36d5 |
 | 조직 머리 아래 회색 가로 메뉴(홈, 이슈, 게시판, 코드 주고받기, 설정 톱니)와 설정 탭 6개 | `organization/menu`, `organization/partial-settingmenu` | 옮김 | 같은 이유. 배너 머리(배경 이미지, 로고, 그룹 이름)는 요나의 얼굴이라 그대로 둔다 | D-141 | 조직 사이드바와 조직 설정 사이드바(맨 위 "조직으로 돌아가기") | 완료 3ea5d5da4, 캡처 `shots/compare/new-org_*` |
 | 사용자 설정 상단 탭 11개 | `user/partial-edit-tabmenu` | 옮김 | 같은 이유 | D-141 | 내 설정 사이드바(항목 11개). 순서는 계정(비밀번호, 이메일, 연결된 계정), 알림, 보안(토큰, SSH, GPG, 2단계, 보안 기록), OAuth 앱으로 정리했다(탭의 옛 순서는 프로필, 비밀번호, 알림, 이메일, 토큰, GPG, SSH, 2단계, OAuth, 연결된 계정, 보안 기록이었다, A-469) | 완료 9e2ac629e, 캡처 `shots/p1-user-settings/` |
 | 설정 탭 줄의 위쪽 여백 클래스 `mt20`과 탭 아래 여백 `mb-3` | `user/partial-edit-tabmenu` | 없앰 | 탭 줄 자체가 사라졌으므로 필요 없다 | D-141 | 없음 | 완료 9e2ac629e |
@@ -42,6 +42,9 @@ updated: 2026-11-11
 | 사이트 관리 사이드바의 활성 판정(경로가 정확히 같을 때만 켜짐) | `layout/site-mng-layout` | 합침(결함 수정) | 상세 화면(`/sites/oauth-apps/12` 등)에서 활성이 꺼지던 결함. 한 곳(`NavMenu.activeKey`)에서 하위 경로까지 판정한다 | D-141 | `ShellNav` | 완료 36217925c |
 | 조직 설정 탭의 순서(설정, 그룹 멤버, 감사 로그, OAuth 앱, OAuth 앱 정책, 그룹 삭제) | `organization/partial-settingmenu` | 옮김(순서만 바뀜) | 접근과 관련된 OAuth 두 항목을 앞에, 기록(감사 로그)을 뒤에 모았다 | A-469 | 조직 설정 사이드바 | 완료 3ea5d5da4 |
 | 조직 설정 톱니 아이콘(숨김 글자 `menu.admin`="프로젝트 설정") | `organization/menu` | 옮김(글자 수정) | 눈에 안 보이던 숨김 글자가 조직 화면인데 "프로젝트 설정"이었다. 보이는 항목이 되면서 조직용 기존 메시지 `organization.settingFrom`("설정")을 쓴다 | 새 글자를 만들지 않음 | 메인 사이드바의 "설정" | 완료 3ea5d5da4 |
+| 프로젝트 설정 톱니 아이콘의 위치(오른쪽 끝)과 가입 신청 배지 | `project/menu` | 옮김 | 메인 사이드바의 마지막 항목 "프로젝트 설정"(보이는 글자는 기존 메시지 `menu.admin`)이 되고 배지가 붙는다 | D-141 | 프로젝트 사이드바 | 완료 d112d36d5 |
+| 개수 배지의 색 | `project/menu` | 유지(처음 회색으로 바꿨다가 되돌림) | 옛 요나의 주황 알약을 지킨다 | 2026-11-11 지시 | `.shell-sidebar .badge` | 완료 d112d36d5 |
+| 프로젝트 단축키 스크립트의 위치와 목록 | `project/menu` 안의 인라인 스크립트 | 옮김 | 같은 `project.Global` 호출이고 키 목록만 사이드바 항목에서 만든다. 소스 계약 시험을 `menu.shortcuts()` 사용 확인으로 바꿨다 | D-137 | `project/menu :: shortcuts` | 완료 d112d36d5 |
 | 사용자 메뉴의 바로가기(내 이슈, 새 이슈) | `common/usermenu` | 합침 | 상단 바 `+`와 사이드바에 이미 있다 | D-141 | 상단 바 `+`(새 이슈 등), 사이드바 "내 이슈" | 계획 |
 | 상단 바의 "내 이슈" 링크와 배지 | `common/navbar` | **확인 필요** | 새 상단 바는 로고, 전환, 검색, `+`, 알림, 아바타로 줄였다. 프로젝트 밖에서는 사이드바 "내 이슈"가 있으나 **프로젝트 안에서는 입구가 사라진다**(단축키 `A`와 전환기 "최근 읽은 이슈"는 남는다) | D-141 열린 질문 | 선생님이 상단 바에 남길지 정해 주실 것 | 결정 대기 |
 | 상단 바의 "전체 목록" 링크 | `common/navbar` | 옮김 | 같은 주소(`/projects`)가 프로젝트 밖 사이드바에 있다 | D-141 | 사이드바 "프로젝트". 단 프로젝트 안에서는 사이드바가 프로젝트 메뉴이므로 입구가 전환기뿐이다(**확인 필요**) | 결정 대기 |
@@ -66,5 +69,7 @@ updated: 2026-11-11
 ## 아직 새 셸로 옮기지 않은 화면(참고)
 | 화면 | 이유 |
 |---|---|
-| `search/result-organization` | 검색 결과의 분류 목록(`search/partial-search`)이 자체 왼쪽 열과 래퍼를 가져 사이드바 안에 넣는 방법을 따로 정해야 한다 |
+| `search/result-project`, `search/result-organization` | 검색 결과의 분류 목록(`search/partial-search`)이 자체 왼쪽 열과 래퍼를 가져 사이드바 안에 넣는 방법을 따로 정해야 한다 |
 | 조직 이슈 목록의 자체 왼쪽 필터 열(전체 이슈, 할당된 이슈 등) | 사이드바 옆에 왼쪽 열이 둘이 된다. 옛 화면 그대로 유지하고 선생님이 정리 여부를 정해 주실 것 |
+| `project/menu :: projectMenu` 조각(회색 가로 메뉴)과 `project/partial-settingmenu` | `templates/project/menu.html`, `partial-settingmenu.html` | 프로젝트 화면 54개를 사이드바로 옮긴 커밋 d112d36d5 | `search/result-project`는 아직 가로 메뉴를 쓴다. 다 옮긴 뒤 지운다 |
+| `.project-menu-*`, `.project-setting`, `.short-menu`, `.menu-name`, `.project-menu-count` 규칙 | `app/assets/stylesheets/scss/_page.scss`, `_responsive.scss` | 같은 커밋 | 조직 메뉴와 `search/result-*`가 옮겨지면 쓰이지 않는다 |
