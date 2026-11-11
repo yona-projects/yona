@@ -86,8 +86,8 @@ class SiteDataTest : AbstractIntegrationTest() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals(4, doc.select(".cu-desc li.notice").size)
         assertTrue(doc.select(".cu-desc li.notice").last()!!.text().contains("database information only"), "DB 정보만 다룬다는 안내가 있어야 한다")
-        assertEquals("/sites/export", doc.select(".col-lg-10 a.ybtn-primary").attr("href"))
-        val form = doc.selectFirst(".col-lg-10 form")!!
+        assertEquals("/sites/export", doc.select(".shell-main a.ybtn-primary").attr("href"))
+        val form = doc.selectFirst(".shell-main form")!!
         assertEquals("/sites/import", form.attr("action"))
         assertEquals("multipart/form-data", form.attr("enctype"))
         assertEquals("post", form.attr("method"))

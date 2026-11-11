@@ -1,0 +1,90 @@
+// 새 셸(D-141)의 스타일이다. 사이드바는 Bootstrap 5의 `offcanvas-lg` 하나로 만든다(lg 이상 고정, 미만 서랍).
+// 직접 만드는 규칙은 폭, 간격, 활성 색뿐이고 색은 테마 변수(`$yobi-orange`)를 그대로 쓴다. 새 색을 만들지 않는다(D-58).
+
+$shell-sidebar-width: 240px;
+$shell-gap: 24px;
+
+.shell {
+    display: block;
+}
+
+// lg(992px) 이상에서 사이드바를 고정하고 본문을 옆에 둔다.
+@media (min-width: 992px) {
+    .shell {
+        display: flex;
+        align-items: flex-start;
+        gap: $shell-gap;
+    }
+}
+
+.shell-main {
+    flex: 1 1 auto;
+    min-width: 0; // 넓은 표나 코드가 사이드바 옆에서 넘치지 않게 한다.
+    display: flow-root; // 본문 안의 float(옛 제목과 탭)가 사이드바 옆에서 겹치지 않게 감싼다.
+}
+
+.shell-sidebar {
+    flex: 0 0 $shell-sidebar-width;
+    width: $shell-sidebar-width;
+
+    // Bootstrap의 `offcanvas-lg`는 lg 이상에서 본문을 가로(flex)로 놓으므로 머리와 목록이 옆으로 나란히 서지 않게 세로로 쌓는다.
+    @media (min-width: 992px) {
+        .offcanvas-body {
+            display: block;
+        }
+    }
+
+    // 좁은 폭의 서랍은 Bootstrap 기본 폭을 쓴다.
+    &.offcanvas-lg.show,
+    &.offcanvas-lg.showing {
+        width: auto;
+    }
+
+    .shell-sidebar-title {
+        padding: 4px 12px 8px;
+        font-weight: 700;
+        border-bottom: 1px solid var(--bs-border-color);
+        margin-bottom: 8px;
+        overflow-wrap: anywhere;
+    }
+
+    .shell-sidebar-back {
+        display: block;
+        padding: 4px 12px 8px;
+        font-weight: 600;
+        color: $yobi-orange-dark;
+        text-decoration: none;
+        border-bottom: 1px dashed var(--bs-border-color);
+        margin-bottom: 8px;
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 12px;
+        color: var(--bs-body-color);
+        border-radius: 4px;
+
+        &:hover {
+            background: var(--bs-tertiary-bg);
+        }
+
+        &.active {
+            background: lighten($yobi-orange, 36%);
+            color: $yobi-orange-dark;
+            font-weight: 600;
+        }
+    }
+}
+
+.shell-sidebar-toggle {
+    // 좁은 폭에서 본문 위에 놓이는 열기 단추이다(lg 이상에서는 `d-lg-none`이 숨긴다).
+    margin-bottom: 12px;
+}

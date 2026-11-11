@@ -225,4 +225,56 @@ class ShellNavTest {
         assertNull(ShellNav.siteAdmin(updateAvailable = false).items.first { it.key == "update" }.badge)
         assertEquals("/sites/data", menu.items.first { it.key == "data" }.path)
     }
+
+    // ---- 활성 항목 판정 ----
+
+    @Test
+    fun `현재 경로와 같은 항목이 활성이다`() {
+        val menu = ShellNav.siteAdmin(updateAvailable = false)
+        assertEquals("users", menu.activeKey("/sites/userList"))
+        assertEquals("sso", menu.activeKey("/sites/sso"))
+    }
+
+    @Test
+    fun `하위 경로에서도 가장 길게 맞는 항목이 활성이다(상세 화면에서 활성이 꺼지던 결함을 고친다)`() {
+        val menu = ShellNav.siteAdmin(updateAvailable = false)
+        assertEquals("oauthApps", menu.activeKey("/sites/oauth-apps/12"))
+        val project = ShellNav.project(project())
+        assertEquals("issues", project.activeKey("/owner/proj/issues/34"))
+        assertEquals("home", project.activeKey("/owner/proj"))
+        assertEquals("code", project.activeKey("/owner/proj/code/main/src"))
+    }
+
+    @Test
+    fun `프로젝트 홈은 경로가 정확히 같을 때만 활성이고 다른 프로젝트나 모르는 경로는 활성이 없다`() {
+        val menu = ShellNav.project(project())
+        assertNull(menu.activeKey("/owner/other"))
+        assertNull(menu.activeKey("/owner/proj2/issues"))
+        assertNull(menu.activeKey("/somewhere"))
+    }
+
+    @Test
+    fun `질의와 해시와 끝 빗금은 무시하고 대소문자와 인코딩을 구분하지 않는다`() {
+        val menu = ShellNav.siteAdmin(updateAvailable = false)
+        assertEquals("users", menu.activeKey("/sites/userList/?page=2#top"))
+        assertEquals("users", menu.activeKey("/SITES/userlist"))
+        val org = ShellNav.organization("my org", canManage = false)
+        assertEquals("issues", org.activeKey("/organizations/my%20org/issues"))
+        assertEquals("issues", org.activeKey("/organizations/my org/issues"))
+    }
+
+    @Test
+    fun `컨텍스트 경로가 붙어 들어와도 접두어를 떼고 판정한다`() {
+        val menu = ShellNav.siteAdmin(updateAvailable = false)
+        assertEquals("users", menu.activeKey("/yona/sites/userList", contextPath = "/yona"))
+        assertNull(menu.activeKey("/other/sites/userList", contextPath = "/yona"))
+    }
+
+    @Test
+    fun `프로젝트 설정의 일반 항목은 설정 폼 경로에서만 활성이다`() {
+        val menu = ShellNav.projectSettings(project())
+        assertEquals("general", menu.activeKey("/owner/proj/settingform"))
+        assertEquals("members", menu.activeKey("/owner/proj/members"))
+        assertEquals("rulesets", menu.activeKey("/owner/proj/setting/rulesets/3"))
+    }
 }

@@ -89,7 +89,7 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
         val mine = rows.first { it.text().contains("관리자가 볼 앱") }
         assertTrue(mine.text().contains(owner.loginId!!) && mine.text().contains("2"), mine.text())
         assertTrue(rows.any { it.text().contains("다른 앱") } && rows.any { it.text().contains("문서 앱") && it.text().contains("claude.example") })
-        assertNotNull(doc.selectFirst("li.active a[href\$=/sites/oauth-apps]"))
+        assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link.active[href\$=/sites/oauth-apps]"))
         assertNotNull(mine.selectFirst("form[action\$=/delete] button"))
     }
 

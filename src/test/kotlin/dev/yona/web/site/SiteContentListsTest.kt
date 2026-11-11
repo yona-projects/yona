@@ -93,7 +93,7 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         val first = page(session, "/sites/projectList")
         assertEquals(25, projectNames(first).size)
         assertEquals("${owner.loginId}/p30", projectNames(first).first())
-        assertEquals("/sites/projectList", first.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
+        assertEquals("/sites/projectList", first.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     @Test
@@ -193,8 +193,8 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         fun titles(doc: Document) = doc.select("ul.post-list-wrap li.listitem a.post-title").map { it.text().trim() }
         assertEquals(listOf("열림"), titles(page(session, "/sites/issueList")))
         assertEquals(listOf("닫힘"), titles(page(session, "/sites/issueList", "state" to "closed")))
-        assertEquals(listOf("open", "closed"), page(session, "/sites/issueList").select(".col-lg-10 > ul.nav-tabs > li a").map { it.attr("href").substringAfter("state=") })
-        assertEquals("open", page(session, "/sites/issueList").selectFirst(".col-lg-10 > ul.nav-tabs a.nav-link.active")!!.attr("href").substringAfter("state="))
+        assertEquals(listOf("open", "closed"), page(session, "/sites/issueList").select(".shell-main > ul.nav-tabs > li a").map { it.attr("href").substringAfter("state=") })
+        assertEquals("open", page(session, "/sites/issueList").selectFirst(".shell-main > ul.nav-tabs a.nav-link.active")!!.attr("href").substringAfter("state="))
     }
 
     @Test

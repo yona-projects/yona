@@ -2,6 +2,8 @@ package dev.yona.web.shell
 
 import dev.yona.domain.vcs.VcsSupport
 import dev.yona.util.UrlPaths
+import org.springframework.web.util.UriUtils
+import java.util.Locale
 
 /** 사이드바가 속한 맥락이다(D-138, D-141). 맥락마다 사이드바 하나이다. */
 enum class NavContext { HOME, PROJECT, PROJECT_SETTINGS, ORGANIZATION, ORGANIZATION_SETTINGS, USER_SETTINGS, SITE_ADMIN }
@@ -14,8 +16,12 @@ enum class NavContext { HOME, PROJECT, PROJECT_SETTINGS, ORGANIZATION, ORGANIZAT
  * @property path 컨텍스트 경로가 붙기 전의 서버 경로이다. 템플릿이 `@{...}`로 접두어를 붙인다.
  * @property shortcut 항목에서 파생되는 한 글자 단축키이다(D-137). 없으면 `null`.
  * @property badge 열린 수나 글 수 같은 배지이다. 0이면 `null`이다.
+ * @property exact `true`이면 경로가 정확히 같을 때만 활성이다. 프로젝트 홈, 조직 홈, `/`처럼 다른 항목의 앞부분이 되는 주소에 쓴다.
  */
-data class NavItem(val key: String, val labelKey: String, val path: String, val shortcut: Char? = null, val badge: Long? = null)
+data class NavItem(
+    val key: String, val labelKey: String, val path: String, val shortcut: Char? = null, val badge: Long? = null,
+    val exact: Boolean = false
+)
 
 /** 설정 전용 사이드바의 맨 위에 붙는 "프로젝트로 돌아가기" 같은 단추이다. */
 data class NavBack(val labelKey: String, val path: String)
@@ -24,6 +30,40 @@ data class NavBack(val labelKey: String, val path: String)
 data class NavMenu(val context: NavContext, val back: NavBack?, val items: List<NavItem>) {
     /** 항목 이름의 순서 목록이다. */
     fun keys(): List<String> = items.map { it.key }
+
+    /**
+     * 요청 경로에 해당하는 활성 항목의 이름이다. 없으면 `null`이다.
+     *
+     * 템플릿마다 활성 조건을 따로 쓰지 않고 한 곳에서 판정한다. 하위 경로(`/sites/oauth-apps/12`)에서도 가장 길게 맞는 항목이
+     * 활성이므로, 상세 화면에서 활성 표시가 꺼지던 지금의 결함(사이트 관리 사이드바는 경로가 정확히 같을 때만 켜졌다)이 없다.
+     * 질의, 해시, 끝 빗금은 무시하고 퍼센트 인코딩과 대소문자는 구분하지 않는다.
+     *
+     * @param requestPath 요청 경로이다(컨텍스트 경로가 붙어 있어도 된다)
+     * @param contextPath 서버의 컨텍스트 경로이다. 있으면 앞에서 떼며, 접두어가 다르면 활성이 없다.
+     */
+    @JvmOverloads
+    fun activeKey(requestPath: String, contextPath: String = ""): String? {
+        var path = normalize(requestPath)
+        val prefix = normalize(contextPath)
+        if (prefix.isNotEmpty()) {
+            if (path != prefix && !path.startsWith("$prefix/")) return null
+            path = path.removePrefix(prefix).ifEmpty { "/" }
+        }
+        return items
+            .filter { item ->
+                val target = normalize(item.path)
+                path == target || (!item.exact && path.startsWith(if (target == "/") target else "$target/"))
+            }
+            .maxByOrNull { normalize(it.path).length }
+            ?.key
+    }
+
+    private fun normalize(raw: String): String {
+        val noQuery = raw.substringBefore('#').substringBefore('?')
+        val decoded = runCatching { UriUtils.decode(noQuery, Charsets.UTF_8) }.getOrDefault(noQuery)
+        val trimmed = decoded.trimEnd('/').ifEmpty { if (noQuery.startsWith("/")) "/" else "" }
+        return trimmed.lowercase(Locale.ROOT)
+    }
 }
 
 /** 프로젝트 메뉴 켜짐 설정이다(`ProjectMenuSetting`). */
@@ -75,7 +115,7 @@ object ShellNav {
         val base = UrlPaths.projectPath(input.owner, input.name)
         val menu = input.menu
         val items = buildList {
-            add(NavItem("home", "title.projectHome", base, 'H'))
+            add(NavItem("home", "title.projectHome", base, 'H', exact = true))
             if (menu.code && input.codeAccessible) add(NavItem("code", "menu.code", "$base/code", 'C'))
             if (menu.issue) add(NavItem("issues", "menu.issue", "$base/issues", 'I', badge(input.counts.openIssues)))
             if (menu.pullRequest && input.vcs.pullRequests && input.codeAccessible) {
@@ -123,7 +163,7 @@ object ShellNav {
             }
             if (loggedIn) {
                 add(NavItem("myIssues", "issue.myIssue", "/user/issues"))
-                add(NavItem("notifications", "notification", "/"))
+                add(NavItem("notifications", "notification", "/", exact = true))
                 add(NavItem("myFiles", "user.files", "/user/files"))
             }
         }
@@ -134,7 +174,7 @@ object ShellNav {
     fun organization(name: String, canManage: Boolean): NavMenu {
         val base = UrlPaths.organizationPath(name)
         val items = buildList {
-            add(NavItem("home", "title.organizationHome", base))
+            add(NavItem("home", "title.organizationHome", base, exact = true))
             add(NavItem("issues", "menu.issue", "$base/issues"))
             add(NavItem("boards", "menu.board", "$base/boards"))
             add(NavItem("pullRequests", "menu.pullRequest", "$base/pullrequests"))
