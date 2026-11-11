@@ -192,7 +192,10 @@ class AccessControl(
         // GitHub처럼 구성원에게 그대로 열어 둔다(이슈 본문 변경 이력이 남는다).
         // 코드(저장소)는 매니저도 지울 수 없다. v1.6은 매니저 판정이 이 규칙보다 먼저 평가되어 매니저는 코드도 지울 수 있었다(R-09)
         if (resource.type == ResourceType.CODE && operation == Operation.DELETE) return false
-        val privileged = isProjectManager(user, project) || isAllowedIfAuthor(user, resource)
+        // 작성자 권한은 그 프로젝트를 볼 수 있을 때만 준다. v1.6은 이 규칙이 먼저라 비공개 프로젝트에서 구성원이 아니게 된 작성자가 자기 글을
+        // 계속 고칠 수 있었다(읽기와 삭제는 막히는데 수정만 열림, board-F14).
+        val authorHasAccess = project.isPublic() || isProjectMember(user, project) || isAllowedIfGroupMember(project, user)
+        val privileged = isProjectManager(user, project) || (authorHasAccess && isAllowedIfAuthor(user, resource))
         if (resource.type in CONTENT_TYPES && operation == Operation.DELETE) return privileged
         if (privileged || isAllowedIfAssignee(user, resource)) {
             return true
