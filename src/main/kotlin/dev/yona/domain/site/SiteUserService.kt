@@ -67,6 +67,14 @@ class SiteUserService(
 
     /** 사용자가 어느 프로젝트의 유일한 매니저인지 확인한다 (v1.6 `Project.isOnlyManager`). */
     @Transactional(readOnly = true)
+    /**
+     * 사이트 관리자가 삭제하거나 잠그면 안 되는 계정인지 판단한다. 요청한 관리자 자신과 기본 `admin`이다. 둘 다 사라지면 사이트를 관리할 수 없게 될 수 있다(site-F4).
+     *
+     * @param actor 요청한 사용자
+     * @param targetId 삭제하거나 잠글 사용자 번호
+     */
+    fun isProtectedFromLoss(actor: User?, targetId: Long?): Boolean = targetId != null && (targetId == actor?.id || targetId == DEFAULT_ADMIN_ID)
+
     fun isOnlyManager(userId: Long): Boolean = entityManager.createQuery(
         "select count(pu) from ProjectUser pu where pu.user.id = :user and pu.role.id = :manager and not exists " +
             "(select 1 from ProjectUser other where other.project.id = pu.project.id and other.role.id = :manager and other.user.id <> :user)",

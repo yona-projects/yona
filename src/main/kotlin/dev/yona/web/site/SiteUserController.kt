@@ -69,6 +69,11 @@ class SiteUserController(
     @DeleteMapping("/sites/user/delete{userId}")
     @Transactional
     fun deleteUser(@PathVariable userId: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
+        // 자기 자신과 기본 admin은 지울 수 없다. 사이트를 관리할 사람이 사라지는 사고를 막는다(site-F4, v1.6은 보호가 없었다)
+        if (service.isProtectedFromLoss(currentUserProvider.get().user, userId)) {
+            RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "site.userList.selfProtect"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
+        }
         if (service.isOnlyManager(userId)) {
             RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "site.userList.deleteAlert"))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
@@ -101,6 +106,11 @@ class SiteUserController(
         val userState = parseState(state) ?: return ErrorViews.badRequest()
         val target = users.findByLoginIdIgnoreCase(loginId)
             ?: return RedirectSupport.see(request, response, "/sites/userList?pageNum=0", mapOf(RedirectSupport.WARNING to "user.notExists.name"))
+        // 자기 자신과 기본 admin은 잠글 수 없다(site-F4). 목록을 안내와 함께 다시 보여 주고 상태는 바꾸지 않는다
+        if (service.isProtectedFromLoss(currentUserProvider.get().user, target.id)) {
+            RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "site.userList.selfProtect"))
+            return listView(0, query, userState)
+        }
         // v1.6은 삭제된 사용자도 활성으로 되돌려, 지운 이름과 이메일이 복구되지 않은 빈 비밀번호의 활성 계정이 되었다. 삭제된 사용자는 전환하지 않고 안내한다(R-52-3)
         if (target.state == UserState.DELETED) {
             RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "site.userList.deletedLock"))
