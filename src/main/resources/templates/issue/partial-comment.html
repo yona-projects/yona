@@ -29,7 +29,7 @@
                 <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
             </span>
             <span class="act-row float-end">
-                <span class="new-issue-by">
+                <!--/* 로그인하지 않은 사용자에게는 첫 화면으로만 가는 링크라 숨긴다(v1.6은 익명에게도 보였다, issue-F22) */--><span th:unless="${currentUser.anonymous}" class="new-issue-by">
                     <a th:href="'/user/issues/new?commentId=' + ${c.id}" th:text="#{issue.menu.new.by}"></a>
                 </span>
                 <th:block th:if="${c.canRead}">
@@ -59,7 +59,7 @@
                     </th:block>
                 </th:block>
 
-                <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-bs-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                <button th:if="${site.translationApiConfigured and !currentUser.anonymous}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-bs-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
                 <button th:if="${c.canRead}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
 

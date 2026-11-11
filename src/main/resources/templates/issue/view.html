@@ -106,7 +106,7 @@
                     <!--/* 대화상자에는 나를 포함한 전체 추천자를 넘긴다. v1.6은 같은 집합에서 현재 사용자를 빼서 나만 추천했으면 대화상자가 없었다(R-25). */-->
                     <th:block th:if="${!issue.voters.isEmpty()}"><th:block th:replace="~{issue/partial-voter-list :: voterList('voters', ${issue.voters})}"></th:block></th:block>
 
-                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                    <button th:if="${site.translationApiConfigured and !currentUser.anonymous}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
                     <span class="act-row">
                         <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
@@ -460,7 +460,10 @@
             }
         });
 
+        // 로그인하지 않으면 변경 감지 API가 401이라 3초마다 실패만 쌓인다. 로그인한 사용자에게만 건다(v1.6은 익명에게도 반복 요청했다, issue-F16)
+        /*[# th:unless="${currentUser.anonymous}"]*/
         detectPageChange(/*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/detectChange'}]]*/ "")
+        /*[/]*/
     })
 </script>
 </th:block>
