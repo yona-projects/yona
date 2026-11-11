@@ -1,7 +1,7 @@
 // 새 셸(D-141)의 스타일이다. 사이드바는 Bootstrap 5의 `offcanvas-lg` 하나로 만든다(lg 이상 고정, 미만 서랍).
 // 직접 만드는 규칙은 폭, 간격, 활성 색뿐이고 색은 테마 변수(`$yobi-orange`)를 그대로 쓴다. 새 색을 만들지 않는다(D-58).
 
-$shell-sidebar-width: 200px;
+$shell-sidebar-width: 216px; // 패널 안쪽 여백(8px씩)을 더해도 "코드 주고받기"와 개수 배지가 한 줄에 들어가는 폭이다.
 $shell-gap: 14px;
 
 .shell {
@@ -12,7 +12,7 @@ $shell-gap: 14px;
 @media (min-width: 992px) {
     .shell {
         display: flex;
-        align-items: flex-start;
+        align-items: stretch; // 사이드바 패널이 본문 높이까지 이어지게 한다.
         gap: $shell-gap;
     }
 }
@@ -29,10 +29,17 @@ $shell-gap: 14px;
     width: $shell-sidebar-width;
 
     // Bootstrap의 `offcanvas-lg`는 lg 이상에서 본문을 가로(flex)로 놓으므로 목록이 옆으로 나란히 서지 않게 세로로 쌓는다.
+    // 넓은 화면의 사이드바는 본문과 눈으로 구분되는 독립된 패널이다(와이어프레임): 다른 바탕색, 오른쪽 경계선, 머리글.
+    // 색은 Bootstrap 테마 변수를 쓴다(새 색을 만들지 않는다, D-58).
     @media (min-width: 992px) {
+        // Bootstrap의 `offcanvas-lg`가 lg 이상에서 배경과 경계선을 `!important`로 비우므로 같은 우선순위로 덮는다.
+        background-color: var(--bs-tertiary-bg, #f8f9fa) !important;
+        border-right: 1px solid var(--bs-border-color, #dee2e6) !important;
+        border-radius: 4px;
+
         .offcanvas-body {
             display: block;
-            padding: 0;
+            padding: 12px 8px;
         }
     }
 
@@ -40,6 +47,16 @@ $shell-gap: 14px;
     &.offcanvas-lg.show,
     &.offcanvas-lg.showing {
         width: auto;
+    }
+
+    // 패널 머리글: 맥락 이름(프로젝트, 조직, 설정 영역)이다.
+    .shell-sidebar-title {
+        margin: 0 0 8px;
+        padding: 2px 10px 8px;
+        border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+        font-size: 0.9375rem;
+        font-weight: bold;
+        overflow-wrap: anywhere;
     }
 
     // 맥락을 알리는 설정 사이드바의 "돌아가기" 줄이다(옛 요나에는 없던 새 요소라 옛 항목과 같은 막대 모양을 쓴다).
@@ -58,7 +75,7 @@ $shell-gap: 14px;
         }
     }
 
-    // 항목 모양은 옛 사이트 관리 사이드바(`.site-setting-nav li`)와 같다: 왼쪽 4px 회색 막대, 활성은 주황 막대와 굵은 글자, 호버는 회색 배경.
+    // 항목 모양은 옛 사이트 관리 사이드바(`.site-setting-nav li`)의 왼쪽 4px 막대를 잇되, 패널 바탕 위에서 보이도록 활성은 주황 막대와 연한 주황 바탕, 굵은 글자이다.
     .nav-pills {
         --bs-nav-pills-link-active-bg: transparent;
         --bs-nav-pills-link-active-color: inherit;
@@ -71,21 +88,21 @@ $shell-gap: 14px;
         gap: 8px;
         margin-top: 3px;
         padding: 5px 10px;
-        border-left: 4px solid #EEE;
-        border-radius: 0;
+        border-left: 4px solid transparent;
+        border-radius: 0 4px 4px 0;
         color: inherit;
         font-size: 0.875rem;
         line-height: 1.875rem;
 
         &:hover,
         &:focus-visible {
-            background-color: #EEE;
+            background-color: rgba(0, 0, 0, 0.06);
             text-decoration: none;
         }
 
         &.active {
             border-left-color: $orange;
-            background: none;
+            background-color: rgba($orange, 0.14);
             font-weight: bold;
         }
     }

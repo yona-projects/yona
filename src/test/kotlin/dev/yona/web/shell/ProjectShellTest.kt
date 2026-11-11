@@ -206,4 +206,13 @@ class ProjectShellTest : AbstractIntegrationTest() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
         assertNotNull(page("${base(p)}/reviews", s).selectFirst(".page-wrap-outer > .shell"))
     }
+
+    @Test
+    fun `사이드바 머리에 맥락 이름이 넓은 화면에서도 보인다(와이어프레임의 머리글)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        val title = page(base(p) + "/issues", s).selectFirst("nav.shell-sidebar .offcanvas-body .shell-sidebar-title")
+        assertNotNull(title)
+        assertEquals("${p.owner}/${p.name}", title.text().trim())
+        assertTrue(title.hasClass("d-none") && title.hasClass("d-lg-block"), "좁은 폭의 서랍은 자체 머리가 있으므로 넓은 화면에서만 보인다")
+    }
 }
