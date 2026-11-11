@@ -17,7 +17,8 @@
                     <h2 class="me-auto mb-0"><a th:href="${pageUrl}" class="wiki-page-title" th:text="${pageTitle}">Page</a> <small class="text-body-secondary" th:text="#{wiki.history.title}">Revisions</small></h2>
                 </div>
                 <form th:action="${compareAction}" method="get" class="wiki-compare-form">
-                    <button type="submit" class="ybtn ybtn-small mb-2" th:text="#{wiki.history.compare}">Compare Revisions</button>
+                    <!--/* 리비전이 둘 이상일 때만 비교할 수 있다(하나뿐이면 `from`이 선택되지 않아 400이었다, wiki-F1) */-->
+                    <button type="submit" th:if="${#lists.size(revisions) > 1}" class="ybtn ybtn-small mb-2" th:text="#{wiki.history.compare}">Compare Revisions</button>
                     <table class="table table-sm align-middle">
                         <tbody>
                         <tr th:each="r, stat : ${revisions}" class="wiki-revision">
