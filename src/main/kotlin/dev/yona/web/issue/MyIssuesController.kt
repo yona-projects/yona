@@ -48,7 +48,7 @@ class MyIssuesController(
     fun userIssues(request: HttpServletRequest, response: HttpServletResponse): Any {
         val viewer = requireNotNull(currentUserProvider.get().user) { "로그인이 필요합니다." }
         val pageNum = request.getParameter("pageNum")?.takeIf { it.isNotBlank() }?.toInt() ?: 1
-        var condition = IssueConditionBinder.bind(request, pageNum - 1) ?: return ErrorViews.badRequest()
+        var condition = IssueConditionBinder.bind(request, maxOf(pageNum - 1, 0)) ?: return ErrorViews.badRequest()
         if (!condition.hasCondition()) condition = condition.copy(assigneeId = viewer.id)
         if (request.getParameter("orderBy").isNullOrBlank()) condition = condition.copy(orderBy = "updatedDate")
 

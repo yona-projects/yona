@@ -82,7 +82,7 @@ const New = function(htOptions){
     }
 
     function _onChangeVCSItem(evt){
-        if(evt.val.toUpperCase() === "SUBVERSION"){
+        if(evt.target.value.toUpperCase() === "SUBVERSION"){
             htElement.svnWarning.show();
             /**
              * We don't know whether the user want to check this or not

@@ -63,7 +63,7 @@ class SiteUserController(
         @RequestParam(required = false) state: String?
     ): Any {
         val userState = parseState(state) ?: return ErrorViews.badRequest()
-        return listView(pageNum - 1, query, userState)
+        return listView(maxOf(pageNum - 1, 0), query, userState)
     }
 
     @DeleteMapping("/sites/user/delete{userId}")

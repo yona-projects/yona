@@ -22,7 +22,7 @@
           <dd>
             <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" autocomplete="off"/>
             <div th:if="${errors['title'] != null}" class="message">
-              <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
+              <div th:each="error : ${errors['title']}" th:text="#{${error}(255)}"></div>
             </div>
           </dd>
           <dd style="position: relative;">

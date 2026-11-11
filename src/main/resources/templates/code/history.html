@@ -105,7 +105,7 @@ $(document).ready(function(){
     });
 
     $("#branches").on("change", function(evt){
-        location.href = evt.val;
+        location.href = evt.target.value;
     });
 
     // 커밋 번호 복사: 단추가 늘어나도 한 번만 연결한다(이벤트 위임)

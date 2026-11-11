@@ -115,7 +115,7 @@ const Diff = function(htOptions){
 
 
         $("#branches").on("change", (weEvt) =>{
-            location.href = weEvt.val;
+            location.href = weEvt.target.value;
         });
     }
 

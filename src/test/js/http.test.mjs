@@ -91,6 +91,18 @@ export const tests = CASES.map(([name, source]) => ({ name: `yona.http: ${name}`
     const r = await check("(() => { const fd = new FormData(); fd.append('f', 'v'); return api.ajax({ url: '/api/json', method: 'POST', data: fd, processData: false, contentType: false, success: rec('success') }); })()");
     assert.match(r.yona.requests[0].ct, /^multipart\/form-data/);
   } },
+  { name: 'yona.http: 네트워크 오류(응답 없음)의 실패 객체는 jQuery처럼 readyState 0, status 0이다', run: async () => {
+    // 로그인 대화상자와 프로젝트 전역 스크립트가 `readyState == 0`으로 "네트워크 오류" 문구를 가른다. 4이면 그 분기에 닿지 않는다.
+    const { page } = await open();
+    const r = await page.evaluate(async () => {
+      const out = {};
+      for (const [name, api] of [['jquery', $], ['yona', { ajax: yona.http.ajax }]]) {
+        out[name] = await api.ajax({ url: '/api/abort', method: 'POST' }).then(() => 'ok', (x) => [x.readyState, x.status, x.responseText || '']);
+      }
+      return out;
+    });
+    await page.closeAll(); assert.deepEqual(r.jquery, [0, 0, '']); assert.deepEqual(r.yona, r.jquery);
+  } },
   { name: 'yona.http: then(성공, 실패)와 catch가 jQuery 3처럼 이어진다', run: async () => {
     const { page, requests } = await open();
     const r = await page.evaluate(async () => {

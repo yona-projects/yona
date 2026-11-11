@@ -38,6 +38,7 @@ import "./ui/Typeahead.js";
 import "./ui/Dialog.js";
 import "./ui/Toast.js";
 import "./ui/Tabs.js";
+import "./ui/ItemSearch.js";
 import "./OriginalMessage.js";
 
 yona.esm.ready = true;
