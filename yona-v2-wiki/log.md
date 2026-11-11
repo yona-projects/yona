@@ -42,3 +42,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | 사이드바 htmx 이동 (D-136, A-473)
 
 `shell/navigation.ts`를 만들고 사이트 관리 7개, 내 설정 8개 화면을 swap-safe로 옵트인했다. 표지가 있는 화면끼리는 본문, 사이드바, 제목 띠만 바꾸고 문서를 다시 불러오지 않는다(실제 브라우저에서 확인: 센티널 유지, 요청은 XHR 하나). `/loop`를 멈추지 말라는 지시를 받아 반복을 다시 걸었다.
+
+## [2026-11-11] feat | 상단 바: 전환 단추와 짧은 아바타 메뉴 (A-474)
+
+핀 사이드바(iframe) 진입을 전환 단추로 합쳤다. 시험 3개를 새 동작에 맞게 고쳤고 TopBarShellTest 4개를 더했다.
