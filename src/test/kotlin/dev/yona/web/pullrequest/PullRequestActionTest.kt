@@ -151,6 +151,25 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `보낸 사람은 받는 프로젝트의 구성원이 아니어도 자기 포크의 브랜치를 지우고 되살릴 수 있다 (v1_6은 단추를 보이고도 403이었다, 고쳤다, pullrequest-F5)`() {
+        val s = setup(); val pr = mergedFromFeature(s)
+        val contributor = login(s.contributor)
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(url(s, pr, "/deletefrombranch")).session(contributor)).andExpect(status().isSeeOther)
+        assertTrue("refs/heads/feature" !in forkBranches(s))
+        mockMvc.perform(post(url(s, pr, "/restorefrombranch")).session(contributor)).andExpect(status().isSeeOther)
+        assertTrue("refs/heads/feature" in forkBranches(s))
+    }
+
+    @Test
+    fun `보낸 사람이 아닌 일반 사용자는 브랜치를 지우거나 되살릴 수 없다 (pullrequest-F5)`() {
+        val s = setup(); val pr = mergedFromFeature(s)
+        val stranger = login(user())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(url(s, pr, "/deletefrombranch")).session(stranger)).andExpect(status().isForbidden)
+        mockMvc.perform(post(url(s, pr, "/restorefrombranch")).session(stranger)).andExpect(status().isForbidden)
+        assertTrue("refs/heads/feature" in forkBranches(s))
+    }
+
+    @Test
     fun `보호 규칙이 삭제를 막는 보내는 브랜치는 지우지 않는다 (X-33, D-45)`() {
         val s = setup(); val pr = mergedFromFeature(s)
         branchProtections.save(ruleset(s.fork, "feature", approvals = 0, noChangesRequested = false))

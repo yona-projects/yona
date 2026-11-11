@@ -165,24 +165,39 @@ class PullRequestActionController(
 
     @DeleteMapping("/{user}/{project}/pullRequest/{id}/deletefrombranch")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
+    @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun deleteFromBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
+        if (!mayManageFromBranch(pullRequest)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         workflow.deleteFromBranch(pullRequest)
         return redirect(request, response, project, pullRequest)
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/restorefrombranch")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
+    @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun restoreFromBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
+        if (!mayManageFromBranch(pullRequest)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         workflow.restoreFromBranch(pullRequest)
         return redirect(request, response, project, pullRequest)
+    }
+
+    /**
+     * 보내는 브랜치를 지우거나 되살릴 수 있는지 판단한다. 받는 프로젝트에서 요청을 고칠 수 있는 사람이거나, 요청을 보낸 사람이 자기 포크(보내는 프로젝트)의 구성원인 경우이다.
+     * v1.6은 앞쪽만 허용해, 받는 프로젝트의 구성원이 아닌 보낸 사람에게는 단추가 보이는데도 눌러 보면 403이었다(pullrequest-F5). 권한이 넓어지는 범위는 자기 포크의 브랜치로 한정된다.
+     */
+    private fun mayManageFromBranch(pullRequest: PullRequest): Boolean {
+        val user = currentUserProvider.get().user ?: return false
+        val to = requireNotNull(pullRequest.toProject)
+        val resource = dev.yona.access.ProjectResource(requireNotNull(pullRequest.id).toString(), ResourceType.PULL_REQUEST, to, authorId = pullRequest.contributor?.id)
+        if (accessControl.isAllowed(user, resource, Operation.UPDATE)) return true
+        val from = pullRequest.fromProject ?: return false
+        return user.id == pullRequest.contributor?.id && projectService.hasMember(from, user)
     }
 
     private fun find(owner: String, name: String, id: Long): Pair<Project, PullRequest>? {
