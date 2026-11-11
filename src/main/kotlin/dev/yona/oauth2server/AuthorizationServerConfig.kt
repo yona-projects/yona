@@ -54,7 +54,7 @@ class AuthorizationServerConfig {
     @Bean
     @Order(1)
     fun authorizationServerSecurityFilterChain(
-        http: HttpSecurity, users: UserRepository, sessionUsers: SessionUserCache, apiTokens: ApiTokenService, tokenFailures: TokenFailureLimiter, audit: AuditBoundary, oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
+        http: HttpSecurity, properties: dev.yona.config.YonaProperties, users: UserRepository, sessionUsers: SessionUserCache, apiTokens: ApiTokenService, tokenFailures: TokenFailureLimiter, audit: AuditBoundary, oauthTokens: dev.yona.domain.oauth2server.OAuthAccessTokenService,
         registeredClients: YonaRegisteredClientRepository, authorizations: YonaOAuth2AuthorizationService, consents: YonaOAuth2AuthorizationConsentService,
         siteSettings: dev.yona.domain.site.SiteSettingService, rememberMe: dev.yona.security.YonaRememberMeServices, idTokenGenerator: org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.server.authorization.token.JwtGenerator>
     ): SecurityFilterChain {
@@ -78,6 +78,15 @@ class AuthorizationServerConfig {
                 exceptions.authenticationEntryPoint(DelegatingAuthenticationEntryPoint(entryPoints).also { it.setDefaultEntryPoint(Http403ForbiddenEntryPoint()) })
             }
             .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers, apiTokens, tokenFailures, audit, oauthTokens, rememberMe), SecurityContextHolderFilter::class.java)
+        // 동의 폼 제출(POST /oauth2/authorize)만 요청 위조 방지를 건다(oauth-F4). 다른 사이트가 로그인한 사용자 대신 동의를 누르게 하는 길을 막는다.
+        // 인가 서버 설정기는 자기 엔드포인트를 CSRF 검사에서 빼므로 설정이 아니라 같은 필터를 이 경로에만 직접 단다. 토큰 교환처럼 외부 클라이언트가 부르는
+        // 엔드포인트는 브라우저 요청이 아니므로 대상이 아니다. 동의 화면은 기존 체인이 그리며 같은 쿠키 토큰(XSRF-TOKEN)을 쓴다
+        if (properties.csrfProtection) {
+            val csrfFilter = org.springframework.security.web.csrf.CsrfFilter(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+            csrfFilter.setRequireCsrfProtectionMatcher(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/oauth2/authorize"))
+            csrfFilter.setRequestHandler(org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
+            http.addFilterBefore(csrfFilter, YonaAuthenticationFilter::class.java)
+        }
         return http.build()
     }
 

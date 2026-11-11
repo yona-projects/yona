@@ -67,4 +67,12 @@ class CsrfProtectionTest : AbstractIntegrationTest() {
         assertNotEquals(403, mockMvc.perform(post("/translation").header("Authorization", "Basic eDp5")).andReturn().response.status)
         assertNotEquals(403, mockMvc.perform(post("/translation").header("Yona-Token", "abc")).andReturn().response.status)
     }
+
+    @Test
+    fun `OAuth 동의 폼 제출은 토큰이 있어야 한다 (oauth-F4, 다른 사이트가 사용자 대신 동의를 누르게 할 수 있었다)`() {
+        // 토큰 없이 동의를 보내면 인증 여부와 관계없이 CSRF 검사에서 막힌다
+        mockMvc.perform(post("/oauth2/authorize").param("client_id", "x").param("state", "s")).andExpect(status().isForbidden)
+        // 토큰을 보내면 CSRF 검사는 통과한다(그다음 인증 단계에서 다른 응답이 나온다)
+        assertNotEquals(403, mockMvc.perform(post("/oauth2/authorize").cookie(Cookie("XSRF-TOKEN", token)).param("_csrf", token).param("client_id", "x")).andReturn().response.status)
+    }
 }
