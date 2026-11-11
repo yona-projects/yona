@@ -19,7 +19,7 @@
     <div class="page-wrap">
         <section class="user-box">
             <div class="user-info-box">
-                <div class="whoami-wrap" th:style="'background-image:url(\'' + ${profile.avatarUrl} + '\')'">
+                <div class="whoami-wrap" th:style="'background-image:url(\'' + @{${profile.avatarUrl}} + '\')'">
                     <div th:if="${profile.guest}" class="guest-user">
                         <span class="left-mark">OUR GUEST</span>
                     </div>
