@@ -87,11 +87,22 @@ class UserSettingsShellTest : AbstractIntegrationTest() {
         listOf("/user/editform/audit", "/user/editform/ssh/new", "/user/editform/gpg/new", "/user/editform/token/new").forEach { path ->
             assertNotNull(page(path, s).selectFirst(".shell-main [data-swap-safe]"), "$path 는 swap-safe 표지가 있어야 한다")
         }
-        listOf("/user/editform", "/user/editform/password", "/user/editform/ssh", "/user/editform/token").forEach { path ->
+        listOf("/user/editform", "/user/editform/ssh", "/user/editform/gpg").forEach { path ->
             assertNull(page(path, s).selectFirst("[data-swap-safe]"), "$path 는 옛 스크립트가 있어 일반 이동이다")
         }
         val doc = page("/user/editform/audit", s)
         assertNotNull(doc.selectFirst("#pageTitle.site-breadcrumb-outer"), "제목 띠에 id가 있어야 사이드바와 함께 교체된다")
         assertTrue(doc.selectFirst("nav.shell-sidebar")!!.attr("hx-select-oob").contains("#pageTitle"))
+    }
+
+    @Test
+    fun `사용자 설정 모듈을 쓰는 내 설정 화면은 초기화 스크립트를 본문 안에 두고 swap-safe 표지를 갖는다(D-136)`() {
+        val s = login()
+        listOf("password", "emails", "notifications", "token").forEach { sub ->
+            val doc = page("/user/editform/$sub", s)
+            assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
+            assertTrue(doc.select(".shell-main script").any { it.data().contains("user.Setting") }, "$sub 초기화 스크립트는 본문 안")
+        }
+        assertNull(page("/user/editform", s).selectFirst("[data-swap-safe]"), "프로필 화면은 이미지 자르기 스크립트가 있어 일반 이동이다")
     }
 }

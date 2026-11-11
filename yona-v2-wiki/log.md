@@ -54,3 +54,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | loadModule 화면 6개 swap-safe (A-473 이어서)
 
 초기화 스크립트를 본문 안으로 옮기고 await import로 순서를 보장했다. 교체 뒤 404 없음 확인.
+
+## [2026-11-11] feat | 내 설정 4개 swap-safe
+
+비밀번호, 이메일, 알림, 토큰 화면. 브라우저에서 교체 5회 오류와 404 없음.
