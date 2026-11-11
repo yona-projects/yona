@@ -9,9 +9,9 @@ updated: 2026-10-23
 
 | 주소 | 설명 |
 |---|---|
-| `GET /:user/:project/newPullRequestForm` | 폼. 로그인과 포크 만들기 권한이 필요하고 게스트는 403 |
-| `GET /:user/:project/newPullRequest/mergeResult` | 폼의 브랜치를 고르면 Ajax로 가져오는 커밋 표 조각. `Cache-Control: no-cache, no-store` |
-| `POST /:user/:project/pullRequests` | 만들기(멀티파트). 만든 뒤 풀 리퀘스트 화면으로 303 |
+| `GET /:user/:project/newPullRequestForm` | 폼. 로그인과 포크 만들기 권한이 필요하고 게스트는 403. 고른 보내는 쪽과 받는 쪽 프로젝트를 둘 다 읽을 수 있어야 한다(코드 접근을 구성원으로 제한한 프로젝트는 구성원만, 아니면 403. v1.6은 경로의 프로젝트만 검사했다, A-459) |
+| `GET /:user/:project/newPullRequest/mergeResult` | 폼의 브랜치를 고르면 Ajax로 가져오는 커밋 표 조각. `Cache-Control: no-cache, no-store`. 폼과 같이 두 프로젝트를 읽을 수 있어야 하고 아니면 403(A-459) |
+| `POST /:user/:project/pullRequests` | 만들기(멀티파트). 만든 뒤 풀 리퀘스트 화면으로 303. 보내는 쪽과 받는 쪽 프로젝트를 둘 다 읽을 수 있어야 하고 아니면 403이다(보내는 쪽이 비공개이면 그 저장소가 자기 저장소로 복사되던 결함을 막았다, A-459) |
 
 ## 폼
 

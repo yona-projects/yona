@@ -13,7 +13,7 @@ updated: 2026-10-23
 | `GET .../:id/state` | 상태 조각. Ajax(`X-Requested-With`, htmx 아님)이면 JSON(`id, isOpen, isClosed, isMerged, isMerging, isConflict, canDeleteBranch, canRestoreBranch, html`), 아니면 HTML 조각 |
 | `GET .../:id/changes`, `.../changes/:commitId` | 변경 내용(전체 또는 커밋 하나) |
 | `POST .../:id/review`, `.../unreview` | 리뷰 표시와 취소. 로그인과 받아들일 권한 |
-| `GET /:user/:project/mentionListAtPullRequest` | 편집기 멘션 후보. 풀 리퀘스트가 없으면 404 |
+| `GET /:user/:project/mentionListAtPullRequest` | 편집기 멘션 후보. 풀 리퀘스트가 없거나 경로의 프로젝트에 속하지 않으면 404(`mentionListAtCommitDiff`의 `pullRequestId`도 같다, A-459). 개요, 변경, 타임라인, 상태 화면은 코드 접근을 구성원으로 제한한 프로젝트에서 구성원만 볼 수 있다(목록과 같다, A-459) |
 
 ## 보기
 

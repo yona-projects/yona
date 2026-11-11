@@ -13,7 +13,7 @@ updated: 2026-10-22
 - `owner` 쿼리로 소유자를 미리 고를 수 있다. 오류는 버린다(v1.6 `bindFromRequest("owner")` 후 `discardErrors`).
 - 소유자 선택지: 본인(로그인 ID)과 **관리자 역할인** 조직(일반 구성원인 조직은 나오지 않는다). 항목마다 아바타 주소와 종류(`user`/`group`)를 `data-*`로 가진다. 조직 로고는 `ORGANIZATION` 첨부, 없으면 `/assets/images/group_default.png`.
 - 공개 범위 라디오: `PUBLIC`은 폼 값이 비었거나 `PUBLIC`일 때 선택. `PRIVATE`은 폼 값이 `PRIVATE`이거나 설정 `yona.project-default-scope`가 `private`일 때 선택. 둘 다 조건이 맞으면 둘 다 선택 속성이 붙는다(v1.6과 같다, 브라우저는 마지막 것을 고른다). `PROTECTED`는 소유자가 조직일 때만 보인다.
-- 저장소 종류: `GIT`(Git), `Subversion`. Subversion을 고르면 "풀 리퀘스트를 쓸 수 없다" 안내가 보인다.
+- 저장소 종류: `GIT`(Git), `Subversion`. Subversion을 고르면 "풀 리퀘스트를 쓸 수 없다" 안내가 보인다(select2의 `change`에서 `event.target.value`를 읽는다. 4.x에는 `event.val`이 없어 한때 오류가 나 안내가 보이지 않았다, A-457).
 - 메뉴 설정 체크박스: 설정 `yona.project-default-menus`(기본 `code, issue, pullRequest, review, milestone, board`)에 든 것만 선택된다. 검증에 실패해 폼을 다시 그릴 때도 제출한 값이 아니라 기본 설정을 쓴다(v1.6과 같다).
 - 화면 아래 스크립트가 `project.New` 모듈에 `htError`(오류 JSON)를 넘긴다.
 
