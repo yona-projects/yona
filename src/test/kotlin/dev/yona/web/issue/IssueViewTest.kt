@@ -298,6 +298,20 @@ class IssueViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `익명에게는 새 이슈 링크와 변경 감지 요청을 내지 않고 로그인하면 둘 다 있다 (v1_6은 익명에게도 보이고 3초마다 401이었다, 고쳤다, issue-F16, F22)`() {
+        val project = newProject()
+        val member = join(newUser(), project)
+        val i = issue(project)
+        comment(i, member)
+        val anonymous = view(project)
+        assertTrue(anonymous.select(".new-issue-by").isEmpty())
+        assertFalse(anonymous.html().contains("detectPageChange("), "익명 화면이 변경 감지를 시작한다")
+        val logged = view(project, session = login(member))
+        assertTrue(logged.select(".new-issue-by").isNotEmpty())
+        assertTrue(logged.html().contains("detectPageChange("))
+    }
+
+    @Test
     fun `다른 사람의 댓글이 있으면 지울 수 없다고 알린다`() {
         val project = newProject()
         val author = join(newUser(), project); val other = newUser()
