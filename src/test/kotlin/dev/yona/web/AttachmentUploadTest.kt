@@ -52,6 +52,7 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
     @Autowired private lateinit var attachmentRepository: AttachmentRepository
     @Autowired private lateinit var attachments: AttachmentService
     @Autowired private lateinit var projects: ProjectRepository
@@ -130,24 +131,36 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `폼의 authorEmail로 다른 사용자 명의로 올린다 (v1_6 findUploader)`() {
-        val uploader = newUser()
-        val author = newUser()
-        upload(login(uploader), params = mapOf("authorEmail" to author.email!!)).andExpect(status().isCreated)
-        val stored = attachmentRepository.findAll().single()
-        assertEquals(author.id, stored.containerId)
-        // 소유자 아이디는 명의가 아니라 올린 요청의 로그인 사용자이다
-        assertEquals(uploader.loginId, stored.ownerLoginId)
-    }
-
-    @Test
-    fun `이메일을 못 찾으면 authorLoginId로 찾고 그래도 없으면 올린 사용자이다`() {
+    fun `일반 사용자가 폼의 authorEmail이나 authorLoginId로 다른 사용자 명의를 지정해도 무시하고 본인 명의로 올린다 (shell-F23, v1_6 findUploader는 누구나 명의를 정할 수 있었다)`() {
         val uploader = newUser()
         val author = newUser()
         val session = login(uploader)
-        upload(session, bytes = byteArrayOf(1), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to author.loginId!!)).andExpect(status().isCreated)
-        upload(session, bytes = byteArrayOf(2), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to "nobody")).andExpect(status().isCreated)
-        assertEquals(setOf(author.id, uploader.id), attachmentRepository.findAll().map { it.containerId }.toSet())
+        upload(session, bytes = byteArrayOf(1), params = mapOf("authorEmail" to author.email!!)).andExpect(status().isCreated)
+        upload(session, bytes = byteArrayOf(2), params = mapOf("authorLoginId" to author.loginId!!)).andExpect(status().isCreated)
+        assertEquals(listOf(uploader.id, uploader.id), attachmentRepository.findAll().map { it.containerId })
+        assertEquals(setOf(uploader.loginId), attachmentRepository.findAll().map { it.ownerLoginId }.toSet())
+    }
+
+    @Test
+    fun `로그인하지 않은 요청은 명의를 지정해도 올리지 못한다 (익명이 임의 사용자의 임시 첨부로 올리던 것을 막는다, shell-F23)`() {
+        val author = newUser()
+        upload(null, params = mapOf("authorEmail" to author.email!!)).andExpect(status().isForbidden)
+        upload(null, bytes = byteArrayOf(3), params = mapOf("authorLoginId" to author.loginId!!)).andExpect(status().isForbidden)
+        assertEquals(0, attachmentRepository.count())
+    }
+
+    @Test
+    fun `사이트 관리자는 폼의 authorEmail이나 authorLoginId로 다른 사용자 명의로 올릴 수 있다`() {
+        val admin = newUser()
+        siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = admin))
+        val author = newUser()
+        val session = login(admin)
+        upload(session, bytes = byteArrayOf(1), params = mapOf("authorEmail" to author.email!!)).andExpect(status().isCreated)
+        upload(session, bytes = byteArrayOf(2), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to author.loginId!!)).andExpect(status().isCreated)
+        upload(session, bytes = byteArrayOf(4), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to "nobody")).andExpect(status().isCreated)
+        assertEquals(listOf(author.id, author.id, admin.id), attachmentRepository.findAll().sortedBy { it.id }.map { it.containerId })
+        // 소유자 아이디는 명의가 아니라 올린 요청의 로그인 사용자이다
+        assertEquals(setOf(admin.loginId), attachmentRepository.findAll().map { it.ownerLoginId }.toSet())
     }
 
     @Test
