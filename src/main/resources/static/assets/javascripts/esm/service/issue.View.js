@@ -129,7 +129,8 @@ const View = function(options){
         }
 
         _requestUpdateIssue(evt, (res) =>{
-            elements.dueDateStatus.html("(" + res.dueDateMsg + ")");
+            // 마감일을 지우거나 닫힌 이슈라 서버가 메시지를 주지 않으면(null) 비운다. v1.6은 "(null)"을 그대로 보였다(issue-F8)
+            elements.dueDateStatus.html(res.dueDateMsg == null ? "" : "(" + res.dueDateMsg + ")");
             if (res.isOverDue) {
                 elements.dueDateStatus.addClass("overdue");
             } else {
