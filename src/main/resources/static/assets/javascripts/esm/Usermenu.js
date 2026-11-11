@@ -219,7 +219,6 @@ $(() => {
 
     function closeSidebar($sidebar) {
         $sidebar.width("0").css("border", "none");
-        $(".main-stream").removeClass("col-lg-8").addClass("col-lg-12");
     }
 
     function openSidebar($sidebar) {
@@ -230,7 +229,7 @@ $(() => {
         } else {
             $sidebar.width("100vw").css("border", "1px solid #ccc");
         }
-        $(".main-stream").removeClass("col-lg-12").addClass("col-lg-8");
+        // A-490: 패널은 본문 위에 덮이므로 본문 열 너비(.main-stream)를 줄이지 않는다.
     }
 
     // This method intended to sync sub tab list of projects

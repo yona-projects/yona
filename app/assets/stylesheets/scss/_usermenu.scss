@@ -844,6 +844,10 @@ $violet:  #9c27b0;
 
 // Sidebar settings
 
+.gnb-outer {
+  position: relative; // #mySidenav(A-490)의 기준 상자이다.
+}
+
 #main {
   margin: 0;
   padding: 0;
@@ -853,11 +857,14 @@ $violet:  #9c27b0;
 /* The side navigation menu */
 #mySidenav {
   width: 0; /* 0 width - change this with JavaScript */
+  /* A-490: v1.6의 사이드바(`.pin`)는 화면 왼쪽에 있었으므로 햄버거가 여는 이 패널도 왼쪽 가장자리에 붙는다.
+     본문을 밀어내지 않고 위에 덮이며(absolute, z-index), 상단 바 아래에서 화면 아래까지 이어진다. */
   position: absolute; /* Stay in place */
   z-index: 999;
-  top: 40px;
-  right: 0;
-  box-shadow: 2px 2px 10px #888;
+  top: 100%; /* 기준은 상단 바(.gnb-outer)이다. 알림 띠가 위에 있어 바가 내려가도 바 바로 아래에서 시작해 햄버거를 가리지 않는다 */
+  left: 0;
+  height: calc(100vh - 40px);
+  box-shadow: 2px 0 10px #888;
   background-color: white;
   overflow-x: hidden; /* Disable horizontal scroll */
   overflow-y: auto;
@@ -880,7 +887,7 @@ $violet:  #9c27b0;
   /* v1.6의 `row-fluid`는 바깥 여백이 없고 안의 `span5`는 폭이 상자 전체였다. BS5의 `.row`는 바깥으로 거터의 절반만큼 나가
      상자가 화면 오른쪽 밖으로 10px 나가고, `col-lg-5`는 폭의 5/12만 써서 메뉴가 좁게 접혔다 */
   --bs-gutter-x: 0;
-  > .right-menu { flex: 0 0 350px; max-width: 350px; margin-left: auto; } /* v1.6의 `.right-menu`는 폭 350px이다 */
+  > .right-menu { flex: 0 0 350px; max-width: 350px; } /* v1.6의 `.right-menu`는 폭 350px이다 */
 
   div.user-menu-wrap{
     text-align: right;

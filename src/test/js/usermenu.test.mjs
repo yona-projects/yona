@@ -51,10 +51,10 @@ export const tests = [
     await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); await page.close();
   } },
-  { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 col-lg-8이 되며 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
+  { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 그대로이며(덮어 쓰기, A-490) 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [7] } } } });
     await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
-    assert.equal(await width(page), '360px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-8'); assert.ok((await calls(page)).includes('GET /fl'));
+    assert.equal(await width(page), '360px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-12'); assert.ok((await calls(page)).includes('GET /fl'));
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.star-project i')].map((i) => i.classList.contains('starred'))), [true, false]);
     await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-12'); await page.close();
