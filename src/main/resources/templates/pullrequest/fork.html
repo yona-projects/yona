@@ -14,7 +14,6 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
         <div class="shell-main">
-        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="content-wrap frm-wrap">
             <form th:action="${forkAction}" method="post" class="form-horizontal nm">
                 <input type="hidden" name="owner" th:value="${forkOwner}" />

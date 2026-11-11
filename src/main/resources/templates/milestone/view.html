@@ -15,7 +15,6 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
         <div class="shell-main">
-        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="milesion-wrap">
             <h4>
                 <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>

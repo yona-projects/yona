@@ -18,9 +18,6 @@
     <div class="project-page-wrap" th:classappend="${sidebar != null} ? 'shell shell-below-banner'">
         <th:block th:if="${sidebar != null}"><th:block th:replace="${sidebar}"></th:block></th:block>
         <div th:class="${sidebar != null} ? 'shell-main'">
-        <!--/* A-485: 맥락(프로젝트, 조직) 안의 검색은 본문 맨 위에 그 맥락의 머리를 보인다. 전역 검색은 머리가 없다. */-->
-        <th:block th:if="${sidebar != null and projectView != null}"><th:block th:replace="~{project/header :: header(${projectView})}"></th:block></th:block>
-        <th:block th:if="${sidebar != null and projectView == null and org != null}"><th:block th:replace="~{organization/header :: header(${org})}"></th:block></th:block>
         <h3 class="mb-3" th:if="${sidebar != null}" th:text="#{title.search}"></h3><!--/* 맥락 안에서는 위쪽 제목 띠가 배너 로고에 가려져 제목을 본문 안에 둔다 */-->
         <div class="project-page-wrap">
             <div class="row">

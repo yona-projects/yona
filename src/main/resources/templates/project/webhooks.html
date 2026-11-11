@@ -13,8 +13,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner webhook-editor-wrap">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main">
-        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
             <strong class="form-legend" th:text="#{project.webhook.new}"></strong>

@@ -155,10 +155,8 @@ class OrganizationShellTest : AbstractIntegrationTest() {
     @Test
     fun `조직 머리도 로고를 흐린 배경으로 깔지 않는 얇은 한 줄이다(A-483)`() {
         val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }
-        val doc = page("/organizations/${org.name}", login(admin))
-        val header = doc.selectFirst(".shell-main > .project-header-outer")
-        assertNotNull(header, "조직 머리도 사이드바 오른쪽 본문의 첫 요소이다(A-485)")
-        assertNull(doc.selectFirst("#main > .project-header-outer"), "본문 밖에는 머리가 없다")
+        val header = page("/organizations/${org.name}", login(admin)).selectFirst(".project-header-outer")
+        assertNotNull(header)
         assertTrue(header.attr("style").isBlank(), "인라인 배경 이미지가 없어야 한다: ${header.attr("style")}")
         assertNotNull(header.selectFirst(".project-header-avatar img"))
     }

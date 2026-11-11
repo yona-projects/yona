@@ -8,11 +8,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::policyPage})}">
 <th:block th:fragment="policyPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
-        <div class="shell-main">
-        <th:block th:replace="~{organization/header :: header(${org})}"></th:block><span data-swap-safe hidden></span>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="two-factor-page">
         <p class="text-body-secondary mb-4" th:text="#{oauth.policy.description}"></p>
         <form id="oauth-policy-form" method="post" th:action="@{/organizations/{name}/oauth-policy(name=${org.name})}">

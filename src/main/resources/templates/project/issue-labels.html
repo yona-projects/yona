@@ -13,8 +13,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner label-editor-wrap">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main">
-        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <th:block th:if="${canCreate}">
         <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">

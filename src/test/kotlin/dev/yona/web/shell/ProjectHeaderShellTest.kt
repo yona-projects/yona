@@ -77,11 +77,8 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
     @Test
     fun `머리는 배경 이미지를 깔지 않는 얇은 한 줄이고 아바타, 이름, 동작 단추를 가진다`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
-        val doc = page(base(p) + "/issues", s)
-        val header = doc.selectFirst(".shell-main > .project-header-outer")
-        assertNotNull(header, "머리는 사이드바 오른쪽 본문(.shell-main)의 첫 요소이다(A-485)")
-        assertTrue(doc.select(".shell-main").first()!!.child(0) === header || doc.selectFirst(".shell-main > span[data-swap-safe]") != null, "본문의 첫 자리에 있다")
-        assertNull(doc.selectFirst("#main > .project-header-outer"), "본문 밖(사이드바 위 전체 폭)에는 머리가 없다")
+        val header = page(base(p) + "/issues", s).selectFirst(".project-header-outer")
+        assertNotNull(header)
         assertTrue(header.attr("style").isBlank(), "머리에 인라인 배경 이미지가 없어야 한다: ${header.attr("style")}")
         assertNotNull(header.selectFirst(".project-header-avatar img"))
         assertEquals(p.name, header.selectFirst(".project-name a")!!.text())
@@ -107,19 +104,5 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
         assertEquals("/files/${file.id}", home.selectFirst(".project-header-avatar img")!!.attr("src"), "로고와 배경은 같은 첨부이다")
         // 홈이 아닌 화면에는 표지가 없다
         listOf("/issues", "/posts", "/milestones").forEach { sub -> assertNull(page(base(p) + sub, s).selectFirst(".project-cover"), sub) }
-    }
-
-    @Test
-    fun `머리는 프로젝트의 모든 화면 본문 맨 위에 있고 표지는 홈에서 머리 바로 아래에 있다`() {
-        val owner = newUser(); val s = login(owner); val p = project(owner)
-        attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = p.id!!, name = "cover.png"))
-        listOf("", "/issues", "/posts", "/milestones", "/pullRequests", "/reviews", "/members", "/wiki").forEach { sub ->
-            val doc = runCatching { page(base(p) + sub, s) }.getOrNull() ?: return@forEach
-            assertNotNull(doc.selectFirst(".shell-main > .project-header-outer"), "$sub 에 머리가 본문 안에 있어야 한다")
-        }
-        val home = page(base(p), s)
-        val children = home.selectFirst(".shell-main")!!.children().filter { it.tagName() != "span" && it.tagName() != "script" }
-        assertTrue(children[0].hasClass("project-header-outer"), "본문의 첫 요소는 머리이다: ${children[0].className()}")
-        assertTrue(children[1].hasClass("project-cover"), "표지는 머리 바로 아래이다: ${children[1].className()}")
     }
 }

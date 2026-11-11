@@ -10,11 +10,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::boardPage})}">
 <th:block th:fragment="boardPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
-        <div class="shell-main">
-        <th:block th:replace="~{organization/header :: header(${org})}"></th:block><span data-swap-safe hidden></span>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="search-wrap underline">
             <form id="option_form" method="get" class="float-start row align-items-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
