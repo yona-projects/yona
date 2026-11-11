@@ -60,7 +60,8 @@ class AttachmentController(
     private val currentUserProvider: CurrentUserProvider,
     private val listing: AttachmentListing,
     private val userLookup: dev.yona.domain.user.UserLookup,
-    private val users: dev.yona.domain.user.UserRepository
+    private val users: dev.yona.domain.user.UserRepository,
+    private val properties: dev.yona.config.YonaProperties
 ) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AttachmentController::class.java)
@@ -116,6 +117,8 @@ class AttachmentController(
         response: HttpServletResponse
     ): Any {
         file ?: return ResponseEntity.badRequest().build<Void>()
+        // 설정한 최대 크기(`application.maxFileSize`)를 서버에서도 지킨다. v1.6은 화면 스크립트만 검사해 직접 요청은 크기와 상관없이 받았다(shell-F12)
+        if (file.size > properties.maxFileSize) return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).contentType(MediaType.TEXT_PLAIN).body("The file is too large.")
         val requester = currentUserProvider.get().user
         val uploader = findUploader(request, requester) ?: requester ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
         // Play 멀티파트는 IE가 보내는 `C:\dir\a.txt` 같은 경로만 역슬래시 기준으로 뗀다(슬래시는 그대로 둔다). 톰캣이 이미 슬래시 앞을 뗀 값이 아니라
