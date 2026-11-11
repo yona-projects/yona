@@ -60,18 +60,9 @@
                             <div class="metainfo-sm">
                                 {{ item.repo.owner.login }} <i class="yobicon-lock yobicon-small" v-if="item.repo.private"></i>
                             </div>
-                            <div class="warn-no-worker" v-show="item.repo.full_name == destination.full_name && showWorkerWarning">
-                                <div class="badge bg-danger">[[#{migration.noWorkerInAdmin('{{CONFIG.DEFAULT_WORKER}}')}]]</div>
-                                <div>[[#{migration.workerNeeded('{{CONFIG.DEFAULT_WORKER}}')}]]
-                                </div>
-                                <div v-if="item.repo.owner.type === 'Organization' && showNotAdminWarning">
-                                    <div class="badge text-bg-warning">[[#{migration.notAdmin}]]</div>
-                                    <div>[[#{migration.bothNotAdmin('{{CONFIG.DEFAULT_WORKER}}', '{{currentGithubUser && currentGithubUser.login}}')}]]</div>
-                                </div>
-                            </div>
-                            <div class="warn-user-project" v-show="item.repo.full_name == destination.full_name && showUserProjectWarning">
-                                <div class="badge bg-danger">User Project</div>
-                                <div>[[#{migration.userUsedInstead('{{CONFIG.DEFAULT_WORKER}}')}]]</div>
+                            <div class="warn-not-admin" v-show="item.repo.full_name == destination.full_name && showNotAdminWarning">
+                                <div class="badge text-bg-warning">[[#{migration.notAdmin}]]</div>
+                                <div>[[#{migration.cannotNonAdmin}]]</div>
                             </div>
                             <div v-if="item.repo.owner.type === 'User' && item.repo.owner.login !== (currentGithubUser && currentGithubUser.login)">
                                 <div class="badge text-bg-warning">[[#{migration.notAdmin}]]</div>

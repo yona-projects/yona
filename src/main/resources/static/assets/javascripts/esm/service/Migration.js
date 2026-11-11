@@ -493,9 +493,7 @@ const MigrationApp = {
             "systemMessages": [],
             "selectedSourceName": "",
             "selectedDestinationName": "",
-            "showWorkerWarning": false,    // 대상에 작업 계정이 준비되지 않음
-            "showUserProjectWarning": false,   // 대상이 조직 프로젝트가 아님
-            "showNotAdminWarning": false,
+            "showNotAdminWarning": false,   // 대상이 조직인데 사용자가 관리자가 아님
             "showMoreDesc": false,
             "importBtnDisabled": false,
             "expectedImportCount": undefined,
@@ -707,24 +705,14 @@ const MigrationApp = {
             }
         },
 
+        /**
+         * 대상이 조직 저장소이면 사용자가 그 조직의 관리자인지 확인해 아니면 경고를 보인다. 개인 저장소는 확인하지 않는다.
+         * v1.6은 별도 작업 계정이 대상의 관리자인지도 안내했으나 그 계정을 정하는 곳이 없어 이름이 빈 깨진 문구였다(migration-F2, F3). 작업 계정 경고는 없앴다.
+         */
         "isMigrationWorkerAdmin": function (destination) {
             const vm = this;
-            this.showWorkerWarning = false;
-            this.showUserProjectWarning = false;
             this.showNotAdminWarning = false;
-            if (destination.ownerType === "User") {
-                this.showUserProjectWarning = true;
-                return;
-            }
-            this.showUserProjectWarning = false;
-            migrationService.getOrgMembership(destination, this.currentGithubUser.login).then((response) => {
-                if (destination.ownerType === "Organization" && response.data.role !== "admin") {
-                    WORKER.TOKEN = USER.TOKEN;
-                    vm.showWorkerWarning = true;
-                } else {
-                    vm.showWorkerWarning = false;
-                }
-            });
+            if (destination.ownerType === "User") return;
             migrationService.getOrgMembership(destination, this.currentGithubUser.login).then((response) => {
                 vm.showNotAdminWarning = destination.ownerType === "Organization" && response.data.role !== "admin";
             });
