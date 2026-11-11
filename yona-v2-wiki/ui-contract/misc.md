@@ -186,7 +186,7 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 |---|---|---|
 | welcome-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 제출 처리에서 `loginId`와 `password` 항목이 없으면 500(NullPointerException)이다. 화면의 폼은 항상 보내지만 직접 요청은 500을 받는다(v1.6과 같다고 시험이 고정) | `SiteSecretInterceptor.kt:81`, `:95` |
 | welcome-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `$("input[name=seed]").focus()`는 대상이 없는 죽은 코드이다(v1.6 잔재). 화면이 열릴 때 초점이 이동하지 않는다 | `secret.html:104-108` |
-| welcome-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 비밀번호에 길이 규칙이 없다(`user.wrongPassword.alert`는 빈 값일 때만). 사이트 비밀번호 정책 설정이 있는지는 이 화면에서 쓰지 않는다 | `SiteSecretInterceptor.kt:93-96` |
+| welcome-F3 **[검증: 수정함(A-465, 2026-11-11)]** | 비밀번호에 길이 규칙이 없다(`user.wrongPassword.alert`는 빈 값일 때만). 사이트 비밀번호 정책 설정이 있는지는 이 화면에서 쓰지 않는다 | `SiteSecretInterceptor.kt:93-96` |
 | welcome-F4 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `.secret-box { width: 50% }` 고정이라 좁은 화면에서 안내 글이 좁다(반응형 규칙 없음) | `secret.html:26`, `restart.html:25` |
 
 ---
