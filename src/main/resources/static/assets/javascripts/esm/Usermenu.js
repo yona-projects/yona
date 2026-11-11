@@ -113,7 +113,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    $yona.alert("Update failed: " + failureReason(failure));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);
@@ -128,7 +128,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    $yona.alert("Update failed: " + failureReason(failure));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);
@@ -170,7 +170,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + JSON.parse(failure.responseText).reason);
+                    $yona.alert("Update failed: " + failureReason(failure));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);
@@ -200,6 +200,23 @@ $(() => {
     function closeSidebar($sidebar) {
         $sidebar.width("0").css("border", "none");
         $(".main-stream").removeClass("col-lg-8").addClass("col-lg-12");
+    }
+
+    /**
+     * 즐겨찾기 요청이 실패했을 때 알림창에 보일 사유를 돌려준다. 서버가 `{"reason": ...}` JSON을 주면 그 값을 쓰고, JSON이 아닌 본문
+     * (로그인하지 않은 403의 HTML 등)이면 상태 문구를 쓴다. v1.6은 `JSON.parse`가 예외를 던져 알림도 없이 멈췄다(issue-F3).
+     *
+     * @param {{responseText?: string, statusText?: string, status?: number}} failure 실패한 요청 객체
+     * @returns {string} 알림창에 보일 사유
+     */
+    function failureReason(failure) {
+        try {
+            const reason = JSON.parse(failure.responseText).reason;
+            if (reason) return reason;
+        } catch (ignored) {
+            // JSON이 아닌 본문이다. 아래 상태 문구로 대신한다
+        }
+        return (failure && (failure.statusText || failure.status)) || "";
     }
 
     function openSidebar($sidebar) {

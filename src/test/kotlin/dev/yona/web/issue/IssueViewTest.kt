@@ -292,6 +292,9 @@ class IssueViewTest : AbstractIntegrationTest() {
         val anonymous = view(project)
         assertTrue(anonymous.select("#issue-share-button, a[href=#deleteConfirm]").isEmpty())
         assertTrue(anonymous.select(".act-row a[href\$=editform] button").isNotEmpty())
+        // 가중치 단추는 수정 권한이 있을 때만 보이고 숫자는 모두에게 보인다 (v1_6은 단추를 모두에게 보여 눌러도 403이었다, 고쳤다, issue-F3)
+        assertTrue(anonymous.select("#upvote-issue-weight, #down-vote-issue-weight").isEmpty())
+        assertEquals("0", anonymous.selectFirst(".weight-number")!!.text())
     }
 
     @Test
