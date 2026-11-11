@@ -80,11 +80,12 @@
         });
         $('input[type=radio][name=webhookType]').change(function() {
             if (this.value == 'JSON') {
-                $("input:checkbox[name=gitPush]").attr('checked', true);
+                // v1.6은 속성(attribute)으로 바꾸어, 체크를 한 번이라도 눌러 본 뒤 JSON을 고르면 체크가 꺼진 채 잠겼다(project-F20). 상태 값(prop)으로 바꾼다.
+                $("input:checkbox[name=gitPush]").prop('checked', true);
                 $("input:checkbox[name=gitPush]").attr('onclick', 'return false;');
             } else {
                 $("input:checkbox[name=gitPush]").attr('onclick', '');
-                $("input:checkbox[name=gitPush]").attr('checked', false);
+                $("input:checkbox[name=gitPush]").prop('checked', false);
             }
         });
     });
