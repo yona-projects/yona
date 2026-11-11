@@ -130,9 +130,11 @@ class IssueListService(private val entityManager: EntityManager) {
         ).setParameter("user", user.id).resultList
             .sortedWith(compareBy<Project, String>(String.CASE_INSENSITIVE_ORDER) { it.owner.orEmpty() }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name.orEmpty() })
 
-    /** 하위 이슈의 부모로 고를 수 있는 이슈이다. 부모가 없는 이슈를 최근 것부터 [limit]개까지 돌려준다 (v1.6 `Issue.findParentIssueByProject`). */
+    /** 하위 이슈의 부모로 고를 수 있는 이슈이다. 부모가 없는 이슈를 최근 것부터 [limit]개까지 돌려준다 (v1.6 `Issue.findParentIssueByProject`).
+     * 초안은 작성자만 열 수 있어 후보에서 뺀다. v1.6은 남의 초안도 후보로 보여 골라도 부모 이슈를 볼 수 없었다(issue-F19).
+     */
     @Transactional(readOnly = true)
     fun parentCandidates(project: Project, limit: Int): List<Issue> =
-        entityManager.createQuery("select i from Issue i where i.project.id = :project and i.parent is null order by i.createdDate desc, i.id desc", Issue::class.java)
+        entityManager.createQuery("select i from Issue i where i.project.id = :project and i.parent is null and (i.isDraft is null or i.isDraft = false) order by i.createdDate desc, i.id desc", Issue::class.java)
             .setParameter("project", project.id).setMaxResults(limit).resultList
 }
