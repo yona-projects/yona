@@ -103,7 +103,8 @@ class ImportController(
 
     private companion object {
         const val DEFAULT_ORGANIZATION_LOGO = "/assets/images/group_default.png"
-        val ALL_MENUS = listOf("code", "issue", "pullRequest", "review", "milestone", "board")
+        /** 폼이 보내는 메뉴 값이다. 위키가 빠져 있으면 폼의 위키 체크박스 값이 버려져 위키 메뉴가 꺼진 프로젝트가 만들어진다. */
+        val ALL_MENUS = listOf("code", "issue", "pullRequest", "review", "milestone", "board", "wiki")
         val DEFAULT_MENUS = ALL_MENUS.toSet()
         val TRUE_VALUES = setOf("true", "on", "yes", "1")
 

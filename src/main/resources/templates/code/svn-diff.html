@@ -17,7 +17,7 @@
         <div id="code-browse-wrap" class="code-browse-wrap">
             <div id="branches" class="btn-group branches float-end" data-name="branch" data-activate="manual">
                 <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="d-label" th:text="${#lists.isEmpty(branches)} ? 'HEAD' : 'HEAD'"></span>
+                    <span class="d-label" th:text="${#lists.isEmpty(branches.?[selected])} ? 'HEAD' : ${branches.?[selected][0].label}"></span>
                 </button>
                 <ul class="dropdown-menu">
                     <li th:each="b : ${branches}" th:attr="data-value=${b.label}, data-selected=${b.selected} ? 'true' : null">

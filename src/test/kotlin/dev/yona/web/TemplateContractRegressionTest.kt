@@ -36,4 +36,11 @@ class TemplateContractRegressionTest {
         assertFalse(search.contains("\$('.search-content-body, .title').each("), "문서 전체의 .title을 고친다")
         assertEquals(1, Regex("\\$\\('\\.search-result-wrap \\.search-content-body, \\.search-result-wrap \\.title'\\)\\.each\\(").findAll(search).count())
     }
+
+    @Test
+    fun `Subversion 커밋 화면의 브랜치 토글 글자는 고른 브랜치이다 (code-F5, 늘 HEAD로 고정되어 있었다)`() {
+        val svn = template("code/svn-diff.html")
+        assertFalse(svn.contains("? 'HEAD' : 'HEAD'"), "선택한 브랜치와 상관없이 HEAD를 보인다")
+        assertTrue(svn.contains("branches.?[selected]"), "고른 브랜치(selected)의 이름을 쓴다")
+    }
 }

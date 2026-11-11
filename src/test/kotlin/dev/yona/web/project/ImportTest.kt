@@ -111,6 +111,24 @@ class ImportTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `위키를 켜서 가져오면 위키 메뉴가 켜지고 보내지 않으면 꺼진다 (E-F3, 폼의 위키 체크박스 값이 버려졌다)`() {
+        val me = user(); val session = login(me)
+        mockMvc.perform(send(session, me.loginId!!, "withwiki", source(), mapOf("wiki" to "true"))).andExpect(status().isSeeOther)
+        assertEquals(true, menuSettings.findFirstByProjectId(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "withwiki")!!.id!!)!!.wiki)
+        mockMvc.perform(send(session, me.loginId!!, "nowiki", source())).andExpect(status().isSeeOther)
+        assertEquals(false, menuSettings.findFirstByProjectId(projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "nowiki")!!.id!!)!!.wiki)
+    }
+
+    @Test
+    fun `실패해서 다시 그릴 때 위키 체크박스도 고른 값을 따른다 (E-F3)`() {
+        val me = user(); val session = login(me)
+        val html = mockMvc.perform(send(session, me.loginId!!, "wikiredraw", "  ", mapOf("wiki" to "true"))).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(org.jsoup.Jsoup.parse(html).selectFirst("input#menuSettingWiki")!!.hasAttr("checked"))
+        val html2 = mockMvc.perform(send(session, me.loginId!!, "wikiredraw2", "  ")).andExpect(status().isBadRequest).andReturn().response.contentAsString
+        assertTrue(!org.jsoup.Jsoup.parse(html2).selectFirst("input#menuSettingWiki")!!.hasAttr("checked"))
+    }
+
+    @Test
     fun `주소 앞뒤에 공백이 있어도 검증과 복제에 같은 주소를 써서 가져온다 (C072)`() {
         val me = user(); val url = source()
         mockMvc.perform(send(login(me), me.loginId!!, "spaced", "  $url  ")).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${me.loginId}/spaced"))
