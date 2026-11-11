@@ -47,7 +47,7 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-upload"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-upload", "yona.max-file-size=1024"])
 class AttachmentUploadTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
@@ -107,6 +107,14 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
         assertEquals(ResourceType.USER, stored.containerType)
         assertEquals(user.id, stored.containerId)
         assertEquals(user.loginId, stored.ownerLoginId)
+    }
+
+    @Test
+    fun `설정한 최대 크기를 넘는 파일은 413이고 저장하지 않는다 (shell-F12, v1_6은 화면 스크립트만 검사해 서버는 5MB도 받았다, 고쳤다)`() {
+        val user = newUser()
+        upload(login(user), bytes = ByteArray(5000) { 1 }, accept = "application/json").andExpect(status().isPayloadTooLarge)
+        assertEquals(0, attachmentRepository.findAll().size)
+        upload(login(user), bytes = ByteArray(1024) { 1 }, accept = "application/json").andExpect(status().isCreated)
     }
 
     @Test
