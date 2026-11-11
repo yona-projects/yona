@@ -110,4 +110,12 @@ class TemplateContractRegressionTest {
         val scripts = template("common/scripts.html")
         assertTrue(Regex("match\\(\"\\^\\[\\^\\./#]\"\\)\\s*&&\\s*!/\\^\\(mailto\\|tel\\):/i\\.test\\(linkUrl\\)").containsMatchIn(scripts), "mailto와 tel을 제외하지 않는다")
     }
+
+    @Test
+    fun `검색 결과는 searchType이 auto일 때 주소를 실제 종류로 바꾸어 쪽 링크가 종류를 바꾸지 않는다 (search-F6, v1_6은 다음 쪽에서 다른 종류로 풀렸다)`() {
+        val search = template("search/partial-search.html")
+        val replace = search.indexOf("params.set('searchType', [[\${current}]])")
+        assertTrue(replace > 0, "auto를 실제 종류로 바꾸지 않는다")
+        assertTrue(replace < search.indexOf("th:switch=\"\${current}\""), "쪽 링크가 만들어지기 전(결과 조각을 그리기 전)에 바꿔야 한다")
+    }
 }
