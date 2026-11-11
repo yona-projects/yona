@@ -328,9 +328,9 @@ class MyIssuesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `기본 페이지 설정 스크립트는 v1_6처럼 주소를 문자열로 이어 요청한다`() {
+    fun `기본 페이지 설정 스크립트는 주소에 컨텍스트 경로를 붙여 문자열로 이어 요청한다 (v1_6은 접두어 없는 루트 주소였다, 고쳤다, shell-F16)`() {
         val html = mockMvc.perform(get("/user/issues").session(login(newUser()))).andReturn().response.contentAsString
-        assertTrue(html.contains("yona.http.post(\"/user/defultLoginPage?path=\" + \$setDefaultLoginPage.data(\"url\"))"))
+        assertTrue(html.contains("yona.http.post(\"\\/user\\/defultLoginPage\" + \"?path=\" + \$setDefaultLoginPage.data(\"url\"))"), html.substringAfter("setDefaultLoginPage.on").take(200))
         assertTrue(!html.contains("defaultLoginPageUrl"))
     }
 

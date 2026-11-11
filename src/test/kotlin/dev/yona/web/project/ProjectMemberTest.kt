@@ -121,7 +121,8 @@ class ProjectMemberTest : AbstractIntegrationTest() {
         val input = form.selectFirst("input#loginId[name=loginId]")!!
         assertTrue(input.hasAttr("required"))
         assertEquals("Add new member ID.", input.attr("placeholder"))
-        assertEquals("^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", input.attr("pattern"))
+        // 한글 아이디를 공식으로 허용하므로 서버 규칙(LoginIdRules)과 같이 한글을 받는다(usersec-F3)
+        assertEquals("^[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*$", input.attr("pattern"))
         assertEquals("Enter Valid ID", input.attr("title"))
         assertEquals("Add", form.selectFirst("button")?.text()?.trim())
     }
