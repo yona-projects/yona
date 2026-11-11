@@ -82,6 +82,7 @@
                     </div>
                 </div>
             </li>
+            <!--/* 쓰지 않는 가지이다(project-F12): 목록에는 읽을 수 있는 프로젝트만 담겨 이 가지가 그려지는 설정이 없다. v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */-->
             <li class="project" th:unless="${row.readable}" style="background-color: #fcfcfc;">
                 <div class="info-wrap" style="opacity: 0.3">
                     <div class="owner-avatar-wrap">
