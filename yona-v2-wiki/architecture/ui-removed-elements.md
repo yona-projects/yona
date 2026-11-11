@@ -66,12 +66,19 @@ updated: 2026-11-11
 | 후보 | 위치 | 쓰이지 않게 된 시점 | 비고 |
 |---|---|---|---|
 | `.site-setting-nav` 규칙(옛 사이트 관리 사이드바 모양) | `app/assets/stylesheets/scss/_page.scss`의 `.site-setting-wrap` 안 | 사이트 관리 화면을 새 사이드바로 옮긴 커밋 36217925c | `.site-setting-wrap`의 나머지(`title_area`, `listhead` 등 본문 스타일)는 아직 쓰인다 |
-| `organization/menu :: menu` 조각(회색 가로 메뉴)과 `organization/partial-settingmenu` | `templates/organization/menu.html`, `partial-settingmenu.html` | 조직 화면 12개와 오류 화면을 사이드바로 옮긴 커밋 3ea5d5da4 | `search/result-organization`은 아직 이 가로 메뉴를 쓴다(아래 "남은 것"). 다 옮긴 뒤 지운다 |
+| `organization/menu :: menu` 조각(회색 가로 메뉴)과 `organization/partial-settingmenu` | `templates/organization/menu.html`, `partial-settingmenu.html` | 조직 화면 12개와 오류 화면을 사이드바로 옮긴 커밋 3ea5d5da4 | 이제 어디에서도 쓰이지 않는다(검색 결과를 옮긴 커밋 76d6aecf2에서 확인). 모든 작업이 끝난 뒤 지운다 |
 
 ## 아직 새 셸로 옮기지 않은 화면(참고)
 | 화면 | 이유 |
 |---|---|
-| `search/result-project`, `search/result-organization` | 검색 결과의 분류 목록(`search/partial-search`)이 자체 왼쪽 열과 래퍼를 가져 사이드바 안에 넣는 방법을 따로 정해야 한다 |
 | 조직 이슈 목록의 자체 왼쪽 필터 열(전체 이슈, 할당된 이슈 등) | 사이드바 옆에 왼쪽 열이 둘이 된다. 옛 화면 그대로 유지하고 선생님이 정리 여부를 정해 주실 것 |
-| `project/menu :: projectMenu` 조각(회색 가로 메뉴)과 `project/partial-settingmenu` | `templates/project/menu.html`, `partial-settingmenu.html` | 프로젝트 화면 54개를 사이드바로 옮긴 커밋 d112d36d5 | `search/result-project`는 아직 가로 메뉴를 쓴다. 다 옮긴 뒤 지운다 |
-| `.project-menu-*`, `.project-setting`, `.short-menu`, `.menu-name`, `.project-menu-count` 규칙 | `app/assets/stylesheets/scss/_page.scss`, `_responsive.scss` | 같은 커밋 | 조직 메뉴와 `search/result-*`가 옮겨지면 쓰이지 않는다 |
+| `project/menu :: projectMenu` 조각(회색 가로 메뉴)과 `project/partial-settingmenu` | `templates/project/menu.html`, `partial-settingmenu.html` | 프로젝트 화면 54개를 사이드바로 옮긴 커밋 d112d36d5 | 이제 어디에서도 쓰이지 않는다(커밋 76d6aecf2). 모든 작업이 끝난 뒤 지운다 |
+| `.project-menu-*`, `.project-setting`, `.short-menu`, `.menu-name`, `.project-menu-count` 규칙 | `app/assets/stylesheets/scss/_page.scss`, `_responsive.scss` | 같은 커밋 | 이제 쓰이지 않을 가능성이 높다(지우기 전에 `_page.scss` 안의 다른 사용처를 다시 확인한다) |
+| `common/my-series-menu-tab :: mySeriesMenuTab`(탭 3개 조각) | `templates/common/my-series-menu-tab.html` | 홈 화면 3개를 `defaultPageButton`으로 바꾼 커밋 8dceff746 | 정의만 남았다. 지우기 전에 `setDefaultLoginPage` 단추 부분은 `defaultPageButton`이 가져갔는지 확인한다 |
+
+## 검색 결과 화면
+| 화면 | 새 모양 | 커밋 |
+|---|---|---|
+| 프로젝트 검색 결과 | 프로젝트 사이드바 + 본문 안에 제목과 분류 목록 | 76d6aecf2 |
+| 그룹 검색 결과 | 그룹 사이드바 + 같은 본문 | 76d6aecf2 |
+| 전역 검색 결과 | 설계대로 사이드바 없음(제목 띠 그대로) | 변경 없음 |
