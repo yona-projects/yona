@@ -17,4 +17,10 @@ class ShellNavs(private val siteSettings: SiteSettingService) {
 
     /** 내 설정 사이드바이다. OAuth 앱 항목은 사용자 앱 사용 설정이 켜졌을 때만 보인다. */
     fun userSettings(): NavMenu = ShellNav.userSettings(siteSettings.oauthUserAppsEnabled())
+
+    /** 조직 메인 사이드바이다. 설정 항목은 조직 관리자([canManage])에게만 보인다. */
+    fun organization(name: String, canManage: Boolean): NavMenu = ShellNav.organization(name, canManage)
+
+    /** 조직 설정 사이드바이다. 맨 위에 조직으로 돌아가는 단추가 붙는다. */
+    fun organizationSettings(name: String): NavMenu = ShellNav.organizationSettings(name)
 }

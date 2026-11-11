@@ -141,18 +141,18 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     @Test
     fun `메뉴는 홈 이슈 게시판 풀 리퀘스트이고 홈이 활성이다`() {
         val org = newOrg()
-        val items = page("/organizations/${org.name}").select(".project-menu-gruop li")
+        val items = page("/organizations/${org.name}").select("nav.shell-sidebar li.nav-item")
         assertEquals(listOf("Group Home", "Issue", "Board", "Pull request"), items.map { it.text().trim() })
         assertEquals(listOf("/organizations/${org.name}", "/organizations/${org.name}/issues", "/organizations/${org.name}/boards", "/organizations/${org.name}/pullrequests"), items.map { it.selectFirst("a")!!.attr("href") })
-        assertTrue(items[0].hasClass("active"))
+        assertTrue(items[0].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test
     fun `주소의 대소문자가 달라도 활성 탭이 표시된다 (v1_6은 빈 값이었다, 고쳤다 organization-F9)`() {
         val org = newOrg()
         val upper = org.name!!.uppercase()
-        assertTrue(page("/organizations/$upper").select(".project-menu-gruop li")[0].hasClass("active"))
-        assertTrue(page("/organizations/$upper/issues").select(".project-menu-gruop li")[1].hasClass("active"))
+        assertTrue(page("/organizations/$upper").select("nav.shell-sidebar li.nav-item")[0].selectFirst("a")!!.hasClass("active"))
+        assertTrue(page("/organizations/$upper/issues").select("nav.shell-sidebar li.nav-item")[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test
@@ -161,10 +161,10 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
         val siteAdmin = newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }
-        assertEquals("/organizations/${org.name}/settingform", page("/organizations/${org.name}", login(admin)).selectFirst(".project-setting a")?.attr("href"))
-        assertNotNull(page("/organizations/${org.name}", login(siteAdmin)).selectFirst(".project-setting a"))
-        assertNull(page("/organizations/${org.name}", login(member)).selectFirst(".project-setting a"))
-        assertNull(page("/organizations/${org.name}").selectFirst(".project-setting a"))
+        assertEquals("/organizations/${org.name}/settingform", page("/organizations/${org.name}", login(admin)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]")?.attr("href"))
+        assertNotNull(page("/organizations/${org.name}", login(siteAdmin)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
+        assertNull(page("/organizations/${org.name}", login(member)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
+        assertNull(page("/organizations/${org.name}").selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
     }
 
     @Test

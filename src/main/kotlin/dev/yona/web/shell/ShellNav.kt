@@ -178,7 +178,7 @@ object ShellNav {
             add(NavItem("issues", "menu.issue", "$base/issues"))
             add(NavItem("boards", "menu.board", "$base/boards"))
             add(NavItem("pullRequests", "menu.pullRequest", "$base/pullrequests"))
-            if (canManage) add(NavItem("settings", "menu.admin", "$base/settingform"))
+            if (canManage) add(NavItem("settings", "organization.settingFrom", "$base/settingform"))
         }
         return NavMenu(NavContext.ORGANIZATION, null, items)
     }

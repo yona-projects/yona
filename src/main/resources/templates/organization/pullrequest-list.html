@@ -11,9 +11,10 @@
       th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::pullRequestPage})}">
 <th:block th:fragment="pullRequestPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
+        <div class="shell-main">
         <div list-container class="row cb">
             <div class="left-menu col-lg-2 search-wrap hide-in-mobile" style="padding-top:0;">
                 <form id="search" name="search" th:action="${searchAction}" method="get">
@@ -116,6 +117,7 @@
                 });
             });
         </script>
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

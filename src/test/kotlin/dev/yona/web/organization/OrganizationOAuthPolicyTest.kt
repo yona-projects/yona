@@ -80,7 +80,7 @@ class OrganizationOAuthPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `설정 탭에 OAuth 앱 정책 탭이 있고 기본은 제한 없음이다`() {
         val x = Setup(); val s = login(x.admin); val doc = page(s, x.path)
-        assertTrue(doc.select("ul.nav-tabs a[href\$=/oauth-policy]").single().hasClass("active"))
+        assertTrue(doc.select("nav.shell-sidebar a.nav-link[href\$=/oauth-policy]").single().hasClass("active"))
         assertEquals("false", doc.selectFirst("form#oauth-policy-form input[name=restricted][checked]")?.attr("value") ?: "false")
         assertNotNull(doc.selectFirst("form#oauth-policy-form input[name=restricted][value=true]")); assertNotNull(doc.selectFirst("form#oauth-policy-form input[name=restricted][value=false]"))
     }

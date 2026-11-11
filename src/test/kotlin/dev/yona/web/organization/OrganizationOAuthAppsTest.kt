@@ -89,8 +89,8 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
     @Test
     fun `조직 설정 탭에 OAuth 앱 탭이 있고 목록 화면에서 활성이다`() {
         val x = Setup(); val s = login(x.admin)
-        assertTrue(page(s, x.base).select("ul.nav-tabs a[href\$=/oauth-apps]").single().hasClass("active"))
-        assertNotNull(page(s, "/organizations/${x.org.name}/settingform").select("ul.nav-tabs a[href\$=/oauth-apps]").singleOrNull())
+        assertTrue(page(s, x.base).select("nav.shell-sidebar a.nav-link[href\$=/oauth-apps]").single().hasClass("active"))
+        assertNotNull(page(s, "/organizations/${x.org.name}/settingform").select("nav.shell-sidebar a.nav-link[href\$=/oauth-apps]").singleOrNull())
     }
 
     @Test

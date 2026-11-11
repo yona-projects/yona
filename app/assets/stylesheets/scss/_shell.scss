@@ -98,3 +98,8 @@ $shell-gap: 14px;
     // 좁은 폭에서 본문 위에 놓이는 열기 단추이다(lg 이상에서는 `d-lg-none`이 숨긴다).
     margin-bottom: 12px;
 }
+
+// 조직 머리의 로고는 배너 아래로 튀어나와 있어(옛 가로 메뉴는 그 자리를 비워 두었다) 사이드바 첫 항목을 가리지 않게 위쪽 여백을 둔다.
+.shell-below-banner {
+    padding-top: 40px;
+}

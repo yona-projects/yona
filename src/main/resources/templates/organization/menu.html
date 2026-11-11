@@ -34,3 +34,12 @@
     </div>
 </div>
 </th:block>
+
+<!--/*
+  D-141: 가로 메뉴를 새 셸의 사이드바로 바꾼 조각이다. kind가 'settings'이면 설정 전용 사이드바(맨 위에 "조직으로 돌아가기"),
+  아니면 메인 사이드바이다. 항목과 보이는 조건은 ShellNav.organization, ShellNav.organizationSettings가 정한다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(view, kind)"
+          th:with="shellMenu=${kind == 'settings' ? @shellNavs.organizationSettings(view.name) : @shellNavs.organization(view.name, view.canManage)}">
+<th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, ${view.name}, 'shellSidebar', null)}"></th:block>
+</th:block>
