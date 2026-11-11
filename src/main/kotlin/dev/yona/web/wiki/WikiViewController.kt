@@ -72,7 +72,8 @@ class WikiViewController(
     private val markdown: ProjectMarkdownRenderer,
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
-    private val repositoryUrls: dev.yona.web.project.RepositoryUrls
+    private val repositoryUrls: dev.yona.web.project.RepositoryUrls,
+    private val messages: org.springframework.context.MessageSource
 ) {
 
     // --- 읽기 ---
@@ -83,7 +84,7 @@ class WikiViewController(
     fun home(@PathVariable("user") owner: String, @PathVariable("project") name: String): Any {
         val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
         val page = wikiService.page(project, HOME)
-        return if (page != null) pageView(project, page) else shell(project, "wiki/empty", "Wiki", null).addObject("available", wikiService.available(project))
+        return if (page != null) pageView(project, page) else shell(project, "wiki/empty", text("menu.wiki"), null).addObject("available", wikiService.available(project))
     }
 
     @GetMapping("/{user}/{project}/wiki/{page}")
@@ -107,7 +108,7 @@ class WikiViewController(
         val current = number.coerceAtLeast(0)
         val commits = wikiService.history(project, pageName, current, HISTORY_SIZE + 1)
         val base = wikiBase(project)
-        return shell(project, "wiki/history", "${WikiService.titleOf(pageName)} - Revisions", pageName)
+        return shell(project, "wiki/history", "${WikiService.titleOf(pageName)} - ${text("wiki.history.title")}", pageName)
             .addObject("pageTitle", WikiService.titleOf(pageName))
             .addObject("pageUrl", pageUrl(base, pageName))
             .addObject("compareAction", "${pageUrl(base, pageName)}/_compare")
@@ -135,7 +136,7 @@ class WikiViewController(
             return ErrorViews.notFound("wiki.revision.notFound", views.of(project), null)
         }
         val base = wikiBase(project)
-        return shell(project, "wiki/compare", "${WikiService.titleOf(pageName)} - Compare", pageName)
+        return shell(project, "wiki/compare", "${WikiService.titleOf(pageName)} - ${text("wiki.compare.title")}", pageName)
             .addObject("pageTitle", WikiService.titleOf(pageName))
             .addObject("pageUrl", pageUrl(base, pageName))
             .addObject("historyUrl", "${pageUrl(base, pageName)}/_history")
@@ -307,6 +308,9 @@ class WikiViewController(
     private fun deny(project: Project): ModelAndView? = if (canWrite(project)) null else ErrorViews.forbidden("error.forbidden", views.of(project))
 
     /** 모든 위키 화면의 공통 모델이다: 프로젝트 화면 정보, 사이드바 목록, 사이드바와 푸터 페이지. [pageList]는 이미 읽어 둔 페이지 목록이다. */
+    /** 보는 사람의 언어로 만든 문서 제목 조각이다(한국어 화면에서도 영어 상수로 나오던 것을 고쳤다, wiki-F5). */
+    private fun text(key: String): String = messages.getMessage(key, null, org.springframework.context.i18n.LocaleContextHolder.getLocale())
+
     private fun shell(project: Project, template: String, title: String, activeName: String?, pageList: List<dev.yona.domain.wiki.WikiPageSummary> = wikiService.pages(project)): ModelAndView {
         val base = wikiBase(project)
         val names = pageList.map { it.name }.toSet()
@@ -346,7 +350,7 @@ class WikiViewController(
     private fun form(project: Project, pageName: String?, title: String, content: String, message: String, error: String?, status: HttpStatus): ModelAndView {
         val base = wikiBase(project)
         val action = if (pageName == null) base else "${pageUrl(base, pageName)}/_edit"
-        return shell(project, "wiki/edit", if (pageName == null) "New Page" else "Edit ${WikiService.titleOf(pageName)}", pageName)
+        return shell(project, "wiki/edit", if (pageName == null) text("wiki.page.new") else "${text("wiki.page.edit")} ${WikiService.titleOf(pageName)}", pageName)
             .addObject("editing", pageName != null)
             .addObject("formAction", action)
             .addObject("deleteAction", pageName?.let { "${pageUrl(base, it)}/_delete" })

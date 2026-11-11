@@ -35,7 +35,7 @@
     <button type="button" th:if="${verifiable}" class="audit-verify btn btn-sm btn-outline-secondary" th:text="#{audit.verify}">Verify integrity</button>
 </div>
 <div th:if="${verifiable}" class="audit-verify-result small mb-2"
-     th:attr="data-ok=#{audit.verify.ok('{0}')},data-broken=#{audit.verify.broken('{0}', '{1}')}"></div>
+     th:attr="data-ok=#{audit.verify.ok('{0}')},data-broken=#{audit.verify.broken('{0}', '{1}')},data-failed=#{audit.verify.failed}"></div>
 
 <table class="table table-sm align-middle audit-table">
     <thead>
@@ -73,11 +73,16 @@
         if (!button) return;
         button.addEventListener("click", function () {
             fetch(button.getAttribute("data-url") || (window.location.pathname.replace(/\/$/, "") + "/verify"), { credentials: "same-origin", headers: { "Accept": "application/json" } })
-                .then(function (r) { return r.json(); })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .then(function (v) {
                     var text = v.ok ? out.getAttribute("data-ok").replace("{0}", v.checked) : out.getAttribute("data-broken").replace("{0}", v.brokenId).replace("{1}", v.reason);
                     out.textContent = text;
                     out.className = "audit-verify-result small mb-2 " + (v.ok ? "text-success" : "text-danger");
+                })
+                // 권한이 없거나(403) 서버 오류이면 아무 일도 없던 것처럼 보이지 않게 실패를 알린다(audit-F4)
+                .catch(function () {
+                    out.textContent = out.getAttribute("data-failed");
+                    out.className = "audit-verify-result small mb-2 text-danger";
                 });
         });
     })();

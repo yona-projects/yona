@@ -71,6 +71,17 @@
         });
     })();
 </script>
+<script type="text/javascript" th:inline="javascript">
+    // 저장하지 않고 떠나면 경고한다(게시판 글쓰기와 같다, wiki-F4). 내용이나 제목을 고친 뒤에만, 저장 제출 중에는 경고하지 않는다
+    (function () {
+        var box = document.querySelector("textarea[name=content]");
+        if (!box) return;
+        var form = box.closest("form"), dirty = false, submitting = false;
+        [box, document.querySelector("input[name=title]")].forEach(function (el) { if (el) el.addEventListener("input", function () { dirty = true; }); });
+        form.addEventListener("submit", function () { submitting = true; });
+        window.addEventListener("beforeunload", function (e) { if (dirty && !submitting) { e.preventDefault(); e.returnValue = ""; return ""; } });
+    })();
+</script>
 <script type="text/javascript">
     document.querySelectorAll("form.wiki-delete-form[data-confirm]").forEach(function (f) {
         f.addEventListener("submit", function (e) { if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault(); });
