@@ -26,6 +26,7 @@
         <div class="input-group input-group-sm">
             <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
             <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
+            <span class="wiki-clone-feedback small ms-2" role="status" th:attr="data-copied=#{wiki.clone.copied},data-failed=#{wiki.clone.copyFailed}"></span>
         </div>
     </div>
 </div>
@@ -55,8 +56,12 @@
         var copy = document.querySelector(".wiki-clone-copy");
         if (copy) copy.addEventListener("click", function () {
             var url = document.querySelector(".wiki-clone-url");
+            var feedback = document.querySelector(".wiki-clone-feedback");
+            function show(ok) { feedback.textContent = feedback.getAttribute(ok ? "data-copied" : "data-failed"); feedback.className = "wiki-clone-feedback small ms-2 " + (ok ? "text-success" : "text-danger"); }
             url.select();
-            if (navigator.clipboard) navigator.clipboard.writeText(url.value); else document.execCommand("copy");
+            // 복사 결과를 알린다(권한 거부나 비보안 연결에서는 실패한다, wiki-F6)
+            if (navigator.clipboard) navigator.clipboard.writeText(url.value).then(function () { show(true); }).catch(function () { show(document.execCommand("copy")); });
+            else show(document.execCommand("copy"));
         });
         box.addEventListener("input", apply);
         if (more) more.addEventListener("click", function () { expanded = true; apply(); });

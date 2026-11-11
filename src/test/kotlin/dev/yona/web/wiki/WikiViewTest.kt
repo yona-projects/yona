@@ -403,6 +403,21 @@ class WikiViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `위키 화면의 문서 제목은 보는 사람의 언어를 따른다 (wiki-F5, 한국어 화면에서도 영어 상수였다)`() {
+        val p = project(); val writer = member(p)
+        fun title(uri: String, lang: String) = mockMvc.perform(get(uri).session(writer).header("Accept-Language", lang)).andReturn().modelAndView!!.model["title"]
+        assertEquals("위키", title(base(p), "ko-KR"))
+        assertEquals("Wiki", title(base(p), "en-US"))
+        assertEquals("새 페이지", title("${base(p)}/_new", "ko-KR"))
+        assertEquals("New Page", title("${base(p)}/_new", "en-US"))
+        create(writer, p, "Home", "a\n", "첫 글")
+        assertEquals("편집 Home", title("${base(p)}/Home/_edit", "ko-KR"))
+        assertEquals("Edit Home", title("${base(p)}/Home/_edit", "en-US"))
+        assertEquals("Home - 리비전", title("${base(p)}/Home/_history", "ko-KR"))
+        assertEquals("Home - Revisions", title("${base(p)}/Home/_history", "en-US"))
+    }
+
+    @Test
     fun `이력은 최신순이고 두 리비전을 골라 비교한다`() {
         val p = project(); val writer = member(p)
         create(writer, p, "Home", "a\n", "첫 글")

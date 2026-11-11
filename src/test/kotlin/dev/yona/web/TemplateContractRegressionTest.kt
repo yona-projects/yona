@@ -62,4 +62,20 @@ class TemplateContractRegressionTest {
             assertTrue(Regex("\\$\\(['\"][^'\"]*#$id[^'\"]*['\"]\\)\\.on\\(['\"]change['\"]").containsMatchIn(search), "#$id 선택을 바꿔도 제출하지 않는다")
         }
     }
+
+    @Test
+    fun `위키 편집 화면은 저장하지 않고 떠나면 경고하고 복제 주소 복사는 결과를 알린다 (wiki-F4, wiki-F6)`() {
+        val edit = template("wiki/edit.html")
+        assertTrue(edit.contains("beforeunload"), "저장하지 않고 떠나는 것을 경고하지 않는다(게시판 글쓰기는 경고한다)")
+        val shell = template("wiki/shell.html")
+        assertTrue(shell.contains("wiki-clone-feedback") && shell.contains("data-copied") && shell.contains("data-failed"), "복사 성공과 실패를 알리지 않는다")
+        assertTrue(shell.contains(".catch("), "복사 실패(권한 거부)를 처리하지 않는다")
+    }
+
+    @Test
+    fun `감사 무결성 검증 단추는 응답 상태를 보고 실패를 알린다 (audit-F4, 403이면 아무 일도 없었다)`() {
+        val audit = template("audit/list.html")
+        assertTrue(audit.contains("data-failed=#{audit.verify.failed}"), "실패 문구가 없다")
+        assertTrue(audit.contains("r.ok") && audit.contains(".catch("), "응답 상태를 보지 않고 실패를 처리하지 않는다")
+    }
 }
