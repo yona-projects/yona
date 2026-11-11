@@ -27,12 +27,12 @@ object HgRevisions {
         hg.tags().setReadFromHeads(true).call().filter { it.name != "tip" }.associate { it.name to NodeId(it.node).toHex() }
 
     /**
-     * 기본 위치의 노드이다. `main`, `master`, `@` 이름표 가운데 먼저 있는 것이고, 없으면 `default` 브랜치의 끝, 그것도 없으면 저장소 전체의 끝이다.
+     * 기본 위치의 노드이다. 기본으로 정한 이름표(있으면), `main`, `master`, `@` 이름표 가운데 먼저 있는 것이고, 없으면 `default` 브랜치의 끝, 그것도 없으면 저장소 전체의 끝이다.
      * 커밋이 하나도 없으면 `null`이다.
      */
     fun head(hg: Hg): String? {
         val bookmarks = bookmarks(hg)
-        HgRepositories.DEFAULT_BOOKMARKS.firstOrNull { it in bookmarks }?.let { return bookmarks.getValue(it) }
+        HgDefaultBranch.resolve(hg, bookmarks)?.let { return bookmarks.getValue(it) }
         hg.branches().call().firstOrNull { it.branch == "default" }?.let { return NodeId(it.node).toHex() }
         return tip(hg)
     }

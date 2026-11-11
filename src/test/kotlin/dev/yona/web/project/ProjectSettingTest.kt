@@ -66,6 +66,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
     @Autowired private lateinit var organizations: OrganizationRepository
     @Autowired private lateinit var favorites: FavoriteProjectRepository
     @Autowired private lateinit var attachments: AttachmentService
@@ -216,11 +217,17 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `기본 브랜치를 지원하지 않는 Mercurial 프로젝트의 설정에는 선택지 없는 기본 브랜치 상자가 없다 (E-F16)`() {
+    fun `Mercurial 프로젝트의 설정에는 북마크가 기본 브랜치 선택지로 나오고 현재 기본을 고른다 (code-F7, 이전에는 지원이 없어 상자가 없었다 E-F16)`() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(dev.yona.support.HgTestSupport.available, "hg가 설치되어 있어야 한다")
         val hg = newProject(vcs = "Mercurial")
+        repositories.createRepository(hg)
+        val dir = hgRepositories.directoryOf(hg.owner!!, hg.name!!)
+        dev.yona.support.HgTestSupport.commit(dir, "첫 커밋", mapOf("a.txt" to "a\n"), "2026-11-01 10:00 +0900")
+        dev.yona.support.HgTestSupport.bookmark(dir, "main"); dev.yona.support.HgTestSupport.bookmark(dir, "feature")
         val page = settingForm(hg, login(manager(hg)))
-        assertNull(page.selectFirst("select#project-default-branch"), "선택지가 없는 기본 브랜치 선택 상자가 그려진다")
-        assertNull(page.selectFirst("#defaultBranceSettingPanel"))
+        val options = page.select("select#project-default-branch option")
+        assertEquals(listOf("refs/heads/feature", "refs/heads/main"), options.map { it.attr("value") }.sorted())
+        assertEquals("refs/heads/main", options.first { it.hasAttr("selected") }.attr("value"))
     }
 
     @Test

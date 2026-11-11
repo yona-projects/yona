@@ -84,7 +84,7 @@ class HgTagWriter(private val repositories: HgRepositories) {
                 val before = HgRevisions.bookmarks(hg)
                 io.github.search5.hg4j.api.PullCommand(hg.repository).setSource(work.canonicalPath).call()
                 // 기본 위치가 이름표였고 그동안 움직이지 않았으면 새 체인지셋으로 옮긴다
-                HgRepositories.DEFAULT_BOOKMARKS.firstOrNull { before[it] == base }?.let {
+                HgDefaultBranch.candidates(hg).firstOrNull { before[it] == base }?.let {
                     BookmarkCommand(hg.repository).setBookmarkName(it).setRevision(created).setForce(true).call()
                 }
             }

@@ -127,7 +127,13 @@ class BranchController(
     @Transactional
     fun setAsDefault(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable branch: String, request: HttpServletRequest): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        repositories.setDefaultBranch(project, UrlPaths.decodeSegmentOrSelf(branch))
+        // 기본 브랜치를 정할 수 없는 종류이거나 없는 브랜치이면 500이 아니라 400이다(Mercurial은 북마크 이름을 기억하므로 없는 이름은 거절한다, code-F7)
+        if (!dev.yona.domain.vcs.VcsCapabilities.supports(project.vcs, dev.yona.domain.vcs.VcsCapability.DEFAULT_BRANCH)) return ErrorViews.badRequest()
+        try {
+            repositories.setDefaultBranch(project, UrlPaths.decodeSegmentOrSelf(branch))
+        } catch (e: IllegalArgumentException) {
+            return ErrorViews.badRequest()
+        }
         if (AjaxRequests.isXhr(request)) return ResponseEntity.ok().build<Void>()
         return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
