@@ -58,7 +58,10 @@ class ProjectCheckStage(
         when (annotation) {
             is GuestProhibit -> return guestPassed(annotation, request, response)
             is NullProjectCheck -> {
-                findProject(pathSegments(request), request) ?: throw ViewResultException(projectNotFound(request))
+                val segments = pathSegments(request)
+                val project = findProject(segments, request) ?: throw ViewResultException(projectNotFound(request))
+                // 읽기 권한을 따로 보지 않는 경로(이슈 보기, 수정, 삭제, 댓글, 일괄 변경 등)도 메뉴를 끈 기능이면 막는다(issue-F24, issue-F26)
+                checkMenuEnabled(project, segments, request.requestURI)
             }
             is IsAllowed, is IsCreatable, is RequiresVcs, is DefaultProjectCheck, is CodeAccessCheck -> {
                 val segments = pathSegments(request)

@@ -200,7 +200,10 @@ class BoardViewTest : AbstractIntegrationTest() {
         val project = newProject(); val author = join(newUser(), project)
         post(project, author)
         val owner = doc(project, session = login(author))
-        assertEquals("window.location = '${base(project)}/post/1/editform'", owner.selectFirst(".board-actrow button[title=Edit]")!!.attr("onclick"))
+        // 이동 주소를 data-href에 두고 onclick이 읽는다(컨텍스트 경로를 `@{}`로 붙이기 위해서이다, board-F17)
+        val edit = owner.selectFirst(".board-actrow button[title=Edit]")!!
+        assertEquals("${base(project)}/post/1/editform", edit.attr("data-href"))
+        assertEquals("window.location = this.dataset.href", edit.attr("onclick"))
         assertTrue(owner.select("a[href=#deleteConfirm]").isNotEmpty())
         assertEquals("${base(project)}/post/1/delete", owner.selectFirst("#deleteConfirm button[data-request-method=delete]")!!.attr("data-request-uri"))
         val other = doc(project, session = login(newUser()))

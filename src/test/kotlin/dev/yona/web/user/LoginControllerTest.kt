@@ -410,6 +410,19 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `아이디와 이메일을 번갈아 틀려도 같은 계정이면 함께 센다 (usersec-F17, 입력 글자마다 따로 세면 한도가 몇 배가 된다)`() {
+        newUser("limit4")
+        fun attempt(key: String, password: String) = mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", key).param("password", password))
+        attempt("limit4", "x").andExpect(status().isForbidden)
+        attempt("limit4@example.com", "x").andExpect(status().isForbidden)
+        attempt("LIMIT4", "x").andExpect(status().isForbidden)
+        attempt("Limit4", "x").andExpect(status().isForbidden)
+        attempt("limit4", "x").andExpect(status().isForbidden)
+        attempt("limit4@example.com", "1234").andExpect(status().isTooManyRequests)
+        attempt("limit4", "1234").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
     fun `로그인에 성공하면 틀린 횟수가 지워진다 (usersec-F11)`() {
         newUser("limit3")
         repeat(4) { mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit3").param("password", "x")) }
