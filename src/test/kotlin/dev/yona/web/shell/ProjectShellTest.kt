@@ -165,4 +165,18 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertTrue(script.data().contains("onPageLeave"), "화면을 떠날 때 N 단축키를 풀어야 한다")
         assertEquals("module", script.attr("type"))
     }
+
+    @Test
+    fun `게시판 목록은 select2 조각과 초기화 스크립트를 본문 안에 두고 떠날 때 N 단축키를 푼다(D-136, A-475)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        val doc = page("${base(p)}/posts", s)
+        assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"))
+        assertEquals(1, doc.select("script[src*=lib/select2/select2.js]").size, "select2 라이브러리는 한 번만 싣는다")
+        assertEquals(1, doc.select("head script[src*=lib/select2/select2.js]").size, "라이브러리는 레이아웃 head에 있어야 본문 교체 때 순서가 깨지지 않는다")
+        assertTrue(doc.select(".shell-main script[type=module]").any { it.attr("src").contains("esm/ui/Select2.js") }, "항목 모양 모듈과 템플릿은 본문 안")
+        assertNotNull(doc.selectFirst(".shell-main script#tplSelect2FormatUser"))
+        val init = doc.select(".shell-main script").first { it.data().contains("board.List") }
+        assertEquals("module", init.attr("type"))
+        assertTrue(init.data().contains("onPageLeave"))
+    }
 }

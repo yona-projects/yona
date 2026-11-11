@@ -14,7 +14,7 @@
 <div class="page-wrap-outer">
     <div class="post-list project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'BOARD')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="search-wrap underline">
             <form id="option_form" th:action="@{${base + '/posts'}}" method="get" class="float-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
@@ -63,13 +63,13 @@
 
         <th:block th:replace="~{help/keymap :: keymap('boardList', ${projectView})}"></th:block>
     
-        </div><!--/* .shell-main */-->
-    </div>
-</div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
-<script type="module" th:src="@{/assets/javascripts/esm/service/board.List.js}"></script>
-<script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+        <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="module" th:inline="javascript">
+    import { onPageLeave } from [[@{/assets/javascripts/esm/core/page.js}]];
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/twoColumnMode.js}]]);
+    await import([[@{/assets/javascripts/esm/service/board.List.js}]]);
+    $(function() {
         $yona.loadModule("board.List", {
             "elPagination": $('#pagination'),
             "nTotalPages" : /*[[${totalPageCount}]]*/ 0
@@ -79,6 +79,7 @@
         yona.ShortcutKey.setKeymapLink({
             "N": /*[[@{${base + '/postform'}}]]*/ ""
         });
+        onPageLeave(function () { yona.ShortcutKey.setKeymapLink({ "N": "" }); });
         /*[/]*/
 
         $('.board-labels select').on('change', function(e){
@@ -95,6 +96,8 @@
                 });
     });
 </script>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
 </th:block>
 </html>

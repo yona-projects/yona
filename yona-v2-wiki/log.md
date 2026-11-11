@@ -86,3 +86,5 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 ## [2026-11-11] feat | 화면 수명주기 core/page.ts와 마일스톤 목록 (A-475)
 
 onPageLeave/runPageLeave, 본문 교체 직전 호출. JS 시험 2개 추가, N 단축키 동작 확인.
+
+## [2026-11-11] feat | select2 한 번 싣기(A-476)와 게시판 목록 swap-safe

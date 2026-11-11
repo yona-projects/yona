@@ -2,16 +2,23 @@
   이식 원본: app/views/common/select2.scala.html 
   select2 라이브러리와 로캘 파일, 항목 모양 템플릿을 불러온다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="select2">
+<!--/*
+  select2 라이브러리 본체와 언어 파일, 기본 언어 설정이다. 레이아웃 head에서 한 번만 싣는다(D-136, A-476).
+  화면 조각(select2)에 두면 사이드바 이동으로 본문만 바꿀 때 htmx가 `<script src>`를 비동기로 넣어 기본 언어를 정하는 줄이 먼저 돌고,
+  이미 싣은 화면으로 이동하면 라이브러리가 두 번 실행된다.
+  문구는 공식 select2 4.1.0의 i18n 파일을 쓴다(D-99). 공식 파일이 있는 한국어, 일본어, 러시아어는 그 언어를, 없는 언어(우즈베크어)와 영어는 영어를 싣고,
+  공식 파일은 기본 언어를 정해 주지 않으므로 아래 줄이 정한다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="library"
+          th:with="s2lang=${#locale.language == 'ko' or #locale.language == 'ja' or #locale.language == 'ru' ? #locale.language : 'en'}">
 <script th:src="@{/assets/javascripts/lib/select2/select2.js}"></script>
-<!--/* select2 4.x는 원본 요소의 클래스를 컨테이너에 복사하지 않는다. v1.6(3.x)의 복사는 yona.ui.Select2.js가 같은 규칙으로 한다(D-95). */-->
-<script type="module" th:src="@{/assets/javascripts/esm/ui/Select2.js}"></script>
-<!--/* 문구는 공식 select2 4.1.0의 i18n 파일을 쓴다(D-99). 공식 파일이 있는 한국어, 일본어, 러시아어는 그 언어를, 없는 언어(우즈베크어)와 영어는 영어를 싣고,
-        공식 파일은 기본 언어를 정해 주지 않으므로 아래 줄이 정한다. */-->
-<th:block th:with="s2lang=${#locale.language == 'ko' or #locale.language == 'ja' or #locale.language == 'ru' ? #locale.language : 'en'}">
 <script th:src="@{/assets/javascripts/lib/select2/i18n/{lang}.js(lang=${s2lang})}"></script>
 <script th:inline="javascript">$.fn.select2.defaults.set("language", /*[[${s2lang}]]*/ "en");</script>
 </th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="select2">
+<!--/* select2 4.x는 원본 요소의 클래스를 컨테이너에 복사하지 않는다. v1.6(3.x)의 복사는 yona.ui.Select2.js가 같은 규칙으로 한다(D-95). 라이브러리 본체는 레이아웃 head의 library 조각이 싣는다. */-->
+<script type="module" th:src="@{/assets/javascripts/esm/ui/Select2.js}"></script>
 <script id="tplSelect2FormatUser" type="text/x-mustache">
 <div class="usf-group" title="{{name}} {{loginId}}">
     <span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>
