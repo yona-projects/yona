@@ -286,4 +286,32 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
         val a = issue(project, 1)
         post(project, login(member), "issues[0].id" to a.id.toString(), "state" to "CLOSED", json = false).andExpect(status().isSeeOther).andExpect(header().string("Location", "http://localhost/back"))
     }
+
+    @Test
+    fun `다른 사이트가 Referer이면 따라가지 않고 이슈 목록으로 간다 (v1_6은 그대로 이동하는 열린 리다이렉트였다, 고쳤다, issue-F23)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1)
+        mockMvc.perform(
+            post("/${project.owner}/${project.name}/issues").session(login(member)).header("Accept", "text/html").header("Referer", "http://evil.example/x")
+                .param("issues[0].id", a.id.toString()).param("state", "CLOSED")
+        ).andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/issues"))
+    }
+
+    @Test
+    fun `경로의 프로젝트에 속하지 않은 이슈는 404이고 바꾸지 않는다 (v1_6은 이슈만 보고 바꿨다, 고쳤다, issue-F9 b)`() {
+        val project = newProject(); val other = newProject(); val member = join(join(newUser(), project), other)
+        val foreign = issue(other, 1)
+        post(project, login(member), "issues[0].id" to foreign.id.toString(), "state" to "CLOSED").andExpect(status().isNotFound)
+        assertEquals(State.OPEN, reload(foreign).state)
+    }
+
+    @Test
+    fun `다른 프로젝트의 라벨은 붙이지 않는다 (v1_6은 붙였다, 고쳤다, issue-F9 c)`() {
+        val project = newProject(); val other = newProject(); val member = join(newUser(), project)
+        val category = categories.save(IssueLabelCategory(project = other, name = "c", isExclusive = false))
+        val foreignLabel = labels.save(IssueLabel(project = other, category = category, name = "x", color = "#fff"))
+        val a = issue(project, 1)
+        post(project, login(member), "issues[0].id" to a.id.toString(), "attachingLabelIds[]" to foreignLabel.id.toString()).andExpect(status().isOk)
+        assertTrue(reload(a).labels.isEmpty())
+    }
 }
