@@ -38,7 +38,7 @@
         <th:block th:unless="${totalRows == 0}">
             <div th:if="${totalRows > 1}" class="filter-wrap board">
                 <div class="filters">
-                    <a th:each="link : ${sortLinks}" th:href="${link.href}" class="filter" th:classappend="${link.active} ? 'active'">
+                    <a th:each="link : ${sortLinks}" th:href="@{${link.href}}" class="filter" th:classappend="${link.active} ? 'active'">
                         <i class="ico btn-gray-arrow" th:classappend="${!link.active or link.descending} ? 'down'"></i><th:block th:text="#{${link.labelKey}}"></th:block></a>
                 </div>
             </div>
