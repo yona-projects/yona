@@ -42,7 +42,8 @@ updated: 2026-11-11
 | 모듈 | 내용 |
 |---|---|
 | `core/config.ts` | `contextPath()`, `url(path)`. 새 코드는 `"/"`로 시작하는 주소 문자열을 직접 쓰지 않고 `url()`을 거친다(컨텍스트 경로 접두어가 빠지거나 두 번 붙는 결함을 막는다, A-466) |
+| `shell/sidebar.ts` | 넓은 폭(992px 이상)에서 사이드바를 숨기고 다시 보이는 첫 화면 모듈. 단추와 `[` 키, 상태를 `html[data-sidebar="collapsed"]`와 localStorage `shellSidebarCollapsed`에 기억하고 첫 그림 전에 적용한다. 좁은 폭은 서랍이 맡아 기억하지 않는다. 시험 `shellsidebar.test.mjs`(5개) |
 | `types/yona-globals.d.ts` | 서버와 옛 스크립트가 만드는 전역의 형(`window.yonaContextPath`). 옛 전역은 옮기는 묶음에서 여기에 더한다 |
 
 ## 다음 단계(P-1의 남은 일)
-`Page` 수명주기(`shell/Page.ts`), 저장소(`store/`, `idb`), 단축키(`shortcuts`), `yona-globals.d.ts`의 `$yona`와 `Messages` 선언, 하네스의 산출물 경로 전환과 순수 모듈 14개 이식. 순서는 `ui-ts-inventory.md` 7절이다.
+(`shell/sidebar`가 첫 사용처가 되었다.) `Page` 수명주기(`shell/Page.ts`), 저장소(`store/`, `idb`), 단축키(`shortcuts`), `yona-globals.d.ts`의 `$yona`와 `Messages` 선언, 하네스의 산출물 경로 전환과 순수 모듈 14개 이식. 순서는 `ui-ts-inventory.md` 7절이다.
