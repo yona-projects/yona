@@ -82,7 +82,8 @@ class IssueMassUpdateController(
         val viewer = currentUserProvider.get().user
 
         // v1.6는 폼이 만든 이슈 객체를 `issue.refresh()`하는데 없는 번호이면 예외로 500이었다(R-127). 아무것도 바꾸기 전에 404로 알린다
-        val targets = ids.map { issues.findById(it).orElse(null) ?: return ErrorViews.notFound() }
+        // 경로의 프로젝트에 속하지 않은 이슈도 404이다. v1.6은 이슈별 권한만 보아 다른 프로젝트 경로로 남의 이슈를 바꿀 수 있었다(issue-F9)
+        val targets = ids.map { issues.findById(it).orElse(null)?.takeIf { found -> found.project?.id == project.id } ?: return ErrorViews.notFound() }
         var updated = 0
         var rejected = 0
         for (issue in targets) {
@@ -108,7 +109,8 @@ class IssueMassUpdateController(
             }
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("{}")
         }
-        return RedirectSupport.see(request, response, request.getHeader("Referer") ?: "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues")
+        // 이 사이트가 아닌 Referer는 따라가지 않는다. v1.6은 값을 그대로 리다이렉트하는 열린 리다이렉트였다(issue-F23)
+        return RedirectSupport.see(request, response, request.getHeader("Referer")?.takeIf { RedirectSupport.localTarget(it, request) != null } ?: "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues")
     }
 
     /** `이름[0].속성`, `이름[1].속성` 형태로 온 값을 순서대로 모은다. */

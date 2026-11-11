@@ -76,7 +76,8 @@ class IssueMassUpdateService(
             }
         }
         if (edit.attachingLabelIds.isNotEmpty() || edit.detachingLabelIds.isNotEmpty()) {
-            val added = edit.attachingLabelIds.mapNotNull { labels.findById(it).orElse(null) }
+            // 다른 프로젝트의 라벨은 붙이지 않는다. v1.6은 검사 없이 붙여 다른 프로젝트 라벨로 검색되었다(issue-F9)
+            val added = edit.attachingLabelIds.mapNotNull { labels.findById(it).orElse(null) }.filter { it.project?.id == issue.project?.id }
             val removed = edit.detachingLabelIds.mapNotNull { labels.findById(it).orElse(null) }
             issue.labels.addAll(added)
             issue.labels.removeAll(removed.toSet())
