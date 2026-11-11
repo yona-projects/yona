@@ -176,7 +176,9 @@ GitLab 방식 맥락별 왼쪽 사이드바, **메뉴 이름은 v1.6 용어 유�
 | Git LFS | `~/setting/lfs` | LFS_SCREEN 능력(Mercurial은 이름 LFS) |
 | 웹훅 | `~/webhooks` | 프로젝트 관리자 |
 | 라벨 | `~/issue/labelsform` | 이슈 메뉴를 꺼도 항상 보임(서버가 주소를 열어 둔다) |
-| 위험 구역 | `~/changeVCS`, `~/transfer`, `~/deleteform` | 이전과 삭제 항상, 저장소 종류 변경은 `menuSetting.code` |
+| 프로젝트 이관 | `~/transfer` | 항상 |
+| 프로젝트 삭제 | `~/deleteform` | 항상 |
+| 코드 저장소 타입 변경 | `~/changeVCS` | `menuSetting.code`가 켜졌을 때(지금의 설정 탭과 같다) |
 
 - 통계(`~/statistics`)는 미완 화면이라 항목을 만들지 않는다(3절 4번).
 - **머리(페이지 안, 사이드바 아님)**: 지켜보기(수, 목록 `~/watchers`), 즐겨찾기, **포크**(`~/newFork`), **코드 주고받기 만들기**(`~/newPullRequestForm`), 프로젝트 안 검색(`~/search`)이 프로젝트 머리의 단추이다. 계약의 조건(로그인, 코드 접근, VCS 능력)을 그대로 따른다.
@@ -190,9 +192,9 @@ GitLab 방식 맥락별 왼쪽 사이드바, **메뉴 이름은 v1.6 용어 유�
 | 메인 항목 | 주소 | 보이는 조건 |
 |---|---|---|
 | 홈 | `/organizations/{n}` | 읽기 가능 |
-| 이슈 | `/organizations/{n}/issues` | 구성원 |
-| 게시판 | `/organizations/{n}/boards` | 구성원 |
-| 코드 주고받기 | `/organizations/{n}/pullrequests`(닫힘 `closedPullrequests`는 화면 안 탭) | 구성원 |
+| 이슈 | `/organizations/{n}/issues` | 조직을 볼 수 있으면 보임(지금 템플릿에 조건이 없다) |
+| 게시판 | `/organizations/{n}/boards` | 같음 |
+| 코드 주고받기 | `/organizations/{n}/pullrequests`(닫힘 `closedPullrequests`는 화면 안 탭) | 같음 |
 | 설정 | `/organizations/{n}/settingform` | 조직 관리자 |
 
 | 설정 전용 항목("← 조직으로"가 맨 위) | 주소 | 보이는 조건 |
@@ -202,7 +204,7 @@ GitLab 방식 맥락별 왼쪽 사이드바, **메뉴 이름은 v1.6 용어 유�
 | OAuth 앱 | `.../oauth-apps` | 조직 관리자 |
 | OAuth 앱 정책 | `.../oauth-policy` | 조직 관리자 |
 | 보안과 기록 | `.../audit` | 조직 관리자 |
-| 위험 구역 | `.../deleteForm` | 조직 관리자 |
+| 그룹 삭제 | `.../deleteForm` | 조직 관리자 |
 
 - **조직 설정 10개 화면은 지금 조직 머리와 메뉴가 없는 `site-layout`을 쓴다**(3절 17번). 새 구조에서는 조직 셸 안에서 열린다(주소는 그대로). 조직 만들기(`/organizations/new`)는 소유 맥락이 아직 없으므로 만들기 흐름(사이드바 없는 전역 셸)이다.
 - 조직 검색(`/organizations/{n}/search`)은 상단 검색의 범위이다. 조직에는 코드, 위키, 마일스톤이 없다. **없는 기능은 만들지 않는다**(기능 추가 금지).

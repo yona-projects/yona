@@ -30,3 +30,7 @@
 ## [2026-11-11] feat | TypeScript 빌드 기반과 첫 모듈 (D-139, P-1, A-470)
 
 Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/assets/javascripts/esm/` 아래에 싣는 기반을 만들었다. 시험을 먼저 썼다: JS 시험 5개(`tsfoundation`)와 Kotlin `TsAssetBuildTest` 3개가 구현 전에 실패했고(Red), 도구 체인과 `core/config.ts`의 `url()`을 만든 뒤 통과했다(Green). 구성은 `architecture/ui-ts-build.md`.
+
+## [2026-11-11] docs | 없앤 구성 요소 장부 (선생님 지시)
+
+화면을 리팩터링할 때 옛 요나 화면의 구성 요소가 새 화면에 없으면 왜 없는지 나중에 볼 수 있게 `architecture/ui-removed-elements.md`를 만들었다. 이미 결정된 옮김과 합침 17건을 미리 적었고, 새 상단 바에서 입구가 사라지는 요소(상단 바의 내 이슈 링크, 개발팀 문의 링크, 업데이트 알림 띠, 프로젝트 머리 배경 배너)는 **확인 필요**로 표시했다. 화면을 새 셸로 옮길 때 같은 커밋에서 갱신한다.

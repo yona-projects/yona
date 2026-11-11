@@ -133,6 +133,7 @@
 - [UI 화면 대응표](architecture/ui-screen-map.md): 템플릿 230개를 새 IA의 맥락, 사이드바 항목, 셸 부품, htmx 후보와 swap-safe 예비 판정, 클라이언트 저장에 한 줄씩 대응시킨 전수표(D-138의 근거)
 - [UI 스크립트 TS 전환 조사](architecture/ui-ts-inventory.md): `esm/` 모듈 88개와 인라인 JS 119블록의 규모, 전역 계약, 라이브러리, 시험 체계, 도구 체인 선택지와 전환 묶음(D-139의 근거)
 - [TypeScript 빌드와 새 스크립트의 구성](architecture/ui-ts-build.md): `build-tools/ts`와 Gradle `installTs`, `compileTs`, 원본 `src/main/frontend/ts`, 산출물 위치, 시험 방법, 첫 모듈 `core/config.ts`(D-139, P-1)
+- [화면 리팩터링에서 없앤 구성 요소 장부](architecture/ui-removed-elements.md): 새 셸로 화면을 옮길 때 옛 요나 화면의 요소가 새 화면에 없으면 왜 없는지(옮김, 합침, 없앰, 확인 필요)를 적는 장부. 화면을 옮길 때 같은 커밋에서 갱신한다
 - [계약 조사 재현과 v1.6 대조 요약](ui-contract/verification/index.md): 발견 사항 221건을 v2와 공식 v1.16.0에 같은 요청으로 재현한 결과(판정별 개수, 고친 것, 선택 대기). 영역별 결과 파일 7개
 - [화면 동작 계약(v2 UI 계약)](ui-contract/index.md): 템플릿 230개의 모든 단추, 링크, 폼, 단축키, 레이아웃, 팝업을 스크립트, 컨트롤러, 권한까지 따라가 정리한 28개 파일. 영역별 파일: [공통 틀](ui-contract/shell.md), [프로젝트](ui-contract/project.md), [이슈](ui-contract/issue.md), [코드 주고받기](ui-contract/pullrequest.md), [코드](ui-contract/code.md), [그룹](ui-contract/organization.md), [사이트 관리](ui-contract/site.md), [게시판](ui-contract/board.md), [위키](ui-contract/wiki.md), [검색](ui-contract/search.md), [사용자와 인증](ui-contract/user.md), [OAuth](ui-contract/oauth.md), [관리자 역할](ui-contract/admin-role.md)
 - [v1.6에서 그대로 유지한 결함 목록](architecture/v16-retained-defects.md): 묶여 있던 결함을 한 건씩 나누어(`R-59-3`은 R-59의 (3)번) 현재 코드로 다시 판정한 결과. 330건 중 재현 296, 해결 24, 결함 아님 5, 일부 4, 해당 없음 1. 0절 보안 점검(로그인 없이 저장소가 지워지는 `/_init` 등), 4절 몇 줄이면 고칠 수 있는 결함
