@@ -27,13 +27,16 @@ class UserApiController(
 
     /**
      * 구성원 추가 입력란의 자동 완성에 쓰는 검색이다. 구성원 화면(`.../members`)에서 JSON을 받겠다고 부른 요청에만 답한다.
+     * 이름과 아이디는 HTML 이스케이프해서 담는다(organization-F12, v1.6은 그대로 담았다).
      * 최대 10명이고 더 있으면 `Content-Range: items 10/전체`를 붙인다. 항목은 아바타, 이름, 아이디를 담은 HTML 조각(`info`)과 `loginId`이다.
      */
     @GetMapping("/users")
     fun search(@RequestParam(name = "query", defaultValue = "") query: String, request: HttpServletRequest): ResponseEntity<*> {
         val referer = request.getHeader(HttpHeaders.REFERER).orEmpty()
         val acceptsJson = request.getHeader(HttpHeaders.ACCEPT)?.let { it.contains("application/json") || it.contains("*/*") || it.contains("application/*") } ?: true
-        if (!referer.endsWith("members") || !acceptsJson) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build<Void>()
+        // organization-F3: v1.6은 Referer 전체가 members로 끝나야 해서 구성원 화면 주소에 쿼리가 붙으면 자동 완성이 406이었다.
+        // 고쳤다: 쿼리와 해시를 뗀 경로로 판정한다.
+        if (!referer.substringBefore('#').substringBefore('?').endsWith("members") || !acceptsJson) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build<Void>()
         if (query.isEmpty()) return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(emptyList<Map<String, String>>())
 
         val page = users.search(query, PageRequest.of(0, MAX_FETCH_USERS))

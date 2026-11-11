@@ -52,13 +52,13 @@
                                     </span>
 
                                     <i th:if="${project.isPrivate()}" class="yobicon-lock yobicon-small"></i>
-                                    <span th:if="${project.isProtected()}" class="project-protected" title="Group Project">G</span>
+                                    <span th:if="${project.isProtected()}" class="project-protected" th:title="#{organization.label.groupProject}">G</span>
                                     <a th:each="label : ${row.labels}" class="project-label" th:classappend="${#strings.toLowerCase(label.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}"></a>
                                 </div>
                                 <div class="desc" th:text="${project.overview}">
                                 </div>
-                                <p class="name-tag">by <a th:href="@{/{owner}(owner=${project.owner})}" class="owner-name-small" th:text="${project.owner}"></a>
-                                    at <strong th:title="${helper.dateString(project.createdDate)}" th:text="${helper.agoOrDateString(project.createdDate)}"></strong> <span class="small-font"><th:block th:if="${project.lastPushedDate != null}">, <th:block th:text="#{project.codeUpdate}"></th:block> <strong th:title="${helper.dateString(project.lastPushedDate)}" th:text="${helper.agoOrDateString(project.lastPushedDate)}"></strong></th:block></span>
+                                <p class="name-tag"><th:block th:text="#{organization.label.by}"></th:block> <a th:href="@{/{owner}(owner=${project.owner})}" class="owner-name-small" th:text="${project.owner}"></a>
+                                    <th:block th:text="#{organization.label.at}"></th:block> <strong th:title="${helper.dateString(project.createdDate)}" th:text="${helper.agoOrDateString(project.createdDate)}"></strong> <span class="small-font"><th:block th:if="${project.lastPushedDate != null}">, <th:block th:text="#{project.codeUpdate}"></th:block> <strong th:title="${helper.dateString(project.lastPushedDate)}" th:text="${helper.agoOrDateString(project.lastPushedDate)}"></strong></th:block></span>
                                 </p>
                             </div>
                         </div>

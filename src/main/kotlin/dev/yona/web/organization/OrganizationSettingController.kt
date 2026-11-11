@@ -70,9 +70,10 @@ class OrganizationSettingController(
 
         val name = request.getParameter("name")
         val descr = request.getParameter("descr")
-        // v1.6은 폼을 값으로 바꾸다 형식 오류가 있으면 IllegalStateException이 나서 500이 된다.
-        check(!name.isNullOrEmpty() && LoginIdRules.isValidFormat(name) && !LoginIdRules.isReserved(name)) {
-            "Cannot get value if form contains errors"
+        // v1.6은 폼을 값으로 바꾸다 형식 오류가 있으면 IllegalStateException이 나서 500이 되었다(organization-F4).
+        // 고쳤다: 빈 이름과 형식이 틀린 이름도 이름 입력란 아래 안내와 함께 400으로 다시 그린다.
+        if (name.isNullOrEmpty() || !LoginIdRules.isValidFormat(name) || LoginIdRules.isReserved(name)) {
+            return settingView(organization, "organization.name.alert", null, submittedName = name ?: "", submittedDescr = descr).also { it.status = HttpStatus.BAD_REQUEST }
         }
 
         if (management.isDuplicateName(organization, name)) {
@@ -94,7 +95,8 @@ class OrganizationSettingController(
             if (hasLogo) logo!!.originalFilename else null, if (hasLogo) ({ logo!!.inputStream }) else null,
             viewer?.loginId
         )
-        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.organizationPath(name)}/settingform")
+        // organization-F16: v1.6은 저장해도 안내 없이 같은 화면으로 돌아왔다. 저장했다는 안내를 남긴다.
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.organizationPath(name)}/settingform", mapOf(RedirectSupport.SUCCESS to "organization.setting.saved"))
     }
 
     @GetMapping("/organizations/{organizationName}/deleteForm")

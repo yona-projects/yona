@@ -99,4 +99,20 @@ class UserApiTest : AbstractIntegrationTest() {
         search("a", referer = null).andExpect(status().isNotAcceptable)
         search("a", accept = "text/html").andExpect(status().isNotAcceptable)
     }
+
+    @Test
+    fun `구성원 화면 주소에 쿼리나 해시가 붙어도 자동 완성이 동작한다 (v1_6은 406이었다, 고쳤다 organization-F3)`() {
+        newUser("qs-user")
+        search("qs-user", referer = "http://localhost/organizations/o/members?x=1").andExpect(status().isOk)
+        search("qs-user", referer = "http://localhost/organizations/o/members#top").andExpect(status().isOk)
+        search("qs-user", referer = "http://localhost/o/p/other?next=members").andExpect(status().isNotAcceptable)
+    }
+
+    @Test
+    fun `이름의 HTML 글자는 이스케이프해서 담는다 (v1_6은 그대로 담아 굵은 글씨로 보였다, 고쳤다 organization-F12)`() {
+        newUser("esc-user", "q<b>i</b>")
+        val body = search("esc-user").andReturn().response.contentAsString
+        assertEquals(false, body.contains("<b>i</b>"))
+        assertEquals(true, body.contains("q&lt;b&gt;i&lt;/b&gt;"))
+    }
 }

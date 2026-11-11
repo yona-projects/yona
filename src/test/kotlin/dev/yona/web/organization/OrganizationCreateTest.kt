@@ -171,4 +171,12 @@ class OrganizationCreateTest : AbstractIntegrationTest() {
         assertEquals(303, result.response.status)
         assertEquals(null, organizations.findByNameIgnoreCase("guestorg"))
     }
+
+    @Test
+    fun `게스트는 생성 폼도 열 수 없다 (v1_6은 폼은 200이고 제출만 막았다, 고쳤다 organization-F7)`() {
+        val guest = newUser(guest = true)
+        val result = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/organizations/new").session(login(guest))).andReturn()
+        assertEquals(303, result.response.status)
+        assertEquals("/", result.response.getHeader("Location"))
+    }
 }

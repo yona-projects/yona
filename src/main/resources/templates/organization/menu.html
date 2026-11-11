@@ -5,17 +5,18 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="menu(view, requestPath)">
 <div class="project-menu-outer">
     <div class="project-menu-inner">
-        <ul class="project-menu-nav project-menu-gruop">
-            <li th:class="${#strings.endsWith(requestPath, view.name)} ? 'active'">
+        <!--/* organization-F9: v1.6은 주소의 대소문자와 한글 인코딩이 조직 이름과 다르면 활성 탭이 비었다. 디코딩하고 소문자로 맞춰 비교한다. */-->
+        <ul class="project-menu-nav project-menu-gruop" th:with="activePath=${#strings.toLowerCase(#uris.unescapePath(requestPath))}, activeName=${#strings.toLowerCase(view.name)}">
+            <li th:class="${#strings.endsWith(activePath, activeName)} ? 'active'">
                 <a th:href="@{/organizations/{name}(name=${view.name})}" th:text="#{title.organizationHome}"></a>
             </li>
-            <li th:class="${#strings.contains(requestPath, view.name + '/issues')} ? 'active'">
+            <li th:class="${#strings.contains(activePath, activeName + '/issues')} ? 'active'">
                 <a th:href="@{/organizations/{name}/issues(name=${view.name})}" th:text="#{menu.issue}"></a>
             </li>
-            <li th:class="${#strings.contains(requestPath, view.name + '/boards')} ? 'active'">
+            <li th:class="${#strings.contains(activePath, activeName + '/boards')} ? 'active'">
                 <a th:href="@{/organizations/{name}/boards(name=${view.name})}" th:text="#{menu.board}"></a>
             </li>
-            <li th:class="${#strings.contains(requestPath, view.name + '/pullrequests')} ? 'active'">
+            <li th:class="${#strings.contains(activePath, activeName + '/pullrequests')} ? 'active'">
                 <a th:href="@{/organizations/{name}/pullrequests(name=${view.name})}" th:text="#{menu.pullRequest}"></a>
             </li>
         </ul>

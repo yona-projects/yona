@@ -157,6 +157,15 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     // --- 저장 ---
 
     @Test
+    fun `저장하면 다음 화면에 저장했다는 안내가 보인다 (v1_6은 안내가 없었다, 고쳤다 organization-F16)`() {
+        val org = newOrg()
+        val session = login(admin(org))
+        save(org, session, "name" to org.name!!, "descr" to "새 설명")
+        val body = mockMvc.perform(get("/organizations/${org.name}/settingform").session(session)).andReturn().response.contentAsString
+        assertTrue(body.contains("The group settings were saved."), "저장 안내")
+    }
+
+    @Test
     fun `이름과 설명을 저장하고 설정 폼으로 돌아간다`() {
         val org = newOrg()
         val result = save(org, login(admin(org)), "name" to org.name!!, "descr" to "새 설명")
@@ -249,12 +258,15 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `형식이 틀린 이름은 오류이다 (v1 6은 500)`() {
+    fun `형식이 틀리거나 빈 이름은 500이 아니라 400과 이름 아래 안내이다 (v1_6은 500이었다, 고쳤다 organization-F4)`() {
         val org = newOrg()
         val session = login(admin(org))
-        // v1.6은 바인딩 오류가 있는 폼에서 값을 꺼내려다 IllegalStateException이 난다.
-        val result = runCatching { save(org, session, "name" to "bad name", "descr" to "x") }
-        assertTrue(result.isFailure || result.getOrNull()!!.response.status == 500)
+        for (bad in listOf("bad name", "")) {
+            val result = save(org, session, "name" to bad, "descr" to "x")
+            assertEquals(400, result.response.status, "이름 '$bad'")
+            assertTrue(result.response.contentAsString.contains("Enter the group name in alphanumerical"), "이름 '$bad' 안내")
+        }
+        assertEquals(org.name, reload(org).name)
     }
 
     @Test

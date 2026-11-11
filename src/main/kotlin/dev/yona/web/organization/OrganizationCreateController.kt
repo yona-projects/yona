@@ -32,6 +32,7 @@ class OrganizationCreateController(
 
     @GetMapping("/organizations/new")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @GuestProhibit // organization-F7: v1.6은 게스트에게 폼은 열어 주고 제출만 막았다. 폼도 같이 막는다.
     fun form(): ModelAndView = formView(null, null, null)
 
     @PostMapping("/organizations/new")
