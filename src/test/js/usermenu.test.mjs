@@ -83,6 +83,11 @@ export const tests = [
     const page = await open({ responses: { '/fp/7': { ok: false, data: { reason: '권한 없음' } } } });
     await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['Update failed: 권한 없음']); await page.close();
   } },
+  { name: '이슈 즐겨찾기: 서버가 JSON이 아닌 본문으로 실패해도(로그인하지 않은 403 등) 예외 없이 "Update failed:" 알림창을 띄운다 (v1_6은 JSON.parse 예외로 아무 반응이 없었다, 고쳤다, issue-F3)', run: async () => {
+    const page = await open({ responses: { '/fi/5': { ok: false, data: undefined } } });
+    await page.dispatchEvent('.favorite-issue', 'click'); await page.waitForTimeout(100);
+    const alerts = await page.evaluate(() => window.__alerts); assert.equal(alerts.length, 1); assert.ok(alerts[0].startsWith('Update failed:')); await page.close();
+  } },
   { name: '조직과 이슈 즐겨찾기: 각자 주소로 POST하고, 이슈는 서버 메시지를 알림으로 보인다', run: async () => {
     const page = await open({ responses: { '/fo/3': { ok: true, data: { favored: true } }, '/fi/5': { ok: true, data: { favored: true, message: 'issue.favorite.on' } } } });
     await page.dispatchEvent('.star-org', 'click'); await page.dispatchEvent('.favorite-issue', 'click'); await page.waitForTimeout(100);
