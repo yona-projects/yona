@@ -3,7 +3,7 @@
   매개변수: view(ProjectViewContext)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
-<div class="project-header-outer" th:style="'background-image:url(' + ${view.backgroundUrl} + ')'">
+<div class="project-header-outer" th:style="'background-image:url(' + @{${view.backgroundUrl}} + ')'">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">

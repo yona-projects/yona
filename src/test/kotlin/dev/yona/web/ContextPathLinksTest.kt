@@ -67,7 +67,10 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         val scriptUrls = doc.select("script:not([src])").flatMap { script ->
             Regex("""["'](/[A-Za-z0-9_][^"'\s<>]*)["']""").findAll(script.data().replace("\\/", "/")).map { it.groupValues[1] }.toList()
         }.filter { bad(it) && !it.startsWith("/\\") }.map { "script-string=$it" }
-        return scriptUrls + attrs.flatMap { attr -> doc.select("[$attr]").filter { bad(it.attr(attr)) }.map { "$attr=" + it.attr(attr) + "  <" + it.tagName() + " class=" + it.className().take(40) + ">" } }
+        // 인라인 스타일의 background-image:url(...)도 접두어가 있어야 한다(브라우저 확인에서 드러난 빈틈이다)
+        val styleUrls = doc.select("[style]").flatMap { el -> Regex("""url\(['"]?(/[^'")]+)""").findAll(el.attr("style")).map { it.groupValues[1] }.toList() }
+            .filter { bad(it) }.map { "style-url=$it" }
+        return scriptUrls + styleUrls + attrs.flatMap { attr -> doc.select("[$attr]").filter { bad(it.attr(attr)) }.map { "$attr=" + it.attr(attr) + "  <" + it.tagName() + " class=" + it.className().take(40) + ">" } }
             .distinct()
     }
 
