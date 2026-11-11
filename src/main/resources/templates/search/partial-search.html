@@ -5,16 +5,20 @@
 
   이식 원본: app/views/search/partial_search.scala.html
   모델: search(SearchView)
+  매개변수: sidebar(맥락 사이드바 조각 또는 null). D-141: 프로젝트와 그룹 안의 검색 결과는 그 맥락의 사이드바를 보이고, 전역 검색은 null이다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search"
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search(sidebar)"
           th:with="counts=${search.counts}, current=${search.searchType.type}">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" th:unless="${sidebar != null}">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{title.search}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap" th:classappend="${sidebar != null} ? 'shell shell-below-banner'">
+        <th:block th:if="${sidebar != null}"><th:block th:replace="${sidebar}"></th:block></th:block>
+        <div th:class="${sidebar != null} ? 'shell-main'">
+        <h3 class="mb-3" th:if="${sidebar != null}" th:text="#{title.search}"></h3><!--/* 맥락 안에서는 위쪽 제목 띠가 배너 로고에 가려져 제목을 본문 안에 둔다 */-->
         <div class="project-page-wrap">
             <div class="row">
                 <div class="col-lg-2">
@@ -99,6 +103,7 @@
             </div>
         </div>
     </div>
+        </div><!--/* .shell-main */-->
 </div>
 
 <script th:inline="javascript">

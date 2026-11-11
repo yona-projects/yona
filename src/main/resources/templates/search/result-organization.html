@@ -11,7 +11,6 @@
       th:replace="~{layout/organization-layout :: organizationLayout(#{__${title}__}, 'NONE', ${orgView}, ~{::resultPage})}">
 <th:block th:fragment="resultPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
-<th:block th:replace="~{search/partial-search :: search}"></th:block>
+<th:block th:replace="~{search/partial-search :: search(~{organization/menu :: sidebar(${org}, 'main')})}"></th:block>
 </th:block>
 </html>

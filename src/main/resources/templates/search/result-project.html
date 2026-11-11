@@ -10,7 +10,6 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(#{__${title}__}, ${projectView}, 'NONE', ~{::resultPage})}">
 <th:block th:fragment="resultPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'NONE', 'main-menu-only')}"></th:block>
-<th:block th:replace="~{search/partial-search :: search}"></th:block>
+<th:block th:replace="~{search/partial-search :: search(~{project/menu :: sidebar(${projectView}, 'NONE')})}"></th:block>
 </th:block>
 </html>
