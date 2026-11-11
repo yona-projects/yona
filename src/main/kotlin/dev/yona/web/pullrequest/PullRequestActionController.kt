@@ -63,6 +63,8 @@ class PullRequestActionController(
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun accept(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
+        // v1.6은 이미 병합되었거나 닫힌 요청에도 받아들이기를 303으로 받아 다시 병합하려 했다(pullrequest-F6). 열려 있는 요청만 받아들인다.
+        if (!pullRequest.open) return ErrorViews.badRequest()
         val accepter = requireNotNull(currentUserProvider.get().user)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건을 우회한다
         // 추가 항목(X-28, D-41): 병합 방식과 선택 입력(커밋 제목, 본문). 방식을 보내지 않으면 프로젝트의 기본 방식이다
@@ -84,6 +86,8 @@ class PullRequestActionController(
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
     fun close(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
+        // v1.6은 병합된 요청도 닫아 상태가 `닫힘`으로 바뀌고 "닫았습니다" 기록이 남았다(pullrequest-F6). 열려 있는 요청만 닫는다(다시 열기와 같다).
+        if (!pullRequest.open) return ErrorViews.badRequest()
         workflow.close(pullRequest, requireNotNull(currentUserProvider.get().user))
         return redirect(request, response, project, pullRequest)
     }
