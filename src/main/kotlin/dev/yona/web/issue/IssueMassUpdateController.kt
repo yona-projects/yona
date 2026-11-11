@@ -45,6 +45,7 @@ import java.util.Date
 class IssueMassUpdateController(
     private val projectService: ProjectService,
     private val issues: IssueRepository,
+    private val labelRepository: dev.yona.domain.issue.IssueLabelRepository,
     private val issueService: IssueService,
     private val massService: IssueMassUpdateService,
     private val accessControl: AccessControl,
@@ -62,8 +63,14 @@ class IssueMassUpdateController(
         val ids = indexed(request, "issues", ".id").mapNotNull { it.toLongOrNull() }
         if (ids.isEmpty()) return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("""{"issues":["This field is required"]}""")
         // 상태는 열거형 이름(`OPEN`, `CLOSED` 등) 그대로여야 한다. 소문자나 그 밖의 값은 v1.6 폼 바인딩이 `Invalid value`로 거절한다(빈 값은 통과)
-        request.getParameter("state")?.takeIf { it.isNotEmpty() && State.entries.none { e -> e.name == it } }?.let {
+        // 일괄 변경이 받는 상태는 열림과 닫힘뿐이다. v1.6은 DRAFT, MERGED 같은 값도 받아 이슈가 초안이 되는 등 이슈에 없는 상태가 되었다(issue-F9)
+        request.getParameter("state")?.takeIf { it.isNotEmpty() && it != State.OPEN.name && it != State.CLOSED.name }?.let {
             return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("""{"state":["Invalid value"]}""")
+        }
+        // 같은 배타 분류의 라벨은 한꺼번에 둘 이상 붙일 수 없다. 화면이 막던 규칙을 서버도 지킨다(issue-F9)
+        val attaching = list(request, "attachingLabelIds").mapNotNull { labelRepository.findById(it).orElse(null) }
+        if (attaching.filter { it.category?.isExclusive == true }.groupBy { it.category?.id }.any { it.value.size > 1 }) {
+            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("""{"attachingLabelIds":["Invalid value"]}""")
         }
         val dueChanged = request.getParameter("isDueDateChanged") == "true"
         var due: Date? = null
