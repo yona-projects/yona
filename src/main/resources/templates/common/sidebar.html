@@ -16,7 +16,7 @@
     </a></span>
     <span class="user-menu"><a th:href="@{/user/editform}" target="mainFrame" th:text="#{userinfo.accountSetting}"></a></span>
     <a th:href="@{/users/logout}"><span class="user-menu logout badge bg-secondary" th:text="#{title.logout}"></span></a>
-    <div class="pin-in-sidebar" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
+    <div class="pin-in-sidebar" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{layout.sidebar.tooltip}"><i class="yobicon-arrow-left"></i></div>
 </div>
 <ul class="nav nav-tabs nm mb-3">
     <li class="nav-item myOrganizationList">

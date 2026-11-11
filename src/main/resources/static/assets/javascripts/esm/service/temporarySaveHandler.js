@@ -128,7 +128,7 @@ function temporarySaveHandler($textarea, contentInitialized) {
                 if ($input.data("editorMode") === "update-comment-body") {
                     return;
                 }
-                noticePanel.html("<span class=\"saved\">Draft saved</span>");
+                noticePanel.html("<span class=\"saved\">" + $yona.escapeHtml(Messages("draft.saved")) + "</span>");
             }, DRAFT_DELAY));
         }
     });

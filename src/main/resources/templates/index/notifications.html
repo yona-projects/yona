@@ -124,11 +124,11 @@
             $setDefaultLoginPage.on('click', function(){
                 yona.http.post([[@{/user/defultLoginPage}]] + "?path=" + $setDefaultLoginPage.data("url"))
                         .done(function (data) {
-                            $yona.notify("Set to default: " + $yona.escapeHtml(data.defaultLoginPage), 3000);
+                            $yona.notify(Messages("common.defaultPage.set", $yona.escapeHtml(data.defaultLoginPage)), 3000);
                             $setDefaultLoginPage.hide();
                         })
                         .fail(function (data) {
-                            $yona.alert("set Default page failed: " + $yona.escapeHtml(data));
+                            $yona.alert(Messages("common.defaultPage.failed", $yona.escapeHtml((data && (data.responseText || data.statusText)) || "")));
                         });
             });
         });

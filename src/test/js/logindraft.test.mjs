@@ -64,7 +64,7 @@ export const tests = [
     await page.evaluate(() => { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i], get length() { return m.size; } } }); window.__ls = m; window.__real = window.setTimeout; window.setTimeout = (fn, ms) => window.__real(fn, ms === 5000 ? 30 : ms); });
     await page.addScriptTag({ content: classicFromEsm('esm/service/temporarySaveHandler.js') });
     await page.evaluate(() => { temporarySaveHandler($('#t')); $('#t').val('초안').trigger('keyup'); }); await page.waitForTimeout(100);
-    const key = await page.evaluate(() => location.pathname); assert.equal(await page.evaluate((k) => window.__ls.get(k), key), '초안'); assert.equal(await page.evaluate(() => $('.editor-notice-label').text()), 'Draft saved');
+    const key = await page.evaluate(() => location.pathname); assert.equal(await page.evaluate((k) => window.__ls.get(k), key), '초안'); assert.equal(await page.evaluate(() => $('.editor-notice-label').text()), 'draft.saved');
     await page.evaluate(() => { $('#t').val('').trigger('keyup'); }); assert.equal(await page.evaluate((k) => window.__ls.has(k), key), false); await page.close();
   } },
   { name: '임시 저장: 수정 댓글 입력칸은 별도 키(-last-comment-update-draft)에 저장한다. 저장된 초안이 있으면 입력칸을 채우고, 마지막 수정 댓글과 같으면 초안을 지운다', run: async () => {

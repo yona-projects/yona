@@ -37,4 +37,21 @@ class NotifyEscapeContractTest {
             assertTrue(raw.isEmpty(), "$file: 서버 응답을 그대로 알린다 ${raw.map { it.value }}")
         }
     }
+
+    @Test
+    fun `언어와 상관없이 고정되어 있던 글자는 메시지 키를 쓴다 (shell-F10, 선생님 결정 2026-11-11)`() {
+        val templates = File("src/main/resources/templates")
+        fun tpl(name: String) = File(templates, name).readText()
+        assertTrue(tpl("index/partial-notifications.html").contains("th:text=\"#{notification.more}\""), "알림 더 보기 단추")
+        assertTrue(!tpl("common/navbar.html").contains("title=\"Sidebar\"") && !tpl("common/sidebar.html").contains("title=\"Sidebar\""), "사이드바 툴팁")
+        assertTrue(!tpl("layout/layout-framed.html").contains("Yona, made by <i"), "푸터 문구")
+        assertTrue(!tpl("index/partial-intro.html").contains("21st Century Software") && !tpl("index/partial-intro.html").contains("Just focus on"), "소개 문구")
+        for (file in listOf("index/notifications.html", "issue/my-list.html")) {
+            val text = tpl(file)
+            assertTrue(!text.contains("\"Set to default: \"") && !text.contains("\"set Default page failed: \""), "$file: 기본 화면 설정 안내")
+            assertTrue(!Regex("escapeHtml\\(data\\)").containsMatchIn(text), "$file: 실패 응답 객체를 글자로 이어 붙이면 [object Object]가 된다")
+        }
+        assertTrue(!source("Usermenu.js").contains("\"Update failed: \""), "Usermenu.js: 즐겨찾기 실패 안내")
+        assertTrue(!source("service/temporarySaveHandler.js").contains("Draft saved"), "temporarySaveHandler.js: 임시 저장 안내")
+    }
 }
