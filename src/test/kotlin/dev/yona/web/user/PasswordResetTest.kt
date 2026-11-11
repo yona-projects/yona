@@ -146,12 +146,16 @@ class PasswordResetTest : AbstractIntegrationTest() {
     // --- 재설정 ---
 
     @Test
-    fun `재설정 화면의 구성`() {
-        val page = Jsoup.parse(mockMvc.perform(get("/resetPassword").param("s", "abc123")).andExpect(status().isOk).andReturn().response.contentAsString)
+    fun `재설정 화면의 구성 (가짜 토큰은 400이다 v1_6은 가짜 토큰에도 폼이 200으로 떴다, 고쳤다 usersec-F7)`() {
+        val user = newUser()
+        request(user.loginId, user.email)
+        val token = events.stream(PasswordResetRequestedEvent::class.java).toList().single().token
+        mockMvc.perform(get("/resetPassword").param("s", "abc123")).andExpect(status().isBadRequest)
+        val page = Jsoup.parse(mockMvc.perform(get("/resetPassword").param("s", token)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("Reset password", page.title())
         val form = page.selectFirst("form[name=passwordReset]")!!
         assertEquals("/resetPassword", form.attr("action"))
-        assertEquals("abc123", form.selectFirst("input[type=hidden][name=hashString]")?.attr("value"))
+        assertEquals(token, form.selectFirst("input[type=hidden][name=hashString]")?.attr("value"))
         assertEquals("Password", form.selectFirst("input#password")?.attr("placeholder"))
         assertEquals("Password confirmation", form.selectFirst("input#retypedPassword")?.attr("placeholder"))
         assertTrue(page.select("script").any { "resetPassword" in it.data() })
@@ -256,5 +260,17 @@ class PasswordResetTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/${target.loginId}").param("action", "other").session(login(manager)))
             .andExpect(status().isBadRequest).andExpect(jsonPath("$.reason").value("BAD_REQUEST"))
         mockMvc.perform(post("/${target.loginId}").session(login(manager))).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `재설정할 때 비밀번호 확인이 다르면 바꾸지 않고 토큰도 남긴다 (v1_6은 확인 입력을 보지 않았다, 고쳤다 usersec-F2)`() {
+        val user = newUser()
+        request(user.loginId, user.email)
+        val token = events.stream(PasswordResetRequestedEvent::class.java).toList().single().token
+        val result = mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", "brand-new").param("retypedPassword", "zzz")).andReturn()
+        assertEquals(400, result.response.status)
+        assertTrue(tokens.isValid(token), "확인이 틀렸을 뿐이므로 주소는 그대로 쓸 수 있어야 한다")
+        users.flush()
+        assertTrue(!dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "brand-new"))
     }
 }

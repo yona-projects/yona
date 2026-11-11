@@ -257,6 +257,19 @@ class SignupTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비밀번호 확인이 비밀번호와 다르면 가입을 거부한다 (v1_6은 화면 스크립트로만 검사해 가입되었다, 고쳤다 usersec-F2)`() {
+        val id = "mismatch${++sequence}"
+        val result = mockMvc.perform(
+            post("/users/signup").param("loginId", id).param("name", "신규").param("email", "$id@example.com")
+                .param("password", "secret").param("retypedPassword", "different")
+        ).andReturn()
+        assertEquals(400, result.response.status)
+        assertEquals(null, users.findByLoginId(id))
+        // 확인 입력을 보내지 않는 요청은 막지 않는다
+        assertEquals(303, signup().response.status)
+    }
+
+    @Test
     fun `인증 링크를 열면 사용자가 활성화되고 인증 정보가 지워진다`() {
         val user = lockedUserWithVerification()
         val page = Jsoup.parse(mockMvc.perform(get("/verify/${user.loginId}/code-123")).andExpect(status().isOk).andReturn().response.contentAsString)

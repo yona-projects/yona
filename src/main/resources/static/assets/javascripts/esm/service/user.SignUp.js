@@ -126,7 +126,8 @@ const SignUp = function(htOptions){
         let htData;
         try {
             htData = await yona.http.ajax({
-                "url": sURL + welInput.val()
+                // usersec-F4: v1.6은 값을 그대로 이어 붙여 `+`가 공백으로 읽혔다. 인코딩해서 보낸다.
+                "url": sURL + encodeURIComponent(welInput.val())
             });
         } catch (failure) {
             return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다

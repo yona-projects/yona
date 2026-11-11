@@ -25,4 +25,20 @@ export const tests = [{
     await page.close();
     assert.ok(popovers.some((p) => p.startsWith('password:validation.tooShortPassword')), '비밀번호 길이 검사가 사라졌다: ' + JSON.stringify(popovers));
   }
+}, {
+  name: '이메일과 로그인 ID는 인코딩해서 사용 여부를 묻는다 (v1_6은 +가 공백으로 읽혀 다른 값을 물었다, 고쳤다 usersec-F4)',
+  async run() {
+    const page = await pageWith({ html: HTML, scripts: [STUBS, 'esm/service/user.SignUp.js'] });
+    const urls = await page.evaluate(async () => {
+      const seen = [];
+      yona.http.ajax = async (o) => { seen.push(o.url); return { isExist: false }; };
+      new yona.user.SignUp({ sLogindIdCheckUrl: '/x/', sEmailCheckUrl: '/y/' });
+      $('#email').val('pl+us@example.com').trigger('blur');
+      $('#loginId').val('a b').trigger('blur');
+      await new Promise((r) => setTimeout(r, 100));
+      return seen;
+    });
+    await page.close();
+    assert.ok(urls.includes('/y/pl%2Bus%40example.com'), '이메일이 인코딩되지 않았다: ' + JSON.stringify(urls));
+  }
 }];

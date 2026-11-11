@@ -103,4 +103,11 @@ class AnonymousCheckClosedSiteTest : AbstractIntegrationTest() {
     fun `애너테이션이 없는 엔드포인트는 여전히 검사하지 않는다`() {
         mockMvc.perform(get("/__test/anon/unchecked")).andExpect(status().isOk)
     }
+
+    @Test
+    fun `GET 요청의 쿼리 문자열도 로그인 뒤 돌아갈 주소에 싣는다 (v1_6은 경로만 실어 질의가 사라졌다, 고쳤다 oauth-F7)`() {
+        mockMvc.perform(get("/__test/anon/requires-login").queryParam("user_code", "ABCD-EFGH").queryParam("x", "a b"))
+            .andExpect(status().isSeeOther)
+            .andExpect(redirectedUrl("/users/loginform?redirectUrl=/__test/anon/requires-login%3Fuser_code%3DABCD-EFGH%26x%3Da%2520b"))
+    }
 }

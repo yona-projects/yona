@@ -258,4 +258,12 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         assertEquals("ja", language("ja-JP"))
         assertEquals("en", language("en-US"))
     }
+
+    @Test
+    fun `로그인 화면에는 같은 id가 둘 없다 (v1_6은 폼과 로그인 대화상자가 loginIdOrEmailD를 함께 썼다, 고쳤다 usersec-F15)`() {
+        val doc = page()
+        val duplicated = doc.select("[id]").groupBy { it.id() }.filter { it.value.size > 1 }.keys
+        assertEquals(emptySet<String>(), duplicated)
+        assertNotNull(doc.selectFirst("#loginIdOrEmail"), "페이지 폼의 입력란은 스크립트가 초점을 주는 #loginIdOrEmail이다")
+    }
 }

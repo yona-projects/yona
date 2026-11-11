@@ -49,6 +49,11 @@ class SignupController(
             email = request.getParameter("email"), password = request.getParameter("password")
         )
         if (signupService.hasErrors(form)) return signupView().also { it.status = HttpStatus.BAD_REQUEST }
+        // usersec-F2: v1.6은 비밀번호 확인을 화면 스크립트로만 검사해 서로 다른 두 값으로도 가입되었다. 서버도 검사한다.
+        if (PasswordConfirmation.mismatched(request)) {
+            return signupView().also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to PasswordConfirmation.MISMATCH_KEY)) }
+                .also { it.status = HttpStatus.BAD_REQUEST }
+        }
 
         if (!signupService.isAllowedEmailDomain(form.email)) {
             return signupView().also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.INFO to "user.unacceptable.email.domain")) }

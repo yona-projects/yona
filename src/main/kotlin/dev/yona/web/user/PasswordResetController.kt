@@ -79,8 +79,11 @@ class PasswordResetController(
     }
 
     @GetMapping("/resetPassword")
-    fun resetForm(@RequestParam("s") hashString: String): ModelAndView =
-        ModelAndView("user/reset-password").addObject("title", "title.resetPassword").addObject("hashString", hashString)
+    fun resetForm(@RequestParam("s") hashString: String): ModelAndView {
+        // usersec-F7: v1.6은 없거나 만료된 주소에도 폼을 보여 주어 새 비밀번호를 입력하고서야 400이 났다. 폼을 열 때 확인한다.
+        if (!tokens.isValid(hashString)) return ErrorViews.badRequest("site.resetPasswordEmail.wrongUrl")
+        return ModelAndView("user/reset-password").addObject("title", "title.resetPassword").addObject("hashString", hashString)
+    }
 
     @PostMapping("/resetPassword")
     @Transactional
@@ -88,6 +91,11 @@ class PasswordResetController(
         val hashString = request.getParameter("hashString")
         val newPassword = request.getParameter("password")
         if (!tokens.isValid(hashString)) return ErrorViews.badRequest("site.resetPasswordEmail.wrongUrl")
+        // usersec-F2: v1.6은 확인 입력을 서버에서 보지 않았다. 서로 다르면 토큰은 그대로 두고 폼을 다시 보인다.
+        if (PasswordConfirmation.mismatched(request)) {
+            return resetForm(hashString).also { it.status = HttpStatus.BAD_REQUEST }
+                .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to PasswordConfirmation.MISMATCH_KEY)) }
+        }
 
         val loginId = requireNotNull(tokens.loginIdOf(hashString))
         val user = requireNotNull(users.findByLoginId(loginId))

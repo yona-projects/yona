@@ -360,4 +360,16 @@ class ProfileEditTest : AbstractIntegrationTest() {
         assertTrue(recentProjects.findByUserIdOrderByIdDesc(user.id!!).isEmpty())
         assertNull(null)
     }
+
+    @Test
+    fun `비밀번호 확인이 다르면 바꾸지 않고 400이다 (v1_6은 화면 스크립트로만 검사해 바뀌었다, 고쳤다 usersec-F2)`() {
+        val user = newUser()
+        val result = mockMvc.perform(
+            post("/user/resetPassword").session(login(user)).param("oldPassword", "old-pass").param("password", "new-pass").param("retypedPassword", "other")
+        ).andReturn()
+        assertEquals(400, result.response.status)
+        assertTrue(result.response.contentAsString.contains("The passwords don"))
+        users.flush()
+        assertTrue(dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "old-pass"))
+    }
 }
