@@ -66,7 +66,7 @@ updated: 2026-11-11
 - 확인창(`onsubmit`)만 쓰는 내 설정 목록 6개(`ssh`, `gpg`, `oauth-apps`, `linked-accounts`, `token-edit`, `two-factor`)도 옵트인했다. 인라인 속성 처리기는 요소에 붙어 있어 교체로 사라지고 새로 생긴다. `two-factor`의 보조 스크립트는 본문 안으로 옮겼다. 내 설정 22개 중 `edit`(프로필, cropper)와 `two-factor-key`(webauthn 모듈)만 일반 이동이다.
 - 사이트 관리의 데이터 화면 6개(`userList`, `projectList`, `postList`, `issueList`, `data`, `oauth-apps`)도 옵트인했다. 스크립트가 조각 안에 있어 htmx가 교체 때 다시 실행하고, 처리기는 목록 래퍼와 요소에 걸려 있다. 이동 뒤에도 삭제 모달이 열리는 것을 확인했다. 대량 메일(`massmail`)은 모듈이 `document.body`에 폼을 덧붙여 일반 이동으로 둔다.
 - 프로젝트 설정의 `deploykeys`, `lfs`, `webhooks`도 옵트인했다(웹훅은 초기화 스크립트를 본문 안으로 옮김). 프로젝트 설정 본 화면(`setting`)은 select2 라이브러리 스크립트를 함께 불러 교체 때 라이브러리가 다시 실행되므로 일반 이동으로 둔다. 프로젝트 `members`, `changeVCS`, `deleteform`, `transfer`, `watchers`, `rulesets`, `deploykey-new`, `lfs-hg`를 합쳐 프로젝트 설정 사이드바 10개 중 9개가 같은 문서 안에서 바뀐다(`setting`만 예외).
-- 조직 홈(`organization.View`), 조직 풀 리퀘스트 목록(스크립트가 이미 본문 안), 프로젝트 이슈 라벨(`issue.LabelEditor`)도 옵트인했다. 두 모듈 모두 `document`, `window`에 거는 처리기가 없다. 라벨 편집기의 단추 동작까지는 브라우저에서 눌러 확인하지 못했고 오류와 404가 없는 것까지만 확인했다.
+- 조직 홈(`organization.View`), 조직 풀 리퀘스트 목록(스크립트가 이미 본문 안), 프로젝트 이슈 라벨(`issue.LabelEditor`)도 옵트인했다. 두 모듈 모두 `document`, `window`에 거는 처리기가 없다. 라벨 편집기는 직접 열 때와 교체 뒤가 같게 동작하는 것을 브라우저에서 확인했다(이름 입력에 초점을 주면 색 단추가 나타나고, 색 단추를 누르면 같은 색 값이 채워진다).
 - 이동 이력은 `yona.Htmx.js`의 설정대로 서버 재로드이다(`historyCacheSize=0`).
 
 ## 시험
