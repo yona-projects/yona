@@ -102,6 +102,12 @@ export const tests = [
     assert.ok((await urls(page)).includes('GET /migration/alpha/projects/one'));
     assert.equal((await page.locator('.source-title .project-name').textContent()).trim(), 'alpha/one'); assert.equal(await page.locator('.source-project .project-list').first().evaluate((e) => e.classList.contains('selected')), true); await page.close();
   } },
+  { name: '원본 상세를 읽다가 서버가 403이나 404로 거부하면 화면에 실패한 상태와 주소를 보인다 (migration-F8, v1_6은 콘솔에만 남기고 화면에 아무 안내가 없었다, 고쳤다)', run: async () => {
+    const page = await mount({ routes: { '/migration/alpha/projects/one': { status: 403, body: { message: 'forbidden' } } } });
+    await clickSource(page, 0);
+    const shown = await page.locator('#system-msg .messages').allTextContents().then((l) => l.join(' '));
+    assert.ok(shown.includes('403') && shown.includes('/migration/alpha/projects/one'), shown); await page.close();
+  } },
   { name: '대상 선택(조직, 관리자): 조직 멤버십을 확인하고 이미 있는 마일스톤, 게시글, 이슈를 조회하며 경고는 없다', run: async () => {
     const page = await mount({ routes: { ...ORG_ADMIN, '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, 'https://api.github.com/repos/myorg/repoA/': { body: [] } } });
     await clickSource(page); await clickDestination(page, 0);
