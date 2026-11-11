@@ -219,7 +219,8 @@ class SiteSecretTest : AbstractIntegrationTest() {
         val admin = users.findByLoginIdIgnoreCase("admin")!!
         assertEquals("새 관리자", admin.name)
         assertEquals("new-admin@example.com", admin.email)
-        assertEquals(LegacyPasswordHasher.hash("secret-pass", admin.passwordSalt!!), admin.password)
+        // 비밀번호는 일반 가입과 같은 argon2id로 저장한다(D-131). 이 시험은 옛 SHA-256 해시를 기대해 argon2id 도입 뒤 실패하고 있었다
+        assertTrue(dev.yona.security.UserPasswordService().matches(admin, "secret-pass") && admin.password!!.startsWith("\$argon2id\$"), admin.password)
         // 솔트는 일반 가입과 같은 Base64이다. v1.6 updateDefaultSiteAdmin은 16바이트의 Arrays.toString 형식("[12, -3, ...]")으로 저장했다(R-100)
         assertFalse(admin.passwordSalt!!.startsWith("["), admin.passwordSalt)
         assertEquals(24, admin.passwordSalt!!.length)
