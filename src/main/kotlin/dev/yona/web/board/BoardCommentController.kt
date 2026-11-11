@@ -85,6 +85,8 @@ class BoardCommentController(
     ): Any {
         val comment = postingComments.findById(commentId).orElse(null) ?: return ErrorViews.notFound()
         val project = comment.posting?.project ?: return ErrorViews.notFound()
+        // 댓글은 주소의 프로젝트와 글에 속할 때만 지운다. v1.6은 글 번호를 대조하지 않아 아무 주소로도 지워졌고 리다이렉트 주소에만 썼다(board-F12)
+        if (!project.owner.equals(owner, ignoreCase = true) || !project.name.equals(name, ignoreCase = true) || comment.posting?.number != number) return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
         if (!accessControl.isAllowed(viewer, comment.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         commentService.delete(comment)

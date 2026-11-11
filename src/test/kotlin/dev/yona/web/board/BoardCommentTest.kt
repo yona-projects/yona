@@ -296,6 +296,19 @@ class BoardCommentTest : AbstractIntegrationTest() {
             .andExpect(status().isNoContent).andExpect(header().string("Location", "${base(project)}/post/1"))
     }
 
+    @Test
+    fun `댓글은 주소의 프로젝트와 글에 속할 때만 지워진다 (v1_6은 글 번호를 대조하지 않아 다른 주소로도 지워졌다, 고쳤다, board-F12)`() {
+        val project = newProject(); val other = newProject(); val member = join(newUser(), project)
+        val c = comment(post(project, member), member)
+        val session = login(member)
+        // 다른 프로젝트 경로나 다른 글 번호로는 404이고 댓글은 그대로이다
+        mockMvc.perform(delete("${base(other)}/post/1/comment/${c.id}/delete").session(session)).andExpect(status().isNotFound)
+        mockMvc.perform(delete("${base(project)}/post/9/comment/${c.id}/delete").session(session)).andExpect(status().isNotFound)
+        assertTrue(comments.findById(c.id!!).isPresent)
+        mockMvc.perform(delete("${base(project)}/post/1/comment/${c.id}/delete").session(session).header("X-Requested-With", "XMLHttpRequest")).andExpect(status().isNoContent)
+        assertTrue(comments.findById(c.id!!).isEmpty)
+    }
+
     // --- 라벨 API ---
 
     @Test
