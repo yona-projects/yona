@@ -45,6 +45,7 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var issues: IssueRepository
+    @Autowired private lateinit var events: dev.yona.domain.issue.IssueEventRepository
     @Autowired private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
 
     private val context = "/yona"
@@ -56,6 +57,7 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
         issues.save(Issue(project = project, number = 1, title = "이슈", state = State.OPEN, authorId = user.id, authorLoginId = user.loginId, authorName = user.name))
+        events.save(dev.yona.domain.issue.IssueEvent(issue = issues.findAll().last(), senderLoginId = "cp1", eventType = dev.yona.domain.enumeration.EventType.ISSUE_ASSIGNEE_CHANGED, newValue = "cp1", created = java.util.Date()))
         val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", "cp1").param("password", "1234")) }
         return project to session
     }
@@ -72,6 +74,13 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
             .filter { bad(it) }.map { "style-url=$it" }
         return scriptUrls + styleUrls + attrs.flatMap { attr -> doc.select("[$attr]").filter { bad(it.attr(attr)) }.map { "$attr=" + it.attr(attr) + "  <" + it.tagName() + " class=" + it.className().take(40) + ">" } }
             .distinct()
+    }
+
+    @Test
+    fun `이슈 이벤트 줄의 외부 아바타 주소에는 접두어를 붙이지 않는다`() {
+        val (project, session) = fixture()
+        val html = render("/${project.owner}/${project.name}/issue/1", session)
+        assertTrue(!html.contains("$context/https:") && !html.contains("$context//"), "외부 주소에 접두어가 붙었다")
     }
 
     private fun bad(value: String) = value.startsWith("/") && !value.startsWith("//") && !value.startsWith("$context/") && value != context
