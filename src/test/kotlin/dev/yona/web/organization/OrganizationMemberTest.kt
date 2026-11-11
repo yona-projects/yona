@@ -349,6 +349,16 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사이트 관리자가 조직의 일반 구성원이면 관리자가 한 명뿐이어도 탈퇴한다 (organization-F8, 막는 기준은 본인의 조직 관리자 역할이다)`() {
+        val org = newOrg()
+        join(org, newUser(), RoleType.ORG_ADMIN)
+        val siteAdmin = join(org, newUser(), RoleType.ORG_MEMBER)
+        siteAdmins.save(SiteAdmin(admin = siteAdmin))
+        leave(org, login(siteAdmin)).andExpect(status().isOk)
+        assertNull(roleOf(org, siteAdmin))
+    }
+
+    @Test
     fun `탈퇴는 로그인해야 하고 없는 조직은 404 JSON이다`() {
         val org = newOrg()
         leave(org, null).andExpect(status().isSeeOther)

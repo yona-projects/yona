@@ -90,8 +90,8 @@ class OrganizationViewContext(
      * 곧 마지막 관리자일 때 오류이다. v1.6은 조건이 거꾸로(`!isAllowed`)여서 일반 구성원이 막히고 마지막 관리자가 나갈 수 있었다(C157).
      */
     val leaveBlocked: Boolean by lazy {
-        deps.accessControl.isAllowed(viewer, organization.asResource(), Operation.LEAVE) &&
-            deps.organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L
+        // 본인이 조직 관리자 역할일 때만 막는다(사이트 관리자는 `isAllowed`가 항상 참이라 기준이 될 수 없다)
+        admin && deps.organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L
     }
 
     /** 조직 관리자 목록이다. */

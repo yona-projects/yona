@@ -163,6 +163,16 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `기밀 앱의 수정이 거절되어 400으로 다시 그려도 종류는 기밀로 보인다 (종류 라디오는 막혀 있어 요청에 오지 않는다, oauth-F2)`() {
+        val owner = user(); val created = app(owner, confidential = true); val id = created.client.id!!
+        val rejected = mockMvc.perform(post("/user/oauth-apps/$id").session(login(owner)).param("name", "x").param("description", "").param("homeUrl", "")
+            .param("redirectUris", "http://example.com/cb").param("scope", "read:user")).andExpect(status().isBadRequest).andReturn()
+        val doc = Jsoup.parse(rejected.response.contentAsString)
+        assertNotNull(doc.selectFirst("input[name=type][value=confidential][checked]"), "기밀 앱인데 종류가 공개로 보인다")
+        assertNull(doc.selectFirst("input[name=type][value=public][checked]"))
+    }
+
+    @Test
     fun `소유자만 수정 화면을 열고 고치고 비밀 값을 다시 만들고 지운다`() {
         val owner = user(); val other = user(); val created = app(owner, confidential = true); val id = created.client.id!!
         val so = login(owner); val sx = login(other)
