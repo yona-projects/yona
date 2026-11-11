@@ -12,9 +12,9 @@ const SHELL = `<div class="page-wrap-outer"><div class="project-page-wrap shell"
     <div class="offcanvas-body">
       <div class="shell-sidebar-title d-none d-lg-block">demo</div>
       <ul class="nav nav-pills flex-column shell-sidebar-nav">
-        <li class="nav-item"><a class="nav-link" href="/a">홈</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/b" aria-current="page">이슈</a></li>
-        <li class="nav-item"><a class="nav-link" href="/c">위키</a></li>
+        <li class="nav-item"><a class="nav-link" href="/a" title="홈"><svg class="shell-sidebar-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12" stroke="currentColor"/></svg><span class="shell-sidebar-label">홈</span></a></li>
+        <li class="nav-item"><a class="nav-link active" href="/b" aria-current="page" title="이슈"><svg class="shell-sidebar-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12" stroke="currentColor"/></svg><span class="shell-sidebar-label">이슈</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="/c" title="위키"><svg class="shell-sidebar-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12" stroke="currentColor"/></svg><span class="shell-sidebar-label">위키</span></a></li>
       </ul>
       <button type="button" class="shell-sidebar-fold d-none d-lg-flex" data-shell-sidebar-toggle aria-expanded="true" aria-controls="shellSidebar"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="2" fill="none"/></svg><span class="shell-sidebar-fold-label">접기</span></button>
     </div>
@@ -118,12 +118,12 @@ export const tests = [
     },
   },
   {
-    name: '접으면 좁은 띠(60px 이하)가 되고 목록과 머리글은 숨겨지며 펴기 단추는 띠 맨 아래에 남는다',
+    name: '접으면 좁은 띠(60px 이하)가 되고 머리글과 글자는 숨겨지며 펴기 단추는 띠 맨 아래에 남는다',
     async run() {
       const page = await open(1280, SHELL, true);
       const side = await box(page, '.shell-sidebar'); const main = await box(page, '.shell-main');
       assert.ok(side.width <= 60 && side.width >= 36, `띠 폭 ${side.width}`);
-      assert.equal(await page.isVisible('.shell-sidebar-nav'), false);
+      assert.equal(await page.isVisible('.shell-sidebar-nav'), true, '항목은 아이콘만 남아 목록이 보인다(A-489)');
       assert.equal(await page.isVisible('.shell-sidebar-title'), false);
       assert.equal(await page.isVisible('.shell-sidebar-fold'), true, '펴기 단추가 보인다');
       assert.equal(await page.isVisible('.shell-sidebar-fold-label'), false, '띠에서는 글자를 숨긴다');
@@ -137,6 +137,31 @@ export const tests = [
     async run() {
       const page = await open(700);
       assert.equal(await page.isVisible('.shell-sidebar-fold'), false);
+    },
+  },
+  {
+    name: '열린 사이드바의 항목은 아이콘이 이름 왼쪽의 같은 줄에 있다(A-489)',
+    async run() {
+      const page = await open(1280);
+      const icon = await box(page, '.shell-sidebar .nav-link .shell-sidebar-icon'); const label = await box(page, '.shell-sidebar .nav-link .shell-sidebar-label');
+      assert.ok(icon.width >= 14 && icon.width <= 20, `아이콘 폭 ${icon.width}`);
+      assert.ok(icon.right <= label.left + 0.5, `아이콘 오른쪽 ${icon.right}, 이름 왼쪽 ${label.left}`);
+      assert.ok(Math.abs((icon.top + icon.height / 2) - (label.top + label.height / 2)) <= 3, '아이콘과 이름이 같은 줄이다');
+    },
+  },
+  {
+    name: '접힌 띠에서는 항목이 아이콘만 남고 띠의 가운데에 놓이며 이름은 이름표로만 알린다',
+    async run() {
+      const page = await open(1280, SHELL, true);
+      const side = await box(page, '.shell-sidebar');
+      assert.equal(await page.isVisible('.shell-sidebar-nav'), true, '아이콘 목록은 띠에서도 보인다');
+      assert.equal(await page.isVisible('.shell-sidebar .nav-link .shell-sidebar-label'), false, '이름은 숨긴다');
+      const icons = await page.evaluate(() => [...document.querySelectorAll('.shell-sidebar .nav-link .shell-sidebar-icon')].map((e) => { const r = e.getBoundingClientRect(); return { cx: r.left + r.width / 2, w: r.width, visible: r.width > 0 }; }));
+      assert.equal(icons.length, 3);
+      for (const i of icons) { assert.ok(i.visible && i.w >= 14, '아이콘이 보인다'); assert.ok(Math.abs(i.cx - (side.left + side.width / 2)) <= 8, `아이콘 가운데 ${i.cx}, 띠 가운데 ${side.left + side.width / 2}`); }
+      assert.ok((await page.getAttribute('.shell-sidebar .nav-link', 'title')).length > 0, '이름표(title)가 있다');
+      const active = await style(page, '.shell-sidebar .nav-link.active', ['backgroundColor']);
+      assert.notEqual(active.backgroundColor, 'rgba(0, 0, 0, 0)', '활성 항목은 띠에서도 바탕으로 구분된다');
     },
   },
 ];

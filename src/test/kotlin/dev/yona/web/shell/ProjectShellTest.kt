@@ -217,4 +217,21 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertTrue(title.hasClass("d-none") && title.hasClass("d-lg-block"), "좁은 폭의 서랍은 자체 머리가 있으므로 넓은 화면에서만 보인다")
         assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/fill.js") }, "짧은 본문에서도 사이드바 패널이 화면 아래까지 이어지게 하는 모듈을 불러온다")
     }
+
+    @Test
+    fun `사이드바 항목마다 아이콘과 이름표가 있고 아이콘 모음이 한 번 실린다(A-489)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        val doc = page(base(p) + "/issues", s)
+        val links = doc.select("nav.shell-sidebar a.nav-link")
+        assertTrue(links.size >= 7)
+        links.forEach { a ->
+            val use = a.selectFirst("svg.shell-sidebar-icon use")
+            assertNotNull(use, "${a.text()} 항목에 아이콘이 있다")
+            val name = use.attr("href").removePrefix("#")
+            assertNotNull(doc.selectFirst("symbol#$name"), "$name 심볼이 모음에 있다")
+            assertTrue(a.attr("title").isNotBlank(), "접힌 띠에서 이름을 알리는 이름표(title)가 있다")
+            assertTrue(a.selectFirst(".shell-sidebar-label")!!.text().isNotBlank())
+        }
+        assertEquals(1, doc.select("svg.shell-sidebar-icons").size, "아이콘 모음은 한 번만 싣는다")
+    }
 }

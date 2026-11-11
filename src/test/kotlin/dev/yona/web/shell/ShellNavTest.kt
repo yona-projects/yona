@@ -310,4 +310,26 @@ class ShellNavTest {
         val reduced = ShellNav.project(project(menu = allOn.copy(issue = false, board = false), codeAccessible = false, settingShortcut = false)).shortcuts()
         assertEquals(mapOf('H' to "/owner/proj", 'M' to "/owner/proj/milestones"), reduced)
     }
+
+    // ---- 아이콘(접힌 띠에서 항목을 알아보게 한다, A-489) ----
+
+    @Test
+    fun `모든 맥락의 모든 항목에 아이콘 이름이 있고 아이콘 모음에 있는 이름이다`() {
+        val menus = listOf(
+            ShellNav.project(project()), ShellNav.projectSettings(project()), ShellNav.projectSettings(project(vcs = "Mercurial")),
+            ShellNav.home(loggedIn = true, hideProjectListing = false), ShellNav.organization("org", canManage = true), ShellNav.organizationSettings("org"),
+            ShellNav.userSettings(oauthAppsEnabled = true), ShellNav.siteAdmin(updateAvailable = true)
+        )
+        val missing = menus.flatMap { m -> m.items.filter { it.icon !in NavIcons.NAMES }.map { "${m.context}/${it.key}=${it.icon}" } }
+        assertTrue(missing.isEmpty(), "아이콘 모음에 없는 항목: $missing")
+    }
+
+    @Test
+    fun `같은 화면 안의 서로 다른 항목은 아이콘으로 구분된다(프로젝트 메인과 사이트 관리)`() {
+        listOf(ShellNav.project(project()), ShellNav.siteAdmin(updateAvailable = false)).forEach { menu ->
+            val icons = menu.items.map { it.icon }
+            val dup = icons.groupBy { it }.filterValues { it.size > 1 }.keys
+            assertTrue(dup.isEmpty() || menu.context == NavContext.SITE_ADMIN, "${menu.context}에서 아이콘이 겹친다: $dup")
+        }
+    }
 }

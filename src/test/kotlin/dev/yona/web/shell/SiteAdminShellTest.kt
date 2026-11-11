@@ -70,16 +70,16 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이드바는 offcanvas-lg이고 상단 바 햄버거가 사이드바를 가리킨다(A-487)`() {
+    fun `사이드바는 offcanvas-lg이고 좁은 폭용 서랍 단추가 사이드바를 가리킨다`() {
         val doc = page("/sites/sso")
         val nav = doc.selectFirst("nav.shell-sidebar")!!
         assertTrue(nav.hasClass("offcanvas-lg"))
         val id = nav.id()
         assertTrue(id.isNotEmpty())
-        val open = doc.selectFirst("header.gnb-outer button[data-shell-sidebar-toggle][aria-controls=$id]")
-        assertNotNull(open, "상단 바의 햄버거가 사이드바를 가리킨다(좁은 폭에서는 서랍을 연다)")
+        val open = doc.selectFirst("button[data-bs-toggle=offcanvas][data-bs-target=#$id]")
+        assertNotNull(open, "좁은 폭에서 서랍을 여는 단추가 사이드바를 가리킨다")
         assertTrue(open.attr("aria-label").isNotBlank())
-        assertNull(doc.selectFirst("button[data-bs-toggle=offcanvas]"), "사이드바 옆의 따로 있던 서랍 단추는 없다")
+        assertEquals(id, open.attr("aria-controls"))
         assertEquals("/sites/sso", nav.selectFirst("a.nav-link.active")!!.attr("href"))
     }
 
@@ -100,8 +100,8 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     @Test
     fun `넓은 폭에서 사이드바를 숨기고 다시 보이는 단추는 상단 바에 있고 모듈이 켠다`() {
         val doc = page("/sites/userList")
-        val toggle = doc.selectFirst("header.gnb-outer button[data-shell-sidebar-toggle]")
-        assertNotNull(toggle, "숨기기와 보이기는 상단 바의 햄버거 하나가 맡는다(A-487)")
+        val toggle = doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]")
+        assertNotNull(toggle, "넓은 화면에서 접고 펴는 단추는 사이드바 맨 아래에 있다(A-488)")
         assertEquals("true", toggle.attr("aria-expanded"))
         assertNotNull(doc.selectFirst("nav.shell-sidebar .offcanvas-body > button.shell-sidebar-fold[data-shell-sidebar-toggle]"), "넓은 화면에서 접고 펴는 단추는 사이드바 맨 아래에 있다(A-488)")
         assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")

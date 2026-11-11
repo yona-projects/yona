@@ -21,7 +21,39 @@ enum class NavContext { HOME, PROJECT, PROJECT_SETTINGS, ORGANIZATION, ORGANIZAT
 data class NavItem(
     val key: String, val labelKey: String, val path: String, val shortcut: Char? = null, val badge: Long? = null,
     val exact: Boolean = false
-)
+) {
+    /** 접힌 띠와 열린 목록에서 항목 앞에 그리는 아이콘 이름이다. 항목 이름([key])으로 정하며 [NavIcons]를 본다. */
+    val icon: String get() = NavIcons.of(key)
+}
+
+/**
+ * 사이드바 항목의 아이콘 이름이다(A-489). 접으면 이름은 숨고 아이콘만 남으므로(GitLab처럼) 항목마다 아이콘이 필요하다.
+ * 항목 이름이 맥락마다 같은 뜻이므로(`issues`, `settings`, `members` 등) 이름 하나로 아이콘을 정한다.
+ * 아이콘 그림은 `templates/shell/icons.html`의 `symbol#yi-이름`이다. 새 항목을 만들면 여기에 이름을 더해야 하며, 빠지면 시험이 알린다.
+ */
+object NavIcons {
+    /** 그림이 있는 아이콘 이름의 모음이다(`dot`은 이름이 빠졌을 때의 대신 그림이라 모음에 넣지 않는다). */
+    val NAMES: Set<String> = setOf(
+        "home", "code", "issue", "pullrequest", "review", "milestone", "board", "book", "gear", "users", "user", "shield", "key", "database",
+        "tag", "bolt", "swap", "trash", "branch", "folder", "grid", "apps", "bell", "file", "clipboard", "lock", "mail", "link", "download", "pulse", "login"
+    )
+
+    private val BY_KEY: Map<String, String> = mapOf(
+        "home" to "home", "code" to "code", "issues" to "issue", "myIssues" to "issue", "pullRequests" to "pullrequest", "reviews" to "review",
+        "milestones" to "milestone", "board" to "board", "boards" to "board", "posts" to "board", "wiki" to "book",
+        "settings" to "gear", "general" to "gear", "members" to "users", "users" to "user", "profile" to "user",
+        "rulesets" to "shield", "two-factor" to "shield", "security" to "shield",
+        "deployKeys" to "key", "ssh" to "key", "gpg" to "key", "token" to "key", "sso" to "login",
+        "lfs" to "database", "data" to "database", "labels" to "tag", "webhooks" to "bolt", "transfer" to "swap", "delete" to "trash", "changeVcs" to "branch",
+        "projects" to "folder", "organizations" to "grid", "notifications" to "bell", "myFiles" to "file",
+        "oauthApps" to "apps", "oauth-apps" to "apps", "oauthPolicy" to "apps", "audit" to "clipboard",
+        "password" to "lock", "emails" to "mail", "mail" to "mail", "massMail" to "mail", "linked-accounts" to "link",
+        "update" to "download", "diagnostic" to "pulse"
+    )
+
+    /** 항목 이름의 아이콘 이름이다. 정해지지 않은 이름은 `dot`이다. */
+    fun of(key: String): String = BY_KEY[key] ?: "dot"
+}
 
 /** 설정 전용 사이드바의 맨 위에 붙는 "프로젝트로 돌아가기" 같은 단추이다. */
 data class NavBack(val labelKey: String, val path: String)

@@ -9,7 +9,12 @@
           th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
 <script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; initSidebar(); initNavigation(); initFill();</script>
-<!--/* A-487: 사이드바를 접고 펴는 단추와 좁은 폭의 서랍 단추는 상단 바의 햄버거(common/navbar) 하나로 합쳤다. */-->
+<!--/* A-489: 상단 바 햄버거는 v1.6 사이드바(전환 패널)를 여므로, 좁은 폭에서 이 맥락 사이드바를 서랍으로 여는 단추는 본문 위에 둔다. 넓은 화면의 접기는 사이드바 맨 아래 단추(shell-sidebar-fold)가 한다. */-->
+<button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
+        data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
+    <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>
+</button>
+<th:block th:replace="~{shell/icons :: icons}"></th:block>
 <nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
     <div class="offcanvas-header d-lg-none">
         <h2 class="offcanvas-title h5" th:id="${id} + '-label'" th:text="${title}"></h2>
@@ -21,8 +26,9 @@
         <a class="shell-sidebar-back" th:if="${menu.back != null}" th:href="@{${menu.back.path}}">&larr; <th:block th:text="#{${menu.back.labelKey}}"></th:block></a>
         <ul class="nav nav-pills flex-column shell-sidebar-nav">
             <li class="nav-item" th:each="item : ${menu.items}">
-                <a class="nav-link" th:classappend="${item.key == activeKey} ? 'active'" th:href="@{${item.path}}"
+                <a class="nav-link" th:classappend="${item.key == activeKey} ? 'active'" th:href="@{${item.path}}" th:title="#{${item.labelKey}}"
                    th:attr="aria-current=${item.key == activeKey} ? 'page' : null, data-shortcut=${item.shortcut}">
+                    <svg class="shell-sidebar-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use th:attr="href='#yi-' + ${item.icon}"></use></svg>
                     <span class="shell-sidebar-label" th:text="#{${item.labelKey}}"></span>
                     <span class="badge text-bg-secondary rounded-pill" th:if="${item.badge != null}" th:text="${item.badge}"></span>
                 </a>
