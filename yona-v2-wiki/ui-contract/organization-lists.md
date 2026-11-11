@@ -113,9 +113,9 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| organization-F17 | 게시판 목록의 정렬 링크는 `orderBy`, `orderDir`만 싣고 `filter`와 `projectNames[]`를 버린다. 정렬을 바꾸면 검색어와 프로젝트 선택이 풀린다. `board.List.js`는 `#pagination a` 클릭과 `input[name=pageNum]`을 쓰지만 템플릿에 그 입력이 없고, 쪽 번호가 그려지기 전에 `#pagination a`를 찾아 연결이 비어 있다(죽은 코드). 쪽 이동은 `Pagination` 위젯의 URL 링크가 한다 | board-list.html:41; OrganizationBoardController.kt:51-54; board.List.js `_initElement`, `_onClickPage` |
-| organization-F18 | 조직 이슈 목록의 빠른 필터 링크는 `data-project-names`, `data-milestone-id`를 싣지만 폼에 `[data-search=projectNames]`, `[data-search=milestoneId]` 입력이 없어 무시된다. 라벨 배지는 조직 목록이 아니라 프로젝트의 이슈 목록으로 간다. 상태 탭에 "전체"가 없다(서버는 `state=all`을 받는다). 빠른 필터가 누르는 순간 선택된 프로젝트는 폼의 select가 그대로 들고 있어 유지된다 | issue-list.html:24, 38, 116; issue.List.js `_onClickSearchFilter` |
-| organization-F19 | 풀 리퀘스트 목록은 줄이 있을 때만 `<div id="pagination">`을 `<ul>` 안에 둔다(구조상 올바르지 않음, v1.6 마크업). 탭 전환은 `pageNum`을 초기화한다. 이슈 목록만 htmx로 부분 교체하고 게시판과 풀 리퀘스트는 전체 화면 이동이다 | pullrequest-list.html:85; issue-list.html:19 |
+| organization-F17 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 게시판 목록의 정렬 링크는 `orderBy`, `orderDir`만 싣고 `filter`와 `projectNames[]`를 버린다. 정렬을 바꾸면 검색어와 프로젝트 선택이 풀린다. `board.List.js`는 `#pagination a` 클릭과 `input[name=pageNum]`을 쓰지만 템플릿에 그 입력이 없고, 쪽 번호가 그려지기 전에 `#pagination a`를 찾아 연결이 비어 있다(죽은 코드). 쪽 이동은 `Pagination` 위젯의 URL 링크가 한다 | board-list.html:41; OrganizationBoardController.kt:51-54; board.List.js `_initElement`, `_onClickPage` |
+| organization-F18 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 조직 이슈 목록의 빠른 필터 링크는 `data-project-names`, `data-milestone-id`를 싣지만 폼에 `[data-search=projectNames]`, `[data-search=milestoneId]` 입력이 없어 무시된다. 라벨 배지는 조직 목록이 아니라 프로젝트의 이슈 목록으로 간다. 상태 탭에 "전체"가 없다(서버는 `state=all`을 받는다). 빠른 필터가 누르는 순간 선택된 프로젝트는 폼의 select가 그대로 들고 있어 유지된다 | issue-list.html:24, 38, 116; issue.List.js `_onClickSearchFilter` |
+| organization-F19 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 풀 리퀘스트 목록은 줄이 있을 때만 `<div id="pagination">`을 `<ul>` 안에 둔다(구조상 올바르지 않음, v1.6 마크업). 탭 전환은 `pageNum`을 초기화한다. 이슈 목록만 htmx로 부분 교체하고 게시판과 풀 리퀘스트는 전체 화면 이동이다 | pullrequest-list.html:85; issue-list.html:19 |
 
 ## 6. 시험 근거
 

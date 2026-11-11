@@ -176,15 +176,15 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 확인 방법 | 비고 |
 |---|---|---|---|
-| milestone-F1 | 마일스톤을 번호만으로 찾아 경로의 프로젝트와 달라도 상세, 수정, 열기, 닫기가 통과한다(권한은 그 마일스톤이 속한 프로젝트 기준). 삭제만 프로젝트가 다르면 본문 없는 500이다 | `ProjectResourceLocator.kt:46`, `MilestoneController.kt:179-191` | v1.6 결함 R-12 |
+| milestone-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 마일스톤을 번호만으로 찾아 경로의 프로젝트와 달라도 상세, 수정, 열기, 닫기가 통과한다(권한은 그 마일스톤이 속한 프로젝트 기준). 삭제만 프로젝트가 다르면 본문 없는 500이다 | `ProjectResourceLocator.kt:46`, `MilestoneController.kt:179-191` | v1.6 결함 R-12 |
 | milestone-F2 **[수정됨, A-457]** | 상세 화면의 이슈 검색 상자(`data-toggle="item-search"`)를 처리하는 스크립트가 없다. 처리기였던 `jquery.search.js`가 커밋 `0fd8fcd58`("unreferenced" 정리)에서 지워졌다. 시험은 속성의 존재만 본다(`MilestoneTest.kt:519`). 조직 화면의 같은 상자도 마찬가지(project-F2). 목록 화면의 검색은 인라인 스크립트로 동작한다 | 정적 자원 전체 grep, `git show 0fd8fcd58` | v1.6에서는 동작(`public/javascripts/yona-common.js:174`) |
-| milestone-F3 | 클라이언트는 본문이 비면 제출을 막지만 서버는 본문을 필수로 보지 않는다(제목, 상태만 필수) | `milestone.Write.js:75-78`, `MilestoneController.kt:268-275` | |
-| milestone-F4 | 만들기 폼만 `enctype="multipart/form-data"`이고 고치기 폼은 아니다. 마감일 입력란의 `autocomplete="off"`도 만들기에만 있다 | `create.html:19,64`, `edit.html:19,64` | |
-| milestone-F5 | `milestone.View.js`의 라벨 클릭 처리기(`a.issue-label[data-color]`)가 붙는 요소가 없다. 템플릿 전체에 `data-color` 속성이 하나도 없어 죽은 코드이다. 목록 화면의 라벨은 `href="#"`이고 처리기가 없다 | `milestone.View.js:44-54`, `grep data-color templates` 결과 없음, `list.html:118` | 확인된 사실 |
-| milestone-F6 | 목록의 `N` 단축키는 `canCreate`를 보지 않고 등록된다. 권한이 없으면 로그인 303 또는 403으로 간다 | `list.html:147-159` | |
-| milestone-F7 | 열기, 닫기, 삭제의 실패(403, 404, 500)는 화면에 아무 표시가 없다(`yona.Request`는 `request:error` 이벤트만 낸다) | `esm/Request.js` | |
-| milestone-F8 | 검증 오류 재표시는 상태 코드 200이다(프로젝트 설정 등은 400). 제목 중복 검사는 제목을 대소문자까지 정확히 비교한다 | `MilestoneController.kt:133,168`, `MilestoneRepository.existsByProjectIdAndTitle` | |
-| milestone-F9 | 목록의 서버 정렬은 `title`도 받지만 화면에는 마감일과 완료율 링크만 있다 | `MilestoneService.kt:31`, `list.html:44` | 서버에만 있는 경로 |
+| milestone-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 클라이언트는 본문이 비면 제출을 막지만 서버는 본문을 필수로 보지 않는다(제목, 상태만 필수) | `milestone.Write.js:75-78`, `MilestoneController.kt:268-275` | |
+| milestone-F4 **[검증: 결함 아님]** | 만들기 폼만 `enctype="multipart/form-data"`이고 고치기 폼은 아니다. 마감일 입력란의 `autocomplete="off"`도 만들기에만 있다 | `create.html:19,64`, `edit.html:19,64` | |
+| milestone-F5 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `milestone.View.js`의 라벨 클릭 처리기(`a.issue-label[data-color]`)가 붙는 요소가 없다. 템플릿 전체에 `data-color` 속성이 하나도 없어 죽은 코드이다. 목록 화면의 라벨은 `href="#"`이고 처리기가 없다 | `milestone.View.js:44-54`, `grep data-color templates` 결과 없음, `list.html:118` | 확인된 사실 |
+| milestone-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 목록의 `N` 단축키는 `canCreate`를 보지 않고 등록된다. 권한이 없으면 로그인 303 또는 403으로 간다 | `list.html:147-159` | |
+| milestone-F7 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 열기, 닫기, 삭제의 실패(403, 404, 500)는 화면에 아무 표시가 없다(`yona.Request`는 `request:error` 이벤트만 낸다) | `esm/Request.js` | |
+| milestone-F8 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 검증 오류 재표시는 상태 코드 200이다(프로젝트 설정 등은 400). 제목 중복 검사는 제목을 대소문자까지 정확히 비교한다 | `MilestoneController.kt:133,168`, `MilestoneRepository.existsByProjectIdAndTitle` | |
+| milestone-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 목록의 서버 정렬은 `title`도 받지만 화면에는 마감일과 완료율 링크만 있다 | `MilestoneService.kt:31`, `list.html:44` | 서버에만 있는 경로 |
 
 ## 8. 범위 점검
 

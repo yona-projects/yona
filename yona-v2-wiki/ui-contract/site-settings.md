@@ -108,13 +108,13 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| site-F14 | 보안 화면의 OAuth와 MCP 저장 요청(`/sites/security/oauth`, `/sites/security/mcp`)이 `SiteSecurityController`가 아니라 `SiteOAuthAppsController`에 있다. 새 UI는 컨트롤러가 아니라 주소로 부른다. `/sites/security`와 같은 화면으로 돌아간다 | SiteOAuthAppsController.kt:53-66 |
-| site-F15 | `POST /sites/lfs`는 사용 여부, 최대 크기, 한도를 세 번 따로 저장한다(각 서비스 메서드가 자기 트랜잭션). 도중 실패하면 일부만 반영될 수 있다(추측: 컨트롤러에 `@Transactional`이 없다는 사실에서 본 것이고 실패를 재현하지 않았다). 화면의 MiB 값은 정수 나눗셈이라 MiB로 나눠 떨어지지 않는 저장값은 내림되어 보인다. 저장하면 내림된 값으로 덮어쓴다 | SiteLfsController.kt:25-34, 36-44 |
-| site-F16 | SSO 연결 확인 단추(LDAP, OIDC)는 입력란의 미저장 값이 아니라 **저장된** 설정으로 확인한다. 값을 고친 뒤 저장하지 않고 확인을 누르면 고친 값이 확인되지 않는다 | SiteSsoController.kt:83-87, 103-107 |
-| site-F17 | SAML 2 화면에는 "인증되지 않은 이메일 허용"(`allowUnverifiedEmail`) 체크박스가 없는데 서버는 이 값을 읽어 저장한다(화면이 보내지 않으므로 SAML 저장 때마다 꺼진다). OIDC에는 있다. SAML은 이메일 검증 표시가 없어 의도일 수 있다(추측) | sso.html:139-140, 226-236; SiteSsoController.kt:117 |
-| site-F18 | OIDC 제공자(서명 키) 상태는 읽기 전용이고 키는 설정 파일에만 있어 바꾸면 재시작이 필요하다. 화면은 이를 알려 주는 문구만 있다(`site.security.oidc.howto`) | security.html:59-62; OidcSettings.kt:24-26 |
-| site-F19 | 보안 화면의 세 저장 폼이 서로 독립이다. 두 영역의 변경을 한 번에 저장하는 방법이 없다(영역마다 `303` 뒤 화면이 새로 그려져 미저장 변경은 사라진다) | security.html:14, 29, 65 |
-| site-F20 | 메시지 키 검사에서 빠진 키는 없었다. 다만 `user.role.site_admin`, `site.oauthApps.registration.MANUAL`은 템플릿이 만들 수 있는 키가 아니다(등록 방식은 `USER`, `CIMD`). 새 UI가 등록 방식 값을 더하면 메시지 키도 더해야 한다 | oauth-apps.html:24; OAuthClient.kt:64-66 |
+| site-F14 **[검증: 결함 아님]** | 보안 화면의 OAuth와 MCP 저장 요청(`/sites/security/oauth`, `/sites/security/mcp`)이 `SiteSecurityController`가 아니라 `SiteOAuthAppsController`에 있다. 새 UI는 컨트롤러가 아니라 주소로 부른다. `/sites/security`와 같은 화면으로 돌아간다 | SiteOAuthAppsController.kt:53-66 |
+| site-F15 **[검증: 재현 불가]** | `POST /sites/lfs`는 사용 여부, 최대 크기, 한도를 세 번 따로 저장한다(각 서비스 메서드가 자기 트랜잭션). 도중 실패하면 일부만 반영될 수 있다(추측: 컨트롤러에 `@Transactional`이 없다는 사실에서 본 것이고 실패를 재현하지 않았다). 화면의 MiB 값은 정수 나눗셈이라 MiB로 나눠 떨어지지 않는 저장값은 내림되어 보인다. 저장하면 내림된 값으로 덮어쓴다 | SiteLfsController.kt:25-34, 36-44 |
+| site-F16 **[검증: v2 추가 기능의 결함, 안내 문구로 수정 A-460]** | SSO 연결 확인 단추(LDAP, OIDC)는 입력란의 미저장 값이 아니라 **저장된** 설정으로 확인한다. 값을 고친 뒤 저장하지 않고 확인을 누르면 고친 값이 확인되지 않는다 | SiteSsoController.kt:83-87, 103-107 |
+| site-F17 **[검증: 결함 아님, 조치 없음(SAML은 이메일을 항상 확인됨으로 처리해 그 설정이 효과가 없다)]** | SAML 2 화면에는 "인증되지 않은 이메일 허용"(`allowUnverifiedEmail`) 체크박스가 없는데 서버는 이 값을 읽어 저장한다(화면이 보내지 않으므로 SAML 저장 때마다 꺼진다). OIDC에는 있다. SAML은 이메일 검증 표시가 없어 의도일 수 있다(추측) | sso.html:139-140, 226-236; SiteSsoController.kt:117 |
+| site-F18 **[검증: 결함 아님]** | OIDC 제공자(서명 키) 상태는 읽기 전용이고 키는 설정 파일에만 있어 바꾸면 재시작이 필요하다. 화면은 이를 알려 주는 문구만 있다(`site.security.oidc.howto`) | security.html:59-62; OidcSettings.kt:24-26 |
+| site-F19 **[검증: v2 추가 기능의 결함, 미수정(설계 한계, 선택 대기)]** | 보안 화면의 세 저장 폼이 서로 독립이다. 두 영역의 변경을 한 번에 저장하는 방법이 없다(영역마다 `303` 뒤 화면이 새로 그려져 미저장 변경은 사라진다) | security.html:14, 29, 65 |
+| site-F20 **[검증: 결함 아님]** | 메시지 키 검사에서 빠진 키는 없었다. 다만 `user.role.site_admin`, `site.oauthApps.registration.MANUAL`은 템플릿이 만들 수 있는 키가 아니다(등록 방식은 `USER`, `CIMD`). 새 UI가 등록 방식 값을 더하면 메시지 키도 더해야 한다 | oauth-apps.html:24; OAuthClient.kt:64-66 |
 
 ## 7. 시험 근거
 

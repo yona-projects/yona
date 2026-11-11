@@ -79,11 +79,11 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| organization-F20 | 비밀 값 화면은 POST 응답으로만 존재해 새로고침이나 뒤로 가기에서 재전송 확인창이 뜬다. 다시 만들기를 재전송하면 비밀 값이 또 바뀐다. 의도된 한 번 보이기이다 | OrganizationOAuthAppsController.kt:78, 110 |
-| organization-F21 | 수정 양식에서 유형 라디오가 `disabled`라 `type`이 전송되지 않고, 서버의 `Form.of(request)`는 `confidential=false`로 읽지만 `updateFor`가 유형을 받지 않아 값이 바뀌지 않는다. 오류로 양식을 다시 그릴 때는 기존 앱의 값으로 되살린다 | partial-apps.html:74; OrganizationOAuthAppsController.kt:93-100 |
-| organization-F22 | 정책 저장과 결정의 이동 주소는 `UrlPaths.organizationPath`를 쓰지 않고 조직 이름을 그대로 문자열에 넣는다(다른 컨트롤러는 `basePath`로 인코딩). 이름 규칙(한글 허용) 때문에 한글 이름이면 `Location`의 인코딩은 `RedirectSupport.see`가 맡는다(`encodeLocation`) | OrganizationOAuthPolicyController.kt:57, 70; RedirectSupport.kt:123 |
-| organization-F23 | 앱 만들기 비활성 설정은 화면에서 만들기 단추를 숨기고 서버가 403으로 막는다(둘이 같다). 이미 있는 앱의 수정, 삭제, 이전은 막지 않는다 | partial-apps.html:33-34; OrganizationOAuthAppsController.kt:65, 73 |
-| organization-F24 | 앱 삭제는 `POST .../delete`(HTML 폼, JS 없음)이고 사용자 설정과 같은 조각을 쓴다. 이전 대상 선택에서 현재 소유자와 같은 조직은 빠진다. 위키의 OAuth 문서(`oauth2-server.md`)에 이 화면의 요청 계약 표는 없다 | OAuthAppViewSupport.kt:42-48 |
+| organization-F20 **[검증: 결함 아님]** | 비밀 값 화면은 POST 응답으로만 존재해 새로고침이나 뒤로 가기에서 재전송 확인창이 뜬다. 다시 만들기를 재전송하면 비밀 값이 또 바뀐다. 의도된 한 번 보이기이다 | OrganizationOAuthAppsController.kt:78, 110 |
+| organization-F21 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 수정 양식에서 유형 라디오가 `disabled`라 `type`이 전송되지 않고, 서버의 `Form.of(request)`는 `confidential=false`로 읽지만 `updateFor`가 유형을 받지 않아 값이 바뀌지 않는다. 오류로 양식을 다시 그릴 때는 기존 앱의 값으로 되살린다 | partial-apps.html:74; OrganizationOAuthAppsController.kt:93-100 |
+| organization-F22 **[검증: 결함 아님]** | 정책 저장과 결정의 이동 주소는 `UrlPaths.organizationPath`를 쓰지 않고 조직 이름을 그대로 문자열에 넣는다(다른 컨트롤러는 `basePath`로 인코딩). 이름 규칙(한글 허용) 때문에 한글 이름이면 `Location`의 인코딩은 `RedirectSupport.see`가 맡는다(`encodeLocation`) | OrganizationOAuthPolicyController.kt:57, 70; RedirectSupport.kt:123 |
+| organization-F23 **[검증: 결함 아님]** | 앱 만들기 비활성 설정은 화면에서 만들기 단추를 숨기고 서버가 403으로 막는다(둘이 같다). 이미 있는 앱의 수정, 삭제, 이전은 막지 않는다 | partial-apps.html:33-34; OrganizationOAuthAppsController.kt:65, 73 |
+| organization-F24 **[검증: 문서 문제]** | 앱 삭제는 `POST .../delete`(HTML 폼, JS 없음)이고 사용자 설정과 같은 조각을 쓴다. 이전 대상 선택에서 현재 소유자와 같은 조직은 빠진다. 위키의 OAuth 문서(`oauth2-server.md`)에 이 화면의 요청 계약 표는 없다 | OAuthAppViewSupport.kt:42-48 |
 
 ## 7. 시험 근거
 

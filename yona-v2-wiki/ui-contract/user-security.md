@@ -406,21 +406,21 @@ SSO 전용 모드가 꺼져 있으면 어떤 연결이든(소셜 포함) 해제�
 | 번호 | 내용(확인한 사실) | 근거 |
 |---|---|---|
 | usersec-F1 **[브라우저로 확인됨 2026-11-11, R-160]** | 로그인 화면의 포커스 스크립트가 `#loginIdOrEmail`을 찾지만 입력란 id는 `loginIdOrEmailD`라 자동 초점이 동작하지 않는다 | `T/user/login.html:28, :61` |
-| usersec-F2 | 서버가 비밀번호 길이(4자)와 `retypedPassword` 일치를 확인하지 않는다. 가입, 비밀번호 변경(`/user/resetPassword`), 재설정(`/resetPassword`) 모두 클라이언트 검증에만 의존한다. 가입은 v1.6 화면도 오류 표시가 없었다(v1.6 `signup.scala.html`에 오류 출력 없음) | `K/domain/user/SignupService.kt:49`, `AccountController.kt:131-144`, `PasswordResetController.kt:85-109` |
-| usersec-F3 | 가입 화면 아이디 정규식은 한글 불허, 서버 정규식은 한글 허용 | `user.SignUp.js:59`, `LoginIdRules.kt:12` |
-| usersec-F4 | 가입 화면의 중복 확인이 값을 URL 인코딩하지 않고 이어 붙인다(`+`가 공백으로 읽힘) | `user.SignUp.js:128-130` |
+| usersec-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버가 비밀번호 길이(4자)와 `retypedPassword` 일치를 확인하지 않는다. 가입, 비밀번호 변경(`/user/resetPassword`), 재설정(`/resetPassword`) 모두 클라이언트 검증에만 의존한다. 가입은 v1.6 화면도 오류 표시가 없었다(v1.6 `signup.scala.html`에 오류 출력 없음) | `K/domain/user/SignupService.kt:49`, `AccountController.kt:131-144`, `PasswordResetController.kt:85-109` |
+| usersec-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 가입 화면 아이디 정규식은 한글 불허, 서버 정규식은 한글 허용 | `user.SignUp.js:59`, `LoginIdRules.kt:12` |
+| usersec-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 가입 화면의 중복 확인이 값을 URL 인코딩하지 않고 이어 붙인다(`+`가 공백으로 읽힘) | `user.SignUp.js:128-130` |
 | usersec-F5 **[재현됨, 수정됨, A-458]** | 2단계 강제의 예외 판정이 경로 완전 일치라서 `GET /user/editform/two-factor/security-key`(보안 키 추가 화면)는 강제 중에 목록 화면으로 되돌려진다. 이 경로의 시험은 없다. 인증 앱 추가(`/user/two-factor/begin`)는 예외라 통과한다 | `K/security/TwoFactorEnforcementInterceptor.kt:46, :52` |
 | usersec-F6 **[브라우저로 확인됨 2026-11-11, R-161]** | 로그인 필요 화면의 로그인 이동이 `redirectUrl=`에 요청 경로만 싣는다. 질의 문자열은 사라지고, `POST` 요청이면 로그인 뒤 `GET`으로 이동해 405가 404 화면으로 바뀐다(예: `GET /users/device?user_code=...`의 코드) | `K/web/access/AnonymousCheckStage.kt:29`, `K/web/error/GlobalErrorHandler.kt:66-71` |
-| usersec-F7 | 재설정 링크 화면은 토큰을 검증하지 않고 폼을 그린다. 검증은 제출할 때만 한다. 링크는 서버 메모리에만 있어 재시작하면 모두 무효 | `PasswordResetController.kt:81-83, :90`, `K/security/PasswordResetTokens.kt:17-18` |
-| usersec-F8 | 재설정 성공 응답이 리다이렉트가 아니라 로그인 화면을 `200`으로 직접 그려 URL이 `/resetPassword`로 남는다(v1.6 동작을 따른 것, 주석에 명시) | `PasswordResetController.kt:106-108` |
-| usersec-F9 | 위키와 코드의 불일치: `subsystems/authentication.md`는 자동 로그인 쿠키를 `yobi.token=<ID>:<해시된 패스워드>`로, "CSRF 보호를 끈다"로 적었지만 코드는 `yona.token=<ID>:<만료>:<서명>`이고 CSRF 보호가 켜져 있다(`R-02`, `R-05`). `refactoring-backlog.md` R-107은 잠긴 계정의 쿠키 로그인을 v1.6처럼 허용한다고 하나 코드는 거절한다(`user.state.isLockedOut()`) | `K/security/YonaRememberMeServices.kt:30-35`, `K/config/SecurityConfig.kt:60-64` |
-| usersec-F10 | 2단계 수단 목록의 "마지막 사용" 칸은 한 번도 쓰지 않은 수단에서 빈 칸이다(`안 씀` 같은 문구가 없다). 알려진 기기 표의 `lastUsedText`는 항상 값이 있다 | `K/web/user/TwoFactorSettingsController.kt:133-134`, `K/web/TemplateHelper.kt:41-45` |
-| usersec-F11 | 비밀번호 로그인에 실패 횟수 제한과 지연이 없다. 잠긴 계정과 삭제된 계정은 비밀번호 확인 전에 상태 안내가 나가 계정 존재와 상태가 드러난다(가입 승인제일 때 `Locked`, `Deleted`는 항상) | `YonaPasswordAuthenticationProvider.kt:66-67` |
-| usersec-F12 | 2단계 시도 카운터와 재설정 링크는 서버 메모리라 재시작하거나 서버를 여럿 두면 공유되지 않는다 | `TwoFactorAttempts.kt:17`, `PasswordResetTokens.kt:17` |
-| usersec-F13 | `GET /users/logout`(상태를 바꾸는 GET)이 CSRF 대상이 아니다(v1.6과 같음, `refactoring-backlog.md` R-03 관련은 `Referer`가 없을 때 `Location: null`) | `K/web/user/LoginController.kt:44-50` |
-| usersec-F14 | `th:utext`로 `title.loginFor(site.siteName)`, `title.signupFor`, `title.resetPasswordFor`를 출력하므로 사이트 이름의 HTML이 이스케이프되지 않는다(사이트 관리자 입력값) | `T/user/login.html:18`, `signup.html:15`, `reset-password.html:15` |
-| usersec-F15 | `LoginDialog.js`와 로그인 화면이 같은 입력 id `loginIdOrEmailD`를 쓴다(팝업이 있는 화면에서 로그인 화면으로 이동하면 팝업 DOM은 없으니 충돌하지 않으나 `common/login-dialog.html`이 들어간 화면에 `/users/*`가 끼어들면 중복 id가 된다. 추측) | `T/common/login-dialog.html:33`, `T/user/login.html:28` |
-| usersec-F16 | `POST /user/token`의 성공 응답이 `303`이 아니라 목록 화면 직접 렌더라 새로고침하면 토큰을 중복 생성하려는 재전송이 된다(원문 값을 한 번만 보이기 위한 구조) | `AccountController.kt:277-279` |
+| usersec-F7 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 재설정 링크 화면은 토큰을 검증하지 않고 폼을 그린다. 검증은 제출할 때만 한다. 링크는 서버 메모리에만 있어 재시작하면 모두 무효 | `PasswordResetController.kt:81-83, :90`, `K/security/PasswordResetTokens.kt:17-18` |
+| usersec-F8 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 재설정 성공 응답이 리다이렉트가 아니라 로그인 화면을 `200`으로 직접 그려 URL이 `/resetPassword`로 남는다(v1.6 동작을 따른 것, 주석에 명시) | `PasswordResetController.kt:106-108` |
+| usersec-F9 **[검증: 문서 문제]** | 위키와 코드의 불일치: `subsystems/authentication.md`는 자동 로그인 쿠키를 `yobi.token=<ID>:<해시된 패스워드>`로, "CSRF 보호를 끈다"로 적었지만 코드는 `yona.token=<ID>:<만료>:<서명>`이고 CSRF 보호가 켜져 있다(`R-02`, `R-05`). `refactoring-backlog.md` R-107은 잠긴 계정의 쿠키 로그인을 v1.6처럼 허용한다고 하나 코드는 거절한다(`user.state.isLockedOut()`) | `K/security/YonaRememberMeServices.kt:30-35`, `K/config/SecurityConfig.kt:60-64` |
+| usersec-F10 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 2단계 수단 목록의 "마지막 사용" 칸은 한 번도 쓰지 않은 수단에서 빈 칸이다(`안 씀` 같은 문구가 없다). 알려진 기기 표의 `lastUsedText`는 항상 값이 있다 | `K/web/user/TwoFactorSettingsController.kt:133-134`, `K/web/TemplateHelper.kt:41-45` |
+| usersec-F11 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 비밀번호 로그인에 실패 횟수 제한과 지연이 없다. 잠긴 계정과 삭제된 계정은 비밀번호 확인 전에 상태 안내가 나가 계정 존재와 상태가 드러난다(가입 승인제일 때 `Locked`, `Deleted`는 항상) | `YonaPasswordAuthenticationProvider.kt:66-67` |
+| usersec-F12 **[검증: v2 추가 기능의 결함, 미수정(설계 한계, 선택 대기)]** | 2단계 시도 카운터와 재설정 링크는 서버 메모리라 재시작하거나 서버를 여럿 두면 공유되지 않는다 | `TwoFactorAttempts.kt:17`, `PasswordResetTokens.kt:17` |
+| usersec-F13 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `GET /users/logout`(상태를 바꾸는 GET)이 CSRF 대상이 아니다(v1.6과 같음, `refactoring-backlog.md` R-03 관련은 `Referer`가 없을 때 `Location: null`) | `K/web/user/LoginController.kt:44-50` |
+| usersec-F14 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `th:utext`로 `title.loginFor(site.siteName)`, `title.signupFor`, `title.resetPasswordFor`를 출력하므로 사이트 이름의 HTML이 이스케이프되지 않는다(사이트 관리자 입력값) | `T/user/login.html:18`, `signup.html:15`, `reset-password.html:15` |
+| usersec-F15 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `LoginDialog.js`와 로그인 화면이 같은 입력 id `loginIdOrEmailD`를 쓴다(팝업이 있는 화면에서 로그인 화면으로 이동하면 팝업 DOM은 없으니 충돌하지 않으나 `common/login-dialog.html`이 들어간 화면에 `/users/*`가 끼어들면 중복 id가 된다. 추측) | `T/common/login-dialog.html:33`, `T/user/login.html:28` |
+| usersec-F16 **[검증: v2 추가 기능의 결함, 미수정(설계 한계, 선택 대기)]** | `POST /user/token`의 성공 응답이 `303`이 아니라 목록 화면 직접 렌더라 새로고침하면 토큰을 중복 생성하려는 재전송이 된다(원문 값을 한 번만 보이기 위한 구조) | `AccountController.kt:277-279` |
 
 ## 7. 범위 점검
 

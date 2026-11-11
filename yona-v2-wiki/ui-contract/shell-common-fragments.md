@@ -205,5 +205,5 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| shell-F23 | 업로드 `POST /files`는 로그인하지 않으면 403이지만 `authorEmail`, `authorLoginId` 폼 항목이 있으면 그 사용자로 올린 것으로 처리된다(쿼리 문자열은 제외). 화면은 이 항목을 보내지 않으며 외부 연동용이다 | `AttachmentController.kt:140-150` |
-| shell-F24 | `comment-delete-modal`은 `Comment.init`의 컨테이너 선택자를 `escapeXml`한 문자열로 박는다. 선택자에 따옴표가 있어도 JS 문자열이 깨지지 않지만 호출부는 모두 `#id` 고정 값이다(실제 영향 없음) | `comment-delete-modal.html:26` |
+| shell-F23 **[검증: v1.6 결함 유지, 수정됨 A-460]** | 업로드 `POST /files`는 로그인하지 않으면 403이지만 `authorEmail`, `authorLoginId` 폼 항목이 있으면 그 사용자로 올린 것으로 처리된다(쿼리 문자열은 제외). 화면은 이 항목을 보내지 않으며 외부 연동용이다 | `AttachmentController.kt:140-150` |
+| shell-F24 **[검증: 결함 아님]** | `comment-delete-modal`은 `Comment.init`의 컨테이너 선택자를 `escapeXml`한 문자열로 박는다. 선택자에 따옴표가 있어도 JS 문자열이 깨지지 않지만 호출부는 모두 `#id` 고정 값이다(실제 영향 없음) | `comment-delete-modal.html:26` |

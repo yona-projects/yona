@@ -226,14 +226,14 @@ v1.6에 없는 추가 화면이다(로드맵 X-17, D-60, D-61). 설계는 [archi
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| wiki-F1 | 이력 화면에서 리비전이 하나뿐이면 `from` 라디오(`stat.index == 1`)가 선택되지 않아 `Compare Revisions`를 누르면 `from`이 빠져 400 `wiki.compare.required`가 나온다. 리비전 메시지 링크는 정상 | `history.html:24`, `WikiViewController.kt:129-133` |
-| wiki-F2 | 익명, 비멤버가 쓰기 경로(`_new`, `_edit`, `POST`)를 열면 로그인 폼이 아니라 403 `error.forbidden`이 나온다. 위키 화면에는 `@AnonymousCheck(requiresLogin)`이 없다. 시험이 고정한 비멤버 거부 외에 익명 거부 응답 형태는 읽지 않았다 | `WikiViewController.kt:300-301` |
-| wiki-F3 | 쓰기 계열이 모두 `@IsAllowed(READ)`이고 쓰기 권한은 컨트롤러 안(`deny`)에서 본다. 그래서 `POST /wiki/_upload`도 비멤버에게 JSON이 아니라 HTML 오류 화면 403을 돌려준다(편집 화면의 업로드 스크립트는 JSON 오류만 처리하므로 모두 `wiki.attach.failed`로 보인다) | `WikiViewController.kt:229-238`, `edit.html:69` |
-| wiki-F4 | 편집 화면은 `common/editor`만 쓰고 `board.Write` 같은 화면 모듈이 없어서 게시판에 있는 이탈 경고, 제목 빈칸 알림, 현재 경로 임시 저장 정리가 없다(임시 저장이 편집기 조각에서 켜지는지는 확인하지 못했다. `common/editor`는 `shell` 담당) | `edit.html:50-78` |
-| wiki-F5 | 위키 화면의 `title`(문서 제목)과 `Pages`, `Home` 같은 일부 글자는 `messages`가 아니라 영어 상수이다(`Wiki`, `New Page`, `Edit X`, `X - Revisions`, `X - Compare`). 템플릿 안 글자는 `#{wiki.*}`로 번역된다 | `WikiViewController.kt:86`, `:110`, `:138`, `:343` |
-| wiki-F6 | 복제 상자의 복사 단추는 성공과 실패 어느 쪽도 화면에 알리지 않는다(`navigator.clipboard.writeText`의 약속 결과를 쓰지 않음) | `shell.html:56-61` |
-| wiki-F7 | 같은 화면에서 사이드바 스크립트가 `document.querySelector`로 첫 요소를 잡으므로 `wiki/shell :: sidebar`가 한 문서에 두 번 들어가면 두 번째는 동작하지 않는다. 현재 모든 위키 화면은 한 번만 쓴다 | `shell.html:32-64` |
-| wiki-F8 | 첨부 파일 삭제와 목록 화면은 없다(A-315). 올린 파일은 git으로만 지운다 | `decisions.md` A-315 |
+| wiki-F1 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 이력 화면에서 리비전이 하나뿐이면 `from` 라디오(`stat.index == 1`)가 선택되지 않아 `Compare Revisions`를 누르면 `from`이 빠져 400 `wiki.compare.required`가 나온다. 리비전 메시지 링크는 정상 | `history.html:24`, `WikiViewController.kt:129-133` |
+| wiki-F2 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 익명, 비멤버가 쓰기 경로(`_new`, `_edit`, `POST`)를 열면 로그인 폼이 아니라 403 `error.forbidden`이 나온다. 위키 화면에는 `@AnonymousCheck(requiresLogin)`이 없다. 시험이 고정한 비멤버 거부 외에 익명 거부 응답 형태는 읽지 않았다 | `WikiViewController.kt:300-301` |
+| wiki-F3 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 쓰기 계열이 모두 `@IsAllowed(READ)`이고 쓰기 권한은 컨트롤러 안(`deny`)에서 본다. 그래서 `POST /wiki/_upload`도 비멤버에게 JSON이 아니라 HTML 오류 화면 403을 돌려준다(편집 화면의 업로드 스크립트는 JSON 오류만 처리하므로 모두 `wiki.attach.failed`로 보인다) | `WikiViewController.kt:229-238`, `edit.html:69` |
+| wiki-F4 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 편집 화면은 `common/editor`만 쓰고 `board.Write` 같은 화면 모듈이 없어서 게시판에 있는 이탈 경고, 제목 빈칸 알림, 현재 경로 임시 저장 정리가 없다(임시 저장이 편집기 조각에서 켜지는지는 확인하지 못했다. `common/editor`는 `shell` 담당) | `edit.html:50-78` |
+| wiki-F5 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 위키 화면의 `title`(문서 제목)과 `Pages`, `Home` 같은 일부 글자는 `messages`가 아니라 영어 상수이다(`Wiki`, `New Page`, `Edit X`, `X - Revisions`, `X - Compare`). 템플릿 안 글자는 `#{wiki.*}`로 번역된다 | `WikiViewController.kt:86`, `:110`, `:138`, `:343` |
+| wiki-F6 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 복제 상자의 복사 단추는 성공과 실패 어느 쪽도 화면에 알리지 않는다(`navigator.clipboard.writeText`의 약속 결과를 쓰지 않음) | `shell.html:56-61` |
+| wiki-F7 **[검증: 결함 아님]** | 같은 화면에서 사이드바 스크립트가 `document.querySelector`로 첫 요소를 잡으므로 `wiki/shell :: sidebar`가 한 문서에 두 번 들어가면 두 번째는 동작하지 않는다. 현재 모든 위키 화면은 한 번만 쓴다 | `shell.html:32-64` |
+| wiki-F8 **[검증: 결함 아님]** | 첨부 파일 삭제와 목록 화면은 없다(A-315). 올린 파일은 git으로만 지운다 | `decisions.md` A-315 |
 
 ## 범위 점검
 

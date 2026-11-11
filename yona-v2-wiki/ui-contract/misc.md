@@ -114,14 +114,14 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| migration-F1 | 서버 설정 `yona.github.client-id`/`client-secret`로 코드를 토큰으로 바꾸지만(`GithubTokenClient`), 인증 시작 주소의 `client_id`는 `Migration.js`의 상수 `CONFIG.CLIENT_ID = "e7f9ad76a3a4ba19b2a5"`로 고정이다. 사이트가 자기 GitHub OAuth 앱을 설정해도 화면은 이 고정 클라이언트 ID로 인증을 시작한다(v1.6 `yona.Migration.js`에도 같은 상수가 있다) | `Migration.js:22`, `GithubTokenClient.kt:26-31`, `YonaProperties.kt:327` |
-| migration-F2 | 템플릿이 `{{CONFIG.DEFAULT_WORKER}}`를 쓰지만 `CONFIG`에는 `DEFAULT_WORKER`가 없다. 경고 문구의 `{0}` 자리가 빈 글자로 나온다(v1.6의 `CONFIG`에도 없다: `public/javascripts/service/yona.Migration.js:17`, 확인) | `home.html:64-74`, `Migration.js:18-24` |
-| migration-F3 | 대상이 조직이고 내가 그 조직의 admin이면 `WORKER.TOKEN`이 빈 글자인 채로 GitHub에 `Authorization: token `이 전송되고(작업 계정 개념의 잔재), 마일스톤, 이슈 전송이 실패하거나 작업 기록 이슈가 올라가지 않는다. v1.6도 같은 구조(`yona.Migration.js:426-428`, `:234`). 실제 GitHub 응답은 확인하지 못했다(추측) | `Migration.js:setDestination`, `isMigrationWorkerAdmin` |
-| migration-F4 | 작업 시작 때마다 외부 저장소 `yona-projects/yona-migration-log`에 원본과 대상 이름, 개수가 이슈로 올라가려 한다(작업 토큰이 맞을 때). 사용자에게 알리는 문구가 없다 | `Migration.js:logToIssue`, `CONFIG.LOGGING_PROJECT_FULLNAME` |
-| migration-F5 | 템플릿의 열 합계(`col-lg-4`+`col-lg-4`+`col-lg-6` = 14)가 12를 넘는다. 상태 열은 다음 줄로 내려간다 | `home.html:41`, `:53`, `:83` |
-| migration-F6 | `delegateAttachmentsMigration`은 호출만 되고 "Not Yet Support" 로그만 남긴다 | `Migration.js:delegateAttachmentsMigration` |
-| migration-F7 | `migration-layout.html`의 설명 주석은 "jquery 1.9.0을 head에서 불러온다"고 적지만 실제로는 `jquery-3.7.1.js`이다 | `layout/migration-layout.html` 머리 주석, `:38-40` |
-| migration-F8 | 이슈, 마일스톤 전송 실패는 사용자에게 `#system-msg`의 JSON 덩어리로만 보인다(별도 오류 문구 없음). 서버 JSON 요청이 403, 404이어도 화면은 아무 안내가 없다(`http()`가 거부하고 호출 쪽 `error`는 콘솔만 기록) | `Migration.js:error`, `home.html:22` |
+| migration-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버 설정 `yona.github.client-id`/`client-secret`로 코드를 토큰으로 바꾸지만(`GithubTokenClient`), 인증 시작 주소의 `client_id`는 `Migration.js`의 상수 `CONFIG.CLIENT_ID = "e7f9ad76a3a4ba19b2a5"`로 고정이다. 사이트가 자기 GitHub OAuth 앱을 설정해도 화면은 이 고정 클라이언트 ID로 인증을 시작한다(v1.6 `yona.Migration.js`에도 같은 상수가 있다) | `Migration.js:22`, `GithubTokenClient.kt:26-31`, `YonaProperties.kt:327` |
+| migration-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 템플릿이 `{{CONFIG.DEFAULT_WORKER}}`를 쓰지만 `CONFIG`에는 `DEFAULT_WORKER`가 없다. 경고 문구의 `{0}` 자리가 빈 글자로 나온다(v1.6의 `CONFIG`에도 없다: `public/javascripts/service/yona.Migration.js:17`, 확인) | `home.html:64-74`, `Migration.js:18-24` |
+| migration-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 대상이 조직이고 내가 그 조직의 admin이면 `WORKER.TOKEN`이 빈 글자인 채로 GitHub에 `Authorization: token `이 전송되고(작업 계정 개념의 잔재), 마일스톤, 이슈 전송이 실패하거나 작업 기록 이슈가 올라가지 않는다. v1.6도 같은 구조(`yona.Migration.js:426-428`, `:234`). 실제 GitHub 응답은 확인하지 못했다(추측) | `Migration.js:setDestination`, `isMigrationWorkerAdmin` |
+| migration-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 작업 시작 때마다 외부 저장소 `yona-projects/yona-migration-log`에 원본과 대상 이름, 개수가 이슈로 올라가려 한다(작업 토큰이 맞을 때). 사용자에게 알리는 문구가 없다 | `Migration.js:logToIssue`, `CONFIG.LOGGING_PROJECT_FULLNAME` |
+| migration-F5 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 템플릿의 열 합계(`col-lg-4`+`col-lg-4`+`col-lg-6` = 14)가 12를 넘는다. 상태 열은 다음 줄로 내려간다 | `home.html:41`, `:53`, `:83` |
+| migration-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `delegateAttachmentsMigration`은 호출만 되고 "Not Yet Support" 로그만 남긴다 | `Migration.js:delegateAttachmentsMigration` |
+| migration-F7 **[검증: 문서 문제]** | `migration-layout.html`의 설명 주석은 "jquery 1.9.0을 head에서 불러온다"고 적지만 실제로는 `jquery-3.7.1.js`이다 | `layout/migration-layout.html` 머리 주석, `:38-40` |
+| migration-F8 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이슈, 마일스톤 전송 실패는 사용자에게 `#system-msg`의 JSON 덩어리로만 보인다(별도 오류 문구 없음). 서버 JSON 요청이 403, 404이어도 화면은 아무 안내가 없다(`http()`가 거부하고 호출 쪽 `error`는 콘솔만 기록) | `Migration.js:error`, `home.html:22` |
 
 ---
 
@@ -184,10 +184,10 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| welcome-F1 | 제출 처리에서 `loginId`와 `password` 항목이 없으면 500(NullPointerException)이다. 화면의 폼은 항상 보내지만 직접 요청은 500을 받는다(v1.6과 같다고 시험이 고정) | `SiteSecretInterceptor.kt:81`, `:95` |
-| welcome-F2 | `$("input[name=seed]").focus()`는 대상이 없는 죽은 코드이다(v1.6 잔재). 화면이 열릴 때 초점이 이동하지 않는다 | `secret.html:104-108` |
-| welcome-F3 | 비밀번호에 길이 규칙이 없다(`user.wrongPassword.alert`는 빈 값일 때만). 사이트 비밀번호 정책 설정이 있는지는 이 화면에서 쓰지 않는다 | `SiteSecretInterceptor.kt:93-96` |
-| welcome-F4 | `.secret-box { width: 50% }` 고정이라 좁은 화면에서 안내 글이 좁다(반응형 규칙 없음) | `secret.html:26`, `restart.html:25` |
+| welcome-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 제출 처리에서 `loginId`와 `password` 항목이 없으면 500(NullPointerException)이다. 화면의 폼은 항상 보내지만 직접 요청은 500을 받는다(v1.6과 같다고 시험이 고정) | `SiteSecretInterceptor.kt:81`, `:95` |
+| welcome-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `$("input[name=seed]").focus()`는 대상이 없는 죽은 코드이다(v1.6 잔재). 화면이 열릴 때 초점이 이동하지 않는다 | `secret.html:104-108` |
+| welcome-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 비밀번호에 길이 규칙이 없다(`user.wrongPassword.alert`는 빈 값일 때만). 사이트 비밀번호 정책 설정이 있는지는 이 화면에서 쓰지 않는다 | `SiteSecretInterceptor.kt:93-96` |
+| welcome-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `.secret-box { width: 50% }` 고정이라 좁은 화면에서 안내 글이 좁다(반응형 규칙 없음) | `secret.html:26`, `restart.html:25` |
 
 ---
 
@@ -258,11 +258,11 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| audit-F1 | 필터 폼에는 `targetType`과 `projectId` 입력이 없지만 서버는 쿼리로 받고(`filterOf`), 쪽 이동과 내려받기 링크는 이를 이어 붙인다. 화면에서는 직접 URL로만 쓸 수 있다 | `AuditViewSupport.kt:34-35`, `:84` |
-| audit-F2 | 사용자 화면은 필터 폼을 그리지 않지만(`showFilter=false`) 쿼리의 필터(예: `?actor=`)는 서버가 적용한다. 범위 제한(본인, `auth.`/`token.`/`account.`)은 항상 먼저 걸린다 | `AuditControllers.kt:122`, `AuditQueryService.kt:103-108` |
-| audit-F3 | 이전/다음 링크 글자가 "최신"(`audit.pager.prev`)과 "이전"(`audit.pager.next`)이다. `prev`가 앞쪽(최신)이다. 영어 기본 메시지에서도 같은 의미(`Newer`/`Older`)이다 | `messages_ko_KR.properties:1424-1425`, `list.html:66-67` |
-| audit-F4 | 검증 단추의 `fetch`는 응답 상태를 확인하지 않고 `r.json()`만 호출하므로 403이나 500 때는 화면에 아무 일도 일어나지 않는다. 단추는 `data-url`이 있으면 그 값을 쓰나 템플릿이 설정하지 않아 항상 `{현재 경로}/verify`이다 | `list.html:75-82` |
-| audit-F5 | 사용자 범위에서 내가 행위자인 모든 기록 가운데 `auth.`, `token.`, `account.`이 아닌 조치(프로젝트 변경 등)는 보이지 않는다(설명 문구 `audit.description.user`와 일치) | `AuditQueryService.kt:103-108` |
+| audit-F1 **[검증: 결함 아님]** | 필터 폼에는 `targetType`과 `projectId` 입력이 없지만 서버는 쿼리로 받고(`filterOf`), 쪽 이동과 내려받기 링크는 이를 이어 붙인다. 화면에서는 직접 URL로만 쓸 수 있다 | `AuditViewSupport.kt:34-35`, `:84` |
+| audit-F2 **[검증: 결함 아님]** | 사용자 화면은 필터 폼을 그리지 않지만(`showFilter=false`) 쿼리의 필터(예: `?actor=`)는 서버가 적용한다. 범위 제한(본인, `auth.`/`token.`/`account.`)은 항상 먼저 걸린다 | `AuditControllers.kt:122`, `AuditQueryService.kt:103-108` |
+| audit-F3 **[검증: 결함 아님]** | 이전/다음 링크 글자가 "최신"(`audit.pager.prev`)과 "이전"(`audit.pager.next`)이다. `prev`가 앞쪽(최신)이다. 영어 기본 메시지에서도 같은 의미(`Newer`/`Older`)이다 | `messages_ko_KR.properties:1424-1425`, `list.html:66-67` |
+| audit-F4 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 검증 단추의 `fetch`는 응답 상태를 확인하지 않고 `r.json()`만 호출하므로 403이나 500 때는 화면에 아무 일도 일어나지 않는다. 단추는 `data-url`이 있으면 그 값을 쓰나 템플릿이 설정하지 않아 항상 `{현재 경로}/verify`이다 | `list.html:75-82` |
+| audit-F5 **[검증: 결함 아님]** | 사용자 범위에서 내가 행위자인 모든 기록 가운데 `auth.`, `token.`, `account.`이 아닌 조치(프로젝트 변경 등)는 보이지 않는다(설명 문구 `audit.description.user`와 일치) | `AuditQueryService.kt:103-108` |
 
 ## 범위 점검
 

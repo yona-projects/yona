@@ -245,6 +245,6 @@ htmx 전역 설정(jquery-pjax 대체, D-96): `historyCacheSize=0`과 `refreshOn
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| shell-F25 | `ShortcutKey.setKeymapLink` 핸들러만 입력란 제외를 하고 `attach` 핸들러는 직접 검사해야 한다. `CTRL+A`(일괄 선택)는 `bFormInput`을 검사하지만 `CTRL+ENTER`는 반대로 입력란에서만 동작한다. 같은 엔진 안에서 규칙이 호출 방식에 따라 다르다 | `ShortcutKey.js:253-263`, `issue.MassUpdate.js:124-130`, `scripts.html:88-92` |
-| shell-F26 | `common/scripts.html:157-166`의 외부 링크 판정이 `^[^./#]`라 `mailto:`, `tel:`, `javascript:` 링크에도 `target=_blank`가 붙는다. 같은 출처의 절대 주소(`http://같은호스트/...`)만 예외 | `scripts.html:160-165` |
-| shell-F27 | `$yona.alert`와 `$yona.notify`는 메시지를 HTML로 삽입한다(`.html(nl2br(...))`, `innerHTML`). 호출부가 사용자 데이터를 넘기면 스스로 이스케이프해야 한다(`$yona.escapeHtml`이 따로 있음) | `Dialog.js`, `Toast.js`, `yona.Common.js:782` |
+| shell-F25 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `ShortcutKey.setKeymapLink` 핸들러만 입력란 제외를 하고 `attach` 핸들러는 직접 검사해야 한다. `CTRL+A`(일괄 선택)는 `bFormInput`을 검사하지만 `CTRL+ENTER`는 반대로 입력란에서만 동작한다. 같은 엔진 안에서 규칙이 호출 방식에 따라 다르다 | `ShortcutKey.js:253-263`, `issue.MassUpdate.js:124-130`, `scripts.html:88-92` |
+| shell-F26 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `common/scripts.html:157-166`의 외부 링크 판정이 `^[^./#]`라 `mailto:`, `tel:`, `javascript:` 링크에도 `target=_blank`가 붙는다. 같은 출처의 절대 주소(`http://같은호스트/...`)만 예외 | `scripts.html:160-165` |
+| shell-F27 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `$yona.alert`와 `$yona.notify`는 메시지를 HTML로 삽입한다(`.html(nl2br(...))`, `innerHTML`). 호출부가 사용자 데이터를 넘기면 스스로 이스케이프해야 한다(`$yona.escapeHtml`이 따로 있음) | `Dialog.js`, `Toast.js`, `yona.Common.js:782` |
