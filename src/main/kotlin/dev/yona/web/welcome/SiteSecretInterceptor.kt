@@ -59,8 +59,9 @@ class SiteSecretInterceptor(
         val errors = LinkedHashMap<String, MutableList<String>>()
         // v1.6은 같은 오류를 거듭 쌓아 같은 문구가 여러 번 보였다(R-57-1). 같은 항목에 같은 키가 이미 있으면 더하지 않는다
         fun reject(field: String, key: String) { errors.getOrPut(field) { mutableListOf() }.let { if (key !in it) it += key } }
-        // v1.6 `hasError`는 값을 읽어 곧바로 `.equals(...)`를 부르므로 항목이 아예 없으면 NPE로 500이 난다(loginId, password). 값이 비어 있는 것과는 다르다.
-        val loginId = request.getParameter("loginId") ?: throw NullPointerException("loginId")
+        // v1.6 `hasError`는 값을 읽어 곧바로 `.equals(...)`를 부르므로 항목이 아예 없으면 NPE로 500이 났다(loginId, password, welcome-F1).
+        // 사용자가 겪는 오동작이므로 고쳤다: 항목이 없는 것도 빈 값과 같이 필수 오류(400)로 보인다.
+        val loginId = request.getParameter("loginId") ?: ""
         // 폼 바인딩 단계(`User.loginId`의 @Required, @Pattern, @ValidateWith)의 오류가 먼저 쌓이고, 이어서 `hasError`가 거절한 오류가 쌓인다.
         // Play의 @Required는 빈 문자열만 값이 없다고 보고(공백은 값이다), @Pattern은 빈 문자열을 통과시킨다.
         if (loginId.isEmpty()) reject("loginId", "error.required")
@@ -74,7 +75,6 @@ class SiteSecretInterceptor(
         if (request.getParameter("name").isNullOrBlank()) reject("name", "error.required")
         val password = request.getParameter("password")
         if (password.isNullOrBlank()) reject("password", "user.wrongPassword.alert")
-        if (password == null) throw NullPointerException("password")
         if (password != request.getParameter("retypedPassword")) reject("retypedPassword", "user.confirmPassword.alert")
         val email = request.getParameter("email")
         if (email.isNullOrBlank()) reject("email", "validation.invalidEmail")
