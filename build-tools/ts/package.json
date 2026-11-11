@@ -1,0 +1,8 @@
+{
+  "name": "yona-ts-tool",
+  "private": true,
+  "description": "새 UI 스크립트(D-139)를 TypeScript로 컴파일한다. Sass와 같은 방식으로 Gradle이 npm ci로 설치해 쓴다(decisions.md D-139, A-470)",
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

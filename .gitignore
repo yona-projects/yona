@@ -39,3 +39,4 @@ conf/social-login.conf
 build/
 .kotlin/
 build-tools/sass/node_modules/
+build-tools/ts/node_modules/

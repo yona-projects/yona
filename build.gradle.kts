@@ -305,8 +305,35 @@ val compileSass by tasks.registering {
 	}
 }
 
+// 새 UI 스크립트는 TypeScript로 쓴다(D-139). 원본은 `static/` 밖(`src/main/frontend/ts`)에 두고 산출물만 `/assets/javascripts/esm/` 아래로 싣는다.
+// 산출물은 커밋하지 않고 빌드 때 만든다. Node는 이미 Sass 때문에 필요하다.
+val tsToolDir = layout.projectDirectory.dir("build-tools/ts")
+val tsSourceDir = layout.projectDirectory.dir("src/main/frontend/ts")
+val tsOutputDir = layout.buildDirectory.dir("generated/ts")
+
+val installTs by tasks.registering(Exec::class) {
+	description = "TypeScript 컴파일러(npm typescript)를 설치한다."
+	workingDir = tsToolDir.asFile
+	commandLine("npm", "ci", "--no-audit", "--no-fund")
+	inputs.files(tsToolDir.file("package.json"), tsToolDir.file("package-lock.json"))
+	outputs.dir(tsToolDir.dir("node_modules"))
+}
+
+val compileTs by tasks.registering(Exec::class) {
+	description = "src/main/frontend/ts의 TypeScript를 형 검사하고 /assets/javascripts/esm/ 아래의 JS로 컴파일한다."
+	dependsOn(installTs)
+	workingDir = tsToolDir.asFile
+	commandLine(tsToolDir.file("node_modules/.bin/tsc").asFile.absolutePath, "-p", "tsconfig.json")
+	inputs.dir(tsSourceDir)
+	inputs.file(tsToolDir.file("tsconfig.json"))
+	outputs.dir(tsOutputDir)
+	// 지운 모듈의 옛 산출물이 남지 않도록 매번 비우고 다시 만든다.
+	doFirst { delete(tsOutputDir) }
+}
+
 tasks.named<ProcessResources>("processResources") {
 	from(compileSass)
+	from(compileTs)
 }
 
 // 실행 중인 버전을 알 수 있게 빌드 정보(`META-INF/build-info.properties`)를 만든다. 업데이트 확인이 현재 버전으로 쓴다.
