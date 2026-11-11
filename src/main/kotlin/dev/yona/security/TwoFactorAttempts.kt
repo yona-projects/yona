@@ -1,8 +1,6 @@
 package dev.yona.security
 
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 
 /**
@@ -12,7 +10,7 @@ import java.time.Duration
  * 비밀번호를 아는 사람이 일부러 틀려 사용자를 잠글 수 있지만 잠금은 짧고, 값을 맞히려는 시도를 막는 것이 더 중요하다.
  */
 @Component
-class TwoFactorAttempts(private val records: AttemptRecordRepository) {
+class TwoFactorAttempts(private val store: AttemptStore) {
 
     private var skewMillis = 0L
 
@@ -24,26 +22,13 @@ class TwoFactorAttempts(private val records: AttemptRecordRepository) {
     internal fun resetClock() { skewMillis = 0 }
 
     /** [key]가 지금 잠겨 있으면 `true`이다. */
-    fun isLocked(key: String): Boolean = (records.findById(key).orElse(null)?.lockedUntil ?: 0) > now()
+    fun isLocked(key: String): Boolean = store.lockedUntil(key) > now()
 
-    /**
-     * 실패를 기록한다. 한도에 닿으면 잠그고 `true`를 돌려준다(방금 잠겼다). 호출한 요청의 트랜잭션이 되돌아가도 실패 기록은 남도록
-     * 별도 트랜잭션에서 저장한다.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun recordFailure(key: String): Boolean {
-        val entry = records.findById(key).orElseGet { AttemptRecord(key) }
-        if (entry.lockedUntil in 1..now()) { entry.failures = 0; entry.lockedUntil = 0 }
-        entry.failures++
-        var locked = false
-        if (entry.failures >= LIMIT) { entry.lockedUntil = now() + LOCK.toMillis(); entry.failures = 0; locked = true }
-        records.saveAndFlush(entry)
-        return locked
-    }
+    /** 실패를 기록한다. 한도에 닿으면 잠그고 `true`를 돌려준다(방금 잠겼다). */
+    fun recordFailure(key: String): Boolean = store.fail(key, now(), LIMIT, LOCK.toMillis())
 
     /** 성공했거나 관리자가 풀었을 때 기록을 지운다. */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun clear(key: String) { if (records.existsById(key)) records.deleteById(key) }
+    fun clear(key: String) = store.clear(key)
 
     /** 2단계 코드 입력용 키이다. */
     private fun twoFactorKey(userId: Long) = "2fa:$userId"

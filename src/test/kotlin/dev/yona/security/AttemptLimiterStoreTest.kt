@@ -16,6 +16,7 @@ class AttemptLimiterStoreTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var attempts: TwoFactorAttempts
     @Autowired private lateinit var records: AttemptRecordRepository
+    @Autowired private lateinit var store: AttemptStore
 
     @Test
     fun `한도에 닿으면 잠금이 DB에 남고 새 객체도 잠긴 것으로 본다`() {
@@ -23,10 +24,10 @@ class AttemptLimiterStoreTest : AbstractIntegrationTest() {
         repeat(TwoFactorAttempts.LIMIT - 1) { assertFalse(attempts.recordFailure(key)) }
         assertTrue(attempts.recordFailure(key))
         assertTrue(records.findById(key).get().lockedUntil > attempts.now())
-        val restarted = TwoFactorAttempts(records)
+        val restarted = TwoFactorAttempts(store)
         assertTrue(restarted.isLocked(key), "다시 시작해도 잠금이 남아야 한다")
         attempts.clear(key)
-        assertFalse(TwoFactorAttempts(records).isLocked(key))
+        assertFalse(TwoFactorAttempts(store).isLocked(key))
     }
 
     @Test
