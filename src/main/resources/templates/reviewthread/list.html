@@ -11,6 +11,7 @@
       th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'PROJECT_REVIEW', ~{::reviewPage})}">
 <th:block th:fragment="reviewPage">
 
+<div class="page-wrap-outer">
 <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PROJECT_REVIEW')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
@@ -118,5 +119,6 @@
 </script>
 </div><!--/* .shell-main */-->
     </div>
+</div>
 </th:block>
 </html>

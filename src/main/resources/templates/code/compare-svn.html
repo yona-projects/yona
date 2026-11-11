@@ -10,6 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::compareSvnPage})}">
 <th:block th:fragment="compareSvnPage" th:with="project=${projectView.project}">
+<div class="page-wrap-outer">
 <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
@@ -25,6 +26,7 @@
 
         </div><!--/* .shell-main */-->
     </div>
+</div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.SvnDiff.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){

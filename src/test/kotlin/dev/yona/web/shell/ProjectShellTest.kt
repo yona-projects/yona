@@ -200,4 +200,10 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertTrue(pr.select(".shell-main script[type=module]").any { it.data().contains("_initTwoColumnMode") }, "초기화 스크립트는 본문 안")
         assertNotNull(page("${base(p)}/wiki", s).selectFirst(".shell-main [data-swap-safe]"), "wiki")
     }
+
+    @Test
+    fun `리뷰 목록은 다른 화면처럼 바깥 여백 래퍼 안에 있어 오른쪽이 화면 끝에 붙지 않는다`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        assertNotNull(page("${base(p)}/reviews", s).selectFirst(".page-wrap-outer > .shell"))
+    }
 }
