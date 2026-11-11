@@ -13,7 +13,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <form id="saveSetting" method="post" th:action="@{/{owner}/{name}/setting(owner=${project.owner},name=${project.name})}" enctype="multipart/form-data" class="nm">
             <div class="bubble-wrap gray" style="overflow: visible">
@@ -178,20 +178,21 @@
         </form>
 
     
-        </div><!--/* .shell-main */-->
-    </div>
-</div>
+        <th:block th:replace="~{common/select2 :: select2}"></th:block>
 
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
-
-<script type="module" th:src="@{/assets/javascripts/esm/service/project.Setting.js}"></script>
-<script type="text/javascript">
-    $(document).ready(function(){
+<script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/project.Setting.js}]]);
+    $(function(){
         $yona.loadModule("project.Setting");
 
         $("#project-name").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
 
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
+
 </th:block>
 </html>

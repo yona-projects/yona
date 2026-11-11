@@ -94,3 +94,5 @@ onPageLeave/runPageLeave, 본문 교체 직전 호출. JS 시험 2개 추가, N 
 PullRequestViewTest의 옛 선택자도 고쳤다.
 
 ## [2026-11-11] feat | PR 목록, 위키 swap-safe, 교체 뒤 위젯 초기화
+
+## [2026-11-11] feat | 프로젝트 설정 본 화면 swap-safe
