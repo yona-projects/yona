@@ -33,6 +33,8 @@ import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.servlet.ModelAndView
 
@@ -121,8 +123,11 @@ class IssueViewController(
             .addObject("issue", assembler.assemble(project, issue, viewer))
     }
 
-    /** 이슈를 다음 상태로 바꾼다(열림 ↔ 닫힘). 보기 화면으로 돌려보낸다. */
-    @GetMapping("/{user}/{project}/issue/{number:[0-9]+}/nextstate")
+    /**
+     * 이슈를 다음 상태로 바꾼다(열림 ↔ 닫힘). 보기 화면으로 돌려보낸다. 상태를 바꾸는 요청이므로 화면은 POST로 보낸다(issue-F7).
+     * GET은 v1.6의 주소와 호환하려고 남겨 두었다. v1.6은 GET만 있어 링크를 미리 가져오거나 확인하는 것만으로도 상태가 바뀔 수 있었다.
+     */
+    @RequestMapping("/{user}/{project}/issue/{number:[0-9]+}/nextstate", method = [RequestMethod.GET, RequestMethod.POST])
     @IsAllowed(Operation.UPDATE, ResourceType.ISSUE_POST)
     @Transactional
     fun nextState(
