@@ -28,7 +28,10 @@ sealed interface LoginResult {
      */
     data object LockedAfterAuthentication : LoginResult
 
-    /** 계정이 삭제되었다(`user.deleted`). */
+    /** 같은 아이디로 연달아 틀려 잠겨 있다(`user.login.tooMany`, usersec-F11). v1.6에는 횟수 제한이 없었다. */
+    data object TooManyAttempts : LoginResult
+
+    /** 계정이 삭제되었다. 화면에는 [InvalidCredentials]와 같게 알려 계정의 존재를 드러내지 않는다(usersec-F11, v1.6은 `user.deleted`였다). */
     data object Deleted : LoginResult
 
     /**

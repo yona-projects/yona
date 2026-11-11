@@ -98,13 +98,15 @@ class ProjectCheckStage(
     private fun checkMenuEnabled(project: Project, segments: List<String>, requestUri: String) {
         if (requestUri.contains(API_PREFIX) || segments.size < 3) return
         val head = segments[2]
-        val menu = projectViews.of(project).menuSetting
-        val off = when {
-            head == "issue" && segments.getOrNull(3)?.startsWith("label") == true -> false
-            head == "issues" || head == "issue" || head == "issueform" || head == "copyLabels" -> menu.issue != true
-            head == "milestones" || head == "milestone" || head == "newMilestoneForm" -> menu.milestone != true
-            else -> false
+        val feature = when {
+            head == "issue" && segments.getOrNull(3)?.startsWith("label") == true -> return
+            head == "issues" || head == "issue" || head == "issueform" || head == "copyLabels" -> true
+            head == "milestones" || head == "milestone" || head == "newMilestoneForm" -> false
+            else -> return
         }
+        // 관련 없는 경로에서는 메뉴 설정을 읽지 않는다(설정 행이 없는 프로젝트도 다른 화면은 그대로 열려야 한다)
+        val menu = projectViews.of(project).menuSetting
+        val off = if (feature) menu.issue != true else menu.milestone != true
         if (off) throw ViewResultException(ErrorViews.notFound("error.notfound", projectViews.of(project), null))
     }
 

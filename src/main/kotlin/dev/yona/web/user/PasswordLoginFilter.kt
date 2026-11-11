@@ -30,7 +30,7 @@ import org.springframework.transaction.support.TransactionTemplate
 class PasswordLoginFilter(
     authenticationManager: AuthenticationManager,
     success: PasswordLoginSuccessHandler,
-    failure: PasswordLoginFailureHandler,
+    private val failure: PasswordLoginFailureHandler,
     private val transactions: TransactionTemplate
 ) : AbstractAuthenticationProcessingFilter(PasswordLoginRequestMatcher(), authenticationManager) {
 
@@ -52,6 +52,8 @@ class PasswordLoginFilter(
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         noCache(response)
+        // 같은 아이디로 연달아 틀려 잠겨 있으면 비밀번호를 확인하지 않고 거절한다(usersec-F11)
+        if (failure.isLocked(request)) throw dev.yona.security.LoginDeniedException(dev.yona.security.LoginResult.TooManyAttempts)
         val token = UsernamePasswordAuthenticationToken.unauthenticated(request.getParameter("loginIdOrEmail"), request.getParameter("password"))
         return authenticationManager.authenticate(token)
     }
