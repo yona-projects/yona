@@ -53,7 +53,7 @@
                         <div class="desc" th:text="${org.descr}">
                         </div>
                         <p class="name-tag">
-                            created <strong th:title="${helper.dateString(org.organization.created)}" th:text="${helper.agoOrDateString(org.organization.created)}"></strong>
+                            <th:block th:text="#{organization.label.created}"></th:block> <strong th:title="${helper.dateString(org.organization.created)}" th:text="${helper.agoOrDateString(org.organization.created)}"></strong>
                         </p>
                     </div>
                 </div>
@@ -64,7 +64,7 @@
                         <img th:src="@{/assets/images/organization_default_logo.png}" th:alt="${row.view.name}"/>
                     </div>
                     <div style="float:left; color: gray">
-                        You do not have permission to view this project's information
+                        <th:block th:text="#{organization.label.noPermission}"></th:block>
                     </div>
                 </div>
             </li>

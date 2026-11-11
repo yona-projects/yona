@@ -43,6 +43,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -319,6 +320,15 @@ class OrganizationListsTest : AbstractIntegrationTest() {
         assertTrue(doc.select(".project-header-outer").isEmpty() && !fragmentHtml.contains("<head"), "머리말과 메뉴 없이 조각만 와야 한다")
         assertTrue(fragmentHtml.length < full.length, "조각은 전체 화면보다 작다")
         assertTrue(Jsoup.parse(full).select("div[list-container]").size == 1, "전체 화면에도 같은 컨테이너가 한 번 들어 있다")
+    }
+
+    @Test
+    fun `쪽 나누기 div는 목록 ul 밖에 있다 (v1_6은 ul 안이었다, 고쳤다 organization-F19)`() {
+        val org = newOrg(); val a = orgProject(org)
+        pr(a, number = 1, title = "열림")
+        val doc = page("/organizations/${org.name}/pullrequests")
+        assertNotNull(doc.selectFirst("#pagination"))
+        assertTrue(doc.select("ul #pagination").isEmpty(), "#pagination이 ul 안에 있다")
     }
 
     @Test

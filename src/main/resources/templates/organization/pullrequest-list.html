@@ -82,7 +82,6 @@
                                     <div class="state float-end" th:classappend="${req.stateClass}" th:text="#{${req.stateKey}}"></div>
                                 </div>
                             </li>
-                            <div id="pagination"></div>
                         </th:block>
                         <th:block th:if="${rows.isEmpty()}">
                             <div class="error-wrap">
@@ -91,6 +90,8 @@
                             </div>
                         </th:block>
                         </ul>
+                        <!--/* organization-F19: v1.6은 쪽 나누기 div를 ul 안에 두었다(올바르지 않은 구조). ul 밖으로 옮긴다. */-->
+                        <div th:unless="${rows.isEmpty()}" id="pagination"></div>
                         <script type="text/javascript" th:inline="javascript">
                           $(function() {
                             yona.Pagination.update($("#pagination"), /*[[${totalPages}]]*/ 0);

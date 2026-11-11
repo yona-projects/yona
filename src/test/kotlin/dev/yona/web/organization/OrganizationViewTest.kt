@@ -148,6 +148,14 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `주소의 대소문자가 달라도 활성 탭이 표시된다 (v1_6은 빈 값이었다, 고쳤다 organization-F9)`() {
+        val org = newOrg()
+        val upper = org.name!!.uppercase()
+        assertTrue(page("/organizations/$upper").select(".project-menu-gruop li")[0].hasClass("active"))
+        assertTrue(page("/organizations/$upper/issues").select(".project-menu-gruop li")[1].hasClass("active"))
+    }
+
+    @Test
     fun `설정 메뉴는 조직 관리자와 사이트 관리자에게만 보인다`() {
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)

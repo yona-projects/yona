@@ -11,11 +11,12 @@
             </div>
             <div class="project-breadcrumb-wrap">
                 <div class="project-breadcrumb">
-                    <span class="project-author"><span class="group-title-head">group</span><a th:href="@{/organizations/{name}(name=${view.name})}" th:text="${view.name}"></a></span>
+                    <span class="project-author"><span class="group-title-head" th:text="#{organization.label.group}"></span><a th:href="@{/organizations/{name}(name=${view.name})}" th:text="${view.name}"></a></span>
                 </div>
             </div>
             <div th:if="${view.guest}" class="project-util-wrap">
                 <ul class="project-util">
+                    <li>
                     <button class="ybtn ybtn-small dropdown-toggle" th:classappend="${view.enrolled} ? 'ybtn-info'" type="button" data-bs-toggle="dropdown">
                         <i class="yobicon-addfriend"></i> <th:block th:text="#{organization.member.enrollment.title}"></th:block>
                     </button>
@@ -31,6 +32,7 @@
                             </a>
                         </div>
                     </div>
+                    </li>
                 </ul>
             </div>
         </div>

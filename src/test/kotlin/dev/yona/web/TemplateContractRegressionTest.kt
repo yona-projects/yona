@@ -138,4 +138,25 @@ class TemplateContractRegressionTest {
         val diff = template("code/diff.html")
         assertTrue(diff.contains("\$('.diff-partial-meta').click(") && diff.contains(".diff-partial-code').toggle()"), "커밋 화면에 파일 머리 접기 처리기가 없다")
     }
+
+    @Test
+    fun `조직 화면의 고정 영문 문구는 메시지 키이다 (organization-F10, v1_6은 created, by, at, group을 번역하지 않았다)`() {
+        assertFalse(template("organization/list.html").contains("                            created <strong"))
+        assertFalse(template("organization/list.html").contains("You do not have permission to view this project's information"))
+        val view = template("organization/view.html")
+        assertFalse(view.contains("name-tag\">by <a"))
+        assertFalse(view.contains("title=\"Group Project\""))
+        assertFalse(template("organization/header.html").contains(">group</span>"))
+    }
+
+    @Test
+    fun `조직 머리글의 가입 신청 단추는 ul 바로 아래가 아니라 li 안에 있다 (organization-F6, v1_6은 ul 안에 button과 div를 바로 넣었다)`() {
+        val header = template("organization/header.html")
+        assertTrue(Regex("<ul class=\"project-util\">\\s*<li>\\s*<button").containsMatchIn(header))
+    }
+
+    @Test
+    fun `사이트 데이터 가져오기의 제출 단추에는 글자가 있다 (site-F13, v1_6은 value가 없어 브라우저 기본 글자로 그려졌다)`() {
+        assertTrue(template("site/data.html").contains("<input type=\"submit\" th:value=\"#{site.data.import}\">"))
+    }
 }

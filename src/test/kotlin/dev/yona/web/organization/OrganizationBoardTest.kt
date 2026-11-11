@@ -201,6 +201,15 @@ class OrganizationBoardTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `정렬 링크는 검색어와 고른 프로젝트를 이어 받는다 (v1_6은 버렸다, 고쳤다 organization-F17)`() {
+        val org = newOrg(); val a = orgProject(org)
+        post(a, "글 alpha"); post(a, "글 alpha 둘")
+        val doc = page("/organizations/${org.name}/boards?filter=alpha&projectNames[]=${a.name}")
+        val links = doc.select(".filters a.filter")
+        assertEquals("/organizations/${org.name}/boards?filter=alpha&projectNames%5B%5D=${a.name}&orderBy=createdDate&orderDir=asc".replace("%5B%5D", "[]"), links[1].attr("href").replace("%5B%5D", "[]"))
+    }
+
+    @Test
     fun `글이 없으면 안내가 보인다`() {
         val org = newOrg(); orgProject(org)
         assertEquals("No post has been added.", page("/organizations/${org.name}/boards").selectFirst(".error-wrap p")!!.text())

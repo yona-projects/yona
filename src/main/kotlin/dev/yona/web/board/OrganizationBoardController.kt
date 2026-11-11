@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.servlet.ModelAndView
+import org.springframework.web.util.UriUtils
 
 /**
  * 조직 게시판 목록이다. 조직의 모든 프로젝트 게시판 글을 모아 보여 준다. v1.6 `BoardApp.organizationBoards`(`app/controllers/BoardApp.java:96-113`)에 해당한다.
@@ -48,9 +49,14 @@ class OrganizationBoardController(
         val page = searchService.searchInProjects(targets.map { requireNotNull(it.id) }, condition, ITEMS_PER_PAGE)
         val base = "${dev.yona.util.UrlPaths.organizationPath(organization.name)}/boards"
         val descending = !condition.orderDir.equals("asc", ignoreCase = true)
+        // organization-F17: v1.6의 정렬 링크는 검색어와 고른 프로젝트를 버려 정렬하면 조건이 풀렸다. 이어 받는다.
+        val carried = buildString {
+            if (condition.filter.isNotEmpty()) append("filter=").append(UriUtils.encodeQueryParam(condition.filter, Charsets.UTF_8)).append('&')
+            names.forEach { append("projectNames[]=").append(UriUtils.encodeQueryParam(it, Charsets.UTF_8)).append('&') }
+        }
         val sortLinks = listOf("updatedDate" to "common.order.updatedDate", "createdDate" to "common.order.date", "numOfComments" to "common.order.comments").map { (field, key) ->
             val current = condition.effectiveOrderBy == field
-            SortLink(field, "$base?orderBy=$field&orderDir=${if (current && descending) "asc" else "desc"}", current, descending, key)
+            SortLink(field, "$base?${carried}orderBy=$field&orderDir=${if (current && descending) "asc" else "desc"}", current, descending, key)
         }
         return ModelAndView("organization/board-list")
             .addObject("title", "menu.board")

@@ -177,6 +177,17 @@ const Member = function(htOptions){
      * @param {Object} oXHR
      */
     function _onErrorDeleteMember(oXHR){
+        $yona.alert(_errorMessage(oXHR));
+        bootstrap.Modal.getOrCreateInstance(htElement.welAlertDelete[0]).hide();
+    }
+
+    /**
+     * 실패한 응답을 사용자에게 보일 안내 문구로 바꾼다.
+     *
+     * @param {Object} oXHR
+     * @return {String}
+     */
+    function _errorMessage(oXHR){
         let sErrorMsg;
 
         switch(oXHR.status){
@@ -194,8 +205,25 @@ const Member = function(htOptions){
                 break;
         }
 
-        $yona.alert(sErrorMsg);
-        bootstrap.Modal.getOrCreateInstance(htElement.welAlertDelete[0]).hide();
+        return sErrorMsg;
+    }
+
+    /**
+     * 역할 변경이 실패했을 때 드롭다운의 라벨과 값을 서버가 가진 원래 역할(`data-selected`)로 되돌린다.
+     * v1.6은 실패해도 안내가 없고 라벨이 바뀐 채로 남아 실제와 다르게 보였다(organization-F2).
+     *
+     * @param {Wrapped Element} welApply 눌렀던 역할 항목의 링크
+     */
+    function _restoreRole(welApply){
+        const welGroup = welApply.closest(".btn-group");
+        const welOriginal = welGroup.find("li[data-selected='true']");
+        if(welOriginal.length === 0){
+            return;
+        }
+        welGroup.find(".d-label").html(welOriginal.find("a").html()).find(".dropdown-item").removeClass("dropdown-item");
+        welGroup.find("li").removeClass("active");
+        welOriginal.addClass("active");
+        welGroup.find("input[type='hidden']").val(welOriginal.attr("data-value"));
     }
 
     /**
@@ -218,10 +246,16 @@ const Member = function(htOptions){
             return false;
         }
 
+        const welApply = $(this);
+
         // send request
         $yona.sendForm({
             "sURL"   : sURL,
             "htData" : {"id": sRoleId},
+            "fOnError": function(oXHR) {
+                $yona.alert(_errorMessage(oXHR));
+                _restoreRole(welApply);
+            },
             "fOnLoad" : function(oData, oStatus, oXHR) {
                 console.log("oXHR.responseText:" + oXHR.responseText);
                 if (oXHR.responseText != "") {
