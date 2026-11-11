@@ -237,6 +237,19 @@ class PullRequestListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `최근 푸시 알림의 닫기 단추는 지울 수 있는 사용자에게만 보인다 (v1_6은 누구에게나 보였고 눌러도 403이었다, 고쳤다, pullrequest-F9)`() {
+        val origin = project().also { repositories.createRepository(it) }; val fork = project(original = origin)
+        pushedBranches.save(PushedBranch(pushedDate = Date(), name = "refs/heads/topic", project = fork))
+        val outsider = user()
+        val outsiderAlert = page("/${fork.owner}/${fork.name}/pullRequests", login(outsider)).selectFirst(".alert-info")!!
+        assertTrue(outsiderAlert.text().contains("${fork.owner}/${fork.name}:topic"), "알림 자체는 그대로 보인다")
+        assertNull(outsiderAlert.selectFirst("a.btn-close"))
+        assertNull(page("/${fork.owner}/${fork.name}/pullRequests").selectFirst(".alert-info a.btn-close"))
+        val owner = user().also { projectUsers.save(ProjectUser(user = it, project = fork, role = roles.findById(RoleType.MANAGER.id).get())) }
+        assertNotNull(page("/${fork.owner}/${fork.name}/pullRequests", login(owner)).selectFirst(".alert-info a.btn-close"))
+    }
+
+    @Test
     fun `코드 접근을 구성원으로 제한한 프로젝트는 비구성원에게 403이다`() {
         val p = project(); p.isCodeAccessibleMemberOnly = true; projects.save(p)
         mockMvc.perform(get("/${p.owner}/${p.name}/pullRequests").session(login(user()))).andExpect(status().isForbidden)
