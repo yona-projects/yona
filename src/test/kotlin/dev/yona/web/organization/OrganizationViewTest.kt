@@ -126,7 +126,8 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         assertEquals(org.name, page.selectFirst(".project-breadcrumb .project-author a")?.text())
         assertEquals("/organizations/${org.name}", page.selectFirst(".project-breadcrumb .project-author a")?.attr("href"))
         assertEquals("group", page.selectFirst(".group-title-head")?.text())
-        assertTrue(page.selectFirst(".project-header-outer")!!.attr("style").contains("/assets/images/group_default.png"))
+        assertTrue(page.selectFirst(".project-header-outer")!!.attr("style").isBlank(), "머리는 배경 이미지를 깔지 않는다(A-483)")
+        assertTrue(page.selectFirst(".project-header-avatar img")!!.attr("src").contains("/assets/images/group_default.png"))
         assertEquals("조직 설명", page.selectFirst("#project-description")?.text())
     }
 

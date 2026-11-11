@@ -117,9 +117,9 @@ $shell-gap: 14px;
     margin-bottom: 12px;
 }
 
-// 조직 머리의 로고는 배너 아래로 튀어나와 있어(옛 가로 메뉴는 그 자리를 비워 두었다) 사이드바 첫 항목을 가리지 않게 위쪽 여백을 둔다.
+// 머리 아래의 여백이다. 예전에는 조직 머리의 로고가 배너 밖으로 튀어나와 40px가 필요했지만, 머리가 얇은 한 줄이 되어(A-483) 작은 여백이면 된다.
 .shell-below-banner {
-    padding-top: 40px;
+    padding-top: 12px;
 }
 
 // 개수 배지는 옛 메뉴처럼 요나 주황 알약이다(Bootstrap의 `text-bg-secondary`는 !important라 같은 우선순위로 덮는다).
@@ -194,3 +194,19 @@ $shell-gap: 14px;
 .shell-main .diff-body {
     padding-left: 34px;
 }
+
+// 좁은 폭의 상단 바: 왼쪽 항목(햄버거, 로고, 전체 목록, 문의하기)과 오른쪽 사용자 메뉴(약 222px)의 합계가 폭보다 크면 float된 사용자 메뉴가
+// 아래 줄로 밀려 머리 위에 겹친다. 덜 중요한 항목을 폭에 따라 숨긴다(문의하기는 576 미만, 전체 목록은 420 미만에서. 프로젝트 목록은 홈 사이드바에도 있다).
+@media (max-width: 575.98px) {
+    .gnb-feedback {
+        display: none;
+    }
+}
+
+@media (max-width: 419.98px) {
+    .gnb-projects,
+    .gnb-nav .divider {
+        display: none;
+    }
+}
+

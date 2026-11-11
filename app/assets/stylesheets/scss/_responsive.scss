@@ -365,21 +365,18 @@
     padding: 0;
   }
 
+  // 머리는 얇은 한 줄이다(A-483). 좁은 폭에서는 아바타를 줄이고 이름 줄이 한 줄을 다 쓰며 동작 단추는 아래로 접힌다.
   .project-header-avatar {
-    left: 0 !important;
-    width: 50px !important;
-    height: 50px !important;
-    bottom: -6px !important;
-    border: 1px solid #f9f9f9 !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .project-breadcrumb-wrap {
-    left: 52px !important;
-    bottom: 5px !important;
+    flex-basis: calc(100% - 44px) !important;
 
     .project-name,
     .project-author {
-      font-size: 0.7em;
+      font-size: 0.9em;
     }
   }
 
@@ -400,7 +397,7 @@
   }
 
   .project-header-wrap .project-util-wrap {
-    bottom: 10px !important;
+    margin-left: 44px !important;
   }
 
   .span-hard-wrap {

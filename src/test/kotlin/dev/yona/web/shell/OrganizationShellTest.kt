@@ -151,4 +151,13 @@ class OrganizationShellTest : AbstractIntegrationTest() {
             assertTrue(doc.select(".shell-main script[type=module]").any { it.data().contains("await import") }, "$sub 초기화 스크립트")
         }
     }
+
+    @Test
+    fun `조직 머리도 로고를 흐린 배경으로 깔지 않는 얇은 한 줄이다(A-483)`() {
+        val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }
+        val header = page("/organizations/${org.name}", login(admin)).selectFirst(".project-header-outer")
+        assertNotNull(header)
+        assertTrue(header.attr("style").isBlank(), "인라인 배경 이미지가 없어야 한다: ${header.attr("style")}")
+        assertNotNull(header.selectFirst(".project-header-avatar img"))
+    }
 }

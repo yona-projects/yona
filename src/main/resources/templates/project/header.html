@@ -3,7 +3,8 @@
   매개변수: view(ProjectViewContext)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
-<div class="project-header-outer" th:style="'background-image:url(' + @{${view.backgroundUrl}} + ')'">
+<!--/* A-483: 머리는 GitHub, GitLab처럼 배경 이미지 없는 얇은 한 줄이다. 올린 이미지는 프로젝트 홈 본문 맨 위의 표지(project/home)로 보인다. */-->
+<div class="project-header-outer">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">

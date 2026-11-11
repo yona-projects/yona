@@ -29,12 +29,12 @@
                 <a th:href="@{/}" class="logo logo-letter">Y</a>
             </li>
             <th:block th:if="${!site.hideProjectListing and !currentUser.guest}">
-                <li th:class="${menu == 'PROJECTS'} ? 'active'">
+                <li class="gnb-projects" th:classappend="${menu == 'PROJECTS'} ? 'active'">
                     <a th:href="@{/projects}" class="show-progress-bar" th:text="#{title.list}"></a>
                 </li>
                 <li class="divider"></li>
             </th:block>
-            <li th:if="${!#strings.isEmpty(site.feedbackUrl)}">
+            <li class="gnb-feedback" th:if="${!#strings.isEmpty(site.feedbackUrl)}">
                 <a th:href="${site.feedbackUrl}" target="_blank" th:text="#{title.yobi.feedback}"></a>
             </li>
             <li>

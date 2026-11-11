@@ -106,11 +106,8 @@
     height:40px;
     background-color: #1b1b1b;
 
+    // 프로젝트와 조직 화면의 상단 바이다. 배너가 없어졌으므로(A-483) 그 위에 반투명으로 겹치지 않고 다른 화면처럼 불투명한 단색으로 흐름 안에 놓인다.
     &.project-header {
-        background-color: rgba(0, 0, 0, 0.35);
-        position: absolute;
-        width: 100%;
-        z-index: 1000;
         padding: 0;
 
         .gnb-inner {
@@ -471,99 +468,105 @@
 
 }
 
+// 프로젝트와 조직의 머리이다(A-483). GitHub, GitLab처럼 배경 이미지 없는 흰 바탕의 얇은 한 줄이다: 작은 아바타, 이름, 별과 배지, 오른쪽의 동작 단추.
+// 예전에는 120px 배너 위에 로고가 튀어나오고 상단 바가 그 위에 반투명으로 겹쳤다(v1.6). 올린 이미지는 프로젝트 홈 본문 맨 위의 표지(.project-cover)로만 보인다.
 .project-header-outer {
-    background-color: #565656;
-    height:120px;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    background-size: cover;
+    background-color: #fff;
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
 
     .project-header-inner {
-        height:inherit;
-        background-clip: padding-box;
-        background: linear-gradient(to bottom, rgba(0,0,0, 0.5), rgba(0,0,0, 0.3), rgba(0,0,0, 0.1));
-
         .project-header-wrap {
-            height:inherit;
-            margin:0 auto;
-            width: 97%;
-            position: relative;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin: 0 10px;
+            padding: 10px 4px;
 
             .project-header-avatar {
-                bottom:-30px;
-                left:0px;
-                position:absolute;
-                width: calc(80px + 10px);
-                height: calc(80px + 10px);
-                border:5px solid #f9f9f9;
-                border-radius: 3px !important;
+                position: static;
+                flex: none;
+                width: 40px;
+                height: 40px;
+                border: 1px solid var(--bs-border-color, #dee2e6);
+                border-radius: 6px !important;
                 background: #fff;
+                overflow: hidden;
 
                 img {
+                    display: block;
                     width: 100%;
                     height: 100%;
-                    vertical-align: top;
+                    object-fit: cover;
                 }
             }
 
             .project-breadcrumb-wrap {
-                position: absolute;
-                bottom:18px;
-                left:90px;
-                padding:2px 10px;
-                background-color: rgba(0,0,0,0.55);
-                display:inline-block;
+                position: static;
+                flex: 1 1 200px;
+                min-width: 0;
+                padding: 0;
+                background: none;
+                display: block;
                 font-weight: bold;
 
-                @include border-radius(0 3px 3px 0);
-
-                &.fork {
-                    bottom: 5px;
-                }
-
                 .project-breadcrumb {
-                    line-height: 1.875rem;
-                    font-size: 1.5em;
+                    line-height: 1.5;
+                    font-size: 1.125rem;
+                    overflow-wrap: anywhere;
 
                     .project-author {
                         a {
-                            color:#FFF;
+                            color: #6c757d;
 
                             &:hover {
-                                color:#FFF;
+                                text-decoration: underline;
+                            }
+                        }
+
+                        // 조직 머리의 "그룹" 표지이다.
+                        .group-title-head {
+                            border: 1px solid #b6e8f8;
+                            border-radius: 10px;
+                            padding: 0 7px;
+                        }
+                    }
+
+                    .project-separator {
+                        color: #6c757d;
+                        padding: 0 4px;
+                    }
+
+                    .project-name {
+                        color: #212529;
+
+                        a {
+                            color: #212529;
+
+                            &:hover {
+                                color: $orange;
                                 text-decoration: underline;
                             }
                         }
                     }
 
-                    .project-separator {
-                        color:#FFF;
-                        padding:0 5px;
-                    }
-
-                    .project-name {
-                        color:#fc491e;
-                        a:hover {
-                          color:#fc491e;
-                          text-decoration: underline;
-                        }
-                    }
-
                     .project-private {
-                        color:#788ba7;
+                        color: #6c757d;
                         font-size: 0.875rem;
-                        margin-left:5px;
+                        margin-left: 5px;
                     }
 
                     .user-project-list {
                         .star {
-                            font-size: 1.5rem;
-                            color: rgba(255, 255, 255, 0.22);
+                            font-size: 1.25rem;
+                            color: rgba(0, 0, 0, 0.22);
+
                             &:hover {
                                 color: #e91e63;
                                 cursor: pointer;
                             }
                         }
+
                         .starred {
                             color: #e91e63 !important;
                         }
@@ -573,32 +576,34 @@
                 .project-origin {
                     font-size: 0.75rem;
                     line-height: 1.25rem;
-                    margin-top:-7px;
+                    margin-top: 0;
 
                     .project-origin-title {
-                        color:#788ba7;
+                        color: #6c757d;
                     }
 
                     .project-origin-name {
-                        margin-left:5px;
-                        color:#5dbbe0;
+                        margin-left: 5px;
+                        color: #0d6efd;
                     }
                 }
             }
 
             .project-util-wrap {
-                position: absolute;
-                bottom:20px;
-                right:0;
+                position: static;
+                margin-left: auto;
 
                 .project-util {
                     list-style: none;
-                    margin:0;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
 
                     li {
-                        float:left;
-                        margin-left:15px;
                         position: relative;
+
                         .icons-ul {
                             margin: 10px 0 10px 25px;
                         }
@@ -607,6 +612,17 @@
             }
         }
     }
+}
+
+// 프로젝트 홈 본문 맨 위의 표지이다. 프로젝트에 올린 이미지(로고와 같은 첨부)가 있을 때만 그린다.
+.project-cover {
+    height: 160px;
+    margin-bottom: 14px;
+    border-radius: 6px;
+    background-color: #565656;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .page-wrap-outer {

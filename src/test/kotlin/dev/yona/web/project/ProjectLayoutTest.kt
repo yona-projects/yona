@@ -177,20 +177,20 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     // --- 헤더 ---
 
     @Test
-    fun `로고가 없으면 기본 로고와 기본 배경을 쓴다`() {
+    fun `로고가 없으면 기본 로고를 쓰고 머리에는 배경 이미지를 깔지 않는다(A-483)`() {
         val project = newProject()
         val header = page(project).selectFirst(".project-header-outer")
         assertNotNull(header)
-        assertTrue(header.attr("style").contains("/assets/images/project_default.jpg"))
+        assertTrue(header.attr("style").isBlank())
         assertEquals("/assets/images/project_default_logo.png", header.selectFirst(".project-header-avatar img")?.attr("src"))
     }
 
     @Test
-    fun `프로젝트에 올린 첨부가 있으면 로고와 배경으로 쓴다`() {
+    fun `프로젝트에 올린 첨부가 있으면 로고로 쓴다(배경은 프로젝트 홈의 표지로만 보인다, A-483)`() {
         val project = newProject()
         val file = attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = project.id!!, name = "logo.png"))
         val header = page(project).selectFirst(".project-header-outer")!!
-        assertTrue(header.attr("style").contains("/files/${file.id}"))
+        assertTrue(header.attr("style").isBlank())
         assertEquals("/files/${file.id}", header.selectFirst(".project-header-avatar img")?.attr("src"))
     }
 
