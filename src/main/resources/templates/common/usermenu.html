@@ -8,11 +8,6 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
 <div id="mySidenav" class="sidenav row align-items-start">
     <div class="col-lg-5 right-menu span-hard-wrap">
-        <div class="user-menu-wrap">
-            <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}"></a></span>
-            <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="@{/users/logout}"><span class="user-menu logout badge bg-secondary" th:text="#{title.logout}"></span></a>
-        </div>
         <ul class="nav nav-tabs nm mb-3">
             <li class="nav-item myOrganizationList">
                 <a href="#myOrganizationList" data-bs-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
@@ -52,13 +47,19 @@
         </li>
         <li class="divider"></li>
         </th:block>
-        <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
+        <li class="gnb-usermenu-dropdown shell-user-dropdown">
+            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-bs-toggle="dropdown" th:title="#{user.menu}">
                 <span class="avatar-wrap smaller">
                     <img th:src="@{${currentUser.avatarUrl(32)}}" />
                 </span>
                 <span class="caret"></span>
             </a>
+            <ul class="dropdown-menu flat right">
+                <li><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}" class="dropdown-item"></a></li>
+                <li><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}" class="dropdown-item"></a></li>
+                <li><hr class="no-margin"/></li>
+                <li><a th:href="@{/users/logout}" th:text="#{title.logout}" class="dropdown-item"></a></li>
+            </ul>
         </li>
       <li class="gnb-usermenu-dropdown">
           <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-bs-toggle="dropdown">

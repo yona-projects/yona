@@ -99,10 +99,11 @@ class TemplateContractRegressionTest {
     }
 
     @Test
-    fun `사이드바 고정과 복원은 현재 주소의 쿼리도 함께 넘긴다 (shell-F6, v1_6은 pathname만 넘겨 목록의 필터와 쪽이 사라졌다)`() {
+    fun `iframe 핀 사이드바로 들어가는 스크립트는 없어졌다 (shell-F6의 쿼리 유실 결함이 있던 코드, D-141로 전환 단추에 합쳤다)`() {
         val layout = template("layout/layout.html")
-        assertFalse(layout.contains("\"?path=\" + window.location.pathname"), "pathname만 넘긴다")
-        assertEquals(2, Regex("encodeURIComponent\\(window\\.location\\.pathname \\+ window\\.location\\.search\\)").findAll(layout).count())
+        assertFalse(layout.contains("shallWeOpenLeftNavigation"), "iframe 사이드바 기억 키를 읽거나 쓰는 코드가 남았다")
+        assertFalse(layout.contains("/user/sidebar"), "레이아웃이 iframe 사이드바 주소로 이동한다")
+        assertFalse(layout.contains(".pin"), "핀 처리기가 남았다")
     }
 
     @Test

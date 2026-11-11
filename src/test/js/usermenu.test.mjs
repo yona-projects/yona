@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { pageWith, classicFromEsm } from './harness.mjs';
 
 const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
-<nav class="gnb-usermenu-dropdown"><button id="sidebar-open-btn" type="button">열기</button></nav>
+<nav class="gnb-usermenu-dropdown"><button data-shell-switcher type="button">열기</button></nav>
 <div id="mySidenav" style="width:0"><div id="usermenu-tab-content-list"></div>
   <input class="search-input" type="text">
   <ul class="user-ul"><li class="user-li" data-location="/a/one">Alpha proj</li><li class="user-li" data-location="/a/two">Beta proj</li></ul>
@@ -46,32 +46,32 @@ export const tests = [
   } },
   { name: '사용자 메뉴: 목록을 읽지 못해도(서버 오류) 아바타 단추로 사이드바를 열고 닫는다 (shell-F7, v1_6은 단추 처리기가 하나도 걸리지 않았다, 고쳤다)', run: async () => {
     const page = await open({ responses: { '/um': { ok: false, raw: 'server error' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '360px', '목록을 못 읽으면 열기 단추가 아무 일도 하지 않는다');
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); await page.close();
   } },
   { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 col-lg-8이 되며 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [7] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '360px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-8'); assert.ok((await calls(page)).includes('GET /fl'));
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.star-project i')].map((i) => i.classList.contains('starred'))), [true, false]);
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-12'); await page.close();
   } },
   { name: '사이드바: 작은 화면(720px 이하)에서는 100vw로 열린다', run: async () => {
     const page = await open({ width: 600, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100); assert.equal(await width(page), '100vw'); await page.close();
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100); assert.equal(await width(page), '100vw'); await page.close();
   } },
   { name: '사이드바: 본문(#main)을 누르면 닫히고, 사이드바 안을 누르면 닫히지 않는다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     await page.evaluate(() => document.querySelector('.user-ul').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await page.waitForTimeout(50); assert.equal(await width(page), '360px');
     await page.evaluate(() => document.querySelector('.main-stream').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await page.waitForTimeout(50); assert.equal(await width(page), '0px'); await page.close();
   } },
   { name: '사이드바: 검색 입력에서 Esc를 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100); await page.focus('.search-input'); await page.keyboard.press('Escape'); await page.waitForTimeout(100); assert.equal(await width(page), '0px'); await page.close();
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100); await page.focus('.search-input'); await page.keyboard.press('Escape'); await page.waitForTimeout(100); assert.equal(await width(page), '0px'); await page.close();
   } },
   { name: '검색 필터: 입력한 글자가 든 프로젝트와 조직만 보이고, 비운 뒤 Backspace면 모두 보인다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' } } });

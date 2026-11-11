@@ -43,7 +43,7 @@ $(() => {
             }
         });
 
-        $("#sidebar-open-btn").on("click.usermenu", (event) => {
+        $("[data-shell-switcher]").on("click.usermenu", (event) => {
             event.stopPropagation();
             if ($sidebar.width() !== 0) {
                 closeSidebar($sidebar);

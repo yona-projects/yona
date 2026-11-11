@@ -144,3 +144,20 @@ $shell-gap: 14px;
         }
     }
 }
+
+// 상단 바의 전환 단추(옛 핀 화살표 자리). 어두운 상단 바 위의 윤곽선 단추이다.
+.shell-switcher-btn {
+    margin: 0 8px;
+    padding: 2px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    background: transparent;
+    color: #fff;
+    font-size: 0.8125rem;
+    line-height: 1.5rem;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(255, 255, 255, 0.15);
+    }
+}
