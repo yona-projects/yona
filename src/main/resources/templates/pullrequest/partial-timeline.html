@@ -17,9 +17,9 @@
         <li th:each="c : ${e.commits}" th:class="'comment-body commit-info' + (${c.outdated} ? ' outdated' : '')">
             <a th:href="${c.commitUrl}" class="commit-id" th:text="${c.shortId}"></a>
             <a th:if="${c.authorHref != null}" th:href="${c.authorHref}" class="avatar-wrap small hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.authorName}">
-                <img th:src="${c.avatarUrl}" th:alt="${c.authorName}"> <th:block th:text="${c.authorEmail}"></th:block>
+                <img th:src="@{${c.avatarUrl}}" th:alt="${c.authorName}"> <th:block th:text="${c.authorEmail}"></th:block>
             </a>
-            <img th:if="${c.authorHref == null}" th:src="${c.avatarUrl}" class="avatar-wrap small hide-in-mobile">
+            <img th:if="${c.authorHref == null}" th:src="@{${c.avatarUrl}}" class="avatar-wrap small hide-in-mobile">
             <div class="date hide-in-mobile" th:title="${c.dateTitle}" th:text="${c.date}"></div>
             <a th:href="${c.commitUrl}" class="commitMsg short" th:utext="${#strings.isEmpty(c.shortMessageHtml)} ? #{code.commitMsg.empty} : ${c.shortMessageHtml}"></a>
             <button type="button" class="commitMsg moreBtn" th:if="${c.hasMore}"><span>&hellip;</span></button>

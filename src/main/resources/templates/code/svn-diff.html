@@ -33,7 +33,7 @@
 
             <p class="commitInfo">
                 <th:block th:if="${commit.known}">
-                    <a th:href="${commit.authorHref}" class="avatar-wrap"><img th:src="${commit.avatarUrl}" th:alt="${commit.authorName}" width="32" height="32"/></a>
+                    <a th:href="${commit.authorHref}" class="avatar-wrap"><img th:src="@{${commit.avatarUrl}}" th:alt="${commit.authorName}" width="32" height="32"/></a>
                     <strong th:text="${commit.authorName}"></strong>
                 </th:block>
                 <th:block th:unless="${commit.known}">
@@ -57,7 +57,7 @@
                     <li th:each="c : ${comments}" th:id="'comment-' + ${c.id}" th:attr="data-path=${c.path}, data-side=${c.side}, data-line=${c.line}" class="comment">
                         <div class="comment-avatar">
                             <a th:href="${c.authorHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.authorName}">
-                                <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.authorLoginId}">
+                                <img th:src="@{${c.avatarUrl}}" width="32" height="32" th:alt="${c.authorLoginId}">
                             </a>
                         </div>
                         <div class="media-body">

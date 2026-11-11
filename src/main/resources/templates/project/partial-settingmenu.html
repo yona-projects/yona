@@ -6,24 +6,24 @@
           th:with="base=${#paths.project(view.project.owner, view.project.name)}">
 <ul class="nav nav-tabs mb-3">
     <li id="subMenuProjectSetting" class="nav-item">
-        <a th:href="${base + '/settingform'}" th:text="#{project.setting}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/settingform'}}" th:text="#{project.setting}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a></li>
     <li id="subMenuProjectMember" class="nav-item">
-        <a th:href="${base + '/members'}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"><th:block th:text="#{project.member}"></th:block><span th:if="${view.enrolledUserCount > 0}" class="num-badge" th:text="${view.enrolledUserCount}"></span></a></li>
+        <a th:href="@{${base + '/members'}}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"><th:block th:text="#{project.member}"></th:block><span th:if="${view.enrolledUserCount > 0}" class="num-badge" th:text="${view.enrolledUserCount}"></span></a></li>
     <li th:if="${view.vcs.protectedRefs}" id="subMenuRuleset" class="nav-item">
-        <a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/rulesets')} ? 'active'"></a></li>
+        <a th:href="@{${base + '/setting/rulesets'}}" th:text="#{project.ruleset}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/rulesets')} ? 'active'"></a></li>
     <li th:if="${view.vcs.deployKeys}" id="subMenuDeployKey" class="nav-item">
-        <a th:href="${base + '/setting/deploykeys'}" th:text="#{project.deployKey}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/deploykeys')} ? 'active'"></a></li>
+        <a th:href="@{${base + '/setting/deploykeys'}}" th:text="#{project.deployKey}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/deploykeys')} ? 'active'"></a></li>
     <li th:if="${view.vcs.lfsScreen}" id="subMenuLfs" class="nav-item">
-        <a th:href="${base + '/setting/lfs'}" th:text="${view.vcs.lfs} ? #{project.lfs} : #{project.lfs.hg}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/lfs')} ? 'active'"></a></li>
+        <a th:href="@{${base + '/setting/lfs'}}" th:text="${view.vcs.lfs} ? #{project.lfs} : #{project.lfs.hg}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/setting/lfs')} ? 'active'"></a></li>
     <li id="subMenuIssueLabel" class="nav-item">
-        <a th:href="${base + '/issue/labelsform'}" th:text="#{issue.label}" class="nav-link" th:classappend="${requestPath == base + '/issue/labelsform'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/issue/labelsform'}}" th:text="#{issue.label}" class="nav-link" th:classappend="${requestPath == base + '/issue/labelsform'} ? 'active'"></a></li>
     <li id="subMenuWebhook" class="nav-item">
-        <a th:href="${base + '/webhooks'}" th:text="#{project.webhook}" class="nav-link" th:classappend="${requestPath == base + '/webhooks'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/webhooks'}}" th:text="#{project.webhook}" class="nav-link" th:classappend="${requestPath == base + '/webhooks'} ? 'active'"></a></li>
     <li id="subMenuProjectTransfer" class="nav-item">
-        <a th:href="${base + '/transfer'}" th:text="#{project.transfer}" class="nav-link" th:classappend="${requestPath == base + '/transfer'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/transfer'}}" th:text="#{project.transfer}" class="nav-link" th:classappend="${requestPath == base + '/transfer'} ? 'active'"></a></li>
     <li id="subMenuProjectDelete" class="nav-item">
-        <a th:href="${base + '/deleteform'}" th:text="#{project.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteform'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/deleteform'}}" th:text="#{project.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteform'} ? 'active'"></a></li>
     <li id="subMenuProjectChangeVCS" style="" th:styleappend="${view.menuSetting.code != true} ? 'display:none;'" class="nav-item">
-        <a th:href="${base + '/changeVCS'}" th:text="#{project.changeVCS}" class="nav-link" th:classappend="${requestPath == base + '/changeVCS'} ? 'active'"></a></li>
+        <a th:href="@{${base + '/changeVCS'}}" th:text="#{project.changeVCS}" class="nav-link" th:classappend="${requestPath == base + '/changeVCS'} ? 'active'"></a></li>
 </ul>
 </th:block>

@@ -11,7 +11,7 @@
       th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'ISSUE', ~{::listPage})}">
 <th:block th:fragment="listPage" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
-<link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
 <div class="page-wrap-outer">
   <div class="project-page-wrap">
     <th:block th:replace="~{issue/partial-list-wrap :: listWrap}"></th:block>
@@ -31,7 +31,7 @@
 
     // ShortcutKey
     yona.ShortcutKey.setKeymapLink({
-      "N": /*[[${base + '/issueform'}]]*/ ""
+      "N": /*[[@{${base + '/issueform'}}]]*/ ""
     });
 
     var $titlePrefix = $(".title-prefix");

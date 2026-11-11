@@ -52,7 +52,7 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yona.loadModule("project.Delete", {
-            "sDeleteURL": [[${#paths.project(project.owner, project.name) + '/delete'}]]
+            "sDeleteURL": [[@{${#paths.project(project.owner, project.name) + '/delete'}}]]
         });
     });
 </script>

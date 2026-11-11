@@ -152,6 +152,12 @@ export const tests = [
     const text = (await page.evaluate(() => window.__confirm))[0];
     assert.ok(text.includes('migration.js.confirmLog') && text.includes('yona-projects/yona-migration-log'), text); await page.close();
   } },
+  { name: '하위 경로에 올린 서버(window.yonaContextPath)에서는 원본 목록 요청 주소에 그 경로를 붙인다 (shell-F16)', run: async () => {
+    const page = await open({ routes: { '/yona/migration/projects': { body: SOURCE_LIST }, ...copy(ROUTES) } });
+    await page.evaluate(() => { window.yonaContextPath = '/yona'; });
+    await page.addScriptTag({ content: classicFromEsm('esm/service/Migration.js') }); await page.waitForTimeout(300);
+    assert.ok((await urls(page)).includes('GET /yona/migration/projects'), JSON.stringify(await urls(page))); await page.close();
+  } },
   { name: '마일스톤 이전: 확인 창에서 취소하면 아무 것도 보내지 않는다', run: async () => {
     const page = await mount({ confirmAnswer: false, routes: { ...ORG_ADMIN, '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, ...NO_DATA } });
     await clickSource(page); await clickDestination(page, 0); await page.evaluate(() => { window.__calls.length = 0; });

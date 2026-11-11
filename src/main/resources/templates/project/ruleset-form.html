@@ -18,7 +18,7 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
         <nav aria-label="breadcrumb" class="mt10"><ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a></li>
+            <li class="breadcrumb-item"><a th:href="@{${base + '/setting/rulesets'}}" th:text="#{project.ruleset}"></a></li>
             <li class="breadcrumb-item active" aria-current="page">
                 <th:block th:text="${isNew} ? #{project.ruleset.new} : ${ruleset.name}"></th:block>
                 <span class="badge ml10 bg-secondary" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'bg-success'"
@@ -112,12 +112,12 @@
 
                 <div class="box-wrap bottom">
                     <button id="saveRuleset" type="submit" class="ybtn ybtn-success" th:text="#{project.ruleset.save}"></button>
-                    <a class="ybtn" th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset.cancel}"></a>
+                    <a class="ybtn" th:href="@{${base + '/setting/rulesets'}}" th:text="#{project.ruleset.cancel}"></a>
                 </div>
             </div>
         </form>
 
-        <form th:if="${!isNew}" id="rulesetDeleteForm" method="post" class="mt10" th:action="${base + '/setting/rulesets/' + ruleset.id + '/delete'}">
+        <form th:if="${!isNew}" id="rulesetDeleteForm" method="post" class="mt10" th:action="@{${base + '/setting/rulesets/' + ruleset.id + '/delete'}}">
             <button type="submit" class="ybtn ybtn-danger" th:text="#{project.ruleset.delete}"></button>
         </form>
     </div>

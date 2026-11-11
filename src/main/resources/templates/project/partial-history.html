@@ -12,7 +12,7 @@
     <ul class="activity-streams list-unstyled">
       <li th:each="item : ${history}" class="activity-stream">
         <a th:href="${item.userPageUrl}" class="avatar-wrap float-start mr10">
-          <img th:src="${item.avatarUrl}" width="32" height="32">
+          <img th:src="@{${item.avatarUrl}}" width="32" height="32">
         </a>
         <div class="activity-desc">
           <p class="header-text" style="margin-bottom:5px;" th:utext="${item.headerHtml}"></p>

@@ -6,22 +6,22 @@
           th:with="base=${#paths.organization(view.name)}">
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-        <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a>
+        <a th:href="@{${base + '/settingform'}}" th:text="#{organization.settingFrom}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a>
     </li>
     <li class="nav-item">
-        <a th:href="${base + '/members'}" th:text="#{organization.member}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"></a>
+        <a th:href="@{${base + '/members'}}" th:text="#{organization.member}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"></a>
     </li>
     <li class="nav-item">
-        <a th:href="${base + '/audit'}" th:text="#{organization.audit}" class="nav-link" th:classappend="${requestPath == base + '/audit'} ? 'active'"></a>
+        <a th:href="@{${base + '/audit'}}" th:text="#{organization.audit}" class="nav-link" th:classappend="${requestPath == base + '/audit'} ? 'active'"></a>
     </li>
     <li class="nav-item">
-        <a th:href="${base + '/oauth-apps'}" th:text="#{organization.oauthApps}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/oauth-apps')} ? 'active'"></a>
+        <a th:href="@{${base + '/oauth-apps'}}" th:text="#{organization.oauthApps}" class="nav-link" th:classappend="${#strings.startsWith(requestPath, base + '/oauth-apps')} ? 'active'"></a>
     </li>
     <li class="nav-item">
-        <a th:href="${base + '/oauth-policy'}" th:text="#{organization.oauthPolicy}" class="nav-link" th:classappend="${requestPath == base + '/oauth-policy'} ? 'active'"></a>
+        <a th:href="@{${base + '/oauth-policy'}}" th:text="#{organization.oauthPolicy}" class="nav-link" th:classappend="${requestPath == base + '/oauth-policy'} ? 'active'"></a>
     </li>
     <li class="nav-item">
-        <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteForm'} ? 'active'"></a>
+        <a th:href="@{${base + '/deleteForm'}}" th:text="#{organization.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteForm'} ? 'active'"></a>
     </li>
 </ul>
 </th:block>

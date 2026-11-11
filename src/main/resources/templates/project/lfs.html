@@ -33,7 +33,7 @@
                 <td th:text="${l.owner}"></td>
                 <td th:text="${l.lockedText}"></td>
                 <td class="text-end">
-                    <form method="post" th:action="${base + '/setting/lfs/locks/' + l.id + '/delete'}" th:attr="onsubmit='return confirm(\'' + #{lfs.locks.release.confirm} + '\');'">
+                    <form method="post" th:action="@{${base + '/setting/lfs/locks/' + l.id + '/delete'}}" th:attr="onsubmit='return confirm(\'' + #{lfs.locks.release.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{lfs.locks.release}"></button>
                     </form>
                 </td>

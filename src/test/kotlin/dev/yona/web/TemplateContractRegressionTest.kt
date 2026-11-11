@@ -25,7 +25,7 @@ class TemplateContractRegressionTest {
 
     @Test
     fun `익명의 글 변경 이력 링크는 모달을 열지 않고 로그인 주소로 이동한다 (board-F15, v1_6은 이동했다)`() {
-        val link = Regex("<a th:href=\"'/users/loginform\\?redirectUrl=' \\+ \\$\\{base \\+ '/post/' \\+ post\\.number}\"[^>]*>").find(template("board/view.html"))
+        val link = Regex("<a th:href=\"@\\{\\|/users/loginform\\?redirectUrl=\\$\\{base \\+ '/post/' \\+ post\\.number}\\|}\"[^>]*>").find(template("board/view.html"))
         assertTrue(link != null, "익명용 변경 이력 링크를 찾지 못했다")
         assertFalse(link.value.contains("data-bs-toggle"), "모달 대상이 없는데 모달 토글이 붙어 있다: ${link.value}")
     }
@@ -163,7 +163,7 @@ class TemplateContractRegressionTest {
     @Test
     fun `게시판 메뉴가 꺼진 프로젝트의 글 목록에는 글쓰기 단추가 없다 (board-F10, N 키와 글 보기의 글쓰기는 이미 같은 조건이다)`() {
         val list = template("board/list.html")
-        val wrapper = Regex("<div class=\"float-end\"([^>]*)>\\s*<a th:href=\"\\$\\{base \\+ '/postform'}\"[^>]*#\\{post\\.write}").find(list)
+        val wrapper = Regex("<div class=\"float-end\"([^>]*)>\\s*<a th:href=\"@\\{\\$\\{base \\+ '/postform'}}\"[^>]*#\\{post\\.write}").find(list)
         assertTrue(wrapper != null, "글쓰기 단추를 찾지 못했다")
         assertTrue(wrapper.groupValues[1].contains("projectView.menuSetting.board"), "게시판 메뉴가 꺼져도 글쓰기 단추가 보인다")
     }

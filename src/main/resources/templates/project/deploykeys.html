@@ -29,7 +29,7 @@
                 <td><span class="badge" th:classappend="${k.readOnly} ? 'bg-secondary' : 'text-bg-warning'" th:text="${k.readOnly} ? #{deployKey.access.readOnly} : #{deployKey.access.readWrite}"></span></td>
                 <td th:text="${k.createdText}"></td>
                 <td>
-                    <form method="post" th:action="${base + '/setting/deploykeys/' + k.id + '/delete'}" th:attr="onsubmit='return confirm(\'' + #{deployKey.delete.confirm} + '\');'">
+                    <form method="post" th:action="@{${base + '/setting/deploykeys/' + k.id + '/delete'}}" th:attr="onsubmit='return confirm(\'' + #{deployKey.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{deployKey.delete}"></button>
                     </form>
                 </td>
@@ -38,7 +38,7 @@
         </table>
         <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{deployKey.list.empty}"></p>
 
-        <a th:href="${base + '/setting/deploykeys/new'}" id="deploy-key-new" class="btn btn-success" th:text="#{deployKey.add}"></a>
+        <a th:href="@{${base + '/setting/deploykeys/new'}}" id="deploy-key-new" class="btn btn-success" th:text="#{deployKey.add}"></a>
     </div>
 </div>
 </th:block>

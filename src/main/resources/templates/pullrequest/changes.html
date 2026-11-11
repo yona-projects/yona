@@ -21,7 +21,7 @@
                 <div class="author-info right-txt" style="margin-top:20px;">
                     <a th:href="${contributor.href}" class="usf-group float-start">
                         <span class="avatar-wrap smaller">
-                            <img th:src="${contributor.avatarUrl}" width="32" height="32">
+                            <img th:src="@{${contributor.avatarUrl}}" width="32" height="32">
                         </span>
                         <strong class="name" th:text="${contributor.name}"></strong>
                         <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
@@ -78,11 +78,11 @@
                     <th:block th:if="${commitInfo != null}">
                     <p class="commitInfo">
                         <th:block th:if="${commitInfo.known}">
-                            <a th:href="${commitInfo.authorHref}" class="avatar-wrap smaller"><img th:src="${commitInfo.avatarUrl}" th:alt="${commitInfo.authorName}" width="32" height="32"/></a>
+                            <a th:href="${commitInfo.authorHref}" class="avatar-wrap smaller"><img th:src="@{${commitInfo.avatarUrl}}" th:alt="${commitInfo.authorName}" width="32" height="32"/></a>
                             <strong th:text="${commitInfo.authorName}"></strong>
                         </th:block>
                         <th:block th:unless="${commitInfo.known}">
-                            <span class="avatar-wrap smaller"><img th:src="${commitInfo.avatarUrl}" width="32" height="32"></span>
+                            <span class="avatar-wrap smaller"><img th:src="@{${commitInfo.avatarUrl}}" width="32" height="32"></span>
                             <strong th:if="${commitInfo.authorName != null}" th:text="${commitInfo.authorName}"></strong>
                         </th:block>
                         <span class="ago" th:title="${commitInfo.agoTitle}" th:text="${commitInfo.ago}"></span>
@@ -125,7 +125,7 @@
                                         <span class="comments float-start" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
-                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>
+                                        <span class="avatar-wrap smaller ml5"><img th:src="@{${c.avatarUrl}}" th:alt="${c.authorName}" /></span>
                                     </p>
                                 </a>
                             </div>
@@ -136,7 +136,7 @@
                                         <span class="comments float-start" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
-                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>
+                                        <span class="avatar-wrap smaller ml5"><img th:src="@{${c.avatarUrl}}" th:alt="${c.authorName}" /></span>
                                     </p>
                                 </a>
                             </div>

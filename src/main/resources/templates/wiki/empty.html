@@ -16,7 +16,7 @@
                 <div class="wiki-empty text-center py-5">
                     <h3 th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</h3>
                     <p th:unless="${available}" class="text-body-secondary" th:text="#{wiki.error.unavailable}"></p>
-                    <a th:if="${canWrite and available}" th:href="${base + '/_new?title=Home'}" class="wiki-create-first ybtn ybtn-success" th:text="#{wiki.empty.create}">Create the first page</a>
+                    <a th:if="${canWrite and available}" th:href="@{${base + '/_new?title=Home'}}" class="wiki-create-first ybtn ybtn-success" th:text="#{wiki.empty.create}">Create the first page</a>
                 </div>
             </div>
             <div class="col-lg-3">

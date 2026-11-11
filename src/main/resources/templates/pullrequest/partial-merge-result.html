@@ -32,8 +32,8 @@
                 </td>
                 <td class="date" th:title="${r.dateTitle}" th:text="${r.date}"></td>
                 <td th:class="'author ' + ${r.authorEmail}">
-                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap"><img th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/></a>
-                    <div th:if="${r.authorHref == null}" class="avatar-wrap"><img th:src="${r.avatarUrl}" width="32" height="32"/></div>
+                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap"><img th:src="@{${r.avatarUrl}}" th:alt="${r.authorName}" width="32" height="32"/></a>
+                    <div th:if="${r.authorHref == null}" class="avatar-wrap"><img th:src="@{${r.avatarUrl}}" width="32" height="32"/></div>
                 </td>
             </tr>
             </tbody>

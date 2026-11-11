@@ -51,7 +51,7 @@ $(() => {
                 let data;
                 try {
                     data = await yona.http.ajax({
-                        url: '/files',
+                        url: (window.yonaContextPath || '') + '/files',
                         type: 'POST',
                         cache: false,
                         contentType: false,
@@ -119,7 +119,7 @@ $(() => {
                     (async () => {
                         let data;
                         try {
-                            data = await yona.http.ajax('/files', {
+                            data = await yona.http.ajax((window.yonaContextPath || '') + '/files', {
                                 type: 'POST',
                                 contentType: false,
                                 processData: false,

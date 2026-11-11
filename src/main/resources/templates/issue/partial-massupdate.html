@@ -24,7 +24,7 @@
 </script>
 
 <div class="mass-update-wrap hide-in-mobile">
-    <form id="mass-update-form" class="mass-update-form float-start" th:action="${base + '/issues'}" method="post">
+    <form id="mass-update-form" class="mass-update-form float-start" th:action="@{${base + '/issues'}}" method="post">
         <div class="btn-group check-all">
             <label for="check-all">
                 <input class="form-check-input" type="checkbox" id="check-all" data-target="checked-issue"/>
@@ -51,7 +51,7 @@
                 <li th:each="user : ${massUpdate.assignable}" th:attr="data-value=${user.id}">
                     <a class="dropdown-item usf-group">
                         <span class="avatar-wrap smaller">
-                            <img th:src="${user.avatarUrl}" width="20" height="20">
+                            <img th:src="@{${user.avatarUrl}}" width="20" height="20">
                         </span>
                         <strong class="name" th:text="${user.displayName}"></strong>
                         <span class="loginid"> <strong>@</strong><th:block th:text="${user.loginId}"></th:block></span>
@@ -99,7 +99,7 @@
     $(document).ready(function(){
         //issueList
         $yona.loadModule("issue.MassUpdate", {
-            "sURL": /*[[${base + '/issues'}]]*/ "",
+            "sURL": /*[[@{${base + '/issues'}}]]*/ "",
             "welMassUpdateForm": $('#mass-update-form'),
             "welMassUpdateButtons": $('#mass-update-form button'),
             "welState": $("#state"),

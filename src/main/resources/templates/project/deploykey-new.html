@@ -15,7 +15,7 @@
     <div class="project-page-wrap" id="deployKeyNewPage">
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/deploykeys'})}"></th:block>
         <div th:if="${deployKeyError != null}" class="alert alert-danger mt10" th:text="#{${deployKeyError}}"></div>
-        <form id="deploy-key-create" method="post" class="mt10" th:action="${base + '/setting/deploykeys'}">
+        <form id="deploy-key-create" method="post" class="mt10" th:action="@{${base + '/setting/deploykeys'}}">
             <h4 th:text="#{deployKey.add}"></h4>
             <div class="mb-3">
                 <label for="deploy-key-name" class="form-label" th:text="#{deployKey.name}"></label>
@@ -35,7 +35,7 @@
             </div>
             <div>
                 <button type="submit" class="btn btn-success" th:text="#{deployKey.add.submit}"></button>
-                <a th:href="${base + '/setting/deploykeys'}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+                <a th:href="@{${base + '/setting/deploykeys'}}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
     </div>

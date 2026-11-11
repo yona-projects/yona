@@ -26,7 +26,7 @@
                 </div>
                 <div class="meta">
                     <a th:if="${noti.sender != null}" class="avatar-wrap smaller" th:href="@{'/' + ${noti.sender.loginId}}">
-                        <img th:src="${noti.avatarUrl}">
+                        <img th:src="@{${noti.avatarUrl}}">
                     </a>
                     <div th:if="${noti.sender == null}" class="smaller">
                         <img th:src="@{/assets/images/default-avatar-64.png}" width="42" height="42">

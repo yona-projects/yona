@@ -25,7 +25,7 @@
         <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" th:class="'comment' + (${c.pending} ? ' comment-pending' : '')">
             <div class="comment-avatar">
                 <a th:href="${c.userHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}">
-                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
+                    <img th:src="@{${c.avatarUrl}}" width="32" height="32" th:alt="${c.loginId}">
                 </a>
             </div>
             <div class="media-body">
@@ -68,7 +68,7 @@
         <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
             <div class="comment-avatar">
                 <a th:href="${c.userHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}">
-                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
+                    <img th:src="@{${c.avatarUrl}}" width="32" height="32" th:alt="${c.loginId}">
                 </a>
             </div>
             <div class="media-body">
@@ -98,7 +98,7 @@
             <input type="hidden" name="thread.id" th:value="${f.threadId}">
             <div class="author-info-wrap float-start hide-in-mobile">
                 <div class="author-info">
-                    <a th:href="${f.userHref}" class="avatar-wrap medium" th:title="${f.userName}" data-bs-toggle="tooltip" data-bs-placement="top"><img th:src="${f.avatarUrl}" width="32" height="32"></a>
+                    <a th:href="${f.userHref}" class="avatar-wrap medium" th:title="${f.userName}" data-bs-toggle="tooltip" data-bs-placement="top"><img th:src="@{${f.avatarUrl}}" width="32" height="32"></a>
                 </div>
             </div>
             <div class="write-comment-box">

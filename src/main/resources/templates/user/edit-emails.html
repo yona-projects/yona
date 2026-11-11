@@ -34,7 +34,7 @@
     <table class="table mt20">
       <tr>
         <td>
-          <img th:src="${account.avatarUrl80}" width="40" height="40">
+          <img th:src="@{${account.avatarUrl80}}" width="40" height="40">
           <strong class="ml10" th:text="${account.email}"></strong>
           <span class="label-head vmiddle ml10" th:text="#{emails.main.email}"></span>
         </td>
@@ -44,7 +44,7 @@
 
       <tr th:each="mail : ${subEmails}">
         <td>
-          <img th:src="${mail.avatarUrl}" width="40" height="40">
+          <img th:src="@{${mail.avatarUrl}}" width="40" height="40">
           <span class="ml10" th:text="${mail.email}"></span>
         </td>
         <td style="text-align:right; vertical-align: middle;">

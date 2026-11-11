@@ -15,7 +15,7 @@
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
   <div class="project-page-wrap">
-    <form th:action="${base + '/posts'}" method="post" enctype="multipart/form-data" class="nm">
+    <form th:action="@{${base + '/posts'}}" method="post" enctype="multipart/form-data" class="nm">
       <div class="content-wrap frm-wrap">
         <dl>
           <dd>
@@ -86,7 +86,7 @@ $(function(){
 
     yona.Mention({
         "target": 'textarea[id^=editor-]',
-        "url"   : /*[[${base + '/mentionList'}]]*/ ""
+        "url"   : /*[[@{${base + '/mentionList'}}]]*/ ""
     });
 
     // Followings are used for online commit
@@ -113,7 +113,7 @@ $(function(){
 
     yonaTitleHeadModule({
         "target": 'title-input#title',
-        "url"   : /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/titleHeads'}]]*/ ""
+        "url"   : /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/titleHeads'}}]]*/ ""
     });
 });
 </script>

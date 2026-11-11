@@ -15,9 +15,9 @@
     <div class="modal-body">
         <ul class="list-unstyled">
             <li th:each="voter : ${voters}">
-                <a th:href="'/' + ${voter.loginId}" class="usf-group" target="_blank">
+                <a th:href="@{|/${voter.loginId}|}" class="usf-group" target="_blank">
                     <span class="avatar-wrap mlarge">
-                        <img th:src="${voter.avatarUrl}" width="40" height="40">
+                        <img th:src="@{${voter.avatarUrl}}" width="40" height="40">
                     </span>
                     <strong class="name" th:text="${voter.name}"></strong>
                     <span class="loginid"> <strong>@</strong><th:block th:text="${voter.loginId}"></th:block></span>
