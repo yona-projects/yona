@@ -362,6 +362,18 @@ class ProfileEditTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `정책을 어긴 새 비밀번호로는 바꾸지 않고 400이다 (welcome-F3)`() {
+        val user = newUser()
+        val session = login(user)
+        for (weak in listOf("short12", "password123", user.loginId!!)) {
+            val result = changePassword(session, "old-pass", weak)
+            assertEquals(400, result.response.status, weak)
+        }
+        users.flush()
+        assertTrue(dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "old-pass"))
+    }
+
+    @Test
     fun `비밀번호 확인이 다르면 바꾸지 않고 400이다 (v1_6은 화면 스크립트로만 검사해 바뀌었다, 고쳤다 usersec-F2)`() {
         val user = newUser()
         val result = mockMvc.perform(

@@ -140,6 +140,9 @@ class AccountController(
         // usersec-F2: v1.6은 확인 입력을 서버에서 보지 않아 서로 다른 값으로도 비밀번호가 바뀌었다.
         if (PasswordConfirmation.mismatched(request)) return profileView(user, PasswordConfirmation.MISMATCH_KEY).also { it.status = HttpStatus.BAD_REQUEST }
 
+        // welcome-F3: 새 비밀번호도 정책(NIST SP 800-63B, A-465)을 지켜야 한다
+        dev.yona.domain.user.PasswordPolicy.check(new, user.loginId, user.email)?.let { return profileView(user, it.messageKey).also { view -> view.status = HttpStatus.BAD_REQUEST } }
+
         account.resetPassword(user, new)
         loginSession.end(request, response)
         return RedirectSupport.see(request, response, "/users/loginform", mapOf(RedirectSupport.WARNING to "user.loginWithNewPassword"))

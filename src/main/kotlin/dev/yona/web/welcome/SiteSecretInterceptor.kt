@@ -74,9 +74,11 @@ class SiteSecretInterceptor(
         // v1.6은 이름을 읽지도 않고 그대로 저장했다. 이름은 비어 있으면 안 된다(R-57-2)
         if (request.getParameter("name").isNullOrBlank()) reject("name", "error.required")
         val password = request.getParameter("password")
-        if (password.isNullOrBlank()) reject("password", "user.wrongPassword.alert")
-        if (password != request.getParameter("retypedPassword")) reject("retypedPassword", "user.confirmPassword.alert")
         val email = request.getParameter("email")
+        if (password.isNullOrBlank()) reject("password", "user.wrongPassword.alert")
+        // welcome-F3: 최초 관리자 비밀번호도 정책(NIST SP 800-63B, A-465)을 지켜야 한다
+        else dev.yona.domain.user.PasswordPolicy.check(password, loginId, email)?.let { reject("password", it.messageKey) }
+        if (password != request.getParameter("retypedPassword")) reject("retypedPassword", "user.confirmPassword.alert")
         if (email.isNullOrBlank()) reject("email", "validation.invalidEmail")
         // v1.6는 User.email의 @Constraints.Email 검사를 폼 바인딩이 먼저 하므로 형식이 틀린 이메일은 user.wrongEmail.alert로 거절한다
         if (!email.isNullOrBlank() && !dev.yona.domain.user.SignupService.isValidEmailFormat(email)) reject("email", "user.wrongEmail.alert")

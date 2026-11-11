@@ -59,7 +59,7 @@ class MessageParityTest {
         "site.massMail.noRecipient",
         "organization.label.noPermission", "organization.label.groupProject",
         "organization.setting.saved", "organization.label.group", "organization.label.created", "organization.label.by", "organization.label.at",
-        "deviceAuth.error.locked", "user.login.tooMany", "deviceAuth.consent.requestedAt", "deviceAuth.consent.requestIp", "site.userList.selfProtect", "migration.js.confirmLog", "site.security.saveScope", "notification.more", "common.defaultPage.set", "common.defaultPage.failed", "common.updateFailed", "layout.sidebar.tooltip", "layout.madeBy", "draft.saved", "intro.heading", "intro.tagline"
+        "deviceAuth.error.locked", "user.login.tooMany", "validation.tooLongPassword", "validation.commonPassword", "validation.passwordSameAsId", "deviceAuth.consent.requestedAt", "deviceAuth.consent.requestIp", "site.userList.selfProtect", "migration.js.confirmLog", "site.security.saveScope", "notification.more", "common.defaultPage.set", "common.defaultPage.failed", "common.updateFailed", "layout.sidebar.tooltip", "layout.madeBy", "draft.saved", "intro.heading", "intro.tagline"
     )
 
     /**

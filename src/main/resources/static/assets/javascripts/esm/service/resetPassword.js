@@ -64,7 +64,7 @@ const resetPassword = function(){
      */
     function _initFormValidator(){
         const aRules = [
-              {"name": 'password',        "rules": 'required|min_length[4]'},
+              {"name": 'password',        "rules": 'required|min_length[8]'},
               {"name": 'retypedPassword', "rules": 'required|matches[password]'}
           ];
 

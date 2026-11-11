@@ -101,7 +101,7 @@ const SignUp = function(htOptions){
     function checkPassword() {
       hideErrorMessage(htElement.welInputPassword);
 
-      if((htElement.welInputPassword.val() || "").trim().length < 4) {
+      if((htElement.welInputPassword.val() || "").length < 8) {
         showErrorMessage(htElement.welInputPassword, Messages("validation.tooShortPassword"));
       }
 
@@ -150,7 +150,7 @@ const SignUp = function(htOptions){
         const aRules = [
             {"name": 'loginId',         "rules": 'required|callback_check_loginId'},
             {"name": 'email',           "rules": 'required|valid_email'},
-            {"name": 'password',        "rules": 'required|min_length[4]'},
+            {"name": 'password',        "rules": 'required|min_length[8]'},
             {"name": 'retypedPassword', "rules": 'required|matches[password]'}
         ];
 

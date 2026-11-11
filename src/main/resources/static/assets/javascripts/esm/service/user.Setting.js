@@ -353,7 +353,7 @@ const Setting = function(htOptions){
     function _initFormValidator(){
         const aRules = [
             {"name": 'oldPassword',     "rules": 'required'},
-            {"name": 'password',        "rules": 'required|min_length[4]'},
+            {"name": 'password',        "rules": 'required|min_length[8]'},
             {"name": 'retypedPassword', "rules": 'required|matches[password]'}
         ];
 

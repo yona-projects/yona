@@ -57,4 +57,18 @@ export const tests = [{
     assert.deepEqual(out, [0, 0, 1], '한글 아이디는 형식 오류가 없어야 하고 a..b는 형식 오류여야 한다: ' + JSON.stringify(out));
   }
 }
+  , {
+  name: '비밀번호는 8자 미만이면 길이 오류이고 8자이면 오류가 없다 (welcome-F3, NIST 기준 최소 8자)',
+  async run() {
+    const page = await pageWith({ html: HTML, scripts: [STUBS, 'esm/service/user.SignUp.js'] });
+    const out = await page.evaluate(async () => {
+      new yona.user.SignUp({ sLogindIdCheckUrl: '/x/', sEmailCheckUrl: '/y/' });
+      const seen = [];
+      for (const pw of ['abc1234', 'abc12345']) { window.__popovers.length = 0; $('#password').val(pw).trigger('keyup'); await new Promise((r) => setTimeout(r, 700)); seen.push(window.__popovers.filter((p) => p.startsWith('password:validation.tooShortPassword')).length); }
+      return seen;
+    });
+    await page.close();
+    assert.deepEqual(out, [1, 0], JSON.stringify(out));
+  }
+}
 ];

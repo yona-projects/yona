@@ -104,6 +104,11 @@ class PasswordResetController(
             tokens.remove(hashString)
             return ErrorViews.badRequest("site.resetPasswordEmail.ssoUser")
         }
+        // welcome-F3: 정책(NIST SP 800-63B, A-465)을 어기면 토큰은 그대로 두고 폼을 다시 보인다
+        dev.yona.domain.user.PasswordPolicy.check(newPassword, user.loginId, user.email)?.let { violation ->
+            return resetForm(hashString).also { it.status = HttpStatus.BAD_REQUEST }
+                .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to violation.messageKey)) }
+        }
         passwords.set(user, requireNotNull(newPassword))
         users.save(user)
         audit.record(dev.yona.domain.audit.auditUser("account.password_changed", user, mapOf("via" to "reset_token")))

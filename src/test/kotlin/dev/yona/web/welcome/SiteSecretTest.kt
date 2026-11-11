@@ -230,6 +230,15 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `최초 관리자 비밀번호도 정책을 지켜야 한다 (v1_6은 한 글자도 받았다, 고쳤다, welcome-F3)`() {
+        for (weak in listOf("p", "short12", "password123")) {
+            val doc = Jsoup.parse(submit(*with("password", weak).map { if (it.first == "retypedPassword") it.first to weak else it }.toTypedArray()).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+            assertTrue(doc.select(".secret-box, .alert, .help-block, .text-danger, form").isNotEmpty(), weak)
+        }
+        submit(*valid).andExpect(status().isOk)
+    }
+
+    @Test
     fun `정한 뒤에는 어떤 요청이든 재시작 안내이다`() {
         submit(*valid).andExpect(status().isOk)
         assertEquals("Welcome!", page("/").title())

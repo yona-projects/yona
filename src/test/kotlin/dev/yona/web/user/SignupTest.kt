@@ -72,7 +72,7 @@ class SignupTest : AbstractIntegrationTest() {
 
     private fun signup(
         loginId: String? = "newbie${++sequence}", name: String? = "신규", email: String? = "newbie$sequence@example.com",
-        password: String? = "secret", session: MockHttpSession? = null
+        password: String? = "Xk9#mQ2v", session: MockHttpSession? = null
     ): MvcResult {
         val request = post("/users/signup")
         session?.let { request.session(it) }
@@ -120,14 +120,14 @@ class SignupTest : AbstractIntegrationTest() {
     @Test
     fun `가입하면 활성 사용자가 만들어지고 로그인된 채 홈으로 간다`() {
         val session = MockHttpSession()
-        val result = signup("alice-new", "앨리스", "alice-new@example.com", "pw1234", session)
+        val result = signup("alice-new", "앨리스", "alice-new@example.com", "Xk9#mQ2v", session)
         assertEquals(303, result.response.status)
         assertEquals("/", result.response.getHeader("Location"))
         val user = users.findByLoginId("alice-new")!!
         assertEquals(UserState.ACTIVE, user.state)
         assertEquals("앨리스", user.name)
         assertNotNull(user.createdDate)
-        assertTrue(dev.yona.security.UserPasswordService().matches(user, "pw1234")); assertTrue(user.password!!.startsWith("\$argon2id\$"))
+        assertTrue(dev.yona.security.UserPasswordService().matches(user, "Xk9#mQ2v")); assertTrue(user.password!!.startsWith("\$argon2id\$"))
         // 로그인된 상태이다.
         val home = mockMvc.perform(get("/").session(session)).andReturn().response.contentAsString
         assertTrue(home.contains("alice-new") || home.contains("앨리스"))
@@ -143,7 +143,7 @@ class SignupTest : AbstractIntegrationTest() {
     fun `폼이 보내지 않는 항목은 요청으로 정할 수 없다`() {
         mockMvc.perform(
             post("/users/signup").param("loginId", "tamper").param("name", "n").param("email", "tamper@example.com")
-                .param("password", "x").param("state", "SITE_ADMIN").param("isGuest", "true").param("token", "stolen")
+                .param("password", "Xk9#mQ2v").param("state", "SITE_ADMIN").param("isGuest", "true").param("token", "stolen")
         )
         val user = users.findByLoginId("tamper")!!
         assertEquals(UserState.ACTIVE, user.state)
@@ -155,6 +155,22 @@ class SignupTest : AbstractIntegrationTest() {
         assertEquals(400, result.response.status)
         assertEquals("Sign up", doc(result).title())
         assertNotNull(doc(result).selectFirst("form[name=signup]"))
+    }
+
+    @Test
+    fun `정책을 어긴 비밀번호로는 가입할 수 없다 (v1_6은 서버가 길이를 보지 않아 한 글자도 받았다, 고쳤다, welcome-F3)`() {
+        val cases = mapOf("p" to "at least 8", "short12" to "at least 8", "a".repeat(129) to "at most 128", "password123" to "too common", "aaaaaaaaaa" to "too common")
+        for ((weak, message) in cases) {
+            val id = "policy${++sequence}"
+            val result = signup(loginId = id, email = "$id@example.com", password = weak)
+            assertRejected(result)
+            assertTrue(result.response.contentAsString.contains(message), "$weak: 안내 문구 \"$message\"가 없다")
+            assertNull(users.findByLoginId(id), "$weak: 사용자가 만들어졌다")
+        }
+        // 아이디나 이메일과 같은 값도 거절한다
+        val same = signup(loginId = "samepass99", email = "samepass99@example.com", password = "samepass99")
+        assertRejected(same); assertNull(users.findByLoginId("samepass99"))
+        assertEquals(303, signup(loginId = "goodpass1", email = "goodpass1@example.com", password = "Xk9#mQ2v").response.status)
     }
 
     @Test
@@ -261,7 +277,7 @@ class SignupTest : AbstractIntegrationTest() {
         val id = "mismatch${++sequence}"
         val result = mockMvc.perform(
             post("/users/signup").param("loginId", id).param("name", "신규").param("email", "$id@example.com")
-                .param("password", "secret").param("retypedPassword", "different")
+                .param("password", "Xk9#mQ2v").param("retypedPassword", "different")
         ).andReturn()
         assertEquals(400, result.response.status)
         assertEquals(null, users.findByLoginId(id))
@@ -318,7 +334,7 @@ class SignupWithEmailVerificationTest : AbstractIntegrationTest() {
     @Test
     fun `가입하면 잠긴 사용자와 인증 정보가 만들어지고 인증 메일 요청이 알려진다`() {
         val session = MockHttpSession()
-        mockMvc.perform(post("/users/signup").session(session).param("loginId", "verifyme").param("name", "n").param("email", "verifyme@example.com").param("password", "x"))
+        mockMvc.perform(post("/users/signup").session(session).param("loginId", "verifyme").param("name", "n").param("email", "verifyme@example.com").param("password", "Xk9#mQ2v"))
             .andExpect(status().isSeeOther)
             .andExpect(header().string("Location", "/"))
             .andExpect(flash().attribute("info", "user.verification.mail.sent"))
@@ -345,7 +361,7 @@ class SignupWithAdminConfirmTest : AbstractIntegrationTest() {
 
     @Test
     fun `가입하면 잠기고 승인 대기 안내를 받는다`() {
-        mockMvc.perform(post("/users/signup").param("loginId", "pending").param("name", "n").param("email", "pending@example.com").param("password", "x"))
+        mockMvc.perform(post("/users/signup").param("loginId", "pending").param("name", "n").param("email", "pending@example.com").param("password", "Xk9#mQ2v"))
             .andExpect(status().isSeeOther)
             .andExpect(flash().attribute("info", "user.signup.requested"))
         assertEquals(UserState.LOCKED, users.findByLoginId("pending")!!.state)
@@ -373,7 +389,7 @@ class SignupWithAllowedDomainsTest : AbstractIntegrationTest() {
 
     @Test
     fun `허용되지 않은 도메인은 안내와 함께 400으로 거부한다`() {
-        val result = mockMvc.perform(post("/users/signup").param("loginId", "outsider").param("name", "n").param("email", "x@blocked.net").param("password", "x")).andReturn()
+        val result = mockMvc.perform(post("/users/signup").param("loginId", "outsider").param("name", "n").param("email", "x@blocked.net").param("password", "Xk9#mQ2v")).andReturn()
         assertEquals(400, result.response.status)
         assertTrue(result.response.contentAsString.contains("Your email domain is not allowed."))
         assertNull(users.findByLoginId("outsider"))
@@ -381,7 +397,7 @@ class SignupWithAllowedDomainsTest : AbstractIntegrationTest() {
 
     @Test
     fun `허용된 도메인은 대소문자와 공백을 가리지 않고 가입한다`() {
-        mockMvc.perform(post("/users/signup").param("loginId", "insider").param("name", "n").param("email", "x@OTHER.org").param("password", "x"))
+        mockMvc.perform(post("/users/signup").param("loginId", "insider").param("name", "n").param("email", "x@OTHER.org").param("password", "Xk9#mQ2v"))
             .andExpect(status().isSeeOther)
         assertNotNull(users.findByLoginId("insider"))
     }
