@@ -43,6 +43,10 @@
             <div class="token-card-head" th:text="#{deviceAuth.consent.title(${request.clientName})}"></div>
             <div class="token-card-body">
                 <p class="token-meta" th:text="#{deviceAuth.consent.description(${account})}"></p>
+                <p class="token-meta">
+                    <span th:text="#{deviceAuth.consent.requestedAt}"></span>: <span id="device-request-time" th:text="${#dates.format(request.requestedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                    <th:block th:if="${request.requestIp != null}"> · <span th:text="#{deviceAuth.consent.requestIp}"></span>: <span id="device-request-ip" th:text="${request.requestIp}"></span></th:block>
+                </p>
                 <div class="token-scopes">
                     <ul id="device-scopes" style="list-style: none; margin: 0; padding: 0;">
                         <li th:each="s : ${request.scopes}" class="token-scope-row">

@@ -94,7 +94,7 @@ class DeviceAuthorizationService(
      * 모르는 범위가 있으면 [DeviceStart.InvalidScope]이다. 만료된 지 하루 넘은 요청은 이때 함께 지운다.
      */
     @Transactional
-    fun start(clientName: String?, scopes: Collection<String>, now: Date = Date()): DeviceStart {
+    fun start(clientName: String?, scopes: Collection<String>, now: Date = Date(), requestIp: String? = null): DeviceStart {
         val known = ApiScopes.selectable(true).toSet()
         if (scopes.any { it !in known }) return DeviceStart.InvalidScope
         val requested = scopes.toSet().ifEmpty { ApiScopes.selectable(false).toSet() }
@@ -104,7 +104,7 @@ class DeviceAuthorizationService(
         devices.save(
             DeviceAuthorization(
                 deviceCodeHash = TokenHasher.sha256Hex(deviceCode), userCode = userCode, clientName = clientName?.trim()?.take(ApiTokenService.NAME_MAX - TOKEN_NAME_PREFIX.length)?.ifEmpty { null } ?: DEFAULT_CLIENT_NAME,
-                scopes = requested.toMutableList(), createdDate = now, expiresDate = Date(now.time + EXPIRES_IN * 1000L), intervalSeconds = INTERVAL
+                scopes = requested.toMutableList(), createdDate = now, expiresDate = Date(now.time + EXPIRES_IN * 1000L), intervalSeconds = INTERVAL, requestIp = requestIp?.take(64)?.ifBlank { null }
             )
         )
         return DeviceStart.Issued(DeviceCode(deviceCode, userCode, EXPIRES_IN, INTERVAL))

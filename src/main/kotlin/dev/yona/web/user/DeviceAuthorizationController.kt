@@ -28,7 +28,7 @@ class DeviceAuthorizationController(
 ) {
 
     /** 확인 화면에 보일 요청이다. [scopes]는 승인하면 받게 될 범위이다. */
-    data class DeviceRequestView(val userCode: String, val clientName: String, val scopes: List<String>)
+    data class DeviceRequestView(val userCode: String, val clientName: String, val scopes: List<String>, val requestIp: String?, val requestedAt: java.util.Date?)
 
     /** 코드를 입력하는 화면이다. `user_code`가 있으면 그 코드의 확인 화면이고, 없거나 틀린 코드는 입력 화면(틀리면 400과 오류 문구)이다. */
     @GetMapping("/users/device")
@@ -84,7 +84,7 @@ class DeviceAuthorizationController(
     private fun codeForm(error: String?): ModelAndView = ModelAndView("user/device").addObject("title", TITLE).addObject("mode", "form").addObject("deviceError", error)
 
     private fun consent(auth: DeviceAuthorization, user: User): ModelAndView = ModelAndView("user/device").addObject("title", TITLE).addObject("mode", "consent")
-        .addObject("request", DeviceRequestView(auth.userCode.orEmpty(), auth.clientName.orEmpty(), service.grantableScopes(auth, user).toList().sortedBy { order(auth, it) }))
+        .addObject("request", DeviceRequestView(auth.userCode.orEmpty(), auth.clientName.orEmpty(), service.grantableScopes(auth, user).toList().sortedBy { order(auth, it) }, auth.requestIp, auth.createdDate))
         .addObject("account", user.loginId)
 
     private fun done(messageKey: String): ModelAndView = ModelAndView("user/device").addObject("title", TITLE).addObject("mode", "done").addObject("doneMessage", messageKey)

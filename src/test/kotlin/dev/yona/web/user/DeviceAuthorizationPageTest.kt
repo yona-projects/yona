@@ -84,6 +84,17 @@ class DeviceAuthorizationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `승인 화면은 요청한 기기의 주소와 요청 시각을 보여 사용자가 자기 기기인지 확인하게 한다 (oauth-F6)`() {
+        val issued = service.start("laptop", listOf("repo"), java.util.Date(), "203.0.113.7") as DeviceStart.Issued
+        val consent = page(login(user()), "/users/device?user_code=" + issued.code.userCode).selectFirst("#device-consent")!!
+        assertEquals("203.0.113.7", consent.selectFirst("#device-request-ip")!!.text())
+        assertTrue(consent.selectFirst("#device-request-time")!!.text().isNotBlank())
+        // 주소를 모르는 요청은 그 줄을 보이지 않는다
+        val noIp = service.start("laptop", listOf("repo")) as DeviceStart.Issued
+        assertNull(page(login(user()), "/users/device?user_code=" + noIp.code.userCode).selectFirst("#device-request-ip"))
+    }
+
+    @Test
     fun `사이트 관리자 범위는 사이트 관리자에게만 받게 될 범위로 보인다`() {
         val issued = issue("laptop", "repo", "site_admin")
         assertEquals(listOf("repo"), page(login(user()), "/users/device?user_code=" + issued.code.userCode).select("ul#device-scopes li code").map { it.text() })
