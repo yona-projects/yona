@@ -45,6 +45,7 @@ enum class DeviceAuthorizationStatus {
  * @property createdDate 요청한 시각
  * @property expiresDate 만료 시각. 이 시각 뒤에는 승인도 교환도 되지 않는다
  * @property intervalSeconds 교환 요청의 최소 간격(초). `slow_down`을 받을 때마다 5초씩 늘어난다
+ * @property requestIp 코드를 요청한 기기의 주소. 승인 화면에서 사용자가 자기 기기인지 확인하게 한다(oauth-F6). 알 수 없으면 비어 있다
  * @property lastPolledDate 마지막으로 교환을 요청한 시각
  */
 @Entity
@@ -77,6 +78,8 @@ class DeviceAuthorization(
     var expiresDate: Date? = null,
     @Column(name = "interval_seconds")
     var intervalSeconds: Int = 5,
+    @Column(name = "request_ip", length = 64)
+    var requestIp: String? = null,
     @Column(name = "last_polled_date")
     var lastPolledDate: Date? = null
 )

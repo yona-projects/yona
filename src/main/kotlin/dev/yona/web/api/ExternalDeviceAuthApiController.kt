@@ -41,7 +41,7 @@ class ExternalDeviceAuthApiController(
     @PostMapping("/-_-api/v1/oauth/device/code")
     fun deviceCode(request: HttpServletRequest): Any {
         val scopes = request.getParameter("scope").orEmpty().split(' ', ',', '\t').filter { it.isNotBlank() }
-        return when (val started = service.start(request.getParameter("client_name"), scopes)) {
+        return when (val started = service.start(request.getParameter("client_name"), scopes, java.util.Date(), request.remoteAddr)) {
             DeviceStart.InvalidScope -> error("invalid_scope", "unknown scope")
             is DeviceStart.Issued -> {
                 val uri = siteUrls.absolute(siteUrls.path("/users/device"))
