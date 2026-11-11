@@ -159,8 +159,8 @@ class PasswordLoginFailureHandler(
             LoginResult.LockedAfterAuthentication -> {
                 // v1.6: 안내 문구를 남기고 logout()을 호출한다. logout()이 성공 문구를 덧붙이고 Referer로 돌려보낸다.
                 loginSession.end(request, response)
-                // logout()은 `redirect(Referer 머리글)`이라 Referer가 없으면 `Location: null`이다(R-03과 같다)
-                val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "null"
+                // logout()은 `redirect(Referer 머리글)`이라 v1.6은 Referer가 없으면 `Location: null`이었다(R-03, usersec-F13). 고쳤다: 홈으로 보낸다.
+                val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
                 PasswordLoginResponses.redirect(request, response, referer, mapOf(RedirectSupport.WARNING to "user.locked", RedirectSupport.SUCCESS to "user.logout.success"))
             }
             // LDAP이 남긴 안내(가입 승인 대기 등)에 인증 실패 안내가 더해진다.

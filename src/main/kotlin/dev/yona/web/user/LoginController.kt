@@ -44,8 +44,9 @@ class LoginController(
     @GetMapping("/users/logout")
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Void> {
         processLogout(request, response)
-        // v1.6은 `redirect(request().getHeader("Referer"))`라 Referer가 없으면 `Location: null`로 이동한다(결함 재현, [refactoring-backlog.md] R-03).
-        val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "null"
+        // v1.6은 `redirect(request().getHeader("Referer"))`라 Referer가 없으면 `Location: null`(글자 그대로)로 이동했다([refactoring-backlog.md] R-03).
+        // usersec-F13: 고쳤다. Referer가 없으면 홈으로 보낸다.
+        val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
         return RedirectSupport.see(request, response, referer, mapOf(RedirectSupport.SUCCESS to "user.logout.success"))
     }
 

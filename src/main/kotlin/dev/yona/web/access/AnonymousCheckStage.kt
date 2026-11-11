@@ -1,5 +1,6 @@
 package dev.yona.web.access
 
+import org.springframework.web.util.UriUtils
 import dev.yona.config.YonaProperties
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
@@ -26,7 +27,10 @@ class AnonymousCheckStage(
         if (!loginRequired || !currentUserProvider.get().isAnonymous) return true
 
         val flash = if (check.displaysFlashMessage) mapOf(RedirectSupport.WARNING to "user.login.alert") else emptyMap()
-        val redirect = RedirectSupport.see(request, response, "/users/loginform?redirectUrl=${request.requestURI}", flash)
+        // oauth-F7: v1.6은 경로만 실어 질의 문자열이 사라졌다(예: 기기 승인 화면의 `user_code`). GET이면 질의 문자열도 값으로 인코딩해 싣는다.
+        val query = request.queryString?.takeIf { request.method == "GET" && it.isNotEmpty() }
+            ?.let { "%3F" + UriUtils.encodeQueryParam(it, Charsets.UTF_8) }.orEmpty()
+        val redirect = RedirectSupport.see(request, response, "/users/loginform?redirectUrl=${request.requestURI}$query", flash)
         response.status = redirect.statusCode.value()
         response.setHeader(HttpHeaders.LOCATION, redirect.headers.getFirst(HttpHeaders.LOCATION))
         return false

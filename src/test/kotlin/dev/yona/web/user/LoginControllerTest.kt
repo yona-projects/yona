@@ -69,8 +69,8 @@ class LoginControllerTest : AbstractIntegrationTest() {
     // --- 폼 로그인 -------------------------------------------------------------------------
 
     @Test
-    fun `Referer가 없는 로그아웃은 Location null로 이동한다 (v1_6 결함 재현)`() {
-        mockMvc.perform(get("/users/logout")).andExpect(status().isSeeOther).andExpect(header().string("Location", "null"))
+    fun `Referer가 없는 로그아웃은 홈으로 이동한다 (v1_6은 Location null이었다, 고쳤다 usersec-F13)`() {
+        mockMvc.perform(get("/users/logout")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/"))
     }
 
     @Test
@@ -144,10 +144,10 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `잠긴 계정으로 로그인하면 로그아웃과 같이 Referer로 보내고 없으면 null 문자열로 보낸다`() {
+    fun `잠긴 계정으로 로그인하면 로그아웃과 같이 Referer로 보내고 없으면 홈으로 보낸다 (v1_6은 null 문자열이었다, 고쳤다 usersec-F13)`() {
         // v1.6은 `flash(...)` 뒤 `logout()`을 부르고 logout()은 `redirect(request().getHeader("Referer"))`라 Referer가 없으면 `Location: null`이다
         newUser("ellen", state = UserState.LOCKED)
-        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "ellen").param("password", "1234")).andExpect(redirectedUrl("null"))
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "ellen").param("password", "1234")).andExpect(redirectedUrl("/"))
         mockMvc.perform(post("/users/login").header("Referer", "/projects").param("loginIdOrEmail", "ellen").param("password", "1234")).andExpect(redirectedUrl("/projects"))
     }
 
