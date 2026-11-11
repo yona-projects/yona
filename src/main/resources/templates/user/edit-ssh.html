@@ -18,7 +18,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{sshKey.description}"></p>
 
         <table id="ssh-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">

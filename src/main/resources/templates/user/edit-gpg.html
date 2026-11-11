@@ -18,7 +18,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{gpgKey.description}"></p>
 
         <table id="gpg-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">

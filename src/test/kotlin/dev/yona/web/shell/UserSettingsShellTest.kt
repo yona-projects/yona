@@ -87,7 +87,7 @@ class UserSettingsShellTest : AbstractIntegrationTest() {
         listOf("/user/editform/audit", "/user/editform/ssh/new", "/user/editform/gpg/new", "/user/editform/token/new").forEach { path ->
             assertNotNull(page(path, s).selectFirst(".shell-main [data-swap-safe]"), "$path 는 swap-safe 표지가 있어야 한다")
         }
-        listOf("/user/editform", "/user/editform/ssh", "/user/editform/gpg").forEach { path ->
+        listOf("/user/editform").forEach { path ->
             assertNull(page(path, s).selectFirst("[data-swap-safe]"), "$path 는 옛 스크립트가 있어 일반 이동이다")
         }
         val doc = page("/user/editform/audit", s)
@@ -104,5 +104,15 @@ class UserSettingsShellTest : AbstractIntegrationTest() {
             assertTrue(doc.select(".shell-main script").any { it.data().contains("user.Setting") }, "$sub 초기화 스크립트는 본문 안")
         }
         assertNull(page("/user/editform", s).selectFirst("[data-swap-safe]"), "프로필 화면은 이미지 자르기 스크립트가 있어 일반 이동이다")
+    }
+
+    @Test
+    fun `확인창 속성만 쓰는 내 설정 목록 화면도 swap-safe 표지를 갖는다(D-136)`() {
+        val s = login()
+        listOf("ssh", "gpg", "oauth-apps", "linked-accounts", "two-factor").forEach { sub ->
+            val doc = page("/user/editform/$sub", s)
+            assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
+            assertNull(doc.select("div.shell ~ script, body > script").firstOrNull { it.data().contains("PublicKeyCredential") }, "$sub 본문 밖에 남은 스크립트")
+        }
     }
 }

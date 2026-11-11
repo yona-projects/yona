@@ -19,7 +19,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
         <p class="token-meta">
             <code th:text="${token.prefix}"></code>
