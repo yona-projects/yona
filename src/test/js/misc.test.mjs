@@ -46,10 +46,28 @@ export const tests = [
     const errors = page.errors; await page.close();
     assert.deepEqual(errors, [], errors.join(' / '));
   } },
+  { name: '프로젝트 생성 화면은 서버가 거절하는 이름(.wiki로 끝남, 대소문자가 다른 예약어)도 보내기 전에 막는다 (E-F13)', async run() {
+    const page = await pageWith({
+      html: '<form id="f"><input id="project-name" name="name"><input id="project-owner"><input id="url"><input id="vcs"><input id="svn"><input type="checkbox" id="menuSettingCode" checked><input type="checkbox" id="menuSettingPullRequest" checked><input type="checkbox" id="menuSettingReview" checked></form>',
+      scripts: [{ content: 'window.__pop = []; $yona.hidePopover = function () {}; $yona.showPopover = function (el, o) { window.__pop.push(String(o && o.content || o)); }; window.NProgress = { start() {} }; window.Messages = function (k) { return k; };' }, 'esm/service/project.New.js']
+    });
+    const results = await page.evaluate(() => {
+      new yona.project.New({ sFormId: '#f' });
+      const out = {};
+      for (const name of ['demo', 'foo.wiki', 'Foo.WIKI', '.GIT', '..']) {
+        window.__pop.length = 0; $('#project-name').val(name); $('#url').val('https://example.com/r.git');
+        const e = $.Event('submit'); $('#f').trigger(e); out[name] = e.isDefaultPrevented();
+      }
+      return out;
+    });
+    const errors = page.errors; await page.close();
+    assert.deepEqual(errors, [], errors.join(' / '));
+    assert.deepEqual(results, { demo: false, 'foo.wiki': true, 'Foo.WIKI': true, '.GIT': true, '..': true });
+  } },
   { name: '검색어 강조는 amp, lt 같은 키워드가 HTML 엔티티와 겹쳐도 마크업을 깨뜨리지 않는다 (R-50-3)', async run() {
     const code = templateSnippet('search/partial-search.html', 'function encode(text)', '\n});\n</script>');
     async function highlight(keyword, text) {
-      const page = await pageWith({ html: '<input id="searchKeyword"><p class="search-content-body"></p><a class="title"></a>' });
+      const page = await pageWith({ html: '<input id="searchKeyword"><div class="search-result-wrap"><p class="search-content-body"></p><a class="title"></a></div>' });
       const out = await page.evaluate(({ keyword, text, code }) => {
         $('#searchKeyword').val(keyword);
         $('.search-content-body').text(text); $('.title').text(text);
