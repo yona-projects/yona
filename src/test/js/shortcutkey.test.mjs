@@ -124,4 +124,10 @@ tests.push(
     for (const key of ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AudioVolumeUp', 'Unidentified', 'Dead']) await press(page, { key, code: key, keyCode: 0 });
     assert.deepEqual(await hits(page), []); assert.deepEqual(page.errors, []); await page.close();
   } },
+  { name: '보조키가 둘 이상인 조합(CTRL+SHIFT+ENTER)도 등록한 키 그대로 동작한다 (shell-F4, v1.6은 정렬 함수 오류로 등록 키가 뒤바뀌어 동작하지 않았다, 고쳤다)', run: async () => {
+    const page = await plain(); await attach(page, 'CTRL+SHIFT+ENTER'); await attach(page, 'SHIFT+CTRL+A');
+    await press(page, { key: 'Enter', code: 'Enter', keyCode: 13, ctrlKey: true, shiftKey: true });
+    await press(page, { key: 'a', code: 'KeyA', keyCode: 65, ctrlKey: true, shiftKey: true });
+    assert.deepEqual(await hits(page), ['CTRL+SHIFT+ENTER', 'SHIFT+CTRL+A']); await page.close();
+  } },
 );
