@@ -145,7 +145,8 @@ const New = function(htOptions){
             error.name.push(Messages("project.name.alert"));
         }
 
-        if(htVar.aReservedWords.indexOf(projectName) > -1){
+        // 서버(`ProjectNameRules`)와 같게 본다: 예약어는 대소문자를 가리지 않고, `.wiki`로 끝나는 이름도 쓸 수 없다(위키 저장소 이름과 겹친다)
+        if(htVar.aReservedWords.indexOf(projectName.toLowerCase()) > -1 || /\.wiki$/i.test(projectName)){
             error.name = error.name || [];
             error.name.push(Messages("project.name.reserved.alert"));
         }
