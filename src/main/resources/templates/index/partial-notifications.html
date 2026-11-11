@@ -39,7 +39,7 @@
     </li>
 
     <th:block th:unless="${#lists.isEmpty(notifications)}">
-    <li><a href="javascript:void(0);" id="notification-more" class="ybtn">More</a></li>
+    <li><a href="javascript:void(0);" id="notification-more" class="ybtn" th:text="#{notification.more}">More</a></li>
     <script type="text/javascript" th:inline="javascript">
         $(document).ready(function(){
             function checkOverflow(el) {

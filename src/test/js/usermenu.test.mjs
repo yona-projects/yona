@@ -15,7 +15,7 @@ const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
 </div>`;
 
 async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
-  const page = await pageWith({ stubs: false, html, scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'common/yona.Common.js'] });
+  const page = await pageWith({ stubs: false, html, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
   await page.setViewportSize({ width, height: 700 });
   await page.evaluate((resp) => {
     window.UsermenuUrl = '/um'; window.UsermenuToggleFavoriteProjectUrl = '/fp/'; window.UsermenuToggleFoveriteOrganizationUrl = '/fo/'; window.UsermenuGetFoveriteProjectsUrl = '/fl'; window.UsermenuToggleFavoriteIssueUrl = '/fi/';
@@ -88,16 +88,16 @@ export const tests = [
   } },
   { name: '프로젝트 즐겨찾기: 요청이 실패하면 서버가 준 reason으로 알림창을 띄운다', run: async () => {
     const page = await open({ responses: { '/fp/7': { ok: false, data: { reason: '권한 없음' } } } });
-    await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['Update failed: 권한 없음']); await page.close();
+    await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['common.updateFailed|권한 없음']); await page.close();
   } },
-  { name: '이슈 즐겨찾기: 서버가 JSON이 아닌 본문으로 실패해도(로그인하지 않은 403 등) 예외 없이 "Update failed:" 알림창을 띄운다 (v1_6은 JSON.parse 예외로 아무 반응이 없었다, 고쳤다, issue-F3)', run: async () => {
+  { name: '이슈 즐겨찾기: 서버가 JSON이 아닌 본문으로 실패해도(로그인하지 않은 403 등) 예외 없이 common.updateFailed 알림창을 띄운다 (v1_6은 JSON.parse 예외로 아무 반응이 없었다, 고쳤다, issue-F3)', run: async () => {
     const page = await open({ responses: { '/fi/5': { ok: false, data: undefined } } });
     await page.dispatchEvent('.favorite-issue', 'click'); await page.waitForTimeout(100);
-    const alerts = await page.evaluate(() => window.__alerts); assert.equal(alerts.length, 1); assert.ok(alerts[0].startsWith('Update failed:')); await page.close();
+    const alerts = await page.evaluate(() => window.__alerts); assert.equal(alerts.length, 1); assert.ok(alerts[0].startsWith('common.updateFailed|')); await page.close();
   } },
   { name: '프로젝트 즐겨찾기: 실패 응답이 JSON이 아니어도 본문 글자로 알림창을 띄운다 (shell-F20, v1.6은 JSON.parse 예외로 아무 반응이 없었다, 고쳤다)', run: async () => {
     const page = await open({ responses: { '/fp/7': { ok: false, raw: 'Wrong project id' } } });
-    await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['Update failed: Wrong project id']); await page.close();
+    await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['common.updateFailed|Wrong project id']); await page.close();
   } },
   { name: '조직과 이슈 즐겨찾기: 각자 주소로 POST하고, 이슈는 서버 메시지를 알림으로 보인다', run: async () => {
     const page = await open({ responses: { '/fo/3': { ok: true, data: { favored: true } }, '/fi/5': { ok: true, data: { favored: true, message: 'issue.favorite.on' } } } });
