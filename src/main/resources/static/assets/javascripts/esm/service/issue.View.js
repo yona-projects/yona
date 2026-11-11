@@ -476,7 +476,8 @@ const View = function(options){
                 commentForm.submit();
             } else {
                 withStateTransitionInput.val("");
-                location.href = vars.urls.nextState;
+                // 상태를 바꾸는 요청이라 GET 이동이 아니라 POST로 보낸다. 서버가 보기 화면으로 보내므로 끝나면 새로 고친다(issue-F7)
+                yona.http.post(vars.urls.nextState).then(() => { location.reload(); });
             }
         });
 

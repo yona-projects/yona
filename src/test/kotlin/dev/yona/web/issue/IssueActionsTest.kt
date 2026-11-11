@@ -109,6 +109,17 @@ class IssueActionsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `다음 상태는 POST로도 바꿀 수 있고 권한 규칙은 GET과 같다 (화면은 상태를 바꾸는 요청을 POST로 보낸다, issue-F7)`() {
+        val project = newProject()
+        val member = join(newUser(), project)
+        val i = issue(project)
+        mockMvc.perform(post("${base(project)}/issue/1/nextstate").session(login(newUser()))).andExpect(status().isForbidden)
+        mockMvc.perform(post("${base(project)}/issue/1/nextstate").session(login(member))).andExpect(status().isSeeOther).andExpect(redirectedUrl("${base(project)}/issue/1"))
+        entityManager.flush(); entityManager.clear()
+        assertEquals(State.CLOSED, issues.findById(i.id!!).get().state)
+    }
+
+    @Test
     fun `작성자도 다음 상태를 누를 수 있고 구성원이 아니면 막힌다`() {
         val project = newProject()
         val author = newUser()

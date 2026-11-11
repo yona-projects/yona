@@ -28,7 +28,7 @@ async function open({ ajax = {}, timelineHtml = null, period = 60000 } = {}) {
       ajax: (url, o) => { window.__ajax.push([url, o.method, o.data, o.dataType]); const h = { done(cb) { if (ajax.ok) setTimeout(() => cb(ajax.ok), 0); return h; }, fail(cb) { if (ajax.fail) setTimeout(() => cb(ajax.fail), 0); return h; },
         // 실제 yona.http처럼 await할 수 있다. 결과를 정하지 않으면 끝내 완료되지 않는다
         then(ok, bad) { return new Promise((res, rej) => { if (ajax.ok) setTimeout(() => res(ajax.ok), 0); else if (ajax.fail) setTimeout(() => rej(ajax.fail), 0); }).then(ok, bad); } }; if (ajax.error && o.error) setTimeout(() => o.error(ajax.error), 0); return h; },
-      post: (url, cb) => { window.__posts.push(url); setTimeout(cb, 0); return {}; },
+      post: (url, cb) => { window.__posts.push(url); if (cb) setTimeout(cb, 0); return { then(ok) { if (window.__hold) return new Promise(() => {}); return new Promise((res) => setTimeout(res, 0)).then(ok); } }; },
       // 실제 yona.http처럼 응답 HTML을 약속으로 돌려준다. 정하지 않으면 처음 타임라인과 같은 HTML이라 바뀌지 않는다
       get: (url) => { window.__gets.push(url); return new Promise((res) => setTimeout(() => res(timelineHtml !== null ? timelineHtml : '<ul class="comments"><li>c1</li></ul>'), 0)); },
     };
@@ -98,6 +98,11 @@ export const tests = [
     await page.evaluate(() => { $('textarea').val('').trigger('keyup'); }); assert.equal(await page.locator('#dynamic-comment-btn').innerText(), 'button.nextState.closed');
     const sub = await page.evaluate(() => { window.__sub = null; $('#comment-form').on('submit', (e) => { e.preventDefault(); window.__sub = $('#comment-form [name=withStateTransition]').val(); }); $('textarea').val('내용'); $('#dynamic-comment-btn').trigger('click'); return window.__sub; });
     assert.equal(sub, 'true'); await page.close();
+  } },
+  { name: '다음 상태 단추: 글이 없으면 nextState 주소로 GET 이동하지 않고 POST한다 (v1_6은 GET 링크라 미리 가져오기나 링크 확인으로도 상태가 바뀔 수 있었다, 고쳤다, issue-F7)', run: async () => {
+    const page = await open();
+    await page.evaluate(() => { window.__hold = true; $('textarea').val(''); $('#dynamic-comment-btn').trigger('click'); }); await page.waitForTimeout(60);
+    assert.deepEqual(await get(page, '__posts'), ['/ns']); await page.close();
   } },
   { name: '단축키: CTRL+SHIFT+ENTER를 댓글 입력란에서 누르면 다음 상태 단추를 누른다', run: async () => {
     const page = await open();
