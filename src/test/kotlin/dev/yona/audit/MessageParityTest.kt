@@ -68,7 +68,11 @@ class MessageParityTest {
         // X-7 9a: Mercurial LFS 화면
         "lfs.hg.description", "lfs.hg.limits", "lfs.hg.files.title", "lfs.hg.files.empty", "lfs.hg.files.path", "lfs.hg.files.size", "lfs.hg.files.oid", "lfs.hg.guide.title", "lfs.hg.guide.intro", "lfs.hg.guide.url", "project.lfs.hg")
 
-    private val defectFixKeys = setOf("posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
+    private val defectFixKeys = setOf(
+        // code-F15: v1.6 일본어 번들에 없어 영어로 나오던 코드 화면 문구 13개, project-F1: 한국어 번들은 대문자 `IncludeGitPush`만 있어 화면의 `includeGitPush`가 영어로 나왔다(ja, ru, uz에도 없었다)
+        "code.authorDate", "code.copyCommitId", "code.download", "code.new.file", "code.open", "code.open.desc", "code.viewRaw", "code.tooBigFileForCodeBrowser", "code.looseFileSizeLimitForCodeBrowser",
+        "commentThread.close", "commentThread.open", "common.comment.delete", "common.comment.edit", "project.webhook.includeGitPush",
+        "posting.noAuthor", "error.fobidden", "statistics", "common.comment.created", "project.error.noPermission", "notification.plainFooter.replyOrView", "notification.plainFooter.view",
         // R-52-3, R-54-2, R-56-3: 사이트 관리의 새 안내 문구
         "site.userList.deletedLock", "site.mail.failReason", "site.data.import.confirm",
         // R-61-11, R-61-12: 메일로 댓글을 달 때의 오류 회신 문구
