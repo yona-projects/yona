@@ -28,7 +28,7 @@
         <ul class="members project row">
             <li th:each="member : ${memberItems}" class="member col-lg-6 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-start mr10">
-                    <img th:src="${member.avatarUrl}" width="64" height="64">
+                    <img th:src="@{${member.avatarUrl}}" width="64" height="64">
                 </a>
                 <div class="member-name" th:text="${member.displayName}"></div>
                 <div class="member-id"><th:block th:text="'@' + ${member.loginId}"></th:block> <span th:if="${member.guest}" class="guest">GUEST</span></div>
@@ -38,9 +38,9 @@
                         <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                             <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
                         </button>
-                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="${projectBase} + '/member/' + ${member.userId} + '/edit'" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}" class="dropdown-item"></a></li></th:block></ul>
+                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="@{|${projectBase}/member/${member.userId}/edit|}" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}" class="dropdown-item"></a></li></th:block></ul>
                     </div>
-                    <a href="javascript:void(0)" data-action="delete" th:data-href="${projectBase} + '/member/' + ${member.userId} + '/delete'" class="ybtn ybtn-danger ybtn-small">
+                    <a href="javascript:void(0)" data-action="delete" th:data-href="@{|${projectBase}/member/${member.userId}/delete|}" class="ybtn ybtn-danger ybtn-small">
                         <th:block th:text="#{button.delete}"></th:block>
                     </a>
                 </th:block>
@@ -58,7 +58,7 @@
             <div th:each="user : ${enrolled}" class="col-lg-2">
                 <div class="float-start mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
-                        <img th:src="${user.avatarUrl}" height="65" width="65" class="rounded-circle"/>
+                        <img th:src="@{${user.avatarUrl}}" height="65" width="65" class="rounded-circle"/>
                     </a>
                 </div>
                 <div class="float-start" style="width: 60px;">
@@ -75,7 +75,7 @@
 <script type="text/javascript" th:inline="javascript">
    $(document).ready(function(){
        $yona.loadModule("project.Member", {
-           "sActionURL": "/users"
+           "sActionURL": /*[[@{/users}]]*/ "/users"
        });
    });
 </script>

@@ -38,7 +38,7 @@
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap hide-in-mobile">
                                 <a th:href="@{/{owner}/{name}(owner=${project.owner},name=${project.name})}">
-                                    <img th:if="${row.view.hasLogo}" th:src="${row.view.logoUrl}" th:alt="${project.owner + '/' + project.name}"/>
+                                    <img th:if="${row.view.hasLogo}" th:src="@{${row.view.logoUrl}}" th:alt="${project.owner + '/' + project.name}"/>
                                 </a>
                             </div>
                             <div style="float:left">
@@ -68,7 +68,7 @@
                                     <th:block th:each="member : ${row.members}">
                                     <li th:if="${member.loginId != project.owner}">
                                         <a th:href="@{/{loginId}(loginId=${member.loginId})}" class="avatar-wrap">
-                                            <img th:src="${member.avatarUrl}" th:alt="${member.name}">
+                                            <img th:src="@{${member.avatarUrl}}" th:alt="${member.name}">
                                         </a>
                                     </li>
                                     </th:block>
@@ -96,7 +96,7 @@
                             <ul class="project-members">
                                 <li th:each="member : ${org.admins}" class="member">
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}">
-                                        <img th:src="${member.avatarUrl}" height="45" width="45" />
+                                        <img th:src="@{${member.avatarUrl}}" height="45" width="45" />
                                     </a>
                                     <a th:href="@{/{user}(user=${member.loginId})}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
                                 </li>
@@ -115,7 +115,7 @@
                             <ul class="list-unstyled project-members">
                                 <li th:each="member : ${org.members}" class="member">
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}">
-                                        <img th:src="${member.avatarUrl}" height="45" width="45" />
+                                        <img th:src="@{${member.avatarUrl}}" height="45" width="45" />
                                     </a>
                                     <a th:href="@{/{user}(user=${member.loginId})}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
                                 </li>

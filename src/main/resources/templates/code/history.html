@@ -73,11 +73,11 @@
                                 <td class="date" th:text="${r.date}"></td>
                                 <td class="author">
                                     <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.authorLoginId}">
-                                        <img th:if="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}"/>
-                                        <img th:unless="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/>
+                                        <img th:if="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="@{${r.avatarUrl}}"/>
+                                        <img th:unless="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="@{${r.avatarUrl}}" th:alt="${r.authorName}" width="32" height="32"/>
                                     </a>
                                     <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.authorEmail}">
-                                        <img th:src="${r.avatarUrl}">
+                                        <img th:src="@{${r.avatarUrl}}">
                                     </span>
                                     <span th:if="${r.authorHref == null and r.authorEmail == null and r.authorName != null}" th:text="${r.authorName}"></span>
                                     <span th:if="${r.authorHref == null and r.authorEmail == null and r.authorName == null}" th:text="#{user.notExists.name}"></span>

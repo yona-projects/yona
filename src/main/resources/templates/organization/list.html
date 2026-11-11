@@ -43,7 +43,7 @@
                 <div class="info-wrap">
                     <div class="owner-avatar-wrap">
                         <a th:href="@{/organizations/{name}(name=${org.name})}">
-                            <img th:if="${org.hasLogo}" th:src="${org.logoUrl}" th:alt="${org.name}"/>
+                            <img th:if="${org.hasLogo}" th:src="@{${org.logoUrl}}" th:alt="${org.name}"/>
                         </a>
                     </div>
                     <div style="float:left">

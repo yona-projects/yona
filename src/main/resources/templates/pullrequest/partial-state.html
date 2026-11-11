@@ -40,7 +40,7 @@
 <div th:if="${state.kind == 'merged' and state.receiver != null}" class="alert alert-info">
     <a th:href="${state.receiver.href}" class="usf-group">
         <span class="avatar-wrap smaller">
-            <img th:src="${state.receiver.avatarUrl}" width="25" height="25">
+            <img th:src="@{${state.receiver.avatarUrl}}" width="25" height="25">
         </span>
         <strong class="name" th:text="${state.receiver.name}"></strong>
         <span class="loginid"> <strong>@</strong><th:block th:text="${state.receiver.loginId}"></th:block></span>

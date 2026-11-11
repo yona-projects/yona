@@ -16,7 +16,8 @@
 
 // ES 모듈로 불러온다(<script type="module">). 모듈은 지연 실행되어 head의 클래식 스크립트(jQuery, vue.global.prod.js, yona.Common.js)가 먼저 준비된다.
 const CONFIG = {
-    "YONA_SERVER": "",
+    // 서버를 하위 경로(`https://서버/yona/`)에 올렸으면 그 경로이다. 레이아웃이 `window.yonaContextPath`로 알려 준다(shell-F16)
+    "YONA_SERVER": window.yonaContextPath || "",
     "GITHUB_API_BASE_URL": "https://api.github.com",
     "IMPORT_API_ACCEPT_HEADER": "application/vnd.github.golden-comet-preview+json",
     "CLIENT_ID": "e7f9ad76a3a4ba19b2a5",
@@ -288,7 +289,7 @@ const migrationService = {
 
         importResult.expected = source.milestoneCount;
 
-        let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/milestones";
+        let sourceProjectUrl = CONFIG.YONA_SERVER + "/migration/" + source.owner + "/projects/" + source.projectName + "/milestones";
         if (destination.withWikiCommit && destination.withWikiCommit === true) {
             sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
         }
@@ -329,7 +330,7 @@ const migrationService = {
     importPosts: function (source, destination) {
         assertIsProjectSelected("Source", source);
         assertIsProjectSelected("Destination", destination);
-        let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/posts";
+        let sourceProjectUrl = CONFIG.YONA_SERVER + "/migration/" + source.owner + "/projects/" + source.projectName + "/posts";
         if (destination.withWikiCommit && destination.withWikiCommit === true) {
             sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
         }
@@ -374,7 +375,7 @@ const migrationService = {
         assertIsProjectSelected("Destination", destination);
 
         const fullRepoName = destination.owner + "/" + destination.projectName;
-        let sourceProjectUrl = "/migration/" + source.owner + "/projects/" + source.projectName + "/issues";
+        let sourceProjectUrl = CONFIG.YONA_SERVER + "/migration/" + source.owner + "/projects/" + source.projectName + "/issues";
         if (destination.withWikiCommit && destination.withWikiCommit === true) {
             sourceProjectUrl = sourceProjectUrl + "?withWikiCommit=" + destination.withWikiCommit;
         }

@@ -10,7 +10,7 @@
 <th:block th:if="${issue.subtasks != null}" th:with="sub=${issue.subtasks}">
 <div class="child-issues">
     <div class="issue-item parent-issue">
-        <a th:href="'/' + ${sub.parentOwner} + '/' + ${sub.parentProject} + '/issue/' + ${sub.parentNumber}" th:classappend="${sub.parentIsCurrent} ? 'bold'"
+        <a th:href="@{|/${sub.parentOwner}/${sub.parentProject}/issue/${sub.parentNumber}|}" th:classappend="${sub.parentIsCurrent} ? 'bold'"
            th:text="'#' + ${sub.parentNumber} + ' ' + ${sub.parentTitle} + (${sub.parentAssigneeName != null} ? ' - ' + ${sub.parentAssigneeName} : '')"></a>
         <div class="upload-progress" th:classappend="${sub.percent == 100} ? 'done-outline' : 'red-outline'">
             <div class="bar" th:classappend="${sub.percent == 100} ? 'done' : 'red'" th:style="'width: ' + ${sub.percent} + '%;'" title="Subtask"></div>
@@ -22,7 +22,7 @@
     <div class="child-issues">
         <div th:each="child : ${sub.children}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
             <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
-            <a class="twoColumeModeTarget" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number}">
+            <a class="twoColumeModeTarget" th:href="@{|/${child.owner}/${child.project}/issue/${child.number}|}">
                 <span class="item-name">
                     <span class="subtask-number"><span th:if="${child.draft}" class="draft-number" th:text="'#' + #{issue.state.draft}"></span><th:block th:unless="${child.draft}" th:text="'#' + ${child.number}"></th:block></span>
                     <span th:text="${child.title}"></span>
@@ -35,7 +35,7 @@
                     <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block></th:block>
                 </span>
             </span>
-            <a th:each="label : ${child.labels}" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issues?state=' + ${child.state} + '&labelIds=' + ${label.id}" class="badge issue-label list-label active twoColumeModeTarget bg-secondary"
+            <a th:each="label : ${child.labels}" th:href="@{|/${child.owner}/${child.project}/issues?state=${child.state}&labelIds=${label.id}|}" class="badge issue-label list-label active twoColumeModeTarget bg-secondary"
                th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
             <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
         </div>

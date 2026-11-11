@@ -13,7 +13,7 @@
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
   <div class="project-page-wrap">
-    <form th:action="${base + '/post/' + number + '/edit'}" method="post" enctype="multipart/form-data" class="nm">
+    <form th:action="@{${base + '/post/' + number + '/edit'}}" method="post" enctype="multipart/form-data" class="nm">
       <div class="content-wrap frm-wrap">
         <dl>
           <dt>
@@ -75,7 +75,7 @@ $(function(){
 
     yona.Mention({
         "target": 'textarea[id^=editor-]',
-        "url"   : /*[[${base + '/mentionList?number=' + number + '&resourceType=board_post'}]]*/ ""
+        "url"   : /*[[@{${base + '/mentionList?number=' + number + '&resourceType=board_post'}}]]*/ ""
     });
 });
 </script>

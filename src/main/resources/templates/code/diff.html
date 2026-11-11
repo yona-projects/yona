@@ -29,12 +29,12 @@
                     <div class="commitInfo">
                         <div class="commitAuthor">
                             <th:block th:if="${commit.known}">
-                                <a th:href="${commit.authorHref}" class="avatar-wrap smaller"><img th:src="${commit.avatarUrl}" th:alt="${commit.authorName}" width="32" height="32"/></a>
+                                <a th:href="${commit.authorHref}" class="avatar-wrap smaller"><img th:src="@{${commit.avatarUrl}}" th:alt="${commit.authorName}" width="32" height="32"/></a>
                                 <strong th:text="${commit.authorName}"></strong>
                             </th:block>
                             <th:block th:unless="${commit.known}">
                                 <th:block th:if="${commit.hasEmail}">
-                                    <span class="avatar-wrap smaller"><img th:src="${commit.avatarUrl}" width="32" height="32"></span>
+                                    <span class="avatar-wrap smaller"><img th:src="@{${commit.avatarUrl}}" width="32" height="32"></span>
                                     <strong th:if="${commit.authorName != null}" th:text="${commit.authorName}"></strong>
                                 </th:block>
                                 <strong th:unless="${commit.hasEmail}" th:text="${commit.authorName}"></strong>
@@ -82,7 +82,7 @@
                                     <p class="content" th:text="${c.content}"></p>
                                     <span class="date" th:title="${c.agoTitle}">
                                         <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
-                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}"/></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="@{${c.avatarUrl}}" th:alt="${c.authorName}"/></span>
                                         <th:block th:text="${c.ago}"></th:block>
                                     </span>
                                 </a>
@@ -92,7 +92,7 @@
                                     <p class="content" th:text="${c.content}"></p>
                                     <span class="date" th:title="${c.agoTitle}">
                                         <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
-                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}"/></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="@{${c.avatarUrl}}" th:alt="${c.authorName}"/></span>
                                         <th:block th:text="${c.ago}"></th:block>
                                     </span>
                                 </a>

@@ -39,6 +39,8 @@
 </th:block>
 
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Csrf.js}"></script>
+<!-- 서버를 하위 경로에 올린 배포에서 스크립트가 만드는 주소의 접두어이다. 루트 배포이면 빈 글자이다(shell-F16) -->
+<script type="text/javascript" th:inline="javascript">window.yonaContextPath = /*[[@{/}]]*/ "/"; window.yonaContextPath = window.yonaContextPath.replace(/\/$/, "");</script>
 <script type="text/javascript" th:src="@{/messages.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/yona-common.js}"></script>
 <!--/* Bootstrap 5 번들(Popper 2 포함). jQuery가 먼저 있으면 `$().modal()` 같은 jQuery 인터페이스도 함께 등록된다(X-38d). */-->

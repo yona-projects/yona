@@ -16,7 +16,7 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
         <div class="clearfix mt10 mb10">
-            <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
+            <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>
             <p class="form-text" th:text="#{project.ruleset.description}"></p>
         </div>
         <div id="rulesetMigrated" class="alert alert-info" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></div>
@@ -35,7 +35,7 @@
                 <td colspan="4" class="text-body-secondary" th:text="#{project.ruleset.empty}"></td>
             </tr>
             <tr th:each="r : ${rulesets}" class="ruleset-row">
-                <td class="ruleset-name"><a th:href="${base + '/setting/rulesets/' + r.id}" th:text="${r.name}"></a></td>
+                <td class="ruleset-name"><a th:href="@{${base + '/setting/rulesets/' + r.id}}" th:text="${r.name}"></a></td>
                 <td class="ruleset-target"><code th:text="${r.pattern}"></code></td>
                 <td class="ruleset-enforcement">
                     <span class="badge bg-secondary" th:classappend="${r.active} ? 'bg-success'"

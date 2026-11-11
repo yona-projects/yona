@@ -62,7 +62,7 @@
                             </a>
                         </div>
                         <div class="col-lg-5 commitMsg">
-                            <a th:href="${e.userHref}" class="avatar-wrap smaller"><img th:src="${e.avatarUrl}"></a>
+                            <a th:href="${e.userHref}" class="avatar-wrap smaller"><img th:src="@{${e.avatarUrl}}"></a>
                             <span class="ml5"><a th:href="${e.commitUrl}" th:text="${e.msg}"></a></span>
                         </div>
                         <div class="col-lg-1 commitDate" th:text="${e.ago}"></div>
@@ -89,7 +89,7 @@
                     <div class="file-header nm">
                         <div id="fileInfo" class="file-info">
                             <span id="commiter" class="commiter">
-                                <a th:href="${f.userHref}" class="avatar-wrap smaller"><img th:src="${f.avatarUrl}"></a>
+                                <a th:href="${f.userHref}" class="avatar-wrap smaller"><img th:src="@{${f.avatarUrl}}"></a>
                                 <a th:href="${f.userHref}" class="ml5" th:text="${f.author}"></a>
                             </span>
                             <span id="commitDate" class="commitDate" th:text="${f.ago}"></span>

@@ -100,7 +100,7 @@ class IssueViewController(
             )
         }
         val detail = assembler.assemble(project, issue, viewer)
-        val listUrl = listUrl(request.getHeader(HttpHeaders.REFERER), "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues", issue.state?.state)
+        val listUrl = listUrl(request.getHeader(HttpHeaders.REFERER), siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues"), issue.state?.state)
         val body = issue.body.orEmpty()
         return ModelAndView("issue/view")
             .addObject("title", (issue.title.orEmpty()) + " |:| " + body.take(OG_BODY_LENGTH))

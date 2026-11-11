@@ -7,7 +7,7 @@
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">
-                <img th:src="${view.logoUrl}" />
+                <img th:src="@{${view.logoUrl}}" />
             </div>
             <div class="project-breadcrumb-wrap" th:classappend="${view.forked} ? 'fork'">
                 <div class="project-breadcrumb">

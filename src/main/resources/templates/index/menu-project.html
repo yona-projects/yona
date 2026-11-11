@@ -12,7 +12,7 @@
     <div class="project-list project-flex-container" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="right" data-bs-content="" th:attrappend="data-bs-content=${project.overview}">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo all-project-names">
-                <i class="project-avatar"><img th:if="${project.logoUrl != null}" class="logo" th:src="${project.logoUrl}"><span th:unless="${project.logoUrl != null}" class="dummy-25px"> </span></i>
+                <i class="project-avatar"><img th:if="${project.logoUrl != null}" class="logo" th:src="@{${project.logoUrl}}"><span th:unless="${project.logoUrl != null}" class="dummy-25px"> </span></i>
             </div>
             <div class="projectName-owner flex-item">
                 <div class="project-name flex-item"><th:block th:text="${project.name}"></th:block> <i th:if="${project.priv}" class="yobicon-lock yobicon-small"></i></div>
@@ -31,11 +31,11 @@
     <div class="project-list project-flex-container">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">
-                <i class="project-avatar"><img th:if="${project.logoUrl != null}" class="logo" th:src="${project.logoUrl}"><span th:unless="${project.logoUrl != null}" class="dummy-25px"> </span></i>
+                <i class="project-avatar"><img th:if="${project.logoUrl != null}" class="logo" th:src="@{${project.logoUrl}}"><span th:unless="${project.logoUrl != null}" class="dummy-25px"> </span></i>
             </div>
             <div class="projectName-owner flex-item">
                 <div class="project-name flex-item"><th:block th:text="${project.name}"></th:block> <i th:if="${project.priv}" class="yobicon-lock yobicon-small"></i></div>
-                <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}"></a></div>
+                <div class="project-owner flex-item"><a th:href="@{|/${project.owner}|}" th:text="${project.owner}"></a></div>
             </div>
         </div>
         <div class="star-project flex-item" th:attr="data-project-id=${project.id}">

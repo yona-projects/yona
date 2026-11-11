@@ -14,19 +14,19 @@
     <li th:each="c : ${post.comments}" class="comment" th:classappend="${c.own} ? 'author'" th:id="'comment-' + ${c.id}">
         <th:block th:each="anchor : ${c.childAnchorIds}"><div th:id="'comment-' + ${anchor}"></div></th:block>
         <div class="comment-avatar">
-            <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
-                <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.loginId}">
+            <a th:href="@{|/${c.author.loginId}|}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
+                <img th:src="@{${c.author.avatarUrl}}" width="32" height="32" th:alt="${c.author.loginId}">
             </a>
         </div>
         <div class="media-body">
             <div class="meta-info">
                 <span class="comment_author">
                     <span class="resp-comment-avatar">
-                        <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
-                            <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.name}">
+                        <a th:href="@{|/${c.author.loginId}|}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
+                            <img th:src="@{${c.author.avatarUrl}}" width="32" height="32" th:alt="${c.author.name}">
                         </a>
                     </span>
-                    <a th:href="'/' + ${c.author.loginId}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.name}"></strong></a>
+                    <a th:href="@{|/${c.author.loginId}|}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.name}"></strong></a>
                 </span>
                 <span class="ago-date">
                     <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
@@ -37,11 +37,11 @@
 
                     <button th:if="${c.canUpdate}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
                     <button th:if="${c.canDelete}" type="button" class="btn-transparent ml6" data-toggle="comment-delete"
-                            th:attr="data-request-uri=${base + '/post/' + post.number + '/comment/' + c.id + '/delete'}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                            th:attr="data-request-uri=@{${base + '/post/' + post.number + '/comment/' + c.id + '/delete'}}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                 </span>
             </div>
 
-            <th:block th:replace="~{common/comment-update-form :: commentUpdateForm(${c}, ${base + '/post/' + post.number + '/comment'}, 'NONISSUE_COMMENT', ${c.canUpdate})}"></th:block>
+            <th:block th:replace="~{common/comment-update-form :: commentUpdateForm(${c}, @{${base + '/post/' + post.number + '/comment'}}, 'NONISSUE_COMMENT', ${c.canUpdate})}"></th:block>
 
             <div th:id="'comment-body-' + ${c.id}">
                 <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>

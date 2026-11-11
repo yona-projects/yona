@@ -20,7 +20,7 @@
           <span id="importTitle" th:attr="data-git=#{project.import.from.git},data-hg=#{project.import.from.hg}" th:text="${form.vcs == 'Mercurial'} ? #{project.import.from.hg} : #{project.import.from.git}"></span>
           <span>
             <small><th:block th:text="#{project.import.or}"></th:block> &nbsp; </small>
-            <a th:href="'/projectform?owner=' + ${form.owner ?: ''}" class="ybtn ybtn-small nm">
+            <a th:href="@{|/projectform?owner=${form.owner ?: ''}|}" class="ybtn ybtn-small nm">
               <strong th:text="#{title.newProject}"></strong>
             </a>
           </span>
@@ -70,13 +70,13 @@
           <dd>
             <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10 form-select">
                 <option data-type="user"
-                        th:data-avatar-url="${ownerAvatarUrl}"
+                        th:data-avatar-url="@{${ownerAvatarUrl}}"
                         th:value="${currentUser.loginId}"
                         th:text="${currentUser.loginId}">
                 </option>
 
                 <option th:each="org : ${organizations}" data-type="group"
-                        th:data-avatar-url="${org.logoUrl}"
+                        th:data-avatar-url="@{${org.logoUrl}}"
                         th:value="${org.name}"
                         th:selected="${form.owner == org.name}"
                         th:text="${org.name}">
@@ -204,7 +204,7 @@
         <div class="actions mt20">
           <button class="ybtn ybtn-primary" th:text="#{project.create}">
           </button>
-          <a href="/" class="ybtn" th:text="#{button.cancel}"></a>
+          <a th:href="@{/}" class="ybtn" th:text="#{button.cancel}"></a>
         </div>
       </form>
     </div>

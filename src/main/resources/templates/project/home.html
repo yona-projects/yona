@@ -112,7 +112,7 @@
                             <ul class="project-members">
                                 <li th:each="member : ${members}" class="member">
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap rounded float-start small">
-                                        <img th:src="${member.avatarUrl}" th:alt="${member.loginId}" width="24" height="24">
+                                        <img th:src="@{${member.avatarUrl}}" th:alt="${member.loginId}" width="24" height="24">
                                     </a>
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="name">
                                         <strong th:text="${member.displayName + ' (' + member.loginId + ')'}"></strong>
@@ -121,7 +121,7 @@
                             </ul>
                         </div>
                     </div>
-                    <button th:if="${projectView.canLeave}" type="button" class="ybtn ybtn-minimum ybtn-danger float-end" id="projectLeaveBtn" th:data-href="${projectView.leaveUrl}" th:text="#{project.member.leave}"></button>
+                    <button th:if="${projectView.canLeave}" type="button" class="ybtn ybtn-minimum ybtn-danger float-end" id="projectLeaveBtn" th:data-href="@{${projectView.leaveUrl}}" th:text="#{project.member.leave}"></button>
                 </div>
             </div>
         </div>
@@ -146,7 +146,7 @@
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     $yona.loadModule("project.Home", {
-        "sURLProject"       : [[${#paths.project(projectView.project.owner, projectView.project.name)}]]
+        "sURLProject"       : [[@{${#paths.project(projectView.project.owner, projectView.project.name)}}]]
     });
 });
 </script>

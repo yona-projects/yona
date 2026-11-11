@@ -6,7 +6,7 @@
   매개변수: exportable(내려받기 링크를 보일지), verifiable(해시 사슬 검증 단추를 보일지), showFilter(필터 입력란을 보일지)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="auditList(exportable, verifiable, showFilter)">
-<form th:if="${showFilter}" th:action="${base}" method="get" class="audit-filter row g-2 mb-3">
+<form th:if="${showFilter}" th:action="@{${base}}" method="get" class="audit-filter row g-2 mb-3">
     <div class="col-lg-3"><input type="text" name="actor" class="form-control form-control-sm mb-0 w-100" th:value="${filter.actor}" th:placeholder="#{audit.filter.actor}"></div>
     <div class="col-lg-3"><input type="text" name="action" class="form-control form-control-sm mb-0 w-100" th:value="${filter.action}" th:placeholder="#{audit.filter.action}"></div>
     <div class="col-lg-2">
@@ -21,7 +21,7 @@
     <div class="col-lg-3"><input type="date" name="to" class="form-control form-control-sm mb-0" th:value="${filter.to}" th:title="#{audit.filter.to}"></div>
     <div class="col-lg-3 d-flex gap-2 align-items-start">
         <button type="submit" class="btn btn-sm btn-primary" th:text="#{audit.filter.apply}">Apply</button>
-        <a th:href="${base}" class="btn btn-sm btn-outline-secondary" th:text="#{audit.filter.reset}">Reset</a>
+        <a th:href="@{${base}}" class="btn btn-sm btn-outline-secondary" th:text="#{audit.filter.reset}">Reset</a>
     </div>
 </form>
 

@@ -8,9 +8,9 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
 <div class="user-menu-wrap">
-    <span class="user-menu"><a th:href="'/' + ${currentUser.loginId}" target="mainFrame">
+    <span class="user-menu"><a th:href="@{|/${currentUser.loginId}|}" target="mainFrame">
         <span class="avatar-wrap smaller">
-            <img th:src="${currentUser.avatarUrl(32)}" />
+            <img th:src="@{${currentUser.avatarUrl(32)}}" />
         </span>
         <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
     </a></span>

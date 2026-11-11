@@ -29,7 +29,7 @@
         <ul class="members project row">
             <li th:each="member : ${rows}" class="member col-lg-6 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-start mr10">
-                    <img th:src="${member.avatarUrl}" width="64" height="64">
+                    <img th:src="@{${member.avatarUrl}}" width="64" height="64">
                 </a>
                 <div class="member-name" th:text="${member.displayName}"></div>
                 <div class="member-id" th:text="'@' + ${member.loginId}"></div>
@@ -69,7 +69,7 @@
             <div th:each="user : ${applicants}" class="col-lg-2">
                 <div class="float-start mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
-                        <img th:src="${user.avatarUrl}" height="65" width="65" class="rounded-circle"/>
+                        <img th:src="@{${user.avatarUrl}}" height="65" width="65" class="rounded-circle"/>
                     </a>
                 </div>
                 <div class="float-start" style="width: 60px;">
@@ -83,10 +83,10 @@
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/organization.Member.js}"></script>
-<script type="text/javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     $yona.loadModule("organization.Member", {
-    "sActionURL": "/users"
+    "sActionURL": /*[[@{/users}]]*/ "/users"
     });
 });
 </script>

@@ -30,9 +30,9 @@
         <div class="board-body row d-flex">
             <div class="col-lg-9 span-left-pane">
                 <div class="author-info">
-                    <a th:href="'/' + ${post.authorLoginId}" class="usf-group">
+                    <a th:href="@{|/${post.authorLoginId}|}" class="usf-group">
                         <span class="avatar-wrap smaller">
-                            <img th:src="${post.authorAvatarUrl}" width="20" height="20">
+                            <img th:src="@{${post.authorAvatarUrl}}" width="20" height="20">
                         </span>
                         <th:block th:if="${post.authorLoginId != null}">
                             <strong class="name" th:text="${post.authorName}"></strong>
@@ -42,7 +42,7 @@
                     </a>
                     <th:block th:if="${post.historyHtml != null}">
                         <div th:if="${post.viewerAnonymous}" class="posting-history">
-                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" th:text="#{change.history}"></a>
+                            <a th:href="@{|/users/loginform?redirectUrl=${base + '/post/' + post.number}|}" th:text="#{change.history}"></a>
                         </div>
                         <div th:unless="${post.viewerAnonymous}" class="posting-history">
                             <a href="#-yona-posting-history" data-bs-toggle="modal" th:text="#{change.history}"></a>
@@ -76,7 +76,7 @@
                     <span class="">
                         <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick=|window.location = '${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${post.canUpdate}" th:href="@{${base + '/post/' + post.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
                         <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
                             <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
@@ -90,7 +90,7 @@
                             <th:block th:replace="~{board/partial-comments :: commentList}"></th:block>
                         </div>
                     </div>
-                    <th:block th:replace="~{common/comment-form :: commentForm(${post.canComment}, 'NONISSUE_COMMENT', ${base + '/post/' + post.number + '/comment'})}"></th:block>
+                    <th:block th:replace="~{common/comment-form :: commentForm(${post.canComment}, 'NONISSUE_COMMENT', @{${base + '/post/' + post.number + '/comment'}})}"></th:block>
                 </div>
                 <!--/* // Comment */-->
             </div>
@@ -99,7 +99,7 @@
                 <div class="issue-info board-labels sticky-top">
                     <dl>
                         <dd th:if="${projectView.menuSetting.board}" class="project-btn-item">
-                            <a th:href="${base + '/postform'}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
+                            <a th:href="@{${base + '/postform'}}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
                         </dd>
                     </dl>
                     <!--/* labels */-->
@@ -114,7 +114,7 @@
                     <div class="right-menu-icons">
                         <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick=|window.location='${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${post.canUpdate}" th:href="@{${base + '/post/' + post.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
                         <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
                             <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
@@ -145,7 +145,7 @@
             <p th:text="#{post.delete.confirm}"></p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/post/' + post.number + '/delete'}" th:text="#{button.yes}"></button>
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=@{${base + '/post/' + post.number + '/delete'}}" th:text="#{button.yes}"></button>
             <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
@@ -153,7 +153,7 @@
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#comments')}"></th:block>
 
-<link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{${base + '/issue/labels.css'}}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/elevator/jquery.elevator.css}">
 <script type="module" th:src="@{/assets/javascripts/esm/Tasklist.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/SubComment.js}"></script>
@@ -162,29 +162,29 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yona.loadModule("board.View", {
-            "sWatchUrl"  : "[(${'/watch?resource.type=board_post&amp;resource.id=' + post.id})]",
-            "sUnwatchUrl": "[(${'/unwatch?resource.type=board_post&amp;resource.id=' + post.id})]"
+            "sWatchUrl"  : "[(@{${'/watch?resource.type=board_post&amp;resource.id=' + post.id}})]",
+            "sUnwatchUrl": "[(@{${'/unwatch?resource.type=board_post&amp;resource.id=' + post.id}})]"
         });
 
         // yona.ShortcutKey
         yona.ShortcutKey.setKeymapLink({
             "L": /*[[${listUrl}]]*/ ""
             /*[# th:if="${projectView.menuSetting.board}"]*/
-            ,"N": /*[[${base + '/postform'}]]*/ ""
+            ,"N": /*[[@{${base + '/postform'}}]]*/ ""
             /*[/]*/
             /*[# th:if="${post.canUpdate}"]*/
-            ,"E": /*[[${base + '/post/' + post.number + '/editform'}]]*/ ""
+            ,"E": /*[[@{${base + '/post/' + post.number + '/editform'}}]]*/ ""
             /*[/]*/
         });
 
         // yona.Mention
         yona.Mention({
             "target": 'textarea[id^=editor-], .editorSeries',
-            "url"   : /*[[${base + '/mentionList?number=' + post.number + '&resourceType=board_post'}]]*/ ""
+            "url"   : /*[[@{${base + '/mentionList?number=' + post.number + '&resourceType=board_post'}}]]*/ ""
         });
 
         $('.board-labels select').on('change', function(e){
-            var url = /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/label'}]]*/ "";
+            var url = /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/label'}}]]*/ "";
             yona.http.ajax({
                 url: url,
                 method: "POST",
@@ -210,7 +210,7 @@
                 number: /*[[${#strings.toString(post.number)}]]*/ ""
             };
             yona.http.ajax({
-                url: "/translation",
+                url: /*[[@{/translation}]]*/ "/translation",
                 data: JSON.stringify(data),
                 type: "POST",
                 dataType: "json",
@@ -230,7 +230,7 @@
                 number: $(this).data("commentId")
             };
             yona.http.ajax({
-                url: "/translation",
+                url: /*[[@{/translation}]]*/ "/translation",
                 data: JSON.stringify(payload),
                 type: "POST",
                 dataType: "json",

@@ -44,19 +44,19 @@
             </div>
 
             <ul class="post-list-wrap">
-                <li th:each="post : ${items}" th:with="postBase=${#paths.project(post.owner, post.projectName)}" class="post-item title" th:href="${#paths.project(post.owner, post.projectName) + '/post/' + post.number}">
-                    <a th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}">
-                        <img th:if="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}"/>
-                        <img th:unless="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
+                <li th:each="post : ${items}" th:with="postBase=${#paths.project(post.owner, post.projectName)}" class="post-item title" th:href="@{${#paths.project(post.owner, post.projectName) + '/post/' + post.number}}">
+                    <a th:href="@{|/${post.authorLoginId}|}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}">
+                        <img th:if="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="@{${post.authorAvatarUrl}}"/>
+                        <img th:unless="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="@{${post.authorAvatarUrl}}" th:alt="${post.authorName}" width="32" height="32"/>
                     </a>
                     <div class="title-wrap">
-                        <a th:href="${#paths.project(post.owner, post.projectName) + '/post/' + post.number}" class="title" th:text="${post.title}"></a>
+                        <a th:href="@{${#paths.project(post.owner, post.projectName) + '/post/' + post.number}}" class="title" th:text="${post.title}"></a>
                     </div>
                     <div class="infos">
-                        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
+                        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="@{|/${post.authorLoginId}|}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
                         <span th:unless="${post.authorName != null and !post.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
 
-                        <a th:href="${#paths.project(post.owner, post.projectName)}" class="infos-link-item group-project-name" th:text="${post.projectName}"></a>
+                        <a th:href="@{${#paths.project(post.owner, post.projectName)}}" class="infos-link-item group-project-name" th:text="${post.projectName}"></a>
                         <span class="post-id" th:text="'#' + ${post.number}"></span>
 
                         <span class="infos-item" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>

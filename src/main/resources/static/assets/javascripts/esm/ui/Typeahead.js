@@ -323,7 +323,7 @@
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
-            htVar.sActionURL = htOptions.sActionURL || "/users";
+            htVar.sActionURL = htOptions.sActionURL || ((window.yonaContextPath || "") + "/users");
             htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
             htVar.htData = htOptions.htData || {};
         }

@@ -15,10 +15,10 @@
             <div class="contents">
                 <th:block th:utext="${child.contentsHtml}"></th:block>
                 <span class="subcomment-author hide">
-                    - <a th:href="'/' + ${child.authorLoginId}" class="usf-group" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${child.authorLoginId}"><strong th:text="${child.authorPureName}"></strong></a>
+                    - <a th:href="@{|/${child.authorLoginId}|}" class="usf-group" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${child.authorLoginId}"><strong th:text="${child.authorPureName}"></strong></a>
                     <a th:href="'#comment-' + ${child.id}" class="ago" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></a>
                     <a th:if="${child.canDelete}" href="javascript:void(0)" type="button" class="btn-transparent deleteButtonX" data-toggle="comment-delete"
-                       th:attr="data-request-uri=${baseUrl + '/' + commentsPath + '/' + number + '/comment/' + child.id + '/delete'}" th:title="#{common.comment.delete}">x</a></span>
+                       th:attr="data-request-uri=@{${baseUrl + '/' + commentsPath + '/' + number + '/comment/' + child.id + '/delete'}}" th:title="#{common.comment.delete}">x</a></span>
             </div>
         </div>
     </div>

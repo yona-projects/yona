@@ -22,7 +22,7 @@
                 <div class="author-info left-txt" style="margin-top:20px;">
                     <a th:href="${contributor.href}" class="usf-group float-start">
                         <span class="avatar-wrap smaller">
-                            <img th:src="${contributor.avatarUrl}" width="32" height="32">
+                            <img th:src="@{${contributor.avatarUrl}}" width="32" height="32">
                         </span>
                         <strong class="name" th:text="${contributor.name}"></strong>
                         <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
@@ -90,7 +90,7 @@
                         <!--/* 리뷰 요청이 대기 중인 사람(추가 항목 X-27, decisions.md D-37). 편집 권한자에게는 취소 단추가 있다 */-->
                         <dd th:each="r : ${reviewArea.pending}" class="reviewer-row pending" th:attr="data-login-id=${r.loginId}">
                             <a th:href="${r.href}" class="usf-group">
-                                <span class="avatar-wrap smaller"><img th:src="${r.avatarUrl}" width="20" height="20"></span>
+                                <span class="avatar-wrap smaller"><img th:src="@{${r.avatarUrl}}" width="20" height="20"></span>
                                 <strong class="name" th:text="${r.name}"></strong>
                             </a>
                             <span class="verdict verdict-pending" th:text="#{pullRequest.review.state.pending}"></span>
@@ -98,7 +98,7 @@
                         </dd>
                         <dd th:each="r : ${reviewArea.rows}" class="reviewer-row" th:attr="data-login-id=${r.loginId}, data-verdict=${r.verdict}">
                             <a th:href="${r.href}" class="usf-group">
-                                <span class="avatar-wrap smaller"><img th:src="${r.avatarUrl}" width="20" height="20"></span>
+                                <span class="avatar-wrap smaller"><img th:src="@{${r.avatarUrl}}" width="20" height="20"></span>
                                 <strong class="name" th:text="${r.name}"></strong>
                             </a>
                             <span th:class="'verdict verdict-' + ${#strings.toLowerCase(r.verdict)}" th:text="#{'pullRequest.review.state.' + ${#strings.toLowerCase(r.verdict)}}" th:title="${r.agoTitle}"></span>
@@ -131,7 +131,7 @@
                             </select>
                             <th:block th:unless="${assigneeArea.canEdit}">
                                 <a th:if="${assigneeArea.current != null}" th:href="${assigneeArea.current.href}" class="usf-group">
-                                    <span class="avatar-wrap smaller"><img th:src="${assigneeArea.current.avatarUrl}" width="20" height="20"></span>
+                                    <span class="avatar-wrap smaller"><img th:src="@{${assigneeArea.current.avatarUrl}}" width="20" height="20"></span>
                                     <strong class="name" th:text="${assigneeArea.current.displayName}"></strong>
                                     <span class="loginid"> <strong>@</strong><th:block th:text="${assigneeArea.current.loginId}"></th:block></span>
                                 </a>
@@ -185,7 +185,7 @@
 <script type="module" th:src="@{/assets/javascripts/esm/service/pullrequest.Reviewers.js}"></script>
 </th:block>
 <th:block th:if="${assigneeArea != null and (assigneeArea.canEdit or labelArea.canEdit)}">
-<link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(project.owner, project.name) + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{${#paths.project(project.owner, project.name) + '/issue/labels.css'}}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <script type="module" th:src="@{/assets/javascripts/esm/service/pullrequest.Meta.js}"></script>
 </th:block>

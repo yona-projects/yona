@@ -16,7 +16,7 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
 
         <th:block th:if="${canCreate}">
-        <form id="copyLabel" th:action="${base + '/copyLabels'}" method="post" class="new-label-wrap">
+        <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">
             <strong class="form-legend" th:text="#{label.copy.append}"></strong>
             <div class="form-wrap d-flex flex-wrap gap-2 align-items-start">
             <input type="text" name="owner" class="input-label form-control" th:placeholder="#{project.owner}">
@@ -26,7 +26,7 @@
             <div th:text="#{label.copy.description}"></div>
             <div th:text="#{label.copy.description2}"></div>
         </form>
-        <form id="frmNewLabel" th:action="${base + '/issue/labels'}" method="post" class="new-label-wrap">
+        <form id="frmNewLabel" th:action="@{${base + '/issue/labels'}}" method="post" class="new-label-wrap">
             <strong class="form-legend" th:text="#{label.new}"></strong>
             <div class="form-wrap">
                 <div class="d-flex flex-wrap gap-2 align-items-start">
@@ -130,7 +130,7 @@
             "list": "#labelsList",
             "editCategoryForm": "#editCategory",
             "editLabelForm"   : "#editLabel",
-            "listURL": /*[[${base + '/issue/labels'}]]*/ ""
+            "listURL": /*[[@{${base + '/issue/labels'}}]]*/ ""
         });
     });
 </script>

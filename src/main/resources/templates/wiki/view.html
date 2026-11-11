@@ -16,7 +16,7 @@
                 <div class="wiki-page-header d-flex flex-wrap align-items-center gap-2 mb-3">
                     <h2 class="wiki-page-title me-auto mb-0" th:text="${pageTitle}">Page</h2>
                     <a th:if="${canWrite}" th:href="${pageUrl + '/_edit'}" class="wiki-edit ybtn ybtn-small" th:text="#{wiki.page.edit}">Edit</a>
-                    <a th:if="${canWrite}" th:href="${base + '/_new'}" class="wiki-new ybtn ybtn-success ybtn-small" th:text="#{wiki.page.new}">New Page</a>
+                    <a th:if="${canWrite}" th:href="@{${base + '/_new'}}" class="wiki-new ybtn ybtn-success ybtn-small" th:text="#{wiki.page.new}">New Page</a>
                     <a th:href="${pageUrl + '/_history'}" class="wiki-history ybtn ybtn-small" th:text="#{wiki.page.history}">Revisions</a>
                 </div>
                 <div th:if="${lastAuthor != null}" class="wiki-last-edited text-body-secondary small mb-3" th:text="#{wiki.page.lastEdited(${lastAuthor}, ${lastDate})}"></div>

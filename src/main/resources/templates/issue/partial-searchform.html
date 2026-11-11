@@ -7,7 +7,7 @@
   모델: projectView, cond(IssueSearchCondition), search(SearchForm), currentUser
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="searchform" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<form id="search" name="search" th:action="${base + '/issues'}" th:hx-get="${base + '/issues'}" method="get">
+<form id="search" name="search" th:action="@{${base + '/issues'}}" th:hx-get="${base + '/issues'}" method="get">
     <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
     <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
     <input type="hidden" name="state" th:value="${cond.state}">
@@ -81,7 +81,7 @@
         </dl>
 
         <div class="labels-wrap">
-            <a th:if="${search.canManageLabels}" th:href="${base + '/issue/labelsform'}" class="ybtn ybtn-default ybtn-mini float-end">
+            <a th:if="${search.canManageLabels}" th:href="@{${base + '/issue/labelsform'}}" class="ybtn ybtn-default ybtn-mini float-end">
                 <i class="yobicon-cog vmiddle"></i>
                 <span th:if="${!search.hasLabels}" class="vmiddle" style="margin-left:2px;" th:text="#{label.manage}"></span>
             </a>

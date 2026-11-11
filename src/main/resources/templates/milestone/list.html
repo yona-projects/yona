@@ -10,24 +10,24 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::listPage})}">
 <th:block th:fragment="listPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}, urlToList=${#paths.project(projectView.project.owner, projectView.project.name) + '/milestones'}">
-<link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="tab-wrap">
             <div th:if="${canCreate}" class="float-end btns">
-                <a th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
+                <a th:href="@{${base + '/newMilestoneForm'}}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
             </div>
 
             <ul class="nav nav-tabs mb-3">
                 <li class="nav-item">
-                    <a th:href="${urlToList + '?state=open'}" th:text="#{milestone.state.open}" class="nav-link" th:classappend="${state == 'open'} ? 'active'"></a>
+                    <a th:href="@{${urlToList + '?state=open'}}" th:text="#{milestone.state.open}" class="nav-link" th:classappend="${state == 'open'} ? 'active'"></a>
                 </li>
                 <li class="nav-item">
-                    <a th:href="${urlToList + '?state=closed'}" th:text="#{milestone.state.closed}" class="nav-link" th:classappend="${state == 'closed'} ? 'active'"></a>
+                    <a th:href="@{${urlToList + '?state=closed'}}" th:text="#{milestone.state.closed}" class="nav-link" th:classappend="${state == 'closed'} ? 'active'"></a>
                 </li>
                 <li class="nav-item">
-                    <a th:href="${urlToList + '?state=all'}" th:text="#{milestone.state.all}" class="nav-link" th:classappend="${state == 'all'} ? 'active'"></a>
+                    <a th:href="@{${urlToList + '?state=all'}}" th:text="#{milestone.state.all}" class="nav-link" th:classappend="${state == 'all'} ? 'active'"></a>
                 </li>
             </ul>
         </div>
@@ -62,7 +62,7 @@
                         <div class="infos">
                             <div class="meta-info">
                                 <strong class="version"></strong>
-                                <a th:href="${base + '/milestone/' + status.id}" class="milestone-name" th:text="${status.title}"></a>
+                                <a th:href="@{${base + '/milestone/' + status.id}}" class="milestone-name" th:text="${status.title}"></a>
                                 <span class="sp">|</span>
                                 <span class="issue-item" th:text="${status.closedCount} + ' / ' + (${status.openCount} + ${status.closedCount})"></span>
                                 <th:block th:if="${status.state.name() != 'CLOSED'}">
@@ -108,7 +108,7 @@
                         <div>
                             <div></div>
                             <div>
-                                <a th:each="issue : ${row.openIssues}" class="issue-link" th:href="${base + '/issue/' + issue.number}" target="_blank">
+                                <a th:each="issue : ${row.openIssues}" class="issue-link" th:href="@{${base + '/issue/' + issue.number}}" target="_blank">
                                     <div class="issue-item">
                                         <span class="state-label open"></span>
                                         <span class="item-name">
@@ -122,7 +122,7 @@
                             </div>
                             <div></div>
                             <div>
-                                <a th:each="issue : ${row.closedIssues}" class="issue-link" th:href="${base + '/issue/' + issue.number}" target="_blank">
+                                <a th:each="issue : ${row.closedIssues}" class="issue-link" th:href="@{${base + '/issue/' + issue.number}}" target="_blank">
                                     <div class="issue-item">
                                         <span class="state-label closed">
                                             <i class=" yobicon-checkmark"></i>
@@ -154,7 +154,7 @@
             });
         });
         yona.ShortcutKey.setKeymapLink({
-            "N": /*[[${base + '/newMilestoneForm'}]]*/ ""
+            "N": /*[[@{${base + '/newMilestoneForm'}}]]*/ ""
         });
     });
 </script>

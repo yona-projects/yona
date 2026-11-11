@@ -38,19 +38,19 @@
         <div class="board-body row d-flex">
             <div class="col-lg-9 span-left-pane">
                 <div class="author-info">
-                    <a th:if="${issue.author != null}" th:href="'/' + ${issue.author.loginId}" class="usf-group">
+                    <a th:if="${issue.author != null}" th:href="@{|/${issue.author.loginId}|}" class="usf-group">
                         <span class="avatar-wrap smaller">
-                            <img th:src="${issue.author.avatarUrl}" width="20" height="20">
+                            <img th:src="@{${issue.author.avatarUrl}}" width="20" height="20">
                         </span>
                         <strong class="name" th:text="${issue.author.displayName}"></strong>
                         <span class="loginid"> <strong>@</strong><th:block th:text="${issue.author.loginId}"></th:block></span>
                     </a>
-                    <a th:if="${issue.author == null}" href="/" class="usf-group">
+                    <a th:if="${issue.author == null}" th:href="@{/}" class="usf-group">
                         <strong class="name" th:text="#{issue.noAuthor}"></strong>
                     </a>
                     <th:block th:if="${issue.historyHtml != null}">
                         <div th:if="${currentUser.anonymous}" class="posting-history">
-                            <a th:href="'/login?redirectUrl=' + ${base + '/issue/' + issue.number}" data-bs-toggle="modal" th:text="#{change.history}"></a>
+                            <a th:href="@{|/login?redirectUrl=${base + '/issue/' + issue.number}|}" data-bs-toggle="modal" th:text="#{change.history}"></a>
                         </div>
                         <div th:unless="${currentUser.anonymous}" class="posting-history">
                             <a href="#-yona-posting-history" data-bs-toggle="modal">
@@ -86,13 +86,13 @@
                             <button th:if="${issue.canUpdate}" id="issue-share-button" type="button" class="ybtn" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top"
                                     th:attr="data-bs-content=#{issue.sharer.description}" th:text="#{button.share.issue}"></button>
                             <span class="project-btn-item hide show-in-mobile-inline ml4">
-                                <a th:href="${base + '/issueform?parentIssueId=' + issue.parentIssueId}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
+                                <a th:href="@{${base + '/issueform?parentIssueId=' + issue.parentIssueId}}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
                             </span>
                             <!--/* 가중치 단추는 서버가 수정 권한을 요구하는 사용자에게만 보인다. v1.6은 모두에게 보여 눌러도 403으로 아무 반응이 없었다(issue-F3) */--><span class="issue-weight"><span class="divider">|</span><button th:if="${issue.canUpdate}" id="upvote-issue-weight" class="ybtn ybtn-small" data-bs-toggle="tooltip" th:attr="title=#{issue.weight} + ': Upvote'"><i class="yobicon-arrow-up-alt"></i></button><button th:if="${issue.canUpdate}" class="ybtn ybtn-small" id="down-vote-issue-weight" data-bs-toggle="tooltip" th:attr="title=#{issue.weight} + ': Down vote'"><i class="yobicon-arrow-down-alt"></i></button><span class="weight-number" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" th:attr="data-bs-content=#{issue.weight.description}" th:text="${issue.weight}"></span></span>
                         </div>
                     </div>
                     <div id="vote" class="vote-wrap" th:classappend="${!issue.voters.isEmpty()} ? 'voter-exists'">
-                        <a th:if="${issue.canVoteOrComment}" th:href="${base + '/issue/' + issue.number + '/' + (issue.votedByMe ? 'unvote' : 'vote')}" th:classappend="${issue.votedByMe} ? 'ybtn-watching'"
+                        <a th:if="${issue.canVoteOrComment}" th:href="@{${base + '/issue/' + issue.number + '/' + (issue.votedByMe ? 'unvote' : 'vote')}}" th:classappend="${issue.votedByMe} ? 'ybtn-watching'"
                            th:title="${issue.votedByMe} ? #{issue.unvote.description} : #{issue.vote.description}" data-request-method="post" data-bs-toggle="tooltip">
                             <span class="heart"><i class="yobicon-hearts"></i></span>
                         </a>
@@ -111,7 +111,7 @@
                     <span class="act-row">
                         <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${issue.canUpdate}" th:href="@{${base + '/issue/' + issue.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
                         <th:block th:if="${issue.deletable}">
                             <a th:if="${issue.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
                                 <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
@@ -131,7 +131,7 @@
                         </select>
                         <th:block th:unless="${issue.canUpdate}">
                             <div th:each="sharer : ${issue.sharers}" class="text-ellipsis sharer-item">
-                                <a th:href="'/' + ${sharer.loginId}" class="usf-group">
+                                <a th:href="@{|/${sharer.loginId}|}" class="usf-group">
                                     <strong class="name" th:text="${sharer.displayName}"></strong>
                                 </a>
                             </div>
@@ -149,19 +149,19 @@
                             <th:block th:replace="~{issue/partial-comments :: timelineList}"></th:block>
                         </div>
                     </div>
-                    <th:block th:replace="~{common/comment-form :: commentForm(${issue.canVoteOrComment}, 'ISSUE_COMMENT', ${base + '/issue/' + issue.number + '/comments'})}"></th:block>
+                    <th:block th:replace="~{common/comment-form :: commentForm(${issue.canVoteOrComment}, 'ISSUE_COMMENT', @{${base + '/issue/' + issue.number + '/comments'}})}"></th:block>
                 </div>
             </div>
 
             <div class="col-lg-3 span-right-pane mb20">
                 <div class="issue-info sticky-top">
-                    <form id="issueUpdateForm" th:action="${base + '/issues'}" method="post">
+                    <form id="issueUpdateForm" th:action="@{${base + '/issues'}}" method="post">
                         <input type="hidden" name="issues[0].id" th:value="${issue.id}" />
 
                         <!--/* assignee */-->
                         <dl>
                             <dd th:if="${projectView.menuSetting.issue}" class="project-btn-item">
-                                <a th:href="${base + '/issueform?parentIssueId=' + issue.parentIssueId}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
+                                <a th:href="@{${base + '/issueform?parentIssueId=' + issue.parentIssueId}}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
                             </dd>
                             <dt th:text="#{issue.assignee}"></dt>
 
@@ -170,9 +170,9 @@
                                     <th:block th:replace="~{issue/partial-assignee :: assignee(${issue.assignee?.loginId})}"></th:block>
                                 </th:block>
                                 <th:block th:unless="${issue.canUpdate}">
-                                    <a th:if="${issue.assignee != null}" th:href="'/' + ${issue.assignee.loginId}" class="usf-group">
+                                    <a th:if="${issue.assignee != null}" th:href="@{|/${issue.assignee.loginId}|}" class="usf-group">
                                         <span class="avatar-wrap smaller">
-                                            <img th:src="${issue.assignee.avatarUrl}" width="20" height="20">
+                                            <img th:src="@{${issue.assignee.avatarUrl}}" width="20" height="20">
                                         </span>
                                         <strong class="name" th:text="${issue.assignee.displayName}"></strong>
                                         <span class="loginid"> <strong>@</strong><th:block th:text="${issue.assignee.loginId}"></th:block></span>
@@ -186,7 +186,7 @@
                         <dl th:if="${projectView.menuSetting.milestone}">
                             <dt th:text="#{milestone}"></dt>
                             <dd>
-                                <a th:if="${!issue.hasMilestones}" th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
+                                <a th:if="${!issue.hasMilestones}" th:href="@{${base + '/newMilestoneForm'}}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
                                 <th:block th:if="${issue.hasMilestones}">
                                     <select class="form-select" th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-width="100%">
                                         <option value="-1" th:selected="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></option>
@@ -198,7 +198,7 @@
                                         </optgroup>
                                     </select>
                                     <th:block th:unless="${issue.canUpdate}">
-                                        <a th:if="${issue.milestoneId != null}" th:href="${base + '/milestone/' + issue.milestoneId}" th:text="${issue.milestoneTitle}"></a>
+                                        <a th:if="${issue.milestoneId != null}" th:href="@{${base + '/milestone/' + issue.milestoneId}}" th:text="${issue.milestoneTitle}"></a>
                                         <th:block th:if="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></th:block>
                                     </th:block>
                                 </th:block>
@@ -232,7 +232,7 @@
                         <div class="act-row right-menu-icons">
                             <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                     th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
-                            <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                            <a th:unless="${issue.canUpdate}" th:href="@{${base + '/issue/' + issue.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
                             <th:block th:if="${issue.deletable}">
                                 <a th:if="${issue.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
                                     <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
@@ -278,7 +278,7 @@
             <p th:text="#{post.delete.confirm}"></p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/issue/' + issue.number + '/delete'}" th:text="#{button.yes}"></button>
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=@{${base + '/issue/' + issue.number + '/delete'}}" th:text="#{button.yes}"></button>
             <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
@@ -288,7 +288,7 @@
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 
-<link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{${base + '/issue/labels.css'}}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/elevator/jquery.elevator.css}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/videojs/video-js.min.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/videojs/video.min.js}"></script>
@@ -307,11 +307,11 @@
             "issueId"  : /*[[${#strings.toString(issue.id)}]]*/ "",
             "nextState": /*[[${nextState}]]*/ "",
             "urls"     : {
-                "watch"     : "[(${'/watch?resource.type=issue_post&amp;resource.id=' + issue.id})]",
-                "unwatch"   : "[(${'/unwatch?resource.type=issue_post&amp;resource.id=' + issue.id})]",
-                "timeline"  : /*[[${base + '/issue/' + issue.number + '/timeline'}]]*/ "",
-                "nextState" : /*[[${base + '/issue/' + issue.number + '/nextstate'}]]*/ "",
-                "massUpdate": /*[[${base + '/issues'}]]*/ ""
+                "watch"     : "[(@{${'/watch?resource.type=issue_post&amp;resource.id=' + issue.id}})]",
+                "unwatch"   : "[(@{${'/unwatch?resource.type=issue_post&amp;resource.id=' + issue.id}})]",
+                "timeline"  : /*[[@{${base + '/issue/' + issue.number + '/timeline'}}]]*/ "",
+                "nextState" : /*[[@{${base + '/issue/' + issue.number + '/nextstate'}}]]*/ "",
+                "massUpdate": /*[[@{${base + '/issues'}}]]*/ ""
             }
         });
 
@@ -319,17 +319,17 @@
         yona.ShortcutKey.setKeymapLink({
             "L": /*[[${listUrl}]]*/ ""
             /*[# th:if="${projectView.menuSetting.issue}"]*/
-            ,"N": /*[[${base + '/issueform'}]]*/ ""
+            ,"N": /*[[@{${base + '/issueform'}}]]*/ ""
             /*[/]*/
             /*[# th:if="${issue.canUpdate}"]*/
-            ,"E": /*[[${base + '/issue/' + issue.number + '/editform'}]]*/ ""
+            ,"E": /*[[@{${base + '/issue/' + issue.number + '/editform'}}]]*/ ""
             /*[/]*/
         });
 
         // yona.Mention
         yona.Mention({
             "target": 'textarea[id^=editor-], .editorSeries',
-            "url"   : /*[[${base + '/mentionList?number=' + issue.number + '&resourceType=issue_post'}]]*/ ""
+            "url"   : /*[[@{${base + '/mentionList?number=' + issue.number + '&resourceType=issue_post'}}]]*/ ""
         });
 
         // detect comment which contains mention at me
@@ -339,15 +339,15 @@
 
     $(function () {
         yonaAssgineeModule(
-                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/assignableUsers'}]]*/ "",
-                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/assignees'}]]*/ "",
+                /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/assignableUsers'}}]]*/ "",
+                /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/assignees'}}]]*/ "",
                 /*[[#{issue.assignee}]]*/ ""
         );
 
         yonaIssueSharerModule(
-                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/findSharer'}]]*/ "",
-                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/sharableUsers'}]]*/ "",
-                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/share'}]]*/ "",
+                /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/findSharer'}}]]*/ "",
+                /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/sharableUsers'}}]]*/ "",
+                /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/share'}}]]*/ "",
                 /*[[#{issue.sharer}]]*/ ""
         );
 
@@ -367,7 +367,7 @@
                 number: /*[[${#strings.toString(issue.number)}]]*/ ""
             };
             yona.http.ajax({
-                url: "/translation",
+                url: /*[[@{/translation}]]*/ "/translation",
                 data: JSON.stringify(data),
                 type: "POST",
                 dataType: "json",
@@ -387,7 +387,7 @@
                 number: $(this).data("commentId")
             };
             yona.http.ajax({
-                url: "/translation",
+                url: /*[[@{/translation}]]*/ "/translation",
                 data: JSON.stringify(payload),
                 type: "POST",
                 dataType: "json",
@@ -423,7 +423,7 @@
 
         $("#upvote-issue-weight").on("click", function () {
             yona.http.ajax({
-                url: /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/upvoteWeight'}]]*/ "",
+                url: /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/upvoteWeight'}}]]*/ "",
                 type: "POST",
             }).done(function (data) {
                 $(".weight-number").html(data.weight);
@@ -432,7 +432,7 @@
 
         $("#down-vote-issue-weight").on("click", function () {
             yona.http.ajax({
-                url: /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/downvoteWeight'}]]*/ "",
+                url: /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/downvoteWeight'}}]]*/ "",
                 type: "POST",
             }).done(function (data) {
                 $(".weight-number").html(data.weight);
@@ -444,7 +444,7 @@
                 $(this).closest("form").find(".notification-receiver").show()
                 findNotiReceiversHandler(
                         $(this),
-                        /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/commentNotiReceivers'}]]*/ ""
+                        /*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/commentNotiReceivers'}}]]*/ ""
                 )
             })
             .on("focusout", function () {
@@ -462,7 +462,7 @@
 
         // 로그인하지 않으면 변경 감지 API가 401이라 3초마다 실패만 쌓인다. 로그인한 사용자에게만 건다(v1.6은 익명에게도 반복 요청했다, issue-F16)
         /*[# th:unless="${currentUser.anonymous}"]*/
-        detectPageChange(/*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/detectChange'}]]*/ "")
+        detectPageChange(/*[[@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/detectChange'}}]]*/ "")
         /*[/]*/
     })
 </script>
