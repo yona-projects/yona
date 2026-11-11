@@ -240,6 +240,15 @@ class BoardViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `수정 권한이 없는 사용자에게는 댓글 수정 단추가 없다 (board-F13, v1_6은 읽기 권한만 보고 단추를 보였으나 저장 단추가 없어 헛돌았다, 고쳤다)`() {
+        val project = newProject(); val author = join(newUser(), project); val outsider = newUser()
+        val p = post(project, author)
+        val c = comment(p, author)
+        assertTrue(doc(project, session = login(outsider)).select("#comment-${c.id} button[data-toggle=comment-edit]").isEmpty())
+        assertTrue(doc(project, session = login(author)).select("#comment-${c.id} button[data-toggle=comment-edit]").isNotEmpty())
+    }
+
+    @Test
     fun `작성자 아바타는 32 크기이고 댓글 아바타는 64 크기이다 (v1_6 avatarUrl 인자)`() {
         val before = avatars.gravatarReachable
         avatars.gravatarReachable = true
