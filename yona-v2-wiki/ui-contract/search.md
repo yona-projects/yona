@@ -143,7 +143,7 @@ updated: 2026-11-11
 | search-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `search.result.title`에는 키워드가 들어가지 않고 건수와 종류 이름만 있다. 결과가 0건이어도 문구는 "0 건이 검색 되었습니다"이고 빈 안내 문구는 없다(`div.empty-result`는 내용 없는 요소) | `partial-search.html:72-77`, `partial-items.html:41` |
 | search-F4 **[검증: v2 신규 결함, 수정됨 A-460]** | 강조 스크립트의 `.title` 선택자는 결과 영역으로 한정되지 않는다. 결과 줄이 아닌 `.title` 요소의 HTML이 글자로 바뀌어 안쪽 마크업(링크, 아이콘)이 사라진다. 조직 범위에서는 `organization/header.html:22`의 `div.dropdown-menu.flat.right.title`(가입 안내 드롭다운)이 그 대상이다(그 요소가 그려질 때). 프로젝트 메뉴, 사이트 틀, 상단 바에는 `.title` 클래스 요소가 없음을 grep으로 확인했다 | `partial-search.html:107-123`, `organization/header.html:22` |
 | search-F5 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 탭은 건수가 0이어도 클릭할 수 있고, 클릭하면 그 종류로 `searchType`을 보낸다(AUTO 해석을 거치지 않는다). 프로젝트 범위에서 `searchType=project`를 직접 보내면 400이다 | `partial-search.html:95-99`, `SearchController.kt:90` |
-| search-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 쪽 이동의 `Pagination`은 `document.URL`을 기준으로 `pageNum`만 바꾸므로 AUTO로 들어온 첫 화면의 URL(`searchType=auto`)이 쪽 링크에도 남는다. 건수가 바뀌지 않는 한 같은 종류로 풀리지만, 다른 요청 사이에 건수가 바뀌면 쪽을 넘길 때 종류가 바뀔 수 있다(추측) | `Pagination.js:130`, `:80-93` |
+| search-F6 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 쪽 이동의 `Pagination`은 `document.URL`을 기준으로 `pageNum`만 바꾸므로 AUTO로 들어온 첫 화면의 URL(`searchType=auto`)이 쪽 링크에도 남는다. 건수가 바뀌지 않는 한 같은 종류로 풀리지만, 다른 요청 사이에 건수가 바뀌면 쪽을 넘길 때 종류가 바뀔 수 있다(추측) | `Pagination.js:130`, `:80-93` |
 | search-F7 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 사용자 결과 아바타 `img`는 기본 아바타일 때 크기 속성이 없다(`helper.isDefaultAvatar`) | `partial-users.html:13-14` |
 
 ## 범위 점검

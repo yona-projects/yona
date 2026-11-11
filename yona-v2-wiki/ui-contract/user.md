@@ -245,14 +245,14 @@ updated: 2026-11-11
 |---|---|---|
 | user-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `GET /user/editform/{tabId}`가 `GET`과 `POST` 둘 다 받는다. 화면은 `GET`만 부르지만 `POST`로도 열린다(v1.6 라우트 재현으로 보이나 v1.6 대조는 하지 않음) | `AccountController.kt:103` |
 | user-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `POST /user/resetVisitedList`에 로그인 강제 어노테이션이 없다. 비로그인이면 아무것도 하지 않고 `303 /user/editform`+flash를 돌려주며 이 `303`을 따라가면 다시 로그인으로 간다 | `AccountController.kt:146-151` |
-| user-F3 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이메일 확인 안내 flash가 한국어 고정 문자열 `확인 메일을 전송했습니다.`이다(다른 언어 설정에서도 한국어). `messageText`는 경고 키만 번역한다 | `AccountController.kt:199` |
-| user-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 사용자 페이지의 며칠 전 입력 Enter 이동이 탭을 눌러도 갱신되지 않는 `sTabSelected`(처음 값)를 쓴다 | `J/esm/service/user.View.js:38, :118-123, :134` |
+| user-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이메일 확인 안내 flash가 한국어 고정 문자열 `확인 메일을 전송했습니다.`이다(다른 언어 설정에서도 한국어). `messageText`는 경고 키만 번역한다 | `AccountController.kt:199` |
+| user-F4 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 사용자 페이지의 며칠 전 입력 Enter 이동이 탭을 눌러도 갱신되지 않는 `sTabSelected`(처음 값)를 쓴다 | `J/esm/service/user.View.js:38, :118-123, :134` |
 | user-F5 **[브라우저로 확인됨 2026-11-11, R-162]** | 알 수 없는 설정 탭 id(`/user/editform/foo`)는 예외가 되어 500 화면이다(404가 아님). 11개 탭 중 5개만 이 메서드가 처리한다 | `AccountController.kt:108-116` |
 | user-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이메일 확인 링크는 토큰(숫자 50자리)만으로 해당 사용자로 로그인한다. 2단계 인증 사용자는 코드 화면을 거친다(추가 항목) | `AccountController.kt:202-216` |
 | user-F7 **[검증: v2 신규 결함, 수정됨 A-460]** | `/user/files`는 로그인하지 않으면 로그인 ID가 `anonymous`인 사용자의 파일을 보여 준다(익명 접근이 허용된 사이트일 때). 이 이름의 실제 사용자가 있으면 그의 파일이 노출된다 | `UserFilesController.kt:45, :66` |
-| user-F8 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `files.html`의 검색 입력란이 `value=""` 고정이라 검색어가 화면에 유지되지 않고, 죽은 `submit` 핸들러(콘솔 로그 `searche!`)가 남아 있다 | `T/user/files.html:19, :65-67` |
+| user-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `files.html`의 검색 입력란이 `value=""` 고정이라 검색어가 화면에 유지되지 않고, 죽은 `submit` 핸들러(콘솔 로그 `searche!`)가 남아 있다 | `T/user/files.html:19, :65-67` |
 | user-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 사용자 페이지의 구독 단추가 비로그인에도 보인다(`showWatchButton = viewer?.loginId != project.owner`). 서버는 `READ` 검사만 하고 비로그인 구독은 `requireNotNull(...user)`에 걸린다(접근 검사 체인이 앞서 막는지는 확인하지 못했다) | `UserPageAssembler.kt:149`, `WatchProjectController.kt:47-54` |
-| user-F10 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이슈 탭의 열림/닫힘 분류가 `OPEN`, `CLOSED`뿐이라 초안(`DRAFT`)은 건수 배지에도, 어느 목록에도 나타나지 않는다. 작성자 본인의 초안만 `activity.issues`에 들어오지만 표시되지 않는다 | `UserPageAssembler.kt:86-87, :106`, `T/user/view.html:92, :102` |
+| user-F10 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이슈 탭의 열림/닫힘 분류가 `OPEN`, `CLOSED`뿐이라 초안(`DRAFT`)은 건수 배지에도, 어느 목록에도 나타나지 않는다. 작성자 본인의 초안만 `activity.issues`에 들어오지만 표시되지 않는다 | `UserPageAssembler.kt:86-87, :106`, `T/user/view.html:92, :102` |
 | user-F11 **[검증: 결함 아님]** | 위키와 코드 불일치는 발견하지 못했다. `web/user-page.md`, `web/account.md`의 내용과 이 글이 어긋나는 곳은 확인한 범위에서 없다(두 글을 전부 대조하지는 않았음) | |
 
 ## 12. 범위 점검

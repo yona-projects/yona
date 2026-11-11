@@ -248,13 +248,13 @@ project.md의 project-F1~F15에 이어 번호를 붙인다.
 |---|---|---|---|
 | project-F16 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 설정 화면은 코드 메뉴를 끄면 승인 해제, 기본 브랜치 패널과 저장소 종류 변경 탭을 숨기지만, 서버는 그 필드(`defaultBranch` 등)를 그대로 받는다. Mercurial은 `vcs.pullRequests`가 참이라 기본 브랜치 선택이 그려지는데 `DEFAULT_BRANCH` 능력이 없어 `branches`가 빈 목록이라 선택지가 비어 있다 | `setting.html:86,125-136`, `ProjectSettingController.kt:97-98`, `VcsType.kt:32-39` | 코드 대조 |
 | project-F17 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버에는 있으나 이 화면이 부르지 않는 경로: `GET /issue/labels`의 `HX-Request` 조각 응답(스크립트는 `reload(true)`로 갱신하고 `listURL` 옵션은 저장만 함), `GET /issue/label/categories`, `GET /issue/label/category/{id}`, `POST /issue/label/categories`, `DELETE /issue/label/category/{id}`(분류 삭제 단추가 없음) | grep, `LabelEditor` `_initVar` | |
-| project-F18 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 라벨 삭제 실패는 화면에 아무 표시가 없다(`catch`에서 `return`) | `LabelEditor` `_requestRemoveLabel` | |
-| project-F19 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이전 화면의 "예" 처리기가 `.one("click")`이라 요청이 실패해 모달이 닫힌 뒤에는 같은 화면에서 다시 눌러도 요청이 나가지 않는다(새로고침 필요) | `project.Transfer.js:51` | |
-| project-F20 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 웹훅 형식을 `JSON`으로 고르면 스크립트가 `gitPush` 체크를 켜고 고정하지만, 서버는 값을 강제하지 않아 직접 보낸 요청은 `JSON`이면서 `gitPush=false`로 저장된다. 스크립트는 `attr('checked')`로 켜므로 사용자가 이미 그 체크를 눌러 본 뒤에는 상태가 바뀌지 않을 수 있다(추측) | `webhooks.html:81-89`, `WebhookService.create` | |
+| project-F18 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 라벨 삭제 실패는 화면에 아무 표시가 없다(`catch`에서 `return`) | `LabelEditor` `_requestRemoveLabel` | |
+| project-F19 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이전 화면의 "예" 처리기가 `.one("click")`이라 요청이 실패해 모달이 닫힌 뒤에는 같은 화면에서 다시 눌러도 요청이 나가지 않는다(새로고침 필요) | `project.Transfer.js:51` | |
+| project-F20 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 웹훅 형식을 `JSON`으로 고르면 스크립트가 `gitPush` 체크를 켜고 고정하지만, 서버는 값을 강제하지 않아 직접 보낸 요청은 `JSON`이면서 `gitPush=false`로 저장된다. 스크립트는 `attr('checked')`로 켜므로 사용자가 이미 그 체크를 눌러 본 뒤에는 상태가 바뀌지 않을 수 있다(추측) | `webhooks.html:81-89`, `WebhookService.create` | |
 | project-F21 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 웹훅 목록이 토큰(`secret`)을 평문으로 그린다(비면 `NONE`). 목록은 UPDATE 사용자에게만 보인다 | `webhooks.html:62` | v1.6 동일 추정 |
-| project-F22 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 구성원 타입어헤드 API `/users`는 `Referer`가 `members`로 끝나야 하고(쿼리 문자열이 붙으면 거절) `info` HTML에 사용자 이름을 이스케이프 없이 넣는다. 구성원 화면의 렌더러는 이 HTML을 그대로 그린다 | `UserApiController.kt:31-49`, `project.Member.js:61-63` | 코드 확인 |
+| project-F22 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 구성원 타입어헤드 API `/users`는 `Referer`가 `members`로 끝나야 하고(쿼리 문자열이 붙으면 거절) `info` HTML에 사용자 이름을 이스케이프 없이 넣는다. 구성원 화면의 렌더러는 이 HTML을 그대로 그린다 | `UserApiController.kt:31-49`, `project.Member.js:61-63` | 코드 확인 |
 | project-F23 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 설정 저장 성공 시 성공 안내가 없고 같은 화면으로 303 이동한다. 실패 시 400 화면은 입력값이 아니라 저장된 값으로 다시 그려진다 | `ProjectSettingController.kt:69-75` | |
-| project-F24 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 마일스톤, 라벨은 번호만으로 리소스를 찾아 경로의 프로젝트와 달라도 권한 검사를 통과한다(R-12). 라벨 수정은 분류의 프로젝트가 같은지 추가로 본다(A-24) | `ProjectResourceLocator.kt:28-52` | 알려진 v1.6 결함 |
+| project-F24 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 마일스톤, 라벨은 번호만으로 리소스를 찾아 경로의 프로젝트와 달라도 권한 검사를 통과한다(R-12). 라벨 수정은 분류의 프로젝트가 같은지 추가로 본다(A-24) | `ProjectResourceLocator.kt:28-52` | 알려진 v1.6 결함 |
 
 ## 14. 범위 점검 (이 파일이 다룬 템플릿)
 

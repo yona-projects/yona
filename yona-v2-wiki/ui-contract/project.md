@@ -283,20 +283,20 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 확인 방법 | 비고 |
 |---|---|---|---|
-| project-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 웹훅 화면이 쓰는 `project.webhook.includeGitPush`가 `messages_ko_KR.properties`에 없고 대문자 I인 `project.webhook.IncludeGitPush`만 있다. 한국어 화면에 영어 "Include git push events"가 나온다. v1.6 번들도 같은 철자 불일치(`conf/messages.ko-KR:741`) | 키 대조 (`messages_ko_KR.properties:785`, `messages.properties:786`, `webhooks.html:41`) | v1.6 결함 이월 |
+| project-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 웹훅 화면이 쓰는 `project.webhook.includeGitPush`가 `messages_ko_KR.properties`에 없고 대문자 I인 `project.webhook.IncludeGitPush`만 있다. 한국어 화면에 영어 "Include git push events"가 나온다. v1.6 번들도 같은 철자 불일치(`conf/messages.ko-KR:741`) | 키 대조 (`messages_ko_KR.properties:785`, `messages.properties:786`, `webhooks.html:41`) | v1.6 결함 이월 |
 | project-F2 **[수정됨, A-457]** | 마일스톤 보기와 조직 보기의 검색 상자가 `data-toggle="item-search"`로 표시돼 있지만 이를 묶는 스크립트가 정적 자원에 없다. `jquery.search.js`가 "참조 없는 파일" 정리 때 지워졌다(커밋 `0fd8fcd58` 메시지). 시험은 속성의 존재만 확인한다(`MilestoneTest.kt:519`) | `grep item-search` 전 범위 | milestone.md의 milestone-F2와 같은 사실 |
 | project-F3 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 가져오기 폼의 위키 체크박스는 늘 체크된 채로 그려지지만 `ImportController`의 메뉴 목록(`ALL_MENUS`, `:434`)에 `wiki`가 없어 값이 버려지고 위키 메뉴가 꺼진 프로젝트가 만들어진다. v1.6은 폼 전체를 묶었다(`ImportApp.java:119-130`) | 코드 대조, 시험 없음 | |
 | project-F4 **[검증: 문서 문제]** | 위키 `web/project-layout.md:78`과 `refactoring-backlog.md` R-11은 `Q` 단축키가 "로그인 ID가 manager일 때"만 켜진다고 쓰지만 코드는 프로젝트 `MANAGER` 역할일 때 켠다(`ProjectViewContext.kt:161`, `decisions.md` A-353). 코드가 맞다. 또 설정 메뉴(톱니)는 `canUpdate`(그룹 관리자, 사이트 관리자 포함)라 두 조건이 같지 않다 | 코드와 결정 기록 대조 | 위키가 낡음 |
 | project-F5 **[검증: 결함 아님]** | 구독 단추는 화면 조건이 WATCH인데 서버는 READ만 검사한다(`WatchProjectController.kt:47-59`). 읽을 수 있는 비공개 프로젝트의 멤버가 아닌 그룹 구성원 같은 경우를 제외하면 둘이 같아 보이나 연산이 다르다 | 코드 대조 | 추측: 실제 차이가 드러나는 조합은 확인 못 함 |
-| project-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 단축키 `C`, `P`는 `codeAccessible`를 보지 않고 등록된다. 코드 열람 제한 프로젝트의 비구성원이 누르면 403이다(탭은 숨겨짐). 입력란에서는 동작하지 않음 | `menu.html:14,26,79-90` | |
-| project-F7 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 홈의 "구성원 추가" 링크는 `canUpdateLabels`(멤버 이상)로 보이지만 대상 화면은 프로젝트 관리자만 연다. 일반 멤버는 링크를 눌러 403을 본다. v1.6도 같은 조건(`home.scala.html:123`) | 코드 대조 | v1.6 동일 |
-| project-F8 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 사이트 관리자는 `isAllowed`가 항상 참이라 모든 프로젝트 홈에서 탈퇴 단추가 보이고, 소유자가 아닌 비구성원 관리자가 눌러도 아무 일 없이 홈으로 간다. 소유자인 사이트 관리자는 403 `project.member.ownerCannotLeave` | `AccessControl.kt:111`, `ProjectMemberController.kt:132-160` | |
-| project-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `yona.Request`(`data-request-method`) 실패는 화면에 아무것도 나타나지 않는다(웹훅 삭제, 마일스톤 열기/닫기/삭제). 프로젝트 삭제만 `Request.send`의 결과를 보고 알림을 띄운다 | `esm/Request.js`, `project.Delete.js:54-59` | |
-| project-F10 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 홈의 `#leaveBtn` 클릭 처리기가 탈퇴 단추를 누를 때마다 중복 등록된다. 이전 모달을 닫고 다시 열어 "예"를 누르면 같은 삭제 요청이 여러 번 나간다 | `project.Home.js:102-125` | 추측: 두 번째 이후 요청은 서버가 멤버 부재로 무시하나 이동은 첫 응답이 결정 |
+| project-F6 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 단축키 `C`, `P`는 `codeAccessible`를 보지 않고 등록된다. 코드 열람 제한 프로젝트의 비구성원이 누르면 403이다(탭은 숨겨짐). 입력란에서는 동작하지 않음 | `menu.html:14,26,79-90` | |
+| project-F7 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 "구성원 추가" 링크는 `canUpdateLabels`(멤버 이상)로 보이지만 대상 화면은 프로젝트 관리자만 연다. 일반 멤버는 링크를 눌러 403을 본다. v1.6도 같은 조건(`home.scala.html:123`) | 코드 대조 | v1.6 동일 |
+| project-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 사이트 관리자는 `isAllowed`가 항상 참이라 모든 프로젝트 홈에서 탈퇴 단추가 보이고, 소유자가 아닌 비구성원 관리자가 눌러도 아무 일 없이 홈으로 간다. 소유자인 사이트 관리자는 403 `project.member.ownerCannotLeave` | `AccessControl.kt:111`, `ProjectMemberController.kt:132-160` | |
+| project-F9 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `yona.Request`(`data-request-method`) 실패는 화면에 아무것도 나타나지 않는다(웹훅 삭제, 마일스톤 열기/닫기/삭제). 프로젝트 삭제만 `Request.send`의 결과를 보고 알림을 띄운다 | `esm/Request.js`, `project.Delete.js:54-59` | |
+| project-F10 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 `#leaveBtn` 클릭 처리기가 탈퇴 단추를 누를 때마다 중복 등록된다. 이전 모달을 닫고 다시 열어 "예"를 누르면 같은 삭제 요청이 여러 번 나간다 | `project.Home.js:102-125` | 추측: 두 번째 이후 요청은 서버가 멤버 부재로 무시하나 이동은 첫 응답이 결정 |
 | project-F11 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `statistics.html`로 가는 링크가 이 영역 템플릿에 없고 본문은 "Under Construction"뿐이다 | grep | v1.6 동일 |
 | project-F12 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 목록의 읽을 수 없는 행 문구는 영어 고정이고 `readable`은 `displayPrivateRepositories`가 켜져 있으면 모든 행에 참이다 | `list.html:91`, `ProjectListController.kt:77` | |
 | project-F13 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 생성, 가져오기의 클라이언트 이름 검사는 `.wiki` 접미사를 모르고 서버만 거절한다(`ProjectNameRules`). 설정 화면도 같다 | `project.New.js:28-29`, `ProjectNameRules.kt` | |
-| project-F14 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 홈 설명 입력란은 Enter로 저장되지 않는다(`<form onsubmit="return false">`). 저장 실패는 화면에 표시가 없다(콘솔만) | `home.html:32`, `project.Home.js:88-90` | |
+| project-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈 설명 입력란은 Enter로 저장되지 않는다(`<form onsubmit="return false">`). 저장 실패는 화면에 표시가 없다(콘솔만) | `home.html:32`, `project.Home.js:88-90` | |
 | project-F15 **[수정됨, A-457]** | 프로젝트 생성의 VCS 선택 처리기가 `evt.val`을 읽는데(`project.New.js:85`) 보통의 `change` 이벤트 객체에는 `val`이 없다. 그러면 Subversion 경고와 PR 체크 토글이 일어나지 않고 오류로 끝날 것이다 | 코드 읽기만(실행하지 않음) | **추측** |
 
 ## 11. 범위 점검 (이 파일이 다룬 템플릿)

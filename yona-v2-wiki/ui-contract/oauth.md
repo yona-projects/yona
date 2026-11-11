@@ -186,7 +186,7 @@ CLI 쪽 `exchange`는 승인이면 토큰을 발급하고(범위는 승인 때 �
 | oauth-F4 **[검증: v2 추가 기능의 결함, 미수정(설계 한계, 선택 대기)]** | 승인 화면 `POST /oauth2/authorize`에는 요청 위조 방지 토큰 검사가 없고(인가 서버 체인 `csrf.disable`), 일회용 `state`가 대신한다 | `K/oauth2server/AuthorizationServerConfig.kt:74` |
 | oauth-F5 **[검증: v2 추가 기능의 결함, 미수정(보안, 선택 대기)]** | 기기 승인 코드(`XXXX-XXXX`, 20글자 알파벳 8자리 = 약 2.56e10 조합) 입력에 시도 횟수 제한이 없다. 로그인한 사용자만 시도할 수 있고 유효 시간은 15분이다 | `DeviceAuthorizationService.kt:70-87, :117-122` |
 | oauth-F6 **[검증: v2 추가 기능의 결함, 미수정(설계 한계, 선택 대기)]** | 기기 승인에서 승인하는 사람이 CLI를 실행한 사람인지 서버가 확인하지 않는다(화면의 경고 문구에 의존) | `DeviceAuthorizationController.kt:43-50` |
-| oauth-F7 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 로그인 필요 이동에서 질의 문자열이 사라져 `GET /users/device?user_code=...`로 들어온 비로그인 사용자는 로그인 뒤 코드를 다시 입력해야 한다. `GET /oauth2/consent`도 같다(승인 요청은 `/oauth2/resume`으로 별도 보관되므로 승인 흐름에는 영향이 없다) | `K/web/access/AnonymousCheckStage.kt:29`, `K/oauth2server/AuthorizationServerConfig.kt:145` |
+| oauth-F7 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 로그인 필요 이동에서 질의 문자열이 사라져 `GET /users/device?user_code=...`로 들어온 비로그인 사용자는 로그인 뒤 코드를 다시 입력해야 한다. `GET /oauth2/consent`도 같다(승인 요청은 `/oauth2/resume`으로 별도 보관되므로 승인 흐름에는 영향이 없다) | `K/web/access/AnonymousCheckStage.kt:29`, `K/oauth2server/AuthorizationServerConfig.kt:145` |
 | oauth-F8 **[검증: 결함 아님]** | 사용자 앱 만들기를 막아도(`oauthUserAppsEnabled=false`) 기존 앱의 수정, 비밀 값 다시 만들기, 이전, 삭제와 승인 취소는 계속 가능하다. 앱을 새로 받는 `POST /user/oauth-apps`와 `GET .../new`만 `403` | `OAuthAppsSettingsController.kt:65, :73` |
 | oauth-F9 **[검증: 결함 아님]** | `apiToken.scope.offline_access` 메시지가 없다. 앱이 허용 범위 밖의 이 범위를 요청하면 승인 요청 단계에서 거부되어 화면에 도달하지 않는다고 본다(추측, 시험 없음) | `M/messages_ko_KR.properties:1213-1228` |
 
