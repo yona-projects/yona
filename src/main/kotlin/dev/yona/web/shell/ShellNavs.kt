@@ -1,6 +1,8 @@
 package dev.yona.web.shell
 
+import dev.yona.config.YonaProperties
 import dev.yona.domain.site.SiteSettingService
+import dev.yona.security.CurrentUserProvider
 import dev.yona.web.project.ProjectViewContext
 import org.springframework.stereotype.Component
 
@@ -11,7 +13,11 @@ import org.springframework.stereotype.Component
  * (프로젝트 화면 문맥, 조직 관리 권한 등)은 맥락을 옮길 때 이 빈에 더한다.
  */
 @Component("shellNavs")
-class ShellNavs(private val siteSettings: SiteSettingService) {
+class ShellNavs(
+    private val siteSettings: SiteSettingService,
+    private val currentUserProvider: CurrentUserProvider,
+    private val properties: YonaProperties
+) {
 
     /** 사이트 관리 사이드바이다. [updateAvailable]이 `true`이면 업데이트 항목에 배지 1이 붙는다. */
     fun siteAdmin(updateAvailable: Boolean): NavMenu = ShellNav.siteAdmin(updateAvailable)
@@ -54,4 +60,14 @@ class ShellNavs(private val siteSettings: SiteSettingService) {
 
     /** 프로젝트 화면의 메뉴 종류를 사이드바 항목 이름으로 바꾼다. */
     fun projectActiveKey(menuType: String?): String? = ShellNav.projectActiveKey(menuType)
+
+    /**
+     * 프로젝트 밖(홈과 탐색) 사이드바이다. 목록 숨김 설정(`hideProjectListing`)은 익명 사용자와 게스트에게만 적용된다
+     * (설정 설명: "익명 사용자와 게스트에게 프로젝트 목록을 숨긴다").
+     */
+    fun home(): NavMenu {
+        val user = currentUserProvider.get().user
+        val listingHidden = properties.hideProjectListing && (user == null || user.isGuest == true)
+        return ShellNav.home(loggedIn = user != null, hideProjectListing = listingHidden)
+    }
 }

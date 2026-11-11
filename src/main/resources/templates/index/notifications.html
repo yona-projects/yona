@@ -15,7 +15,9 @@
     </th:block>
     <th:block th:unless="${currentUser.anonymous}">
     <div class="page-wrap-outer">
-        <div class="page-wrap">
+        <div class="page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('notifications')}"></th:block>
+        <div class="shell-main">
             <div class="site-guide-outer hide">
                 <h3>
                     <span th:text="#{app.welcome(${site.siteName})} + ' - ' + #{app.description}"></span>
@@ -50,7 +52,7 @@
             <div class="page on-fold-intro">
                 <div class="row content-container">
                     <div class="col-lg-8 main-stream">
-                        <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
+                        <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
                         <ul class="activity-streams notification-wrap list-unstyled">
                             <th:block th:replace="~{index/partial-notifications :: list(${notifications}, 0, 20)}"></th:block>
                         </ul>
@@ -59,7 +61,9 @@
         	       </div>
                 </div>
             </div>
-        </div>
+        
+        </div><!--/* .shell-main */-->
+    </div>
     </div>
     </th:block>
     <script type="text/javascript" th:inline="javascript">

@@ -139,13 +139,13 @@ class HomePageTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `내 활동 탭 메뉴에서 알림 탭이 활성이다`() {
+    fun `내 활동 메뉴는 탭 대신 사이드바이고 알림 항목이 활성이다(D-141)`() {
         val (session, _) = login()
-        val tabs = page("/", session).select(".main-stream ul.nav-tabs > li")
-        assertEquals(listOf("/notifications", "/user/issues", "/user/files"), tabs.take(3).map { it.selectFirst("a")!!.attr("href") })
-        assertEquals(listOf("Notification", "My Issues", "My Files"), tabs.take(3).map { it.text() })
-        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
-        assertFalse(tabs[1].selectFirst("a")!!.hasClass("active"))
+        val items = page("/", session).select("nav.shell-sidebar a.nav-link")
+        assertEquals(listOf("/projects", "/orgs", "/user/issues", "/", "/user/files"), items.map { it.attr("href") })
+        assertEquals(listOf("My Issues", "Notification", "My Files"), items.drop(2).map { it.text().trim() })
+        assertEquals(listOf("/"), items.filter { it.hasClass("active") }.map { it.attr("href") })
+        assertTrue(page("/", session).select(".main-stream ul.nav-tabs a[href=\"/user/files\"]").isEmpty(), "본문 위의 옛 탭 줄이 없어야 한다")
     }
 
     @Test

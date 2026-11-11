@@ -16,3 +16,14 @@
         </th:block>
     </th:block></li>
 </ul>
+
+<!--/*
+  D-141: 탭 3개(알림, 내 이슈, 내 파일)는 프로젝트 밖 사이드바로 옮겨 갔다. 이 조각은 탭이 아닌 기능인 "기본 페이지로 지정" 단추만 그린다.
+*/-->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="defaultPageButton(viewType)" class="mb-3">
+    <th:block th:if="${viewType == 'TAB_NOTI' or viewType == 'TAB_MY_ISSUES'}">
+        <th:block th:if="${requestPath != '/' and requestPath.substring(1) != currentUser.loginDefaultPage}">
+            <button id="setDefaultLoginPage" type="button" class="ybtn hide-in-mobile" th:data-url="${requestPath.substring(1)}" th:title="#{button.setDefaultLoginPage}" data-bs-trigger="hover" data-bs-placement="bottom" data-bs-toggle="popover" th:data-bs-content="#{button.setDefaultLoginPage.desc}" th:text="#{button.setDefaultLoginPage}"></button>
+        </th:block>
+    </th:block>
+</div>

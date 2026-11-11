@@ -309,8 +309,8 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val second = newOrg("둘째")
         val page = page("/orgs", login(newUser()))
         assertEquals("Project list", page.title())
-        assertEquals(listOf("PUBLIC Project list", "Group List"), page.select(".site-breadcrumb-inner li").map { it.text().trim() })
-        assertTrue(page.selectFirst(".site-breadcrumb-inner a.nav-link.active")!!.attr("href") == "/orgs")
+        assertEquals("Group List", page.selectFirst(".site-breadcrumb-inner h3")!!.text().trim())
+        assertEquals("/orgs", page.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         assertEquals(listOf(second.name, first.name), page.select("ul.all-projects li.project .header a.black").map { it.text() })
         assertEquals("둘째", page.selectFirst("ul.all-projects li.project .desc")?.text())
     }

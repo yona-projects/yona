@@ -12,8 +12,10 @@
 <th:block th:fragment="filesPage">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/filetype.css}">
 <div class="page-wrap-outer">
-    <div class="page-wrap">
-        <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
+    <div class="page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('myFiles')}"></th:block>
+        <div class="shell-main">
+        <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
         <form th:action="@{/user/files}">
         <div class="user-file-search search search-bar">
             <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" th:value="${filter}">
@@ -38,6 +40,8 @@
                 <div class="col-lg-3 file-location"><a th:if="${row.location != null}" th:href="@{${row.location}}" target="_blank" th:text="@{${row.location}}"></a></div>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
     <!-- pagination.js will fill here. -->
     <div id="pagination"></div>

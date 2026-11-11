@@ -83,7 +83,7 @@ class UserFilesTest : AbstractIntegrationTest() {
     @Test
     fun `내 파일 탭이 활성화된다`() {
         val doc = page(login(newUser()))
-        assertEquals("/user/files", doc.selectFirst(".page-wrap > ul.nav-tabs a.nav-link.active")!!.attr("href"))
+        assertEquals("/user/files", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     @Test

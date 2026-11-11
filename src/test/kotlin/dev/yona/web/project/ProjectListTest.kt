@@ -99,13 +99,12 @@ class ProjectListTest : AbstractIntegrationTest() {
     // --- 기본 화면 ---
 
     @Test
-    fun `제목과 탭이 있다`() {
+    fun `제목이 있고 목록 탭은 사이드바로 옮겨 갔다(D-141)`() {
         val doc = page()
         assertEquals("Project list", doc.title())
-        val tabs = doc.select(".title_area ul.nav-tabs li a")
-        assertEquals(listOf("/projects", "/orgs"), tabs.map { it.attr("href") })
-        assertEquals(listOf("PUBLIC Project list", "Group List"), tabs.map { it.text() })
-        assertTrue(doc.selectFirst(".title_area ul.nav-tabs li a")!!.hasClass("active"))
+        assertEquals("PUBLIC Project list", doc.selectFirst(".title_area h3")!!.text().trim())
+        assertEquals(listOf("/projects", "/orgs"), doc.select("nav.shell-sidebar a.nav-link").map { it.attr("href") }.take(2))
+        assertTrue(doc.select(".title_area ul.nav-tabs").isEmpty(), "사이드바와 중복인 탭 줄이 없어야 한다")
         assertTrue(doc.select("header.gnb-nav li.active, .gnb-nav li.active").isNotEmpty(), "상단 메뉴의 목록이 활성이다")
     }
 
