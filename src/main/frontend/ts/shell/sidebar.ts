@@ -2,7 +2,7 @@
  * 새 셸 사이드바의 숨기기와 다시 보이기이다(D-141, A-469 5번).
  *
  * 넓은 폭(Bootstrap `lg`, 992px 이상)에서만 사이드바를 숨길 수 있고, 숨김 상태는 `<html data-sidebar="collapsed">`로 그리며
- * localStorage(`shellSidebarCollapsed`)에 기억한다. 좁은 폭은 서랍(`offcanvas`)이 맡으므로 상태를 바꾸지도 기억하지도 않는다.
+ * localStorage(`shellSidebarCollapsed`)에 기억한다. 좁은 폭은 서랍(`offcanvas`)이 맡으므로 상태를 바꾸지도 기억하지도 않고, 같은 단추가 서랍을 연다(A-487).
  * 저장소를 쓸 수 없어도(차단, 가득 참) 이번 화면에서는 동작한다.
  */
 
@@ -12,6 +12,8 @@ const ATTRIBUTE = "data-sidebar";
 const COLLAPSED = "collapsed";
 /** 숨기기를 허용하는 폭이다. Bootstrap 기본 `lg`와 같다. */
 const WIDE_QUERY = "(min-width: 992px)";
+/** 좁은 폭에서 서랍으로 열리는 사이드바이다. */
+const DRAWER_SELECTOR = "nav.shell-sidebar";
 /** 숨기기 단추를 가리키는 선택자이다. */
 const TOGGLE_SELECTOR = "[data-shell-sidebar-toggle]";
 
@@ -64,7 +66,12 @@ export function initSidebar(root: Document = document): SidebarApi {
   };
 
   const toggle = (): boolean => {
-    if (!window.matchMedia(WIDE_QUERY).matches) return collapsed;
+    if (!window.matchMedia(WIDE_QUERY).matches) {
+      // 좁은 폭에서는 사이드바가 서랍(offcanvas)이므로 숨김 상태를 바꾸지 않고 서랍을 연다. Bootstrap이 없는 화면에서는 아무 일도 하지 않는다.
+      const drawer = root.querySelector(DRAWER_SELECTOR);
+      if (drawer) window.bootstrap?.Offcanvas.getOrCreateInstance(drawer).toggle();
+      return collapsed;
+    }
     collapsed = !collapsed;
     writeStored(collapsed);
     apply();

@@ -112,11 +112,6 @@ $shell-gap: 14px;
     }
 }
 
-.shell-sidebar-toggle {
-    // 좁은 폭에서 본문 위에 놓이는 열기 단추이다(lg 이상에서는 `d-lg-none`이 숨긴다).
-    margin-bottom: 12px;
-}
-
 // 머리 아래의 여백이다. 예전에는 조직 머리의 로고가 배너 밖으로 튀어나와 40px가 필요했지만, 머리가 얇은 한 줄이 되어(A-483) 작은 여백이면 된다.
 .shell-below-banner {
     padding-top: 12px;
@@ -129,54 +124,35 @@ $shell-gap: 14px;
     font-weight: normal;
 }
 
-// 사이드바 숨기기와 다시 보이기(넓은 폭에서만, shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다).
-.shell-sidebar-collapse {
-    float: right;
-    margin: 0 0 4px;
-    padding: 0 6px;
-    border: 0;
-    background: none;
-    color: #999;
-    line-height: 1.5rem;
-
-    &:hover,
-    &:focus-visible {
-        color: $yobi-orange-dark;
-    }
-}
-
-.shell-sidebar-expand {
-    display: none;
-}
-
+// 사이드바 숨기기(넓은 폭에서만, shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 접고 펴는 단추는 상단 바의 햄버거 하나이다(A-487).
 @media (min-width: 992px) {
-    html[data-sidebar="collapsed"] {
-        .shell-sidebar {
-            display: none;
-        }
-
-        .shell-sidebar-expand {
-            display: inline-flex;
-            align-self: flex-start;
-            margin-right: $shell-gap;
-        }
+    html[data-sidebar="collapsed"] .shell-sidebar {
+        display: none;
     }
 }
 
-// 상단 바 맨 왼쪽의 햄버거 단추. 누르면 전환 패널(즐겨찾기, 프로젝트, 최근 이슈)이 열린다. 상단 바의 다른 항목과 같은 줄에서 세로 가운데로 맞춘다.
+// 상단 바의 두 아이콘 단추이다(A-487). 맨 왼쪽 햄버거(.shell-sidebar-btn)는 사이드바를 접고 펴며(좁은 폭에서는 서랍),
+// 로고 오른쪽의 전환 단추(.shell-switcher-btn)는 즐겨찾기, 프로젝트, 최근 이슈 패널을 연다. 상단 바의 다른 항목과 같은 줄에서 세로 가운데로 맞춘다.
+.gnb-sidebar-toggle,
 .gnb-switcher {
     display: flex;
     align-items: center;
     height: 40px; // 상단 바 줄 높이(.gnb-inner)와 같게 해야 단추가 로고, 검색창과 같은 가운데 선에 놓인다.
 }
 
+// 사이드바가 없는 화면(로그인, 프로젝트 목록 등)에서는 사이드바 햄버거를 숨긴다.
+.main:not(:has(.shell-sidebar)) .gnb-sidebar-toggle {
+    display: none;
+}
+
+.shell-sidebar-btn,
 .shell-switcher-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 28px;
-    margin-right: 6px;
+    margin: 0 4px 0 0;
     padding: 0;
     border: 0;
     border-radius: 4px;
@@ -189,24 +165,37 @@ $shell-gap: 14px;
     }
 }
 
+// 프로젝트나 조직 머리가 같은 이름을 보이는 화면에서는 사이드바 머리글(프로젝트 이름)을 숨긴다(A-487). 좁은 폭의 서랍 머리는 그대로이다.
+.main:has(.project-header-outer) .shell-sidebar-title {
+    display: none !important;
+}
 // 코드 비교와 커밋 화면의 줄 댓글 아이콘(`.yobicon-comments`)은 표 왼쪽 바깥(약 30px)에 놓인다. 사이드바 옆에서는 아이콘이
 // 사이드바 위로 겹쳐 클릭을 사이드바가 가로채므로, 표 왼쪽에 아이콘이 들어갈 자리를 둔다.
 .shell-main .diff-body {
     padding-left: 34px;
 }
 
-// 좁은 폭의 상단 바: 왼쪽 항목(햄버거, 로고, 전체 목록, 문의하기)과 오른쪽 사용자 메뉴(약 222px)의 합계가 폭보다 크면 float된 사용자 메뉴가
-// 아래 줄로 밀려 머리 위에 겹친다. 덜 중요한 항목을 폭에 따라 숨긴다(문의하기는 576 미만, 전체 목록은 420 미만에서. 프로젝트 목록은 홈 사이드바에도 있다).
+// 좁은 폭의 상단 바: 왼쪽 항목(햄버거, 로고, 전환, 전체 목록, 문의하기)과 오른쪽 사용자 메뉴(약 222px)의 합계가 폭보다 크면 float된 사용자 메뉴가
+// 아래 줄로 밀려 머리 위에 겹친다. 덜 중요한 항목을 폭에 따라 숨기고 여백을 줄인다(문의하기는 576 미만, 전체 목록은 480 미만에서. 프로젝트 목록은 홈 사이드바에도 있다).
 @media (max-width: 575.98px) {
     .gnb-feedback {
         display: none;
     }
+
+    .gnb-inner .gnb-nav {
+        margin-left: 4px;
+    }
+
+    .shell-sidebar-btn,
+    .shell-switcher-btn {
+        width: 30px;
+        margin-right: 2px;
+    }
 }
 
-@media (max-width: 419.98px) {
+@media (max-width: 479.98px) {
     .gnb-projects,
     .gnb-nav .divider {
         display: none;
     }
 }
-

@@ -16,7 +16,7 @@ const PAGE = `<div id="main" class="main">
     <div class="project-util-wrap"><ul class="project-util"><li><div class="btn-group dropdown watch-btn"><a class="btn btn-sm btn-success watcher-count" href="#">1</a><button class="btn btn-sm btn-light" type="button">지켜보기</button></div></li></ul></div>
   </div></div></div>
   <div class="page-wrap-outer"><div class="project-page-wrap shell shell-below-banner">
-    <nav class="shell-sidebar offcanvas-lg offcanvas-start"><div class="offcanvas-body"><ul class="nav"><li class="nav-item"><a class="nav-link" href="/a">홈</a></li></ul></div></nav>
+    <nav class="shell-sidebar offcanvas-lg offcanvas-start"><div class="offcanvas-body"><div class="shell-sidebar-title d-none d-lg-block">admin/demo</div><ul class="nav"><li class="nav-item"><a class="nav-link" href="/a">홈</a></li></ul></div></nav>
     <div class="shell-main"><div class="project-cover" style="background-image:url(data:image/gif;base64,R0lGODlhAQABAAAAACw=)"></div><p>본문</p></div>
   </div></div></div>`;
 
@@ -79,5 +79,9 @@ export const tests = [
     const crumb = await box(page, '.project-breadcrumb-wrap'); const util = await box(page, '.project-util-wrap');
     const overlap = crumb.left < util.right && util.left < crumb.right && crumb.top < util.bottom && util.top < crumb.bottom;
     assert.equal(overlap, false, `이름 [${crumb.left},${crumb.right}], 단추 [${util.left},${util.right}]`);
+  } },
+  { name: '머리에 같은 이름이 있으면 사이드바 머리글(프로젝트 이름)은 숨긴다(A-487)', async run() {
+    const page = await open(1280);
+    assert.equal(await page.isVisible('.shell-sidebar-title'), false, '머리줄이 이름을 보이므로 사이드바에서 되풀이하지 않는다');
   } },
 ];

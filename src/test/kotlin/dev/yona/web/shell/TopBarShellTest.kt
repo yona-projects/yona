@@ -44,18 +44,41 @@ class TopBarShellTest : AbstractIntegrationTest() {
         Jsoup.parse(mockMvc.perform(get(path).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
 
     @Test
-    fun `로그인하면 상단 바에 전환 단추가 있고 전환 패널을 가리킨다`() {
+    fun `상단 바 맨 왼쪽의 햄버거는 사이드바를 접고 펴며 서랍을 연다(A-487)`() {
         val doc = page("/user/issues", login())
-        val button = doc.selectFirst("button.shell-switcher-btn[data-shell-switcher]")
+        val items = doc.select("ul.gnb-nav > li")
+        val button = items.first()!!.selectFirst("button.shell-sidebar-btn[data-shell-sidebar-toggle]")
+        assertNotNull(button, "첫 항목이 사이드바 단추이다")
+        assertNotNull(button.selectFirst("svg"), "햄버거 아이콘이다")
+        assertTrue(button.text().isBlank(), "글자 없이 아이콘만 그린다")
+        assertTrue(!button.hasAttr("data-bs-toggle"), "Bootstrap의 data-bs-toggle은 넓은 화면에서도 배경 막을 만들므로 쓰지 않고 shell/sidebar 모듈이 폭에 따라 처리한다")
+        assertEquals("shellSidebar", button.attr("aria-controls"))
+        assertEquals("true", button.attr("aria-expanded"))
+        assertTrue(button.attr("aria-label").isNotBlank())
+    }
+
+    @Test
+    fun `전환 단추는 로고 오른쪽의 별도 아이콘이고 전환 패널을 가리킨다(A-487)`() {
+        val doc = page("/user/issues", login())
+        val items = doc.select("ul.gnb-nav > li")
+        assertTrue(items[1].selectFirst("a.logo") != null, "두 번째 항목은 로고이다")
+        val li = items[2]
+        assertTrue(li.hasClass("gnb-switcher"), "세 번째 항목이 전환 단추이다: ${li.className()}")
+        val button = li.selectFirst("button.shell-switcher-btn[data-shell-switcher]")
         assertNotNull(button)
-        assertNotNull(button.selectFirst("svg"), "글자 단추가 아니라 햄버거 아이콘이어야 한다")
-        assertTrue(button.text().isBlank(), "아이콘만 그린다(이름은 aria-label과 title이 맡는다)")
-        assertEquals("li", button.parent()!!.tagName(), "로고와 같은 줄(ul.gnb-nav)에 놓인다")
-        assertEquals("gnb-nav", button.parent()!!.parent()!!.className().trim())
-        assertEquals(button.parent(), button.parent()!!.parent()!!.child(0), "로고보다 왼쪽(첫 항목)이다")
+        assertNotNull(button.selectFirst("svg"))
+        assertTrue(button.text().isBlank())
         assertEquals("mySidenav", button.attr("aria-controls"))
         assertTrue(button.attr("aria-label").isNotBlank())
         assertNotNull(doc.selectFirst("#mySidenav #usermenu-tab-content-list"), "전환 패널의 목록 자리는 그대로이다")
+    }
+
+    @Test
+    fun `사이드바 안과 본문에는 따로 접기와 펴기 단추가 없다(상단 바 햄버거 하나로 합쳤다)`() {
+        val doc = page("/user/issues", login())
+        assertNull(doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]"))
+        assertNull(doc.selectFirst(".shell-sidebar-collapse, .shell-sidebar-expand, .shell-sidebar-toggle"))
+        assertEquals(1, doc.select("[data-shell-sidebar-toggle]").size, "사이드바 단추는 상단 바에 하나뿐이다")
     }
 
     @Test

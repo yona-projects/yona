@@ -8,4 +8,6 @@ interface Window {
 
   /** 화면이 불러 둔 htmx이다(`lib/htmx.js`). 새 모듈은 쓰는 메서드만 선언한다. 없는 화면도 있다. */
   htmx?: { process(element: Element): void };
+  /** Bootstrap 5 전역이다(`bootstrap.bundle.min.js`). 좁은 폭의 사이드바 서랍을 열고 닫는 데 쓰며, 없는 화면도 있다. */
+  bootstrap?: { Offcanvas: { getOrCreateInstance(element: Element): { toggle(): void } } };
 }

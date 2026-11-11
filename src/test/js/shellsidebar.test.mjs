@@ -48,4 +48,23 @@ export const tests = [
     await page.click('#t'); assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-sidebar')), 'collapsed');
     assert.deepEqual(page.errors, []); await ctx.close();
   } },
+  { name: '좁은 폭에서 햄버거를 누르면 서랍(Bootstrap Offcanvas)을 토글하고 숨김 상태는 바꾸지 않는다(A-487)', run: async () => {
+    const { page, ctx } = await open();
+    await page.setViewportSize({ width: 600, height: 800 });
+    await page.evaluate(() => { window.__drawer = 0; window.bootstrap = { Offcanvas: { getOrCreateInstance() { return { toggle() { window.__drawer += 1; } }; } } }; });
+    await page.click('#t');
+    assert.equal(await page.evaluate(() => window.__drawer), 1, '서랍을 한 번 토글한다');
+    assert.deepEqual(await state(page), [null, null], '숨김 상태는 바꾸거나 기억하지 않는다');
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.click('#t');
+    assert.equal(await page.evaluate(() => window.__drawer), 1, '넓은 폭에서는 서랍을 건드리지 않는다');
+    assert.equal((await state(page))[0], 'collapsed');
+    assert.deepEqual(page.errors, []); await ctx.close();
+  } },
+  { name: 'Bootstrap이 없는 화면에서도 좁은 폭의 햄버거가 오류를 내지 않는다', run: async () => {
+    const { page, ctx } = await open();
+    await page.setViewportSize({ width: 600, height: 800 });
+    await page.click('#t');
+    assert.deepEqual(page.errors, []); await ctx.close();
+  } },
 ];

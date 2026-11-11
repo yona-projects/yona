@@ -9,11 +9,7 @@
           th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
 <script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; initSidebar(); initNavigation(); initFill();</script>
-<button type="button" class="btn btn-outline-secondary btn-sm shell-sidebar-expand" data-shell-sidebar-toggle aria-expanded="false" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.expand}" th:title="#{sidebar.expand}"><i class="yobicon-menu" aria-hidden="true"></i></button>
-<button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
-        data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
-    <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>
-</button>
+<!--/* A-487: 사이드바를 접고 펴는 단추와 좁은 폭의 서랍 단추는 상단 바의 햄버거(common/navbar) 하나로 합쳤다. */-->
 <nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
     <div class="offcanvas-header d-lg-none">
         <h2 class="offcanvas-title h5" th:id="${id} + '-label'" th:text="${title}"></h2>
@@ -23,7 +19,6 @@
         <!--/* 넓은 화면의 머리글이다. 좁은 폭의 서랍은 위의 offcanvas-header가 같은 이름을 보인다. */-->
         <div class="shell-sidebar-title d-none d-lg-block" th:text="${title}"></div>
         <a class="shell-sidebar-back" th:if="${menu.back != null}" th:href="@{${menu.back.path}}">&larr; <th:block th:text="#{${menu.back.labelKey}}"></th:block></a>
-        <button type="button" class="shell-sidebar-collapse d-none d-lg-block" data-shell-sidebar-toggle aria-expanded="true" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.collapse}" th:title="#{sidebar.collapse}"><i class="yobicon-arrow-left" aria-hidden="true"></i></button>
         <ul class="nav nav-pills flex-column shell-sidebar-nav">
             <li class="nav-item" th:each="item : ${menu.items}">
                 <a class="nav-link" th:classappend="${item.key == activeKey} ? 'active'" th:href="@{${item.path}}"

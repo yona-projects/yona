@@ -70,16 +70,16 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이드바는 offcanvas-lg이고 좁은 폭용 열기 단추가 사이드바를 가리킨다`() {
+    fun `사이드바는 offcanvas-lg이고 상단 바 햄버거가 사이드바를 가리킨다(A-487)`() {
         val doc = page("/sites/sso")
         val nav = doc.selectFirst("nav.shell-sidebar")!!
         assertTrue(nav.hasClass("offcanvas-lg"))
         val id = nav.id()
         assertTrue(id.isNotEmpty())
-        val open = doc.selectFirst("button[data-bs-toggle=offcanvas][data-bs-target=#$id]")
-        assertNotNull(open)
+        val open = doc.selectFirst("header.gnb-outer button[data-shell-sidebar-toggle][aria-controls=$id]")
+        assertNotNull(open, "상단 바의 햄버거가 사이드바를 가리킨다(좁은 폭에서는 서랍을 연다)")
         assertTrue(open.attr("aria-label").isNotBlank())
-        assertEquals(id, open.attr("aria-controls"))
+        assertNull(doc.selectFirst("button[data-bs-toggle=offcanvas]"), "사이드바 옆의 따로 있던 서랍 단추는 없다")
         assertEquals("/sites/sso", nav.selectFirst("a.nav-link.active")!!.attr("href"))
     }
 
@@ -98,15 +98,12 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `넓은 폭에서 사이드바를 숨기고 다시 보이는 단추와 모듈이 있다`() {
+    fun `넓은 폭에서 사이드바를 숨기고 다시 보이는 단추는 상단 바에 있고 모듈이 켠다`() {
         val doc = page("/sites/userList")
-        val nav = doc.selectFirst("nav.shell-sidebar")!!
-        val collapse = nav.selectFirst("button[data-shell-sidebar-toggle]")
-        assertNotNull(collapse, "사이드바 안에 숨기기 단추가 있다")
-        assertEquals("true", collapse.attr("aria-expanded"))
-        assertTrue(collapse.attr("aria-label").isNotBlank())
-        val expand = doc.selectFirst(".shell > button.shell-sidebar-expand[data-shell-sidebar-toggle]")
-        assertNotNull(expand, "숨겨졌을 때 다시 보이는 단추는 사이드바 밖에 있다")
+        val toggle = doc.selectFirst("header.gnb-outer button[data-shell-sidebar-toggle]")
+        assertNotNull(toggle, "숨기기와 보이기는 상단 바의 햄버거 하나가 맡는다(A-487)")
+        assertEquals("true", toggle.attr("aria-expanded"))
+        assertNull(doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]"), "사이드바 안에는 따로 없다")
         assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
         assertTrue(doc.select("script").any { it.data().contains("shellSidebarCollapsed") }, "첫 그림 전에 기억한 상태를 적용하는 짧은 스크립트")
     }

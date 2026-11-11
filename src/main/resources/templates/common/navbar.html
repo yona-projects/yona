@@ -19,14 +19,20 @@
 <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header'">
     <div class="gnb-inner">
         <ul class="gnb-nav">
-            <!--/* D-134 결정 7, D-141: 핀 사이드바(iframe)는 이 햄버거 단추 하나로 합쳤다. 누르면 전환 패널(#mySidenav)이 열린다. F 키도 같다. */-->
-            <li th:if="${!currentUser.anonymous}" class="gnb-switcher">
-                <button type="button" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" th:aria-label="#{shell.switcher}" th:title="#{shell.switcher} + ' (F)'">
+            <!--/* A-487: 맨 왼쪽 햄버거는 사이드바를 접고 편다(좁은 폭에서는 서랍을 연다). 사이드바가 없는 화면에서는 CSS가 숨긴다. */-->
+            <li class="gnb-sidebar-toggle">
+                <button type="button" class="shell-sidebar-btn" data-shell-sidebar-toggle aria-controls="shellSidebar" aria-expanded="true" th:aria-label="#{sidebar.toggle}" th:title="#{sidebar.toggle} + ' ([)'">
                     <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" focusable="false"><path d="M0 1h18M0 7h18M0 13h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
                 </button>
             </li>
             <li>
                 <a th:href="@{/}" class="logo logo-letter">Y</a>
+            </li>
+            <!--/* D-134 결정 7, D-141, A-487: 핀 사이드바(iframe)를 합친 전환 패널(즐겨찾기, 프로젝트, 최근 이슈)을 여는 별도 아이콘이다. F 키도 같다. */-->
+            <li th:if="${!currentUser.anonymous}" class="gnb-switcher">
+                <button type="button" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" th:aria-label="#{shell.switcher}" th:title="#{shell.switcher} + ' (F)'">
+                    <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" focusable="false"><path d="M1 4h14M12 1l3 3-3 3M17 10H3M6 7l-3 3 3 3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+                </button>
             </li>
             <th:block th:if="${!site.hideProjectListing and !currentUser.guest}">
                 <li class="gnb-projects" th:classappend="${menu == 'PROJECTS'} ? 'active'">
