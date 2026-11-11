@@ -54,6 +54,14 @@ updated: 2026-11-11
 ## 브라우저: 숨기기
 `shell/sidebar.ts`(`ui-ts-build.md`). 사이드바 조각이 import map 이름(`yona/shell/sidebar.js`)으로 불러 컨텍스트 경로에 안전하다.
 
+## 브라우저: 사이드바 이동(htmx, D-136)
+`shell/navigation.ts`. 사이드바 조각(`nav.shell-sidebar`)은 `hx-target=".shell-main"`, `hx-select=".shell-main"`, `hx-select-oob="#shellSidebar, #pageTitle"`, `hx-swap="outerHTML show:window:top"`를 선언한다. 서버는 조각 응답을 따로 만들지 않는다(전체 문서를 그대로 내리고 htmx가 필요한 부분만 고른다). 그래서 `Vary: HX-Request`도 필요 없다.
+- **옵트인**: 본문 안에 `<span data-swap-safe hidden></span>`이 있는 화면만 swap-safe이다. 지금 화면에 표지가 있을 때만 모듈이 사이드바에 `hx-boost`를 켠다. 문서 수준 핸들러나 타이머를 쌓는 옛 스크립트가 있는 화면에는 표지를 달지 않는다(일반 이동).
+- **응답 쪽 물러남**: 응답에 표지(또는 목록 표지 `list-container`)가 없으면 `yona.Htmx.js`가 일반 이동으로 같은 주소를 다시 연다(요청이 한 번 더 나가지만 안전하다). 번들(`yona-layout.js`)을 다시 만들어 커밋했다.
+- **교체되는 것**: 본문, 사이드바(활성 항목 갱신), 제목 띠(`id="pageTitle"`, 내 설정 20개 화면). `hx-select-oob`는 같은 `id`의 요소끼리 맞바꾼다. 문서 제목은 `hx-select`가 응답의 `<title>`을 쓰지 않아 모듈이 직접 옮긴다.
+- **지금 표지가 있는 화면**: 사이트 관리 7개(`audit`, `diagnostic`, `lfs`, `mail`, `security`, `sso`, `update`), 내 설정 8개(`edit-audit`, `edit-gpg-new`, `edit-ssh-new`, `edit-token-new`, `edit-two-factor-codes`, `edit-two-factor-setup`, `edit-oauth-app-form`, `edit-oauth-app-secret`). 판정 기준은 템플릿에 `<script>`, `th:inline`, `loadModule`, `onsubmit`, `onclick`이 없는 것이다(예비 판정이며 화면 시험으로 확정한다).
+- 이동 이력은 `yona.Htmx.js`의 설정대로 서버 재로드이다(`historyCacheSize=0`).
+
 ## 시험
 | 시험 | 지키는 것 |
 |---|---|
@@ -62,9 +70,10 @@ updated: 2026-11-11
 | `ContextPathLinksTest` | 새 화면의 링크가 컨텍스트 경로를 잃지 않음 |
 | `MessageParityTest` | 새 메시지 키가 5개 번들에 있음 |
 | `shellsidebar.test.mjs` | 숨기기 동작(실제 Chromium) |
+| `shellnav.test.mjs` | 표지가 있는 화면끼리 본문과 사이드바만 바꾸고 문서를 다시 불러오지 않음, 표지가 없으면 일반 이동 |
 옛 가로 메뉴나 설정 탭을 확인하던 기존 시험은 새 마크업(`nav.shell-sidebar`) 기준으로 고쳤다.
 
 ## 아직 남은 것
 - 상단 바의 내 이슈 링크, 개발팀 문의, 업데이트 알림 띠, 프로젝트 머리 배경 배너는 옛 모양 그대로이다(선생님 결정 대기, `ui-removed-elements.md`).
 - 이제 쓰이지 않는 옛 메뉴 조각과 스타일은 모든 작업이 끝난 뒤 지운다(같은 문서의 죽은 코드 후보).
-- htmx 이동(D-136), `Page` 수명주기, 저장소(D-135)는 첫 사용처를 정한 뒤 진행한다.
+- 조직, 프로젝트, 프로젝트 밖 화면의 swap-safe 판정과 표지(스크립트가 있는 화면은 모듈을 `Page` 규약으로 옮기면서 표지를 단다). `Page` 수명주기, 저장소(D-135)는 첫 사용처가 생기면 만든다.

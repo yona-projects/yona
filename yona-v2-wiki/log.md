@@ -38,3 +38,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | 사이드바 숨기기(TypeScript 첫 화면 모듈) (A-472)
 
 `shell/sidebar.ts`를 만들었다. 시험을 먼저 썼다(JS 5개와 Kotlin 템플릿 시험). 넓은 폭에서 사이드바를 숨기고 다시 보이며 상태를 기억한다. `next` 브랜치로는 이동하지 않는다는 지시를 받아 `ui-improvements`에서만 작업한다.
+
+## [2026-11-11] feat | 사이드바 htmx 이동 (D-136, A-473)
+
+`shell/navigation.ts`를 만들고 사이트 관리 7개, 내 설정 8개 화면을 swap-safe로 옵트인했다. 표지가 있는 화면끼리는 본문, 사이드바, 제목 띠만 바꾸고 문서를 다시 불러오지 않는다(실제 브라우저에서 확인: 센티널 유지, 요청은 XHR 하나). `/loop`를 멈추지 말라는 지시를 받아 반복을 다시 걸었다.
