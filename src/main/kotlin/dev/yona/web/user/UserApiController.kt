@@ -6,6 +6,7 @@ import dev.yona.web.access.AnonymousCheck
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpHeaders
+import org.springframework.web.util.HtmlUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -39,7 +40,8 @@ class UserApiController(
         val items = page.content.map { user ->
             mapOf(
                 "info" to "<img class='mention_image' src='${avatars.avatarUrl(user, MENTION_AVATAR_SIZE)}'>" +
-                    "<b class='mention_name'>${user.name}</b><span class='mention_username'> @${user.loginId}</span>",
+                    // v1.6은 이름을 이스케이프 없이 담아 이름에 든 태그가 입력란 목록에 요소로 삽입되었다(project-F22). 이름과 아이디를 이스케이프한다.
+                    "<b class='mention_name'>${HtmlUtils.htmlEscape(user.name.orEmpty())}</b><span class='mention_username'> @${HtmlUtils.htmlEscape(user.loginId.orEmpty())}</span>",
                 "loginId" to user.loginId.orEmpty()
             )
         }
