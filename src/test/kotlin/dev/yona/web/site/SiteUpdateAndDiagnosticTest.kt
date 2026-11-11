@@ -25,11 +25,13 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import org.mockito.Mockito
 import java.util.Date
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -123,6 +125,30 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
         assertEquals("/sites/unwatchUpdate", notice.selectFirst("button")!!.attr("data-request-uri"))
         mockMvc.perform(post("/sites/unwatchUpdate").session(session)).andExpect(status().isOk).andExpect(content().string(""))
         assertTrue(notice(session).isEmpty())
+    }
+
+    @Test
+    fun `알림을 끄면 업데이트 화면에서 다시 켤 수 있다 (site-F6, 서버를 다시 시작해도 꺼져 있어 켜는 화면이 필요하다)`() {
+        tags("v99.0.0")
+        updates.refresh()
+        val session = admin()
+        fun screen() = Jsoup.parse(mockMvc.perform(get("/sites/update").session(session)).andReturn().response.contentAsString)
+        // 켜져 있으면 상태만 보인다(끄기는 알림 위의 "숨기기" 단추)
+        assertEquals("on", screen().selectFirst("#update-notice-state")!!.attr("data-state"))
+        assertNull(screen().selectFirst("form#update-notice-form"))
+        mockMvc.perform(post("/sites/unwatchUpdate").session(session)).andExpect(status().isOk)
+        assertTrue(notice(session).isEmpty())
+        // 꺼져 있으면 상태와 켜기 단추가 보이고, 누르면 업데이트 화면으로 돌아오며 알림이 다시 보인다
+        assertEquals("off", screen().selectFirst("#update-notice-state")!!.attr("data-state"))
+        assertEquals("/sites/watchUpdate", screen().selectFirst("form#update-notice-form")!!.attr("action"))
+        mockMvc.perform(post("/sites/watchUpdate").session(session)).andExpect(status().isSeeOther).andExpect(header().string("Location", "/sites/update"))
+        assertTrue(notice(session).isNotEmpty(), "다시 켠 뒤에도 알림이 보이지 않는다")
+        assertEquals("on", screen().selectFirst("#update-notice-state")!!.attr("data-state"))
+    }
+
+    @Test
+    fun `알림 켜기는 사이트 관리자만 쓴다`() {
+        mockMvc.perform(post("/sites/watchUpdate").session(login(newUser()))).andExpect(status().isForbidden)
     }
 
     @Test

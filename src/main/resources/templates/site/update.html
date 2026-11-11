@@ -19,6 +19,12 @@
 
     <p th:if="${currentVersion != null}" th:text="#{site.update.currentVersion(${currentVersion})}"></p>
 
+    <!--/* 새 버전 알림 상태. 끄기는 알림 위의 "숨기기" 단추이고, 꺼 두면 서버를 다시 시작해도 꺼져 있으므로 여기서 다시 켠다(site-F6) */-->
+    <p id="update-notice-state" th:attr="data-state=${noticeOn} ? 'on' : 'off'" th:text="${noticeOn} ? #{site.update.notice.on} : #{site.update.notice.off}"></p>
+    <form id="update-notice-form" th:unless="${noticeOn}" th:action="@{/sites/watchUpdate}" method="post">
+      <button type="submit" class="ybtn ybtn-info" th:text="#{site.update.notice.enable}"></button>
+    </form>
+
     <p th:if="${versionToUpdate == null and failure == null}" th:text="#{site.update.isNotNecessary(${currentVersion})}"></p>
 
     <th:block th:if="${failure != null}">

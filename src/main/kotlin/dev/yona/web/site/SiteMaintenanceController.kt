@@ -45,12 +45,20 @@ class SiteMaintenanceController(
         return ModelAndView("site/update")
             .addObject("title", "title.siteSetting")
             .addObject("currentVersion", currentVersion)
+            .addObject("noticeOn", updates.noticeOn)
             .addObject("versionToUpdate", version)
             .addObject("releaseUrl", version?.let { updates.releaseUrl(it) })
             .addObject("failure", failure?.stackTraceToString())
     }
 
-    /** 새 버전 알림을 끈다. 서버 전체에 적용되고 서버를 다시 시작하면 켜진다. */
+    /** 새 버전 알림을 다시 켠다. 업데이트 화면의 "알림 켜기" 폼이 보내고, 끝나면 업데이트 화면으로 돌아간다(site-F6). */
+    @PostMapping("/sites/watchUpdate")
+    fun watchUpdate(): ResponseEntity<Void> {
+        updates.watch()
+        return ResponseEntity.status(org.springframework.http.HttpStatus.SEE_OTHER).header(org.springframework.http.HttpHeaders.LOCATION, "/sites/update").build()
+    }
+
+    /** 새 버전 알림을 끈다. 서버 전체에 적용되고 서버를 다시 시작해도 꺼져 있다(다시 켜려면 업데이트 화면의 "알림 켜기", v1.6은 다시 시작하면 켜졌다). */
     @PostMapping("/sites/unwatchUpdate")
     fun unwatchUpdate(): ResponseEntity<Void> {
         updates.unwatch()

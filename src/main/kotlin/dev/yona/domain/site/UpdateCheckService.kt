@@ -101,6 +101,15 @@ class UpdateCheckService(
         persisted?.set(PropertyName.UPDATE_NOTICE_OFF, "true")
     }
 
+    /** 알림을 켜 두었는지이다(업데이트 화면이 상태를 보이는 데 쓴다). */
+    val noticeOn: Boolean get() = isWatched()
+
+    /** 알림을 다시 켠다. [unwatch]로 끄면 서버를 다시 시작해도 꺼져 있으므로 사이트 관리의 업데이트 화면에서 켤 수 있어야 한다(site-F6). */
+    fun watch() {
+        watched = true
+        persisted?.set(PropertyName.UPDATE_NOTICE_OFF, "false")
+    }
+
     /** 릴리스 페이지 주소이다 (v1.6 `YobiUpdate.getReleaseUrl`). */
     fun releaseUrl(version: String): String = String.format(properties.update.releaseUrlFormat, version)
 
