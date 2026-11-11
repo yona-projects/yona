@@ -199,18 +199,19 @@ object ShellNav {
 
     /** 내 설정 사이드바이다. OAuth 앱은 사용자 앱 사용 설정이 꺼지면 숨긴다(서버가 `new`를 403으로 막는 것과 일치). */
     fun userSettings(oauthAppsEnabled: Boolean): NavMenu {
+        // 항목 이름은 지금의 탭 이름(`partial-edit-tabmenu`의 tabId)과 같다. 템플릿이 tabId를 그대로 활성 키로 넘길 수 있다.
         val items = buildList {
-            add(NavItem("profile", "userinfo.editProfile", "/user/editform"))
+            add(NavItem("profile", "userinfo.editProfile", "/user/editform", exact = true))
             add(NavItem("password", "userinfo.changePassword", "/user/editform/password"))
             add(NavItem("emails", "userinfo.changeEmails", "/user/editform/emails"))
-            add(NavItem("linkedAccounts", "userinfo.linkedAccounts", "/user/editform/linked-accounts"))
+            add(NavItem("linked-accounts", "userinfo.linkedAccounts", "/user/editform/linked-accounts"))
             add(NavItem("notifications", "userinfo.changeNotifications", "/user/editform/notifications"))
-            add(NavItem("tokens", "userinfo.token", "/user/editform/token"))
+            add(NavItem("token", "userinfo.token", "/user/editform/token"))
             add(NavItem("ssh", "userinfo.ssh", "/user/editform/ssh"))
             add(NavItem("gpg", "userinfo.gpg", "/user/editform/gpg"))
-            add(NavItem("twoFactor", "userinfo.twoFactor", "/user/editform/two-factor"))
+            add(NavItem("two-factor", "userinfo.twoFactor", "/user/editform/two-factor"))
             add(NavItem("audit", "userinfo.audit", "/user/editform/audit"))
-            if (oauthAppsEnabled) add(NavItem("oauthApps", "userinfo.oauth", "/user/editform/oauth-apps"))
+            if (oauthAppsEnabled) add(NavItem("oauth-apps", "userinfo.oauth", "/user/editform/oauth-apps"))
         }
         return NavMenu(NavContext.USER_SETTINGS, null, items)
     }

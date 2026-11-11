@@ -1,41 +1,10 @@
 <!--/*
   이식 원본: app/views/user/partial_edit_tabmenu.scala.html
-  매개변수: tabId(현재 탭: profile, password, notifications, emails, token, gpg, ssh, two-factor, oauth-apps, linked-accounts, audit)
+  매개변수: tabId(현재 항목: profile, password, notifications, emails, token, gpg, ssh, two-factor, oauth-apps, linked-accounts, audit)
+
+  D-141: 가로 탭 11개를 새 셸의 사이드바(shell/sidebar)로 바꿨다. 항목과 OAuth 앱의 보이는 조건은 ShellNav.userSettings가 정한다.
+  이 조각을 쓰는 화면은 바깥 `.page-wrap`에 `shell shell-grid` 클래스를 더해 사이드바를 본문 옆에 놓는다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)">
-<ul class="nav nav-tabs mt20 mb-3">
-  <li class="nav-item">
-    <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}" class="nav-link" th:classappend="${tabId == 'profile'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/password}" th:text="#{userinfo.changePassword}" class="nav-link" th:classappend="${tabId == 'password'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/notifications}" th:text="#{userinfo.changeNotifications}" class="nav-link" th:classappend="${tabId == 'notifications'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/emails}" th:text="#{userinfo.changeEmails}" class="nav-link" th:classappend="${tabId == 'emails'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}" class="nav-link" th:classappend="${tabId == 'token'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/gpg}" th:text="#{userinfo.gpg}" class="nav-link" th:classappend="${tabId == 'gpg'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/ssh}" th:text="#{userinfo.ssh}" class="nav-link" th:classappend="${tabId == 'ssh'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/two-factor}" th:text="#{userinfo.twoFactor}" class="nav-link" th:classappend="${tabId == 'two-factor'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/oauth-apps}" th:text="#{userinfo.oauth}" class="nav-link" th:classappend="${tabId == 'oauth-apps'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/linked-accounts}" th:text="#{userinfo.linkedAccounts}" class="nav-link" th:classappend="${tabId == 'linked-accounts'} ? 'active'"></a>
-  </li>
-  <li class="nav-item">
-    <a th:href="@{/user/editform/audit}" th:text="#{userinfo.audit}" class="nav-link" th:classappend="${tabId == 'audit'} ? 'active'"></a>
-  </li>
-</ul>
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)" th:with="shellMenu=${@shellNavs.userSettings()}">
+<th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{userinfo.accountSetting}, 'shellSidebar', ${tabId})}"></th:block>
 </th:block>

@@ -84,8 +84,8 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `설정 탭에 OAuth 앱 탭이 있고 목록 화면에서 활성이다`() {
         val s = login(user())
-        assertTrue(page(s).select("ul.nav-tabs a[href$=/user/editform/oauth-apps]").single().hasClass("active"))
-        assertNotNull(page(s, "/user/editform").select("ul.nav-tabs a[href$=/user/editform/oauth-apps]").singleOrNull())
+        assertTrue(page(s).select("nav.shell-sidebar a.nav-link[href$=/user/editform/oauth-apps]").single().hasClass("active"))
+        assertNotNull(page(s, "/user/editform").select("nav.shell-sidebar a.nav-link[href$=/user/editform/oauth-apps]").singleOrNull())
     }
 
     @Test

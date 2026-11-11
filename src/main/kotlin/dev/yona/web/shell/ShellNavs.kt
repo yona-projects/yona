@@ -1,5 +1,6 @@
 package dev.yona.web.shell
 
+import dev.yona.domain.site.SiteSettingService
 import org.springframework.stereotype.Component
 
 /**
@@ -9,8 +10,11 @@ import org.springframework.stereotype.Component
  * (프로젝트 화면 문맥, 조직 관리 권한 등)은 맥락을 옮길 때 이 빈에 더한다.
  */
 @Component("shellNavs")
-class ShellNavs {
+class ShellNavs(private val siteSettings: SiteSettingService) {
 
     /** 사이트 관리 사이드바이다. [updateAvailable]이 `true`이면 업데이트 항목에 배지 1이 붙는다. */
     fun siteAdmin(updateAvailable: Boolean): NavMenu = ShellNav.siteAdmin(updateAvailable)
+
+    /** 내 설정 사이드바이다. OAuth 앱 항목은 사용자 앱 사용 설정이 켜졌을 때만 보인다. */
+    fun userSettings(): NavMenu = ShellNav.userSettings(siteSettings.oauthUserAppsEnabled())
 }

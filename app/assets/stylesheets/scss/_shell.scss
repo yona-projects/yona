@@ -88,3 +88,33 @@ $shell-gap: 24px;
     // 좁은 폭에서 본문 위에 놓이는 열기 단추이다(lg 이상에서는 `d-lg-none`이 숨긴다).
     margin-bottom: 12px;
 }
+
+// 사이드바와 본문이 같은 부모 안에 형제로 놓이는 화면(옛 탭 줄이 있던 화면)이다. 부모에 `shell shell-grid`를 더하면 사이드바가 왼쪽 칸에
+// 서고, 나머지 모든 자식이 오른쪽 칸에 쌓인다. 화면마다 본문을 래퍼로 감싸지 않아도 된다.
+@media (min-width: 992px) {
+    .shell-grid {
+        display: grid;
+        grid-template-columns: $shell-sidebar-width minmax(0, 1fr);
+        column-gap: $shell-gap;
+        align-items: start;
+
+        > * {
+            grid-column: 2;
+            min-width: 0;
+        }
+
+        > .shell-sidebar {
+            grid-column: 1;
+            grid-row: 1 / span 100;
+        }
+
+        // 격자 칸에서 단추와 링크가 가로로 늘어나지 않게 내용 폭으로 둔다(표와 폼은 칸을 채운다).
+        > a.btn,
+        > button,
+        > .btn,
+        > a.ybtn,
+        > .ybtn {
+            justify-self: start;
+        }
+    }
+}

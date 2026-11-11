@@ -64,9 +64,9 @@ class GpgKeySettingsTest : AbstractIntegrationTest() {
     fun `설정 탭에 GPG 키 탭이 있고 목록 화면에서 활성이다`() {
         val s = login(user())
         val list = page(s)
-        val tab = list.select("ul.nav-tabs a[href$=/user/editform/gpg]").single()
+        val tab = list.select("nav.shell-sidebar a.nav-link[href$=/user/editform/gpg]").single()
         assertTrue(tab.hasClass("active"))
-        assertNotNull(page(s, "/user/editform").select("ul.nav-tabs a[href$=/user/editform/gpg]").singleOrNull(), "다른 탭에도 GPG 키 탭이 보인다")
+        assertNotNull(page(s, "/user/editform").select("nav.shell-sidebar a.nav-link[href$=/user/editform/gpg]").singleOrNull(), "다른 탭에도 GPG 키 탭이 보인다")
     }
 
     @Test

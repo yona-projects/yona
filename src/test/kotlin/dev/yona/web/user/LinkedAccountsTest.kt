@@ -82,7 +82,7 @@ class LinkedAccountsTest : AbstractIntegrationTest() {
         assertEquals(2, rows.size)
         assertEquals("sso-oidc", rows.first { it.attr("data-provider") == "sso-oidc" }.attr("data-provider"))
         assertFalse(doc.text().contains("abcdef123456")); assertFalse(doc.text().contains("9876543210"))
-        assertNotNull(doc.selectFirst("ul.nav-tabs a[href\$=linked-accounts]"))
+        assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link[href\$=linked-accounts]"))
     }
 
     @Test

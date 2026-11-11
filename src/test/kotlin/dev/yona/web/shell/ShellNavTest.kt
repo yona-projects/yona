@@ -210,10 +210,10 @@ class ShellNavTest {
     fun `내 설정 사이드바는 열한 항목이고 OAuth 앱은 사용 설정이 꺼지면 숨는다`() {
         val on = ShellNav.userSettings(oauthAppsEnabled = true)
         assertEquals(NavContext.USER_SETTINGS, on.context)
-        assertEquals(listOf("profile", "password", "emails", "linkedAccounts", "notifications", "tokens", "ssh", "gpg", "twoFactor", "audit", "oauthApps"), on.keys())
+        assertEquals(listOf("profile", "password", "emails", "linked-accounts", "notifications", "token", "ssh", "gpg", "two-factor", "audit", "oauth-apps"), on.keys())
         assertEquals("/user/editform", on.items.first().path)
-        assertEquals("/user/editform/two-factor", on.items.first { it.key == "twoFactor" }.path)
-        assertTrue("oauthApps" !in ShellNav.userSettings(oauthAppsEnabled = false).keys())
+        assertEquals("/user/editform/two-factor", on.items.first { it.key == "two-factor" }.path)
+        assertTrue("oauth-apps" !in ShellNav.userSettings(oauthAppsEnabled = false).keys())
     }
 
     @Test
@@ -276,5 +276,14 @@ class ShellNavTest {
         assertEquals("general", menu.activeKey("/owner/proj/settingform"))
         assertEquals("members", menu.activeKey("/owner/proj/members"))
         assertEquals("rulesets", menu.activeKey("/owner/proj/setting/rulesets/3"))
+    }
+
+    @Test
+    fun `내 설정 항목 이름은 지금의 탭 이름과 같고 프로필은 정확히 같은 경로에서만 활성이다`() {
+        val menu = ShellNav.userSettings(oauthAppsEnabled = true)
+        assertEquals("profile", menu.activeKey("/user/editform"))
+        assertEquals("token", menu.activeKey("/user/editform/token/new"))
+        assertEquals("ssh", menu.activeKey("/user/editform/ssh/new"))
+        assertNull(menu.activeKey("/user/editform/unknown"))
     }
 }

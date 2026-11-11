@@ -16,7 +16,7 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell shell-grid">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
         <div th:if="${gpgError != null}" class="alert alert-danger" th:text="#{${gpgError}}"></div>
         <form id="gpg-create" method="post" th:action="@{/user/gpg}">

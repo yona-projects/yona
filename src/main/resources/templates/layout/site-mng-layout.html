@@ -14,7 +14,7 @@
 <th:block th:fragment="siteMngBody(content)">
 <div class="page-wrap-outer">
     <div class="shell" th:with="shellMenu=${@shellNavs.siteAdmin(versionToUpdate != null)}">
-        <th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{site.sidebar}, 'shellSidebar')}"></th:block>
+        <th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{site.sidebar}, 'shellSidebar', null)}"></th:block>
         <div class="shell-main site-setting-wrap"><!--/* 옛 본문 스타일(title_area, listhead 등)이 .site-setting-wrap 아래에 묶여 있어 클래스를 유지한다(P4에서 풀어낸다) */-->
             <th:block th:replace="${content}"></th:block>
         </div>

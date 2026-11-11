@@ -1,11 +1,11 @@
 <!--/*
   새 셸의 사이드바 조각이다(D-141). 항목과 보이는 조건은 서버의 ShellNav가 정하고 이 조각은 그대로 그린다.
-  매개변수: menu(NavMenu), title(사이드바 머리 글자), id(사이드바 요소 id)
+  매개변수: menu(NavMenu), title(사이드바 머리 글자), id(사이드바 요소 id), active(활성 항목 이름. null이면 요청 경로에서 판정)
   1024px 아래(Bootstrap lg 미만)에서는 offcanvas 서랍이 되고, 열기 단추(.shell-sidebar-toggle)가 같이 그려진다.
   활성 항목은 현재 요청 경로(requestPath)에서 menu.activeKey가 판정한다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id)"
-          th:with="activeKey=${menu.activeKey(requestPath ?: '')}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id, active)"
+          th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
         data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
     <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>

@@ -14,7 +14,7 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell shell-grid">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('audit')}"></th:block>
         <p class="text-body-secondary" th:text="#{audit.description.user}"></p>
         <th:block th:replace="~{audit/list :: auditList(false, false, false)}"></th:block>

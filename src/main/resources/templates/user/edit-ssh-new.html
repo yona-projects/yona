@@ -16,7 +16,7 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell shell-grid">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
         <div th:if="${sshError != null}" class="alert alert-danger" th:text="#{${sshError}}"></div>
         <form id="ssh-create" method="post" th:action="@{/user/ssh}">
