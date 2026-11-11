@@ -14,8 +14,8 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 83개이고(v1_6의 47개와 추가한 테이블 36개) 이름 순서로 정렬되어 있다`() {
-        assertEquals(83, DataTables.all.size)
+    fun `테이블은 84개이고(v1_6의 47개와 추가한 테이블 37개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(84, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("API_TOKEN", DataTables.all.first().name)
         assertEquals("WEBHOOK_THREAD", DataTables.all.last().name)
@@ -23,8 +23,8 @@ class DataTablesTest : AbstractIntegrationTest() {
 
     @Test
     fun `스키마의 모든 테이블이 교환 표에 있거나 일부러 뺀 목록에 있다 (R-56-2, 새 테이블을 만들고 표에 빠뜨리는 일을 막는다)`() {
-        // 일부러 뺀 테이블이다. 계정 연결과 일회성 값은 이전하지 않는다(A-375)
-        val excluded = setOf("linked_account", "user_credential", "user_verification", "device_authorization")
+        // 일부러 뺀 테이블이다. 계정 연결과 일회성 값은 이전하지 않는다(A-375). 연속 실패 횟수와 잠금(attempt_record)은 15분 안에 사라지는 값이라 이전하지 않는다
+        val excluded = setOf("linked_account", "user_credential", "user_verification", "device_authorization", "device_authorization_scope", "attempt_record")
         val known = DataTables.all.map { it.sqlName }.toSet()
         val schema = mutableSetOf<String>()
         dataSource.connection.use { c ->
@@ -38,7 +38,7 @@ class DataTablesTest : AbstractIntegrationTest() {
     fun `조인 테이블과 한 행짜리 설정 테이블과 사이트 설정과 OAuth 인가만 시퀀스가 없다`() {
         assertEquals(
             setOf(
-                "AUDIT_STREAM_CURSOR", "POSTING_ISSUE_LABEL", "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "LDAP_SETTINGS", "NOTIFICATION_EVENT_N4USER",
+                "API_TOKEN_SCOPE", "AUDIT_STREAM_CURSOR", "POSTING_ISSUE_LABEL", "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "LDAP_SETTINGS", "NOTIFICATION_EVENT_N4USER",
                 "OAUTH_AUTHORIZATION", "OIDC_SSO_SETTINGS", "ORGANIZATION_OAUTH_POLICY", "SAML2_SSO_SETTINGS", "PROJECT_LABEL", "PULL_REQUEST_ASSIGNEE", "PULL_REQUEST_ISSUE_LABEL", "PULL_REQUEST_REVIEWERS", "PULL_REQUEST_REVIEW_REQUEST", "SITE_SETTING", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
             ),
             DataTables.all.filter { !it.hasSequence }.map { it.name }.toSet()
