@@ -74,4 +74,48 @@ export const tests = [
     assert.deepEqual(out.ajax, [{ url: '/acme/web', method: 'put', data: '{"overview":"새 설명"}', contentType: 'application/json' }]);
     assert.deepEqual(out.rendered, ['새 설명']);
   } },
+  { name: '프로젝트 홈: 설명 입력란에서 Enter를 누르면 저장한다 (v1.6은 아무 일도 없었다, 고쳤다, project-F14)', async run() {
+    const page = await open();
+    const out = await page.evaluate(async () => {
+      new yona.project.Home({ sURLProject: '/acme/web' });
+      $('#project-description-input').val('엔터 설명');
+      const evt = $.Event('keydown', { key: 'Enter', which: 13, keyCode: 13 });
+      $('#project-description-input').trigger(evt);
+      await new Promise((r) => setTimeout(r, 20));
+      return { ajax: window.__ajax.map((a) => [a.method, a.data]), prevented: evt.isDefaultPrevented() };
+    });
+    await page.close();
+    assert.deepEqual(out.ajax, [['put', '{"overview":"엔터 설명"}']]);
+    assert.equal(out.prevented, true);
+  } },
+  { name: '프로젝트 홈: 설명 저장이 실패하면 오류 알림을 띄우고 편집 상태를 유지한다 (v1.6은 콘솔 기록뿐이었다, 고쳤다, project-F14)', async run() {
+    const page = await open();
+    const out = await page.evaluate(async () => {
+      window.__alerts = []; $yona.alert = (m) => window.__alerts.push(m); window.Messages = (k) => k;
+      yona.http.ajax = () => Promise.reject({ status: 500, statusText: 'Server Error' });
+      new yona.project.Home({ sURLProject: '/acme/web' });
+      $('#edit').trigger('click');
+      $('#descriptionSaveBtn').trigger('click');
+      await new Promise((r) => setTimeout(r, 20));
+      return { alerts: window.__alerts, editing: !$('#edit-tab').hasClass('hidden') };
+    });
+    await page.close();
+    assert.deepEqual(out.alerts, ['error.internalServerError']);
+    assert.equal(out.editing, true);
+  } },
+  { name: '프로젝트 홈: 탈퇴를 두 번 눌러도 요청은 한 번만 나간다 (v1.6은 눌러 본 횟수만큼 겹쳐 나갔다, 고쳤다, project-F10)', async run() {
+    const page = await open();
+    const out = await page.evaluate(async () => {
+      window.bootstrap = { Modal: { getOrCreateInstance: () => ({ show() {}, hide() {} }) } };
+      yona.http.ajax = (url, o) => { window.__ajax.push({ url, method: o.method }); return Promise.resolve('{"location":"/acme/web"}'); };
+      new yona.project.Home({ sURLProject: '/acme/web' });
+      document.location.replace = () => {};
+      $('#projectLeaveBtn').trigger('click'); $('#projectLeaveBtn').trigger('click');
+      $('#leaveBtn').trigger('click');
+      await new Promise((r) => setTimeout(r, 20));
+      return window.__ajax.filter((a) => a.method === 'delete').length;
+    });
+    await page.close();
+    assert.equal(out, 1);
+  } },
 ];
