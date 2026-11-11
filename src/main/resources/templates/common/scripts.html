@@ -157,7 +157,8 @@
         $('.markdown-wrap').find('a[href]').each(function () {
             var $link = $(this);
             var linkUrl = $link.attr("href");
-            if (linkUrl && linkUrl.match("^[^./#]")) {
+            // `mailto:`와 `tel:`은 새 창을 열 대상이 아니다. v1.6은 이것도 바깥 링크로 보아 빈 새 탭이 떴다(shell-F26)
+            if (linkUrl && linkUrl.match("^[^./#]") && !/^(mailto|tel):/i.test(linkUrl)) {
                 var location = window.location;
                 if (linkUrl.indexOf(location.protocol + "//" + location.host) !== 0) {
                     $(this).attr("target", "_blank");
