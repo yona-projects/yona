@@ -85,7 +85,27 @@ class ProjectCheckStage(
     /** 프로젝트를 찾고 읽을 수 있는지 한 번만 확인한다. 같은 요청의 다음 검사는 결과를 다시 쓴다. */
     private fun readableProject(request: HttpServletRequest, segments: List<String>): Project {
         (request.getAttribute(READABLE_PROJECT) as? Project)?.let { return it }
-        return checkProjectReadable(request, segments).also { request.setAttribute(READABLE_PROJECT, it) }
+        return checkProjectReadable(request, segments).also {
+            checkMenuEnabled(it, segments, request.requestURI)
+            request.setAttribute(READABLE_PROJECT, it)
+        }
+    }
+
+    /**
+     * 프로젝트 설정에서 꺼 둔 이슈, 마일스톤 메뉴의 주소는 404로 막는다. v1.6은 메뉴만 숨기고 주소로는 계속 열려 있었다(issue-F24).
+     * 데이터는 지우지 않으므로 메뉴를 다시 켜면 그대로 열린다. 라벨 관리(`issue/label...`)는 프로젝트 설정 화면이 쓰므로 막지 않는다.
+     */
+    private fun checkMenuEnabled(project: Project, segments: List<String>, requestUri: String) {
+        if (requestUri.contains(API_PREFIX) || segments.size < 3) return
+        val head = segments[2]
+        val menu = projectViews.of(project).menuSetting
+        val off = when {
+            head == "issue" && segments.getOrNull(3)?.startsWith("label") == true -> false
+            head == "issues" || head == "issue" || head == "issueform" || head == "copyLabels" -> menu.issue != true
+            head == "milestones" || head == "milestone" || head == "newMilestoneForm" -> menu.milestone != true
+            else -> false
+        }
+        if (off) throw ViewResultException(ErrorViews.notFound("error.notfound", projectViews.of(project), null))
     }
 
     // --- 게스트 ---
