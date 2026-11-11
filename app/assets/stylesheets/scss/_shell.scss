@@ -146,20 +146,28 @@ $shell-gap: 14px;
     }
 }
 
-// 상단 바의 전환 단추(옛 핀 화살표 자리). 어두운 상단 바 위의 윤곽선 단추이다.
+// 상단 바 맨 왼쪽의 햄버거 단추. 누르면 전환 패널(즐겨찾기, 프로젝트, 최근 이슈)이 열린다. 상단 바의 다른 항목과 같은 줄에서 세로 가운데로 맞춘다.
+.gnb-switcher {
+    display: flex;
+    align-items: center;
+}
+
 .shell-switcher-btn {
-    margin: 0 8px;
-    padding: 2px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
     border-radius: 4px;
     background: transparent;
     color: #fff;
-    font-size: 0.8125rem;
-    line-height: 1.5rem;
 
     &:hover,
     &:focus-visible {
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.18);
     }
 }
 
