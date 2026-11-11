@@ -216,6 +216,14 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `기본 브랜치를 지원하지 않는 Mercurial 프로젝트의 설정에는 선택지 없는 기본 브랜치 상자가 없다 (E-F16)`() {
+        val hg = newProject(vcs = "Mercurial")
+        val page = settingForm(hg, login(manager(hg)))
+        assertNull(page.selectFirst("select#project-default-branch"), "선택지가 없는 기본 브랜치 선택 상자가 그려진다")
+        assertNull(page.selectFirst("#defaultBranceSettingPanel"))
+    }
+
+    @Test
     fun `기본 브랜치 선택지는 브랜치만 보여 주고 현재 기본 브랜치를 고른다`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
