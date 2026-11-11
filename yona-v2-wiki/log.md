@@ -26,3 +26,7 @@
 ## [2026-11-11] decision | IA 재설계와 TypeScript 전환 승인 (D-135~D-141)
 
 선생님이 "이대로 진행하자"고 하셔서 D-135, D-136, D-137, D-138, D-139, D-140, D-141을 권장안 전부와 함께 승인으로 기록했다. 겹치는 곳은 D-141이 우선한다. 프로젝트 밖 사이드바에 "내 코드 주고받기"는 넣지 않는다. 추적되지 않는 `frontend/` 폴더 정리와 `loadModule` 폴백 경로 정리는 삭제이므로 별도 확인 전까지 하지 않는다. 구현은 P-1(TS 기반)부터 시험을 먼저 쓰며 시작한다.
+
+## [2026-11-11] feat | TypeScript 빌드 기반과 첫 모듈 (D-139, P-1, A-470)
+
+Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/assets/javascripts/esm/` 아래에 싣는 기반을 만들었다. 시험을 먼저 썼다: JS 시험 5개(`tsfoundation`)와 Kotlin `TsAssetBuildTest` 3개가 구현 전에 실패했고(Red), 도구 체인과 `core/config.ts`의 `url()`을 만든 뒤 통과했다(Green). 구성은 `architecture/ui-ts-build.md`.
