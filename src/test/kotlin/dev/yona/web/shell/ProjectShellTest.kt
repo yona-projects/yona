@@ -155,4 +155,14 @@ class ProjectShellTest : AbstractIntegrationTest() {
             assertNull(doc.select("body > script, div.shell ~ script").firstOrNull { it.data().contains("loadModule") }, "$sub 본문 밖에 남은 초기화 스크립트")
         }
     }
+
+    @Test
+    fun `마일스톤 목록은 전역 단축키를 쓰므로 정리 규약을 등록하고 본문 안에 스크립트를 둔다(D-136, A-475)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        val doc = page("${base(p)}/milestones", s)
+        assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"))
+        val script = doc.select(".shell-main script").first { it.data().contains("setKeymapLink") }
+        assertTrue(script.data().contains("onPageLeave"), "화면을 떠날 때 N 단축키를 풀어야 한다")
+        assertEquals("module", script.attr("type"))
+    }
 }

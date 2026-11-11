@@ -4,10 +4,11 @@ import { buildTs, openTs } from './tsmodule.mjs';
 
 const LIBS = `<script src="/assets/javascripts/lib/htmx.js"></script><script>window.yona = window.yona || {};</script><script src="/assets/javascripts/common/yona.Htmx.js"></script>`;
 const NAV = (active) => `<nav class="shell-sidebar" id="shellSidebar" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar" hx-swap="outerHTML show:window:top">`
-  + ['a', 'b', 'c'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
+  + ['a', 'b', 'c', 'd'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
 const MODULE = `<script type="module">import { initNavigation } from 'yona/shell/navigation.js'; initNavigation(); window.__same = true; window.__ready = true;</script>`;
 const page = (key, safe) => `<!doctype html><head><title>${key} 화면</title><script type="importmap">{"imports":{"yona/":"/assets/javascripts/esm/"}}</script>${LIBS}</head><body><div class="shell">${NAV(key)}<div class="shell-main">${safe ? '<span data-swap-safe hidden></span>' : ''}${key}본문</div></div>${MODULE}</body>`;
-const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false) };
+const LEAVE = `<script type="module">import { onPageLeave } from 'yona/core/page.js'; window.__left = window.__left || 0; onPageLeave(() => { window.__left += 1; });</script>`;
+const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false), '/d': page('d', true).replace('d본문', 'd본문' + LEAVE) };
 
 async function open(start) {
   buildTs();
@@ -50,5 +51,20 @@ export const tests = [
     buildTs();
     const { page: p, ctx } = await openTs('<div class="shell-main"><span data-swap-safe hidden></span></div><script type="module">import { initNavigation } from "yona/shell/navigation.js"; initNavigation(); window.__ok = true;</script>');
     await p.waitForFunction(() => window.__ok === true, null, { timeout: 5000 }); assert.deepEqual(p.errors, []); await ctx.close();
+  } },
+  { name: '본문을 바꾸기 직전에 화면이 등록한 정리 함수를 한 번만 부른다', run: async () => {
+    const { p, ctx } = await open('/a');
+    await p.click('nav.shell-sidebar a[href="/d"]'); await p.waitForFunction(() => document.querySelector('.shell-main').textContent.includes('d본문') && document.querySelector('nav.shell-sidebar a.active').textContent === 'D', null, { timeout: 5000 });
+    assert.equal(await p.evaluate(() => window.__left || 0), 0, 'd 화면에 들어올 때는 부르지 않는다(등록만 한다)');
+    await p.click('nav.shell-sidebar a[href="/a"]'); await p.waitForFunction(() => document.querySelector('.shell-main').textContent.includes('a본문') && document.querySelector('nav.shell-sidebar a.active').textContent === 'A', null, { timeout: 5000 });
+    assert.equal(await p.evaluate(() => window.__left), 1, '나갈 때 한 번');
+    await p.click('nav.shell-sidebar a[href="/b"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'B', null, { timeout: 5000 });
+    assert.equal(await p.evaluate(() => window.__left), 1, '이미 비운 함수를 다시 부르지 않는다');
+    await ctx.close();
+  } },
+  { name: '일반 이동으로 물러날 때는 정리 함수를 부르지 않는다(문서가 새로 열리므로)', run: async () => {
+    const { p, ctx } = await open('/d');
+    await p.click('nav.shell-sidebar a[href="/c"]'); await p.waitForFunction(() => location.pathname === '/c' && window.__ready === true, null, { timeout: 5000 });
+    assert.equal(await p.evaluate(() => window.__left || 0), 0); await ctx.close();
   } },
 ];

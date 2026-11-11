@@ -82,3 +82,7 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 빌드 통과, 프로젝트, 사이트 관리, 조직, 모바일 화면 확인. 좁은 화면에서 `.shell-main`의 가로 스크롤 10px을 `overflow-x: clip`으로 막았다.
 
 ## [2026-11-11] verify | JS 시험 전체 676개 통과, htmx 이동의 현재 경계 기록 (A-475)
+
+## [2026-11-11] feat | 화면 수명주기 core/page.ts와 마일스톤 목록 (A-475)
+
+onPageLeave/runPageLeave, 본문 교체 직전 호출. JS 시험 2개 추가, N 단축키 동작 확인.

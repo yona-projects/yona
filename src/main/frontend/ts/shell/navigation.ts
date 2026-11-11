@@ -10,6 +10,8 @@
  */
 
 /** swap-safe 표지이다. 본문 안에 이 속성을 가진 요소가 있으면 그 화면은 본문 교체가 안전하다. */
+import { runPageLeave } from "../core/page.js";
+
 const SWAP_SAFE_SELECTOR = ".shell-main [data-swap-safe]";
 const SIDEBAR_SELECTOR = "nav.shell-sidebar";
 
@@ -42,6 +44,8 @@ export function initNavigation(): void {
   document.addEventListener("htmx:afterSettle", enable);
   document.addEventListener("htmx:beforeSwap", (event) => {
     const detail = (event as CustomEvent<{ shouldSwap?: boolean; serverResponse?: unknown; target?: Element }>).detail;
-    if (detail.shouldSwap !== false && detail.target instanceof Element && detail.target.classList.contains("shell-main")) applyTitle(detail.serverResponse);
+    if (detail.shouldSwap === false || !(detail.target instanceof Element) || !detail.target.classList.contains("shell-main")) return;
+    runPageLeave();
+    applyTitle(detail.serverResponse);
   });
 }
