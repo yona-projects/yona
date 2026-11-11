@@ -93,7 +93,8 @@ class OAuthAppsSettingsController(
     @Transactional
     fun update(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val user = currentUser(); val client = apps.find(user, id) ?: return ErrorViews.notFound()
-        val form = Form.of(request)
+        // 종류 라디오는 만든 뒤 막혀 있어 요청에 오지 않는다. 오류로 다시 그릴 때는 앱의 값을 쓴다(없으면 기밀 앱이 공개로 보인다)
+        val form = Form.of(request).copy(confidential = client.confidential == true)
         return when (val result = apps.update(user, id, form.name, form.description, form.homeUrl, form.redirectUris, form.scopes)) {
             is ClientEdit.Rejected -> formView(client, result.messageKey, form).also { it.status = HttpStatus.BAD_REQUEST }
             is ClientEdit.Done -> RedirectSupport.see(request, response, "/user/editform/oauth-apps/$id", mapOf(RedirectSupport.SUCCESS to "oauth.apps.saved"))

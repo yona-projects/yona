@@ -93,7 +93,8 @@ class OrganizationOAuthAppsController(
     fun update(@PathVariable organizationName: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val organization = guard(organizationName) ?: return notFoundOrForbidden(organizationName)
         val owner = ClientOwner.of(organization); val client = apps.findFor(owner, id) ?: return ErrorViews.notFound()
-        val form = OAuthAppsSettingsController.Form.of(request)
+        // 종류 라디오는 만든 뒤 막혀 있어 요청에 오지 않는다. 오류로 다시 그릴 때는 앱의 값을 쓴다(없으면 기밀 앱이 공개로 보인다)
+        val form = OAuthAppsSettingsController.Form.of(request).copy(confidential = client.confidential == true)
         return when (val result = apps.updateFor(owner, actor(), id, form.name, form.description, form.homeUrl, form.redirectUris, form.scopes)) {
             is ClientEdit.Rejected -> formView(organization, client, result.messageKey, form).also { it.status = HttpStatus.BAD_REQUEST }
             is ClientEdit.Done -> RedirectSupport.see(request, response, "${basePath(organization)}/$id", mapOf(RedirectSupport.SUCCESS to "oauth.apps.saved"))

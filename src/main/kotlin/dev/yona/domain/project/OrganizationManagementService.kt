@@ -156,9 +156,9 @@ class OrganizationManagementService(
      */
     fun leave(organization: Organization, actor: User): String? {
         val orgId = requireNotNull(organization.id)
-        if (accessControl.isAllowed(actor, organization.asResource(), Operation.LEAVE) &&
-            organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L
-        ) {
+        // 막는 기준은 본인이 조직 관리자 역할인 것이다. `isAllowed`는 사이트 관리자를 항상 허용해 일반 구성원인 사이트 관리자까지 막았다(v1.6은 탈퇴가 되었다)
+        val isOrgAdmin = organizationUsers.findFirstByOrganizationIdAndUserId(orgId, requireNotNull(actor.id))?.role?.id == RoleType.ORG_ADMIN.id
+        if (isOrgAdmin && organizationUsers.countByOrganizationIdAndRoleId(orgId, RoleType.ORG_ADMIN.id) == 1L) {
             return "organization.member.atLeastOneAdmin"
         }
         organizationUsers.findFirstByOrganizationIdAndUserId(orgId, requireNotNull(actor.id))?.let {
