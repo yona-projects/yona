@@ -11,10 +11,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::diffPage})}">
 <th:block th:fragment="diffPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
 
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
+        <div class="shell-main">
         <div id="code-browse-wrap" class="code-browse-wrap">
             <ul class="nav nav-tabs" style="margin-bottom:20px;">
                 <li class="nav-item"><a th:href="${filesUrl}" th:text="#{code.files}" class="nav-link"></a></li>
@@ -105,6 +106,8 @@
 
         <button id="watch-button" type="button" th:class="'float-start ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-bs-toggle="button" th:text="#{notification.watch}"></button>
         <a th:href="${listUrl}" class="ybtn float-end" th:text="#{button.list}"></a>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

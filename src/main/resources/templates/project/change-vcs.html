@@ -10,10 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::changeVcsPage})}">
 <th:block th:fragment="changeVcsPage" th:with="project=${projectView.project}, nextVcs=${projectView.project.nextVcs()}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${projectBase + '/changeVCS'})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main">
         <div class="bubble-wrap gray wp">
             <div class="">
                 <h3><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <span class="next-vcs" th:text="${nextVcs}"></span></h3>
@@ -58,6 +58,8 @@
             </div>
         </div></div></div>
         <!--/* // -- // */-->
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/project.ChangeVCS.js}"></script>

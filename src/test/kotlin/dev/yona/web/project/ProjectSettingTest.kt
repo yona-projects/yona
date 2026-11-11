@@ -257,19 +257,14 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     fun `설정 하위 메뉴가 있고 현재 화면이 활성이다`() {
         val project = newProject()
         val page = settingForm(project, login(manager(project)))
-        val tabs = page.select(".project-page-wrap ul.nav-tabs li")
+        val tabs = page.select("nav.shell-sidebar li.nav-item")
         assertEquals(
-            listOf("subMenuProjectSetting", "subMenuProjectMember", "subMenuRuleset", "subMenuDeployKey", "subMenuLfs", "subMenuIssueLabel", "subMenuWebhook", "subMenuProjectTransfer", "subMenuProjectDelete", "subMenuProjectChangeVCS"),
-            tabs.map { it.id() }
+            listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "transfer", "delete", "changeVcs").map { "/${project.owner}/${project.name}" + mapOf("general" to "/settingform", "members" to "/members", "rulesets" to "/setting/rulesets", "deployKeys" to "/setting/deploykeys", "lfs" to "/setting/lfs", "webhooks" to "/webhooks", "labels" to "/issue/labelsform", "transfer" to "/transfer", "delete" to "/deleteform", "changeVcs" to "/changeVCS").getValue(it) },
+            tabs.map { it.selectFirst("a")!!.attr("href") }
         )
-        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
+        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.selectFirst(".shell-sidebar-label")!!.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
         assertEquals(listOf("active"), tabs.filter { it.selectFirst("a")!!.hasClass("active") }.map { "active" }, tabs.outerHtml())
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
-        assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/rulesets", tabs[2].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/deploykeys", tabs[3].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/lfs", tabs[4].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[5].selectFirst("a")?.attr("href"))
     }
 
     @Test
@@ -279,14 +274,14 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         applicant.enrolledProjects.add(project)
         users.save(applicant)
         val page = settingForm(project, login(manager(project)))
-        assertEquals("1", page.selectFirst("#subMenuProjectMember .num-badge")?.text())
+        assertEquals("1", page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/members] .badge")?.text())
     }
 
     @Test
     fun `저장소 종류 변경 메뉴는 코드 메뉴가 꺼져 있으면 숨긴다`() {
         val project = newProject(menu = { code = false })
         val page = settingForm(project, login(manager(project)))
-        assertTrue(page.selectFirst("#subMenuProjectChangeVCS")!!.attr("style").contains("display:none"))
+        assertNull(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/changeVCS]"), "코드 메뉴가 꺼지면 항목이 없다")
     }
 
     @Test

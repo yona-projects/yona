@@ -129,8 +129,8 @@ class TemplateContractRegressionTest {
     @Test
     fun `코드 접근이 막힌 사용자에게는 코드와 풀 리퀘스트 단축키도 없다 (project-F6, v1_6은 탭만 숨기고 c, p 키는 권한 없음 화면으로 보냈다)`() {
         val menu = template("project/menu.html")
-        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.code and view\\.codeAccessible}\"\\]\\*/\\s*,\"C\"").containsMatchIn(menu), "코드 단축키가 코드 접근 권한을 보지 않는다")
-        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.pullRequest and view\\.vcs\\.pullRequests and view\\.codeAccessible}\"\\]\\*/\\s*,\"P\"").containsMatchIn(menu), "풀 리퀘스트 단축키가 코드 접근 권한을 보지 않는다")
+        // D-141: 단축키 목록은 사이드바 항목(ShellNav.project)에서 파생된다. 코드 접근과 메뉴 설정 조건은 ShellNavTest가 지킨다.
+        assertTrue(menu.contains("th:each=\"entry : \${menu.shortcuts()}\""), "단축키가 사이드바 항목에서 파생되지 않는다")
     }
 
     @Test

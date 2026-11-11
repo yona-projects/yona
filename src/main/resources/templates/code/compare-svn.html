@@ -10,8 +10,9 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::compareSvnPage})}">
 <th:block th:fragment="compareSvnPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
-<div class="project-page-wrap">
+<div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
+        <div class="shell-main">
     <div class="code-browse-wrap">
         <p class="commitInfo">
             <strong class="commitId" th:text="'@' + ${commitA} + '..' + ${commitB}"></strong>
@@ -21,7 +22,9 @@
             <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}"></div>
         </div>
     </div>
-</div>
+
+        </div><!--/* .shell-main */-->
+    </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.SvnDiff.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){

@@ -177,7 +177,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         val summary = rows[0].selectFirst("td.ruleset-rules")!!.text()
         assertTrue(summary.contains("승인 2명") && summary.contains("풀 리퀘스트 필요") && summary.contains("대화 해결") && summary.contains("강제 푸시 차단"), summary)
         assertEquals(url(project, "/new"), doc.selectFirst("a#newRuleset")!!.attr("href"))
-        assertEquals(url(project), doc.selectFirst("#subMenuRuleset a")!!.attr("href")); assertNotNull(doc.selectFirst("#subMenuRuleset a.active"))
+        assertEquals(url(project), doc.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/rulesets]")!!.attr("href")); assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link.active[href\$=/setting/rulesets]"))
         assertTrue(doc.select("#rulesetMigrated").isEmpty())
     }
 

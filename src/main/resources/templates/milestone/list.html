@@ -11,9 +11,10 @@
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::listPage})}">
 <th:block th:fragment="listPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}, urlToList=${#paths.project(projectView.project.owner, projectView.project.name) + '/milestones'}">
 <link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
+        <div class="shell-main">
         <div class="tab-wrap">
             <div th:if="${canCreate}" class="float-end btns">
                 <a th:href="@{${base + '/newMilestoneForm'}}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
@@ -142,6 +143,8 @@
             </div>
         </div>
         </th:block>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script th:if="${projectView.menuSetting.milestone}" type="text/javascript" th:inline="javascript">

@@ -102,7 +102,7 @@ class WikiViewTest : AbstractIntegrationTest() {
     fun `프로젝트 메뉴에 위키 탭이 있다`() {
         val p = project()
         val menu = doc(getPage(outsider(), "/${p.owner}/${p.name}").andExpect(status().isOk))
-        assertNotNull(menu.selectFirst(".project-menu-nav a[href=${base(p)}]"))
+        assertNotNull(menu.selectFirst("nav.shell-sidebar a.nav-link[href=${base(p)}]"))
     }
 
     // --- 만들기와 보기 ---

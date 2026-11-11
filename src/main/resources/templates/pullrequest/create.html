@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PULL_REQUEST', ~{::createPage})}">
 <th:block th:fragment="createPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
             <form th:action="${action}" method="post" enctype="multipart/form-data" class="nm">
                 <div class="pull-request-wrap">
@@ -99,6 +100,8 @@
                 </div>
             </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

@@ -12,10 +12,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::rulesetFormPage})}">
 <th:block th:fragment="rulesetFormPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}, isNew=${ruleset.id == null}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap" id="rulesetFormPage">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner" id="rulesetFormPage">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main">
 
         <nav aria-label="breadcrumb" class="mt10"><ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{${base + '/setting/rulesets'}}" th:text="#{project.ruleset}"></a></li>
@@ -120,6 +120,8 @@
         <form th:if="${!isNew}" id="rulesetDeleteForm" method="post" class="mt10" th:action="@{${base + '/setting/rulesets/' + ruleset.id + '/delete'}}">
             <button type="submit" class="ybtn ybtn-danger" th:text="#{project.ruleset.delete}"></button>
         </form>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

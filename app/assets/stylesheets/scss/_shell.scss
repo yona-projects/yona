@@ -103,3 +103,10 @@ $shell-gap: 14px;
 .shell-below-banner {
     padding-top: 40px;
 }
+
+// 개수 배지는 옛 메뉴처럼 요나 주황 알약이다(Bootstrap의 `text-bg-secondary`는 !important라 같은 우선순위로 덮는다).
+.shell-sidebar .nav-link .badge {
+    background-color: $yobi-orange !important;
+    color: #fff !important;
+    font-weight: normal;
+}

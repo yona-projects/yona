@@ -1,0 +1,137 @@
+package dev.yona.web.shell
+
+import dev.yona.domain.enumeration.ProjectScope
+import dev.yona.domain.enumeration.RoleType
+import dev.yona.domain.enumeration.UserState
+import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectMenuSetting
+import dev.yona.domain.project.ProjectMenuSettingRepository
+import dev.yona.domain.project.ProjectRepository
+import dev.yona.domain.project.ProjectUser
+import dev.yona.domain.project.ProjectUserRepository
+import dev.yona.domain.user.RoleRepository
+import dev.yona.domain.user.User
+import dev.yona.domain.user.UserRepository
+import dev.yona.security.LegacyPasswordHasher
+import dev.yona.support.AbstractIntegrationTest
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.mock.web.MockHttpSession
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.annotation.Transactional
+import java.util.Date
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+/**
+ * 프로젝트 화면이 새 셸의 사이드바로 그려지는지 검증한다(D-140, D-141). 지금의 가로 메뉴와 같은 이름과 순서의 평평한 목록이고,
+ * 설정은 설정 전용 사이드바(맨 위에 프로젝트로 돌아가기)이다. 단축키 등록도 같은 항목에서 파생된다.
+ */
+@AutoConfigureMockMvc
+@Transactional
+class ProjectShellTest : AbstractIntegrationTest() {
+
+    @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
+    @Autowired private lateinit var projectUsers: ProjectUserRepository
+    @Autowired private lateinit var roles: RoleRepository
+
+    private var sequence = 0
+
+    private fun newUser(): User {
+        val n = ++sequence
+        val salt = LegacyPasswordHasher.generateSalt()
+        return users.save(User(loginId = "ps$n", name = "ps$n", email = "ps$n@example.com", state = UserState.ACTIVE, createdDate = Date(), passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+    }
+
+    private fun login(user: User): MockHttpSession = MockHttpSession().also {
+        mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", user.loginId!!).param("password", "1234"))
+    }
+
+    private fun project(owner: User, issue: Boolean = true): Project {
+        val project = projects.save(Project(owner = owner.loginId, name = "shellproj${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC, createdDate = Date()))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = issue, pullRequest = true, review = true, milestone = true, board = true))
+        projectUsers.save(ProjectUser(user = owner, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
+        return project
+    }
+
+    private fun page(path: String, session: MockHttpSession? = null): Document =
+        Jsoup.parse(mockMvc.perform(get(path).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
+
+    private fun base(p: Project) = "/${p.owner}/${p.name}"
+
+    @Test
+    fun `메인 사이드바는 지금의 가로 메뉴와 같은 평평한 목록이고 관리자에게 설정이 있다`() {
+        val owner = newUser(); val p = project(owner)
+        val nav = page(base(p), login(owner)).selectFirst("nav.shell-sidebar")
+        assertNotNull(nav)
+        assertEquals(
+            listOf("", "/code", "/issues", "/pullRequests", "/reviews", "/milestones", "/posts", "/settingform").map { base(p) + it },
+            nav.select("a.nav-link").map { it.attr("href") }
+        )
+        assertNull(nav.selectFirst(".shell-sidebar-back"))
+    }
+
+    @Test
+    fun `비로그인은 설정 항목이 없다`() {
+        val owner = newUser(); val p = project(owner)
+        val hrefs = page(base(p)).select("nav.shell-sidebar a.nav-link").map { it.attr("href") }
+        assertTrue(hrefs.none { it.endsWith("/settingform") }, hrefs.toString())
+    }
+
+    @Test
+    fun `이슈 메뉴를 끄면 항목도 사라진다`() {
+        val owner = newUser(); val p = project(owner, issue = false)
+        assertTrue(page(base(p), login(owner)).select("nav.shell-sidebar a.nav-link").none { it.attr("href").endsWith("/issues") })
+    }
+
+    @Test
+    fun `현재 화면의 항목만 활성이다`() {
+        val owner = newUser(); val p = project(owner); val s = login(owner)
+        listOf("" to "", "/milestones" to "/milestones", "/posts" to "/posts").forEach { (suffix, hrefSuffix) ->
+            val active = page(base(p) + suffix, s).select("nav.shell-sidebar a.nav-link.active")
+            assertEquals(1, active.size, suffix)
+            assertEquals(base(p) + hrefSuffix, active.first()!!.attr("href"))
+        }
+    }
+
+    @Test
+    fun `설정 화면은 설정 전용 사이드바이고 맨 위에 프로젝트로 돌아가는 단추가 있다`() {
+        val owner = newUser(); val p = project(owner)
+        val doc = page(base(p) + "/members", login(owner))
+        val nav = doc.selectFirst("nav.shell-sidebar")!!
+        assertEquals(base(p), nav.selectFirst("a.shell-sidebar-back")!!.attr("href"))
+        val hrefs = nav.select("a.nav-link").map { it.attr("href") }
+        assertTrue(hrefs.containsAll(listOf("/settingform", "/members", "/webhooks", "/issue/labelsform", "/transfer", "/deleteform").map { base(p) + it }), hrefs.toString())
+        assertEquals(base(p) + "/members", nav.selectFirst("a.nav-link.active")!!.attr("href"))
+        assertTrue(doc.select(".shell-main ul.nav-tabs a[href\$=/settingform]").isEmpty(), "옛 설정 탭 줄이 없어야 한다")
+    }
+
+    @Test
+    fun `사이드바와 본문 래퍼가 나란히 놓이고 옛 가로 메뉴는 없다`() {
+        val owner = newUser(); val p = project(owner)
+        val doc = page(base(p) + "/issues", login(owner))
+        assertNotNull(doc.selectFirst(".shell > nav.shell-sidebar"))
+        assertNotNull(doc.selectFirst(".shell > .shell-main"))
+        assertNull(doc.selectFirst(".project-menu-outer"))
+    }
+
+    @Test
+    fun `단축키 등록은 사이드바와 같은 항목에서 만들어진다`() {
+        val owner = newUser(); val p = project(owner, issue = false)
+        val script = page(base(p), login(owner)).select("script").joinToString("\n") { it.data() }
+        assertTrue("htKeyMap" in script)
+        assertTrue("\"H\"" in script && "\"M\"" in script && "\"B\"" in script)
+        assertTrue("\"I\"" !in script, "이슈 메뉴를 끄면 I 키도 없어야 한다")
+    }
+}

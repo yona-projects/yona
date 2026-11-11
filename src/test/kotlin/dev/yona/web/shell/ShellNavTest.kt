@@ -126,9 +126,9 @@ class ShellNavTest {
         val menu = ShellNav.projectSettings(project())
         assertEquals(NavContext.PROJECT_SETTINGS, menu.context)
         assertEquals(NavBack("sidebar.back.project", "/owner/proj"), menu.back)
-        assertEquals(listOf("general", "members", "rulesets", "deployKeys", "lfs", "webhooks", "labels", "transfer", "delete", "changeVcs"), menu.keys())
+        assertEquals(listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "transfer", "delete", "changeVcs"), menu.keys())
         assertEquals(
-            listOf("project.setting", "project.member", "project.ruleset", "project.deployKey", "project.lfs", "project.webhook", "issue.label", "project.transfer", "project.delete", "project.changeVCS"),
+            listOf("project.setting", "project.member", "project.ruleset", "project.deployKey", "project.lfs", "issue.label", "project.webhook", "project.transfer", "project.delete", "project.changeVCS"),
             menu.items.map { it.labelKey }
         )
     }
@@ -136,7 +136,7 @@ class ShellNavTest {
     @Test
     fun `Subversion은 규칙과 배포 키와 LFS가 없고 Mercurial은 LFS 이름이 다르다`() {
         val svn = ShellNav.projectSettings(project(vcs = "Subversion"))
-        assertEquals(listOf("general", "members", "webhooks", "labels", "transfer", "delete", "changeVcs"), svn.keys())
+        assertEquals(listOf("general", "members", "labels", "webhooks", "transfer", "delete", "changeVcs"), svn.keys())
         val hg = ShellNav.projectSettings(project(vcs = "Mercurial")).items.first { it.key == "lfs" }
         assertEquals("project.lfs.hg", hg.labelKey)
     }
@@ -285,5 +285,29 @@ class ShellNavTest {
         assertEquals("token", menu.activeKey("/user/editform/token/new"))
         assertEquals("ssh", menu.activeKey("/user/editform/ssh/new"))
         assertNull(menu.activeKey("/user/editform/unknown"))
+    }
+
+    // ---- 프로젝트 화면의 메뉴 종류 ----
+
+    @Test
+    fun `프로젝트 화면이 넘기는 메뉴 종류가 사이드바 항목 이름으로 바뀐다`() {
+        assertEquals("home", ShellNav.projectActiveKey("PROJECT_HOME"))
+        assertEquals("code", ShellNav.projectActiveKey("CODE"))
+        assertEquals("issues", ShellNav.projectActiveKey("ISSUE"))
+        assertEquals("pullRequests", ShellNav.projectActiveKey("PULL_REQUEST"))
+        assertEquals("reviews", ShellNav.projectActiveKey("PROJECT_REVIEW"))
+        assertEquals("milestones", ShellNav.projectActiveKey("MILESTONE"))
+        assertEquals("board", ShellNav.projectActiveKey("BOARD"))
+        assertEquals("wiki", ShellNav.projectActiveKey("WIKI"))
+        assertEquals("settings", ShellNav.projectActiveKey("PROJECT_SETTING"))
+        assertNull(ShellNav.projectActiveKey("NONE"))
+        assertNull(ShellNav.projectActiveKey(null))
+    }
+
+    @Test
+    fun `단축키 목록은 보이는 항목에서만 만들어진다(메뉴를 끄면 키도 사라진다)`() {
+        assertEquals(mapOf('H' to "/owner/proj", 'C' to "/owner/proj/code", 'I' to "/owner/proj/issues", 'P' to "/owner/proj/pullRequests", 'M' to "/owner/proj/milestones", 'B' to "/owner/proj/posts", 'Q' to "/owner/proj/settingform"), ShellNav.project(project()).shortcuts())
+        val reduced = ShellNav.project(project(menu = allOn.copy(issue = false, board = false), codeAccessible = false, settingShortcut = false)).shortcuts()
+        assertEquals(mapOf('H' to "/owner/proj", 'M' to "/owner/proj/milestones"), reduced)
     }
 }

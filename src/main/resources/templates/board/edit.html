@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'BOARD', ~{::editPage})}">
 <th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-  <div class="project-page-wrap">
+  <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'BOARD')}"></th:block>
+        <div class="shell-main">
     <form th:action="@{${base + '/post/' + number + '/edit'}}" method="post" enctype="multipart/form-data" class="nm">
       <div class="content-wrap frm-wrap">
         <dl>
@@ -60,7 +61,9 @@
         </div>
       </div>
     </form>
-  </div>
+  
+        </div><!--/* .shell-main */-->
+    </div>
 </div>
 
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

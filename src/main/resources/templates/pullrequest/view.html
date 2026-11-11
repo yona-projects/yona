@@ -11,9 +11,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::viewPage})}">
 <th:block th:fragment="viewPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
 
         <!--/* 이슈 화면과 같은 2단 구성(추가 항목 X-14, decisions.md D-34 16번): 왼쪽에 본문, 상태, 타임라인, 오른쪽 열에 담당자와 라벨 */-->
@@ -156,6 +157,8 @@
         <div class="right-txt">
             <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-bs-toggle="modal" th:text="#{title.help}"></a>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

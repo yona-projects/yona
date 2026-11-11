@@ -10,10 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::rulesetsPage})}">
 <th:block th:fragment="rulesetsPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap" id="rulesetPage">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner" id="rulesetPage">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main">
 
         <div class="clearfix mt10 mb10">
             <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>
@@ -55,6 +55,8 @@
             </tr>
             </tbody>
         </table>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

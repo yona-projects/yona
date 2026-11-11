@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PULL_REQUEST', ~{::forkPage})}">
 <th:block th:fragment="forkPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
             <form th:action="${forkAction}" method="post" class="form-horizontal nm">
                 <input type="hidden" name="owner" th:value="${forkOwner}" />
@@ -83,6 +84,8 @@
                 </fieldset>
             </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/project.Fork.js}"></script>

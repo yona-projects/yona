@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::watchersPage})}">
 <th:block th:fragment="watchersPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'NONE', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'NONE')}"></th:block>
+        <div class="shell-main">
         <h4><strong th:text="#{project.watcher.title}"></strong></h4>
         <p th:text="#{project.watcher.description}"></p>
         <ul class="members project row">
@@ -24,6 +25,8 @@
                 <div class="member-id">@<th:block th:text="${member.loginId}"></th:block></div>
             </li>
         </ul>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

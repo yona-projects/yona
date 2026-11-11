@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::historyPage})}">
 <th:block th:fragment="historyPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
+        <div class="shell-main">
         <div class="bubble-wrap dark-gray repo-wrap">
             <div class="code-browse-wrap">
                 <div id="breadcrumbs" class="code-breadcrumb-wrap" th:if="${hasPath}">
@@ -93,6 +94,8 @@
                 <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn float-start" th:text="#{code.older}"></a>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

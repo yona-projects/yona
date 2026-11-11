@@ -10,10 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::labelsPage})}">
 <th:block th:fragment="labelsPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap label-editor-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner label-editor-wrap">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main">
 
         <th:block th:if="${canCreate}">
         <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">
@@ -61,6 +61,8 @@
         <div id="labelsList" class="issue-label-list-wrap">
             <th:block th:replace="~{project/partial-issue-labels-list :: labelList(${projectView}, ${groups})}"></th:block>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

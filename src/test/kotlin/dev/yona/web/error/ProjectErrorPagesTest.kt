@@ -66,7 +66,7 @@ class ProjectErrorPagesTest : AbstractIntegrationTest() {
         assertEquals("You are not authorized - errowner/errproj", doc.title())
         assertNotNull(doc.selectFirst("header.gnb-outer.project-header"))
         assertNotNull(doc.selectFirst(".project-header-outer"))
-        assertNotNull(doc.selectFirst(".project-menu-outer"))
+        assertNotNull(doc.selectFirst("nav.shell-sidebar"))
         val box = doc.selectFirst(".error-wrap")
         assertNotNull(box?.selectFirst("i.ico.ico-err2"))
         assertEquals("You are not authorized", box?.selectFirst("p")?.text())
@@ -96,8 +96,8 @@ class ProjectErrorPagesTest : AbstractIntegrationTest() {
         val back = doc.selectFirst(".error-wrap a.ybtn-primary")
         assertEquals("/errowner/errproj/issues?state=all", back?.attr("href"))
         assertEquals("List", back?.text())
-        assertNotNull(doc.selectFirst(".project-menu-nav li.active .menu-name"))
-        assertEquals("Issue", doc.selectFirst(".project-menu-nav li.active .menu-name")?.text())
+        assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link.active .shell-sidebar-label"))
+        assertEquals("Issue", doc.selectFirst("nav.shell-sidebar a.nav-link.active .shell-sidebar-label")?.text())
     }
 
     @Test
@@ -132,7 +132,7 @@ class ProjectErrorPagesTest : AbstractIntegrationTest() {
         val project = project()
         val doc = render("/__test/err/project-badrequest/${project.id}", 400)
         assertEquals("The request cannot be fulfilled due to bad syntax", doc.selectFirst(".error-wrap p")?.text())
-        assertNotNull(doc.selectFirst(".project-menu-outer"))
+        assertNotNull(doc.selectFirst("nav.shell-sidebar"))
         assertNull(doc.selectFirst(".error-wrap a"))
     }
 }

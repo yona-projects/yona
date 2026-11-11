@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'ISSUE', ~{::viewPage})}">
 <th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap board-view">
+    <div class="project-page-wrap shell shell-below-banner board-view">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'ISSUE')}"></th:block>
+        <div class="shell-main">
         <!--/* Post Info */-->
         <div class="board-header issue">
             <div class="float-end mr10 mt10 hide-in-mobile">
@@ -260,6 +261,8 @@
         <div class="board-footer">
             <th:block th:replace="~{help/keymap :: keymap('issueDetail', ${projectView})}"></th:block>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 
     <script type="text/x-mustache" id="tplAttachedFile" th:inline="none"><!--

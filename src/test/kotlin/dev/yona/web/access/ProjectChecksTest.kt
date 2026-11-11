@@ -226,7 +226,7 @@ class ProjectChecksTest : AbstractIntegrationTest() {
         val result = call("${base(project)}/__t/project-update", login(newUser()))
         assertEquals(403, result.response.status)
         val page = doc(result)
-        assertNotNull(page.selectFirst(".project-menu-outer"))
+        assertNotNull(page.selectFirst("nav.shell-sidebar"))
         assertEquals("You are not authorized", page.selectFirst(".error-wrap p")?.text())
     }
 

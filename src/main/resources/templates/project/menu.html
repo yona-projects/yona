@@ -101,3 +101,37 @@ $(document).ready(function(){
 });
 </script>
 </th:block>
+
+<!--/*
+  D-141: 가로 메뉴를 새 셸의 사이드바로 바꾼 조각이다. 항목과 보이는 조건은 ShellNav.project가 정하고, 단축키(H C I P M B Q)도 같은 항목에서
+  파생되어 메뉴를 끄면 키도 사라진다. 활성 항목은 화면이 넘기는 메뉴 종류(menuType)에서 정한다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(view, menuType)"
+          th:with="shellMenu=${@shellNavs.project(view)}, shellActive=${@shellNavs.projectActiveKey(menuType)}">
+<th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, ${view.displayName}, 'shellSidebar', ${shellActive})}"></th:block>
+<th:block th:replace="~{project/menu :: shortcuts(${view}, ${shellMenu})}"></th:block>
+</th:block>
+
+<!--/* 설정 전용 사이드바이다. 맨 위에 프로젝트로 돌아가는 단추가 있고 활성 항목은 요청 경로에서 판정한다. */-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingsSidebar(view)"
+          th:with="shellMenu=${@shellNavs.projectSettings(view)}, mainMenu=${@shellNavs.project(view)}">
+<th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, ${view.displayName}, 'shellSidebar', null)}"></th:block>
+<th:block th:replace="~{project/menu :: shortcuts(${view}, ${mainMenu})}"></th:block>
+</th:block>
+
+<!--/* 프로젝트 단축키를 등록한다. menu(NavMenu)의 단축키 목록에서 만든다. */-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="shortcuts(view, menu)">
+<script type="module" th:src="@{/assets/javascripts/esm/service/project.Global.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    var htKeyMap = {};
+    /*[# th:each="entry : ${menu.shortcuts()}"]*/
+    htKeyMap[ [[${entry.key}]] ] = [[@{${entry.value}}]];
+    /*[/]*/
+    $yona.loadModule("project.Global", {
+        "htKeyMap": htKeyMap,
+        "sRepoURL": [[${view.repositoryUrl}]]
+    });
+});
+</script>
+</th:block>

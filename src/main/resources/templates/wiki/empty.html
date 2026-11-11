@@ -8,9 +8,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
 <th:block th:fragment="wikiPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap wiki-wrap">
+    <div class="project-page-wrap shell shell-below-banner wiki-wrap">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'WIKI')}"></th:block>
+        <div class="shell-main">
         <div class="row">
             <div class="col-lg-9">
                 <div class="wiki-empty text-center py-5">
@@ -23,6 +24,8 @@
                 <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

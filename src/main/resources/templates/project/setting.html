@@ -10,10 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::settingPage})}">
 <th:block th:fragment="settingPage" th:with="project=${projectView.project}, vcs=${projectView.vcs}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main">
 
         <form id="saveSetting" method="post" th:action="@{/{owner}/{name}/setting(owner=${project.owner},name=${project.name})}" enctype="multipart/form-data" class="nm">
             <div class="bubble-wrap gray" style="overflow: visible">
@@ -177,6 +177,8 @@
             </div>
         </form>
 
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

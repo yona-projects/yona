@@ -32,6 +32,12 @@ data class NavMenu(val context: NavContext, val back: NavBack?, val items: List<
     fun keys(): List<String> = items.map { it.key }
 
     /**
+     * 단축키(한 글자)와 이동할 서버 경로의 목록이다(D-137). 보이는 항목에서만 만들므로 메뉴를 끄면 키도 사라지고,
+     * 사이드바와 단축키가 서로 다른 조건을 쓰는 어긋남이 생기지 않는다.
+     */
+    fun shortcuts(): Map<Char, String> = items.filter { it.shortcut != null }.associate { it.shortcut!! to it.path }
+
+    /**
      * 요청 경로에 해당하는 활성 항목의 이름이다. 없으면 `null`이다.
      *
      * 템플릿마다 활성 조건을 따로 쓰지 않고 한 곳에서 판정한다. 하위 경로(`/sites/oauth-apps/12`)에서도 가장 길게 맞는 항목이
@@ -133,6 +139,24 @@ object ShellNav {
     }
 
     /**
+     * 프로젝트 화면 템플릿이 넘기는 메뉴 종류(`PROJECT_HOME`, `ISSUE` 등)를 사이드바 항목 이름으로 바꾼다.
+     * 코드 주고받기 화면의 주소(`pullRequest/12`)가 목록 주소(`pullRequests`)의 하위 경로가 아니어서 경로로는 활성을 판정할 수 없는 화면이
+     * 있으므로, 프로젝트 메인 사이드바는 화면이 알려 주는 메뉴 종류를 쓴다. 모르는 값이면 활성이 없다.
+     */
+    fun projectActiveKey(menuType: String?): String? = when (menuType) {
+        "PROJECT_HOME" -> "home"
+        "CODE" -> "code"
+        "ISSUE" -> "issues"
+        "PULL_REQUEST" -> "pullRequests"
+        "PROJECT_REVIEW" -> "reviews"
+        "MILESTONE" -> "milestones"
+        "BOARD" -> "board"
+        "WIKI" -> "wiki"
+        "PROJECT_SETTING" -> "settings"
+        else -> null
+    }
+
+    /**
      * 프로젝트 설정 사이드바이다. 설정을 누르면 사이드바가 이 목록으로 바뀌고 맨 위에 프로젝트로 돌아가는 단추가 붙는다(D-141).
      * 라벨은 이슈 메뉴를 꺼도 서버가 주소를 열어 두므로 항상 보인다.
      */
@@ -145,8 +169,9 @@ object ShellNav {
             if (vcs.protectedRefs) add(NavItem("rulesets", "project.ruleset", "$base/setting/rulesets"))
             if (vcs.deployKeys) add(NavItem("deployKeys", "project.deployKey", "$base/setting/deploykeys"))
             if (vcs.lfsScreen) add(NavItem("lfs", if (vcs.lfs) "project.lfs" else "project.lfs.hg", "$base/setting/lfs"))
-            add(NavItem("webhooks", "project.webhook", "$base/webhooks"))
+            // 순서는 지금의 설정 탭과 같다(라벨이 웹훅보다 앞).
             add(NavItem("labels", "issue.label", "$base/issue/labelsform"))
+            add(NavItem("webhooks", "project.webhook", "$base/webhooks"))
             add(NavItem("transfer", "project.transfer", "$base/transfer"))
             add(NavItem("delete", "project.delete", "$base/deleteform"))
             if (input.menu.code) add(NavItem("changeVcs", "project.changeVCS", "$base/changeVCS"))

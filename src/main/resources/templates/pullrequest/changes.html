@@ -11,9 +11,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::changesPage})}">
 <th:block th:fragment="changesPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <div class="code-browse-wrap">
             <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
 
@@ -145,6 +146,8 @@
                 </div>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 
