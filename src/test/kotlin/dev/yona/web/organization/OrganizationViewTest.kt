@@ -211,6 +211,20 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `홈의 프로젝트는 올린 로고가 있으면 그 이미지를, 없으면 기본 로고를 이름 앞에 보여 준다(A-494)`() {
+        val org = newOrg()
+        val withLogo = orgProject(org, name = "logo-yes")
+        orgProject(org, name = "logo-no")
+        val png = File.createTempFile("plogo", ".png").apply { writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1)) }
+        val file = attachments.store(png, "logo.png", ResourceType.PROJECT, withLogo.id!!, "x").attachment
+        val items = page("/organizations/${org.name}").select("ul.all-projects li.project")
+        val yes = items.first { it.selectFirst(".header > a.black")!!.text() == "logo-yes" }
+        val no = items.first { it.selectFirst(".header > a.black")!!.text() == "logo-no" }
+        assertEquals("/files/${file.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
+        assertEquals("/assets/images/project_default_logo.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"))
+    }
+
+    @Test
     fun `홈의 프로젝트는 대소문자를 구분하지 않고 이름순으로 보여 준다 (C148)`() {
         val org = newOrg()
         orgProject(org, name = "Zeta")

@@ -229,7 +229,7 @@ class ProjectListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `로고가 있으면 이미지를 보여 주고 없으면 비운다`() {
+    fun `올린 로고가 있으면 그 이미지를, 올리지 않았으면 기본 로고를 보여 준다(A-494)`() {
         val withLogo = newProject(name = "logo-yes")
         val file = attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = withLogo.id!!, name = "l.png"))
         newProject(name = "logo-no")
@@ -237,7 +237,7 @@ class ProjectListTest : AbstractIntegrationTest() {
         val yes = items.first { it.selectFirst(".header a.black")!!.text() == "logo-yes" }
         val no = items.first { it.selectFirst(".header a.black")!!.text() == "logo-no" }
         assertEquals("/files/${file.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
-        assertNull(no.selectFirst(".owner-avatar-wrap img"))
+        assertEquals("/assets/images/project_default_logo.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"), "올리지 않았을 때만 기본 로고이다")
     }
 
     @Test
