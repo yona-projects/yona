@@ -129,6 +129,14 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `검색한 값이 입력란에 남는다 (v1_6은 입력란이 늘 비어 있었다, 고쳤다 user-F8)`() {
+        val me = newUser()
+        attach(me, "Design.PNG", 1_700_000_100_000)
+        assertEquals("sign", page(login(me), "filter" to "sign").selectFirst("input[name=filter]")!!.attr("value"))
+        assertEquals("", page(login(me)).selectFirst("input[name=filter]")!!.attr("value"))
+    }
+
+    @Test
     fun `한 쪽에 50개씩 보여 주고 pageNum으로 넘긴다`() {
         val me = newUser()
         (1..55).forEach { attach(me, "f$it.txt", 1_700_000_000_000 + it) }

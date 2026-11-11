@@ -16,7 +16,7 @@
         <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
         <form th:action="@{/user/files}">
         <div class="user-file-search search search-bar">
-            <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" value="">
+            <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" th:value="${filter}">
             <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
         </div>
         </form>

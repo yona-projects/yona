@@ -82,9 +82,10 @@ class UserPageAssembler(
         val since = Date.from(LocalDate.now(clock).minusDays(daysAgo.toLong()).atStartOfDay(clock.zone).toInstant())
         val memberProjects = projects.findProjectsByMember(userId).distinctBy { it.id }.filter { readable(it) }
             .sortedWith(PROJECT_ORDER)
-        // v1.6은 초안을 거르지 않아 남이 쓴 초안도 이슈 건수에 들어갔다. 보는 사람이 작성자가 아닌 초안은 뺀다(R-48-1)
+        // v1.6은 초안을 거르지 않아 남이 쓴 초안도 이슈 건수에 들어갔다(R-48-1). 본인 초안은 열림과 닫힘 어느 목록에도 나오지 않는데
+        // 건수에만 들어가 배지와 목록 합이 어긋났다(user-F10). 초안은 건수에서도 모두 뺀다. 초안은 프로젝트의 초안 목록에서 본다.
         val recentIssues = issues.findRecentlyByUser(userId, since).filter { readable(it.project) }
-            .filter { !(it.isDraft == true || it.state == State.DRAFT) || it.authorLoginId == viewer?.loginId }
+            .filter { !(it.isDraft == true || it.state == State.DRAFT) }
         val recentPullRequests = pullRequests.findRecentlyByContributor(userId, since).filter { readable(it.toProject) }
         return UserActivity(issueRows(recentIssues, viewer), recentPullRequests.map { pullRequestRow(it, viewer) }, memberProjects.map { projectRow(it, user, viewer) })
     }

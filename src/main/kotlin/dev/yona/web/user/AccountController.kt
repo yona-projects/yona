@@ -137,6 +137,8 @@ class AccountController(
         val new = request.getParameter("password")
         if (old == null || new == null) return ErrorViews.badRequest("error.badrequest")
         if (!account.isValidPassword(user, old)) return profileView(user, "user.wrongPassword.alert").also { it.status = HttpStatus.BAD_REQUEST }
+        // usersec-F2: v1.6은 확인 입력을 서버에서 보지 않아 서로 다른 값으로도 비밀번호가 바뀌었다.
+        if (PasswordConfirmation.mismatched(request)) return profileView(user, PasswordConfirmation.MISMATCH_KEY).also { it.status = HttpStatus.BAD_REQUEST }
 
         account.resetPassword(user, new)
         loginSession.end(request, response)
@@ -195,8 +197,8 @@ class AccountController(
     fun sendValidation(@PathVariable emailId: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (_, email) = loadOwn(emailId, Operation.UPDATE) ?: return forbiddenNotFound()
         account.requestValidationEmail(email.second)
-        // v1.6는 안내 문구를 한국어로 고정해 두었다.
-        return RedirectSupport.see(request, response, "/user/editform", mapOf(RedirectSupport.WARNING to "확인 메일을 전송했습니다."))
+        // user-F3: v1.6은 안내 문구를 한국어로 고정해 두어 다른 언어 설정에서도 한국어로 나왔다. 메시지 키를 넘겨 언어 설정대로 번역한다.
+        return RedirectSupport.see(request, response, "/user/editform", mapOf(RedirectSupport.WARNING to "user.email.validationSent"))
     }
 
     @GetMapping("/user/email/confirm/{emailId}/{token}")
