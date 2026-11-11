@@ -251,12 +251,36 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `공지 표시는 권한을 검사하지 않고 폼 값 그대로 저장한다 (v1_6 newPost는 BOARD_NOTICE를 확인하지 않는다, 공식 v1_16_0 실행 확인)`() {
+    fun `공지 선택은 구성원만 저장되고 비구성원이 보낸 공지 값은 무시한다 (v1_6은 권한을 확인하지 않았다, A-459)`() {
         val project = newProject()
         val outsider = newUser()
         submit(project, "posts", login(outsider), "title" to "t", "body" to "b", "notice" to "on").andExpect(status().isSeeOther)
         entityManager.flush(); entityManager.clear()
-        assertEquals(true, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
+        assertEquals(false, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
+        val member = join(newUser(), project)
+        submit(project, "posts", login(member), "title" to "t2", "body" to "b", "notice" to "on").andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(true, postings.findByProjectIdAndNumber(project.id!!, 2)!!.notice)
+    }
+
+    @Test
+    fun `공지 권한이 없는 작성자가 글을 고쳐도 공지 여부는 그대로이다 (A-459)`() {
+        // 구성원이었던 작성자가 구성원에서 빠졌어도 작성자는 자기 글을 고칠 수 있다. 이때 공지 값을 바꿀 수는 없다
+        val project = newProject(); val author = newUser()
+        val p = post(project, author, notice = true)
+        submit(project, "post/1/edit", login(author), "title" to "고침", "body" to "본문").andExpect(status().isSeeOther)
+        val saved = reload(p)
+        assertEquals("고침", saved.title); assertEquals(true, saved.notice)
+        val q = post(project, author, number = 2, notice = false)
+        submit(project, "post/2/edit", login(author), "title" to "고침2", "body" to "본문", "notice" to "on").andExpect(status().isSeeOther)
+        assertEquals(false, reload(q).notice)
+    }
+
+    @Test
+    fun `읽을 수 없는 글의 수정 요청은 입력 오류보다 먼저 403이다 (저장된 제목과 본문을 돌려주지 않는다, A-459)`() {
+        val secret = newProject(ProjectScope.PRIVATE); post(secret, null, "극비 제목", "극비 본문")
+        val response = submit(secret, "post/1/edit", login(newUser()), "title" to "", "body" to "x").andExpect(status().isForbidden).andReturn().response.contentAsString
+        assertTrue(!response.contains("극비 제목") && !response.contains("극비 본문"))
     }
 
     @Test

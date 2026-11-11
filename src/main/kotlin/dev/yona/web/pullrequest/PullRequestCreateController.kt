@@ -1,6 +1,7 @@
 package dev.yona.web.pullrequest
 
 import dev.yona.access.AccessControl
+import dev.yona.access.asResource
 import dev.yona.domain.comment.CommitCommentRepository
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.project.Project
@@ -104,6 +105,7 @@ class PullRequestCreateController(
 
         val from = selectedProject(project, request.getParameter("fromProjectId"), false) ?: return ErrorViews.notFound()
         val to = selectedProject(project, request.getParameter("toProjectId"), true) ?: return ErrorViews.notFound()
+        if (unreadable(viewer, from, to)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val fromBranches = branches.branches(from)
         val toBranches = branches.branches(to)
         if (fromBranches.isEmpty()) return ErrorViews.badRequest("error.pullRequest.empty.from.repository", views.of(from), "PULL_REQUEST")
@@ -143,6 +145,7 @@ class PullRequestCreateController(
 
         val from = selectedProject(project, request.getParameter("fromProjectId"), false) ?: return ErrorViews.notFound()
         val to = selectedProject(project, request.getParameter("toProjectId"), true) ?: return ErrorViews.notFound()
+        if (unreadable(viewer, from, to)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val fromBranch = request.getParameter("fromBranch").takeUnless { it.isNullOrBlank() } ?: branches.branches(from).first().name
         val toBranch = request.getParameter("toBranch").takeUnless { it.isNullOrBlank() } ?: branches.branches(to).first().name
         val pullRequest = PullRequest(fromProject = from, toProject = to, fromBranch = fromBranch, toBranch = toBranch)
@@ -177,6 +180,7 @@ class PullRequestCreateController(
         val from = request.getParameter("fromProjectId")?.toLongOrNull()?.let { projects.findById(it).orElse(null) }
         val to = request.getParameter("toProjectId")?.toLongOrNull()?.let { projects.findById(it).orElse(null) }
         if (from == null || to == null) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+        if (unreadable(viewer, from, to)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
 
         // 담당자와 라벨은 받는 프로젝트에 수정 권한이 있는 사람만 고를 수 있다(추가 항목 X-14, D-34 20번). 권한이 없으면 보낸 값은 무시한다
@@ -234,6 +238,16 @@ class PullRequestCreateController(
     /**
      * 선택한 프로젝트이다. 번호를 주지 않으면 보내는 쪽은 현재 프로젝트, 받는 쪽은 포크이고 원본이 풀 리퀘스트를 받으면 원본이다 (v1.6 `getSelectedProject`).
      */
+    /**
+     * 보내는 쪽이나 받는 쪽 프로젝트를 읽을 수 없는 사용자인지 본다. 경로의 프로젝트만 검사하면 프로젝트 번호만 바꿔 비공개 프로젝트의
+     * 브랜치와 커밋을 보거나, 그 저장소를 자기 저장소로 가져오는 요청을 만들 수 있다(v1.6은 경로의 프로젝트만 검사했다. 보안 보강, A-459).
+     * 코드 접근을 구성원으로 제한한 프로젝트는 구성원만 읽을 수 있다.
+     */
+    private fun unreadable(viewer: User, vararg targets: dev.yona.domain.project.Project): Boolean = targets.any {
+        !accessControl.isAllowed(viewer, it.asResource(), dev.yona.domain.enumeration.Operation.READ) ||
+            (it.isCodeAccessibleMemberOnly == true && !projectService.hasMember(it, viewer))
+    }
+
     private fun selectedProject(project: Project, projectId: String?, isToProject: Boolean): Project? {
         if (!projectId.isNullOrEmpty() && projectId.all { it.isDigit() }) return projects.findById(projectId.toLong()).orElse(null)
         val original = project.originalProject

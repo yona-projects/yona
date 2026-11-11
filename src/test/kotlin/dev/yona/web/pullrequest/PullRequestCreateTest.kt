@@ -305,6 +305,27 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `읽을 수 없는 프로젝트를 보내는 쪽이나 받는 쪽으로 고르면 폼, 병합 결과, 만들기가 모두 403이다 (v1_6은 URL 프로젝트만 검사했다, A-459)`() {
+        val s = setup()
+        val n = ++sequence
+        val secret = projects.save(Project(owner = "pcs$n", name = "pcsp$n", vcs = "GIT", projectScope = ProjectScope.PRIVATE))
+        menuSettings.save(ProjectMenuSetting(project = secret, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(secret)
+        GitTestSupport.pushCommits(repositories, secret, TestCommit("극비 커밋", mapOf("s.txt" to "TOPSECRET".toByteArray())))
+        val session = login(s.owner); val base = "/${s.fork.owner}/${s.fork.name}"
+        // 보내는 쪽이 비공개
+        mockMvc.perform(get("$base/newPullRequestForm?fromProjectId=${secret.id}&toProjectId=${s.origin.id}").session(session)).andExpect(status().isForbidden)
+        mockMvc.perform(get("$base/newPullRequest/mergeResult?fromProjectId=${secret.id}&toProjectId=${s.origin.id}&fromBranch=refs/heads/master&toBranch=refs/heads/master").session(session)).andExpect(status().isForbidden)
+        mockMvc.perform(post("$base/pullRequests").session(session).param("fromProjectId", secret.id.toString()).param("toProjectId", s.fork.id.toString())
+            .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "교차").param("body", "b")).andExpect(status().isForbidden)
+        // 받는 쪽이 비공개
+        mockMvc.perform(get("$base/newPullRequestForm?fromProjectId=${s.fork.id}&toProjectId=${secret.id}").session(session)).andExpect(status().isForbidden)
+        mockMvc.perform(post("$base/pullRequests").session(session).param("fromProjectId", s.fork.id.toString()).param("toProjectId", secret.id.toString())
+            .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "교차2").param("body", "b")).andExpect(status().isForbidden)
+        assertEquals(0, pullRequests.count())
+    }
+
+    @Test
     fun `게스트는 만들 수 없다`() {
         val s = setup()
         mockMvc.perform(send(s, login(user()))).andExpect(status().isForbidden)

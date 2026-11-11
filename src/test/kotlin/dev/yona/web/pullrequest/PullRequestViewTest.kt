@@ -289,4 +289,15 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         val s = setup()
         mockMvc.perform(get(url(s, PullRequest(number = 9)))).andExpect(status().isNotFound)
     }
+
+    @Test
+    fun `코드 접근을 구성원으로 제한한 프로젝트의 풀 리퀘스트 화면은 비구성원에게 403이고 구성원은 그대로 본다 (v1_6은 목록만 막았다, A-459)`() {
+        val s = withCommit(setup()); val pr = open(s)
+        s.origin.isCodeAccessibleMemberOnly = true; projects.save(s.origin)
+        val outsider = login(user())
+        for (tail in listOf("", "/timeline", "/state", "/changes")) {
+            mockMvc.perform(get(url(s, pr, tail)).session(outsider)).andExpect(status().isForbidden)
+        }
+        mockMvc.perform(get(url(s, pr)).session(login(s.manager))).andExpect(status().isOk)
+    }
 }
