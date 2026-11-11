@@ -126,7 +126,8 @@ class CodePageAssembler(
             lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = if (dev.yona.domain.vcs.VcsSupport(project.vcs).lineCommentThreads) reviewThreads.countOnCommit(project, revId, path).toLong() else 0L, binary = binary, mode = mode, size = size, mimeType = mimeType,
             data = data, renderedMarkdown = if (mode == "markdown" && data != null) markdown.renderFileInCodeBrowser(data, project) else null,
             editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager, git = git,
-            lfs = lfsView(project, mode, data, path, base)
+            lfs = lfsView(project, mode, data, path, base),
+            shortRevId = revId.take(dev.yona.domain.vcs.VcsType.of(project.vcs)?.shortIdLength ?: 7)
         )
     }
 
