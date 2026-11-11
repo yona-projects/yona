@@ -170,102 +170,21 @@ updated: 2026-11-11
 
 ## 영역별 사이드바 항목
 
-### 전역(홈)
+(D-141, 2026-11-11: 모든 맥락의 사이드바는 묶음 제목 없는 평평한 목록이다. 아래 전수 대응표의 "새 맥락과 사이드바 항목" 열에 남은 묶음 이름(계획, 협업, 접근과 보안 등)은 옛 표기이고, 마지막 항목 이름만 유효하다. 자세한 구성과 주소는 `ui-ia-v2.md` 4.3절이 가진다.)
 
-| 묶음 | 항목 | 주소 | 보이는 조건 |
-|---|---|---|---|
-| 내 작업 | 알림 | `/` | 로그인 |
-| | 내 이슈(열린 수 배지, 열림과 닫힘 필터는 화면 안) | `/user/issues` | 로그인 |
-| | 내 파일 | `/user/files` | 로그인 |
-| 탐색 | 프로젝트 | `/projects` | `hideProjectListing` 꺼짐, 게스트 아님 |
-| | 그룹 | `/orgs` | `hideProjectListing` 꺼짐 |
-| (골격에 없음, 판단 3) | 도움말 | `/_help` | 누구나 |
+| 맥락 | 사이드바 항목(위에서 아래) |
+|---|---|
+| 전역(프로젝트 밖) | 프로젝트, 그룹, 내 이슈, 알림, 내 파일 |
+| 프로젝트 | 홈, 코드, 이슈, 코드 주고받기, 리뷰, 마일스톤, 게시판, 위키, 설정 |
+| 프로젝트 설정(설정을 누르면 바뀜, 맨 위 "← 프로젝트로") | 일반, 구성원, 규칙, 배포 키, Git LFS, 웹훅, 라벨, 위험 구역 |
+| 조직 | 홈, 이슈, 게시판, 코드 주고받기, 설정 |
+| 조직 설정(맨 위 "← 조직으로") | 일반, 구성원, OAuth 앱, OAuth 앱 정책, 보안과 기록, 위험 구역 |
+| 내 설정 | 프로필 수정, 비밀번호 변경, 이메일 설정, 연결된 계정, 알림 설정, 사용자 토큰, SSH 키, GPG 키, 2단계 인증, 보안 기록, OAuth 앱(조건부) |
+| 사이트 관리 | 사용자, 프로젝트, 이슈, 게시물, 메일 발송, 대량 메일 발송, 업데이트, 시스템 진단, 데이터, 감사 로그, 보안, SSO, OAuth 앱, LFS |
 
-### 프로젝트
+항목의 보이는 조건은 이전과 같다(프로젝트: `menuSetting.*`, `codeAccessible`, `vcs.*`, `view.canUpdate`, 이슈와 마일스톤은 꺼지면 항목과 주소가 모두 404). 코드의 파일, 커밋, 브랜치, 태그와 코드 주고받기의 열림, 닫힘, 보냄은 사이드바 하위 항목이 아니라 화면 안 탭이다. 구독자 목록(`/watchers`), 통계, 검색 결과는 사이드바 항목이 아니다.
 
-(D-140, 2026-11-11: 프로젝트 좌측 메뉴는 묶음 제목 없이 지금의 가로 메뉴와 같은 이름과 순서의 평평한 목록이다. 코드와 설정은 선택되었을 때 하위 항목이 펼쳐진다.)
-
-| 순서 | 항목 | 주소 | 보이는 조건 | 단축키 |
-|---|---|---|---|---|
-| 1 | 홈 | `/{o}/{n}` | 읽기 권한 | `H` |
-| 2 | 코드(선택하면 하위 펼침) | `/{o}/{n}/code` | `menuSetting.code` + `codeAccessible` | `C` |
-| | └ 파일 | `/{o}/{n}/code` | 같음 | |
-| | └ 커밋 | `/{o}/{n}/commits` | 같음(Subversion도 있음) | |
-| | └ 브랜치 | `/{o}/{n}/branches` | 같음 + `vcs.branches`(Git, Mercurial) | |
-| | └ 태그 | `/{o}/{n}/tags` | 같음 + `vcs.tags`(Git, Mercurial) | |
-| 3 | 이슈(열린 수 배지) | `/{o}/{n}/issues` | `menuSetting.issue`. **꺼지면 `issues`, `issue/*`, `issueform`이 404** | `I`, 화면 `N` |
-| 4 | 코드 주고받기(열린 수 배지) | `view.pullRequestPath`(포크는 `/sentPullRequests`, 아니면 `/pullRequests`) | `menuSetting.pullRequest` + `vcs.pullRequests` + `codeAccessible` | `P` |
-| 5 | 리뷰(열린 스레드 수 배지) | `/{o}/{n}/reviews` | `menuSetting.review` + `codeAccessible` | |
-| 6 | 마일스톤 | `/{o}/{n}/milestones` | `menuSetting.milestone`. **꺼지면 `milestones`, `milestone/*`, `newMilestoneForm`이 404** | `M` |
-| 7 | 게시판(글 수 배지) | `/{o}/{n}/posts` | `menuSetting.board` | `B`, 화면 `N` |
-| 8 | 위키 | `/{o}/{n}/wiki` | `menuSetting.wiki == true` | |
-| 9 | 설정(선택하면 하위 펼침, 가입 신청 수 배지) | `/{o}/{n}/settingform` | `view.canUpdate` | `Q`(MANAGER만) |
-| | └ 일반 | `/{o}/{n}/settingform` | 같음 | |
-| | └ 구성원 | `/{o}/{n}/members` | 같음 | |
-| | └ 규칙 | `/{o}/{n}/setting/rulesets` | `vcs.protectedRefs` | |
-| | └ 배포 키 | `/{o}/{n}/setting/deploykeys` | `vcs.deployKeys` | |
-| | └ Git LFS(Mercurial은 이름 `LFS`) | `/{o}/{n}/setting/lfs` | `vcs.lfsScreen` | |
-| | └ 웹훅 | `/{o}/{n}/webhooks` | 같음 | |
-| | └ 라벨 | `/{o}/{n}/issue/labelsform` | 같음(이슈 메뉴를 꺼도 서버가 주소를 열어 두므로 항상 보임) | |
-| | └ 위험 구역: 이전, 저장소 종류 변경, 삭제 | `/transfer`, `/changeVCS`, `/deleteform` | 이전과 삭제 항상, 저장소 종류 변경은 `menuSetting.code` | |
-
-구독자 목록(`/watchers`)은 사이드바 항목이 아니라 프로젝트 머리의 구독자 수 링크(`canWatch`)로 들어간다.
-
-**일치 규칙**: 이슈와 마일스톤 항목의 숨김 조건은 서버의 `checkMenuEnabled`(404)와 같은 값(`menuSetting.issue`, `menuSetting.milestone`)을 쓴다. 코드, 게시판, 위키는 서버가 아직 주소를 막지 않고 메뉴만 숨기므로 항목이 숨은 프로젝트에서도 주소는 열린다(`ui-ia-gitlab.md` 9절 끝 규칙). 사이드바 데이터의 조건 필드는 화면용이고 서버 검사를 대신하지 않는다.
-
-### 조직
-
-| 묶음 | 항목 | 주소 | 보이는 조건 |
-|---|---|---|---|
-| (개요) | 조직 홈 | `/organizations/{name}` | 누구나 |
-| 계획 | 이슈 | `/organizations/{name}/issues` | 누구나 |
-| | 게시판 | `/organizations/{name}/boards` | 누구나 |
-| 협업 | 코드 주고받기 | `/organizations/{name}/pullrequests` | 누구나 |
-| 설정 | 일반 | `/organizations/{name}/settingform` | `canManage`(조직 관리자 또는 사이트 관리자) |
-| | 멤버 | `/organizations/{name}/members` | 같음 |
-| | 접근: OAuth 앱 | `/organizations/{name}/oauth-apps` | 같음 |
-| | 접근: OAuth 앱 정책 | `/organizations/{name}/oauth-policy` | 같음 |
-| | 감사 로그 | `/organizations/{name}/audit` | 같음 |
-| | 삭제(고급) | `/organizations/{name}/deleteForm` | 같음 |
-
-조직 검색 범위 항목은 조직 구성원이나 조직 관리자만 본다(`navbar.html:55-58`, 사이트 관리자는 포함되지 않음, admin-role-F17).
-
-### 사용자 설정
-
-| 묶음 | 항목 | 주소 | 보이는 조건 |
-|---|---|---|---|
-| 프로필 | 프로필 수정 | `/user/editform` | 로그인 |
-| 계정 | 비밀번호 변경 | `/user/editform/password` | 로그인 |
-| | 이메일 설정 | `/user/editform/emails` | 로그인 |
-| | 연결된 계정 | `/user/editform/linked-accounts` | 로그인 |
-| 알림 | 알림 설정 | `/user/editform/notifications` | 로그인(단독 항목, 판단 14) |
-| 접근과 보안 | 사용자 토큰 | `/user/editform/token` | 로그인 |
-| | SSH 키 | `/user/editform/ssh` | 로그인 |
-| | GPG 키 | `/user/editform/gpg` | 로그인 |
-| | 2단계 인증 | `/user/editform/two-factor` | 로그인(강제 대상이면 다른 화면이 여기로 303) |
-| | 보안 기록 | `/user/editform/audit` | 로그인 |
-| 애플리케이션 | OAuth 앱 | `/user/editform/oauth-apps` | 로그인. 사용자 앱 사용이 꺼지면 `new`가 403이므로 항목 조건 필요 |
-
-### 사이트 관리
-
-| 묶음 | 항목 | 주소 | 보이는 조건 |
-|---|---|---|---|
-| 개요 | 사용자 | `/sites/userList` | 사이트 관리자(`@SiteManagerOnly`, 비관리자와 익명은 403) |
-| | 프로젝트 | `/sites/projectList` | 같음 |
-| | 이슈 | `/sites/issueList` | 같음 |
-| | 게시물 | `/sites/postList` | 같음 |
-| 메시지 | 메일 발송 | `/sites/mail` | 같음 |
-| | 대량 메일 발송 | `/sites/massmail` | 같음 |
-| 시스템 | 업데이트(새 버전이면 배지 `1`) | `/sites/update` | 같음 |
-| | 시스템 진단 | `/sites/diagnostic` | 같음 |
-| | 감사 로그 | `/sites/audit` | 같음 |
-| | 데이터(후보, 판단 12) | `/sites/data` | 같음 |
-| 설정 | 보안 | `/sites/security` | 같음 |
-| | SSO | `/sites/sso` | 같음 |
-| | OAuth 앱 | `/sites/oauth-apps` | 같음 |
-| | LFS | `/sites/lfs` | 같음 |
-
-활성 표시는 지금 경로 **정확히 같을 때만**이라 상세 화면에서 꺼진다(shell.md 2.3). 새 사이드바는 접두 일치로 맞춘다.
+**일치 규칙**: 이슈와 마일스톤 항목의 숨김 조건은 서버의 `checkMenuEnabled`(404)와 같은 값(`menuSetting.issue`, `menuSetting.milestone`)을 쓴다. 코드, 게시판, 위키는 서버가 아직 주소를 막지 않고 메뉴만 숨기므로 항목이 숨은 프로젝트에서도 주소는 열린다.
 
 ## 합치거나 없애는 화면과 새로 필요한 화면
 
