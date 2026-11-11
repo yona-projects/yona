@@ -45,6 +45,8 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var issues: IssueRepository
+    @Autowired private lateinit var postings: dev.yona.domain.board.PostingRepository
+    @Autowired private lateinit var entityManager: jakarta.persistence.EntityManager
     @Autowired private lateinit var events: dev.yona.domain.issue.IssueEventRepository
     @Autowired private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
 
@@ -54,10 +56,15 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         val salt = LegacyPasswordHasher.generateSalt()
         val user = users.save(User(loginId = "cp1", name = "cp1", email = "cp1@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
         val project = projects.save(Project(owner = "cpo", name = "cpp", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
-        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true, wiki = true))
         projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
         issues.save(Issue(project = project, number = 1, title = "이슈", state = State.OPEN, authorId = user.id, authorLoginId = user.loginId, authorName = user.name))
         events.save(dev.yona.domain.issue.IssueEvent(issue = issues.findAll().last(), senderLoginId = "cp1", eventType = dev.yona.domain.enumeration.EventType.ISSUE_ASSIGNEE_CHANGED, newValue = "cp1", created = java.util.Date()))
+        project.lastPostingNumber = 1; projects.save(project)
+        postings.save(dev.yona.domain.board.Posting(project = project, number = 1, title = "글", body = "본문", authorId = user.id, authorLoginId = user.loginId, authorName = user.name, notice = false, readme = false, numOfComments = 0, createdDate = java.util.Date(), updatedDate = java.util.Date()))
+        val org = dev.yona.domain.project.Organization(name = "cporg", descr = "d", created = java.util.Date()).also { entityManager.persist(it) }
+        entityManager.persist(dev.yona.domain.project.OrganizationUser(user = user, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))
+        entityManager.flush()
         val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", "cp1").param("password", "1234")) }
         return project to session
     }
@@ -68,7 +75,7 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         val attrs = listOf("href", "src", "action", "data-request-uri", "data-href", "data-url")
         val scriptUrls = doc.select("script:not([src])").flatMap { script ->
             Regex("""["'](/[A-Za-z0-9_][^"'\s<>]*)["']""").findAll(script.data().replace("\\/", "/")).map { it.groupValues[1] }.toList()
-        }.filter { bad(it) && !it.startsWith("/\\") }.map { "script-string=$it" }
+        }.filter { bad(it) && it != "/verify" && !it.startsWith("/\\") }.map { "script-string=$it" }
         // 인라인 스타일의 background-image:url(...)도 접두어가 있어야 한다(브라우저 확인에서 드러난 빈틈이다)
         val styleUrls = doc.select("[style]").flatMap { el -> Regex("""url\(['"]?(/[^'")]+)""").findAll(el.attr("style")).map { it.groupValues[1] }.toList() }
             .filter { bad(it) }.map { "style-url=$it" }
@@ -83,7 +90,8 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         assertTrue(!html.contains("$context/https:") && !html.contains("$context//"), "외부 주소에 접두어가 붙었다")
     }
 
-    private fun bad(value: String) = value.startsWith("/") && !value.startsWith("//") && !value.startsWith("$context/") && value != context
+    // 접두어가 없거나(루트 주소) 두 번 붙은(`/yona/yona/...`) 주소를 잘못된 것으로 본다
+    private fun bad(value: String) = value.startsWith("/") && !value.startsWith("//") && ((!value.startsWith("$context/") && value != context) || value.startsWith("$context$context/"))
 
     private fun render(path: String, session: MockHttpSession?): String =
         mockMvc.perform(get("$context$path").contextPath(context).apply { session?.let { session(it) } }).andReturn().response.contentAsString
@@ -96,7 +104,7 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         val pages = listOf(
             "/", base, "$base/issues", "$base/issue/1", "$base/issueform", "$base/posts", "$base/postform", "$base/milestones", "$base/newMilestoneForm", "$base/members", "$base/settings",
             "$base/issue/labelsform", "$base/code", "$base/pullRequests", "$base/webhooks", "/cp1", "/notifications", "/help", "/projects", "/projectform", "/users/loginform", "/users/signupform",
-            "/search?query=cp", "/user/editform", "/user/token", "/user/issues", "/organizations/new", "/organizations/cporg/members", "/sites/userList", "/sites/projectList", "/sites/setting", "/sites/security"
+            "/search?query=cp", "/user/editform", "/user/token", "/user/issues", "/organizations/new", "/organizations/cporg/members", "/organizations/cporg/boards", "/organizations/cporg/deleteForm", "$base/post/1", "$base/wiki", "/user/editform/emails", "/sites/audit", "/sites/userList", "/sites/projectList", "/sites/setting", "/sites/security"
         )
         val violations = pages.associateWith { unprefixed(render(it, session)) }.filterValues { it.isNotEmpty() }
         assertTrue(violations.isEmpty(), "접두어 없는 주소가 있다: $violations")

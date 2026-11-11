@@ -48,7 +48,7 @@
           <span class="ml10" th:text="${mail.email}"></span>
         </td>
         <td style="text-align:right; vertical-align: middle;">
-          <button type="button" data-request-method="delete" th:attr="data-request-uri='/user/email/delete/' + ${mail.id}" class="ybtn ybtn-small ybtn-danger" th:text="#{button.delete}">
+          <button type="button" data-request-method="delete" th:attr="data-request-uri=@{|/user/email/delete/${mail.id}|}" class="ybtn ybtn-small ybtn-danger" th:text="#{button.delete}">
           </button>
           <button th:if="${mail.valid}" type="button" data-request-method="put" th:href="@{/user/email/setAsMain/{id}(id=${mail.id})}" class="ybtn ybtn-small" style="width:150px;" th:text="#{emails.set.as.main}">
           </button>

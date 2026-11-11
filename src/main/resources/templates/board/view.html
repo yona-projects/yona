@@ -53,7 +53,7 @@
                 <div th:if="${post.body.isEmpty()}" class="content empty-content"></div>
                 <th:block th:unless="${post.body.isEmpty()}">
                     <div th:id="'post-' + ${post.number}" class="hide">
-                        <form th:action="${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/content'}">
+                        <form th:action="@{${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/content'}}">
                             <textarea class="form-control" th:text="${post.body}"></textarea>
                         </form>
                     </div>
@@ -75,7 +75,7 @@
                     <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
                     <span class="">
                         <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
-                                th:attr="onclick=|window.location = '${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
+                                th:data-href="@{|${base}/post/${post.number}/editform|}" onclick="window.location = this.dataset.href"><i class="yobicon-edit-2"></i></button>
                         <a th:unless="${post.canUpdate}" th:href="@{${base + '/post/' + post.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
                         <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
@@ -113,7 +113,7 @@
                     </th:block>
                     <div class="right-menu-icons">
                         <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
-                                th:attr="onclick=|window.location='${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
+                                th:data-href="@{|${base}/post/${post.number}/editform|}" onclick="window.location = this.dataset.href"><i class="yobicon-edit-2"></i></button>
                         <a th:unless="${post.canUpdate}" th:href="@{${base + '/post/' + post.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
                         <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">

@@ -42,9 +42,9 @@
     $("#btnDeleteExec").on("click", function() {
         yona.http.ajax({
             type: "delete",
-            url: [[${#paths.organization(org.name)}]],
+            url: [[@{${#paths.organization(org.name)}}]],
             success: function() {
-                location.href = "/";
+                location.href = [[@{/}]];
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 bootstrap.Modal.getOrCreateInstance(document.getElementById("alertDeletion")).hide();

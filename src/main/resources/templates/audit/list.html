@@ -28,9 +28,9 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
     <span class="audit-total text-body-secondary small" th:text="#{audit.pager.info(${total}, ${page}, ${pages})}"></span>
     <span class="ms-auto d-flex gap-2" th:if="${exportable}">
-        <a th:href="${exportCsv}" class="audit-export-csv btn btn-sm btn-outline-secondary" th:text="#{audit.export.csv}">CSV</a>
-        <a th:href="${exportJsonl}" class="audit-export-jsonl btn btn-sm btn-outline-secondary" th:text="#{audit.export.jsonl}">JSON Lines</a>
-        <a th:href="${exportJson}" class="audit-export-json btn btn-sm btn-outline-secondary" th:text="#{audit.export.json}">JSON</a>
+        <a th:href="@{${exportCsv}}" class="audit-export-csv btn btn-sm btn-outline-secondary" th:text="#{audit.export.csv}">CSV</a>
+        <a th:href="@{${exportJsonl}}" class="audit-export-jsonl btn btn-sm btn-outline-secondary" th:text="#{audit.export.jsonl}">JSON Lines</a>
+        <a th:href="@{${exportJson}}" class="audit-export-json btn btn-sm btn-outline-secondary" th:text="#{audit.export.json}">JSON</a>
     </span>
     <button type="button" th:if="${verifiable}" class="audit-verify btn btn-sm btn-outline-secondary" th:text="#{audit.verify}">Verify integrity</button>
 </div>
@@ -63,8 +63,8 @@
     </tbody>
 </table>
 <nav class="d-flex gap-3" th:if="${prevUrl != null or nextUrl != null}">
-    <a th:if="${prevUrl != null}" th:href="${prevUrl}" class="audit-prev" th:text="#{audit.pager.prev}">Newer</a>
-    <a th:if="${nextUrl != null}" th:href="${nextUrl}" class="audit-next" th:text="#{audit.pager.next}">Older</a>
+    <a th:if="${prevUrl != null}" th:href="@{${prevUrl}}" class="audit-prev" th:text="#{audit.pager.prev}">Newer</a>
+    <a th:if="${nextUrl != null}" th:href="@{${nextUrl}}" class="audit-next" th:text="#{audit.pager.next}">Older</a>
 </nav>
 <script th:if="${verifiable}" type="text/javascript">
     (function () {

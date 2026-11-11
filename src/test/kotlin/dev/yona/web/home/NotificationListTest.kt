@@ -172,7 +172,9 @@ class NotificationListTest : AbstractIntegrationTest() {
         (1..21).forEach { n -> event(s, me, i, EventType.NEW_ISSUE, null, "n$n", ago = (30 - n) * 1000L, title = "알림$n") }
         val session = login(me)
         val script = page("/notifications", session).select("script").joinToString("\n") { it.data() }
-        val url = Regex("yona\\.http\\.get\\(\"([^\"]*/notification\\?[^\"]*)\"").find(script)?.groupValues?.get(1)
+        // 주소는 컨텍스트 경로를 붙이려고 `"/notification" + "?from=..."` 두 조각이다(shell-F28)
+        val parts = Regex("yona\\.http\\.get\\(\"([^\"]*/notification)\"\\s*\\+\\s*\"(\\?[^\"]*)\"").find(script)
+        val url = parts?.let { it.groupValues[1].replace("\\/", "/") + it.groupValues[2] }
         assertNotNull(url, "더 보기 스크립트에서 주소를 찾지 못했다")
         assertTrue(!url.contains("&amp;"), "주소에 &amp;가 글자로 남았다: $url")
         // 스크립트가 만든 주소 그대로 호출하면 성공하고 나머지 한 개가 돌아온다
