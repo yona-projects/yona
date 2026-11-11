@@ -36,7 +36,7 @@
                             <div class="col-lg-1 subtask-message" th:text="#{issue.option}"></div>
                         </div>
                         <div th:if="${errors['title'] != null}" class="message w-100">
-                            <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
+                            <div th:each="error : ${errors['title']}" th:text="#{${error}(255)}"></div>
                         </div>
                         <th:block th:replace="~{issue/partial-select-subtask :: selectSubtask(${showSubtask}, ${hasChild})}"></th:block>
                     </dd>

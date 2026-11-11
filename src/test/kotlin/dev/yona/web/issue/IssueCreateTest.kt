@@ -365,6 +365,14 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `제목이 255자를 넘으면 최대 길이를 알려 주며 자리 표시가 남지 않는다 (v1_6은 Play가 255를 채웠다)`() {
+        val project = newProject()
+        val doc = Jsoup.parse(submit(project, login(newUser()), "title" to "나".repeat(256), "body" to "b").andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertEquals("Maximum length is 255", doc.selectFirst("div.message div")?.text())
+        assertEquals(0, issues.findAll().count { it.project?.id == project.id })
+    }
+
+    @Test
     fun `본문이 오지 않으면 413 화면이다`() {
         val project = newProject()
         submit(project, login(newUser()), "title" to "t").andExpect(status().isPayloadTooLarge)

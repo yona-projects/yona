@@ -104,7 +104,7 @@ const Browser = function(htOptions){
     }
 
     function _onChangeBranch(weEvt){
-        location.href = weEvt.val;
+        location.href = weEvt.target.value;
     }
 
     /**

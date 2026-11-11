@@ -74,7 +74,8 @@ function sameOrigin(url) {
 /** `$.ajax`가 돌려주던 jqXHR 모양의 응답 객체를 만든다. */
 function createXhr(response, text) {
   const xhr = {
-    readyState: 4,
+    // 응답이 없으면(네트워크 오류) jqXHR처럼 0이다. 호출하는 쪽이 `readyState == 0`으로 네트워크 오류를 가른다
+    readyState: response ? 4 : 0,
     status: response ? response.status : 0,
     statusText: response ? response.statusText : "error",
     responseText: text || "",

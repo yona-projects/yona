@@ -188,7 +188,7 @@
             yona.http.ajax({
                 url: url,
                 method: "POST",
-                data: JSON.stringify(e.val),
+                data: JSON.stringify($(this).val() || []),
                 contentType: "application/json; charset=UTF-8"
             }).done(function(response) {
             // v1.6은 jQuery 3에 없는 `.error`를 불러 라벨을 고를 때마다 콘솔에 TypeError가 났다(R-30)
