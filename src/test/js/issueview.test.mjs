@@ -70,6 +70,11 @@ export const tests = [
     assert.deepEqual((await get(page, '__ajax'))[0][2], { 'issues[0].id': 42, dueDate: '2020-01-02', isDueDateChanged: true });
     assert.equal(await page.locator('.duedate-status').innerText(), '(3일 지남)'); assert.equal(await page.evaluate(() => $('.duedate-status').hasClass('overdue')), true); await page.close();
   } },
+  { name: '마감일: 마감일을 지워 서버가 dueDateMsg를 null로 주면 상태 글자를 비운다(v1_6은 "(null)"을 보였다, 고쳤다, issue-F8)', run: async () => {
+    const page = await open({ ajax: { ok: { dueDateMsg: null, isOverDue: false } } });
+    await page.evaluate(() => { $('.duedate-status').text('(3일 남음)'); $('#issueDueDate').val('').trigger('change'); }); await page.waitForTimeout(50);
+    assert.equal((await page.locator('.duedate-status').innerText()).trim(), ''); await page.close();
+  } },
   { name: '마감일: 날짜가 올바르지 않으면 알림만 띄우고 요청하지 않는다', run: async () => {
     const page = await open({ ajax: { ok: {} } });
     await page.evaluate(() => { $('#issueDueDate').val('not-a-date').trigger('change'); }); await page.waitForTimeout(40);
