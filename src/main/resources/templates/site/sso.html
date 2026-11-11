@@ -8,6 +8,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::ssoPage})}">
 <th:block th:fragment="ssoPage">
+<span data-swap-safe hidden></span>
 <div class="two-factor-page">
 <h3 th:text="#{site.sso.title}"></h3>
 <p class="text-body-secondary" th:text="#{site.sso.description}"></p>

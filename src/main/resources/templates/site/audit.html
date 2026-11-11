@@ -8,6 +8,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::auditPage})}">
 <th:block th:fragment="auditPage">
+<span data-swap-safe hidden></span>
     <div class="title_area">
         <h2 class="float-start" th:text="#{audit.title}"></h2>
     </div>

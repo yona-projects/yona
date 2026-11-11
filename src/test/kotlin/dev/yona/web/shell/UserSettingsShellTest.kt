@@ -80,4 +80,18 @@ class UserSettingsShellTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var settings: dev.yona.domain.site.SiteSettingService
     private fun appsEnabled() = settings.oauthUserAppsEnabled()
+
+    @Test
+    fun `스크립트가 없는 내 설정 화면만 swap-safe 표지를 갖고 제목 띠는 교체 대상이다(D-136)`() {
+        val s = login()
+        listOf("/user/editform/audit", "/user/editform/ssh/new", "/user/editform/gpg/new", "/user/editform/token/new").forEach { path ->
+            assertNotNull(page(path, s).selectFirst(".shell-main [data-swap-safe]"), "$path 는 swap-safe 표지가 있어야 한다")
+        }
+        listOf("/user/editform", "/user/editform/password", "/user/editform/ssh", "/user/editform/token").forEach { path ->
+            assertNull(page(path, s).selectFirst("[data-swap-safe]"), "$path 는 옛 스크립트가 있어 일반 이동이다")
+        }
+        val doc = page("/user/editform/audit", s)
+        assertNotNull(doc.selectFirst("#pageTitle.site-breadcrumb-outer"), "제목 띠에 id가 있어야 사이드바와 함께 교체된다")
+        assertTrue(doc.selectFirst("nav.shell-sidebar")!!.attr("hx-select-oob").contains("#pageTitle"))
+    }
 }

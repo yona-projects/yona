@@ -10,7 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::twoFactorPage})}">
 <th:block th:fragment="twoFactorPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{twoFactor.title}"></h3>
     </div>
@@ -18,7 +18,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="two-factor-page">
         <div class="alert alert-success" th:text="#{${noticeKey}}"></div>
         <h4 th:text="#{twoFactor.backup.title}"></h4>

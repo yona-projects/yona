@@ -8,6 +8,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::lfsPage})}">
 <th:block th:fragment="lfsPage">
+<span data-swap-safe hidden></span>
 <div class="two-factor-page">
 <h3 th:text="#{site.lfs.title}"></h3>
 <p class="text-body-secondary" th:text="#{site.lfs.description}"></p>

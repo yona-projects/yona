@@ -3,17 +3,18 @@
   매개변수: menu(NavMenu), title(사이드바 머리 글자), id(사이드바 요소 id), active(활성 항목 이름. null이면 요청 경로에서 판정)
   1024px 아래(Bootstrap lg 미만)에서는 offcanvas 서랍이 되고, 열기 단추(.shell-sidebar-toggle)가 같이 그려진다.
   활성 항목은 현재 요청 경로(requestPath)에서 menu.activeKey가 판정한다.
+  D-136: 사이드바는 본문(.shell-main)만 바꾸는 이동을 선언하고, swap-safe 표지가 있는 화면에서만 shell/navigation.ts가 켠다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id, active)"
           th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
-<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; initSidebar();</script>
+<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; initSidebar(); initNavigation();</script>
 <button type="button" class="btn btn-outline-secondary btn-sm shell-sidebar-expand" data-shell-sidebar-toggle aria-expanded="false" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.expand}" th:title="#{sidebar.expand}"><i class="yobicon-menu" aria-hidden="true"></i></button>
 <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
         data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
     <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>
 </button>
-<nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" th:id="${id}" th:attr="aria-labelledby=${id} + '-label'">
+<nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
     <div class="offcanvas-header d-lg-none">
         <h2 class="offcanvas-title h5" th:id="${id} + '-label'" th:text="${title}"></h2>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" th:attr="data-bs-target='#' + ${id}" th:aria-label="#{sidebar.close}"></button>

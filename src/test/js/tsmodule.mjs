@@ -21,12 +21,13 @@ export function buildTs() {
  * 모듈 방식 시험용 페이지를 연다. `esm/`은 TS 산출물을 먼저 찾고 없으면 저장소의 옛 JS를 내려 준다.
  * [head]는 모듈보다 먼저 실행할 인라인 스크립트(예: `window.yonaContextPath = ...`)이다.
  */
-export async function openTs(body, { head = '' } = {}) {
+export async function openTs(body, { head = '', pages = {} } = {}) {
   const browser = await launch(); const ctx = await browser.newContext(); const page = await ctx.newPage(); page.errors = [];
   page.on('pageerror', (e) => page.errors.push(String(e.message || e)));
   await page.route('http://ts.test/**', (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/page') return route.fulfill({ contentType: 'text/html', body: `<!doctype html><head><script type="importmap">${IMPORT_MAP}</script>${head}</head><body>${body}</body>` });
+    if (pages[url.pathname]) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: pages[url.pathname] });
+    if (url.pathname === '/page') return route.fulfill({ contentType: 'text/html; charset=utf-8', body: `<!doctype html><head><script type="importmap">${IMPORT_MAP}</script>${head}</head><body>${body}</body>` });
     const rel = url.pathname.replace('/assets/javascripts/', '');
     for (const base of [TS_OUT, JS]) {
       const file = path.join(base, rel);

@@ -10,7 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::sshPage})}">
 <th:block th:fragment="sshPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{sshKey.title}"></h3>
     </div>
@@ -18,7 +18,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${sshError != null}" class="alert alert-danger" th:text="#{${sshError}}"></div>
         <form id="ssh-create" method="post" th:action="@{/user/ssh}">
             <h4 th:text="#{sshKey.add}"></h4>

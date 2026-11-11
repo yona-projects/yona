@@ -10,7 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::gpgPage})}">
 <th:block th:fragment="gpgPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{gpgKey.title}"></h3>
     </div>
@@ -18,7 +18,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${gpgError != null}" class="alert alert-danger" th:text="#{${gpgError}}"></div>
         <form id="gpg-create" method="post" th:action="@{/user/gpg}">
             <h4 th:text="#{gpgKey.add}"></h4>

@@ -110,4 +110,21 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
         assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
         assertTrue(doc.select("script").any { it.data().contains("shellSidebarCollapsed") }, "첫 그림 전에 기억한 상태를 적용하는 짧은 스크립트")
     }
+
+    @Test
+    fun `스크립트가 없는 화면만 swap-safe 표지를 갖고 사이드바는 본문 교체를 선언한다(D-136)`() {
+        val safe = listOf("/sites/security", "/sites/sso", "/sites/diagnostic", "/sites/update", "/sites/audit", "/sites/lfs", "/sites/mail")
+        val session = admin()
+        safe.forEach { path ->
+            val doc = Jsoup.parse(mockMvc.perform(get(path).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+            assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), "$path 는 swap-safe 표지가 있어야 한다")
+        }
+        val unsafe = Jsoup.parse(mockMvc.perform(get("/sites/userList").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertNull(unsafe.selectFirst("[data-swap-safe]"), "옛 스크립트가 있는 화면은 일반 이동으로 둔다")
+        val nav = unsafe.selectFirst("nav.shell-sidebar")!!
+        assertEquals(".shell-main", nav.attr("hx-target"))
+        assertEquals(".shell-main", nav.attr("hx-select"))
+        assertEquals("#shellSidebar", nav.attr("hx-select-oob").substringBefore(",").trim())
+        assertTrue(unsafe.select("script[type=module]").any { it.data().contains("yona/shell/navigation.js") })
+    }
 }

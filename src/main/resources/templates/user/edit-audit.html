@@ -8,7 +8,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::auditPage})}">
 <th:block th:fragment="auditPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{userinfo.audit}"></h3>
     </div>
@@ -16,7 +16,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('audit')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{audit.description.user}"></p>
         <th:block th:replace="~{audit/list :: auditList(false, false, false)}"></th:block>
     </div><!--/* .shell-main */-->
