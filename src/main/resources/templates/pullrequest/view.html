@@ -214,7 +214,8 @@
             url : "[(${mentionUrl})]"
         });
 
-        $("button.moreBtn").on("click", function(){
+        // 타임라인을 Ajax로 다시 읽으면 단추가 새로 그려지므로 문서에 위임해 건다
+        $(document).on("click", "button.moreBtn", function(){
             $(this).next("pre.commitMsg.desc").toggleClass("hidden");
         });
 

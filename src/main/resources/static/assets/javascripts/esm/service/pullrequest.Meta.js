@@ -65,7 +65,7 @@ $(() => {
                 $comments = $('<ul class="comments" id="comments"></ul>').appendTo(".board-comment-wrap");
             }
             $comments.html(html);
-            $comments.find(".event > .badge").each(function () {
+            $comments.find(".event > .label").each(function () {
                 const $label = $(this);
                 $label.removeClass("dimgray white").addClass($yona.getContrastColor($label.css("background-color")));
             });
