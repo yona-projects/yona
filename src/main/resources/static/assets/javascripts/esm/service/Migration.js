@@ -96,8 +96,21 @@ function successWithData(response) {
     return response.data;
 }
 
+// 화면(Vue 앱)이 마운트되면 시스템 메시지 영역에 글을 더하는 함수로 바꾼다. 그 전의 실패는 콘솔에만 남는다.
+let reportFailure = function () {};
+
+/**
+ * 요청 실패를 콘솔에 남기고, 서버가 상태 코드로 거부한 경우(403, 404 등)에는 화면의 시스템 메시지 영역(`#system-msg`)에도 상태와 주소를 보인다.
+ * v1.6은 콘솔에만 기록해 화면에는 아무 안내가 없었다(migration-F8).
+ *
+ * @param {{status?: number, config?: {url?: string}}} response 거부된 응답 객체
+ * @returns {*} 받은 응답을 그대로 돌려준다
+ */
 function error(response) {
     console.error(response);
+    if (response && response.status > 0) {
+        reportFailure(response.status + " " + ((response.config && response.config.url) || ""));
+    }
     return response;
 }
 
@@ -598,6 +611,7 @@ const MigrationApp = {
                 });
             };
 
+            reportFailure = (text) => this.systemMessage(text);
             this.getSourceProjects();
         },
 
