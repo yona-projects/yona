@@ -103,6 +103,14 @@ class SiteSecurityTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `모두 강제해도 보안 키 추가 화면은 열린다 (등록 화면 아래 주소는 모두 허용)`() {
+        val u = user(); val s = login(u)
+        settings.setTwoFactorEnforcement(TwoFactorEnforcement.ALL)
+        // 강제를 맞추려는 사용자는 인증 앱뿐 아니라 보안 키로도 2단계를 켤 수 있어야 한다. 이 화면이 목록으로 되돌려지면 보안 키 등록이 막힌다
+        mockMvc.perform(get("/user/editform/two-factor/security-key").session(s)).andExpect(status().isOk)
+    }
+
+    @Test
     fun `강제로 이동한 등록 화면에는 이유를 알리는 안내가 보인다`() {
         val s = login(user()); settings.setTwoFactorEnforcement(TwoFactorEnforcement.ALL)
         mockMvc.perform(get("/").session(s))
