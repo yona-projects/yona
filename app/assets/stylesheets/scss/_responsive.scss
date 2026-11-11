@@ -270,23 +270,6 @@
     display: none !important;
   }
 
-  .short-menu {
-    display: block;
-  }
-
-  .menu-name {
-    display: none;
-  }
-
-  .project-menu-nav li a {
-    padding: 5px 12px 4px 12px !important;
-  }
-
-  .project-menu-count {
-    position: absolute !important;
-    margin-top: -36px !important;
-  }
-
   .show-in-mobile {
     display: block !important;
   }
@@ -351,10 +334,6 @@
     min-width: 10px !important;
   }
 
-  .project-menu-outer {
-    min-width: 10px !important;
-  }
-
   .page-footer-outer {
     min-width: 10px !important;
   }
@@ -384,16 +363,6 @@
   // other pages
   .write-comment-box {
     padding: 0;
-  }
-
-  .project-menu-count {
-    background: none;
-    color: inherit;
-    font-weight: bold;
-  }
-
-  .project-menu-gruop {
-    margin-left: 0 !important;
   }
 
   .project-header-avatar {

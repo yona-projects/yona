@@ -71,7 +71,7 @@ updated: 2026-11-11
 ### 지운 것 (2026-11-11)
 호출 여부를 `th:replace`, `loadModule`, 시험까지 풀어서 확인한 뒤 지웠다. 템플릿 쪽만 지웠고 SCSS는 아래에 남긴다.
 - `project/menu.html`의 `projectMenu` 조각(단축키 스크립트는 `shortcuts` 조각에 같은 내용이 있다), `organization/menu.html`의 `menu` 조각, `common/my-series-menu-tab.html`의 `mySeriesMenuTab` 조각, `project/partial-settingmenu.html`, `organization/partial-settingmenu.html`(파일 삭제).
-- 남은 것: `.project-menu-*`, `.short-menu`, `.menu-name`, `.project-setting`, `.site-setting-nav` SCSS 규칙(`_page.scss`, `_responsive.scss`)과 `board/create.html`, `common/scripts.html`이 아직 가리키는 `.project-menu-nav` 선택자. 규칙이 큰 파일 안에 중첩되어 있어 별도 단계에서 모양 확인과 함께 지운다.
+- SCSS도 지웠다: `_page.scss`의 `.short-menu`, `.project-menu-outer`(안쪽 `.project-menu-nav`, `.project-setting` 포함), `.project-menu-count`, `.site-setting-wrap` 안의 `.site-setting-nav`, `_responsive.scss`의 같은 계열 7곳. 템플릿의 죽은 선택자(`common/scripts.html`의 `.project-menu-nav`, `board/create.html`의 `.project-menu-gruop`, `.code-menu`)도 지웠다. 진행 막대를 사이드바 링크에 새로 걸지는 않았다(htmx 이동에서는 끝나지 않아 막대가 멈춘다).
 
 ## 아직 새 셸로 옮기지 않은 화면(참고)
 | 화면 | 이유 |

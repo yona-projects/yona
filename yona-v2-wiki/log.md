@@ -76,3 +76,7 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 ## [2026-11-11] refactor | 죽은 템플릿 조각 제거
 
 옛 가로 메뉴 조각 4개와 설정 메뉴 파일 2개를 지웠다. SCSS 규칙은 남겼다. 관련 시험 클래스 통과.
+
+## [2026-11-11] refactor | 옛 메뉴 SCSS 규칙과 죽은 선택자 제거
+
+빌드 통과, 프로젝트, 사이트 관리, 조직, 모바일 화면 확인. 좁은 화면에서 `.shell-main`의 가로 스크롤 10px을 `overflow-x: clip`으로 막았다.

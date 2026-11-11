@@ -21,6 +21,7 @@ $shell-gap: 14px;
     flex: 1 1 auto;
     min-width: 0; // 넓은 표나 코드가 사이드바 옆에서 넘치지 않게 한다.
     display: flow-root; // 본문 안의 float(옛 제목과 탭)가 사이드바 옆에서 겹치지 않게 감싼다.
+    overflow-x: clip; // 컨테이너 밖에 놓인 `.row`의 음수 여백(좁은 화면에서 10px)이 가로 스크롤을 만들지 않게 한다.
 }
 
 .shell-sidebar {
