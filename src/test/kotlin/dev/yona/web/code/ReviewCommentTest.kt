@@ -320,6 +320,32 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `풀 리퀘스트 번호는 경로의 프로젝트에 속한 것만 쓴다 (다른 프로젝트 경로로 댓글과 멘션 후보를 만들 수 없다, A-459)`() {
+        val n = ++sequence
+        val origin = projects.save(Project(owner = "rxo$n", name = "rxp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(origin)
+        GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\n".toByteArray())))
+        val contributor = user()
+        val fork = forks.fork(origin, contributor.loginId!!, "rxf$n", ProjectScope.PUBLIC, contributor)
+        GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b\n".toByteArray())))
+        mockMvc.perform(
+            post("/${fork.owner}/${fork.name}/pullRequests").session(login(contributor)).param("fromProjectId", fork.id.toString()).param("toProjectId", origin.id.toString())
+                .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "요청").param("body", "본문")
+        ).andExpect(status().isSeeOther)
+        val pr: PullRequest = pullRequests.findAll().single()
+        val other = projects.save(Project(owner = "rxq$n", name = "rxr$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = other, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        val attacker = login(user())
+        // 받는 프로젝트(origin) 경로로는 되지만, 다른 프로젝트(other) 경로에 그 번호를 넣으면 404이다
+        mockMvc.perform(send("/${other.owner}/${other.name}/pullRequest/${pr.id}/comments", attacker, "교차")).andExpect(status().isNotFound)
+        assertEquals(0, reviewComments.findAll().size)
+        mockMvc.perform(get("/${other.owner}/${other.name}/mentionListAtPullRequest?pullRequestId=${pr.id}&mentionType=user").session(attacker)).andExpect(status().isNotFound)
+        mockMvc.perform(get("/${other.owner}/${other.name}/mentionListAtCommitDiff?pullRequestId=${pr.id}&commitId=${pr.mergedCommitIdTo}&mentionType=user").session(attacker)).andExpect(status().isNotFound)
+        mockMvc.perform(get("/${origin.owner}/${origin.name}/mentionListAtPullRequest?pullRequestId=${pr.id}&mentionType=user").session(attacker)).andExpect(status().isOk)
+    }
+
+    @Test
     fun `풀 리퀘스트 변경 화면에서 줄에 단 댓글은 어긋남이 아니고 줄 사이에 나온다`() {
         val s = pullSetup(); val pr = s.pr
         val ranged = range("b.txt") + mapOf("startLine" to "1", "endLine" to "1", "prevCommitId" to pr.mergedCommitIdFrom!!, "commitId" to pr.mergedCommitIdTo!!)

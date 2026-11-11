@@ -24,6 +24,7 @@ import dev.yona.security.CurrentUserProvider
 import dev.yona.util.SiteUrls
 import dev.yona.web.FragmentRenderer
 import dev.yona.web.RedirectSupport
+import dev.yona.web.access.CodeAccessCheck
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
 import dev.yona.domain.vcs.VcsCapability
@@ -86,6 +87,7 @@ class PullRequestViewController(
      * 타임라인의 줄만 그린 조각이다. 담당자나 라벨을 바꾼 뒤 화면이 Ajax로 다시 불러온다(추가 항목 X-14, 이슈 화면의 타임라인 갱신과 같다). 읽기 권한이 필요하다.
      */
     @GetMapping("/{user}/{project}/pullRequest/{id}/timeline")
+    @CodeAccessCheck
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
@@ -95,6 +97,7 @@ class PullRequestViewController(
     }
 
     @GetMapping("/{user}/{project}/pullRequest/{id}")
+    @CodeAccessCheck
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
@@ -137,6 +140,7 @@ class PullRequestViewController(
     }
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/state")
+    @CodeAccessCheck
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
@@ -157,6 +161,7 @@ class PullRequestViewController(
     }
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/changes")
+    @CodeAccessCheck
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @RequiresVcs(VcsCapability.PULL_REQUESTS)
@@ -164,6 +169,7 @@ class PullRequestViewController(
         changesView(owner, name, id, null, request)
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/changes/{commitId}")
+    @CodeAccessCheck
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @RequiresVcs(VcsCapability.PULL_REQUESTS)

@@ -83,7 +83,10 @@ class MentionListController(
         @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val fromProject = (if (pullRequestId != -1L) pullRequests.findById(pullRequestId).orElse(null)?.fromProject else null) ?: project
+        // 풀 리퀘스트 번호는 경로의 프로젝트에 속한 것만 쓴다. 아니면 다른 프로젝트의 커밋 작성자를 후보로 읽을 수 있다(보안 보강, A-459)
+        val fromProject = if (pullRequestId != -1L) {
+            pullRequests.findById(pullRequestId).orElse(null)?.takeIf { it.toProject?.id == project.id }?.fromProject ?: return ErrorViews.notFound()
+        } else project
         val commit = history.commit(fromProject, commitId)
         val result = linkedMapOf<String, List<Map<String, String>>>()
         if (mentionType.equals("user", ignoreCase = true)) {
@@ -115,7 +118,7 @@ class MentionListController(
         @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound()
+        val pullRequest = pullRequests.findById(pullRequestId).orElse(null)?.takeIf { it.toProject?.id == project.id } ?: return ErrorViews.notFound()
         val result = linkedMapOf<String, List<Map<String, String>>>()
         if (mentionType.equals("user", ignoreCase = true)) {
             val viewer = currentUserProvider.get().user

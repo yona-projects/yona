@@ -215,14 +215,45 @@ class IssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `권한이 없으면 담당자를 바꾸지 않고 이슈 주소만 돌려준다`() {
+    fun `권한이 없으면 담당자를 바꾸지 않고 403이다 (v1_6은 200으로 이슈 주소만 돌려줬다, A-459)`() {
         val project = newProject()
         val outsider = newUser()
         val i = issue(project)
-        json(post(api(project, "issues/1/assignees")), login(outsider), """{"assignees":["${outsider.loginId}"]}""").andExpect(status().isOk)
-            .andExpect(jsonPath("$.issue").value("/${project.owner}/${project.name}/issue/1")).andExpect(jsonPath("$.assignee").doesNotExist())
+        json(post(api(project, "issues/1/assignees")), login(outsider), """{"assignees":["${outsider.loginId}"]}""").andExpect(status().isForbidden)
         entityManager.flush(); entityManager.clear()
         assertNull(issues.findById(i.id!!).get().assignee)
+    }
+
+    @Test
+    fun `비공개 프로젝트의 이슈 보조 API는 읽을 수 없는 사용자에게 403이다 (A-459)`() {
+        val secret = newProject(ProjectScope.PRIVATE)
+        val member = join(newUser(), secret); val outsider = newUser()
+        issue(secret, author = member, body = "극비")
+        val s = login(outsider)
+        json(post(api(secret, "issues/1/detectChange")), s, """{"issueBodyChecksum":"x","numOfComments":0}""").andExpect(status().isForbidden)
+        json(post(api(secret, "issues/1/commentNotiReceivers")), s, """{"comment":"@${member.loginId}"}""").andExpect(status().isForbidden)
+        mockMvc.perform(get(api(secret, "issues/1/findSharer")).param("query", member.loginId!!).session(s).accept(MediaType.APPLICATION_JSON)).andExpect(status().isForbidden)
+        // 구성원은 그대로 쓴다
+        val ms = login(member)
+        json(post(api(secret, "issues/1/detectChange")), ms, """{"issueBodyChecksum":"x","numOfComments":0}""").andExpect(status().isOk)
+        json(post(api(secret, "issues/1/commentNotiReceivers")), ms, """{"comment":"hi"}""").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `댓글 추천은 그 이슈의 댓글에만 된다 (다른 프로젝트 경로로 비공개 댓글에 추천할 수 없다, A-459)`() {
+        val open = newProject(); val secret = newProject(ProjectScope.PRIVATE)
+        val member = join(newUser(), secret); val outsider = newUser()
+        issue(open)
+        val si = issue(secret, author = member)
+        val c = comments.save(IssueComment(contents = "극비 댓글", createdDate = Date(), authorId = member.id, authorLoginId = member.loginId, authorName = member.name, issue = si, projectId = secret.id!!))
+        entityManager.flush(); entityManager.clear()
+        val s = login(outsider)
+        mockMvc.perform(post("/${open.owner}/${open.name}/issue/1/comment/${c.id}/vote").session(s)).andExpect(status().isNotFound)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(0, comments.findById(c.id!!).get().voters.size)
+        // 같은 이슈의 댓글은 그대로 추천된다
+        val ms = login(member)
+        mockMvc.perform(post("/${secret.owner}/${secret.name}/issue/1/comment/${c.id}/vote").session(ms)).andExpect(status().is3xxRedirection)
     }
 
     // --- 공유자 ---

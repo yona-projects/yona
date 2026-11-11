@@ -126,7 +126,10 @@ class ReviewCommentController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val contents = request.getParameter("contents")
         if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PROJECT_HOME")  // v1.6 newComment는 메뉴 종류 없이 render(키, project)를 불러 PROJECT_HOME이 활성화된다
-        val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
+        // 풀 리퀘스트 번호(DB 번호)는 경로의 프로젝트(받는 프로젝트)에 속한 것만 쓴다. 속하지 않아도 허용하면 읽을 수 있는 다른 프로젝트 경로로
+        // 읽을 수 없는 프로젝트의 풀 리퀘스트에 댓글을 달 수 있다(v1.6은 번호로만 찾았다. 보안 보강, A-459)
+        val pullRequest = pullRequests.findById(pullRequestId).orElse(null)?.takeIf { it.toProject?.id == project.id }
+            ?: return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
 
         if (!threadBelongs(request, project, pullRequest)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
 

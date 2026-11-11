@@ -2342,3 +2342,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | ui-improvements의 화면 결함 수정 이식: select2 val 다섯 곳, item-search 복원, 제목 길이 문구, pageNum 0, 네트워크 오류 readyState
 
 `ui-improvements`의 `9e196f957`을 이 브랜치로 옮겼다(충돌 없음). select2 4.x change 처리기, `jquery.search.js` 복원(`esm/ui/ItemSearch.js`), `Maximum length is 255`, `/sites/userList`와 내 이슈의 `pageNum=0`, `yona.http` 네트워크 오류의 `readyState 0`이다. 근거와 장부(A-457, R-148 이후)는 `ui-improvements`의 위키에 있다.
+
+## [2026-11-11] build | 서버 권한 검사 보강: 코드 주고받기, 이슈 API, 댓글 추천, 게시글 수정과 공지 (A-459)
+
+선생님이 서버 권한 검사를 더하라고 하셨다(새 UI의 정보 구조를 다시 짤 때 벽이 되지 않도록). 비구성원으로 재현한 누락을 TDD로 고쳤다: 코드 주고받기 보내는 쪽과 받는 쪽 읽기 검사, 풀 리퀘스트 소속 확인(댓글, 멘션 후보), 코드 접근 제한의 풀 리퀘스트 화면 적용, 이슈 보조 API 읽기 검사, 담당자 변경 403, 댓글 추천 소속 확인, 게시글 수정 검사 순서와 공지 권한. 달라진 점은 `architecture/differences-from-v16.md`에 표로 적었다. 2단계 강제의 보안 키 추가 화면 수정(A-458)도 함께 들어왔다.

@@ -52,7 +52,7 @@ class IssueVoteController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("number") number: Long, @PathVariable("commentId") commentId: Long,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val comment = comments.findById(commentId).orElse(null) ?: return plain("issue.comment.error.vote")
+        val comment = comments.findById(commentId).orElse(null)?.takeIf { belongs(it, owner, name, number) } ?: return plain("issue.comment.error.vote")
         commentService.voteComment(comment, requireNotNull(currentUserProvider.get().user))
         return RedirectSupport.see(request, response, commentUrl(comment.issue?.project?.owner, comment.issue?.project?.name, comment.issue?.number, commentId))
     }
@@ -64,11 +64,20 @@ class IssueVoteController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("number") number: Long, @PathVariable("commentId") commentId: Long,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val comment = comments.findById(commentId).orElse(null) ?: return plain("issue.comment.error.unvote")
+        val comment = comments.findById(commentId).orElse(null)?.takeIf { belongs(it, owner, name, number) } ?: return plain("issue.comment.error.unvote")
         val viewer = requireNotNull(currentUserProvider.get().user)
         if (comment.voters.none { it.id == viewer.id }) return plain("issue.comment.error.have.not.voted")
         commentService.unvoteComment(comment, viewer)
         return RedirectSupport.see(request, response, commentUrl(comment.issue?.project?.owner, comment.issue?.project?.name, comment.issue?.number, commentId))
+    }
+
+    /**
+     * 댓글이 경로의 프로젝트와 이슈에 속하는지 본다. 경로의 프로젝트만 읽기 검사를 받으므로, 속하지 않는 댓글에 추천을 허용하면
+     * 읽을 수 있는 다른 프로젝트 경로로 비공개 댓글에 추천할 수 있다(v1.6은 번호로만 찾았다. 보안 보강, A-459).
+     */
+    private fun belongs(comment: dev.yona.domain.comment.IssueComment, owner: String, name: String, number: Long): Boolean {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return false
+        return comment.issue?.number == number && comment.issue?.project?.id == project.id
     }
 
     private fun voteIssue(owner: String, name: String, number: Long, request: HttpServletRequest, response: HttpServletResponse, vote: Boolean): Any {

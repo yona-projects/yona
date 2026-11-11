@@ -116,7 +116,7 @@ class IssueApiController(
 
     /**
      * 담당자를 바꾼다. 본문은 `{"assignees": ["로그인아이디"]}`이다. 로그인 아이디가 비었거나 없는 사용자이면 담당자를 비운다.
-     * 수정 권한이 없으면 아무것도 바꾸지 않고 이슈 주소만 돌려준다(v1.6과 같다).
+     * 수정 권한이 없으면 403이다(v1.6은 아무것도 바꾸지 않고 이슈 주소만 돌려줬다. 보안 보강, A-459).
      */
     @PostMapping("/{owner}/{projectName}/issue/{number}/assignees")
     @Transactional
@@ -124,6 +124,8 @@ class IssueApiController(
         val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val (project, issue) = find(owner, projectName, number) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
+        // 수정 권한이 없으면 403이다. v1.6은 아무것도 바꾸지 않고 200으로 이슈 주소만 돌려줬다(보안 보강, A-459)
+        if (viewer == null || !accessControl.isAllowed(viewer, issue.asResource(), Operation.UPDATE)) return message(HttpStatus.FORBIDDEN, "Forbidden")
         val result = linkedMapOf<String, Any?>()
         if (viewer != null && accessControl.isAllowed(viewer, issue.asResource(), Operation.UPDATE)) {
             val assignees = json.findValue("assignees")
@@ -143,6 +145,7 @@ class IssueApiController(
 
     /** 로그인 아이디(쉼표로 구분)로 이슈의 공유자를 찾아 추가한 날짜 순으로 돌려준다. */
     @GetMapping("/{owner}/{projectName}/issue/{number}/findSharer")
+    @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun findSharer(
         @PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long,
@@ -229,6 +232,7 @@ class IssueApiController(
 
     /** 열려 있는 이슈 화면이 주기적으로 부르는 변경 감지이다. 본문 체크섬과 댓글 수를 비교해 결과를 돌려준다. */
     @PostMapping("/{owner}/{projectName}/issue/{number}/detectChange")
+    @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun detectChange(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val viewer = currentUserProvider.get().user ?: return message(HttpStatus.UNAUTHORIZED, "unauthorized request")
@@ -258,6 +262,7 @@ class IssueApiController(
      * 응답: `{"receivers": [사용자 노드]}`. v1.6은 권한을 확인하지 않는다.
      */
     @PostMapping("/{owner}/{projectName}/issue/{number}/commentNotiReceivers")
+    @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun commentNotiReceivers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")

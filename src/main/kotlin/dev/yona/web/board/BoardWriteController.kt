@@ -96,7 +96,7 @@ class BoardWriteController(
         if (errors.isNotEmpty()) return createView(project, viewer, "error.validation", "", errors, null).also { it.status = HttpStatus.BAD_REQUEST }
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
         val title = request.getParameter("title")
-        val form = PostForm(title, body, checked(request, "notice"), checked(request, "readme"))
+        val form = PostForm(title, body, checked(request, "notice") && allowedToNotice(viewer, project), checked(request, "readme"))
 
         if (form.readme) {
             val existing = postings.findFirstByProjectIdAndReadmeTrue(requireNotNull(project.id))
@@ -114,7 +114,7 @@ class BoardWriteController(
             return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${dev.yona.util.UrlPaths.encodeEach(path)}")
         }
 
-        // v1.6 `newPost`는 `notice` 폼 값을 권한 검사 없이 그대로 저장한다(화면에서만 공지 선택을 숨긴다)
+        // 공지는 공지 권한이 있는 사용자만 지정한다. v1.6 `newPost`는 폼 값을 권한 검사 없이 저장했다(화면에서만 숨겼다). 보안 보강이다(A-459)
         val posting = postingService.create(project, viewer, form)
         val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
         return RedirectSupport.see(request, response, if (form.readme) dev.yona.util.UrlPaths.projectPath(project.owner, project.name) else "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}", flash)
@@ -146,6 +146,8 @@ class BoardWriteController(
         val viewer = currentUserProvider.get().user
         val posting = postings.findByProjectIdAndNumber(requireNotNull(project.id), number)
             ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.BOARD_POST.resource)
+        // 읽을 수 없는 글은 입력 검사 전에 막는다. 검사 뒤에 막으면 오류 화면에 저장된 제목과 본문이 실린다(v1.6은 검사 뒤였다. 보안 보강, A-459)
+        if (!accessControl.isAllowed(viewer, posting.asResource(), Operation.READ)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val errors = validate(request)
         if (errors.isNotEmpty()) {
             val noticeAllowed = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE)
@@ -159,7 +161,9 @@ class BoardWriteController(
     private fun edit(project: Project, posting: Posting, viewer: User, request: HttpServletRequest, response: HttpServletResponse): Any {
         if (!accessControl.isAllowed(viewer, posting.asResource(), Operation.UPDATE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
-        val form = PostForm(request.getParameter("title"), body, checked(request, "notice"), checked(request, "readme"))
+        // 공지 권한이 없으면 보낸 값을 무시하고 지금 값을 유지한다(A-459)
+        val notice = if (allowedToNotice(viewer, project)) checked(request, "notice") else posting.notice == true
+        val form = PostForm(request.getParameter("title"), body, notice, checked(request, "readme"))
         if (form.readme) {
             commitRootFile(project, viewer, "README.md", form)
             postingService.unmarkOtherReadme(project, requireNotNull(posting.number))
