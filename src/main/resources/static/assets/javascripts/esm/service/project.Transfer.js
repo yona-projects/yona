@@ -48,7 +48,14 @@ const Transfer = function(htOptions){
     function _attachEvent(htOptions){
         htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
 
-        htElement.welBtnTransferPrj.one("click", () =>{
+        // v1.6은 `.one("click")`이라 한 번 실패하면 같은 화면에서 다시 "예"를 눌러도 아무 반응이 없었다(project-F19).
+        // 요청 중에만 중복 전송을 막고, 실패하면 다시 보낼 수 있게 푼다.
+        let bSending = false;
+        htElement.welBtnTransferPrj.on("click", () =>{
+            if(bSending){
+                return;
+            }
+            bSending = true;
             yona.http.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
                 "method" : "put",
                 "success": function(oRes, sStatus, oXHR){
@@ -62,6 +69,7 @@ const Transfer = function(htOptions){
                     }
                 },
                 "error": function(){
+                    bSending = false;
                     bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertTransfer")).hide();
                     $yona.alert(Messages("project.transfer.error"));
                     return false;
