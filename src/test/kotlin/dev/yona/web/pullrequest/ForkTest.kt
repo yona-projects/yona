@@ -207,10 +207,25 @@ class ForkTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이름 규칙을 어기면 v1_6처럼 500이다`() {
+    fun `이름이나 공개 범위가 규칙을 어기면 포크 화면은 400이고 클론은 실패로 답한다 (v1_6은 둘 다 500이었다, 고쳤다, pullrequest-F17)`() {
         val p = project(); val me = user()
-        mockMvc.perform(post("/${p.owner}/${p.name}/fork").session(login(me)).param("owner", me.loginId!!).param("name", "../evil").param("projectScope", "PUBLIC")).andExpect(status().isInternalServerError)
-        mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "a b").param("projectScope", "PUBLIC")).andExpect(status().isInternalServerError)
+        mockMvc.perform(post("/${p.owner}/${p.name}/fork").session(login(me)).param("owner", me.loginId!!).param("name", "../evil").param("projectScope", "PUBLIC")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/${p.owner}/${p.name}/fork").session(login(me)).param("owner", me.loginId!!).param("name", "").param("projectScope", "PUBLIC")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/${p.owner}/${p.name}/fork").session(login(me)).param("owner", me.loginId!!).param("name", "okname").param("projectScope", "BOGUS")).andExpect(status().isBadRequest)
+        val failed = """{"status":"failed","url":"/${p.owner}/${p.name}/pullRequests"}"""
+        assertEquals(failed, mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "a b").param("projectScope", "PUBLIC")).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertEquals(failed, mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "okname2").param("projectScope", "BOGUS")).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertEquals(null, projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "okname2"))
+    }
+
+    @Test
+    fun `새 포크 화면의 소유자 라벨은 실제 선택 상자를 가리킨다 (v1_6은 없는 inputOwner를 가리켰다, 고쳤다, pullrequest-F18)`() {
+        val p = project(); val me = user()
+        val html = mockMvc.perform(get("/${p.owner}/${p.name}/newFork").session(login(me))).andExpect(status().isOk).andReturn().response.contentAsString
+        val doc = org.jsoup.Jsoup.parse(html)
+        assertEquals("project-owner", doc.selectFirst("select[name=owner]")!!.id())
+        assertEquals(1, doc.select("label[for=project-owner]").size)
+        assertEquals(0, doc.select("label[for=inputOwner]").size)
     }
 
     @Test
