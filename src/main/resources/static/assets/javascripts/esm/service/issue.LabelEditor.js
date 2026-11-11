@@ -527,7 +527,9 @@ const LabelEditor = function(options){
                 "data"  : {"_method": "delete"}
             });
         } catch (failure) {
-            return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
+            // v1.6은 실패 처리기가 없어 눌러도 아무 반응이 없었다(project-F18). 다른 요청과 같은 오류 알림을 띄우고 행은 그대로 둔다.
+            _showError(failure, "button.delete");
+            return;
         }
         _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
     }
