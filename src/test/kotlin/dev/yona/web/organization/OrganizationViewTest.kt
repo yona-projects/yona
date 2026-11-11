@@ -331,6 +331,19 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `목록의 그룹은 올린 로고가 있으면 그 이미지를, 없으면 기본 로고를 이름 앞에 보여 준다(A-497)`() {
+        val withLogo = newOrg("logo-yes-org")
+        val without = newOrg("logo-no-org")
+        val png = File.createTempFile("ologo", ".png").apply { writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1)) }
+        val logo = attachments.store(png, "logo.png", ResourceType.ORGANIZATION, withLogo.id!!, "x").attachment
+        val items = page("/orgs", login(newUser())).select("ul.all-projects li.project")
+        val yes = items.first { it.selectFirst(".header a.black")!!.text() == withLogo.name }
+        val no = items.first { it.selectFirst(".header a.black")!!.text() == without.name }
+        assertEquals("/files/${logo.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
+        assertEquals("/assets/images/group_default.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"), "올리지 않았을 때만 기본 그림이다")
+    }
+
+    @Test
     fun `검색어는 이름이나 설명에 들어 있는 조직을 찾는다`() {
         val a = newOrg("backend team")
         newOrg("frontend")
