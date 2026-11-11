@@ -77,6 +77,13 @@ const Home = function(htOptions){
             }).on('click', '[data-toggle="description-cancel"]', () =>{
                 $('[data-toggle="project-description-tab"]').toggleClass('hidden');
             });
+        // v1.6은 폼 제출을 막기만 해서 입력란에서 Enter를 눌러도 저장되지 않았다(project-F14). Enter를 저장 단추 클릭으로 처리한다.
+        $('#project-description-input').on('keydown', (weEvt) =>{
+            if(weEvt.key === 'Enter' && !weEvt.originalEvent?.isComposing){
+                weEvt.preventDefault();
+                $('#descriptionSaveBtn').trigger('click');
+            }
+        });
         $('#descriptionSaveBtn').on('click', async () =>{
             const overview = {"overview" : $("#project-description-input").val() };
             let data;
@@ -88,7 +95,9 @@ const Home = function(htOptions){
                     "contentType":"application/json"
                 });
             } catch (err) {
-                console.log("err>> ", err);
+                // v1.6은 콘솔에만 남겨 저장이 실패해도 아무 반응이 없었다(project-F14). 오류를 알리고 편집 상태를 유지한다.
+                const nStatus = err && err.status;
+                $yona.alert(Messages(nStatus === 403 ? "error.forbidden" : (nStatus === 404 ? "error.notfound" : "error.internalServerError")));
                 return;
             }
             const sDescription = (data.overview)
@@ -104,7 +113,8 @@ const Home = function(htOptions){
 
             const sURL = $(this).attr("data-href");
 
-            $("#leaveBtn").click(async () =>{
+            // 탈퇴 단추를 누를 때마다 처리기가 겹쳐 쌓여 "아니오" 뒤 다시 "예"를 누르면 요청이 여러 번 나갔다(v1.6, project-F10). 이전 처리기를 떼고 단다.
+            $("#leaveBtn").off("click").on("click", async () =>{
                 let sResult;
                 try {
                     sResult = await yona.http.ajax(sURL, {
