@@ -137,12 +137,12 @@ class HgRepositories(private val dataDirectory: DataDirectory) {
     }
 
     /**
-     * 기본 위치이다. `main`, `master`, `@` 이름표 가운데 먼저 있는 것의 `refs/heads/<이름>`이고, 없으면 `HEAD`이다
+     * 기본 위치이다. 기본으로 정한 이름표(있으면), `main`, `master`, `@` 이름표 가운데 먼저 있는 것의 `refs/heads/<이름>`이고, 없으면 `HEAD`이다
      * (Git의 `HEAD`가 가리키는 브랜치에 해당한다).
      */
     fun defaultBranch(owner: String, name: String): String = open(owner, name).use { hg ->
         val bookmarks = HgRevisions.bookmarks(hg)
-        DEFAULT_BOOKMARKS.firstOrNull { it in bookmarks }?.let { HEADS + it } ?: "HEAD"
+        HgDefaultBranch.resolve(hg, bookmarks)?.let { HEADS + it } ?: "HEAD"
     }
 
     companion object {
