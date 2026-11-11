@@ -295,6 +295,7 @@ class AccessControlTest : AbstractIntegrationTest() {
     fun `작성자는 자신의 글과 댓글을 다룬다`() {
         val project = project(ProjectScope.PRIVATE, user())
         val author = user()
+        join(author, project, RoleType.MEMBER)
         val stranger = user()
         // 이슈 리소스는 담당자 검사를 위해 실제 이슈를 조회하므로 실제 이슈 번호를 쓴다(없으면 v1.6도 오류이다).
         val issueId = issues.save(Issue(project = project, number = 1, state = State.OPEN)).id.toString()
@@ -308,7 +309,22 @@ class AccessControlTest : AbstractIntegrationTest() {
             assertFalse(allowed(stranger, resource, Operation.UPDATE), "$type")
         }
         // 작성자 권한이 없는 타입
-        assertFalse(allowed(author, projectResource(project, ResourceType.MILESTONE, authorId = author.id), Operation.UPDATE))
+        assertFalse(allowed(stranger, projectResource(project, ResourceType.MILESTONE, authorId = stranger.id), Operation.UPDATE))
+    }
+
+    @Test
+    fun `비공개 프로젝트에서 구성원이 아니게 된 작성자는 자기 글도 읽거나 고치거나 지우지 못한다 (board-F14, v1_6은 작성자 규칙이 먼저라 수정이 열려 있었다, 고쳤다)`() {
+        val privateProject = project(ProjectScope.PRIVATE, user())
+        val author = user()
+        val post = projectResource(privateProject, ResourceType.BOARD_POST, authorId = author.id)
+        Operation.entries.filter { it in setOf(Operation.READ, Operation.UPDATE, Operation.DELETE) }.forEach { op ->
+            assertFalse(allowed(author, post, op), "비구성원 작성자 $op")
+        }
+        // 공개 프로젝트의 비구성원 작성자는 v1.6처럼 자기 글을 고치고 지운다
+        val publicProject = project(ProjectScope.PUBLIC, user())
+        val publicPost = projectResource(publicProject, ResourceType.BOARD_POST, authorId = author.id)
+        assertTrue(allowed(author, publicPost, Operation.UPDATE))
+        assertTrue(allowed(author, publicPost, Operation.DELETE))
     }
 
     @Test
