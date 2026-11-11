@@ -19,19 +19,27 @@
                 <span class="ybtn ybtn-small">H</span>
                 <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.home}"></span><br>
 
-                <span class="ybtn ybtn-small">B</span>
-                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.board}"></span><br>
+                <th:block th:if="${view == null or view.menuSetting.board}">
+                    <span class="ybtn ybtn-small">B</span>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.board}"></span><br>
+                </th:block>
 
-                <span class="ybtn ybtn-small">I</span>
-                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.issue}"></span><br>
+                <th:block th:if="${view == null or view.menuSetting.issue}">
+                    <span class="ybtn ybtn-small">I</span>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.issue}"></span><br>
+                </th:block>
 
-                <span class="ybtn ybtn-small">C</span>
-                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.code}"></span><br>
+                <th:block th:if="${view == null or (view.menuSetting.code and view.codeAccessible)}">
+                    <span class="ybtn ybtn-small">C</span>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.code}"></span><br>
+                </th:block>
 
-                <span class="ybtn ybtn-small">M</span>
-                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{milestone}"></span><br>
+                <th:block th:if="${view == null or view.menuSetting.milestone}">
+                    <span class="ybtn ybtn-small">M</span>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{milestone}"></span><br>
+                </th:block>
 
-                <th:block th:if="${view != null and view.vcs.pullRequests}">
+                <th:block th:if="${view != null and view.menuSetting.pullRequest and view.vcs.pullRequests and view.codeAccessible}">
                     <span class="ybtn ybtn-small">P</span>
                     <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.pullRequest}"></span><br>
                 </th:block>
