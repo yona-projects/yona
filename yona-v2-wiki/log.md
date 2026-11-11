@@ -96,3 +96,5 @@ PullRequestViewTest의 옛 선택자도 고쳤다.
 ## [2026-11-11] feat | PR 목록, 위키 swap-safe, 교체 뒤 위젯 초기화
 
 ## [2026-11-11] feat | 프로젝트 설정 본 화면 swap-safe
+
+## [2026-11-11] feat | 리뷰 목록 swap-safe, 일반 이동 경계 기록 (A-478)

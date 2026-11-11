@@ -13,7 +13,7 @@
 
 <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PROJECT_REVIEW')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
     <div class="row issue-list-wrap">
         <div class="col-lg-2 search-wrap span-hard-wrap">
             <div class="inner advanced">
@@ -105,10 +105,9 @@
         </div>
     </div>
 
-        </div><!--/* .shell-main */-->
-    </div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/review.List.js}"></script>
-<script type="text/javascript" th:inline="javascript">
+        <script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/review.List.js}]]);
     $(function(){
         $yona.loadModule("review.List", {
             "elPagination": $("#pagination"),
@@ -117,5 +116,7 @@
         });
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
 </th:block>
 </html>
