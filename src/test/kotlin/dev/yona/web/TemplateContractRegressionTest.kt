@@ -97,4 +97,17 @@ class TemplateContractRegressionTest {
         val sso = template("site/sso.html")
         assertEquals(2, Regex("#\\{site\\.sso\\.check\\.saved}").findAll(sso).count(), "LDAP와 OIDC 확인 단추 각각에 안내가 있어야 한다")
     }
+
+    @Test
+    fun `사이드바 고정과 복원은 현재 주소의 쿼리도 함께 넘긴다 (shell-F6, v1_6은 pathname만 넘겨 목록의 필터와 쪽이 사라졌다)`() {
+        val layout = template("layout/layout.html")
+        assertFalse(layout.contains("\"?path=\" + window.location.pathname"), "pathname만 넘긴다")
+        assertEquals(2, Regex("encodeURIComponent\\(window\\.location\\.pathname \\+ window\\.location\\.search\\)").findAll(layout).count())
+    }
+
+    @Test
+    fun `본문 링크의 바깥 링크 판정에서 mailto와 tel은 새 창으로 열지 않는다 (shell-F26, v1_6은 빈 새 탭이 떴다)`() {
+        val scripts = template("common/scripts.html")
+        assertTrue(Regex("match\\(\"\\^\\[\\^\\./#]\"\\)\\s*&&\\s*!/\\^\\(mailto\\|tel\\):/i\\.test\\(linkUrl\\)").containsMatchIn(scripts), "mailto와 tel을 제외하지 않는다")
+    }
 }
