@@ -32,7 +32,7 @@ updated: 2026-11-11
 | `TAGS`, `TAG_MANAGEMENT` | O | - | O | `Tags` 탭, `/tags`, 태그 삭제 단추 |
 | `FORK` | O | - | O | `/newFork`, `/fork`, `/clone`(Subversion `400`) |
 | `PULL_REQUESTS` | O | - | O | 코드 주고받기 전 화면(Subversion `400`) |
-| `DEFAULT_BRANCH` | O | - | - | 브랜치 화면의 `기본으로 설정` 단추는 이 기능을 보지 않고 `UPDATE` 권한만 본다. Mercurial에서는 요청이 성공하지만 `HgLifecycle.setDefaultBranch`가 아무것도 하지 않는다(code-F7) |
+| `DEFAULT_BRANCH` | O | O | - | 브랜치 화면의 `기본으로 설정` 단추는 `UPDATE` 권한자에게 기본이 아닌 브랜치마다 보이고, 서버(`BranchController.setAsDefault`)는 이 능력이 없는 종류(Subversion)를 400으로 거절한다. Mercurial은 정한 북마크 이름을 `.hg/yona-default-branch`에 적어 기본으로 삼는다(`HgLifecycle.setDefaultBranch`, `HgDefaultBranch`, 2026-11-11, code-F7). 없는 북마크는 400 |
 | `ARCHIVE_DOWNLOAD` | O | - | O | 코드 보기 `내려받기` |
 | `ONLINE_EDITING` | O | - | - | `새 파일`, `Edit` 링크(`postform`). 단 `Edit` 링크는 `loggedIn && !binary`만 보고 기능을 보지 않는다 |
 | `LINE_COMMENT_THREADS` | O | - | O | 파일 머리의 댓글 수(`reviewThreads.countOnCommit`) |

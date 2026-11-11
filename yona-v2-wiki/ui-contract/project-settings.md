@@ -85,7 +85,7 @@ updated: 2026-11-11
 | 오래된 승인 해제 | 라디오 `true`/`false` | `vcs.pullRequests` | 새 커밋이 오면 승인을 해제할지(추가 항목 X-12). 기본은 켬(`!= false`). 패널은 코드 메뉴가 꺼져 있으면 `display:none` | `:87-99` |
 | 병합 방식 허용 | 체크박스 셋 + 숨은 `false` | `vcs.pullRequests` | 체크하지 않으면 뒤따르는 숨은 `false`가 간다(서버는 첫 값을 읽으므로 체크하면 `true`가 앞섬) | `:105-113` |
 | 기본 병합 방식 | 라디오 `merge`/`squash`/`rebase` | `vcs.pullRequests` | | `:116-120` |
-| 기본 브랜치 `#project-default-branch` | select2 | `vcs.pullRequests` 그리고 `vcs.defaultBranch`(`DEFAULT_BRANCH` 능력, Git). 지원하지 않는 종류(Mercurial)는 패널 `#defaultBranceSettingPanel` 전체가 그려지지 않는다. 패널은 코드 메뉴가 꺼지면 숨김 | 이름은 `defaultBranch`, 값은 `refs/heads/...` 전체 이름 | `:125-137` |
+| 기본 브랜치 `#project-default-branch` | select2 | `vcs.pullRequests` 그리고 `vcs.defaultBranch`(`DEFAULT_BRANCH` 능력, Git과 Mercurial. Mercurial은 2026-11-11부터 지원하며 선택지는 북마크이고 저장하면 그 이름을 기본으로 기억한다). 지원하지 않는 종류(Subversion)는 패널 `#defaultBranceSettingPanel` 전체가 그려지지 않는다. 패널은 코드 메뉴가 꺼지면 숨김 | 이름은 `defaultBranch`, 값은 `refs/heads/...` 전체 이름 | `:125-137` |
 | 메뉴 설정 체크박스 일곱 | 체크박스 | PR 체크는 `vcs.pullRequests`일 때만 | 코드 끄면 코드, PR, 리뷰 체크를 끄고 `#reviewerCountSettingPanel`, `#defaultBranceSettingPanel`, 하위 탭 `#subMenuProjectChangeVCS`를 숨김. PR 켜면 코드도 켜고 승인 해제 패널을 보임, PR 끄면 그 패널을 숨김. 리뷰 켜면 코드도 켬 | `:140-172`, `project.Setting.js:104-136` |
 | 저장 `#save` | 제출 | 항상 | 클릭 처리기가 이름 형식(`/^[0-9A-Za-z-_\.가-힣]+$/`)과 예약어(`.`, `..`, `.git`)를 검사해 `$yona.showAlert(project.name.alert / project.name.reserved.alert)` 후 중단 | `:176`, `project.Setting.js:90-102`. 이 처리기는 `.wiki` 접미사와 대문자 예약어를 알지 못해 서버가 400으로 거절한다(project-F13) |
 
@@ -246,7 +246,7 @@ project.md의 project-F1~F15에 이어 번호를 붙인다.
 
 | 번호 | 내용 | 확인 방법 | 비고 |
 |---|---|---|---|
-| project-F16 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 설정 화면은 코드 메뉴를 끄면 승인 해제, 기본 브랜치 패널과 저장소 종류 변경 탭을 숨기지만, 서버는 그 필드(`defaultBranch` 등)를 그대로 받는다. Mercurial은 `vcs.pullRequests`가 참이라 기본 브랜치 선택이 그려지는데 `DEFAULT_BRANCH` 능력이 없어 `branches`가 빈 목록이라 선택지가 비어 있었다 | `setting.html:86,125-137`, `ProjectSettingController.kt:97-98`, `VcsType.kt:32-39` | 코드 대조 (2026-11-11 수정: 기본 브랜치 패널에 `th:if="${vcs.defaultBranch}"`를 더해 Git이 아닌 종류에서는 패널을 그리지 않는다, `setting.html:126`) |
+| project-F16 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 설정 화면은 코드 메뉴를 끄면 승인 해제, 기본 브랜치 패널과 저장소 종류 변경 탭을 숨기지만, 서버는 그 필드(`defaultBranch` 등)를 그대로 받는다. Mercurial은 `vcs.pullRequests`가 참이라 기본 브랜치 선택이 그려지는데 `DEFAULT_BRANCH` 능력이 없어 `branches`가 빈 목록이라 선택지가 비어 있었다 | `setting.html:86,125-137`, `ProjectSettingController.kt:97-98`, `VcsType.kt:32-39` | 코드 대조 (2026-11-11 수정: 기본 브랜치 패널에 `th:if="${vcs.defaultBranch}"`를 더해 지원하지 않는 종류에서는 패널을 그리지 않는다, `setting.html:126`. 같은 날 Mercurial이 `DEFAULT_BRANCH`를 지원하게 되어 이제 Mercurial은 북마크 선택지가 있는 패널을 그린다, code-F7) |
 | project-F17 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버에는 있으나 이 화면이 부르지 않는 경로: `GET /issue/labels`의 `HX-Request` 조각 응답(스크립트는 `reload(true)`로 갱신하고 `listURL` 옵션은 저장만 함), `GET /issue/label/categories`, `GET /issue/label/category/{id}`, `POST /issue/label/categories`, `DELETE /issue/label/category/{id}`(분류 삭제 단추가 없음) | grep, `LabelEditor` `_initVar` | |
 | project-F18 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 라벨 삭제 실패는 화면에 아무 표시가 없다(`catch`에서 `return`) | `LabelEditor` `_requestRemoveLabel` | (2026-11-11 수정: 실패하면 `_showError(failure, "button.delete")`로 알림, `issue.LabelEditor.js:529-533`) |
 | project-F19 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이전 화면의 "예" 처리기가 `.one("click")`이라 요청이 실패해 모달이 닫힌 뒤에는 같은 화면에서 다시 눌러도 요청이 나가지 않는다(새로고침 필요) | `project.Transfer.js:51` | (2026-11-11 수정: `.on("click")`과 요청 중 플래그 `bSending`으로 바꿔 실패하면 다시 보낼 수 있다, `project.Transfer.js:51-77`) |
