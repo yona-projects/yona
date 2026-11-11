@@ -85,6 +85,21 @@ class TopBarShellTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `햄버거 패널은 v1_6 좌측 사이드바처럼 사용자 줄, 닫기 화살표, 새로고침, 하단 문구를 가진다(A-491)`() {
+        val doc = page("/user/issues", login())
+        val panel = doc.selectFirst("#mySidenav")!!
+        val row = panel.selectFirst(".user-menu-wrap")
+        assertNotNull(row, "패널 맨 위의 사용자 줄")
+        assertNotNull(row.selectFirst("a[href$=/user/editform]"), "사용자 설정 링크")
+        assertNotNull(row.selectFirst("a[href$=/users/logout]"), "로그아웃 링크")
+        assertNotNull(row.selectFirst("img"), "아바타")
+        assertTrue(row.select("a").any { it.attr("href").isNotBlank() && !it.attr("href").endsWith("/users/logout") && !it.attr("href").endsWith("/user/editform") }, "프로필 링크")
+        assertNotNull(row.selectFirst("button.pin-in-sidebar, .pin-in-sidebar"), "패널을 닫는 왼쪽 화살표")
+        assertNotNull(panel.selectFirst(".nav-tabs .refresh-button"), "탭 줄 끝의 새로고침")
+        assertTrue(panel.selectFirst(".sidebar-bottom")!!.text().isNotBlank(), "하단 문구")
+    }
+
+    @Test
     fun `아바타는 프로필, 설정, 로그아웃만 가진 짧은 드롭다운이다`() {
         val doc = page("/user/issues", login())
         val menu = doc.selectFirst("li.shell-user-dropdown")
@@ -94,13 +109,13 @@ class TopBarShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `핀 사이드바와 사용자 패널 머리는 없어졌다`() {
+    fun `예전 핀 화살표(상단 바)와 iframe 사이드바 스크립트는 없고 아바타는 패널을 열지 않는다(A-491)`() {
         val s = login()
         val doc = page("/user/issues", s)
-        assertNull(doc.selectFirst(".pin"), "핀 화살표가 없어야 한다")
+        assertNull(doc.selectFirst("header .pin"), "상단 바에 핀 화살표는 없다(햄버거가 대신한다)")
         assertNull(doc.selectFirst("#sidebar-open-btn"), "아바타가 더 이상 패널을 열지 않는다")
-        assertNull(doc.selectFirst("#mySidenav .user-menu-wrap"), "프로필, 설정, 로그아웃은 아바타 드롭다운으로 합쳤다")
-        assertFalse(doc.html().contains("shallWeOpenLeftNavigation"), "iframe 사이드바로 들어가는 스크립트가 없어야 한다")
+        assertFalse(doc.html().contains("mainFrame"), "iframe 사이드바(mainFrame)로 들어가는 흔적이 없어야 한다")
+        assertEquals(1, doc.select("#mySidenav .pin-in-sidebar").size, "닫기 화살표는 패널 안에 하나뿐이다")
     }
 
     @Test

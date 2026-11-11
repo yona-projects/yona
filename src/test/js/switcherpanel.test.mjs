@@ -9,7 +9,7 @@ const CSS = path.join(ROOT, 'build/generated/sass/static/assets/stylesheets');
 const HTML = `<div id="main" class="main">
 <p class="band" style="height:28px;margin:0">알림 띠</p>
 <header class="gnb-outer"><div class="gnb-inner"><ul class="gnb-nav"><li class="gnb-switcher"><button class="shell-switcher-btn" data-shell-switcher>M</button></li></ul>
-  <div id="mySidenav" class="sidenav row align-items-start"><div class="col-lg-5 right-menu"><div id="usermenu-tab-content-list">목록</div></div></div>
+  <div id="mySidenav" class="sidenav row align-items-start"><div class="col-lg-5 right-menu"><div id="usermenu-tab-content-list">목록</div><div class="sidebar-bottom">Yona 문구</div></div></div>
 </div></header>
 <div class="page-wrap-outer"><div class="shell"><nav class="shell-sidebar">사이드바</nav><div class="shell-main" style="height:900px">본문</div></div></div></div>`;
 
@@ -54,6 +54,20 @@ export const tests = [
       const h = await rect(page, '.gnb-outer'); const p = await rect(page, '#mySidenav');
       assert.ok(Math.abs(p.top - h.bottom) <= 1, `패널 위 ${p.top}, 상단 바 아래 ${h.bottom}`);
       assert.ok(p.bottom >= 799, `패널 아래 ${p.bottom}`);
+    },
+  },
+  {
+    name: '패널이 닫혀 있으면 하단 문구도 보이지 않고, 열면 패널 맨 아래 오른쪽에 놓인다(A-491)',
+    async run() {
+      const page = await open(1280);
+      // 닫힌 패널(폭 0, overflow 숨김) 안에서 잘리려면 문구가 패널을 기준으로 놓여야 한다(fixed는 패널 밖으로 새어 나와 닫혀도 보인다)
+      const st = await page.evaluate(() => ({ pos: getComputedStyle(document.querySelector('.sidebar-bottom')).position, ov: getComputedStyle(document.getElementById('mySidenav')).overflowX }));
+      assert.equal(st.pos, 'absolute');
+      assert.equal(st.ov, 'hidden');
+      await openPanel(page);
+      const b = await rect(page, '.sidebar-bottom'); const p = await rect(page, '#mySidenav');
+      assert.ok(p.bottom - b.bottom <= 20 && p.bottom - b.bottom >= 0, `패널 아래에서 ${p.bottom - b.bottom}px 위`);
+      assert.ok(p.right - b.right <= 20 && b.right <= p.right, `패널 오른쪽에서 ${p.right - b.right}px 안쪽`);
     },
   },
 ];

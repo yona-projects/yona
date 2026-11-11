@@ -5,7 +5,7 @@ import { pageWith, classicFromEsm } from './harness.mjs';
 
 const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
 <nav class="gnb-usermenu-dropdown"><button data-shell-switcher type="button">열기</button></nav>
-<div id="mySidenav" style="width:0"><div id="usermenu-tab-content-list"></div>
+<div id="mySidenav" style="width:0"><div class="user-menu-wrap"><i class="pin-in-sidebar"></i></div><ul class="nav-tabs"><li class="myOrganizationList"><a class="nav-link active" href="#myOrganizationList">f</a></li><li class="myProjectList"><a class="nav-link" href="#myProjectList">p</a></li><li class="myRecentIssueList"><a class="nav-link" href="#myRecentIssueList">r</a></li><li><i class="refresh-button"></i></li></ul><div class="sidebar-bottom">made</div><div id="usermenu-tab-content-list"></div>
   <input class="search-input" type="text">
   <ul class="user-ul"><li class="user-li" data-location="/a/one">Alpha proj</li><li class="user-li" data-location="/a/two">Beta proj</li></ul>
   <ul class="org-ul"><li class="org-li"><span class="sub-project-counter"></span><span class="all-orgs">조직</span><ul class="project-ul"><li class="user-li">x</li><li class="user-li">y</li></ul>Gamma org</li></ul>
@@ -14,7 +14,7 @@ const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
   <span class="favorite-issue" data-issue-id="5"><i></i></span>
 </div>`;
 
-async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
+async function open({ html = HTML, responses = {}, width = 1000, storage = {} } = {}) {
   const page = await pageWith({ stubs: false, html, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
   await page.setViewportSize({ width, height: 700 });
   await page.evaluate((resp) => {
@@ -26,6 +26,8 @@ async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
     window.yona = window.yona || {}; yona.http = { get: fake('GET'), post: fake('POST') };
     $yona.alert = (m) => window.__alerts.push(m); $yona.notify = (m) => window.__notes.push(m);
   }, responses);
+  // setContent 문서는 origin이 없어 localStorage를 쓸 수 없으므로 메모리 저장소로 바꿔 끼운다
+  await page.evaluate((st) => { const m = new Map(Object.entries(st)); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) } }); }, storage);
   await page.addScriptTag({ content: classicFromEsm('esm/Usermenu.js') });
   await page.waitForTimeout(150);
   return page;
@@ -118,5 +120,36 @@ export const tests = [
   } },
   { name: '조직 목록: 하위 프로젝트 개수를 .sub-project-counter에 쓴다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' } } }); assert.equal(await page.locator('.sub-project-counter').textContent(), '2'); await page.close();
+  } },
+  { name: '사이드바: 열고 닫은 상태를 shallWeOpenLeftNavigation에 기억하고 다음 화면을 열 때 이어서 연다 (A-491, v1.6)', run: async () => {
+    let page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => localStorage.getItem('shallWeOpenLeftNavigation')), 'true');
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => localStorage.getItem('shallWeOpenLeftNavigation')), 'false'); await page.close();
+    page = await open({ storage: { shallWeOpenLeftNavigation: 'true' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await width(page), '360px', '기억한 상태로 처음부터 열려 있다');
+    await page.close();
+    page = await open({ storage: { shallWeOpenLeftNavigation: 'false' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await width(page), '0px'); await page.close();
+  } },
+  { name: '사이드바: 왼쪽 화살표(pin-in-sidebar)를 누르면 닫히고 닫힘을 기억한다 (A-491)', run: async () => {
+    const page = await open({ storage: { shallWeOpenLeftNavigation: 'true' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    await page.evaluate(() => document.querySelector('.pin-in-sidebar').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await page.waitForTimeout(100);
+    assert.equal(await width(page), '0px'); assert.equal(await page.evaluate(() => localStorage.getItem('shallWeOpenLeftNavigation')), 'false'); await page.close();
+  } },
+  { name: '사이드바: 마지막에 고른 탭(sidebarActiveMenu)을 기억하고 다시 열면 그 탭이 활성이다 (A-491, v1.6)', run: async () => {
+    let page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.click('.myProjectList > a'); await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => localStorage.getItem('sidebarActiveMenu')), 'myProjectList'); await page.close();
+    page = await open({ storage: { sidebarActiveMenu: 'myRecentIssueList' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll('.nav-tabs a.active')].map((a) => a.getAttribute('href')).join()), '#myRecentIssueList'); await page.close();
+  } },
+  { name: '사이드바: 새로고침 아이콘을 누르면 화면을 다시 읽는다 (A-491, v1.6)', run: async () => {
+    const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.evaluate(() => { window.__marker = 1; }); // 화면을 다시 읽으면 이 표시가 사라진다
+    await page.evaluate(() => document.querySelector('.refresh-button').dispatchEvent(new MouseEvent('click', { bubbles: true }))); // 패널이 닫혀 있어도 처리기는 걸려 있다
+    const reloaded = await page.waitForFunction(() => !window.__marker, null, { timeout: 3000 }).then(() => true, () => false);
+    assert.equal(reloaded, true); await page.close();
   } },
 ];
