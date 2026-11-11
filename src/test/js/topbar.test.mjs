@@ -53,15 +53,17 @@ export const phoneTests = [420, 375, 360].map((width) => ({
 
 export const tests = [...[1280, 420].flatMap((width) => [
   {
-    name: `두 단추의 세로 중심은 로고, 검색창, 상단 바와 같다(폭 ${width})`,
+    name: `상단 바 단추의 세로 중심은 로고, 검색창, 상단 바와 같다(폭 ${width})`,
     async run() {
       const page = await open(width);
       const barBox = await center(page, '.gnb-outer');
-      const toggle = await center(page, '.shell-sidebar-btn');
       const sw = await center(page, '.shell-switcher-btn');
       const logo = await center(page, '.gnb-nav .logo');
       const near = (a, b, label) => assert.ok(Math.abs(a - b) <= 1, `${label}: 단추 ${a}, 기준 ${b}`);
-      for (const [name, b] of [['사이드바 햄버거', toggle], ['전환', sw]]) {
+      const buttons = [['전환', sw]];
+      // 사이드바 햄버거는 폰 폭(992 미만)에서만 보인다
+      if (width < 992) buttons.push(['사이드바 햄버거', await center(page, '.shell-sidebar-btn')]);
+      for (const [name, b] of buttons) {
         near(b.y, logo.y, `${name} 대 로고`);
         near(b.y, barBox.y, `${name} 대 상단 바`);
         // 폰 폭에서는 검색창이 숨겨지므로(display: none) 보일 때만 견준다
@@ -70,23 +72,28 @@ export const tests = [...[1280, 420].flatMap((width) => [
     },
   },
   {
-    name: `순서는 사이드바 햄버거, 로고, 전환 단추이고 서로 겹치지 않는다(폭 ${width})`,
+    name: `순서는 (폰 폭이면 사이드바 햄버거,) 로고, 전환 단추이고 서로 겹치지 않는다(폭 ${width})`,
     async run() {
       const page = await open(width);
-      const toggle = await center(page, '.shell-sidebar-btn'); const logo = await center(page, '.gnb-nav .logo'); const sw = await center(page, '.shell-switcher-btn');
-      assert.ok(toggle.right <= logo.left + 0.5, `햄버거 오른쪽 ${toggle.right}, 로고 왼쪽 ${logo.left}`);
+      const logo = await center(page, '.gnb-nav .logo'); const sw = await center(page, '.shell-switcher-btn');
       assert.ok(logo.right <= sw.left + 0.5, `로고 오른쪽 ${logo.right}, 전환 왼쪽 ${sw.left}`);
+      if (width < 992) {
+        const toggle = await center(page, '.shell-sidebar-btn');
+        assert.ok(toggle.right <= logo.left + 0.5, `햄버거 오른쪽 ${toggle.right}, 로고 왼쪽 ${logo.left}`);
+      }
     },
   },
 ]),
 {
-  name: '사이드바가 있는 화면에서는 사이드바 햄버거가 보이고, 없는 화면에서는 숨겨진다',
+  name: '상단 바 사이드바 햄버거는 폰 폭(992 미만)의 사이드바 있는 화면에서만 보인다(넓은 화면은 사이드바 하단 접기가 맡는다)',
   async run() {
-    const withSidebar = await open(1280, true);
-    assert.equal(await withSidebar.isVisible('.shell-sidebar-btn'), true);
-    const without = await open(1280, false);
-    assert.equal(await without.isVisible('.shell-sidebar-btn'), false, '사이드바가 없으면 누를 일이 없다');
-    assert.equal(await without.isVisible('.shell-switcher-btn'), true, '전환 단추는 사이드바와 상관없이 늘 보인다');
+    const phone = await open(700, true);
+    assert.equal(await phone.isVisible('.shell-sidebar-btn'), true);
+    const wide = await open(1280, true);
+    assert.equal(await wide.isVisible('.shell-sidebar-btn'), false, '넓은 화면에서는 사이드바 하단 접기가 맡으므로 숨긴다');
+    const withoutSidebar = await open(700, false);
+    assert.equal(await withoutSidebar.isVisible('.shell-sidebar-btn'), false, '사이드바가 없으면 누를 일이 없다');
+    assert.equal(await withoutSidebar.isVisible('.shell-switcher-btn'), true, '전환 단추는 사이드바와 상관없이 늘 보인다');
   },
 },
 ...phoneTests];

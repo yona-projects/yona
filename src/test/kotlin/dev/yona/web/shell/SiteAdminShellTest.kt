@@ -103,7 +103,7 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
         val toggle = doc.selectFirst("header.gnb-outer button[data-shell-sidebar-toggle]")
         assertNotNull(toggle, "숨기기와 보이기는 상단 바의 햄버거 하나가 맡는다(A-487)")
         assertEquals("true", toggle.attr("aria-expanded"))
-        assertNull(doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]"), "사이드바 안에는 따로 없다")
+        assertNotNull(doc.selectFirst("nav.shell-sidebar .offcanvas-body > button.shell-sidebar-fold[data-shell-sidebar-toggle]"), "넓은 화면에서 접고 펴는 단추는 사이드바 맨 아래에 있다(A-488)")
         assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
         assertTrue(doc.select("script").any { it.data().contains("shellSidebarCollapsed") }, "첫 그림 전에 기억한 상태를 적용하는 짧은 스크립트")
     }

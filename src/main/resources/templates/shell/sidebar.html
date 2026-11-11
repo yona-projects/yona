@@ -28,6 +28,11 @@
                 </a>
             </li>
         </ul>
+        <!--/* A-488: 넓은 화면에서 사이드바를 접고 펴는 단추이다. 사이드바 맨 아래에 있고(긴 화면에서는 화면 아래에 붙는다), 접으면 좁은 띠의 맨 아래에 남는다. 폰 폭의 서랍은 상단 바 햄버거가 연다. */-->
+        <button type="button" class="shell-sidebar-fold d-none d-lg-flex" data-shell-sidebar-toggle aria-expanded="true" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.toggle}" th:title="#{sidebar.toggle} + ' ([)'">
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span class="shell-sidebar-fold-label" th:text="#{sidebar.fold}">접기</span>
+        </button>
     </div>
 </nav>
 </th:block>

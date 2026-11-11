@@ -32,14 +32,18 @@ $shell-gap: 14px;
     // 넓은 화면의 사이드바는 본문과 눈으로 구분되는 독립된 패널이다(와이어프레임): 다른 바탕색, 오른쪽 경계선, 머리글.
     // 색은 Bootstrap 테마 변수를 쓴다(새 색을 만들지 않는다, D-58).
     @media (min-width: 992px) {
+        display: flex;
+        flex-direction: column; // 접기 단추를 패널 맨 아래에 두기 위해 세로 flex로 쌓는다(A-488)
         // Bootstrap의 `offcanvas-lg`가 lg 이상에서 배경과 경계선을 `!important`로 비우므로 같은 우선순위로 덮는다.
         background-color: var(--bs-tertiary-bg, #f8f9fa) !important;
         border-right: 1px solid var(--bs-border-color, #dee2e6) !important;
         border-radius: 4px;
 
         .offcanvas-body {
-            display: block;
-            padding: 12px 8px;
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            padding: 12px 8px 0;
         }
     }
 
@@ -124,20 +128,72 @@ $shell-gap: 14px;
     font-weight: normal;
 }
 
-// 사이드바 숨기기(넓은 폭에서만, shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 접고 펴는 단추는 상단 바의 햄버거 하나이다(A-487).
-@media (min-width: 992px) {
-    html[data-sidebar="collapsed"] .shell-sidebar {
-        display: none;
+// 사이드바 접기와 펴기 단추이다(A-488). 사이드바 맨 아래에 있고, 긴 화면에서는 화면 아래에 붙어 따라온다(sticky).
+.shell-sidebar-fold {
+    position: sticky;
+    bottom: 0;
+    align-items: center;
+    gap: 6px;
+    width: calc(100% + 16px);
+    margin: auto -8px 0; // 패널 안쪽 여백(8px)을 지나 가장자리까지 채운다. 위 auto는 단추를 맨 아래로 민다.
+    padding: 10px 18px;
+    border: 0;
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    background-color: var(--bs-tertiary-bg, #f8f9fa);
+    color: #6c757d;
+    font-size: 0.8125rem;
+
+    &:hover,
+    &:focus-visible {
+        color: $yobi-orange-dark;
+        background-color: rgba(0, 0, 0, 0.04);
     }
 }
 
-// 상단 바의 두 아이콘 단추이다(A-487). 맨 왼쪽 햄버거(.shell-sidebar-btn)는 사이드바를 접고 펴며(좁은 폭에서는 서랍),
+// 접힌 사이드바는 44px 좁은 띠이다(shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 목록과 머리글은 숨기고 펴기 단추만 띠 맨 아래에 남으며 화살표가 돌아선다.
+@media (min-width: 992px) {
+    html[data-sidebar="collapsed"] .shell-sidebar {
+        flex-basis: 44px;
+        width: 44px;
+
+        .shell-sidebar-title,
+        .shell-sidebar-back,
+        .shell-sidebar-nav,
+        .shell-sidebar-fold-label {
+            display: none !important;
+        }
+
+        .offcanvas-body {
+            padding: 0;
+        }
+
+        .shell-sidebar-fold {
+            justify-content: center;
+            width: 100%;
+            margin: auto 0 0;
+            padding: 10px 0;
+
+            svg {
+                transform: rotate(180deg);
+            }
+        }
+    }
+}
+
+// 상단 바의 두 아이콘 단추이다(A-487). 맨 왼쪽 햄버거(.shell-sidebar-btn)는 폰 폭에서 사이드바 서랍을 열고,
 // 로고 오른쪽의 전환 단추(.shell-switcher-btn)는 즐겨찾기, 프로젝트, 최근 이슈 패널을 연다. 상단 바의 다른 항목과 같은 줄에서 세로 가운데로 맞춘다.
 .gnb-sidebar-toggle,
 .gnb-switcher {
     display: flex;
     align-items: center;
     height: 40px; // 상단 바 줄 높이(.gnb-inner)와 같게 해야 단추가 로고, 검색창과 같은 가운데 선에 놓인다.
+}
+
+// 사이드바 햄버거는 폰 폭(992 미만)의 서랍을 여는 단추이다. 넓은 화면에서는 사이드바 맨 아래의 접기 단추가 맡으므로 숨긴다(A-488).
+@media (min-width: 992px) {
+    .gnb-sidebar-toggle {
+        display: none;
+    }
 }
 
 // 사이드바가 없는 화면(로그인, 프로젝트 목록 등)에서는 사이드바 햄버거를 숨긴다.

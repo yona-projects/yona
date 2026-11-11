@@ -74,11 +74,16 @@ class TopBarShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이드바 안과 본문에는 따로 접기와 펴기 단추가 없다(상단 바 햄버거 하나로 합쳤다)`() {
+    fun `넓은 화면의 접기 단추는 사이드바 맨 아래에 하나 있고 옛 단추 이름은 없다(A-488)`() {
         val doc = page("/user/issues", login())
-        assertNull(doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]"))
-        assertNull(doc.selectFirst(".shell-sidebar-collapse, .shell-sidebar-expand, .shell-sidebar-toggle"))
-        assertEquals(1, doc.select("[data-shell-sidebar-toggle]").size, "사이드바 단추는 상단 바에 하나뿐이다")
+        val body = doc.selectFirst("nav.shell-sidebar .offcanvas-body")!!
+        val fold = body.children().last()!!
+        assertTrue(fold.tagName() == "button" && fold.hasClass("shell-sidebar-fold") && fold.hasAttr("data-shell-sidebar-toggle"), "사이드바 본문의 맨 아래 요소가 접기 단추이다: ${fold.outerHtml().take(80)}")
+        assertEquals("true", fold.attr("aria-expanded"))
+        assertEquals("shellSidebar", fold.attr("aria-controls"))
+        assertTrue(fold.selectFirst("svg") != null && fold.selectFirst(".shell-sidebar-fold-label")!!.text().isNotBlank(), "아이콘과 글자(접기)가 있다")
+        assertNull(doc.selectFirst(".shell-sidebar-collapse, .shell-sidebar-expand, .shell-sidebar-toggle"), "예전 단추 이름은 없다")
+        assertEquals(2, doc.select("[data-shell-sidebar-toggle]").size, "상단 바 햄버거(폰 폭 서랍)와 사이드바 하단 접기, 둘뿐이다")
     }
 
     @Test
