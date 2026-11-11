@@ -94,6 +94,12 @@ const MassMail = function(htOptions){
             }
         }
 
+        // site-F9: v1.6은 프로젝트를 고르지 않고 "메일 쓰기"를 눌러도 수신자가 없는 `mailto:`를 열었다. 안내하고 보내지 않는다.
+        if (sMailingType != 'all' && aProjects.length === 0) {
+            $yona.alert(Messages("site.massMail.noRecipient"));
+            return;
+        }
+
         // Send a request contains project names to get email addresses and
         // launch user's mail client with them using mailto scheme.
         _setLoading(htElement.welBtnWriteEmail, true);
@@ -103,7 +109,17 @@ const MassMail = function(htOptions){
             "htOptForm": {"method":"POST"},
             "htData"    : aProjects,
             "sDataType" : "json",
+            // site-F9: 없는 프로젝트처럼 요청이 실패하면 v1.6은 단추가 "처리 중"인 채로 남았다. 안내하고 단추를 되돌린다.
+            "fOnError"  : function() {
+                _setLoading(htElement.welBtnWriteEmail, false);
+                $yona.alert(Messages("error.badrequest"));
+            },
             "fOnLoad"   : function(data) {
+                if (data.length === 0) {
+                    _setLoading(htElement.welBtnWriteEmail, false);
+                    $yona.alert(Messages("site.massMail.noRecipient"));
+                    return;
+                }
                 const form = $('<form>');
                 let mailto = 'mailto:';
                 for (let i = 0; i < data.length; i++) {

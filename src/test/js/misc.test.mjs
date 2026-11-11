@@ -14,6 +14,29 @@ export const tests = [
     await page.close();
     assert.equal(out, '2KB');
   } },
+  { name: '대량 메일은 프로젝트를 고르지 않았거나 요청이 실패하면 안내한다 (v1_6은 빈 mailto를 열거나 단추가 처리 중으로 남았다, 고쳤다 site-F9)', async run() {
+    const page = await pageWith({
+      html: '<div class="mess-mail-wrap"><input type="radio" name="mailingType" value="projects" checked><input id="input-project"><button id="select-project"></button><div id="selected-projects"></div><button id="write-email" data-loading-text="..."></button><div id="project-list-wrap"></div></div>',
+      scripts: [{ content: `
+        $yona.getTrim = function (s) { return $.trim(s); };
+        window.__sent = 0; window.__alerts = [];
+        $yona.alert = function (m) { window.__alerts.push(m); };
+        $yona.sendForm = function (o) { window.__sent++; setTimeout(function () { o.fOnError({ status: 400 }, 'error', ''); }, 0); };
+        yona.ui.Typeahead = function () {};` }, 'esm/service/site.MassMail.js']
+    });
+    const r = await page.evaluate(async () => {
+      new yona.site.MassMail({ sURLMailList: '/m' });
+      $('#write-email')[0].click();            // 프로젝트를 고르지 않고 누른다
+      const afterEmpty = { sent: window.__sent, alerts: window.__alerts.length };
+      $('#selected-projects').append('<span class="badge">없는프로젝트<a>x</a></span>');
+      $('#write-email')[0].click();            // 서버가 400을 준다
+      await new Promise((r) => setTimeout(r, 30));
+      return { afterEmpty, sent: window.__sent, alerts: window.__alerts.length, disabled: $('#write-email').prop('disabled') };
+    });
+    await page.close();
+    assert.deepEqual(r.afterEmpty, { sent: 0, alerts: 1 }, '선택 없이 눌렀는데 요청이 나가거나 안내가 없다');
+    assert.equal(r.sent, 1); assert.equal(r.alerts, 2, '실패 안내가 없다'); assert.equal(r.disabled, false, '단추가 처리 중으로 남았다');
+  } },
   { name: '대량 메일은 문서에 붙인 폼으로 mailto를 연다 (C026)', async run() {
     const page = await pageWith({
       html: '<div class="mess-mail-wrap"><input type="radio" name="mailingType" value="all" checked><input id="input-project"><button id="select-project"></button><div id="selected-projects"></div><button id="write-email"></button><div id="project-list-wrap"></div></div>',
