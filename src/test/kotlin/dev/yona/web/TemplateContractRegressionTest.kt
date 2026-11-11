@@ -175,4 +175,19 @@ class TemplateContractRegressionTest {
             assertTrue(Regex("@media[^{]*max-width[^{]*\\{[^}]*\\.secret-box\\s*\\{[^}]*width:\\s*(9\\d|100)%").containsMatchIn(html), "$name: 좁은 화면 규칙이 없다")
         }
     }
+
+    @Test
+    fun `도움말의 프로젝트 단축키 안내는 실제로 등록되는 조건과 같다 (shell-F5, v1_6은 메뉴가 꺼져도 B I C M을 안내했다)`() {
+        val keymap = template("help/keymap.html")
+        fun guard(key: String, label: String): String {
+            val at = Regex("<span class=\"ybtn ybtn-small\">$key</span>\\s*<span[^>]*th:text=\"#\\{$label}\"").find(keymap)?.range?.first ?: -1
+            assertTrue(at > 0, "$key 안내를 찾지 못했다")
+            return keymap.substring(maxOf(0, at - 200), at)
+        }
+        assertTrue(guard("B", "menu.board").contains("menuSetting.board"), "B")
+        assertTrue(guard("I", "menu.issue").contains("menuSetting.issue"), "I")
+        assertTrue(guard("M", "milestone").contains("menuSetting.milestone"), "M")
+        val code = guard("C", "menu.code")
+        assertTrue(code.contains("menuSetting.code") && code.contains("codeAccessible"), "C")
+    }
 }
