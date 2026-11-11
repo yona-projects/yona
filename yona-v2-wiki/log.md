@@ -70,3 +70,5 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 ## [2026-11-11] feat | 프로젝트 설정 deploykeys, lfs, webhooks swap-safe
 
 브라우저 교체 5회 오류 없음.
+
+## [2026-11-11] feat | 조직 홈, 조직 PR 목록, 이슈 라벨 swap-safe

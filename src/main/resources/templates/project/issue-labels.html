@@ -13,7 +13,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner label-editor-wrap">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <th:block th:if="${canCreate}">
         <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">
@@ -62,7 +62,20 @@
             <th:block th:replace="~{project/partial-issue-labels-list :: labelList(${projectView}, ${groups})}"></th:block>
         </div>
     
-        </div><!--/* .shell-main */-->
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/issue.LabelEditor.js}]]);
+    $(function(){
+        $yona.loadModule("issue.LabelEditor", {
+            "form": "#frmNewLabel",
+            "list": "#labelsList",
+            "editCategoryForm": "#editCategory",
+            "editLabelForm"   : "#editLabel",
+            "listURL": /*[[@{${base + '/issue/labels'}}]]*/ ""
+        });
+    });
+</script>
+</div><!--/* .shell-main */-->
     </div>
 </div>
 
@@ -124,17 +137,5 @@
 
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 
-<script type="module" th:src="@{/assets/javascripts/esm/service/issue.LabelEditor.js}"></script>
-<script type="text/javascript" th:inline="javascript">
-    $(function(){
-        $yona.loadModule("issue.LabelEditor", {
-            "form": "#frmNewLabel",
-            "list": "#labelsList",
-            "editCategoryForm": "#editCategory",
-            "editLabelForm"   : "#editLabel",
-            "listURL": /*[[@{${base + '/issue/labels'}}]]*/ ""
-        });
-    });
-</script>
 </th:block>
 </html>

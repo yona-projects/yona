@@ -148,7 +148,7 @@ class ProjectShellTest : AbstractIntegrationTest() {
     @Test
     fun `모듈을 불러오는 설정 화면은 스크립트를 본문 안에 두고 swap-safe 표지를 갖는다(D-136)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
-        listOf("/members", "/changeVCS", "/deleteform", "/transfer", "/webhooks").forEach { sub ->
+        listOf("/members", "/changeVCS", "/deleteform", "/transfer", "/webhooks", "/issue/labelsform").forEach { sub ->
             val doc = page("${base(p)}$sub", s)
             assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
             assertTrue(doc.select(".shell-main script").any { it.data().contains("loadModule") }, "$sub 의 초기화 스크립트는 본문 안에 있어야 교체 때 다시 돈다")
