@@ -96,6 +96,8 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         val manager = user().also { projectUsers.save(ProjectUser(user = it, project = origin, role = roles.findById(RoleType.MANAGER.id).get())) }
         val member = user().also { projectUsers.save(ProjectUser(user = it, project = origin, role = roles.findById(RoleType.MEMBER.id).get())) }
         val contributor = user()
+        // 비공개 프로젝트의 포크와 풀 리퀘스트는 읽을 수 있는 사람만 만든다(A-459). 기여자를 구성원으로 둔다
+        if (scope == ProjectScope.PRIVATE) projectUsers.save(ProjectUser(user = contributor, project = origin, role = roles.findById(RoleType.MEMBER.id).get()))
         val fork = forks.fork(origin, contributor.loginId!!, "epf$n", scope, contributor)
         GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b\n".toByteArray())))
         mockMvc.perform(

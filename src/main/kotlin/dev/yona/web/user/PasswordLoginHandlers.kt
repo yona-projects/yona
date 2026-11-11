@@ -71,6 +71,7 @@ internal object PasswordLoginResponses {
 @Component
 class PasswordLoginSuccessHandler(
     private val completion: LoginCompletion,
+    private val attempts: dev.yona.security.TwoFactorAttempts,
     private val twoFactorLogin: TwoFactorLogin,
     private val webAuthn: dev.yona.domain.twofactor.WebAuthnService,
     private val audit: dev.yona.domain.audit.AuditBoundary
@@ -79,6 +80,7 @@ class PasswordLoginSuccessHandler(
     override fun onAuthenticationSuccess(request: HttpServletRequest, response: HttpServletResponse, authentication: Authentication) {
         val details = authentication.details as PasswordLoginDetails
         val user = details.user
+        attempts.clear(PasswordLoginFailureHandler.limitKey(request))
         val twoFactor = twoFactorLogin.required(user, request)
         // 2단계 인증을 켠 사용자의 로그인 성공은 2단계를 마친 뒤에 남긴다(X-2, D-69)
         if (!twoFactor) audit.loginSuccess(user, "password")
@@ -121,15 +123,25 @@ class PasswordLoginSuccessHandler(
  * |---|---|---|
  * | SSO 전용 | 로그인 폼, `sso.error.ssoOnly` | 403 |
  * | 승인 대기 잠금 | 로그인 폼, `user.locked` | 403 `user.locked` |
- * | 삭제 | 로그인 폼, `user.deleted` | 404 `user.deleted` |
+ * | 삭제 | 잘못된 자격과 같다(계정의 존재를 알리지 않는다, usersec-F11) | 403 `user.login.invalid` |
+ * | 잠김(5번 틀림) | 로그인 폼, `user.login.tooMany` | 429 `user.login.tooMany` |
  * | 맞은 뒤 잠김 | 로그아웃하고 Referer로(없으면 `null` 문자열, R-03), `user.locked`와 로그아웃 안내 | 403 `user.locked` |
  * | 잘못된 자격 | 로그인 폼, `user.login.invalid`(LDAP 안내가 있으면 함께) | 403 `user.login.invalid` |
  */
 @Component
 class PasswordLoginFailureHandler(
     private val loginSession: LoginSessionService,
-    private val audit: dev.yona.domain.audit.AuditBoundary
+    private val audit: dev.yona.domain.audit.AuditBoundary,
+    private val attempts: dev.yona.security.TwoFactorAttempts
 ) : AuthenticationFailureHandler {
+
+    /** 이 요청의 아이디가 연달아 틀려 잠겨 있는지이다. */
+    fun isLocked(request: HttpServletRequest): Boolean = attempts.isLocked(limitKey(request))
+
+    companion object {
+        /** 횟수를 세는 키이다. 아이디와 이메일은 대소문자를 가리지 않으므로 소문자로 맞춘다. */
+        fun limitKey(request: HttpServletRequest): String = "login:" + request.getParameter("loginIdOrEmail").orEmpty().trim().lowercase()
+    }
 
     override fun onAuthenticationFailure(request: HttpServletRequest, response: HttpServletResponse, exception: AuthenticationException) {
         val loginKey = request.getParameter("loginIdOrEmail")
@@ -138,15 +150,18 @@ class PasswordLoginFailureHandler(
             LoginResult.SsoOnly -> audit.loginFailure(loginKey, "sso_only", denied = true)
             LoginResult.Locked -> audit.loginFailure(loginKey, "locked", denied = true)
             LoginResult.Deleted -> audit.loginFailure(loginKey, "deleted", denied = true)
+            LoginResult.TooManyAttempts -> audit.loginFailure(loginKey, "too_many_attempts", denied = true)
             LoginResult.LockedAfterAuthentication -> audit.loginFailure(loginKey, "locked_after_authentication", denied = true)
             LoginResult.InvalidCredentials, is LoginResult.InvalidWithNotice -> audit.loginFailure(loginKey, "invalid_credentials", denied = false)
             is LoginResult.Success -> Unit
         }
+        // 비밀번호가 틀린 경우(없는 계정, 삭제된 계정 포함)만 횟수에 센다. 잠겨서 거절한 요청은 세지 않는다
+        if (result == LoginResult.InvalidCredentials || result is LoginResult.InvalidWithNotice || result == LoginResult.Deleted) attempts.recordFailure(limitKey(request))
         if (PasswordLoginFilter.wantsJson(request)) {
             when (result) {
+                LoginResult.TooManyAttempts -> PasswordLoginResponses.message(response, HttpStatus.TOO_MANY_REQUESTS, "user.login.tooMany")
                 LoginResult.SsoOnly -> PasswordLoginResponses.message(response, HttpStatus.FORBIDDEN, "sso.error.ssoOnly")
                 LoginResult.Locked, LoginResult.LockedAfterAuthentication -> PasswordLoginResponses.message(response, HttpStatus.FORBIDDEN, "user.locked")
-                LoginResult.Deleted -> PasswordLoginResponses.message(response, HttpStatus.NOT_FOUND, "user.deleted")
                 else -> PasswordLoginResponses.message(response, HttpStatus.FORBIDDEN, "user.login.invalid")
             }
             return
@@ -155,7 +170,7 @@ class PasswordLoginFailureHandler(
         when (result) {
             LoginResult.SsoOnly -> PasswordLoginResponses.redirect(request, response, formUrl, mapOf(RedirectSupport.WARNING to "sso.error.ssoOnly"))
             LoginResult.Locked -> PasswordLoginResponses.redirect(request, response, formUrl, mapOf(RedirectSupport.WARNING to "user.locked"))
-            LoginResult.Deleted -> PasswordLoginResponses.redirect(request, response, formUrl, mapOf(RedirectSupport.WARNING to "user.deleted"))
+            LoginResult.TooManyAttempts -> PasswordLoginResponses.redirect(request, response, formUrl, mapOf(RedirectSupport.WARNING to "user.login.tooMany"))
             LoginResult.LockedAfterAuthentication -> {
                 // v1.6: 안내 문구를 남기고 logout()을 호출한다. logout()이 성공 문구를 덧붙이고 Referer로 돌려보낸다.
                 loginSession.end(request, response)

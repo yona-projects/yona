@@ -127,11 +127,11 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `삭제된 계정은 안내 문구와 함께 로그인 폼으로 돌아간다`() {
+    fun `삭제된 계정은 없는 계정과 같은 로그인 실패 안내로 돌아간다 (v1_6은 user_deleted로 계정의 존재를 알렸다, 고쳤다, usersec-F11)`() {
         newUser("dave", state = UserState.DELETED)
         mockMvc.perform(post("/users/login").param("loginIdOrEmail", "dave").param("password", "1234"))
             .andExpect(redirectedUrl("/users/loginform?redirectUrl="))
-            .andExpect(flash().attribute("warning", "user.deleted"))
+            .andExpect(flash().attribute("warning", "user.login.invalid"))
     }
 
     @Test
@@ -386,11 +386,36 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `AJAX 로그인에서 삭제된 계정은 404이다`() {
+    fun `AJAX 로그인에서 삭제된 계정도 일반 실패 403이다 (v1_6은 404 user_deleted였다, 고쳤다, usersec-F11)`() {
         newUser("pete", state = UserState.DELETED)
         mockMvc.perform(
             post("/users/login").accept("application/json").param("loginIdOrEmail", "pete").param("password", "1234")
-        ).andExpect(status().isNotFound).andExpect(jsonPath("$.message").value("user.deleted"))
+        ).andExpect(status().isForbidden).andExpect(jsonPath("$.message").value("user.login.invalid"))
+    }
+
+    @Test
+    fun `같은 아이디로 5번 틀리면 맞는 비밀번호도 429로 15분 동안 받지 않는다 (v1_6은 제한이 없었다, 고쳤다, usersec-F11)`() {
+        newUser("limit1")
+        repeat(4) {
+            mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit1").param("password", "x"))
+                .andExpect(status().isForbidden)
+        }
+        mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "LIMIT1").param("password", "x"))
+            .andExpect(status().isForbidden)
+        mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit1").param("password", "1234"))
+            .andExpect(status().isTooManyRequests).andExpect(jsonPath("$.message").value("user.login.tooMany"))
+        // 다른 아이디는 영향이 없다
+        newUser("limit2")
+        mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit2").param("password", "1234")).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `로그인에 성공하면 틀린 횟수가 지워진다 (usersec-F11)`() {
+        newUser("limit3")
+        repeat(4) { mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit3").param("password", "x")) }
+        mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit3").param("password", "1234")).andExpect(status().isOk)
+        repeat(4) { mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit3").param("password", "x")).andExpect(status().isForbidden) }
+        mockMvc.perform(post("/users/login").accept("application/json").param("loginIdOrEmail", "limit3").param("password", "1234")).andExpect(status().isOk)
     }
 
     @Test
