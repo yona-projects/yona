@@ -71,6 +71,16 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인하지 않으면 아무 파일도 보이지 않는다 (로그인 ID가 anonymous인 실제 사용자의 파일이 보이지 않는다, v1_6 익명의 로그인 ID는 빈 문자열, user-F7)`() {
+        val salt = LegacyPasswordHasher.generateSalt()
+        val named = users.save(User(loginId = "anonymous", name = "anon", email = "anon@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+        attach(named, "private-note.txt", 1_700_000_000_000)
+        val doc = Jsoup.parse(mockMvc.perform(get("/user/files")).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertTrue(doc.select(".attachment-file-detail").isEmpty(), "익명에게 파일이 보인다: ${doc.select(".file-name").map { it.text() }}")
+        assertEquals(1, page(login(named)).select(".attachment-file-detail").size)
+    }
+
+    @Test
     fun `내 파일 탭이 활성화된다`() {
         val doc = page(login(newUser()))
         assertEquals("/user/files", doc.selectFirst(".page-wrap > ul.nav-tabs a.nav-link.active")!!.attr("href"))
