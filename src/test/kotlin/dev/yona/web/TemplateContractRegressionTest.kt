@@ -118,4 +118,24 @@ class TemplateContractRegressionTest {
         assertTrue(replace > 0, "auto를 실제 종류로 바꾸지 않는다")
         assertTrue(replace < search.indexOf("th:switch=\"\${current}\""), "쪽 링크가 만들어지기 전(결과 조각을 그리기 전)에 바꿔야 한다")
     }
+
+    @Test
+    fun `웹훅 형식을 JSON으로 바꾸면 푸시 포함 체크는 상태 값(prop)으로 켜고 끈다 (project-F20, attr로 바꾸어 이미 눌러 본 뒤에는 체크가 꺼진 채 잠겼다)`() {
+        val hooks = template("project/webhooks.html")
+        assertFalse(hooks.contains("attr('checked'"), "체크 속성은 처음 상태만 바꾸고 사용자가 누른 뒤에는 상태가 바뀌지 않는다")
+        assertTrue(hooks.contains("prop('checked', true)") && hooks.contains("prop('checked', false)"), "체크 상태를 prop으로 바꾼다")
+    }
+
+    @Test
+    fun `코드 접근이 막힌 사용자에게는 코드와 풀 리퀘스트 단축키도 없다 (project-F6, v1_6은 탭만 숨기고 c, p 키는 권한 없음 화면으로 보냈다)`() {
+        val menu = template("project/menu.html")
+        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.code and view\\.codeAccessible}\"\\]\\*/\\s*,\"C\"").containsMatchIn(menu), "코드 단축키가 코드 접근 권한을 보지 않는다")
+        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.pullRequest and view\\.vcs\\.pullRequests and view\\.codeAccessible}\"\\]\\*/\\s*,\"P\"").containsMatchIn(menu), "풀 리퀘스트 단축키가 코드 접근 권한을 보지 않는다")
+    }
+
+    @Test
+    fun `커밋 화면에서도 파일 머리를 누르면 그 파일의 diff가 접히고 펴진다 (code-F8, v1_6은 풀 리퀘스트 변경 탭에만 처리기가 있었다)`() {
+        val diff = template("code/diff.html")
+        assertTrue(diff.contains("\$('.diff-partial-meta').click(") && diff.contains(".diff-partial-code').toggle()"), "커밋 화면에 파일 머리 접기 처리기가 없다")
+    }
 }
