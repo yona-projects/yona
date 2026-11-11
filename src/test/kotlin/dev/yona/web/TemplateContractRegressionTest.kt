@@ -190,4 +190,10 @@ class TemplateContractRegressionTest {
         val code = guard("C", "menu.code")
         assertTrue(code.contains("menuSetting.code") && code.contains("codeAccessible"), "C")
     }
+
+    @Test
+    fun `토큰과 OAuth 앱을 만드는 폼은 제출 단추를 한 번만 누르게 한다 (oauth-F3, usersec-F16, 같은 요청을 다시 보내면 중복으로 만들어졌다)`() {
+        assertTrue(Regex("<form id=\"token-create\"[^>]*data-submit-once").containsMatchIn(template("user/edit-token-new.html")), "토큰 만들기")
+        assertTrue(Regex("<form id=\"oauth-app-form\"[^>]*data-submit-once").containsMatchIn(template("oauth/partial-apps.html")), "OAuth 앱 만들기와 수정")
+    }
 }

@@ -20,7 +20,7 @@
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
         <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
-        <form id="token-create" method="post" th:action="@{/user/token}">
+        <form id="token-create" data-submit-once method="post" th:action="@{/user/token}">
             <div class="token-card">
                 <div class="token-card-head" th:text="#{apiToken.create}"></div>
                 <div class="token-card-body">

@@ -46,4 +46,14 @@ export const tests = [
     const { page, ctx } = await open(`<script type="module">import { register } from 'yona/namespace.js'; const out = []; for (const bad of ['', '.a', 'a.', 'a..b', 'a.1b']) { try { register(bad, 1); out.push('ok'); } catch (e) { out.push('error'); } } window.__out = out; </script>`);
     await page.waitForFunction(() => Array.isArray(window.__out), null, { timeout: 5000 }); assert.deepEqual(await page.evaluate(() => window.__out), ['error', 'error', 'error', 'error', 'error']); await ctx.close();
   } },
+  { name: 'data-submit-once 폼은 제출하면 제출 단추를 잠가 같은 요청이 두 번 가지 않게 한다 (oauth-F3, usersec-F16)', run: async () => {
+    const { page, ctx } = await open(`<iframe name="sink"></iframe><form id="f" data-submit-once action="/x" method="post" target="sink" onsubmit="window.__sent=(window.__sent||0)+1;"><button id="b" type="submit">저장</button></form><form id="g" action="/y" method="post" target="sink"><button id="c" type="submit">다른 폼</button></form><script type="module" src="/assets/javascripts/esm/index.js"></script>`);
+    await page.waitForFunction(() => window.yona && yona.esm && yona.esm.ready === true, null, { timeout: 5000 });
+    await page.click('#b'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => document.getElementById('b').disabled), true, '제출 단추가 잠기지 않았다');
+    assert.equal(await page.evaluate(() => window.__sent), 1);
+    await page.click('#c'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => document.getElementById('c').disabled), false, 'data-submit-once가 없는 폼은 그대로여야 한다');
+    assert.deepEqual(page.errors, []); await ctx.close();
+  } },
 ];
