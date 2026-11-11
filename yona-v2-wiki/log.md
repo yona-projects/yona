@@ -80,3 +80,5 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 ## [2026-11-11] refactor | 옛 메뉴 SCSS 규칙과 죽은 선택자 제거
 
 빌드 통과, 프로젝트, 사이트 관리, 조직, 모바일 화면 확인. 좁은 화면에서 `.shell-main`의 가로 스크롤 10px을 `overflow-x: clip`으로 막았다.
+
+## [2026-11-11] verify | JS 시험 전체 676개 통과, htmx 이동의 현재 경계 기록 (A-475)
