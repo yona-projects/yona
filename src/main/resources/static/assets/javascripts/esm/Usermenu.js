@@ -191,6 +191,24 @@ $(() => {
         });
     }
 
+    /**
+     * 즐겨찾기 요청이 실패했을 때 알림창에 보일 이유를 돌려준다. 서버 응답이 JSON(`{"reason": ...}`)이면 `reason`이고, JSON이 아닌
+     * 짧은 글(400의 `Wrong project id` 등)이면 그 글을 쓴다. HTML이나 아주 긴 본문(로그인하지 않은 403, 500 화면)이면 본문 대신 상태 문구를 쓴다.
+     * v1.6은 `JSON.parse`를 바로 불러 JSON이 아닌 응답이면 예외가 나서 알림창도 뜨지 않고 아무 반응이 없었다(shell-F20, issue-F3).
+     *
+     * @param {{responseText?: string, statusText?: string, status?: number}} failure 실패한 요청
+     * @returns {string} 알림창에 보일 이유
+     */
+    function failureReason(failure) {
+        const text = (failure && failure.responseText) || "";
+        try {
+            const reason = JSON.parse(text).reason;
+            if (reason !== undefined && reason !== "") return reason;
+        } catch (e) { /* JSON이 아니다. 아래에서 본문이나 상태 문구를 쓴다 */ }
+        if (text && text.length <= 200 && text.indexOf("<") < 0) return text;
+        return String((failure && (failure.statusText || failure.status)) || "");
+    }
+
     function isShortcutKeyPressed(event) {
         const sKey = (event.originalEvent || event).key;
         return (!event.metaKey && (sKey === "f" || sKey === "ㄹ"))     // keypress의 key => f, ㄹ(한글 자모 U+3139)
@@ -200,23 +218,6 @@ $(() => {
     function closeSidebar($sidebar) {
         $sidebar.width("0").css("border", "none");
         $(".main-stream").removeClass("col-lg-8").addClass("col-lg-12");
-    }
-
-    /**
-     * 즐겨찾기 요청이 실패했을 때 알림창에 보일 사유를 돌려준다. 서버가 `{"reason": ...}` JSON을 주면 그 값을 쓰고, JSON이 아닌 본문
-     * (로그인하지 않은 403의 HTML 등)이면 상태 문구를 쓴다. v1.6은 `JSON.parse`가 예외를 던져 알림도 없이 멈췄다(issue-F3).
-     *
-     * @param {{responseText?: string, statusText?: string, status?: number}} failure 실패한 요청 객체
-     * @returns {string} 알림창에 보일 사유
-     */
-    function failureReason(failure) {
-        try {
-            const reason = JSON.parse(failure.responseText).reason;
-            if (reason) return reason;
-        } catch (ignored) {
-            // JSON이 아닌 본문이다. 아래 상태 문구로 대신한다
-        }
-        return (failure && (failure.statusText || failure.status)) || "";
     }
 
     function openSidebar($sidebar) {
