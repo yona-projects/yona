@@ -399,7 +399,7 @@
         });
 
         // 이메일 복사 단추: 추천한 사람 모달 안에 있어 포커스를 가두는 모달을 넘겨 복사한다(yona.Clipboard)
-        $("#copyEmailBtn").on("click", function () {
+        $(document).on("click", ".copy-email-btn", function () {
             yona.Clipboard.copy($(this).attr("data-copy-text"), this.closest(".modal") || document.body).then(function (copied) {
                 if (copied) {
                     $yona.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
