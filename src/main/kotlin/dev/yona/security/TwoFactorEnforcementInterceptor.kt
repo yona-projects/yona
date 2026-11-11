@@ -43,7 +43,8 @@ class TwoFactorEnforcementInterceptor(
 
     private fun isExempt(request: HttpServletRequest): Boolean {
         val path = request.requestURI.removePrefix(request.contextPath.orEmpty())
-        return path == SETUP_PATH || path == "/sites/security" || path.startsWith("/user/two-factor/") || path.startsWith("/users/") || path.startsWith("/assets/") ||
+        // 등록 화면 아래 주소(보안 키 추가 화면 등)도 허용한다. 강제를 맞추려는 사용자가 보안 키로도 2단계를 켤 수 있어야 한다
+        return path == SETUP_PATH || path.startsWith("$SETUP_PATH/") || path == "/sites/security" || path.startsWith("/user/two-factor/") || path.startsWith("/users/") || path.startsWith("/assets/") ||
             path == "/messages.js" || path == "/favicon.ico" || path.startsWith("/-_-api")
     }
 

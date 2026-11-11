@@ -167,3 +167,10 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-149 | 이탈 확인을 취소하면 단축키가 모두 죽는다(`ShortcutKey.js`, shell-F3) | **[v1.6 결함 유지, 논의 필요, 2026-11-11 브라우저로 확인]** `beforeunload`에서 스스로 `destroy`해 처리기를 뗀다. 댓글 입력 중 이탈 확인을 취소해도 `CTRL+ENTER`를 포함한 모든 단축키가 그 화면에서 동작하지 않는다(L 키로 확인). v1.6도 같다. |
 | R-150 | 내 이슈 빠른 검색 "즐겨찾기" 라벨(`issue/my-partial-search.html`, `Usermenu.js`, shell-F21) | **[v1.6 결함 유지, 논의 필요, 2026-11-11 브라우저로 확인]** `span.favorite-issue`에 `data-issue-id`가 없는데 `Usermenu.js`가 이 클래스에 즐겨찾기 토글을 연결해, 라벨을 누르면 `POST /user/favoriteIssues/undefined`가 400이 되고 목록은 거르지 않는다. v1.6도 같은 마크업이다. |
 | R-151 | 메시지 키 `title.boardDetail` 누락(`board/view.html`, board-F1, shell-F1) | **[v1.6 결함 유지, 논의 필요]** 글 보기의 단축키 안내 모달 제목 키가 모든 번들에 없다(v1.6 `conf/messages`에도 없음). |
+| R-152 | 코드 주고받기 만들기의 보내는 프로젝트 권한(`PullRequestCreateController`, pullrequest-F1) | **[v1.6 결함 유지, 재현됨 2026-11-11, 심각, 결정 필요(A-458)]** 비구성원이 `newPullRequestForm`으로 비공개 프로젝트의 브랜치 이름을, `mergeResult`로 커밋 메시지를, `POST /pullRequests`로 비공개 저장소의 코드 전체를 자기 저장소(`refs/yona/pull/N/head`)에서 읽을 수 있다. 서버는 URL 프로젝트의 `@IsCreatable(FORK)`만 본다. v1.6도 같다. |
+| R-153 | PR 변경 댓글 경로의 소속 확인 없음(`ReviewCommentController`, pullrequest-F2) | **[v1.6 결함 유지, 재현됨, 결정 필요]** 자기 프로젝트 경로에 비공개 PR의 DB 번호를 넣으면 댓글이 등록된다(직접 경로는 403). v1.6도 번호로만 찾는다(`PullRequestApp.java:607`). |
+| R-154 | 이슈 보조 API의 읽기 권한 없음(`IssueApiController`, issue-F5) | **[v1.6 결함 유지, 재현됨, 결정 필요]** `detectChange`와 `commentNotiReceivers`(와 `findSharer`)가 비구성원에게 비공개 이슈의 댓글 수, 본문 SHA-1, 마지막 댓글 작성자, 알림 수신자를 준다. |
+| R-155 | 댓글 추천의 소속 확인 없음(`IssueVoteController`, issue-F6) | **[v1.6 결함 유지, 재현됨, 결정 필요]** 공개 프로젝트 경로로 비공개 이슈의 댓글 번호에 추천할 수 있다(`VoteApp.java:93`도 같다). |
+| R-156 | 담당자 변경의 거짓 성공(`IssueApiController.updateAssignees`, issue-F4) | **[v1.6 결함 유지, 재현됨]** 수정 권한이 없으면 아무것도 바꾸지 않고 200으로 답한다. |
+| R-157 | 글 수정 오류 응답의 내용 노출(`BoardWriteController`, board-F8) | **[v1.6 결함 유지, 재현됨, 결정 필요]** 읽기 권한이 없어도 제목을 비워 보내면 400 응답에 저장된 제목과 본문이 담긴다. |
+| R-158 | 공지 지정의 권한 없음(`BoardWriteController`, board-F2) | **[v1.6 결함 유지, 재현됨]** 비구성원이 `notice=on`으로 공지 글을 쓸 수 있다(시험이 고정). |

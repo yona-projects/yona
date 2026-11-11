@@ -64,13 +64,24 @@ updated: 2026-11-11
 
 - **issue-F1**: "수정 폼의 상태 드롭다운이 동작하지 않는다"는 틀렸다. `common/scripts.html:77-82`가 `.btn-group[data-name]`을 전부 `yona.ui.Dropdown`으로 초기화한다. 브라우저에서 "닫힘"을 누르면 `state=CLOSED`가 실린다.
 
-### 코드 읽기로만 근거를 둔 항목
+### 서버 권한 후보를 데이터를 넣어 재현한 결과 (A-458)
 
-아래는 환경을 더 만들어야 하거나 사용자 설정이 있어야 재현되는 항목이라 코드 읽기 근거로 남겼고, 각 파일에 "추측" 또는 "코드 읽기"로 표시되어 있다. 새 UI를 만들 때 이 항목에 기대기 전에 먼저 재현하기를 권한다.
+검증용 앱에 비공개 프로젝트 `admin/secretproj`(이슈 1, 댓글, 글 1, 브랜치 `topsecret-feature`와 파일 `secret.txt`가 든 커밋, 비공개 PR)를 만들고, 그 프로젝트의 구성원이 아닌 `plainuser`로 요청했다(기준선: 이슈 보기와 글 보기는 둘 다 403). 요청은 화면 스크립트를 거치지 않고 올바른 CSRF 토큰으로 직접 보냈다.
 
-- 2단계 인증 강제 설정에서 "보안 키 추가" 화면이 목록으로 되돌려진다(usersec-F5, 강제 설정과 2단계 미사용 사용자가 필요).
-- 서버 권한 검사 누락(issue-F5, F6, pullrequest-F1, F2, board-F8 등)은 코드 읽기로 확인한 것이며 시험이 없다.
-- 위키가 코드와 어긋난 곳(usersec-F9, site-F1, project-F4 등)은 각 파일의 "기존 위키 정합" 항목을 본다.
+| 발견 사항 | 재현 결과 | v1.6 |
+|---|---|---|
+| pullrequest-F1 | **재현됨, 심각.** `newPullRequestForm`이 비공개 프로젝트의 브랜치 이름을 돌려준다. `newPullRequest/mergeResult`가 커밋 메시지를 돌려준다(`LAUNCH-CODE` 노출). 비구성원이 보내는 쪽을 비공개 프로젝트로 해 자기 프로젝트에 PR을 만들면 서버가 비공개 저장소를 가져와 **자기 저장소의 `refs/yona/pull/N/head`에 복사**한다. 그 커밋의 `secret.txt` 내용(`TOPSECRET-FILE-CONTENT`)을 자기 저장소에서 읽을 수 있다 | 같음(`PullRequestApp`이 URL 프로젝트의 `@IsCreatable(FORK)`만 본다) |
+| pullrequest-F2 | **재현됨.** 비구성원이 비공개 PR 경로로 직접 댓글을 쓰면 403이지만, 자기 프로젝트 경로(`/plainuser/ownerproj/pullRequest/{DB번호}/comments`)에 비공개 PR의 DB 번호를 넣으면 303으로 등록되고 그 댓글이 비공개 PR의 변경 탭에 나타난다 | 같은 구조(`PullRequestApp.java:607`이 번호로만 찾는다) |
+| issue-F5 | **재현됨.** `detectChange`가 비구성원에게 마지막 댓글 작성자 이름, 댓글 수, 본문 SHA-1, 수정 시각을 준다. `commentNotiReceivers`가 알림 수신자(관리자 로그인 ID와 이름)를 준다. `findSharer`는 열려 있으나(`[]`) 이 데이터에서는 내용이 없었다 | `commentNotiReceivers`는 코드 주석에 v1.6도 검사 없음. `detectChange`는 대조하지 않음 |
+| issue-F6 | **재현됨.** 비구성원이 읽을 수 있는 공개 프로젝트 경로(`/admin/hglfs/issue/1/comment/110/vote`)로 비공개 이슈의 댓글 110에 추천이 들어가고(관리자 화면에 추천 표시 0에서 1) `unvote`로 되돌린다 | 같음(`VoteApp.java:93`, 번호로만 찾음) |
+| issue-F4 | **재현됨.** 수정 권한이 없는 비구성원이 담당자를 바꾸는 요청을 보내면 200 `{"issue": 경로}`만 오고 바뀌지 않는다 | 같음(코드 주석) |
+| board-F8 | **재현됨.** 비구성원이 제목을 빈 값으로 글 수정 요청을 보내면 400 응답에 저장된 글 제목과 본문(`SECRET-POST`)이 담긴다 | 같은 순서(`BoardApp.java:341-345`) |
+| board-F2 | **재현됨.** 비구성원이 `notice=on`으로 공개 프로젝트에 글을 쓰면 공지가 된다(공지 표시 2, 공지 없는 글 0) | 같음(공식 v1.16.0 동작, 시험이 고정) |
+| usersec-F5 | **재현됨.** 2단계 인증을 모두 강제하면 `/user/editform/two-factor/security-key`가 `303 /user/editform/two-factor`로 되돌려졌다. v1.6에 없는 추가 기능(강제)의 결함이다 | v1.6에 없음 |
+
+usersec-F5는 **고쳤다**(`TwoFactorEnforcementInterceptor`의 예외에 등록 화면 아래 주소를 추가, `SiteSecurityTest`). 나머지 일곱 건은 v1.6과 같은 구조라 지침에 따라 그대로 두고 장부(R-152 이후)에 올렸다. 서버 쪽 권한 검사를 더하는 것은 v1.6과 달라지므로 선생님의 결정이 필요하다.
+
+그 밖에 코드 읽기로만 근거를 둔 항목(issue-F5의 `findSharer` 내용, board-F8과 위키의 어긋남 등)은 각 파일에 "추측" 또는 "코드 읽기"로 표시되어 있다.
 
 ## 이 문서가 확정한 것
 
