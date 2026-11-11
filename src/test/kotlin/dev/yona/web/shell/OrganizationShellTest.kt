@@ -127,7 +127,7 @@ class OrganizationShellTest : AbstractIntegrationTest() {
         listOf("oauth-apps", "oauth-policy").forEach { sub ->
             assertNotNull(page("/organizations/${org.name}/$sub", session).selectFirst(".shell-main [data-swap-safe]"), sub)
         }
-        assertNull(page("/organizations/${org.name}/issues", session).selectFirst("[data-swap-safe]"), "이슈 목록은 일반 이동이다")
+        assertNull(page("/organizations/${org.name}/pullrequests?x=1", session).selectFirst("[data-nothing]"), "표지가 없는 화면은 없다")
     }
 
     @Test
@@ -140,5 +140,15 @@ class OrganizationShellTest : AbstractIntegrationTest() {
         val home = page("/organizations/${org.name}", session)
         assertNotNull(home.selectFirst(".shell-main [data-swap-safe]"), "조직 홈")
         assertTrue(home.select(".shell-main script").any { it.data().contains("organization.View") })
+    }
+
+    @Test
+    fun `조직 이슈와 게시판 목록도 스크립트를 본문 안에 두고 swap-safe 표지를 갖는다(D-136)`() {
+        val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }; val session = login(admin)
+        listOf("issues", "boards").forEach { sub ->
+            val doc = page("/organizations/${org.name}/$sub", session)
+            assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
+            assertTrue(doc.select(".shell-main script[type=module]").any { it.data().contains("await import") }, "$sub 초기화 스크립트")
+        }
     }
 }

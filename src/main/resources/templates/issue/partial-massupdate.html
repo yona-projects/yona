@@ -94,8 +94,9 @@
         </th:block>
     </form>
 </div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/issue.MassUpdate.js}"></script>
-<script type="text/javascript" th:inline="javascript">
+<script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/issue.MassUpdate.js}]]);
     $(document).ready(function(){
         //issueList
         $yona.loadModule("issue.MassUpdate", {

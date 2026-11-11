@@ -39,14 +39,21 @@ function applyTitle(response: unknown): void {
 }
 
 /**
- * 응답에서, 이미 불러온 라이브러리의 `<script src>`를 걷어낸다. 본문을 바꾸면 htmx가 응답의 스크립트를 다시 실행하는데,
- * 화면마다 select2 같은 라이브러리를 싣는 조각(`common/select2`)이 있어 그대로 두면 라이브러리가 두 번 실행된다.
- * 지금은 select2만 다룬다(`jQuery.fn.select2`가 있으면 select2 라이브러리 태그를 뺀다).
+ * 이미 불러온 라이브러리를 판별해 그 `<script src>` 태그를 응답에서 걷어내는 규칙이다. 본문을 바꾸면 htmx가 응답의 스크립트를 다시 실행하는데,
+ * 화면마다 라이브러리를 싣는 조각이 있어 그대로 두면 라이브러리가 두 번 실행된다. 주소 조각(`path`)으로 태그를 찾고, 전역 이름으로 이미 있는지 본다.
  */
+const LOADED_LIBRARIES: ReadonlyArray<{ path: RegExp; loaded: () => boolean }> = [
+  { path: /\/lib\/select2\//, loaded: () => typeof (window as unknown as { jQuery?: { fn?: Record<string, unknown> } }).jQuery?.fn?.["select2"] === "function" },
+  { path: /\/lib\/vanilla-calendar-pro\//, loaded: () => "VanillaCalendarPro" in window },
+];
+
 function dropLoadedLibraries(response: string): string {
-  const jq = (window as unknown as { jQuery?: { fn?: Record<string, unknown> } }).jQuery;
-  if (!jq || !jq.fn || typeof jq.fn["select2"] !== "function") return response;
-  return response.replace(/<script\b[^>]*\bsrc="[^"]*\/lib\/select2\/[^"]*"[^>]*>\s*<\/script>/gi, "");
+  let result = response;
+  for (const rule of LOADED_LIBRARIES) {
+    if (!rule.loaded()) continue;
+    result = result.replace(/<script\b[^>]*\bsrc="([^"]*)"[^>]*>\s*<\/script>/gi, (tag, src: string) => (rule.path.test(src) ? "" : tag));
+  }
+  return result;
 }
 
 /** 사이드바 이동을 켜고 본문이 바뀔 때마다 다시 판정하며 문서 제목도 따라 바꾼다. */

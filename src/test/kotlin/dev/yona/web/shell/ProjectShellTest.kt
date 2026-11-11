@@ -179,4 +179,15 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertEquals("module", init.attr("type"))
         assertTrue(init.data().contains("onPageLeave"))
     }
+
+    @Test
+    fun `이슈 목록은 스크립트와 조각과 라벨 스타일을 본문 안에 두고 떠날 때 N 단축키와 문서 처리기를 푼다(D-136, A-475)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        val doc = page("${base(p)}/issues", s)
+        assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"))
+        assertNotNull(doc.selectFirst(".shell-main link[href$=/issue/labels.css]"), "라벨 색 스타일은 본문 안에 있어야 이동 뒤에도 적용된다")
+        val init = doc.select(".shell-main script").first { it.data().contains("issue.List") }
+        assertEquals("module", init.attr("type"))
+        assertTrue(init.data().contains("onPageLeave") && init.data().contains("htmx:afterSwap.issueList"))
+    }
 }

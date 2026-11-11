@@ -4,12 +4,13 @@ import { buildTs, openTs } from './tsmodule.mjs';
 
 const LIBS = `<script src="/assets/javascripts/lib/htmx.js"></script><script>window.yona = window.yona || {};</script><script src="/assets/javascripts/common/yona.Htmx.js"></script>`;
 const NAV = (active) => `<nav class="shell-sidebar" id="shellSidebar" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar" hx-swap="outerHTML show:window:top">`
-  + ['a', 'b', 'c', 'd', 'e'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
+  + ['a', 'b', 'c', 'd', 'e', 'f'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
 const MODULE = `<script type="module">import { initNavigation } from 'yona/shell/navigation.js'; initNavigation(); window.__same = true; window.__ready = true;</script>`;
 const page = (key, safe) => `<!doctype html><head><title>${key} 화면</title><script type="importmap">{"imports":{"yona/":"/assets/javascripts/esm/"}}</script>${LIBS}</head><body><div class="shell">${NAV(key)}<div class="shell-main">${safe ? '<span data-swap-safe hidden></span>' : ''}${key}본문</div></div>${MODULE}</body>`;
 const LEAVE = `<script type="module">import { onPageLeave } from 'yona/core/page.js'; window.__left = window.__left || 0; onPageLeave(() => { window.__left += 1; });</script>`;
 const S2 = `<script src="/assets/javascripts/lib/select2/select2.js"></script><script>window.__s2loads = (window.__s2loads || 0) + 1; jQuery.fn.select2 = jQuery.fn.select2 || function () {};</script>`;
-const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false), '/e': page('e', true).replace('e본문', 'e본문' + S2), '/d': page('d', true).replace('d본문', 'd본문' + LEAVE) };
+const CAL = `<script src="/assets/javascripts/lib/vanilla-calendar-pro/index.js"></script>`;
+const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false), '/f': page('f', true).replace('f본문', 'f본문' + CAL), '/e': page('e', true).replace('e본문', 'e본문' + S2), '/d': page('d', true).replace('d본문', 'd본문' + LEAVE) };
 
 async function open(start) {
   buildTs();
@@ -74,6 +75,14 @@ export const tests = [
     await p.click('nav.shell-sidebar a[href="/e"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'E', null, { timeout: 5000 });
     await p.waitForTimeout(300);
     assert.equal(await p.evaluate(() => document.querySelectorAll('script[src*="lib/select2/select2.js"]').length), 0, '라이브러리 태그가 다시 들어오면 안 된다');
+    await ctx.close();
+  } },
+  { name: '이미 불러온 달력 라이브러리 스크립트도 본문 교체 때 다시 싣지 않는다', run: async () => {
+    const { p, ctx } = await open('/a');
+    await p.evaluate(() => { window.VanillaCalendarPro = { Calendar: function () {} }; });
+    await p.click('nav.shell-sidebar a[href="/f"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'F', null, { timeout: 5000 });
+    await p.waitForTimeout(300);
+    assert.equal(await p.evaluate(() => document.querySelectorAll('script[src*="vanilla-calendar-pro/index.js"]').length), 0);
     await ctx.close();
   } },
 ];

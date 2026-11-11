@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
 <th:block th:fragment="listWrap" th:with="org=${orgView}">
         <div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
             <div class="left-menu col-lg-2 span-hard-wrap">
@@ -142,20 +142,24 @@
             </div>
         </div>
 </th:block>
-        </div><!--/* .shell-main */-->
+        <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="module" th:inline="javascript">
+    import { onPageLeave } from [[@{/assets/javascripts/esm/core/page.js}]];
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/twoColumnMode.js}]]);
+    await import([[@{/assets/javascripts/esm/service/issue.List.js}]]);
+    $(function(){
+        $yona.loadModule("issue.List");
+        // 사이드바 이동으로 이 화면을 떠나면 목록 후처리 처리기를 푼다
+        onPageLeave(function () { $(document).off("htmx:afterSwap.issueList"); });
+
+        $("#projects" ).on("change", function(){
+            yona.Htmx.submit("#search");
+        });
+    });
+</script>
+</div><!--/* .shell-main */-->
     </div>
 </div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
-<script type="module" th:src="@{/assets/javascripts/esm/service/issue.List.js}"></script>
-<script type="text/javascript">
-  $(function(){
-    $yona.loadModule("issue.List");
-
-    $("#projects" ).on("change", function(){
-        yona.Htmx.submit("#search");
-    });
-  });
-</script>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
 </th:block>
 </html>

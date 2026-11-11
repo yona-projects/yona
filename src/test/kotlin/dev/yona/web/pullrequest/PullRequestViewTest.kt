@@ -134,7 +134,7 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     fun `머리 영역의 탭과 받아들이기 단추는 권한에 따라 나온다`() {
         val s = withCommit(setup()); val pr = open(s)
         val manager = page(url(s, pr), login(s.manager))
-        assertEquals(listOf("Overview", "Changes"), manager.select(".project-page-wrap > ul.nav-tabs li").map { it.text() })
+        assertEquals(listOf("Overview", "Changes"), manager.select(".project-page-wrap .shell-main ul.nav-tabs li").map { it.text() })
         assertEquals(url(s, pr, "/accept"), manager.selectFirst("#btnAccept")!!.attr("data-url"))
         assertNull(page(url(s, pr), login(s.contributor)).selectFirst("#btnAccept"))
         assertNull(page(url(s, pr)).selectFirst("#btnAccept"))

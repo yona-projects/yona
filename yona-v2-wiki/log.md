@@ -88,3 +88,7 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 onPageLeave/runPageLeave, 본문 교체 직전 호출. JS 시험 2개 추가, N 단축키 동작 확인.
 
 ## [2026-11-11] feat | select2 한 번 싣기(A-476)와 게시판 목록 swap-safe
+
+## [2026-11-11] feat | 이슈 목록 계열 swap-safe, boost 요청은 전체 화면 (A-477)
+
+PullRequestViewTest의 옛 선택자도 고쳤다.
