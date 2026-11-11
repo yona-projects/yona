@@ -272,6 +272,19 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `열려 있지 않은 요청은 다시 받아들이거나 닫을 수 없다 (v1_6은 병합된 요청의 재병합 요청이 303이고 병합된 요청을 닫으면 닫힘이 되었다, 고쳤다, pullrequest-F6)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        pr.state = State.MERGED; pullRequests.save(pr)
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isBadRequest)
+        assertEquals(State.MERGED, reload(pr).state)
+        pr.state = State.CLOSED; pullRequests.save(pr)
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isBadRequest)
+        assertEquals(State.CLOSED, reload(pr).state)
+    }
+
+    @Test
     fun `다시 열면 보내는 프로젝트의 같은 이름 최근 푸시 브랜치 기록을 지운다`() {
         val s = setup(); addChange(s); val pr = open(s)
         mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isSeeOther)
