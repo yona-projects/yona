@@ -45,12 +45,6 @@ $(() => {
             }
         });
 
-        // 닫기 화살표: v1.6의 `.pin-in-sidebar`는 고정을 풀었고, 덮어 쓰는 패널에서는 패널을 닫는다
-        $(".pin-in-sidebar").on("click.usermenu", (event) => {
-            event.stopPropagation();
-            closeSidebar($sidebar);
-        });
-
         // 지난 화면에서 열어 둔 채로 넘어왔다면 이어서 연다(작은 화면은 화면 전체를 덮으므로 이어 열지 않는다)
         if (recall(OPEN_STATE_KEY) === "true" && viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
             openSidebar($sidebar, true);

@@ -8,16 +8,6 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
 <div id="mySidenav" class="sidenav row align-items-start">
     <div class="col-lg-5 right-menu span-hard-wrap">
-        <!--/* A-491: v1.6 좌측 사이드바(sidebar.scala.html)의 사용자 줄이다. 화살표는 패널을 닫는다 */-->
-        <div class="user-menu-wrap" th:if="${!currentUser.anonymous}">
-            <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}">
-                <span class="avatar-wrap smaller"><img th:src="@{${currentUser.avatarUrl(32)}}" alt=""/></span>
-                <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
-            </a></span>
-            <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="@{/users/logout}"><span class="user-menu logout badge bg-secondary" th:text="#{title.logout}"></span></a>
-            <div class="pin-in-sidebar" role="button" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{layout.sidebar.tooltip}"><i class="yobicon-arrow-left"></i></div>
-        </div>
         <ul class="nav nav-tabs nm mb-3">
             <li class="nav-item myOrganizationList">
                 <a href="#myOrganizationList" data-bs-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
