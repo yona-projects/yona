@@ -63,6 +63,8 @@ class BoardApiController(
         for (node in json) ids += node.asString("").toLongOrNull() ?: return ResponseEntity.badRequest().body("Wrong label id")
         val found = labels.findAllById(ids.toSet()).toMutableSet()
         if (found.size != ids.toSet().size) return ResponseEntity.badRequest().body("Wrong label id")
+        // 다른 프로젝트의 라벨은 붙이지 못한다. v1.6은 번호로만 찾아 아무 프로젝트의 라벨이나 붙었다(board-F11)
+        if (found.any { it.project?.id != project.id }) return ResponseEntity.badRequest().body("Wrong label id")
         postingService.replaceLabels(posting, found)
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("id" to project.owner, "labels" to posting.labels.size))
     }

@@ -93,7 +93,8 @@ class BoardWriteController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user ?: return ErrorViews.forbidden()
         val errors = validate(request)
-        if (errors.isNotEmpty()) return createView(project, viewer, "error.validation", "", errors, null).also { it.status = HttpStatus.BAD_REQUEST }
+        // 오류 화면에 제출한 제목과 본문을 되돌려 준다. v1.6은 본문을 비우고(`preparedPostBody`는 오류 때 "") 제목도 비워서 오류가 난 사용자가 긴 글을 잃었다(board-F5)
+        if (errors.isNotEmpty()) return createView(project, viewer, "error.validation", request.getParameter("body").orEmpty(), errors, request, request.getParameter("title")).also { it.status = HttpStatus.BAD_REQUEST }
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
         val title = request.getParameter("title")
         val form = PostForm(title, body, checked(request, "notice") && allowedToNotice(viewer, project), checked(request, "readme"))
@@ -151,7 +152,8 @@ class BoardWriteController(
         val errors = validate(request)
         if (errors.isNotEmpty()) {
             val noticeAllowed = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE)
-            return editView(project, viewer, posting, "error.validation", errors, noticeAllowed, posting.body.orEmpty(), posting.title.orEmpty()).also { it.status = HttpStatus.BAD_REQUEST }
+            // 제출한 값을 되돌려 준다(v1.6은 저장된 제목과 본문으로 되돌려 입력을 잃었다, board-F5)
+            return editView(project, viewer, posting, "error.validation", errors, noticeAllowed, request.getParameter("body") ?: posting.body.orEmpty(), request.getParameter("title") ?: posting.title.orEmpty()).also { it.status = HttpStatus.BAD_REQUEST }
         }
         if (viewer == null || !accessControl.isAllowed(viewer, posting.asResource(), Operation.UPDATE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         return edit(project, posting, viewer, request, response)
@@ -215,13 +217,16 @@ class BoardWriteController(
         }
     }
 
-    /** 공지를 올릴 수 있는지이다 (v1.6 `ProjectUser.isAllowedToNotice`). 익명은 아니고, 사이트 관리자나 구성원이다. */
-    private fun allowedToNotice(viewer: User?, project: Project): Boolean {
-        val userId = viewer?.id ?: return false
-        return accessControl.isSiteManager(viewer) || projectUsers.existsByUserIdAndProjectId(userId, requireNotNull(project.id))
-    }
+    /**
+     * 공지를 올릴 수 있는지이다. 화면이 공지 선택을 보이는 조건과 같은 [AccessControl.isProjectResourceCreatable]를 쓴다.
+     *
+     * v1.6은 글쓰기 화면은 이 조건(조직 관리자와 그룹 구성원 포함)으로 선택을 보이고, 저장과 수정은 `ProjectUser.isAllowedToNotice`
+     * (프로젝트 직접 구성원만)로 판단해 조직 관리자가 공지를 켜도 조용히 무시되었다(board-F4). 보이는 선택이 동작하도록 하나로 맞췄다.
+     */
+    private fun allowedToNotice(viewer: User?, project: Project): Boolean =
+        accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE)
 
-    private fun createView(project: Project, viewer: User?, title: String, prepared: String, errors: Map<String, List<String>>, request: HttpServletRequest?): ModelAndView {
+    private fun createView(project: Project, viewer: User?, title: String, prepared: String, errors: Map<String, List<String>>, request: HttpServletRequest?, submittedTitle: String? = null): ModelAndView {
         val query = { key: String -> request?.getParameter(key) }
         val readme = request?.getParameter("readme") != null
         val issueTemplate = query("issueTemplate")
@@ -230,7 +235,7 @@ class BoardWriteController(
             .addObject("title", title)
             .addObject("projectView", views.of(project))
             .addObject("errors", errors)
-            .addObject("titleValue", if (readme) "Update README.md" else if (issueTemplate != null) "ISSUE_TEMPLATE.md: Project Issue Template" else "")
+            .addObject("titleValue", if (submittedTitle != null) submittedTitle else if (readme) "Update README.md" else if (issueTemplate != null) "ISSUE_TEMPLATE.md: Project Issue Template" else "")
             .addObject("issueTemplate", issueTemplate.orEmpty())
             .addObject("hasIssueTemplate", issueTemplate != null)
             .addObject("branch", query("branch").orEmpty())

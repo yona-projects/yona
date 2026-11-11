@@ -21,6 +21,8 @@ import dev.yona.domain.issue.MilestoneRepository
 import dev.yona.domain.misc.Attachment
 import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.project.Project
+import dev.yona.domain.project.Organization
+import dev.yona.domain.project.OrganizationUser
 import dev.yona.domain.project.ProjectMenuSetting
 import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
@@ -87,6 +89,9 @@ class BoardWriteTest : AbstractIntegrationTest() {
     @Autowired private lateinit var postings: PostingRepository
     @Autowired private lateinit var attachments: AttachmentRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var organizations: dev.yona.domain.project.OrganizationRepository
+    @Autowired private lateinit var organizationUsers: dev.yona.domain.project.OrganizationUserRepository
+    @Autowired private lateinit var labels: dev.yona.domain.issue.IssueLabelRepository
     @Autowired private lateinit var events: ApplicationEvents
     @Autowired private lateinit var entityManager: EntityManager
 
@@ -248,6 +253,47 @@ class BoardWriteTest : AbstractIntegrationTest() {
         assertEquals(2L, projects.findById(project.id!!).get().lastPostingNumber)
         val heads = entityManager.createQuery("select count(t) from TitleHead t where t.project.id = :p", java.lang.Long::class.java).setParameter("p", project.id).singleResult.toLong()
         assertEquals(1L, heads)
+    }
+
+    @Test
+    fun `조직 관리자는 프로젝트 구성원이 아니어도 공지를 저장하고 수정한다 (board-F4, v1_6은 화면은 보이나 저장과 수정이 무시되었다, 고쳤다)`() {
+        val org = organizations.save(Organization(name = "bworg${++sequence}"))
+        val project = projects.save(Project(owner = org.name!!, name = "wp${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC, organization = org))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(project)
+        val admin = newUser()
+        organizationUsers.save(OrganizationUser(user = admin, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))
+        submit(project, "posts", login(admin), "title" to "공지", "body" to "b", "notice" to "on").andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(true, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
+        submit(project, "post/1/edit", login(admin), "title" to "공지2", "body" to "b").andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(false, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
+    }
+
+    @Test
+    fun `제목 오류 화면은 제출한 본문과 제목을 되돌려 준다 (board-F5, v1_6은 본문을 비우고 수정은 저장된 값으로 돌렸다, 고쳤다)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val create = Jsoup.parse(submit(project, "posts", login(member), "title" to "", "body" to "내가 쓴 본문 XYZ").andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertTrue(create.selectFirst("textarea[name=body]")!!.text().contains("내가 쓴 본문 XYZ"))
+        val longTitle = "가".repeat(300)
+        val tooLong = Jsoup.parse(submit(project, "posts", login(member), "title" to longTitle, "body" to "본문 B").andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertEquals(longTitle, tooLong.selectFirst("title-input#title")!!.attr("value"))
+        post(project, member, "저장된 제목", "저장된 본문")
+        val edit = Jsoup.parse(submit(project, "post/1/edit", login(member), "title" to "", "body" to "고치던 본문 QQQ").andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertTrue(edit.selectFirst("textarea[name=body]")!!.text().contains("고치던 본문 QQQ"))
+    }
+
+    @Test
+    fun `글의 라벨은 같은 프로젝트의 라벨만 붙는다 (board-F11, v1_6은 다른 프로젝트 라벨도 붙었다, 고쳤다)`() {
+        val project = newProject(); val member = join(newUser(), project); val other = newProject()
+        post(project, member)
+        val mine = labels.save(dev.yona.domain.issue.IssueLabel(name = "mine", color = "#fff", project = project))
+        val foreign = labels.save(dev.yona.domain.issue.IssueLabel(name = "foreign", color = "#fff", project = other))
+        val session = login(member)
+        fun label(id: Long?) = mockMvc.perform(post("${base(project)}/post/1/label").session(session).contentType(MediaType.APPLICATION_JSON).content("[\"$id\"]"))
+        label(foreign.id).andExpect(status().isBadRequest)
+        label(mine.id).andExpect(status().isOk)
     }
 
     @Test
