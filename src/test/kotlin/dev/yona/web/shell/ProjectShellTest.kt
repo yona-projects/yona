@@ -58,9 +58,9 @@ class ProjectShellTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", user.loginId!!).param("password", "1234"))
     }
 
-    private fun project(owner: User, issue: Boolean = true): Project {
+    private fun project(owner: User, issue: Boolean = true, wiki: Boolean = false): Project {
         val project = projects.save(Project(owner = owner.loginId, name = "shellproj${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC, createdDate = Date()))
-        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = issue, pullRequest = true, review = true, milestone = true, board = true))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = issue, pullRequest = true, review = true, milestone = true, board = true, wiki = wiki))
         projectUsers.save(ProjectUser(user = owner, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
         return project
     }
@@ -173,7 +173,8 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"))
         assertEquals(1, doc.select("script[src*=lib/select2/select2.js]").size, "select2 라이브러리는 한 번만 싣는다")
         assertEquals(1, doc.select("head script[src*=lib/select2/select2.js]").size, "라이브러리는 레이아웃 head에 있어야 본문 교체 때 순서가 깨지지 않는다")
-        assertTrue(doc.select(".shell-main script[type=module]").any { it.attr("src").contains("esm/ui/Select2.js") }, "항목 모양 모듈과 템플릿은 본문 안")
+        assertEquals(1, doc.select("head script[type=module][src*=esm/ui/Select2.js]").size, "select2 항목 모양 모듈도 head에서 한 번 싣는다(본문 교체 때 인라인 초기화보다 늦게 실행되지 않게)")
+        assertEquals(1, doc.select("script[type=module][src*=esm/ui/Select2.js]").size)
         assertNotNull(doc.selectFirst(".shell-main script#tplSelect2FormatUser"))
         val init = doc.select(".shell-main script").first { it.data().contains("board.List") }
         assertEquals("module", init.attr("type"))
@@ -189,5 +190,14 @@ class ProjectShellTest : AbstractIntegrationTest() {
         val init = doc.select(".shell-main script").first { it.data().contains("issue.List") }
         assertEquals("module", init.attr("type"))
         assertTrue(init.data().contains("onPageLeave") && init.data().contains("htmx:afterSwap.issueList"))
+    }
+
+    @Test
+    fun `코드 주고받기 목록과 위키 화면도 본문 안에 스크립트를 두고 swap-safe 표지를 갖는다(D-136)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner, wiki = true)
+        val pr = page("${base(p)}/pullRequests", s)
+        assertNotNull(pr.selectFirst(".shell-main [data-swap-safe]"), "pullRequests")
+        assertTrue(pr.select(".shell-main script[type=module]").any { it.data().contains("_initTwoColumnMode") }, "초기화 스크립트는 본문 안")
+        assertNotNull(page("${base(p)}/wiki", s).selectFirst(".shell-main [data-swap-safe]"), "wiki")
     }
 }

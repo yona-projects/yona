@@ -45,6 +45,8 @@ function applyTitle(response: unknown): void {
 const LOADED_LIBRARIES: ReadonlyArray<{ path: RegExp; loaded: () => boolean }> = [
   { path: /\/lib\/select2\//, loaded: () => typeof (window as unknown as { jQuery?: { fn?: Record<string, unknown> } }).jQuery?.fn?.["select2"] === "function" },
   { path: /\/lib\/vanilla-calendar-pro\//, loaded: () => "VanillaCalendarPro" in window },
+  { path: /\/esm\/ui\/Select2\.js/, loaded: () => typeof (window as unknown as { yona?: { ui?: Record<string, unknown> } }).yona?.ui?.["Select2"] === "function" },
+  { path: /\/esm\/ui\/Calendar\.js/, loaded: () => typeof (window as unknown as { yona?: { ui?: Record<string, unknown> } }).yona?.ui?.["Calendar"] === "function" },
 ];
 
 function dropLoadedLibraries(response: string): string {
@@ -56,14 +58,56 @@ function dropLoadedLibraries(response: string): string {
   return result;
 }
 
+/** 이미지 보기(viewer)를 붙였다는 표시이다. 같은 영역에 두 번 붙이지 않는다. */
+const VIEWER_BOUND = "yonaViewerBound";
+
+/**
+ * 본문 교체로 들어온 마크다운 영역(`.markdown-wrap`)에 이미지 보기를 붙인다. 레이아웃은 이 일을 문서 준비 때 한 번만 하므로,
+ * 교체로 새로 들어온 영역은 여기서 같은 규칙(이미지 위에서 손 모양, `viewer()`)으로 붙인다. jQuery나 viewer 플러그인이 없으면 하지 않는다.
+ */
+function bindMarkdownViewer(): void {
+  const jq = (window as unknown as { jQuery?: (el: Element) => { viewer?: () => void } }).jQuery;
+  if (typeof jq !== "function") return;
+  document.querySelectorAll<HTMLElement>(".shell-main .markdown-wrap").forEach((area) => {
+    if (area.dataset[VIEWER_BOUND]) return;
+    area.dataset[VIEWER_BOUND] = "1";
+    const wrapped = jq(area);
+    if (typeof wrapped.viewer === "function") wrapped.viewer();
+  });
+}
+
+/** 위젯 모듈(`yona.ui.*`)이 노출하는 초기화 함수의 모양이다. */
+type UiWidget = (element: Element, options?: unknown) => unknown;
+
+/**
+ * 본문 교체로 들어온 select2와 달력 입력란을 초기화한다. 두 모듈은 문서가 준비될 때 한 번만 모든 입력란을 훑어 초기화하므로,
+ * 교체로 새로 들어온 입력란은 여기서 같은 규칙(`data-toggle="select2"`, `data-toggle="calendar"`)으로 초기화한다.
+ * 교체한 본문 안의 입력란만 대상이므로 이미 초기화한 입력란을 다시 만지지 않는다.
+ */
+function bindWidgets(): void {
+  const ui = (window as unknown as { yona?: { ui?: Record<string, UiWidget | undefined> } }).yona?.ui;
+  if (!ui) return;
+  const jq = (window as unknown as { jQuery?: (el: Element) => { data(): unknown } }).jQuery;
+  document.querySelectorAll(".shell-main [data-toggle=\"select2\"]").forEach((el) => ui["Select2"]?.(el));
+  document.querySelectorAll(".shell-main [data-toggle=\"calendar\"]").forEach((el) => ui["Calendar"]?.(el, jq ? jq(el).data() : undefined));
+}
+
 /** 사이드바 이동을 켜고 본문이 바뀔 때마다 다시 판정하며 문서 제목도 따라 바꾼다. */
 export function initNavigation(): void {
+  let shellSwapped = false;
   enable();
-  document.addEventListener("htmx:afterSettle", enable);
+  document.addEventListener("htmx:afterSettle", () => {
+    enable();
+    if (!shellSwapped) return;
+    shellSwapped = false;
+    bindMarkdownViewer();
+    bindWidgets();
+  });
   document.addEventListener("htmx:beforeSwap", (event) => {
     const detail = (event as CustomEvent<{ shouldSwap?: boolean; serverResponse?: unknown; target?: Element }>).detail;
     if (detail.shouldSwap === false || !(detail.target instanceof Element) || !detail.target.classList.contains("shell-main")) return;
     runPageLeave();
+    shellSwapped = true;
     applyTitle(detail.serverResponse);
     if (typeof detail.serverResponse === "string") detail.serverResponse = dropLoadedLibraries(detail.serverResponse);
   });

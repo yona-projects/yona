@@ -4,13 +4,15 @@ import { buildTs, openTs } from './tsmodule.mjs';
 
 const LIBS = `<script src="/assets/javascripts/lib/htmx.js"></script><script>window.yona = window.yona || {};</script><script src="/assets/javascripts/common/yona.Htmx.js"></script>`;
 const NAV = (active) => `<nav class="shell-sidebar" id="shellSidebar" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar" hx-swap="outerHTML show:window:top">`
-  + ['a', 'b', 'c', 'd', 'e', 'f'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
+  + ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((k) => `<a class="nav-link${k === active ? ' active' : ''}" href="/${k}">${k.toUpperCase()}</a>`).join('') + `</nav>`;
 const MODULE = `<script type="module">import { initNavigation } from 'yona/shell/navigation.js'; initNavigation(); window.__same = true; window.__ready = true;</script>`;
 const page = (key, safe) => `<!doctype html><head><title>${key} 화면</title><script type="importmap">{"imports":{"yona/":"/assets/javascripts/esm/"}}</script>${LIBS}</head><body><div class="shell">${NAV(key)}<div class="shell-main">${safe ? '<span data-swap-safe hidden></span>' : ''}${key}본문</div></div>${MODULE}</body>`;
 const LEAVE = `<script type="module">import { onPageLeave } from 'yona/core/page.js'; window.__left = window.__left || 0; onPageLeave(() => { window.__left += 1; });</script>`;
 const S2 = `<script src="/assets/javascripts/lib/select2/select2.js"></script><script>window.__s2loads = (window.__s2loads || 0) + 1; jQuery.fn.select2 = jQuery.fn.select2 || function () {};</script>`;
 const CAL = `<script src="/assets/javascripts/lib/vanilla-calendar-pro/index.js"></script>`;
-const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false), '/f': page('f', true).replace('f본문', 'f본문' + CAL), '/e': page('e', true).replace('e본문', 'e본문' + S2), '/d': page('d', true).replace('d본문', 'd본문' + LEAVE) };
+const MD = `<div class="markdown-wrap"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></div>`;
+const WID = `<select data-toggle="select2"></select><input data-toggle="calendar">`;
+const PAGES = { '/a': page('a', true), '/b': page('b', true), '/c': page('c', false), '/h': page('h', true).replace('h본문', 'h본문' + WID), '/g': page('g', true).replace('g본문', 'g본문' + MD), '/f': page('f', true).replace('f본문', 'f본문' + CAL), '/e': page('e', true).replace('e본문', 'e본문' + S2), '/d': page('d', true).replace('d본문', 'd본문' + LEAVE) };
 
 async function open(start) {
   buildTs();
@@ -83,6 +85,36 @@ export const tests = [
     await p.click('nav.shell-sidebar a[href="/f"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'F', null, { timeout: 5000 });
     await p.waitForTimeout(300);
     assert.equal(await p.evaluate(() => document.querySelectorAll('script[src*="vanilla-calendar-pro/index.js"]').length), 0);
+    await ctx.close();
+  } },
+  { name: '본문 교체로 들어온 마크다운 영역에도 이미지 보기를 한 번만 붙인다', run: async () => {
+    const { p, ctx } = await open('/a');
+    await p.evaluate(() => {
+      window.__viewer = 0;
+      window.jQuery = window.jQuery || function (el) { return { viewer() { window.__viewer += 1; }, each() { return this; } }; };
+      window.jQuery.fn = window.jQuery.fn || {};
+      window.jQuery.fn.viewer = function () { window.__viewer += 1; };
+      const original = window.jQuery;
+      window.jQuery = Object.assign(function (el) { return { viewer() { window.__viewer += 1; } }; }, original, { fn: original.fn });
+    });
+    await p.click('nav.shell-sidebar a[href="/g"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'G', null, { timeout: 5000 });
+    await p.waitForTimeout(300);
+    assert.equal(await p.evaluate(() => window.__viewer), 1);
+    await p.click('nav.shell-sidebar a[href="/b"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'B', null, { timeout: 5000 });
+    assert.equal(await p.evaluate(() => window.__viewer), 1, '다른 화면으로 가도 다시 붙이지 않는다');
+    await ctx.close();
+  } },
+  { name: '본문 교체로 들어온 select2와 달력 입력란을 초기화한다(문서가 준비될 때 한 번만 도는 자동 초기화를 대신한다)', run: async () => {
+    const { p, ctx } = await open('/a');
+    await p.evaluate(() => {
+      window.__w = { select2: 0, calendar: 0 };
+      window.yona = window.yona || {}; window.yona.ui = { Select2() { window.__w.select2 += 1; }, Calendar() { window.__w.calendar += 1; } };
+    });
+    await p.click('nav.shell-sidebar a[href="/h"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'H', null, { timeout: 5000 });
+    await p.waitForTimeout(300);
+    assert.deepEqual(await p.evaluate(() => window.__w), { select2: 1, calendar: 1 });
+    await p.click('nav.shell-sidebar a[href="/b"]'); await p.waitForFunction(() => document.querySelector('nav.shell-sidebar a.active').textContent === 'B', null, { timeout: 5000 });
+    assert.deepEqual(await p.evaluate(() => window.__w), { select2: 1, calendar: 1 }, '위젯이 없는 화면으로 가도 다시 부르지 않는다');
     await ctx.close();
   } },
 ];

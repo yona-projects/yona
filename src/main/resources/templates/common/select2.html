@@ -14,11 +14,12 @@
 <script th:src="@{/assets/javascripts/lib/select2/select2.js}"></script>
 <script th:src="@{/assets/javascripts/lib/select2/i18n/{lang}.js(lang=${s2lang})}"></script>
 <script th:inline="javascript">$.fn.select2.defaults.set("language", /*[[${s2lang}]]*/ "en");</script>
+<!--/* 항목 모양과 클래스 복사(yona.ui.Select2)도 한 번만 싣는다. 본문 교체로 늦게 들어오면 인라인 초기화가 먼저 돌아 `yona.ui.Select2 is not a function`이 난다. */-->
+<script type="module" th:src="@{/assets/javascripts/esm/ui/Select2.js}"></script>
 </th:block>
 
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="select2">
 <!--/* select2 4.x는 원본 요소의 클래스를 컨테이너에 복사하지 않는다. v1.6(3.x)의 복사는 yona.ui.Select2.js가 같은 규칙으로 한다(D-95). 라이브러리 본체는 레이아웃 head의 library 조각이 싣는다. */-->
-<script type="module" th:src="@{/assets/javascripts/esm/ui/Select2.js}"></script>
 <script id="tplSelect2FormatUser" type="text/x-mustache">
 <div class="usf-group" title="{{name}} {{loginId}}">
     <span class="avatar-wrap smaller"><img src="{{avatarURL}}" width="20" height="20"></span>
