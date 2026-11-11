@@ -59,6 +59,7 @@ class MessageParityTest {
         "site.massMail.noRecipient",
         "organization.label.noPermission", "organization.label.groupProject",
         "organization.setting.saved", "organization.label.group", "organization.label.created", "organization.label.by", "organization.label.at",
+        "deviceAuth.error.locked"
     )
 
     /**

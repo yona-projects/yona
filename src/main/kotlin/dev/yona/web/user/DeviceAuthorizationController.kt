@@ -23,7 +23,8 @@ import org.springframework.web.servlet.ModelAndView
 class DeviceAuthorizationController(
     private val service: DeviceAuthorizationService,
     private val users: UserRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val attempts: dev.yona.security.TwoFactorAttempts
 ) {
 
     /** 확인 화면에 보일 요청이다. [scopes]는 승인하면 받게 될 범위이다. */
@@ -35,7 +36,7 @@ class DeviceAuthorizationController(
     @Transactional(readOnly = true)
     fun device(@RequestParam("user_code", required = false) userCode: String?): ModelAndView {
         if (userCode.isNullOrBlank()) return codeForm(null)
-        val auth = service.findByUserCode(userCode) ?: return codeForm("deviceAuth.error.notFound").also { it.status = HttpStatus.BAD_REQUEST }
+        val auth = lookup(userCode) ?: return rejected()
         return consent(auth, currentUser())
     }
 
@@ -44,7 +45,7 @@ class DeviceAuthorizationController(
     @AnonymousCheck(requiresLogin = true)
     @Transactional
     fun approve(@RequestParam("user_code", required = false) userCode: String?): ModelAndView {
-        val auth = service.findByUserCode(userCode) ?: return codeForm("deviceAuth.error.notFound").also { it.status = HttpStatus.BAD_REQUEST }
+        val auth = lookup(userCode) ?: return rejected()
         service.approve(auth, currentUser())
         return done("deviceAuth.done.approved")
     }
@@ -54,10 +55,29 @@ class DeviceAuthorizationController(
     @AnonymousCheck(requiresLogin = true)
     @Transactional
     fun deny(@RequestParam("user_code", required = false) userCode: String?): ModelAndView {
-        val auth = service.findByUserCode(userCode) ?: return codeForm("deviceAuth.error.notFound").also { it.status = HttpStatus.BAD_REQUEST }
+        val auth = lookup(userCode) ?: return rejected()
         service.deny(auth)
         return done("deviceAuth.done.denied")
     }
+
+    /**
+     * 코드를 찾는다. 코드가 8자라 로그인한 사람이 다른 사람의 코드를 맞힐 수 있으므로 사용자마다 연달아 5번 틀리면 15분 동안 맞는 코드도
+     * 받지 않는다(oauth-F5, v1.6에는 기기 인증이 없다). 맞히면 횟수를 지운다.
+     */
+    private fun lookup(userCode: String?): DeviceAuthorization? {
+        val key = limitKey()
+        if (attempts.isLocked(key)) return null
+        val auth = service.findByUserCode(userCode)
+        if (auth == null) attempts.recordFailure(key) else attempts.clear(key)
+        return auth
+    }
+
+    /** 찾지 못했을 때의 화면이다. 잠겨 있으면 429와 잠금 안내, 아니면 400과 틀린 코드 안내이다. */
+    private fun rejected(): ModelAndView =
+        if (attempts.isLocked(limitKey())) codeForm("deviceAuth.error.locked").also { it.status = HttpStatus.TOO_MANY_REQUESTS }
+        else codeForm("deviceAuth.error.notFound").also { it.status = HttpStatus.BAD_REQUEST }
+
+    private fun limitKey() = "device:" + requireNotNull(currentUserProvider.get().user?.id)
 
     private fun currentUser(): User = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
 

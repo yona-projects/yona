@@ -91,6 +91,28 @@ class DeviceAuthorizationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `틀린 코드를 5번 입력하면 15분 동안 맞는 코드도 429로 받지 않는다 (oauth-F5, 코드 공간이 작아 맞힐 수 있었다)`() {
+        val me = user(); val session = login(me); val issued = issue("laptop", "repo")
+        repeat(4) { page(session, "/users/device?user_code=BCDF-GHJK", 400) }
+        page(session, "/users/device?user_code=BCDF-GHJK", 429) // 다섯 번째 실패가 잠금을 건다
+        val locked = page(session, "/users/device?user_code=" + issued.code.userCode, 429)
+        assertNotNull(locked.selectFirst(".alert-danger"))
+        assertNull(locked.selectFirst("#device-consent"))
+        mockMvc.perform(post("/users/device/approve").session(session).param("user_code", issued.code.userCode)).andExpect(status().`is`(429))
+        // 다른 사용자는 영향이 없다
+        assertNotNull(page(login(user()), "/users/device?user_code=" + issued.code.userCode).selectFirst("#device-consent"))
+    }
+
+    @Test
+    fun `코드를 맞히면 틀린 횟수가 지워진다`() {
+        val session = login(user()); val issued = issue("laptop", "repo")
+        repeat(4) { page(session, "/users/device?user_code=BCDF-GHJK", 400) }
+        page(session, "/users/device?user_code=" + issued.code.userCode)
+        repeat(4) { page(session, "/users/device?user_code=BCDF-GHJK", 400) }
+        page(session, "/users/device?user_code=" + issued.code.userCode)
+    }
+
+    @Test
     fun `없는 코드는 400과 오류 문구이고 다시 입력할 수 있다`() {
         val doc = page(login(user()), "/users/device?user_code=BCDF-GHJK", 400)
         assertNotNull(doc.selectFirst(".alert-danger"))
