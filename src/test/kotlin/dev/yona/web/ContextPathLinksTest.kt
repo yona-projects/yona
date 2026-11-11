@@ -60,7 +60,9 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
         issues.save(Issue(project = project, number = 1, title = "이슈", state = State.OPEN, authorId = user.id, authorLoginId = user.loginId, authorName = user.name))
         events.save(dev.yona.domain.issue.IssueEvent(issue = issues.findAll().last(), senderLoginId = "cp1", eventType = dev.yona.domain.enumeration.EventType.ISSUE_ASSIGNEE_CHANGED, newValue = "cp1", created = java.util.Date()))
-        project.lastPostingNumber = 1; projects.save(project)
+        project.lastPostingNumber = 2; projects.save(project)
+        // 정렬 링크는 글이 둘 이상일 때만 그려지므로 글을 둘 둔다
+        postings.save(dev.yona.domain.board.Posting(project = project, number = 2, title = "글 둘", body = "본문", authorId = user.id, authorLoginId = user.loginId, authorName = user.name, notice = false, readme = false, numOfComments = 0, createdDate = java.util.Date(), updatedDate = java.util.Date()))
         postings.save(dev.yona.domain.board.Posting(project = project, number = 1, title = "글", body = "본문", authorId = user.id, authorLoginId = user.loginId, authorName = user.name, notice = false, readme = false, numOfComments = 0, createdDate = java.util.Date(), updatedDate = java.util.Date()))
         val org = dev.yona.domain.project.Organization(name = "cporg", descr = "d", created = java.util.Date()).also { entityManager.persist(it) }
         entityManager.persist(dev.yona.domain.project.OrganizationUser(user = user, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get()))
