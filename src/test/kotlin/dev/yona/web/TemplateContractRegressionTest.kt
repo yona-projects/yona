@@ -167,4 +167,12 @@ class TemplateContractRegressionTest {
         assertTrue(wrapper != null, "글쓰기 단추를 찾지 못했다")
         assertTrue(wrapper.groupValues[1].contains("projectView.menuSetting.board"), "게시판 메뉴가 꺼져도 글쓰기 단추가 보인다")
     }
+
+    @Test
+    fun `안내 글 상자는 좁은 화면에서 폭을 넓힌다 (welcome-F4, v1_6은 50% 고정이라 모바일에서 글이 좁았다, 고쳤다)`() {
+        for (name in listOf("welcome/secret.html", "welcome/restart.html")) {
+            val html = template(name)
+            assertTrue(Regex("@media[^{]*max-width[^{]*\\{[^}]*\\.secret-box\\s*\\{[^}]*width:\\s*(9\\d|100)%").containsMatchIn(html), "$name: 좁은 화면 규칙이 없다")
+        }
+    }
 }
