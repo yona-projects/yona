@@ -203,4 +203,10 @@ class TemplateContractRegressionTest {
             assertTrue(template(name).contains("pattern=\"^[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*$\""), "$name: 한글을 거부하는 규칙이다")
         }
     }
+
+    @Test
+    fun `보안 화면의 저장 단추 옆에 어느 설정이 저장되는지 안내가 있다 (site-F19, 세 폼이 서로 독립이라 다른 영역의 입력은 저장되지 않는다)`() {
+        val security = template("site/security.html")
+        assertEquals(3, Regex("#\\{site\\.security\\.saveScope\\(").findAll(security).count(), "세 영역마다 저장 범위 안내가 있어야 한다")
+    }
 }
