@@ -16,7 +16,8 @@ async function diff(page, original, replacement, values) {
 }
 const open = (html = '') => pageWith({ jq4: false, stubs: false, html });
 
-const sourceFiles = () => ['common', 'service'].flatMap((d) => fs.readdirSync(path.join(JS, d)).filter((f) => f.endsWith('.js')).map((f) => path.join(JS, d, f)));
+// `service/`는 화면 모듈이 `esm/service/`로 옮겨 가 비어 있어 지웠다(shell-F14). 없는 디렉터리는 건너뛴다
+const sourceFiles = () => ['common', 'service'].filter((d) => fs.existsSync(path.join(JS, d))).flatMap((d) => fs.readdirSync(path.join(JS, d)).filter((f) => f.endsWith('.js')).map((f) => path.join(JS, d, f)));
 
 export const tests = [
   { name: '표준 JS 대체: $.extend(대상, 원본)은 undefined가 없는 값에서 Object.assign과 같다', run: async () => {
