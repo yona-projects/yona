@@ -193,7 +193,7 @@ class CommitViewController(
 
     /** 두 커밋 사이의 차이를 보여 준다. */
     @GetMapping("/{user}/{project}/compare/{revA}..{revB}")
-    @IsAllowed(Operation.READ)
+    @CodeAccessCheck // v1.6은 코드 접근을 구성원에게만 연 프로젝트에서도 비교 화면이 열려 있었다(code-F3)
     @Transactional(readOnly = true)
     fun compare(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable revA: String, @PathVariable revB: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
@@ -207,6 +207,8 @@ class CommitViewController(
                 .addObject("projectView", views.of(project))
                 .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
                 .addObject("patch", patch)
+                // v1.6은 이 값을 넘기지 않아 파일 머리의 리비전 링크가 `undefined/<리비전>/<경로>`였다(code-F2). 커밋 화면과 같은 코드 화면 기준 주소를 넘긴다.
+                .addObject("filesUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code"))
                 .addObject("tplFileUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code/") + "\$%7BcommitId%7D/\${path}")
                 .addObject("tplRawUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/rawcode/") + "\$%7BcommitId%7D/\${path}")
         }
