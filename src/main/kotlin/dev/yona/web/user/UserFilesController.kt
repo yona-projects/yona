@@ -62,7 +62,10 @@ class UserFilesController(
         /** 한 쪽에 보이는 파일 수이다 (v1.6 `USER_FILES_COUNT_PER_PAGE`). */
         const val PAGE_SIZE = 50
 
-        /** 익명 사용자의 로그인 ID이다 (v1.6 `User.anonymous.loginId`). */
-        const val ANONYMOUS_LOGIN_ID = "anonymous"
+        /**
+         * 익명 사용자의 로그인 ID이다. v1.6 `User.anonymous`의 로그인 ID는 빈 문자열이다. `"anonymous"`로 두면 로그인 ID가 `anonymous`인
+         * 실제 사용자의 파일이 로그인하지 않은 사람에게 보인다.
+         */
+        const val ANONYMOUS_LOGIN_ID = ""
     }
 }
