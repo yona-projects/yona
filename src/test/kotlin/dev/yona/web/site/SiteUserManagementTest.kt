@@ -292,6 +292,30 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `자기 자신과 기본 admin은 삭제할 수 없다 (v1_6은 자기 계정도 지울 수 있었다, 고쳤다, site-F4)`() {
+        val me = admin(); val other = admin()
+        val defaultAdmin = users.findById(dev.yona.domain.site.SiteUserService.DEFAULT_ADMIN_ID).get()
+        mockMvc.perform(delete("/sites/user/delete${me.id}").session(login(me))).andExpect(status().isForbidden)
+        mockMvc.perform(delete("/sites/user/delete${defaultAdmin.id}").session(login(other))).andExpect(status().isForbidden)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(UserState.ACTIVE, users.findById(me.id!!).get().state)
+        assertTrue(users.findById(defaultAdmin.id!!).get().state != UserState.DELETED)
+    }
+
+    @Test
+    fun `자기 자신과 기본 admin은 잠글 수 없다 (v1_6은 자기 계정도 잠갔다, 고쳤다, site-F4)`() {
+        val me = admin(); val other = admin()
+        val defaultAdmin = users.findById(dev.yona.domain.site.SiteUserService.DEFAULT_ADMIN_ID).get()
+        val before = defaultAdmin.state
+        val own = mockMvc.perform(post("/sites/toggleAccountLock").session(login(me)).param("loginId", me.loginId!!).param("state", "ACTIVE")).andExpect(status().isOk).andReturn().response.contentAsString
+        assertTrue(own.contains("cannot delete or lock your own") || own.contains("삭제하거나 잠글 수 없"), "자기 자신을 잠글 수 없다는 안내가 보여야 한다")
+        mockMvc.perform(post("/sites/toggleAccountLock").session(login(other)).param("loginId", defaultAdmin.loginId!!).param("state", "ACTIVE")).andExpect(status().isOk)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(UserState.ACTIVE, users.findById(me.id!!).get().state)
+        assertEquals(before, users.findById(defaultAdmin.id!!).get().state)
+    }
+
+    @Test
     fun `없는 사용자 번호로 삭제하면 500이 아니라 404이다 (R-52-1)`() {
         val me = admin()
         mockMvc.perform(delete("/sites/user/delete987654321").session(login(me))).andExpect(status().isNotFound)
