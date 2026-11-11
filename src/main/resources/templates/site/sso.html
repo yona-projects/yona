@@ -84,6 +84,7 @@
 </form>
 <form method="post" th:action="@{/sites/sso/ldap/check}" class="mt-2">
     <button id="ldap-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.ldap.check}"></button>
+    <span class="form-text ms-2" th:text="#{site.sso.check.saved}"></span>
 </form>
 </div>
 <div class="tab-pane fade" th:classappend="${tab == 'oidc'} ? 'show active'" id="sso-pane-oidc" role="tabpanel">
@@ -151,6 +152,7 @@
 </form>
 <form method="post" th:action="@{/sites/sso/oidc/check}" class="mt-2">
     <button id="oidc-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.oidc.check}"></button>
+    <span class="form-text ms-2" th:text="#{site.sso.check.saved}"></span>
     <span th:if="${oidc.discoveryCheckedDate != null}" class="text-body-secondary ms-2" th:text="#{site.sso.oidc.checkedAt(${#dates.format(oidc.discoveryCheckedDate, 'yyyy-MM-dd HH:mm')})}"></span>
 </form>
 
