@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView
 // v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
 @AnonymousCheck
-class SiteMailController(private val service: SiteMailService) {
+class SiteMailController(private val service: SiteMailService, private val messages: org.springframework.context.MessageSource) {
 
     @GetMapping("/sites/mail")
     fun writeMail(@RequestParam(required = false) errorMessage: String?, @RequestParam(defaultValue = "false") sended: Boolean): ModelAndView = mailView(errorMessage, sended)
@@ -75,10 +75,19 @@ class SiteMailController(private val service: SiteMailService) {
     private fun acceptsJson(accept: String?): Boolean =
         accept.isNullOrBlank() || MediaType.parseMediaTypes(accept).any { it.isCompatibleWith(MediaType.APPLICATION_JSON) }
 
+    /**
+     * 쿼리로 온 `errorMessage`는 메시지 키로만 쓴다. 키 형식(영문, 숫자, 점, 밑줄, 하이픈)이고 실제로 있는 키일 때만 통과시키고 아니면 `null`이다.
+     * 템플릿이 값을 전처리(`#{__${...}__}`)로 풀면 요청 값이 템플릿 표현식으로 실행된다(`${7*7}`이 49로 나왔다. v1.6은 키를 번역만 했다. 보안 보강).
+     */
+    private fun knownMessageKey(value: String?): String? {
+        if (value.isNullOrEmpty() || !Regex("^[A-Za-z0-9._-]+$").matches(value)) return null
+        return value.takeIf { messages.getMessage(it, null, null, java.util.Locale.getDefault()) != null }
+    }
+
     private fun mailView(errorMessage: String?, sended: Boolean) = ModelAndView("site/mail")
         .addObject("title", "title.sendMail")
         .addObject("notConfiguredItems", service.notConfiguredItems())
         .addObject("sender", service.defaultSender())
-        .addObject("errorMessage", errorMessage)
+        .addObject("errorMessage", knownMessageKey(errorMessage))
         .addObject("sended", sended)
 }

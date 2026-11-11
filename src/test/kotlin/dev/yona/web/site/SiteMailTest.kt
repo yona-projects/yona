@@ -102,6 +102,21 @@ class SiteMailTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `errorMessage는 표현식으로 실행되지 않고 메시지 키가 아니면 글자로도 보이지 않는다 (v2 신규 결함 site-F8, 템플릿 전처리 주입)`() {
+        val session = admin()
+        // 쿼리 값이 템플릿 표현식으로 실행되면 49가 나온다
+        val expr = mockMvc.perform(get("/sites/mail").session(session).param("errorMessage", "\${7*7}")).andReturn().response
+        val body = Jsoup.parse(expr.contentAsString).select(".alert-danger").text()
+        assertTrue(expr.status == 200, "상태 ${expr.status}")
+        assertTrue(!body.contains("49"), "표현식이 실행되었다: $body")
+        // 임의 글자는 메시지 키가 아니므로 안내를 만들지 않고, 알려진 키만 번역된다
+        val unknown = Jsoup.parse(mockMvc.perform(get("/sites/mail").session(session).param("errorMessage", "<script>alert(1)</script>")).andReturn().response.contentAsString)
+        assertTrue(!unknown.text().contains("alert(1)") && unknown.select("script").none { it.data().contains("alert(1)") }, "임의 글자가 화면에 실렸다")
+        val known = Jsoup.parse(mockMvc.perform(get("/sites/mail").session(session).param("errorMessage", "site.mail.fail")).andReturn().response.contentAsString)
+        assertTrue(known.select(".alert-danger p").size >= 2, "알려진 키는 실패 안내와 그 문구를 보인다")
+    }
+
+    @Test
     fun `메일을 보내지 못하면 성공 안내 대신 실패 안내가 보인다 (R-54-2, v1_6은 보내지 못해도 성공 안내였다)`() {
         Mockito.doThrow(org.springframework.mail.MailSendException("refused")).`when`(mailSender).send(Mockito.any(MimeMessage::class.java))
         val response = mockMvc.perform(

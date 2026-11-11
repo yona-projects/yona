@@ -15,7 +15,7 @@
 </div>
 <div th:if="${errorMessage != null and !errorMessage.isEmpty()}" class="alert alert-danger">
     <p th:text="#{site.mail.fail}"></p>
-    <p th:utext="#{__${errorMessage}__}"></p>
+    <p th:utext="#{${errorMessage}}"></p>
 </div>
 
 <div th:if="${sended}" class="alert alert-success" th:text="#{site.mail.sended}"></div>
