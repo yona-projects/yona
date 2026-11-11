@@ -29,8 +29,12 @@ class IssueEventHtml(
     private val labelService: IssueLabelService,
     private val avatars: AvatarService,
     private val helper: TemplateHelper,
-    private val messages: MessageSource
+    private val messages: MessageSource,
+    private val siteUrls: dev.yona.util.SiteUrls
 ) {
+
+    /** 서버를 하위 경로에 올린 배포에서도 이벤트 줄의 링크가 접두어를 잃지 않게 한다(shell-F16). Gravatar 같은 외부 주소는 그대로 둔다. */
+    private fun path(applicationPath: String): String = if (applicationPath.startsWith("/") && !applicationPath.startsWith("//")) siteUrls.path(applicationPath) else applicationPath
 
     /**
      * 이벤트를 HTML 한 줄로 만든다. 본문 변경 이벤트는 화면에 보이지 않으므로 `null`이다.
@@ -63,11 +67,11 @@ class IssueEventHtml(
                     message("issue.event.milestone.changed", senderLink, milestoneLink(newValue, project))
             EventType.ISSUE_REFERRED_FROM_COMMIT ->
                 "<span class=\"state changed\">${message("issue.event.referred.title")}</span>\n" +
-                    message("issue.event.referred", senderLink, "<strong>${message("code.commits")} <a href=\"/${esc(project.owner)}/${esc(project.name)}/commit/${esc(newValue)}\" class=\"link\">@${esc(newValue)}</a></strong>")
+                    message("issue.event.referred", senderLink, "<strong>${message("code.commits")} <a href=\"${path("/${esc(project.owner)}/${esc(project.name)}/commit/${esc(newValue)}")}\" class=\"link\">@${esc(newValue)}</a></strong>")
             EventType.ISSUE_MOVED -> {
                 val (owner, name) = (oldValue.orEmpty().split("/") + listOf("", "")).take(2)
                 "<span class=\"state changed\">${message("issue.event.moved.title")}</span>\n" +
-                    message("issue.event.moved", senderLink, "<strong><a href=\"/${esc(owner)}/${esc(name)}\" class=\"link\">${esc(owner)}/${esc(name)}</a></strong>")
+                    message("issue.event.moved", senderLink, "<strong><a href=\"${path("/${esc(owner)}/${esc(name)}")}\" class=\"link\">${esc(owner)}/${esc(name)}</a></strong>")
             }
             EventType.ISSUE_REFERRED_FROM_PULL_REQUEST -> {
                 val pull = newValue?.toLongOrNull()?.let { pullRequests.findById(it).orElse(null) }
@@ -75,7 +79,7 @@ class IssueEventHtml(
                 "<span class=\"state changed\">${message("issue.event.referred.title")}</span>\n" +
                     message(
                         "issue.event.referred", senderLink,
-                        "<strong>${message("pullRequest")}\n-${pull?.number} <a href=\"/${esc(target?.owner)}/${esc(target?.name)}/pullRequest/${pull?.number}\" class=\"link\">${esc(pull?.title)}</a></strong>"
+                        "<strong>${message("pullRequest")}\n-${pull?.number} <a href=\"${path("/${esc(target?.owner)}/${esc(target?.name)}/pullRequest/${pull?.number}")}\" class=\"link\">${esc(pull?.title)}</a></strong>"
                     )
             }
             EventType.ISSUE_SHARER_CHANGED -> sharerChanged(event, previous, senderPure, lang)
@@ -134,7 +138,7 @@ class IssueEventHtml(
         return if (milestone == null || milestone.id == NO_MILESTONE) {
             "<span class=\"bold\">${message("common.none")}</span>"
         } else {
-            "<span class=\"bold font-blue\"><a href=\"/${esc(project.owner)}/${esc(project.name)}/milestone/${milestone.id}\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"${message("milestone")}\">${esc(milestone.title)}</a></span>"
+            "<span class=\"bold font-blue\"><a href=\"${path("/${esc(project.owner)}/${esc(project.name)}/milestone/${milestone.id}")}\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"${message("milestone")}\">${esc(milestone.title)}</a></span>"
         }
     }
 
@@ -143,9 +147,9 @@ class IssueEventHtml(
         if (loginId == null) return "Anonymous"
         val user = users.findByLoginIdIgnoreCase(loginId)
         val avatar = if (showAvatar) {
-            "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(name)}\"><img src=\"${esc(user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: "")}\" class=\"avatar-wrap small\"></a>\n"
+            "<a href=\"${path("/${esc(loginId)}")}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(name)}\"><img src=\"${esc(path(user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: ""))}\" class=\"avatar-wrap small\"></a>\n"
         } else ""
-        return avatar + "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(loginId)}\">\n<strong>${esc(name)}</strong></a>"
+        return avatar + "<a href=\"${path("/${esc(loginId)}")}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(loginId)}\">\n<strong>${esc(name)}</strong></a>"
     }
 
     private fun unknownName(): String = message("user.notExists.name")
