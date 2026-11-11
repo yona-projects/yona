@@ -28,11 +28,11 @@
           $setDefaultLoginPage.on('click', function(){
               yona.http.post("/user/defultLoginPage?path=" + $setDefaultLoginPage.data("url"))
                       .done(function (data) {
-                          $yona.notify("Set to default: " + data.defaultLoginPage, 3000);
+                          $yona.notify("Set to default: " + $yona.escapeHtml(data.defaultLoginPage), 3000);
                           $setDefaultLoginPage.hide();
                       })
                       .fail(function (data) {
-                          $yona.alert("set Default page failed: " + data);
+                          $yona.alert("set Default page failed: " + $yona.escapeHtml(data));
                       });
           });
 

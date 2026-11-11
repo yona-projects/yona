@@ -148,7 +148,7 @@
                                     }
                                 })
                                 .fail(function (data) {
-                                    $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                                    $yona.alert("Update failed: " + $yona.escapeHtml(JSON.parse(data.responseText).reason));
                                 });
                     });
 
@@ -164,7 +164,7 @@
                                     }
                                 })
                                 .fail(function (data) {
-                                    $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                                    $yona.alert("Update failed: " + $yona.escapeHtml(JSON.parse(data.responseText).reason));
                                 });
                     });
 

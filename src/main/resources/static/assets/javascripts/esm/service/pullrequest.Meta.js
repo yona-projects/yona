@@ -104,7 +104,7 @@ $(() => {
                 failed(Messages("issue.assignee"), xhr);
                 return;
             }
-            $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? response.assignee.name : Messages("issue.noAssignee")), 3000);
+            $yona.notify(Messages("issue.assignee") + ": " + (response.assignee ? $yona.escapeHtml(response.assignee.name) : Messages("issue.noAssignee")), 3000);
             refreshTimeline();
         });
     }

@@ -30,7 +30,7 @@ $(() => {
             parentId.prop("disabled", true);
             parentId.next(".select2-container").hide();
             parentId.trigger('change.select2');
-            $yona.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
+            $yona.notify("Issue will be moved or written to '" + $yona.escapeHtml(targetProjectName) + "'", 4000);
         }
     });
 });

@@ -85,7 +85,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         } catch (failure) {
             return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
         }
-        $yona.notify(response.action + ": " + response.sharer, 3000);
+        $yona.notify(response.action + ": " + $yona.escapeHtml(response.sharer), 3000);
     }
   });
 
@@ -105,7 +105,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
       } catch (failure) {
         return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
       }
-      $yona.notify(response.action + ": " + response.sharer, 3000);
+      $yona.notify(response.action + ": " + $yona.escapeHtml(response.sharer), 3000);
     }
   });
 
