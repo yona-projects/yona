@@ -77,6 +77,17 @@
                         </h3>
                     </div>
                     <div class="search-result-wrap">
+                        <!-- searchType=auto로 들어왔으면 주소의 종류를 실제로 보인 종류로 바꾼다. 쪽 번호 링크는 현재 주소에서 만들어지므로
+                             그대로 두면 auto가 다음 쪽에서 다른 종류로 풀려 결과가 바뀐다(v1.6도 같았다, search-F6). -->
+                        <script th:inline="javascript">
+                            (function () {
+                                var params = new URLSearchParams(window.location.search);
+                                if (params.get('searchType') === 'auto') {
+                                    params.set('searchType', [[${current}]]);
+                                    window.history.replaceState(window.history.state, '', window.location.pathname + '?' + params.toString() + window.location.hash);
+                                }
+                            })();
+                        </script>
                         <th:block th:switch="${current}">
                             <th:block th:case="'user'"><th:block th:replace="~{search/partial-users :: users}"></th:block></th:block>
                             <th:block th:case="'project'"><th:block th:replace="~{search/partial-projects :: projects}"></th:block></th:block>
