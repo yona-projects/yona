@@ -86,11 +86,13 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `올린 이미지가 없으면 프로젝트 홈에도 표지가 없다(기본 벽돌 이미지는 쓰지 않는다)`() {
+    fun `올린 이미지가 없으면 프로젝트 홈 표지는 원래 요나 기본 배경 이미지이고 로고는 기본 로고이다(A-486)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
         val home = page(base(p), s)
-        assertNull(home.selectFirst(".project-cover"))
-        assertTrue(!home.html().contains("project_default.jpg"), "기본 벽돌 배경 이미지를 더는 불러오지 않는다")
+        val cover = home.selectFirst(".shell-main > .project-cover")
+        assertNotNull(cover, "올린 이미지가 없어도 표지가 있다")
+        assertTrue(cover.attr("style").contains("/assets/images/project_default.jpg"), "원래 요나 기본 배경: ${cover.attr("style")}")
+        assertEquals("/assets/images/project_default_logo.png", home.selectFirst(".project-header-avatar img")!!.attr("src"))
     }
 
     @Test
