@@ -45,7 +45,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
  * 로그인한 사용자가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 웹 편집기가 쓰는 `POST /files`는 세션 전용이고, 토큰으로 올리는 도구는 토큰 전용
  * `POST /-_-api/v1/files`를 쓴다(추가 개발 항목 X-5, `decisions.md` D-36. v1.6은 `/files`가 `Yona-Token` 헤더도 받았다). 글이나 프로필을 저장할 때
  * 실제 컨테이너로 옮긴다. 폼에 `authorEmail`(없거나 못 찾으면 `authorLoginId`)이 있으면 그 사용자의 임시 첨부로 저장한다. 소유자 아이디는
- * 명의가 아니라 요청한 로그인 사용자이다(v1.6 `AttachmentApp.findUploader`).
+ * 명의가 아니라 요청한 로그인 사용자이다(v1.6 `AttachmentApp.findUploader`). 명의 지정은 사이트 관리자만 된다(shell-F23, A-460).
  *
  * ## 목록 (`GET /files?containerType=&containerId=`), 지우기 (`POST /files/:id`)
  * 목록의 첨부는 모두 읽을 수 있어야 하고, 지우려면 `DELETE` 권한이 있어야 한다.
@@ -117,7 +117,7 @@ class AttachmentController(
     ): Any {
         file ?: return ResponseEntity.badRequest().build<Void>()
         val requester = currentUserProvider.get().user
-        val uploader = findUploader(request) ?: requester ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
+        val uploader = findUploader(request, requester) ?: requester ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
         // Play 멀티파트는 IE가 보내는 `C:\dir\a.txt` 같은 경로만 역슬래시 기준으로 뗀다(슬래시는 그대로 둔다). 톰캣이 이미 슬래시 앞을 뗀 값이 아니라
         // 요청 머리글의 원래 파일 이름을 쓴다
         val submitted = (request as? org.springframework.web.multipart.MultipartHttpServletRequest)?.getMultipartHeaders("filePath")?.contentDisposition?.filename
@@ -140,8 +140,13 @@ class AttachmentController(
     /**
      * 폼에 본문 항목이 있으면 `authorEmail`로, 못 찾으면 `authorLoginId`로 올린 사람을 찾는다. 항목이 없거나 둘 다 못 찾으면 `null`이다
      * (v1.6 `AttachmentApp.findUploader`). 쿼리 문자열의 값은 본문 항목이 아니므로 세지 않는다.
+     *
+     * **명의는 사이트 관리자만 지정할 수 있다.** v1.6은 로그인하지 않은 요청도 이 항목으로 임의 사용자의 임시 첨부로 올릴 수 있었다
+     * (남의 이름으로 파일을 올리는 위조). 관리자가 아닌 요청에서는 이 항목을 무시하고 요청한 사용자 본인 명의로 올린다(보안 보강, A-460).
+     * 본인의 이메일이나 아이디를 보낸 경우도 결과가 같다.
      */
-    private fun findUploader(request: HttpServletRequest): dev.yona.domain.user.User? {
+    private fun findUploader(request: HttpServletRequest, requester: dev.yona.domain.user.User?): dev.yona.domain.user.User? {
+        if (requester == null || !accessControl.isSiteManager(requester)) return null
         val queryNames = org.springframework.web.util.UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.keys
         val body = request.parameterMap.filterKeys { it !in queryNames }
         if (body.isEmpty()) return null
