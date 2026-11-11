@@ -74,7 +74,8 @@
                 localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
             });
 
-            if(localStorage.getItem("yobi-intro") != "false"){
+            // A-493: 안내(버튼 영역)는 처음에 접혀 있고, 펼쳐 둔 사용자만 다음에도 펼친다(v1.6은 처음에 펼쳐져 있었다)
+            if(localStorage.getItem("yobi-intro") == "true"){
                 $(".site-guide-outer").removeClass("hide");
             }
 
