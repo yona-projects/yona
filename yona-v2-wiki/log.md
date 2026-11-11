@@ -2338,3 +2338,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | 알림 More 단추 요청 주소의 `&amp;` 결함 수정
 
 `partial-notifications.html`의 More 스크립트가 `...?from=20&amp;limit=20`으로 요청해 400이 나던 결함을 고쳤다(v1.6은 `@routes`라 문제가 없었다). 스크립트가 만든 주소를 그대로 호출하는 시험과 알림 종류 34개 전수 시험(`NotificationEveryTypeTest`)을 더했다. 같은 내용이 `ui-improvements`의 A-456이다.
+
+## [2026-11-11] build | ui-improvements의 화면 결함 수정 이식: select2 val 다섯 곳, item-search 복원, 제목 길이 문구, pageNum 0, 네트워크 오류 readyState
+
+`ui-improvements`의 `9e196f957`을 이 브랜치로 옮겼다(충돌 없음). select2 4.x change 처리기, `jquery.search.js` 복원(`esm/ui/ItemSearch.js`), `Maximum length is 255`, `/sites/userList`와 내 이슈의 `pageNum=0`, `yona.http` 네트워크 오류의 `readyState 0`이다. 근거와 장부(A-457, R-148 이후)는 `ui-improvements`의 위키에 있다.
