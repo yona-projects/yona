@@ -2403,3 +2403,7 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | `next`와 소스 동기화 확인, `next`에만 있던 이식 기록 반영
 
 `ui-improvements`와 `next`의 `src`가 완전히 같음을 확인했다(`git diff ui-improvements next -- src` 비어 있음). 화면 결함 수정(A-457), 2단계 강제 화면(A-458), 서버 권한 검사 보강(A-459), 알림 More 단추 수정이 양쪽에 같은 내용으로 들어 있다. `next`의 커밋은 `53fa7f9f5`(More), `9df6b12a3`(A-457), `19444a750`(A-458), `21a8463cb`(A-459)이고, `next`의 log에는 "알림 More 단추 요청 주소의 `&amp;` 결함 수정"과 "ui-improvements의 화면 결함 수정 이식" 항목이 따로 있다(이 브랜치에는 같은 내용이 위 A-456, A-457 항목에 있다). 위키는 `ui-improvements`가 `ui-contract/`와 IA 문서(D-134~D-137), 재현 결과(A-458, R-147~R-159)를 더 가지고 있고, `next`는 `differences-from-v16.md`의 \"서버 권한 검사 보강\" 표와 A-459를 같은 내용으로 가진다.
+
+## [2026-11-11] build | 변경된 화면 동작을 web 위키에 반영, 남은 발견 사항 집계와 다섯 건 확인 (R-160~R-164)
+
+선생님이 변경된 화면 사항의 위키 반영과 ui-improvements 중 발견된 결함을 점검하라고 하셨다. A-456~A-459의 화면과 서버 동작 변경을 `web/`의 열네 페이지와 `architecture/two-factor.md`, `standard-refactor-plan.md`에 반영했다. 계약 조사의 발견 사항 251건 중 221건이 코드 읽기 근거로만 남았음을 집계해 `ui-contract/index.md`에 적고, 그 가운데 영향이 있어 보이는 다섯 건을 브라우저로 확인해 장부에 올렸다.

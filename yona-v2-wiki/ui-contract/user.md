@@ -247,7 +247,7 @@ updated: 2026-11-11
 | user-F2 | `POST /user/resetVisitedList`에 로그인 강제 어노테이션이 없다. 비로그인이면 아무것도 하지 않고 `303 /user/editform`+flash를 돌려주며 이 `303`을 따라가면 다시 로그인으로 간다 | `AccountController.kt:146-151` |
 | user-F3 | 이메일 확인 안내 flash가 한국어 고정 문자열 `확인 메일을 전송했습니다.`이다(다른 언어 설정에서도 한국어). `messageText`는 경고 키만 번역한다 | `AccountController.kt:199` |
 | user-F4 | 사용자 페이지의 며칠 전 입력 Enter 이동이 탭을 눌러도 갱신되지 않는 `sTabSelected`(처음 값)를 쓴다 | `J/esm/service/user.View.js:38, :118-123, :134` |
-| user-F5 | 알 수 없는 설정 탭 id(`/user/editform/foo`)는 예외가 되어 500 화면이다(404가 아님). 11개 탭 중 5개만 이 메서드가 처리한다 | `AccountController.kt:108-116` |
+| user-F5 **[브라우저로 확인됨 2026-11-11, R-162]** | 알 수 없는 설정 탭 id(`/user/editform/foo`)는 예외가 되어 500 화면이다(404가 아님). 11개 탭 중 5개만 이 메서드가 처리한다 | `AccountController.kt:108-116` |
 | user-F6 | 이메일 확인 링크는 토큰(숫자 50자리)만으로 해당 사용자로 로그인한다. 2단계 인증 사용자는 코드 화면을 거친다(추가 항목) | `AccountController.kt:202-216` |
 | user-F7 | `/user/files`는 로그인하지 않으면 로그인 ID가 `anonymous`인 사용자의 파일을 보여 준다(익명 접근이 허용된 사이트일 때). 이 이름의 실제 사용자가 있으면 그의 파일이 노출된다 | `UserFilesController.kt:45, :66` |
 | user-F8 | `files.html`의 검색 입력란이 `value=""` 고정이라 검색어가 화면에 유지되지 않고, 죽은 `submit` 핸들러(콘솔 로그 `searche!`)가 남아 있다 | `T/user/files.html:19, :65-67` |

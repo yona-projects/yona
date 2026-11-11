@@ -175,3 +175,9 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-157 | 글 수정 오류 응답의 내용 노출(`BoardWriteController`, board-F8) | **[수정됨 2026-11-11, A-459, v1.6과 달라진 의도된 보안 보강]** (재현 당시: v1.6 결함 유지) 읽기 권한이 없어도 제목을 비워 보내면 400 응답에 저장된 제목과 본문이 담긴다. |
 | R-158 | 공지 지정의 권한 없음(`BoardWriteController`, board-F2) | **[수정됨 2026-11-11, A-459, v1.6과 달라진 의도된 보안 보강]** (재현 당시: v1.6 결함 유지) 비구성원이 `notice=on`으로 공지 글을 쓸 수 있다(시험이 고정). |
 | R-159 | 코드 접근을 구성원으로 제한한 프로젝트의 풀 리퀘스트 화면(`PullRequestViewController`, pullrequest-F3) | **[수정됨 2026-11-11, A-459]** v1.6은 목록만 막고 개요, 변경(코드 내용), 타임라인, 상태 화면은 열려 있었다. 목록과 같이 구성원만 보도록 `@CodeAccessCheck`를 붙였다. |
+| R-160 | 로그인 화면의 자동 초점(`user/login.html`, usersec-F1) | **[v1.6 결함 유지, 브라우저로 확인됨 2026-11-11]** 초점 스크립트가 `#loginIdOrEmail`을 찾지만 입력란 id는 `loginIdOrEmailD`라 자동 초점이 동작하지 않는다(활성 요소가 `BODY`). v1.6도 같은 id와 같은 스크립트다. |
+| R-161 | 로그인 이동이 질의 문자열을 버린다(`UserApp`의 `redirectUrl`, usersec-F6) | **[v1.6 같은 방식, 브라우저로 확인됨]** 비로그인으로 `/users/device?user_code=…`를 열면 `/users/loginform?redirectUrl=/users/device`로 가서 `user_code`가 사라진다. POST 화면이면 로그인 뒤 GET으로 가 404가 된다. v1.6도 `redirectUrl`에 경로만 쓴다(질의 문자열 처리는 대조하지 않음). |
+| R-162 | 알 수 없는 설정 탭 id가 500(`AccountController`, user-F5) | **[브라우저로 확인됨, v1.6 대조 안 함]** `/user/editform/foo`가 404가 아니라 500이다. |
+| R-163 | 익명으로 `GET /user/favoriteIssues`가 500(shell-F19) | **[브라우저로 확인됨, v1.6 대조 안 함]** 화면이 부르지 않는 경로라 영향은 작다(`/user/favoriteOrganizations`는 200). |
+| R-164 | 이슈 작성과 수정에서 잘못된 마감일 오류가 화면에 나오지 않는다(issue-F14) | **[브라우저로 확인됨]** 서버는 400을 주지만 템플릿이 `errors['title']`만 그려 사용자는 왜 실패했는지 알 수 없다(`errors['dueDate']`를 그리지 않음). v1.6 템플릿도 마감일 오류 영역을 그리지 않는 것으로 보인다(대조 미완). |
+
