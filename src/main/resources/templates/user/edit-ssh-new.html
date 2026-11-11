@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
+        <div class="shell-main">
         <div th:if="${sshError != null}" class="alert alert-danger" th:text="#{${sshError}}"></div>
         <form id="ssh-create" method="post" th:action="@{/user/ssh}">
             <h4 th:text="#{sshKey.add}"></h4>
@@ -37,6 +38,7 @@
                 <a th:href="@{/user/editform/ssh}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

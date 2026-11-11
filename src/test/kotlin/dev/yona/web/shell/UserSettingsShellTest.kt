@@ -64,12 +64,12 @@ class UserSettingsShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이드바와 본문은 같은 격자 안에 놓인다`() {
+    fun `사이드바와 본문 래퍼가 나란히 놓인다`() {
         val doc = page("/user/editform/ssh")
-        val grid = doc.selectFirst(".page-wrap.shell.shell-grid")
-        assertNotNull(grid)
-        assertNotNull(grid.selectFirst("> nav.shell-sidebar"))
-        assertEquals("내 설정", "내 설정".takeIf { grid.selectFirst(".shell-sidebar-title")!!.text().isNotBlank() })
+        val shell = doc.selectFirst(".page-wrap.shell")
+        assertNotNull(shell)
+        assertNotNull(shell.selectFirst("> nav.shell-sidebar"))
+        assertNotNull(shell.selectFirst("> .shell-main"), "본문은 래퍼 안에 있어 옛 float 배치가 그대로 동작해야 한다")
     }
 
     @Test

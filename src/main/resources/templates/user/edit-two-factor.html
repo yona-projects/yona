@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
         <p class="text-body-secondary" th:text="#{twoFactor.description}"></p>
 
@@ -72,6 +73,7 @@
             <div th:if="${#lists.isEmpty(devices)}" class="tf-empty" th:text="#{twoFactor.devices.empty}"></div>
         </section>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="text/javascript">

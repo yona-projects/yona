@@ -84,11 +84,11 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사이드바 머리에 맥락 이름이 있고 옛 사이드바 마크업은 없다`() {
+    fun `큰 제목 띠는 옛 화면 그대로 있고 옛 사이드바 마크업은 없다`() {
         val doc = page("/sites/userList")
-        assertTrue(doc.selectFirst("nav.shell-sidebar .shell-sidebar-title")!!.text().isNotBlank())
+        assertTrue(doc.selectFirst(".site-breadcrumb-inner h3")!!.text().isNotBlank(), "옛 요나의 큰 제목 띠를 그대로 둔다")
+        assertTrue(doc.selectFirst("nav.shell-sidebar .offcanvas-title")!!.text().isNotBlank(), "서랍 머리에는 맥락 이름이 있다")
         assertNull(doc.selectFirst("ul.site-setting-nav"))
-        assertNull(doc.selectFirst(".site-breadcrumb-inner"))
     }
 
     @Test

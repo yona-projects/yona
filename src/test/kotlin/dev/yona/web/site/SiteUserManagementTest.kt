@@ -108,7 +108,7 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     @Test
     fun `사이트 관리자는 사용자 목록을 본다`() {
         val doc = userList(login(admin()))
-        assertEquals("Site management", doc.selectFirst("nav.shell-sidebar .shell-sidebar-title")!!.text())
+        assertEquals("Site management", doc.selectFirst(".site-breadcrumb-inner h3")!!.text())
         assertEquals(14, doc.select("nav.shell-sidebar a.nav-link").size)
         assertEquals("/sites/userList", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }

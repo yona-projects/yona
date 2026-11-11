@@ -17,8 +17,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div class="shell-main">
         <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
         <form id="token-create" data-submit-once method="post" th:action="@{/user/token}">
             <div class="token-card">
@@ -34,6 +35,7 @@
                 </div>
             </div>
         </form>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{user/partial-token-form :: tokenScripts}"></th:block>

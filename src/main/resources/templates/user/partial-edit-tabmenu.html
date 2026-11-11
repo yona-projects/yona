@@ -3,7 +3,7 @@
   매개변수: tabId(현재 항목: profile, password, notifications, emails, token, gpg, ssh, two-factor, oauth-apps, linked-accounts, audit)
 
   D-141: 가로 탭 11개를 새 셸의 사이드바(shell/sidebar)로 바꿨다. 항목과 OAuth 앱의 보이는 조건은 ShellNav.userSettings가 정한다.
-  이 조각을 쓰는 화면은 바깥 `.page-wrap`에 `shell shell-grid` 클래스를 더해 사이드바를 본문 옆에 놓는다.
+  이 조각을 쓰는 화면은 바깥 `.page-wrap`에 `shell` 클래스를 더하고 본문을 `.shell-main`으로 감싸 사이드바를 본문 옆에 놓는다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)" th:with="shellMenu=${@shellNavs.userSettings()}">
 <th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{userinfo.accountSetting}, 'shellSidebar', ${tabId})}"></th:block>

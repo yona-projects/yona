@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
         <div th:if="${setupError != null}" class="alert alert-danger" th:text="#{${setupError}}"></div>
         <h4 th:text="#{twoFactor.setup.title}"></h4>
@@ -38,6 +39,7 @@
             </div>
         </div>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

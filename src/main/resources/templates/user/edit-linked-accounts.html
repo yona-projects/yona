@@ -14,8 +14,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('linked-accounts')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
         <p class="text-body-secondary" th:text="#{linked.description}"></p>
         <div th:if="${#lists.isEmpty(rows)}" id="linked-empty" class="tf-empty" th:text="#{linked.empty}"></div>
@@ -38,6 +39,7 @@
             </tbody>
         </table>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

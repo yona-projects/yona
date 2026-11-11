@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <div class="shell-main">
         <div th:if="${gpgError != null}" class="alert alert-danger" th:text="#{${gpgError}}"></div>
         <form id="gpg-create" method="post" th:action="@{/user/gpg}">
             <h4 th:text="#{gpgKey.add}"></h4>
@@ -37,6 +38,7 @@
                 <a th:href="@{/user/editform/gpg}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

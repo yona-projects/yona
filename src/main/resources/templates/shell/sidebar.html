@@ -16,7 +16,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" th:attr="data-bs-target='#' + ${id}" th:aria-label="#{sidebar.close}"></button>
     </div>
     <div class="offcanvas-body">
-        <div class="shell-sidebar-title d-none d-lg-block" th:text="${title}"></div>
         <a class="shell-sidebar-back" th:if="${menu.back != null}" th:href="@{${menu.back.path}}">&larr; <th:block th:text="#{${menu.back.labelKey}}"></th:block></a>
         <ul class="nav nav-pills flex-column shell-sidebar-nav">
             <li class="nav-item" th:each="item : ${menu.items}">

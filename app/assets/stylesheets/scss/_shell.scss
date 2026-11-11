@@ -1,8 +1,8 @@
 // 새 셸(D-141)의 스타일이다. 사이드바는 Bootstrap 5의 `offcanvas-lg` 하나로 만든다(lg 이상 고정, 미만 서랍).
 // 직접 만드는 규칙은 폭, 간격, 활성 색뿐이고 색은 테마 변수(`$yobi-orange`)를 그대로 쓴다. 새 색을 만들지 않는다(D-58).
 
-$shell-sidebar-width: 240px;
-$shell-gap: 24px;
+$shell-sidebar-width: 200px;
+$shell-gap: 14px;
 
 .shell {
     display: block;
@@ -27,10 +27,11 @@ $shell-gap: 24px;
     flex: 0 0 $shell-sidebar-width;
     width: $shell-sidebar-width;
 
-    // Bootstrap의 `offcanvas-lg`는 lg 이상에서 본문을 가로(flex)로 놓으므로 머리와 목록이 옆으로 나란히 서지 않게 세로로 쌓는다.
+    // Bootstrap의 `offcanvas-lg`는 lg 이상에서 본문을 가로(flex)로 놓으므로 목록이 옆으로 나란히 서지 않게 세로로 쌓는다.
     @media (min-width: 992px) {
         .offcanvas-body {
             display: block;
+            padding: 0;
         }
     }
 
@@ -40,22 +41,15 @@ $shell-gap: 24px;
         width: auto;
     }
 
-    .shell-sidebar-title {
-        padding: 4px 12px 8px;
-        font-weight: 700;
-        border-bottom: 1px solid var(--bs-border-color);
-        margin-bottom: 8px;
-        overflow-wrap: anywhere;
-    }
-
+    // 맥락을 알리는 설정 사이드바의 "돌아가기" 줄이다(옛 요나에는 없던 새 요소라 옛 항목과 같은 막대 모양을 쓴다).
     .shell-sidebar-back {
         display: block;
-        padding: 4px 12px 8px;
-        font-weight: 600;
+        margin-bottom: 8px;
+        padding: 5px 10px;
+        font-size: 0.875rem;
+        font-weight: bold;
         color: $yobi-orange-dark;
         text-decoration: none;
-        border-bottom: 1px dashed var(--bs-border-color);
-        margin-bottom: 8px;
 
         &:hover,
         &:focus-visible {
@@ -63,58 +57,44 @@ $shell-gap: 24px;
         }
     }
 
+    // 항목 모양은 옛 사이트 관리 사이드바(`.site-setting-nav li`)와 같다: 왼쪽 4px 회색 막대, 활성은 주황 막대와 굵은 글자, 호버는 회색 배경.
+    .nav-pills {
+        --bs-nav-pills-link-active-bg: transparent;
+        --bs-nav-pills-link-active-color: inherit;
+    }
+
     .nav-link {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        padding: 6px 12px;
-        color: var(--bs-body-color);
-        border-radius: 4px;
+        margin-top: 3px;
+        padding: 5px 10px;
+        border-left: 4px solid #EEE;
+        border-radius: 0;
+        color: inherit;
+        font-size: 0.875rem;
+        line-height: 1.875rem;
 
-        &:hover {
-            background: var(--bs-tertiary-bg);
+        &:hover,
+        &:focus-visible {
+            background-color: #EEE;
+            text-decoration: none;
         }
 
         &.active {
-            background: lighten($yobi-orange, 36%);
-            color: $yobi-orange-dark;
-            font-weight: 600;
+            border-left-color: $orange;
+            background: none;
+            font-weight: bold;
         }
+    }
+
+    li:first-child .nav-link {
+        margin-top: 0;
     }
 }
 
 .shell-sidebar-toggle {
     // 좁은 폭에서 본문 위에 놓이는 열기 단추이다(lg 이상에서는 `d-lg-none`이 숨긴다).
     margin-bottom: 12px;
-}
-
-// 사이드바와 본문이 같은 부모 안에 형제로 놓이는 화면(옛 탭 줄이 있던 화면)이다. 부모에 `shell shell-grid`를 더하면 사이드바가 왼쪽 칸에
-// 서고, 나머지 모든 자식이 오른쪽 칸에 쌓인다. 화면마다 본문을 래퍼로 감싸지 않아도 된다.
-@media (min-width: 992px) {
-    .shell-grid {
-        display: grid;
-        grid-template-columns: $shell-sidebar-width minmax(0, 1fr);
-        column-gap: $shell-gap;
-        align-items: start;
-
-        > * {
-            grid-column: 2;
-            min-width: 0;
-        }
-
-        > .shell-sidebar {
-            grid-column: 1;
-            grid-row: 1 / span 100;
-        }
-
-        // 격자 칸에서 단추와 링크가 가로로 늘어나지 않게 내용 폭으로 둔다(표와 폼은 칸을 채운다).
-        > a.btn,
-        > button,
-        > .btn,
-        > a.ybtn,
-        > .ybtn {
-            justify-self: start;
-        }
-    }
 }

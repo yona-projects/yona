@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('profile')}"></th:block>
+        <div class="shell-main">
 
         <form id="frmBasic" method="post" th:action="@{/user/edit}" class="float-start">
         <dl>
@@ -79,6 +80,7 @@
         </div></div></div>
 
         <script type="text/javascript" th:src="@{/assets/javascripts/lib/cropperjs/cropper.js}"></script>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/user.Setting.js}"></script>

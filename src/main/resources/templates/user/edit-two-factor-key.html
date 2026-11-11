@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
         <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
         <h4 th:text="#{twoFactor.securityKey.add}"></h4>
@@ -31,6 +32,7 @@
             <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
         </div>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/webauthn.js}"></script>

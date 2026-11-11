@@ -12,6 +12,11 @@
 </th:block>
 
 <th:block th:fragment="siteMngBody(content)">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{site.sidebar}"></h3>
+    </div>
+</div>
 <div class="page-wrap-outer">
     <div class="shell" th:with="shellMenu=${@shellNavs.siteAdmin(versionToUpdate != null)}">
         <th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{site.sidebar}, 'shellSidebar', null)}"></th:block>

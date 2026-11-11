@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <div class="shell-main">
         <p class="text-body-secondary" th:text="#{gpgKey.description}"></p>
 
         <table id="gpg-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
@@ -49,6 +50,7 @@
         <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{gpgKey.list.empty}"></p>
 
         <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

@@ -16,8 +16,9 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell shell-grid">
+    <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('oauth-apps')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
         <p class="text-body-secondary mb-4" th:text="#{oauth.description}"></p>
 
@@ -45,6 +46,7 @@
             </table>
         </section>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>
