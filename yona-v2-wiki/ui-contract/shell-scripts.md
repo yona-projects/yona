@@ -208,7 +208,7 @@ htmx 전역 설정(jquery-pjax 대체, D-96): `historyCacheSize=0`과 `refreshOn
 | | `LEFT`, `RIGHT` | 이전, 다음 쪽 | `Pagination.update`가 그릴 때마다 등록/해제 | 쪽이 없으면 해제 |
 | | `CTRL+A` | 일괄 변경 영역에서 전체 선택(`preventDefault`, 입력란이 아닐 때) | `issue.MassUpdate.js:124` | 브라우저의 전체 선택을 막음 |
 | | `A`, `S` | 코드 이력의 새쪽(`newerUrl`), 옛쪽(`olderUrl`) | `code/history.html:118-128`, 해당 URL이 있을 때 | `A`는 전역에 덮인다 |
-| | `CTRL+SHIFT+ENTER` | 이슈 댓글 입력에서 동적 댓글 단추 클릭 | `issue.View.js:492`, `welTarget`이 댓글 textarea일 때 | **동작하지 않음**(F4) |
+| | `CTRL+SHIFT+ENTER` | 이슈 댓글 입력에서 동적 댓글 단추 클릭 | `issue.View.js:492`, `welTarget`이 댓글 textarea일 때 | 동작한다(F4를 고쳤다. 여러 보조키 조합을 정규화한다, 2026-11-11) |
 
 `P`와 `Q`의 도움말 조건이 실제와 다른 곳은 F5. `←`, `→`는 도움말에서 `List` 화면에만 나오지만 실제로는 `Pagination`을 쓰는 모든 목록에서 동작한다. 단축키가 시험으로 확인되는 범위: 엔진 `shortcutkey.test.mjs`, `usermenu.test.mjs`(`F`가 아닌 열기와 닫기), 프로젝트 `Q` 조건 `ProjectLayoutTest.kt:407-417`. `F` 키 자체와 `A`, `S` 덮어쓰기, 도움말 내용은 자동 시험이 없다(위키 `ui-shortcuts.md` 10절의 수동 확인).
 

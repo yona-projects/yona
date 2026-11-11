@@ -126,7 +126,7 @@ updated: 2026-11-11
 | 에디터 `textarea[name=contents]#editor-contents-*` | textarea + 탭(편집, 미리보기) + 서식 도구 + 체크리스트 추가 | 폼일 때 | 입력 5초 뒤 `localStorage[location.pathname]`에 초안 저장, 포커스하면 알림 받을 사람 미리 보기 시작(아래), `@` 멘션 자동 완성 | 멘션 `GET {base}/mentionList?number={n}&resourceType=issue_post&mentionType=user|issue&query=` | JSON `{result:[...]}` | `@IsAllowed(READ)`(`MentionListController.kt:44`) | `common/comment-form.html:13`, `view.html:329-333` |
 | 알림 받을 사람 `.notification-receiver-list` | 목록 | 에디터 초점 때 `.notification-receiver` 보임 | 포커스하면 즉시, 이후 `keyup` 1초 뒤(디바운스)에 요청. 최대 10명 + `+N`. 포커스를 잃으면 핸들러 해제 | `POST {base}/issue/{n}/commentNotiReceivers` JSON `{comment, parentCommentId}` | `{"receivers":[사용자 노드]}`. 실패는 경고창 | 읽기 검사 없음(`issue-F5`) | `view.html:442-452`, `J/esm/ReceiverList.js`, `K/web/api/IssueApiController.kt:260-272` |
 | 파일 올리기 | 업로드 영역 `#upload` | 로그인 사용자만(`!currentUser.anonymous`) | 파일 선택, 드래그, 붙여넣기 → 임시 업로드 | `POST /files` | 임시 첨부 id가 `temporaryUploadFiles`에 담겨 댓글 저장 때 이슈 댓글로 옮겨진다 | 로그인 | `comment-form.html:15-17` |
-| 이슈 닫기/다시 열기 `#dynamic-comment-btn` | 단추 | 스크립트가 `hidden` 클래스를 지워 보이게 한다. 글자: 입력이 비면 `button.nextState.closed|open`(이슈 닫기, 다시 열기), 있으면 `button.commentAndNextState.*` | 비었으면 `location.href = {base}/issue/{n}/nextstate`(GET), 입력이 있으면 `withStateTransition=true` 숨은 입력을 달아 폼 제출. 단축키 `CTRL+SHIFT+ENTER`도 같다(대상이 댓글 textarea일 때) | `GET .../nextstate`, 또는 `POST .../comments` + `withStateTransition=true` | nextstate: `303 → 이슈 보기`(상태 `closed`↔`open`). 댓글+전환은 `303 → 댓글 앵커` | nextstate는 이슈 `UPDATE`(`@IsAllowed(UPDATE, ISSUE_POST)`, 403). 댓글 생성 권한만 있는 사용자가 전환을 보내면 서버가 어떻게 처리하는지는 `IssueCommentService.add`가 정한다(이 조사에서는 확인하지 않음) | `view.html:152`, `issue.View.js:463-498`, `K/web/issue/IssueViewController.kt:125-137` |
+| 이슈 닫기/다시 열기 `#dynamic-comment-btn` | 단추 | 스크립트가 `hidden` 클래스를 지워 보이게 한다. 글자: 입력이 비면 `button.nextState.closed|open`(이슈 닫기, 다시 열기), 있으면 `button.commentAndNextState.*` | 비었으면 `yona.http.post({base}/issue/{n}/nextstate)` 뒤 새로 고침(2026-11-11부터 POST이다. 서버는 v1.6 호환으로 GET도 받는다, issue-F7), 입력이 있으면 `withStateTransition=true` 숨은 입력을 달아 폼 제출. 단축키 `CTRL+SHIFT+ENTER`도 같다(대상이 댓글 textarea일 때) | `POST .../nextstate`(GET도 받는다), 또는 `POST .../comments` + `withStateTransition=true` | nextstate: `303 → 이슈 보기`(상태 `closed`↔`open`). 댓글+전환은 `303 → 댓글 앵커` | nextstate는 이슈 `UPDATE`(`@IsAllowed(UPDATE, ISSUE_POST)`, 403). 댓글 생성 권한만 있는 사용자가 전환을 보내면 서버가 어떻게 처리하는지는 `IssueCommentService.add`가 정한다(이 조사에서는 확인하지 않음) | `view.html:152`, `issue.View.js:463-498`, `K/web/issue/IssueViewController.kt:125-137` |
 | 댓글 달기 | 제출 단추 | 폼일 때 | `CommentForm.js`가 제출을 가로채 본문이 비면 `post.comment.empty` 알림 3초, 아니면 NProgress 후 0.3초 뒤 제출(중복 제출 방지, `ESC`로 푼다). 임시 초안 삭제 | `POST {base}/issue/{n}/comments` 멀티파트 `contents`, `filePath`, `temporaryUploadFiles`, `withStateTransition` | `303 → {이슈}#comment-{id}`. 서버에서 본문이 비면 400 | `isResourceCreatable(이슈, ISSUE_COMMENT)`. 불가이면 403 | `comment-form.html:22`, `J/esm/CommentForm.js:47-72`, `IssueCommentController.kt:50-78` |
 
 창을 닫거나 떠날 때 댓글 입력란에 글이 남아 있고 제출 중이 아니면 `common.comment.beforeunload.confirm` 확인창(`CommentForm.js:111-115`).
@@ -163,7 +163,7 @@ updated: 2026-11-11
 | `L` | 목록으로 이동(`listUrl`) | `view.html:319-321` `setKeymapLink` | 항상. 초점이 입력란이면 무시 |
 | `N` | 새 이슈 폼 | 같은 곳 | `projectView.menuSetting.issue`일 때만 등록 |
 | `E` | 수정 폼(`{base}/issue/{n}/editform`) | 같은 곳 | `issue.canUpdate`일 때만 등록. "원본 보기" 사용자에게는 없다 |
-| `CTRL+SHIFT+ENTER` | `#dynamic-comment-btn` 클릭 | `issue.View.js:491-497` | 초점이 댓글 textarea(`data-editor-mode=comment-body`)일 때만 동작 |
+| `CTRL+SHIFT+ENTER` | `#dynamic-comment-btn` 클릭 | `issue.View.js:491-497` | 초점이 댓글 textarea(`data-editor-mode=comment-body`)일 때만 동작한다(2026-11-11부터 실제로 동작한다, shell-F4) |
 | `CTRL/⌘+ENTER` | 한 줄 댓글 폼 제출 | `SubComment.js:20-27` | 한 줄 댓글 textarea에서 |
 | `ESC` | 한 줄 댓글 입력 닫기, 제출 중 풀기 | `SubComment.js:28-33`, `CommentForm.js:99-104` | |
 
@@ -219,7 +219,7 @@ updated: 2026-11-11
 | 이슈 삭제 | 안 보임 | 안 보임 | 안 보임 | 안 보임(`deletable`이면 아이콘 없음) | 안 보임 | 보임(다른 사람 댓글이 없을 때) | 보임 | 보임 | 보임 |
 | 다음 상태(닫기, 열기) | 단추는 보이나 서버 403 | 403 | 403 | 허용 | 허용 | 허용 | 허용 | 허용 | 허용 |
 
-"다음 상태" 단추(`#dynamic-comment-btn`)는 댓글을 쓸 수 있는 사용자에게만 폼 안에 있으므로, 위 표의 "비로그인"과 "비구성원" 칸은 폼이 있는 공개 프로젝트의 로그인 비구성원 경우를 뜻한다. 비구성원이 댓글 없이 단추를 누르면 `nextstate` GET이 403 오류 화면이다.
+"다음 상태" 단추(`#dynamic-comment-btn`)는 댓글을 쓸 수 있는 사용자에게만 폼 안에 있으므로, 위 표의 "비로그인"과 "비구성원" 칸은 폼이 있는 공개 프로젝트의 로그인 비구성원 경우를 뜻한다. 비구성원이 댓글 없이 단추를 누르면 `nextstate` 요청이 403 오류 화면이다.
 
 ## 9. 빈 상태, 오류 상태, 경계 값
 
