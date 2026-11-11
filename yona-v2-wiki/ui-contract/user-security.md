@@ -438,7 +438,7 @@ SSO 전용 모드가 꺼져 있으면 어떤 연결이든(소셜 포함) 해제�
 | usersec-F14 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `th:utext`로 `title.loginFor(site.siteName)`, `title.signupFor`, `title.resetPasswordFor`를 출력하므로 사이트 이름의 HTML이 이스케이프되지 않는다(사이트 관리자 입력값) | `T/user/login.html:18`, `signup.html:15`, `reset-password.html:15` |
 | usersec-F15 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `LoginDialog.js`와 로그인 화면이 같은 입력 id `loginIdOrEmailD`를 쓴다(팝업이 있는 화면에서 로그인 화면으로 이동하면 팝업 DOM은 없으니 충돌하지 않으나 `common/login-dialog.html`이 들어간 화면에 `/users/*`가 끼어들면 중복 id가 된다. 추측)(2026-11-11 수정: 로그인 화면 입력란 id를 `loginIdOrEmail`로 바꿔 팝업의 `loginIdOrEmailD`와 겹치지 않는다) | `T/common/login-dialog.html:33`, `T/user/login.html:28` |
 | usersec-F16 **[검증: 수정함(A-464, 2026-11-11)]** | `POST /user/token`의 성공 응답이 `303`이 아니라 목록 화면 직접 렌더라 새로고침하면 토큰을 중복 생성하려는 재전송이 된다(원문 값을 한 번만 보이기 위한 구조)(2026-11-11 수정: 토큰 만들기 폼에 `data-submit-once`를 달아 제출 뒤 단추를 잠근다. 응답이 `303`이 아닌 직접 렌더인 점과 새로고침 재전송은 그대로이다) | `AccountController.kt:282-285` |
-| usersec-F17 **[재조사 2026-11-11]** | 비밀번호 로그인 잠금의 키가 입력한 글자 그대로(앞뒤 공백 제거, 소문자)라서 같은 사용자라도 로그인 ID와 이메일은 각자 5회씩 따로 센다. 잠금은 입력 키 단위이지 계정 단위가 아니다 | `PasswordLoginHandlers.kt:154` |
+| usersec-F17 **[검증: 수정함(A-466, 2026-11-11)]** | 비밀번호 로그인 잠금의 키가 입력한 글자 그대로(앞뒤 공백 제거, 소문자)라서 같은 사용자라도 로그인 ID와 이메일은 각자 5회씩 따로 센다. 잠금은 입력 키 단위이지 계정 단위가 아니다 (2026-11-11 수정: 잠금 키를 입력 글자가 아니라 계정으로 정한다(`LoginAttemptKey`: 아이디나 이메일이 계정을 가리키면 `login:u<번호>`, 없으면 입력 글자 소문자). 시험 `LoginControllerTest`) | `PasswordLoginHandlers.kt:154` |
 | usersec-F18 **[재조사 2026-11-11]** | 가입에서 `hasErrors`(형식, 중복, 공백 비밀번호)에 걸린 오류는 메시지 없이 `400`이고, 그 뒤 단계(확인 입력 불일치, 비밀번호 정책, 이메일 도메인)의 오류만 flash로 알린다. 흔한 비밀번호, 128자 초과, 아이디와 같은 값은 화면 스크립트가 검사하지 않아 제출한 뒤에야 알 수 있다 | `SignupController.kt:44-69`, `user.SignUp.js:99-109` |
 
 ## 7. 범위 점검

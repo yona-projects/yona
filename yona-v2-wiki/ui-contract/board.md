@@ -201,7 +201,7 @@ updated: 2026-11-11
 | "변경 이력" (로그인) | 링크, 모달 `#-yona-posting-history` | `historyHtml != null`이고 로그인 | 이력 모달 열기 | 없음 | 모달 내용은 `common/partial-history` | | `view.html:47-50` |
 | 지켜보기 `#watch-button` | 단추 | `post.canWatch` | 지켜보지 않으면 `watch`, 지켜보면 `unwatch` | `POST /watch?resource.type=board_post&resource.id={id}` 또는 `POST /unwatch?...`(`$yona.sendForm`, 본문 없음, `X-Requested-With`) | 성공하면 `data-watching` 반전, 클래스 `ybtn-watching` 토글, 글자를 `post.unwatch`/`post.watch`로 바꾸고 3초 알림 `post.watch.start`/`post.unwatch.start`. 실패 처리는 없다(조용히 무시) | 서버는 **읽기 권한만** 본다. 익명은 403 본문 `Anonymous cannot watch it.`, 읽기 불가는 403 `You have no permission to watch it.`(`WatchController.kt:40-47`). `unwatch`는 JSON이 아니면 리소스 주소로 303(`:50-62`) | `view.html:69-71`, `board.View.js:56-71`, `WatchController.kt` |
 | 번역 `#translate` | 단추 | `site.translationApiConfigured` | 한 번만(`one('click')`) 본문 번역 요청 | `POST /translation` JSON `{owner, projectName, type:"posting", number}` | 응답 `{translated}`(마크다운 렌더 HTML)로 첫 `.markdown-wrap`을 바꾸고 단추를 비활성화 | 서버: 번역 설정 없음이면 412, 프로젝트 읽기 불가 403, 글 없음 404(`TranslationApiController.kt:47-57`). 실패 처리는 없다 | `view.html:75`, `:203-222` |
-| 글 수정 아이콘(행동 줄) | 단추(`onclick="window.location = '{base}/post/{n}/editform'"`, 컨텍스트 경로 접두어 없음, [board-F17](#발견-사항)) | `post.canUpdate` | `{base}/post/{n}/editform`으로 이동 | `GET` | | `editPostForm` 자체가 읽기만 요구 | `view.html:77-78` |
+| 글 수정 아이콘(행동 줄) | 단추(`th:data-href="@{{base}/post/{n}/editform}"`를 `onclick="window.location = this.dataset.href"`가 읽어 컨텍스트 경로가 붙는다, [board-F17](#발견-사항) 수정함) | `post.canUpdate` | `{base}/post/{n}/editform`으로 이동 | `GET` | | `editPostForm` 자체가 읽기만 요구 | `view.html:77-78` |
 | 원본 보기 아이콘 | 링크 안 단추 | `!post.canUpdate` | 같은 수정 화면(저장 단추 없음)으로 이동. 툴팁 `button.show.original` | `GET .../editform` | | | `view.html:79` |
 | 삭제 아이콘 | 링크 `#deleteConfirm`(모달) | `post.canDelete` | 삭제 확인창 | 없음 | | | `view.html:81-82` |
 | 삭제 확인창 "예" | 단추 `data-request-method="delete"` | 모달 안 | 삭제 요청 | `DELETE {base}/post/{n}/delete` (`Request.js`, `X-Requested-With`) | 204 + `Location: {base}/posts`이면 목록으로 이동 | `@IsAllowed(DELETE, BOARD_POST)` + 컨트롤러 재검사. 403 | `view.html:139-152`, `BoardWriteController.kt:174-189` |
@@ -220,7 +220,7 @@ updated: 2026-11-11
 | 한 줄 댓글 `x` | 링크 `data-toggle="comment-delete"` | `child.canDelete` | 위와 같이 삭제 모달 | `DELETE {base}/post/{n}/comment/{childId}/delete` | | | `common/child-comments.html` |
 | 댓글 작성자 아바타, 이름, 시각 | 링크 | 항상 | 사용자 페이지, `#comment-{id}` 앵커 | | | | `partial-comments.html:17-33` |
 | `[Link]` | 링크(`display:none`) | 항상 있으나 숨김 | | | | | `partial-comments.html:33` |
-| 본문 체크리스트 | `Tasklist.js` | 본문에 체크리스트가 있고 `data-allowed-update=post.canUpdate` | 체크 토글 | `PATCH {base}/post/{n}/content` JSON `{content, original}` | 다른 사람이 먼저 바꿨으면 409 `{message, storedContent}`. 요청 주소는 본문 폼의 `action`(`'/' + owner + '/' + project + '/post/' + n + '/content'`, 컨텍스트 경로 접두어 없음, [board-F17](#발견-사항)) | 수정 권한(익명 401) | `view.html:55-62`, `Tasklist.js:32-43`, `BoardApiController.kt:73-84` |
+| 본문 체크리스트 | `Tasklist.js` | 본문에 체크리스트가 있고 `data-allowed-update=post.canUpdate` | 체크 토글 | `PATCH {base}/post/{n}/content` JSON `{content, original}` | 다른 사람이 먼저 바꿨으면 409 `{message, storedContent}`. 요청 주소는 본문 폼의 `action`(`@{'/' + owner + '/' + project + '/post/' + n + '/content'}`로 컨텍스트 경로가 붙는다, [board-F17](#발견-사항) 수정함) | 수정 권한(익명 401) | `view.html:55-62`, `Tasklist.js:32-43`, `BoardApiController.kt:73-84` |
 | `elevator` | 오른쪽 아래 위로 가기 | 스크립트가 그림 | `yona.ui.Elevator.init({shape:'rounded', glass:true})` | | | | `view.html:244-247` |
 
 ### 4. 스크립트 동작
@@ -458,8 +458,7 @@ updated: 2026-11-11
 | board-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `AccessControl.kt`의 `isAllowedIfAuthor`는 `BOARD_POST`가 `AUTHOR_TYPES`에 있어서 글 작성자가 프로젝트 구성원이 아니게 되어도 자기 글을 고칠 수 있었다(읽기와 삭제는 막히는데 수정만 열림). (2026-11-11 수정: 작성자 몫은 프로젝트가 공개이거나 직접 구성원이거나 조직 구성원 규칙을 만족할 때만 준다. `IsAllowed`는 프로젝트 읽기를 먼저 요구한다) | `AccessControl.kt:195-198`, `:313-316`, `ProjectCheckStage.kt:66-74`, `:177-186` |
 | board-F15 **[검증: v2 신규 결함, 수정됨 A-460]** | `view.html`의 변경 이력 링크(익명)는 `href`가 로그인 주소인데 `data-bs-toggle="modal"`이 함께 붙어 있었다. (2026-11-11 수정: 익명 링크에서 모달 속성을 뺐다) | `view.html:44-46` |
 | board-F16 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `create.html`, `edit.html`의 취소 링크와 `form action`은 `javascript:history.back()`, 편집 화면의 `tabindex`는 저장이 3, 취소가 4인데 편집기의 `tabindex=3`과 겹친다(작성 화면). 동작에는 영향이 없다 | `create.html:37`, `:67-68` |
-| board-F17 **[재조사 2026-11-11]** | 글 보기의 수정 아이콘 두 곳은 `onclick`에 `window.location = '${base}/post/{n}/editform'`을 쓰고, 본문 체크리스트 폼의 `action`은 `'/' + owner + '/' + project + '/post/' + n + '/content'`이다. 둘 다 `@{}`로 감싸지 않아 컨텍스트 경로 접두어가 붙지 않는다(`#paths.project`는 접두어를 붙이지 않는다, `TemplatePaths.kt:21`). 같은 화면의 나머지 링크는 `@{}`이다. 체크리스트의 `Tasklist.js`는 이 `action`을 그대로 PATCH 주소로 쓴다 | `view.html:56`, `:78`, `:116`, `Tasklist.js:32` |
-
+| board-F17 **[검증: 수정함(A-466, 2026-11-11)]** | 글 보기의 수정 아이콘 두 곳은 `onclick`에 `window.location = '${base}/post/{n}/editform'`을 쓰고, 본문 체크리스트 폼의 `action`은 `'/' + owner + '/' + project + '/post/' + n + '/content'`이다. 둘 다 `@{}`로 감싸지 않아 컨텍스트 경로 접두어가 붙지 않는다(`#paths.project`는 접두어를 붙이지 않는다, `TemplatePaths.kt:21`). 같은 화면의 나머지 링크는 `@{}`이다. 체크리스트의 `Tasklist.js`는 이 `action`을 그대로 PATCH 주소로 쓴다 (2026-11-11 수정: 수정 아이콘은 `data-href`에 `@{}` 주소를 두고 `onclick`이 읽게 했고, 체크리스트 폼 `action`은 `@{}`로 감쌌다. 정렬 링크(`board/list.html`)도 `@{${link.href}}`로 고쳤다. 시험 `ContextPathLinksTest`) | `view.html:56`, `:78`, `:116`, `Tasklist.js:32` |
 ## 범위 점검
 
 | 템플릿 | 다룬 절 |

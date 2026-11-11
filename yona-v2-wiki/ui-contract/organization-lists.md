@@ -33,7 +33,7 @@ updated: 2026-11-11
 
 ### 2.2 레이아웃
 
-`div.search-wrap.underline`(폼 `#option_form`: 프로젝트 다중 선택 `col-lg-7`, 검색 `col-lg-4`, 두 단 보기 체크박스) 아래, `totalRows == 0`이면 빈 상태 `error-wrap`(`post.is.empty`), 아니면 정렬줄(`totalRows > 1`일 때만)과 `ul.post-list-wrap`, 빈 `div.write-btn-wrap`, `#pagination` (board-list.html:17-79). 줄은 `li.post-item.title`: 작성자 아바타(`hide-in-mobile`), 제목, 작성자 이름, 프로젝트 이름 링크, `#번호`, 시각, 댓글 수(0이면 숨김). 줄과 링크, 아바타 주소는 모두 `th:href="@{...}"`, `th:src="@{...}"`로 컨텍스트 경로를 붙인다 (board-list.html:47-59). 정렬 링크의 `href`(`link.href`, :41)만 `@{}`를 거치지 않고 서버가 만든 문자열을 그대로 쓴다(organization-F25).
+`div.search-wrap.underline`(폼 `#option_form`: 프로젝트 다중 선택 `col-lg-7`, 검색 `col-lg-4`, 두 단 보기 체크박스) 아래, `totalRows == 0`이면 빈 상태 `error-wrap`(`post.is.empty`), 아니면 정렬줄(`totalRows > 1`일 때만)과 `ul.post-list-wrap`, 빈 `div.write-btn-wrap`, `#pagination` (board-list.html:17-79). 줄은 `li.post-item.title`: 작성자 아바타(`hide-in-mobile`), 제목, 작성자 이름, 프로젝트 이름 링크, `#번호`, 시각, 댓글 수(0이면 숨김). 줄과 링크, 아바타 주소는 모두 `th:href="@{...}"`, `th:src="@{...}"`로 컨텍스트 경로를 붙인다 (board-list.html:47-59). 정렬 링크의 `href`도 `@{${link.href}}`로 컨텍스트 경로를 붙인다(organization-F25 수정함).
 
 ### 2.3 동작 요소
 
@@ -116,7 +116,7 @@ updated: 2026-11-11
 | organization-F17 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 게시판 목록의 정렬 링크는 `orderBy`, `orderDir`만 싣고 `filter`와 `projectNames[]`를 버렸다. 정렬을 바꾸면 검색어와 프로젝트 선택이 풀렸다. (2026-11-11 수정: 정렬 링크가 비어 있지 않은 `filter`와 고른 `projectNames[]`를 URL 인코딩해 이어 받는다.) `board.List.js`는 `#pagination a` 클릭과 `input[name=pageNum]`을 쓰지만 템플릿에 그 입력이 없고, 쪽 번호가 그려지기 전에 `#pagination a`를 찾아 연결이 비어 있다(죽은 코드). 쪽 이동은 `Pagination` 위젯의 URL 링크가 한다 | board-list.html:41; OrganizationBoardController.kt:52-60; board.List.js `_initElement`, `_onClickPage` |
 | organization-F18 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 조직 이슈 목록의 빠른 필터 링크는 `data-project-names`, `data-milestone-id`를 싣지만 폼에 `[data-search=projectNames]`, `[data-search=milestoneId]` 입력이 없어 무시된다. 라벨 배지는 조직 목록이 아니라 프로젝트의 이슈 목록으로 간다. 상태 탭에 "전체"가 없다(서버는 `state=all`을 받는다). 빠른 필터가 누르는 순간 선택된 프로젝트는 폼의 select가 그대로 들고 있어 유지된다 | issue-list.html:24, 38, 116; issue.List.js `_onClickSearchFilter` |
 | organization-F19 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 풀 리퀘스트 목록은 줄이 있을 때만 `<div id="pagination">`을 `<ul>` 안에 두었다(구조상 올바르지 않음, v1.6 마크업). (2026-11-11 수정: `ul` 밖으로 옮겼고 줄이 있을 때만 그린다.) 탭 전환은 `pageNum`을 초기화한다. 이슈 목록만 htmx로 부분 교체하고 게시판과 풀 리퀘스트는 전체 화면 이동이다 | pullrequest-list.html:93-94; issue-list.html:19 |
-| organization-F25 [재조사 2026-11-11] | 게시판 목록의 정렬 링크는 `th:href="${link.href}"`로 서버가 만든 문자열(`/organizations/{이름}/boards?...`)을 그대로 쓴다. 같은 화면의 다른 링크와 달리 `@{}`를 거치지 않아 컨텍스트 경로가 붙지 않는다(컨텍스트 경로를 쓰는 배포에서 정렬 링크만 접두어가 없을 수 있다, 추측: 시험 없음) | board-list.html:41; OrganizationBoardController.kt:50, 59 |
+| organization-F25 **[검증: 수정함(A-466, 2026-11-11)]** | 게시판 목록의 정렬 링크는 `th:href="${link.href}"`로 서버가 만든 문자열(`/organizations/{이름}/boards?...`)을 그대로 쓴다. 같은 화면의 다른 링크와 달리 `@{}`를 거치지 않아 컨텍스트 경로가 붙지 않는다(컨텍스트 경로를 쓰는 배포에서 정렬 링크만 접두어가 없을 수 있다, 추측: 시험 없음) | board-list.html:41; OrganizationBoardController.kt:50, 59 |
 
 ## 6. 시험 근거
 

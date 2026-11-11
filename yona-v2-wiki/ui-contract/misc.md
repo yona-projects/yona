@@ -226,7 +226,7 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 | `초기화` | 링크 | `showFilter` | 필터를 모두 지운 주소로 | `GET @{{base}}` | | `list.html:24` |
 | CSV, JSON 줄, JSON | 링크 | `exportable` | 현재 필터(`targetType`, `projectId` 포함)를 이어 받아 내려받기 | `GET {base}/export?<필터>&format=csv\|jsonl\|json` | 첨부 파일 응답(`Content-Disposition: attachment; filename=audit-{UTC 날짜}.{확장자}`). 이 내려받기도 `audit.exported` 기록으로 남는다. `limit`(기본 10000, 최대 100000)은 링크에 없고 직접 쿼리로만 준다(`AuditControllers.kt:34-44`, `AuditExporter.kt:49-50`). 알 수 없는 `format`은 400 | `list.html:30-34` |
 | `무결성 검증` `.audit-verify` | 단추 | `verifiable`(사이트 화면만) | 해시 사슬을 처음부터 다시 계산 | `GET {현재 경로}/verify` (`fetch`, `Accept: application/json`, 경로는 `window.location.pathname`이라 컨텍스트 경로를 포함) | 응답이 2xx이면 JSON `{ok, checked, brokenId, reason}`을 받아 `.audit-verify-result`에 `audit.verify.ok`(초록) 또는 `audit.verify.broken`(빨강) 문구를 보임. 응답이 2xx가 아니거나(403, 500 등) JSON을 읽지 못하면 `audit.verify.failed`(`감사 사슬을 확인하지 못했습니다.`)를 빨강으로 보임 | `list.html:35`, `:37-38`, `:69-89`, `AuditControllers.kt:76-78` |
-| `최신`(`.audit-prev`), `이전`(`.audit-next`) | 링크 | `prevUrl`(`page > 1`), `nextUrl`(`page < pages`) | 쪽 이동. 필터와 `size`를 유지 | `GET {base}?<필터>&page=N&size=S`(`th:href="${prevUrl}"`, `@{}` 없음, [audit-F6](#발견-사항)) | 이름이 반대로 보인다: `audit.pager.prev`="최신", `next`="이전"(최신이 앞쪽이므로) | `list.html:65-68` |
+| `최신`(`.audit-prev`), `이전`(`.audit-next`) | 링크 | `prevUrl`(`page > 1`), `nextUrl`(`page < pages`) | 쪽 이동. 필터와 `size`를 유지 | `GET {base}?<필터>&page=N&size=S`(`th:href="@{${prevUrl}}"`로 컨텍스트 경로가 붙는다, [audit-F6](#발견-사항) 수정함) | 이름이 반대로 보인다: `audit.pager.prev`="최신", `next`="이전"(최신이 앞쪽이므로) | `list.html:65-68` |
 
 ### 4. 스크립트 동작
 
@@ -267,8 +267,7 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 | audit-F3 **[검증: 결함 아님]** | 이전/다음 링크 글자가 "최신"(`audit.pager.prev`)과 "이전"(`audit.pager.next`)이다. `prev`가 앞쪽(최신)이다. 영어 기본 메시지에서도 같은 의미(`Newer`/`Older`)이다 | `messages_ko_KR.properties:1424-1425`, `list.html:66-67` |
 | audit-F4 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 검증 단추의 `fetch`는 응답 상태를 확인하지 않고 `r.json()`만 호출해 403이나 500 때는 화면에 아무 일도 일어나지 않았다. (2026-11-11 수정: `!r.ok`이면 오류를 던져 `.catch`가 `audit.verify.failed`를 보인다.) 단추는 `data-url`이 있으면 그 값을 쓰나 템플릿이 설정하지 않아 항상 `{현재 경로}/verify`이다 | `list.html:38`, `:75-86` |
 | audit-F5 **[검증: 결함 아님]** | 사용자 범위에서 내가 행위자인 모든 기록 가운데 `auth.`, `token.`, `account.`이 아닌 조치(프로젝트 변경 등)는 보이지 않는다(설명 문구 `audit.description.user`와 일치) | `AuditQueryService.kt:103-108` |
-| audit-F6 **[재조사 2026-11-11]** | 필터 폼의 `action`과 `초기화` 링크는 `@{${base}}`로 컨텍스트 경로를 붙이지만, 내려받기 링크 셋(`exportCsv`, `exportJsonl`, `exportJson`)과 쪽 이동 링크(`prevUrl`, `nextUrl`)는 `th:href="${...}"`로 `@{}`가 없고 `AuditViewSupport.model`이 만든 주소(`base`는 `/sites/audit`처럼 컨텍스트 경로가 없는 경로)를 그대로 쓴다. 하위 경로 배포에서는 이 링크들에 접두어가 없다(코드상의 사실이며 하위 경로로 띄워 확인하지 않았다) | `list.html:31-33`, `:66-67`, `AuditViewSupport.kt:65-66` |
-
+| audit-F6 **[검증: 수정함(A-466, 2026-11-11)]** | 필터 폼의 `action`과 `초기화` 링크는 `@{${base}}`로 컨텍스트 경로를 붙이지만, 내려받기 링크 셋(`exportCsv`, `exportJsonl`, `exportJson`)과 쪽 이동 링크(`prevUrl`, `nextUrl`)는 `th:href="${...}"`로 `@{}`가 없고 `AuditViewSupport.model`이 만든 주소(`base`는 `/sites/audit`처럼 컨텍스트 경로가 없는 경로)를 그대로 쓴다. 하위 경로 배포에서는 이 링크들에 접두어가 없다(코드상의 사실이며 하위 경로로 띄워 확인하지 않았다) (2026-11-11 수정: 내려받기 링크 셋과 쪽 이동 링크를 `@{${...}}`로 감쌌다(`audit/list.html`). 시험 `ContextPathLinksTest`) | `list.html:31-33`, `:66-67`, `AuditViewSupport.kt:65-66` |
 ## 범위 점검
 
 | 템플릿 | 다룬 절 |

@@ -61,9 +61,9 @@ v1.6에 없는 추가 화면이다(로드맵 X-17, D-60, D-61). 설계는 [archi
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한(서버) | 근거 |
 |---|---|---|---|---|---|---|---|
 | 편집 `.wiki-edit` | 링크 | `canWrite` | 고치기 화면 | `GET {페이지}/_edit` | 200 폼 | 비멤버 403 | `view.html:18` |
-| 새 페이지 `.wiki-new` | 링크 | `canWrite` | 만들기 화면 | `GET {base}/_new` | 200 폼 | 비멤버 403 | `view.html:19`(`@{${base + '/_new'}}`, [wiki-F9](#발견-사항)) |
+| 새 페이지 `.wiki-new` | 링크 | `canWrite` | 만들기 화면 | `GET {base}/_new` | 200 폼 | 비멤버 403 | `view.html:19`(`${base + '/_new'}`. `base`가 이미 컨텍스트 경로를 포함하므로 `@{}`로 다시 감싸지 않는다, [wiki-F9](#발견-사항) 수정함) |
 | 이력 `.wiki-history` | 링크 | **항상**(읽을 수 있으면 누구나) | 이력 화면 | `GET {페이지}/_history` | | 읽기 | `view.html:20` |
-| 첫 페이지 만들기 `.wiki-create-first` | 링크 | `canWrite and available` | `Home` 제목을 채운 만들기 폼 | `GET {base}/_new?title=Home` | | 구성원 | `empty.html:19`(`@{${base + '/_new?title=Home'}}`, [wiki-F9](#발견-사항)) |
+| 첫 페이지 만들기 `.wiki-create-first` | 링크 | `canWrite and available` | `Home` 제목을 채운 만들기 폼 | `GET {base}/_new?title=Home` | | 구성원 | `empty.html:19`(`${base + '/_new?title=Home'}`, [wiki-F9](#발견-사항) 수정함) |
 | 본문 안 링크 | 링크 | | 위키 링크는 위키 주소로, 없는 페이지의 `[[...]]`는 만들기로 간다(시험 "대괄호 두 겹 링크는 페이지 링크가 되고 없는 페이지는 만들기로 간다") | | | | `WikiLinks` |
 | 사이드바 | `shell.html` 조각 | 아래 | | | | | |
 
@@ -236,8 +236,7 @@ v1.6에 없는 추가 화면이다(로드맵 X-17, D-60, D-61). 설계는 [archi
 | wiki-F6 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 복제 상자의 복사 단추는 성공과 실패 어느 쪽도 화면에 알리지 않았다. (2026-11-11 수정: `.wiki-clone-feedback`에 `wiki.clone.copied` 또는 `wiki.clone.copyFailed`를 보인다) | `shell.html:29`, `:56-65` |
 | wiki-F7 **[검증: 결함 아님]** | 같은 화면에서 사이드바 스크립트가 `document.querySelector`로 첫 요소를 잡으므로 `wiki/shell :: sidebar`가 한 문서에 두 번 들어가면 두 번째는 동작하지 않는다. 현재 모든 위키 화면은 한 번만 쓴다 | `shell.html:33-69` |
 | wiki-F8 **[검증: 결함 아님]** | 첨부 파일 삭제와 목록 화면은 없다(A-315). 올린 파일은 git으로만 지운다 | `decisions.md` A-315 |
-| wiki-F9 **[재조사 2026-11-11]** | 위키의 `base`는 `siteUrls.path(...)`로 컨텍스트 경로를 이미 포함하는데, `view.html`의 `새 페이지` 링크와 `empty.html`의 `첫 페이지 만들기` 링크만 `@{${base + ...}}`로 한 번 더 감싼다. 하위 경로 배포(컨텍스트 경로가 비어 있지 않을 때)에서는 접두어가 두 번 붙는다(Thymeleaf의 `/`로 시작하는 링크 식은 컨텍스트 경로를 붙인다는 코드상의 추론이며 하위 경로로 띄워 확인하지 않았다). 같은 화면의 다른 링크(`view.html:18`, `:20`, `edit.html`, `history.html`, `compare.html`, `shell.html` 목록)는 접두어를 한 번만 가진다 | `view.html:19`, `empty.html:19`, `WikiViewController.kt:298` |
-
+| wiki-F9 **[검증: 수정함(A-466, 2026-11-11)]** | 위키의 `base`는 `siteUrls.path(...)`로 컨텍스트 경로를 이미 포함하는데, `view.html`의 `새 페이지` 링크와 `empty.html`의 `첫 페이지 만들기` 링크만 `@{${base + ...}}`로 한 번 더 감싼다. 하위 경로 배포(컨텍스트 경로가 비어 있지 않을 때)에서는 접두어가 두 번 붙는다(Thymeleaf의 `/`로 시작하는 링크 식은 컨텍스트 경로를 붙인다는 코드상의 추론이며 하위 경로로 띄워 확인하지 않았다). 같은 화면의 다른 링크(`view.html:18`, `:20`, `edit.html`, `history.html`, `compare.html`, `shell.html` 목록)는 접두어를 한 번만 가진다 (2026-11-11 수정: 두 링크의 `@{}` 감싸기를 없앴다(재현됨: 하위 경로에서 `/yona/yona/...`로 나왔다). 시험 `ContextPathLinksTest`가 중복 접두어도 찾는다) | `view.html:19`, `empty.html:19`, `WikiViewController.kt:298` |
 ## 범위 점검
 
 | 템플릿 | 다룬 절 |

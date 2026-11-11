@@ -310,7 +310,7 @@ updated: 2026-11-11
 |---|---|---|---|---|---|---|---|
 | 삭제 단추 (`#btnDelete`, `organization.delete.this`) | 링크(`ybtn-danger`, `data-bs-toggle="modal"`, `href="#alertDeletion"`) | 항상 | 확인 모달을 연다 | | | 화면 접근은 설정 권한 | delete-form.html:20-21 |
 | 모달 | 모달 | | 제목 `organization.delete.requestion`, 본문 `organization.delete.reaccept`, 예(`#btnDeleteExec`), 아니요. 닫는 법 Bootstrap 기본(아니요, 닫기, Esc, 바깥 클릭) | | | | delete-form.html:25-37 |
-| 예 (`#btnDeleteExec`) | 단추 | 모달 안 | `yona.http.ajax({type:"delete", url: 조직 주소})` | `DELETE /organizations/{name}` | 성공(2xx, 서버는 `303 /`이고 fetch가 따라간다)이면 `location.href = "/"`(컨텍스트 경로를 붙이지 않는다, organization-F26). 오류이면 모달을 닫고 `$yona.alert(Messages(응답 errorMsg))`, 파싱 실패 시 `organization.delete.error` | 서버 판정 `Operation.DELETE`(조직 관리자 또는 사이트 관리자). 실패 응답은 모두 `404 {"errorMsg": 키}`: 조직 없음 `organization.member.unknownOrganization`, 권한 없음 `organization.member.needManagerRole`, 프로젝트가 남음 `organization.delete.impossible.project.exist` | delete-form.html:41-61; OrganizationSettingController.kt:110-118; OrganizationManagementService.kt:229-251 |
+| 예 (`#btnDeleteExec`) | 단추 | 모달 안 | `yona.http.ajax({type:"delete", url: 조직 주소})` | `DELETE /organizations/{name}` | 성공(2xx, 서버는 `303 /`이고 fetch가 따라간다)이면 `location.href = [[@{/}]]`(컨텍스트 경로를 붙인다, organization-F26). 오류이면 모달을 닫고 `$yona.alert(Messages(응답 errorMsg))`, 파싱 실패 시 `organization.delete.error` | 서버 판정 `Operation.DELETE`(조직 관리자 또는 사이트 관리자). 실패 응답은 모두 `404 {"errorMsg": 키}`: 조직 없음 `organization.member.unknownOrganization`, 권한 없음 `organization.member.needManagerRole`, 프로젝트가 남음 `organization.delete.impossible.project.exist` | delete-form.html:41-61; OrganizationSettingController.kt:110-118; OrganizationManagementService.kt:229-251 |
 
 삭제는 구성원 행, 가입 신청, 즐겨찾기, 조직이 소유한 OAuth 앱과 승인과 정책을 함께 지우고 감사 이벤트 `org.deleted`를 남긴다 (OrganizationManagementService.kt:238-250). 스크립트는 템플릿 인라인(`<script th:inline="javascript">`)이고 모듈 로딩이 없다. 단축키 없음.
 
@@ -362,8 +362,8 @@ updated: 2026-11-11
 | organization-F14 **[검증: 문서 문제]** | 위키 `web/organization.md`가 코드와 어긋난다: "하위 메뉴는 설정, 구성원, 삭제"(코드는 설정, 구성원, 감사, OAuth 앱, OAuth 앱 정책, 삭제 6개), "아직 없는 부분"(이슈, 게시판, 풀 리퀘스트 목록은 이미 있다, 위키 `organization-lists.md`에 있음), 검증 건수. 코드가 맞다 | web/organization.md; partial-settingmenu.html |
 | organization-F15 **[검증: 결함 아님]** | 구성원 홈의 구성원 영역은 서버가 거부하는 것이 아니라 화면 모델이 `canSeeMembers`일 때만 템플릿이 그린다. 모델(`org.admins`, `org.members`)은 지연 계산이라 숨겨진 경우 질의도 일어나지 않는다. API로 구성원 목록을 읽는 경로는 이 조사 범위 밖이다 | view.html:88; OrganizationViewContext.kt:86, 98-101 |
 | organization-F16 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 설정 저장 성공 후 안내(flash)가 없어 사용자가 값으로만 저장 여부를 확인했다. (2026-11-11 수정: 303에 flash `success` = `organization.setting.saved`를 남긴다.) | OrganizationSettingController.kt:98-99 |
-| organization-F26 [재조사 2026-11-11] | 조직 삭제 화면의 인라인 스크립트는 삭제 요청 주소를 `#paths.organization(이름)`(컨텍스트 경로가 없는 경로)으로, 성공 뒤 이동을 `location.href = "/"`로 쓴다. 이 화면의 다른 링크와 달리 컨텍스트 경로를 붙이지 않는다(컨텍스트 경로를 쓰는 배포에서 어긋난다, 추측: 시험 없음) | delete-form.html:45, 47 |
-| organization-F27 [재조사 2026-11-11] | 구성원 화면의 역할 항목과 삭제 링크의 `data-href`는 `${#paths.organization(org.name)} + '/member/...'`로 `@{}`를 거치지 않아 컨텍스트 경로가 붙지 않는다. 같은 화면의 폼 `action`, 아바타 `img`, `/users` 자동 완성 주소는 붙는다(추측: 시험 없음) | members.html:41, 43; 비교 members.html:20, 32, 85-91 |
+| organization-F26 **[검증: 수정함(A-466, 2026-11-11)]** | 조직 삭제 화면의 인라인 스크립트는 삭제 요청 주소를 `#paths.organization(이름)`(컨텍스트 경로가 없는 경로)으로, 성공 뒤 이동을 `location.href = "/"`로 쓴다. 이 화면의 다른 링크와 달리 컨텍스트 경로를 붙이지 않는다(컨텍스트 경로를 쓰는 배포에서 어긋난다, 추측: 시험 없음) | delete-form.html:45, 47 |
+| organization-F27 **[검증: 수정함(A-466, 2026-11-11)]** | 구성원 화면의 역할 항목과 삭제 링크의 `data-href`는 `${#paths.organization(org.name)} + '/member/...'`로 `@{}`를 거치지 않아 컨텍스트 경로가 붙지 않는다. 같은 화면의 폼 `action`, 아바타 `img`, `/users` 자동 완성 주소는 붙는다(추측: 시험 없음) | members.html:41, 43; 비교 members.html:20, 32, 85-91 |
 
 이 영역에 속하는 나머지 발견 사항은 [organization-lists.md](organization-lists.md)(F17 이후)와 [organization-oauth.md](organization-oauth.md)(F20 이후)에 이어서 적었다.
 

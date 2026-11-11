@@ -256,8 +256,7 @@ updated: 2026-11-11
 | user-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 사용자 페이지의 구독 단추가 비로그인에도 보인다(`showWatchButton = viewer?.loginId != project.owner`). 서버는 `READ` 검사만 하고 비로그인 구독은 `requireNotNull(...user)`에 걸린다(접근 검사 체인이 앞서 막는지는 확인하지 못했다) | `UserPageAssembler.kt:150`, `WatchProjectController.kt:47-54` |
 | user-F10 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이슈 탭의 열림/닫힘 분류가 `OPEN`, `CLOSED`뿐이라 초안(`DRAFT`)은 건수 배지에도, 어느 목록에도 나타나지 않는다. 작성자 본인의 초안만 `activity.issues`에 들어오지만 표시되지 않는다(2026-11-11 수정: 초안은 작성자 본인의 것도 `activity.issues`에서 뺀다. 건수 배지와 목록의 합이 같다) | `UserPageAssembler.kt:85-88, :107`, `T/user/view.html:92, :102` |
 | user-F11 **[검증: 결함 아님]** | 위키와 코드 불일치는 발견하지 못했다. `web/user-page.md`, `web/account.md`의 내용과 이 글이 어긋나는 곳은 확인한 범위에서 없다(두 글을 전부 대조하지는 않았음) | |
-| user-F12 **[재조사 2026-11-11]** | 이메일 화면의 삭제 단추만 `data-request-uri`에 `/user/email/delete/{id}`를 컨텍스트 경로 없이 적는다. 같은 화면의 "주 이메일로"와 "확인 메일 보내기"는 `th:href="@{...}"`라 컨텍스트 경로가 붙는다. 하위 경로 배포에서 삭제 요청이 컨텍스트 경로 없이 가는지는 `Request.js`가 주소를 그대로 쓰는 것으로 읽었을 뿐 실행해 확인하지 않았다(추측) | `T/user/edit-emails.html:51, :53, :55` |
-
+| user-F12 **[검증: 수정함(A-466, 2026-11-11)]** | 이메일 화면의 삭제 단추만 `data-request-uri`에 `/user/email/delete/{id}`를 컨텍스트 경로 없이 적는다. 같은 화면의 "주 이메일로"와 "확인 메일 보내기"는 `th:href="@{...}"`라 컨텍스트 경로가 붙는다. 하위 경로 배포에서 삭제 요청이 컨텍스트 경로 없이 가는지는 `Request.js`가 주소를 그대로 쓰는 것으로 읽었을 뿐 실행해 확인하지 않았다(추측) (2026-11-11 수정: `data-request-uri`를 `@{|/user/email/delete/${mail.id}|}`로 고쳤다(`user/edit-emails.html`)) | `T/user/edit-emails.html:51, :53, :55` |
 ## 12. 범위 점검
 
 | 템플릿 | 다룬 절 |
