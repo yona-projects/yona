@@ -177,6 +177,8 @@ const View = function(htOptions){
 
             // update visiblitity of actrow buttons
             htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
+            // 병합 방식 드롭다운(`#btnMergeOptions`)도 같은 상자 안에 있으므로 충돌이면 상자 전체를 숨긴다(수락 단추만 숨기면 방식 목록이 남아 열린다)
+            $("#merge-box").css("display", oRes.isConflict ? "none" : "inline-block");
         } finally {
             htVar.bStateUpdating = false;
         }

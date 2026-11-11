@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { pageWith } from './harness.mjs';
 
-const HTML = '<div id="state"></div><button id="btnAccept" style="display:inline-block">accept</button><div id="comments"></div>';
+const HTML = '<div id="state"></div><div id="merge-box" style="display:inline-block"><div class="btn-group"><button id="btnAccept" style="display:inline-block">accept</button><button id="btnMergeOptions">options</button></div></div><div id="comments"></div>';
 
 /** [pending]이 참이면 응답을 끝내지 않는다(요청이 겹치는지 보려고). */
 async function open({ pending = false } = {}) {
@@ -75,6 +75,17 @@ export const tests = [
     const page = await open({ pending: true });
     await page.clock.runFor(40000);
     assert.equal(await gets(page), 1);
+    await page.close();
+  } },
+  { name: '충돌이면 병합 상자 전체(수락 단추와 방식 드롭다운)를 숨기고 충돌이 풀리면 다시 보인다 (pullrequest-F15)', run: async () => {
+    const page = await open();
+    await page.evaluate(() => { window.__resp = { html: '<p id="s">C</p>', isConflict: true }; });
+    await input(page); await page.clock.runFor(10000);
+    assert.equal(await page.evaluate(() => document.getElementById('btnMergeOptions').offsetParent), null, '방식 드롭다운 단추가 보인다');
+    await page.evaluate(() => { window.__resp = { html: '<p id="s">D</p>', isConflict: false }; });
+    await input(page); await page.clock.runFor(10000);
+    assert.equal(await page.evaluate(() => document.getElementById('btnMergeOptions').offsetParent !== null), true);
+    assert.equal(await page.evaluate(() => document.getElementById('merge-box').style.display), 'inline-block');
     await page.close();
   } },
   { name: '상태 HTML이 달라졌을 때만 갈아 끼우고, 충돌이면 수락 단추를 숨긴다', run: async () => {

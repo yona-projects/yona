@@ -43,4 +43,15 @@ class TemplateContractRegressionTest {
         assertFalse(svn.contains("? 'HEAD' : 'HEAD'"), "선택한 브랜치와 상관없이 HEAD를 보인다")
         assertTrue(svn.contains("branches.?[selected]"), "고른 브랜치(selected)의 이름을 쓴다")
     }
+
+    @Test
+    fun `풀 리퀘스트 타임라인을 Ajax로 다시 읽어도 라벨 글자색과 더 보기가 그대로 동작한다 (pullrequest-F13, F14)`() {
+        val meta = File("src/main/resources/static/assets/javascripts/esm/service/pullrequest.Meta.js").readText()
+        // 전체 화면 스크립트(view.html)가 쓰는 선택자와 같아야 다시 읽은 라벨에도 글자색이 붙는다
+        assertTrue(meta.contains("\".event > .label\""), "다시 읽은 타임라인의 라벨을 `.label`로 찾지 않는다")
+        assertFalse(meta.contains("\".event > .badge\""))
+        val view = template("pullrequest/view.html")
+        assertFalse(view.contains("\$(\"button.moreBtn\").on(\"click\""), "다시 읽은 타임라인의 더 보기 단추에는 처리기가 걸리지 않는다")
+        assertTrue(view.contains("on(\"click\", \"button.moreBtn\""), "문서에 위임해 다시 그린 단추에도 건다")
+    }
 }
