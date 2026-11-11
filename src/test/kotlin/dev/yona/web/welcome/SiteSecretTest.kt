@@ -155,11 +155,10 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `loginId나 password 항목이 아예 없으면 v1_6처럼 널 참조로 500이다`() {
-        // v1.6 hasError는 값이 비어 있어도 `.value().equals(...)`를 부른다. 항목이 아예 없으면 NPE가 난다
-        assertEquals(500, submit(*without("loginId")).andReturn().response.status)
-        assertEquals(500, submit().andReturn().response.status)
-        assertEquals(500, submit(*without("password")).andReturn().response.status)
+    fun `loginId나 password 항목이 아예 없으면 널 참조 500이 아니라 필수 오류 400이다 (welcome-F1, v1_6은 NPE로 500이었다, 고쳤다)`() {
+        assertEquals(400, submit(*without("loginId")).andReturn().response.status)
+        assertEquals(400, submit().andReturn().response.status)
+        assertEquals(400, submit(*without("password")).andReturn().response.status)
         // retypedPassword만 없으면 "다르다"는 오류이다
         assertEquals(400, submit(*without("retypedPassword")).andReturn().response.status)
     }
