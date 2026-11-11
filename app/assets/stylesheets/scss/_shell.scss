@@ -110,3 +110,37 @@ $shell-gap: 14px;
     color: #fff !important;
     font-weight: normal;
 }
+
+// 사이드바 숨기기와 다시 보이기(넓은 폭에서만, shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다).
+.shell-sidebar-collapse {
+    float: right;
+    margin: 0 0 4px;
+    padding: 0 6px;
+    border: 0;
+    background: none;
+    color: #999;
+    line-height: 1.5rem;
+
+    &:hover,
+    &:focus-visible {
+        color: $yobi-orange-dark;
+    }
+}
+
+.shell-sidebar-expand {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    html[data-sidebar="collapsed"] {
+        .shell-sidebar {
+            display: none;
+        }
+
+        .shell-sidebar-expand {
+            display: inline-flex;
+            align-self: flex-start;
+            margin-right: $shell-gap;
+        }
+    }
+}

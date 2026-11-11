@@ -96,4 +96,18 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
         val doc = page("/sites/userList")
         assertNotNull(doc.selectFirst(".shell .shell-main ul.user-list-wrap, .shell .shell-main .user-list-wrap"))
     }
+
+    @Test
+    fun `넓은 폭에서 사이드바를 숨기고 다시 보이는 단추와 모듈이 있다`() {
+        val doc = page("/sites/userList")
+        val nav = doc.selectFirst("nav.shell-sidebar")!!
+        val collapse = nav.selectFirst("button[data-shell-sidebar-toggle]")
+        assertNotNull(collapse, "사이드바 안에 숨기기 단추가 있다")
+        assertEquals("true", collapse.attr("aria-expanded"))
+        assertTrue(collapse.attr("aria-label").isNotBlank())
+        val expand = doc.selectFirst(".shell > button.shell-sidebar-expand[data-shell-sidebar-toggle]")
+        assertNotNull(expand, "숨겨졌을 때 다시 보이는 단추는 사이드바 밖에 있다")
+        assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
+        assertTrue(doc.select("script").any { it.data().contains("shellSidebarCollapsed") }, "첫 그림 전에 기억한 상태를 적용하는 짧은 스크립트")
+    }
 }

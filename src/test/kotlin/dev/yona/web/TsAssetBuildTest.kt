@@ -31,6 +31,13 @@ class TsAssetBuildTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사이드바 숨기기 모듈이 esm 경로로 제공된다`() {
+        mockMvc.perform(get("/assets/javascripts/esm/shell/sidebar.js"))
+            .andExpect(status().isOk)
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("export function initSidebar")))
+    }
+
+    @Test
     fun `TS 원본은 제공되지 않는다`() {
         mockMvc.perform(get("/assets/javascripts/esm/core/config.ts")).andExpect(status().isNotFound)
     }
