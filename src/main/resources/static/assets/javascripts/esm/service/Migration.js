@@ -680,8 +680,9 @@ const MigrationApp = {
                 "withWikiCommit": true
             };
 
-            // 작업 토큰
-            WORKER.TOKEN = this.destination.ownerType === "User" ? USER.TOKEN : "";
+            // 작업 토큰. v1.6은 조직 대상이면 별도 작업 계정의 토큰을 쓰려 했으나 그 토큰을 설정하는 곳이 없어 빈 토큰(`token `)으로 GitHub에
+            // 요청을 보냈다. 관리자인 사용자가 조직 저장소로 옮겨도 인증이 없어 거절되었으므로(migration-F3) 늘 사용자 토큰을 쓴다.
+            WORKER.TOKEN = USER.TOKEN;
 
             this.isMigrationWorkerAdmin(this.destination);
             this.checkIfDestinationHaveDataAlready();

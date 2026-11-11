@@ -152,7 +152,7 @@ export const tests = [
     const cs = await calls(page);
     assert.ok(cs.some((c) => c.method === 'GET' && c.url === '/migration/alpha/projects/one/milestones?withWikiCommit=true'));
     const post = cs.find((c) => c.method === 'POST' && c.url === 'https://api.github.com/repos/myorg/repoA/milestones');
-    assert.deepEqual(JSON.parse(post.body), { id: 5, title: 'v1', state: 'open' }); assert.equal(post.headers.Authorization, 'token ');
+    assert.deepEqual(JSON.parse(post.body), { id: 5, title: 'v1', state: 'open' }); assert.equal(post.headers.Authorization, 'token tok123', '조직 대상도 사용자 토큰을 쓴다 (migration-F3, v1_6은 빈 토큰을 보내 GitHub가 거절했다, 고쳤다)');
     const log = cs.find((c) => c.method === 'POST' && /yona-migration-log\/issues/.test(c.url)); const logBody = JSON.parse(log.body);
     assert.equal(logBody.title, 'alpha/one --> myorg/repoA 마일스톤(1)'); assert.deepEqual(logBody.labels, ['alpha/one --> myorg/repoA', 'myorg', 'attachments']); assert.match(logBody.body, /milestone: 1\nissue: 2\nposting: 1/);
     assert.equal((await page.locator('.progress-bar').textContent()).replace(/\s/g, ''), '1/1');
