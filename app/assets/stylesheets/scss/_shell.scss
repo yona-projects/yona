@@ -162,3 +162,10 @@ $shell-gap: 14px;
         background: rgba(255, 255, 255, 0.15);
     }
 }
+
+// 코드 비교와 커밋 화면의 줄 댓글 아이콘(`.yobicon-comments`)은 표 왼쪽 바깥(약 30px)에 놓인다. 사이드바 옆에서는 아이콘이
+// 사이드바 위로 겹쳐 클릭을 사이드바가 가로채므로, 표 왼쪽에 아이콘이 들어갈 자리를 둔다.
+.shell-main .diff-body {
+    padding-left: 34px;
+}
+
