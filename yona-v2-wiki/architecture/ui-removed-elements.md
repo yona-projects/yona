@@ -35,7 +35,8 @@ updated: 2026-11-11
 | 프로젝트 가로 메뉴의 짧은 글자 `short-menu`(H, C, I…)와 숨김 글자 `.blind` | `project/menu` | 합침 | 좁은 화면에서 글자 대신 쓰던 장치이다. 사이드바는 서랍으로 접히므로 필요 없다. 단축키는 항목에서 파생된다 | D-137, D-141 | 사이드바 항목의 글자와 `data-shortcut` | 계획 |
 | 프로젝트 설정 탭 10개(두 줄로 넘침) | `project/partial-settingmenu` | 옮김 | 가로 탭이 넘친다 | D-141 | 설정을 누르면 바뀌는 설정 전용 사이드바(`ShellNav.projectSettings`). 항목은 그대로 10개이고 "위험 구역" 한 항목으로 합치지 않았다(이전, 삭제, 저장소 종류 변경이 화면 셋이라 허브 화면이 새로 필요해지기 때문, A-471) | 계획 |
 | 조직 머리 아래 가로 메뉴와 설정 탭 6개 | `organization/menu`, `organization/partial-settingmenu` | 옮김 | 같은 이유 | D-141 | 조직 사이드바와 조직 설정 사이드바 | 계획 |
-| 사용자 설정 상단 탭 11개 | `user/partial-edit-tabmenu` | 옮김 | 같은 이유 | D-141 | 내 설정 사이드바(항목 11개) | 계획 |
+| 사용자 설정 상단 탭 11개 | `user/partial-edit-tabmenu` | 옮김 | 같은 이유 | D-141 | 내 설정 사이드바(항목 11개). 순서는 계정(비밀번호, 이메일, 연결된 계정), 알림, 보안(토큰, SSH, GPG, 2단계, 보안 기록), OAuth 앱으로 정리했다(탭의 옛 순서는 프로필, 비밀번호, 알림, 이메일, 토큰, GPG, SSH, 2단계, OAuth, 연결된 계정, 보안 기록이었다, A-469) | 완료 9e2ac629e, 캡처 `shots/p1-user-settings/` |
+| 설정 탭 줄의 위쪽 여백 클래스 `mt20`과 탭 아래 여백 `mb-3` | `user/partial-edit-tabmenu` | 없앰 | 탭 줄 자체가 사라졌으므로 필요 없다 | D-141 | 없음 | 완료 9e2ac629e |
 | 사이트 관리 사이드바의 제목 `h3`(사이트 관리) | `layout/site-mng-layout` | 옮김 | 사이드바 머리에 맥락 이름을 쓴다 | D-141 | 사이드바 머리 | 완료 36217925c, 캡처 `shots/p0-site-admin/` |
 | 사이트 관리 사이드바의 활성 표시(왼쪽 4px 굵은 테두리와 굵은 글자) | `layout/site-mng-layout`, `scss/_page.scss`의 `.site-setting-nav` | 옮김(모양만 바뀜) | Bootstrap `nav-pills`의 활성 모양(연한 주황 배경, 주황 글자)으로 통일한다. 새 색을 만들지 않고 테마 변수를 쓴다 | D-58, D-141 | `nav-link.active` | 완료 36217925c |
 | 사이트 관리 사이드바의 활성 판정(경로가 정확히 같을 때만 켜짐) | `layout/site-mng-layout` | 합침(결함 수정) | 상세 화면(`/sites/oauth-apps/12` 등)에서 활성이 꺼지던 결함. 한 곳(`NavMenu.activeKey`)에서 하위 경로까지 판정한다 | D-141 | `ShellNav` | 완료 36217925c |
