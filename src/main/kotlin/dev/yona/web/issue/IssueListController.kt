@@ -3,6 +3,7 @@ package dev.yona.web.issue
 import dev.yona.web.QueryLinks
 import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
+import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
@@ -194,7 +195,8 @@ class IssueListController(
             openMilestones = openMilestones.map { MilestoneOption(requireNotNull(it.id), it.title.orEmpty(), it.state?.name.orEmpty()) },
             closedMilestones = closedMilestones.map { MilestoneOption(requireNotNull(it.id), it.title.orEmpty(), it.state?.name.orEmpty()) },
             selectedMilestone = selectedMilestone,
-            labels = formOptions.labelGroups(labels), canManageLabels = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.ISSUE_LABEL),
+            labels = formOptions.labelGroups(labels), // v1.6은 구성원에게도 톱니바퀴를 보였지만 라벨 관리 화면(`labelsform`)은 프로젝트 `UPDATE` 권한이 필요해 403이었다(issue-F12). 여는 권한과 맞춘다
+            canManageLabels = accessControl.isAllowed(viewer, project.asResource(), dev.yona.domain.enumeration.Operation.UPDATE),
             hasLabels = labels.isNotEmpty(), selectedLabelIds = java.util.LinkedHashSet(condition.labelIds), manager = viewer?.let { v -> views.of(project).manager } ?: false
         )
     }

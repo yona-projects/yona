@@ -317,6 +317,16 @@ class IssueListTest : AbstractIntegrationTest() {
         assertTrue(form.select("a[href\$=issue/labelsform]").isEmpty())
     }
 
+    @Test
+    fun `라벨 관리 톱니바퀴는 라벨 관리 화면을 열 수 있는 관리자에게만 보인다 (v1_6은 구성원에게도 보여 403이었다, 고쳤다, issue-F12)`() {
+        val project = newProject()
+        val member = join(newUser(), project, RoleType.MEMBER)
+        val manager = join(newUser(), project, RoleType.MANAGER)
+        assertTrue(page(project, session = login(member)).select("a[href\$=issue/labelsform]").isEmpty())
+        mockMvc.perform(get("${base(project)}/issue/labelsform").session(login(member))).andExpect(status().isForbidden)
+        assertFalse(page(project, session = login(manager)).select("a[href\$=issue/labelsform]").isEmpty())
+    }
+
     // --- 일괄 변경 ---
 
     @Test
