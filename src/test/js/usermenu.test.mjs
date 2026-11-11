@@ -44,6 +44,13 @@ export const tests = [
     await page.fill('.search-input', 'beta'); await page.dispatchEvent('.search-input', 'keyup', { key: 'a' }); await page.waitForTimeout(100);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.user-ul > .user-li')].map((e) => getComputedStyle(e).display !== 'none')), [false, true]); await page.close();
   } },
+  { name: '사용자 메뉴: 목록을 읽지 못해도(서버 오류) 아바타 단추로 사이드바를 열고 닫는다 (shell-F7, v1_6은 단추 처리기가 하나도 걸리지 않았다, 고쳤다)', run: async () => {
+    const page = await open({ responses: { '/um': { ok: false, raw: 'server error' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    assert.equal(await width(page), '360px', '목록을 못 읽으면 열기 단추가 아무 일도 하지 않는다');
+    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    assert.equal(await width(page), '0px'); await page.close();
+  } },
   { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 col-lg-8이 되며 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [7] } } } });
     await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);

@@ -15,7 +15,9 @@ $(() => {
             try {
                 data = await yona.http.get(UsermenuUrl);
             } catch (failure) {
+                // 목록을 읽지 못해도 아바타 단추와 바깥 클릭 닫기와 F 키는 걸어 둔다. 예전에는 여기서 끝나 단추가 아무 일도 하지 않았다(shell-F7)
                 console.log("Usermenu loading failed: " + failure);
+                iniNaviUserMenu();
                 return;
             }
             $("#usermenu-tab-content-list").html(data);
