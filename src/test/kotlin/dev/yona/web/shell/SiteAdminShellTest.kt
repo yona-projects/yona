@@ -119,7 +119,11 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
             val doc = Jsoup.parse(mockMvc.perform(get(path).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
             assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), "$path 는 swap-safe 표지가 있어야 한다")
         }
-        val unsafe = Jsoup.parse(mockMvc.perform(get("/sites/userList").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        listOf("/sites/userList", "/sites/projectList", "/sites/postList", "/sites/issueList", "/sites/data", "/sites/oauth-apps").forEach { path ->
+            val d = Jsoup.parse(mockMvc.perform(get(path).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+            assertNotNull(d.selectFirst(".shell-main [data-swap-safe]"), "$path 는 전역 처리기가 없어 swap-safe 이다")
+        }
+        val unsafe = Jsoup.parse(mockMvc.perform(get("/sites/massmail").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertNull(unsafe.selectFirst("[data-swap-safe]"), "옛 스크립트가 있는 화면은 일반 이동으로 둔다")
         val nav = unsafe.selectFirst("nav.shell-sidebar")!!
         assertEquals(".shell-main", nav.attr("hx-target"))

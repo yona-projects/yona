@@ -10,6 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::oauthAppsPage})}">
 <th:block th:fragment="oauthAppsPage">
+<span data-swap-safe hidden></span>
 <div class="two-factor-page">
 <h3 th:text="#{site.oauthApps.title}"></h3>
 <p class="text-body-secondary" th:text="#{site.oauthApps.description}"></p>

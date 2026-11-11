@@ -64,6 +64,7 @@ updated: 2026-11-11
 - **`loadModule`을 쓰는 화면**(프로젝트 `members`, `changeVCS`, `deleteform`, `transfer`, 조직 `members`, `settingform`)도 옵트인했다. 조건은 둘이다. (1) 초기화 스크립트가 본문 밖에 있으면 `hx-select`에서 빠지므로 `.shell-main` 안으로 옮긴다. (2) 본문을 교체하면 `<script type="module" src>`가 늦게 실행되어 `loadModule`이 먼저 돌고 옛 적재 경로(`service/yona.*.js`, 404)로 물러나므로, 초기화 스크립트를 `type="module"`로 바꾸고 첫 줄에서 `await import(모듈)`을 한 뒤 초기화한다. 직접 열 때와 교체할 때 모두 오류와 404가 없는 것을 브라우저에서 확인했다. 이 모듈들에는 `document`나 `window`에 거는 처리기가 없다(`user.Setting`, `user.View`는 있어 제외).
 - 내 설정의 `user.Setting` 모듈 화면 4개(`password`, `emails`, `notifications`, `token`)도 같은 방식으로 옵트인했다. 이 모듈의 처리기는 요소에 걸려 있어(`document`, `window` 전역 없음) 교체해도 쌓이지 않는다. 프로필(`edit`)은 `cropperjs`를 쓰므로 일반 이동으로 둔다. `user.View`(프로필 보기)는 사이드바 화면이 아니라 해당하지 않는다.
 - 확인창(`onsubmit`)만 쓰는 내 설정 목록 6개(`ssh`, `gpg`, `oauth-apps`, `linked-accounts`, `token-edit`, `two-factor`)도 옵트인했다. 인라인 속성 처리기는 요소에 붙어 있어 교체로 사라지고 새로 생긴다. `two-factor`의 보조 스크립트는 본문 안으로 옮겼다. 내 설정 22개 중 `edit`(프로필, cropper)와 `two-factor-key`(webauthn 모듈)만 일반 이동이다.
+- 사이트 관리의 데이터 화면 6개(`userList`, `projectList`, `postList`, `issueList`, `data`, `oauth-apps`)도 옵트인했다. 스크립트가 조각 안에 있어 htmx가 교체 때 다시 실행하고, 처리기는 목록 래퍼와 요소에 걸려 있다. 이동 뒤에도 삭제 모달이 열리는 것을 확인했다. 대량 메일(`massmail`)은 모듈이 `document.body`에 폼을 덧붙여 일반 이동으로 둔다.
 - 이동 이력은 `yona.Htmx.js`의 설정대로 서버 재로드이다(`historyCacheSize=0`).
 
 ## 시험

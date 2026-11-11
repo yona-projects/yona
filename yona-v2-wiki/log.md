@@ -62,3 +62,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | 내 설정 목록 6개 swap-safe
 
 ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교체 5회 오류와 404 없음.
+
+## [2026-11-11] feat | 사이트 관리 데이터 화면 6개 swap-safe
+
+브라우저 교체 6회 오류와 404 없음, 삭제 모달 동작 확인.

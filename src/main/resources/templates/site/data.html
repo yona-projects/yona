@@ -10,6 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::dataPage})}">
 <th:block th:fragment="dataPage">
+<span data-swap-safe hidden></span>
     <div class="title_area">
         <h2 class="float-start" th:text="#{site.sidebar.data}"></h2>
     </div>
