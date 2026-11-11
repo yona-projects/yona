@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/compare_svn.scala.html
-  모델: title, projectView, commitA, commitB, patch, tplFileUrl, tplRawUrl
+  모델: title, projectView, commitA, commitB, patch, filesUrl, tplFileUrl, tplRawUrl
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::compareSvnPage})}">
@@ -29,6 +29,7 @@
             "bCommentable"   : false,
             "sParentCommitId": /*[[${commitA}]]*/ "",
             "sCommitId"      : /*[[${commitB}]]*/ "",
+            "sCodeURL"       : /*[[${filesUrl}]]*/ "",
             "sTplFileURL"    : /*[[${tplFileUrl}]]*/ "",
             "sTplRawURL"     : /*[[${tplRawUrl}]]*/ ""
         });

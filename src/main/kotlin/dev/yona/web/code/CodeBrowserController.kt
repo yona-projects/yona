@@ -176,7 +176,7 @@ class CodeBrowserController(
 
     /** 파일을 이름과 내용으로 감지한 종류 그대로 브라우저에서 연다. */
     @GetMapping("/{user}/{project}/files/{rev}/{*path}")
-    @IsAllowed(Operation.READ)
+    @CodeAccessCheck // v1.6은 코드 접근을 구성원에게만 연 프로젝트에서도 이 화면이 열려 있었다(code-F3)
     @Transactional(readOnly = true)
     fun openFile(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String, response: HttpServletResponse

@@ -336,6 +336,17 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `코드를 구성원에게만 여는 프로젝트의 files 와 compare 도 비구성원에게 막힌다 (v1_6은 열려 있었다, 고쳤다, code-F3)`() {
+        val p = project(memberOnly = true)
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to "a".toByteArray())))
+        val m = member(p); val outsider = user()
+        val none = "0".repeat(40)
+        mockMvc.perform(get("/${p.owner}/${p.name}/files/master/a.txt").session(login(outsider))).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${p.owner}/${p.name}/compare/$none..$none").session(login(outsider))).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${p.owner}/${p.name}/files/master/a.txt").session(login(m))).andExpect(status().isOk)
+    }
+
+    @Test
     fun `Git, Subversion, Mercurial이 아닌 프로젝트는 지원하지 않는다`() {
         val p = project(vcs = "Bazaar")
         mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isNotImplemented)

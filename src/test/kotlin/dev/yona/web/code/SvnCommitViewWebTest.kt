@@ -328,6 +328,16 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비교 화면의 리비전 링크 기준 주소(sCodeURL)를 넘긴다 (v1_6은 undefined였다, 고쳤다, code-F2)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n"))
+        val doc = page("/${p.owner}/${p.name}/compare/1..2")
+        val script = doc.select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
+        assertTrue(Regex("\"sCodeURL\"\\s*:\\s*\"[^\"]*/${p.owner}/${p.name}/code\"").containsMatchIn(script), script)
+    }
+
+    @Test
     fun `변경이 없으면 안내하고 없는 리비전은 404이다`() {
         val p = project()
         commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
