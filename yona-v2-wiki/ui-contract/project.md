@@ -17,6 +17,8 @@ sources:
   - src/main/kotlin/dev/yona/web/access/
   - src/main/kotlin/dev/yona/access/AccessControl.kt
   - src/main/resources/static/assets/javascripts/esm/service/project.*.js
+  - src/main/resources/static/assets/javascripts/esm/Request.js
+  - src/main/kotlin/dev/yona/web/access/ProjectCheckStage.kt
 updated: 2026-11-11
 ---
 
@@ -50,30 +52,30 @@ updated: 2026-11-11
 
 ### 1.1 접근 검사 체인
 - `AccessChainInterceptor.preHandle` (`web/access/AccessChainInterceptor.kt:29`)가 컨트롤러 메서드에 붙은 어노테이션을 **메서드에 쓴 순서대로 먼저, 그다음 클래스에 쓴 것**을 실행한다(`annotationsInPlayOrder`, `:47`). 하나라도 막으면 나머지는 실행하지 않는다.
-- 이 영역의 모든 컨트롤러는 클래스에 `@AnonymousCheck`가 있다. 그래서 메서드의 `@IsAllowed`가 먼저 돈다. 사이트가 익명 접근을 막은 경우 익명은 로그인 폼 303이 아니라 프로젝트 검사의 **403 로그인 화면**을 먼저 받는다(`ProjectCheckStage.kt:171-203`, `ErrorViews.loginRequired`).
-- `@IsAllowed(연산, 리소스종류)`: 프로젝트를 찾고(없으면 익명은 403 로그인 화면, 로그인 사용자는 403 `error.forbidden.or.notfound`), 읽기 권한이 없으면 403(익명은 로그인 화면), 그다음 대상 리소스를 경로 구간으로 찾아 연산을 검사한다. 대상이 없으면 404(`error.notfound`, 프로젝트 레이아웃), 연산이 거부되면 403(`error.forbidden`, 프로젝트 레이아웃) (`ProjectCheckStage.kt:207-216`).
-- `@AnonymousCheck(requiresLogin=true, displaysFlashMessage=true)`: 익명이면 `303 /users/loginform?redirectUrl=<요청 경로>`와 경고 `user.login.alert` (`AnonymousCheckStage.kt:288-297`).
-- `@RequiresVcs(능력)`: 저장소 종류가 능력을 지원하지 않으면 400 `error.badrequest.only.available.for.git` (`ProjectCheckStage.kt:121-123`).
+- 이 영역의 모든 컨트롤러는 클래스에 `@AnonymousCheck`가 있다. 그래서 메서드의 `@IsAllowed`가 먼저 돈다. 사이트가 익명 접근을 막은 경우 익명은 로그인 폼 303이 아니라 프로젝트 검사의 **403 로그인 화면**을 먼저 받는다(`ProjectCheckStage.kt:127-175`, `ErrorViews.loginRequired`).
+- `@IsAllowed(연산, 리소스종류)`: 프로젝트를 찾고(없으면 익명은 403 로그인 화면, 로그인 사용자는 403 `error.forbidden.or.notfound`), 읽기 권한이 없으면 403(익명은 로그인 화면), 그다음 대상 리소스를 경로 구간으로 찾아 연산을 검사한다. 대상이 없으면 404(`error.notfound`, 프로젝트 레이아웃), 연산이 거부되면 403(`error.forbidden`, 프로젝트 레이아웃) (`ProjectCheckStage.kt:177-186`). 프로젝트를 찾아 읽기 권한을 확인한 직후(`readableProject`)에 `checkMenuEnabled`가 한 번 더 돈다. 경로의 셋째 구간이 `issues`, `issue`, `issueform`, `copyLabels`이면 이슈 메뉴(`menuSetting.issue`)가, `milestones`, `milestone`, `newMilestoneForm`이면 마일스톤 메뉴가 꺼진 프로젝트에서 404(`error.notfound`, 프로젝트 레이아웃)를 돌려준다. `issue/label...`(라벨 관리)와 API 경로(`/-_-api/`)와 구간이 셋보다 적은 경로는 막지 않는다. 데이터는 지우지 않으므로 메뉴를 다시 켜면 그대로 열린다 (`ProjectCheckStage.kt:86-111`). 이 검사는 `@IsAllowed`, `@IsCreatable`, `@RequiresVcs`, `@DefaultProjectCheck`, `@CodeAccessCheck` 가운데 어느 것이든 먼저 도는 것이 통과시킨 요청에 적용된다(`:63-65`).
+- `@AnonymousCheck(requiresLogin=true, displaysFlashMessage=true)`: 익명이면 `303 /users/loginform?redirectUrl=<요청 경로>`와 경고 `user.login.alert` (`AnonymousCheckStage.kt:25-35`). GET 요청이면 질의 문자열도 `%3F` 뒤에 인코딩해 `redirectUrl` 값에 싣는다(`?` 이하가 로그인 뒤에 복원됨, oauth-F7).
+- `@RequiresVcs(능력)`: 저장소 종류가 능력을 지원하지 않으면 400 `error.badrequest.only.available.for.git` (`ProjectCheckStage.kt:69-71`).
 - `@DefaultProjectCheck`: 프로젝트 존재와 읽기 권한만 본다. `@GuestProhibit`: 게스트 계정이면 홈 `/`로 303과 경고 `error.forbidden.or.not.allowed`.
 - 권한 판정의 실제 규칙은 `access/AccessControl.kt`이다. 이 영역에서 쓰는 규칙만 요약한다.
 
 | 연산, 리소스 | 허용 | 근거 |
 |---|---|---|
-| 프로젝트 READ | 사이트 관리자, 프로젝트 멤버(역할 무관), 그룹 관리자, 공개 프로젝트이고 게스트 계정이 아닌 사용자(익명 포함, 사이트가 익명 접근을 허용할 때), 그룹(조직) 프로젝트의 그룹 구성원(공개 또는 보호) | `AccessControl.kt:124-145` |
+| 프로젝트 READ | 사이트 관리자, 프로젝트 멤버(역할 무관), 그룹 관리자, 공개 프로젝트이고 게스트 계정이 아닌 사용자(익명 포함, 사이트가 익명 접근을 허용할 때), 그룹(조직) 프로젝트의 그룹 구성원(공개 또는 보호) | `AccessControl.kt:135-145` |
 | 프로젝트 UPDATE, DELETE | 사이트 관리자, 프로젝트 `MANAGER` 역할, 그룹 관리자. 일반 멤버는 불가 | `:159-170` |
 | 프로젝트 WATCH | 공개 프로젝트의 로그인 사용자, 멤버, 그룹 관리자, 그룹 구성원, 사이트 관리자 | `:147-152` |
-| 프로젝트 LEAVE | 로그인했고 소유자가 아닌 멤버. 사이트 관리자는 멤버가 아니어도 항상 참(`:111`이 먼저 돈다) | `:154-157` |
-| 마일스톤, 라벨 등 프로젝트 리소스 UPDATE | 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버, 그룹 구성원 | `:175-222` |
-| 프로젝트 리소스 DELETE (마일스톤, 라벨) | 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버. 그룹 구성원만으로는 불가 | `:218` |
-| 프로젝트 안 리소스 만들기 (`isProjectResourceCreatable`) | 로그인 필수. 사이트 관리자, 그룹 관리자, 멤버, 그룹 구성원은 모두 가능, 공개 프로젝트의 비멤버는 이슈, 게시글, 댓글, 포크, 코드 댓글, 리뷰 댓글만 | `:65-77` |
+| 프로젝트 LEAVE | 로그인했고 소유자가 아닌 멤버. 사이트 관리자는 멤버가 아니어도 권한 판정은 항상 참(`:111`이 먼저 돈다). 홈의 탈퇴 단추는 여기에 `projectMember`(역할을 가진 구성원)를 더해 비구성원 사이트 관리자에게는 숨긴다 | `:154-157`, `ProjectViewContext.kt:129` |
+| 마일스톤, 라벨 등 프로젝트 리소스 UPDATE | 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버, 그룹 구성원 | `:174-222` |
+| 프로젝트 리소스 DELETE (마일스톤, 라벨) | 사이트 관리자, 그룹 관리자, 프로젝트 관리자, 멤버. 그룹 구성원만으로는 불가 | `:221` |
+| 프로젝트 안 리소스 만들기 (`isProjectResourceCreatable`) | 로그인 필수. 사이트 관리자, 그룹 관리자, 멤버, 그룹 구성원은 모두 가능, 공개 프로젝트의 비멤버는 이슈, 게시글, 댓글, 포크, 코드 댓글, 리뷰 댓글만 | `:65-78` |
 
 ### 1.2 CSRF
-읽기 요청이 아닌 모든 요청은 토큰이 필요하다. 서버는 `XSRF-TOKEN` 쿠키를 심고(`security/CsrfSupport.kt:33`), `common/yona.Csrf.js`가 XHR, `fetch`에는 `X-XSRF-TOKEN` 헤더를, 폼 제출에는 숨은 `_csrf` 필드를 실어 준다. `Authorization`, `Yona-Token` 헤더가 있는 요청과 API, Git, SVN, LFS 경로는 대상이 아니다(`CsrfSupport.kt:16-30`). 이 영역 템플릿의 폼은 토큰 필드를 직접 쓰지 않는다.
+읽기 요청이 아닌 모든 요청은 토큰이 필요하다. 서버는 `XSRF-TOKEN` 쿠키를 심고(`security/CsrfSupport.kt:32-37`), `common/yona.Csrf.js`가 XHR, `fetch`에는 `X-XSRF-TOKEN` 헤더를, 폼 제출에는 숨은 `_csrf` 필드를 실어 준다. `Authorization`, `Yona-Token` 헤더가 있는 요청과 API, Git, SVN, LFS 경로는 대상이 아니다(`CsrfSupport.kt:16-30`). 이 영역 템플릿의 폼은 토큰 필드를 직접 쓰지 않는다.
 
 ### 1.3 응답 규칙
 - 성공한 폼 제출은 `RedirectSupport.see`로 **303 See Other**(필요하면 일회성 메시지 `warning`, `info`, `success`, `error`를 실음)이다 (`web/RedirectSupport.kt`).
 - Ajax(`X-Requested-With: XMLHttpRequest`) 요청에는 삭제, 이전, 저장소 종류 변경이 **204 + `Location` 헤더**로 답하고 스크립트가 직접 이동한다(`AjaxRequests.isXhr`).
-- `data-request-method` 요소(`esm/Request.js`)는 `fetch`로 보내고 응답이 `!ok`이면 `request:error` 이벤트만 낸다. 이 영역에는 그 이벤트 수신자가 없어 **화면에 아무 표시도 없다**(project-F9). 2xx이면 204+`Location`은 이동, 그 밖은 `reload`.
+- `data-request-method` 요소(`esm/Request.js`)는 `fetch`로 보내고 응답이 `!ok`(또는 네트워크 오류)이면 `request:error` 이벤트를 낸다. 이벤트를 `preventDefault()`하지 않았으면 `$yona.alert`로 오류 알림을 띄운다: 403은 `error.forbidden`, 404는 `error.notfound`, 그 밖과 네트워크 오류는 `error.internalServerError`(project-F9). 2xx이면 204+`Location`은 이동, 그 밖은 `reload`.
 - 오류 화면: `ErrorViews.notFound/forbidden/badRequest` (`web/error/ErrorViews.kt`)가 프로젝트 레이아웃 안의 오류 페이지(HTML)를 해당 상태 코드로 돌려준다.
 
 ### 1.4 프로젝트 화면의 조립
@@ -86,12 +88,12 @@ updated: 2026-11-11
 `esm/ShortcutKey.js`는 키 문자열 하나에 **핸들러 하나**만 둔다(`attachHandler`가 덮어씀). `setKeymapLink`가 만드는 핸들러는 입력란(`INPUT`, `TEXTAREA`)에 초점이 있으면 아무것도 하지 않고, 아니면 `document.location.href`를 바꾼다. 같은 키를 나중에 등록한 쪽이 이긴다. 등록 순서는 페이지에서 `$(document).ready` 블록이 나온 순서이다(레이아웃 `common/scripts.html`의 `U`, `A` 다음에 `project/menu`의 블록, 그다음 화면별 블록). 수정 키(`CTRL`, `ALT`, `SHIFT`)가 함께 눌리면 키 문자열이 달라져 일치하지 않는다.
 
 ### 1.7 메시지 키 점검
-이 영역 템플릿이 쓰는 고정 키 278개를 `messages.properties`와 `messages_ko_KR.properties`에 대조했다. 한국어 번들에 없는 키는 `project.webhook.includeGitPush` 하나이다(project-F1). 동적 키(`project.merge.*`, `user.role.*`, `milestone.state.*`, `issue.state.*`, `common.order.*`, `project.new.vcsType.*`)는 모두 한국어 번들에 있다. 번들은 `fallback-to-system-locale: false`이고 `use-code-as-default-message: true`이다(`application.yml:84-90`), 없는 키는 기본 번들(영어)로 떨어진다.
+이 파일이 다루는 템플릿(머리, 메뉴, 홈과 세 부분 조각, 목록, 생성, 가져오기, 통계, 구독자 목록)이 쓰는 고정 키 97개를 `messages.properties`와 `messages_ko_KR.properties`에 대조했다(2026-11-11 재조사). 한국어 번들에 없는 키는 없다. 웹훅 화면의 `project.webhook.includeGitPush`는 한국어 번들에 소문자 키가 더해져 있다(`messages_ko_KR.properties:2012`, project-F1). 동적 키(`project.merge.*`, `user.role.*`, `milestone.state.*`, `issue.state.*`, `common.order.*`, `project.new.vcsType.*`)는 모두 한국어 번들에 있다. 번들은 `fallback-to-system-locale: false`이고 `use-code-as-default-message: true`이다(`application.yml:84-90`), 없는 키는 기본 번들(영어)로 떨어진다.
 
 ## 2. 프로젝트 머리 (`project/header.html`)
 
 ### 2.1 개요, 레이아웃
-`ProjectViewContext`(`view`)를 받는 조각. 배경 이미지(`view.backgroundUrl`)가 깔린 바깥 상자 안에 아바타(로고), 경로 상자(소유자 / 이름, 별, 잠금, G 표시, 원본 프로젝트), 오른쪽 도구(가입 신청, 구독)가 있다. 로고와 배경은 프로젝트에 올린 첫 첨부(`/files/{id}`)이고 없으면 `/assets/images/project_default_logo.png`, `/assets/images/project_default.jpg` (`ProjectViewContext.kt:183-184`). 소유자와 `/` 구분은 `hide-in-mobile`이다(`header.html:14-15`). 구독 영역(`.watch-btn`)은 720px 이하에서 숨는다.
+`ProjectViewContext`(`view`)를 받는 조각. 배경 이미지(`view.backgroundUrl`)가 깔린 바깥 상자 안에 아바타(로고), 경로 상자(소유자 / 이름, 별, 잠금, G 표시, 원본 프로젝트), 오른쪽 도구(가입 신청, 구독)가 있다. 로고와 배경은 프로젝트에 올린 첫 첨부(`/files/{id}`)이고 없으면 `/assets/images/project_default_logo.png`, `/assets/images/project_default.jpg` (`ProjectViewContext.kt:77,80,186-187`). 배경 `style`의 `background-image:url(...)`와 로고 `img src`는 `@{}`로 감싸 컨텍스트 경로 접두어를 가진다(`header.html:6,10`). 소유자와 `/` 구분은 `hide-in-mobile`이다(`header.html:14-15`). 구독 영역(`.watch-btn`)은 720px 이하에서 숨는다.
 
 ### 2.2 동작 요소 표
 
@@ -125,16 +127,16 @@ updated: 2026-11-11
 | 홈 (H) | 항상 | `/{o}/{n}` | `menu.html:9-13` |
 | 코드 (C) | `menuSetting.code` 그리고 `codeAccessible` | `/{o}/{n}/code` | `:14-20` |
 | 이슈 (I) | `menuSetting.issue` | `/issues`. 열린 이슈 수 배지(0이면 숨김) | `:21-25` |
-| 풀 리퀘스트 (P) | `menuSetting.pullRequest` 그리고 `vcs.pullRequests` 그리고 `codeAccessible` | `view.pullRequestPath`(포크한 프로젝트는 `/sentPullRequests`, 아니면 `/pullRequests`). 열린 개수 배지 | `:26-32`, `ProjectViewContext.kt:151` |
+| 풀 리퀘스트 (P) | `menuSetting.pullRequest` 그리고 `vcs.pullRequests` 그리고 `codeAccessible` | `view.pullRequestPath`(포크한 프로젝트는 `/sentPullRequests`, 아니면 `/pullRequests`). 열린 개수 배지 | `:26-32`, `ProjectViewContext.kt:154` |
 | 리뷰 (R) | `menuSetting.review` 그리고 `codeAccessible` | `/reviews`. 열린 스레드 수 배지 | `:33-40` |
 | 마일스톤 (M) | `menuSetting.milestone` | `/milestones` | `:41-45` |
 | 게시판 (B) | `menuSetting.board` | `/posts`. 글 수 배지 | `:46-51` |
 | 위키 (W) | `menuSetting.wiki == true` | `/wiki` | `:52-56` |
 | 설정(톱니) | `view.canUpdate`(프로젝트 관리자, 그룹 관리자, 사이트 관리자) | `/settingform`. 가입 신청 수 배지 | `:58-68` |
 
-`codeAccessible`는 코드 열람을 구성원으로 제한한 프로젝트에서 비구성원에게 거짓이다(`ProjectViewContext.kt:143`).
+`codeAccessible`는 코드 열람을 구성원으로 제한한 프로젝트에서 비구성원에게 거짓이다(`ProjectViewContext.kt:146`).
 
-단축키(`menu.html:72-100`, `$yona.loadModule("project.Global", {htKeyMap})` → `ShortcutKey.setKeymapLink`): `H` 홈, `B` 게시판(`menuSetting.board`), `C` 코드(`menuSetting.code`), `I` `/issues?state=open`(`menuSetting.issue`), `M` 마일스톤(`menuSetting.milestone`), `P` 풀 리퀘스트(`menuSetting.pullRequest and vcs.pullRequests`), `Q` 설정 화면(`view.settingShortcutEnabled`, 프로젝트 `MANAGER` 역할일 때만 켬, `ProjectViewContext.kt:161`). 입력란에 초점이 있으면 동작하지 않는다. `R`, `W`에는 단축키가 없다. 단축키 목록의 조건에는 `codeAccessible`이 없어서, 코드 열람 제한 프로젝트의 비구성원이 `C`나 `P`를 누르면 403 화면으로 간다(project-F6).
+단축키(`menu.html:72-102`, `$yona.loadModule("project.Global", {htKeyMap})` → `ShortcutKey.setKeymapLink`): `H` 홈, `B` 게시판(`menuSetting.board`), `C` 코드(`menuSetting.code and view.codeAccessible`), `I` `/issues?state=open`(`menuSetting.issue`), `M` 마일스톤(`menuSetting.milestone`), `P` 풀 리퀘스트(`menuSetting.pullRequest and vcs.pullRequests and view.codeAccessible`, 탭과 같은 조건), `Q` 설정 화면(`view.settingShortcutEnabled`, 프로젝트 `MANAGER` 역할일 때만 켬, `ProjectViewContext.kt:164`). 입력란에 초점이 있으면 동작하지 않는다. `R`, `W`에는 단축키가 없다. 코드 열람을 구성원으로 제한한 프로젝트의 비구성원에게는 `C`, `P` 단축키가 등록되지 않는다(탭과 같은 조건, project-F6). 단축키 목록의 주소는 모두 `@{}`로 컨텍스트 경로를 가진다.
 
 ## 4. 프로젝트 홈 (`project/home.html`)
 
@@ -148,12 +150,12 @@ updated: 2026-11-11
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답, 이어지는 동작 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
-| 설명 편집 연필 | 단추 | `canUpdate` | 설명 보기와 편집 상자를 전환(`hidden` 토글)하고 입력란에 초점 | 없음 | | 화면만(서버는 저장 때 검사) | `home.html:28`, `project.Home.js:74-76` |
-| 설명 입력란 | 입력 | 편집 상자 | 감싼 `<form onsubmit="return false">`이라 **Enter로는 저장되지 않는다** | | | | `:32-33` |
-| 저장 (`#descriptionSaveBtn`) | 단추 | 편집 상자 | `PUT {sURLProject}` JSON `{"overview": 값}` | `PUT /{o}/{n}`, `Content-Type: application/json` | 200 `{"overview": 값}`. 값이 있으면 `yona.Markdown.render`로 설명을 다시 그리고, 비면 입력란 플레이스홀더를 그림. 상자를 닫음. **실패하면 콘솔에만 기록하고 화면 변화 없음** | `@AnonymousCheck(requiresLogin)` → `@IsAllowed(UPDATE)`. 서버는 `overview`가 문자열일 때만 저장하고 아니면 `null`로 저장, 길이 검사 없음 | `:34`, `project.Home.js:80-100`, `ProjectHomeController.kt:93-107` |
-| 취소 | 단추 | 편집 상자 | 보기로 되돌림 | | | | `:34`, `project.Home.js:77` |
-| 복제 주소 입력란 `#cloneURL` | 입력(읽기 전용) | `menuSetting.code` | 클릭하면 전체 선택 | | | | `:38-39`, `project.Home.js:69` |
-| 복사 `#cloneURLBtn` | 단추 | `menuSetting.code` | `yona.Clipboard.copy(주소)`, 복사되면 토스트 `code.copyUrl.copied` 1초 | 없음 | | | `:40`, `project.Home.js:61-68` |
+| 설명 편집 연필 | 단추 | `canUpdate` | 설명 보기와 편집 상자를 전환(`hidden` 토글)하고 입력란에 초점 | 없음 | | 화면만(서버는 저장 때 검사) | `home.html:28`, `project.Home.js:73-76` |
+| 설명 입력란 `#project-description-input` | 입력 | 편집 상자 | 감싼 `<form onsubmit="return false">`는 제출을 막기만 하고, 입력란의 `keydown`이 Enter(한글 조합 중이 아닐 때)를 `#descriptionSaveBtn` 클릭으로 처리한다 | | | | `:32-33`, `project.Home.js:80-86` |
+| 저장 (`#descriptionSaveBtn`) | 단추 | 편집 상자 | `PUT {sURLProject}` JSON `{"overview": 값}` | `PUT /{o}/{n}`, `Content-Type: application/json` | 200 `{"overview": 값}`. 값이 있으면 `yona.Markdown.render`로 설명을 다시 그리고, 비면 입력란 플레이스홀더를 그림. 상자를 닫음. **실패하면 `$yona.alert`로 알리고(403 `error.forbidden`, 404 `error.notfound`, 그 밖 `error.internalServerError`) 편집 상자를 열어 둔다** | `@AnonymousCheck(requiresLogin)` → `@IsAllowed(UPDATE)`. 서버는 `overview`가 문자열일 때만 저장하고 아니면 `null`로 저장, 길이 검사 없음 | `:34`, `project.Home.js:87-110`, `ProjectHomeController.kt:93-107` |
+| 취소 | 단추 | 편집 상자 | 보기로 되돌림 | | | | `:34`, `project.Home.js:77-79` |
+| 복제 주소 입력란 `#cloneURL` | 입력(읽기 전용) | `menuSetting.code` | 클릭하면 전체 선택 | | | | `:38-39`, `project.Home.js:69-71` |
+| 복사 `#cloneURLBtn` | 단추 | `menuSetting.code` | `yona.Clipboard.copy(주소)`, 복사되면 토스트 `code.copyUrl.copied` 1초 | 없음 | | | `:40`, `project.Home.js:60-67` |
 | HTTP/SSH 전환 | 단추 둘 | `sshCloneUrl != null`(내장 SSH 서버를 켰고 Git 프로젝트) | 선택 표시를 옮기고 입력란 값을 `data-clone-url`로 바꿈(인라인 스크립트) | 없음 | | | `:42-57` |
 | README / 최근 이력 / 대시보드 탭 | 링크 | 항상 | 같은 URL에 `tabId`를 달아 전체 페이지 이동(README는 `tabId` 없음) | GET | | 읽기 | `:62-74` |
 | README 만들기 | 링크 | README 없음, `vcs.readmePosting` 그리고 `canCreateCommit` | `/postform?readme=true` | GET | | 서버는 글쓰기 화면에서 검사 | `partial-readme.html:12` |
@@ -161,10 +163,10 @@ updated: 2026-11-11
 | 새 이슈 | 링크 | `menuSetting.issue` | `/{o}/{n}/issueform` | GET | | 보임 조건에 로그인 검사 없음 | `:94-96` |
 | 포크 | 링크 | `menuSetting.code` 그리고 `vcs.fork` | `/{o}/{n}/newFork` | GET | 포크 폼 (`web/pullrequest/ForkController.kt:57`) | | `:97-101` |
 | 마일스톤 현황 | 조각 | `milestone != null` | 제목 링크 `/{o}/{n}/milestone/{id}`, 마감일(닫히지 않았으면 `(until)`, 지났으면 `over`), 진행 막대, 닫힘/전체 | GET | | | `home.html:103-105`, `milestone/partial-status.html` |
-| 구성원 추가 | 링크 | `canUpdateLabels`(멤버 이상) | `/{o}/{n}/members` | GET | 서버의 구성원 화면은 **프로젝트 관리자만**(project-F7) | | `:109` |
-| 구성원 한 줄 | 링크 둘 | 항상 | `/{loginId}` 사용자 페이지 | | | | `:113-120` |
-| 프로젝트 탈퇴 `#projectLeaveBtn` | 단추 | `canLeave` | 확인 모달 `#alertLeave` 열기 | 없음 | | | `:124`, `project.Home.js:102-104` |
-| 모달 "예" `#leaveBtn` | 단추 | 모달 | `DELETE {leaveUrl}` (`/{o}/{n}/member/{내 id}/delete`) | 성공 JSON `{location}`으로 `replace`. 오류: 403 `project.member.notExist`, 404 `project.is.empty`, 그 밖 `error.badrequest`를 `$yona.alert` | 읽기 권한과 (본인이거나 UPDATE). 소유자는 403 `project.member.ownerCannotLeave` | `:138`, `project.Home.js:107-125`, `ProjectMemberController.kt:132` |
+| 구성원 추가 `#member-add-link` | 링크 | `canUpdate`(프로젝트 관리자, 그룹 관리자, 사이트 관리자) | `/{o}/{n}/members` | GET | 구성원 화면과 같은 조건이라 일반 멤버에게는 보이지 않는다(project-F7) | | `:109` |
+| 구성원 한 줄 | 링크 둘 | 항상 | `/{loginId}` 사용자 페이지. 아바타 `src`는 `@{}`로 컨텍스트 경로를 가진다 | | | | `:113-120` |
+| 프로젝트 탈퇴 `#projectLeaveBtn` | 단추 | `canLeave`(`LEAVE` 권한이고 역할을 가진 구성원) | 확인 모달 `#alertLeave` 열기. `data-href`는 `@{${leaveUrl}}`로 컨텍스트 경로를 가진다 | 없음 | | | `:124`, `project.Home.js:111-113` |
+| 모달 "예" `#leaveBtn` | 단추 | 모달 | `DELETE {data-href}` (`/{o}/{n}/member/{내 id}/delete`). 클릭 처리기는 `#projectLeaveBtn`을 누를 때마다 이전 것을 떼고 다시 붙인다 | 성공 JSON `{location}`으로 `replace`. 오류: 403 `project.member.notExist`, 404 `project.is.empty`, 그 밖 `error.badrequest`를 `$yona.alert` | 읽기 권한과 (본인이거나 UPDATE). 소유자는 403 `project.member.ownerCannotLeave` | `:138`, `project.Home.js:117-146`, `ProjectMemberController.kt:132` |
 | 모달 "아니오", 닫기 X | 단추 | 모달 | 닫기(`data-bs-dismiss`) | | | | `:131,139` |
 
 ### 4.4 탭 내용
@@ -176,10 +178,10 @@ updated: 2026-11-11
 **대시보드** (`partial-dashboard.html`, `DashboardView`): 왼쪽 단에 `issueMenu`가 켜졌으면 "담당자별 열린 이슈"(담당자별 건수, 아바타, 비율 막대, "담당자 없음" 줄. 비면 "이슈 없음"과 새 이슈 링크), "마일스톤별 열린 이슈"(완료율 막대, "마일스톤 없음" 줄. 비면 안내와 새 마일스톤 링크), `pullRequestArea`(`menuSetting.pullRequest and vcs.pullRequests`)가 켜졌으면 최근 풀 리퀘스트 10건(`RECENT_PULL_REQUESTS=10`, 기여자 링크, 제목, 라벨, 담당자, 경과 시간, "더 보기 (열린 개수)" 링크 `/pullRequests`, 비면 안내와 새 풀 리퀘스트 링크). 오른쪽 단: "라벨별 열린 이슈"(분류별 라벨, 건수, 링크 `issues?state=open&labelIds=`). 링크는 `issueBase`(`/issues?state=open`)에 `&assigneeId=`(없음은 -1), `&milestoneId=`(없음은 -1), `&labelIds=`를 붙인다. 새 이슈, 새 마일스톤, 새 풀 리퀘스트 링크는 `target="_blank"`이다(`:19,62,114`).
 
 ### 4.5 스크립트, 팝업, 단축키
-- 모듈 `project.Home`(`project.Home.js`), `common/markdown` 조각(마크다운 렌더러 설정). 옵션 `sURLProject`.
+- 모듈 `project.Home`(`project.Home.js`), `common/markdown` 조각(마크다운 렌더러 설정). 옵션 `sURLProject`(인라인 스크립트에서 `[[@{${#paths.project(...)}}]]`로 컨텍스트 경로를 붙여 넘김, `home.html:149`).
 - 팝업은 탈퇴 확인 모달 하나. 닫기: 단추 `data-bs-dismiss`, 배경 클릭, Esc(부트스트랩 기본).
 - 화면 범위 단축키는 없다(메뉴의 단축키만).
-- `#leaveBtn` 클릭 핸들러를 `#projectLeaveBtn`을 누를 때마다 새로 붙인다(`project.Home.js:107`). 모달을 취소하고 다시 열어 "예"를 누르면 요청이 여러 번 나간다(project-F10).
+- `#leaveBtn` 클릭 처리기는 `#projectLeaveBtn`을 누를 때마다 `.off("click")`으로 이전 것을 떼고 다시 붙인다(`project.Home.js:117`). 모달을 취소하고 다시 열어도 "예"의 요청은 한 번만 나간다(project-F10).
 
 ### 4.6 권한 행렬 (홈)
 
@@ -187,8 +189,8 @@ updated: 2026-11-11
 |---|---|---|---|---|---|---|
 | 홈 보기 | 공개 프로젝트만(사이트가 익명 허용 시) | 공개, 그룹 구성원이면 보호도 | 허용 | 허용 | 허용 | 허용 |
 | 설명 편집 단추, 저장 | 숨김, 서버 303 로그인 | 숨김, 403 | 숨김, 403 | 보임, 허용 | 보임, 허용 | 보임, 허용 |
-| 구성원 추가 링크 | 숨김 | 숨김 | 보임(눌러도 구성원 화면은 403) | 보임 | 보임 | 보임 |
-| 탈퇴 단추 | 숨김 | 숨김 | 보임(소유자 제외) | 보임(소유자 제외) | 숨김(멤버가 아니면) | 항상 보임 |
+| 구성원 추가 링크 | 숨김 | 숨김 | 숨김 | 보임 | 보임 | 보임 |
+| 탈퇴 단추 | 숨김 | 숨김 | 보임(소유자 제외) | 보임(소유자 제외) | 숨김(멤버가 아니면) | 구성원일 때만 보임(소유자 제외) |
 | 가입 신청 | 숨김 | 보임(역할 없음) | 숨김 | 숨김 | 보임(역할이 없으면) | 숨김 |
 | 구독 | 숨김 | 공개 프로젝트에서 보임 | 보임 | 보임 | 보임 | 보임 |
 
@@ -196,7 +198,7 @@ updated: 2026-11-11
 설명이 없으면 `project.description.placeholder`. 이력 `LIMIT=10`, 대시보드 풀 리퀘스트 10건. 설명 입력란에 `maxlength`가 없고 서버도 길이를 검사하지 않는다(설정 화면 설명은 250자 제한이 클라이언트에만 있다).
 
 ### 4.8 오류
-읽기 거부: 403(익명은 로그인 화면). 없는 프로젝트: 익명 403 로그인 화면, 로그인 사용자 403 `error.forbidden.or.notfound`. 설명 저장: 익명은 303 로그인, 권한 없음 403 오류 페이지, 잘못된 JSON은 400(전역 처리기).
+읽기 거부: 403(익명은 로그인 화면). 없는 프로젝트: 익명 403 로그인 화면, 로그인 사용자 403 `error.forbidden.or.notfound`. 설명 저장: 익명은 303 로그인, 권한 없음 403 오류 페이지, 잘못된 JSON은 400(전역 처리기). 화면은 실패를 `$yona.alert`로 알린다.
 
 ## 5. 프로젝트 목록 (`project/list.html`)
 
@@ -211,14 +213,14 @@ updated: 2026-11-11
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 근거 |
 |---|---|---|---|---|---|---|
 | 검색 상자, 돋보기 단추 | 폼 | 항상(`autofocus`) | `GET /projects?filter=값` 제출 | GET | 1쪽부터 다시 | `list.html:27-31` |
-| 프로젝트 이름, 로고 | 링크 | 읽을 수 있는 행 | 프로젝트 홈 | GET | | `:45,51` |
+| 프로젝트 이름, 로고 | 링크 | 읽을 수 있는 행 | 프로젝트 홈. 로고 `src`는 `@{}`로 컨텍스트 경로를 가진다 | GET | | `:45,46,51` |
 | 원본 프로젝트 | 링크 | 포크 | 원본 홈 | GET | | `:52-57` |
 | 소유자 | 링크 | 읽을 수 있는 행 | `/{owner}` | | | `:64` |
 | 라벨 | 링크 | 라벨이 있을 때 | `/projects?labelIds={id}` | GET | 그 라벨 필터 | `:60` |
 | 구성원 아바타 | 링크 | 공개 프로젝트 | `/{loginId}` | | | `:70-77` |
-| 쪽 이동 | 스크립트 | `totalPages > 0` | `yona.Pagination.update($("#pagination"), totalPages)`가 이전, 쪽 번호 입력, `/ 전체`, 다음을 그림. 쿼리 `pageNum` | GET | | `:105`, `esm/Pagination.js` |
+| 쪽 이동 | 스크립트 | `totalPages > 0` | `yona.Pagination.update($("#pagination"), totalPages)`가 이전, 쪽 번호 입력, `/ 전체`, 다음을 그림. 쿼리 `pageNum` | GET | | `:106`, `esm/Pagination.js` |
 
-읽을 수 없는 행(`displayPrivateRepositories` 설정이 꺼져 있고 읽기 권한 없음)은 흐린 상자에 영어 고정 문구 "You do not have permission to view this project's information"과 기본 로고만 보인다(`:85-94`, project-F12). 설정이 켜진 사이트에서는 모든 행이 읽을 수 있는 것으로 그려진다(`ProjectListController.kt:77`). 목록이 비면 `project.is.empty`(`ico-err1`).
+읽을 수 없는 행(`displayPrivateRepositories` 설정이 꺼져 있고 읽기 권한 없음)은 흐린 상자에 영어 고정 문구 "You do not have permission to view this project's information"과 기본 로고만 보인다(`:86-95`, project-F12). 그 앞에 "쓰지 않는 가지"라는 템플릿 주석이 있다(`:85`). 설정이 켜진 사이트에서는 모든 행이 읽을 수 있는 것으로 그려진다(`ProjectListController.kt:85`). 목록이 비면 `project.is.empty`(`ico-err1`).
 
 ### 5.4 권한과 응답 차이
 로그인한 일반 사용자는 공개와 자신이 읽을 수 있는 프로젝트를, 사이트 관리자는 전부(`canSeeAll`)를 목록 조건으로 받는다. 게스트 계정은 303 `/`. 익명은 사이트가 익명 접근을 막으면 `@IsAllowed`가 없으므로 클래스 `@AnonymousCheck`의 303 로그인 폼을 받는다.
@@ -232,20 +234,20 @@ updated: 2026-11-11
 
 | 요소 | 종류 | 조건 | 동작 | 근거 |
 |---|---|---|---|---|
-| 소유자 `#project-owner` | 선택 | 항상 | 나 + 관리하는 조직. 바꾸면 `_onChangeProjectOwner`가 조직이 아니면 "보호" 라디오를 감추고(선택돼 있었으면 공개로) 조직이면 보임 | `create.html:37-50`, `project.New.js:106-117` |
-| 이름 `#project-name` | 입력(250자) | 항상 | 포커스를 잃으면 앞뒤 공백 제거와 공백을 `-`로 바꿈. 제출 때 형식 검사 | `:63`, `project.New.js:74-76,134-166` |
+| 소유자 `#project-owner` | 선택 | 항상 | 나 + 관리하는 조직(`data-avatar-url`은 `@{}`로 컨텍스트 경로를 가짐). 바꾸면 `_onChangeProjectOwner`가 조직이 아니면 "보호" 라디오를 감추고(선택돼 있었으면 공개로) 조직이면 보임 | `create.html:37-50`, `project.New.js:106-117` |
+| 이름 `#project-name` | 입력(250자) | 항상 | 포커스를 잃으면 앞뒤 공백 제거와 공백을 `-`로 바꿈. 제출 때 형식 검사(문자 규칙, 예약어는 대소문자 무시, `.wiki`로 끝나는 이름) | `:63`, `project.New.js:74-76,133-166` |
 | 설명 | 텍스트상자 | 항상 | 길이 제한 없음 | `:73` |
 | 공개 범위 | 라디오 셋 | 보호는 소유자가 조직일 때만 보임 | PUBLIC, PROTECTED, PRIVATE. 기본: `privateIsDefault`이면 PRIVATE, 아니면 PUBLIC | `:85-111` |
-| 저장소 종류 `#vcs` | 선택 | 항상 | Subversion을 고르면 경고 `#svn`을 보이고 PR 체크를 켜고 감추려는 처리기가 있다 | `:123-134`, `project.New.js:84-104` |
+| 저장소 종류 `#vcs` | 선택 | 항상 | Subversion을 고르면 경고 `#svn`을 보이고 PR 체크를 켜고 감추려는 처리기가 있다 | `:123-134`, `project.New.js:84-104` (`evt.target.value`를 읽음) |
 | 메뉴 체크박스 일곱 | 체크박스 | 기본값은 `defaultMenus` | 코드 끄면 PR, 리뷰도 끔. PR이나 리뷰 켜면 코드도 켬 | `:142-169`, `project.New.js:193-223` |
-| 만들기 | 제출 | | 클라이언트 검사 통과 시 `NProgress.start()` 후 제출 | `:176`, `project.New.js:134-166` |
-| 취소 | 링크 | | `/` | `:178` |
-| "Git에서 가져오기" | 링크 | | `/_import?owner=<선택>` | `:22` |
+| 만들기 | 제출 | | 클라이언트 검사 통과 시 `NProgress.start()` 후 제출 | `:176`, `project.New.js:133-166` |
+| 취소 | 링크 | | `@{/}`(컨텍스트 경로를 가진 홈) | `:178` |
+| "Git에서 가져오기" | 링크 | | `@{/_import?owner=<선택>}` | `:22` |
 
 제출: `POST /projects` 폼 필드 `owner, name, overview, projectScope, vcs`와 켠 메뉴 체크박스의 `code, issue, pullRequest, review, milestone, board, wiki`(값 `true`, `on`, `yes`, `1`만 켜진 것으로 봄, `ProjectCreateController.kt:84-93`).
 
 ### 6.3 서버 검증과 응답
-순서: (1) 만들 권한(`checkPermission`): 비로그인이면 403 `project.error.noPermission`(이름 자리에 "존재하지 않는 사용자" 문구), 소유자가 조직이면 그 조직의 관리자여야 함, 아니면 403 (`ProjectCreateService.kt:49-54`). (2) 검증(`:68-92`): 이름 필수, 문자 규칙 `^[a-zA-Z0-9-_.가-힣]+$`, 예약어 `.`, `..`, `.git`와 `.wiki`로 끝나는 이름(대소문자 무시), 공개 범위 값, 소유자가 사용자도 조직도 아니거나 사용자인데 본인이 아니면 `project.owner.invalidate`, 같은 소유자에 같은 이름(대소문자 무시)이면 `project.name.duplicate`. 이름 오류는 안내 `project.name.alert`, `project.name.reserved.alert`로 바꿔 준다. 실패하면 **400**으로 같은 폼을 다시 그리고(입력값 유지) `errorsJson`을 스크립트가 받아 필드마다 팝오버로 보인다(`project.New.js:174-191`, 위쪽 첫 메시지만). 성공하면 **303 `/{owner}/{name}`**. 클라이언트 검사(`project.New.js:134-166`)는 이름 형식과 예약어만 보고 `.wiki` 접미사는 모른다(서버 검사로만 걸림, project-F13).
+순서: (1) 만들 권한(`checkPermission`): 비로그인이면 403 `project.error.noPermission`(이름 자리에 "존재하지 않는 사용자" 문구), 소유자가 조직이면 그 조직의 관리자여야 함, 아니면 403 (`ProjectCreateService.kt:49-54`). (2) 검증(`:68-92`): 이름 필수, 문자 규칙 `^[a-zA-Z0-9-_.가-힣]+$`, 예약어 `.`, `..`, `.git`(대소문자 무시)와 `.wiki`로 끝나는 이름(대소문자 무시), 공개 범위 값, 소유자가 사용자도 조직도 아니거나 사용자인데 본인이 아니면 `project.owner.invalidate`, 같은 소유자에 같은 이름(대소문자 무시)이면 `project.name.duplicate`. 이름 오류는 안내 `project.name.alert`, `project.name.reserved.alert`로 바꿔 준다. 실패하면 **400**으로 같은 폼을 다시 그리고(입력값 유지) `errorsJson`을 스크립트가 받아 필드마다 팝오버로 보인다(`project.New.js:174-191`, 위쪽 첫 메시지만). 성공하면 **303 `/{owner}/{name}`**. 클라이언트 검사(`project.New.js:133-166`)도 서버와 같게 이름 형식, 예약어(소문자로 바꿔 비교), `.wiki` 접미사(`/\.wiki$/i`)를 보고, 걸리면 `project.name.alert` 또는 `project.name.reserved.alert` 팝오버를 띄우고 제출하지 않는다(project-F13).
 
 ### 6.4 권한
 익명은 폼 접근이 303 로그인(안내 `user.login.alert`), 직접 POST는 403. 로그인 사용자는 누구나 자기 이름으로, 조직 관리자는 조직 이름으로 만들 수 있다. 만든 프로젝트에는 만든 사람이 `MANAGER`, 사이트 관리자 계정이 `SITEMANAGER` 역할로 들어가고 만든 사람이 구독자가 된다(`ProjectCreateService.kt:116-123`).
@@ -253,7 +255,7 @@ updated: 2026-11-11
 ## 7. 저장소 가져오기 (`project/importing.html`)
 
 ### 7.1 개요
-`GET /_import?owner=` (로그인 필수), `POST /_import`. 모델은 생성 화면과 같고 `repoAuthChecked`(인증 입력을 펼칠지)와 `vcsTypes`(GIT, Mercurial만, Subversion 제외)가 더해진다(`ImportController.kt:78-96,106-110`). 폼 필드: `owner, name, overview, projectScope, vcs, url, authId, authPw`, 메뉴 `code, issue, pullRequest, review, milestone, board`.
+`GET /_import?owner=` (로그인 필수), `POST /_import`. 모델은 생성 화면과 같고 `repoAuthChecked`(인증 입력을 펼칠지)와 `vcsTypes`(GIT, Mercurial만, Subversion 제외)가 더해진다(`ImportController.kt:78-96,106-110`). 폼 필드: `owner, name, overview, projectScope, vcs, url, authId, authPw`, 메뉴 `code, issue, pullRequest, review, milestone, board, wiki`(`ImportController.ALL_MENUS`, `:107`).
 
 ### 7.2 동작 요소 표
 
@@ -263,15 +265,15 @@ updated: 2026-11-11
 | 주소 `#url` | 필수. 제출 때 비어 있으면 `project.import.error.empty.url` 팝오버 | `:38`, `project.New.js:153-157` |
 | "인증이 필요합니다" 체크 `#useRepoAuth` | 켜면 `#repoAuth`가 슬라이드로 펼쳐지고 입력(`authId`, `authPw`)이 활성, 끄면 비활성 | `:41-60`, `project.New.js:78-82` |
 | 소유자, 이름, 설명, 공개 범위, 메뉴 | 생성 화면과 같음 | `:63-200` |
-| 위키 체크박스 | 항상 체크된 채 그려지고(`checked="checked"`) 서버가 읽지 않는다(project-F3) | `:195-198` |
+| 위키 체크박스 `#menuSettingWiki` | `form.menus`에 `wiki`가 있으면 체크된다(`th:checked`, 처음 열면 기본 메뉴 일곱 개 전부라 체크됨). 서버가 값을 읽어 위키 메뉴를 켠다(project-F3) | `:195-198` |
 | 만들기 | 제출 | `:204-206` |
-| "새 프로젝트" 링크 | `/projectform?owner=` | `:23` |
+| "새 프로젝트" 링크 | `@{/projectform?owner=}`(컨텍스트 경로를 가짐) | `:23` |
 
 ### 7.3 서버 규칙과 응답
 `ImportController.create` (`:58-90`): 전역 리소스 만들기 권한이 없으면 403 본문 `'이름' has no permission`(영어 고정 문장). 서비스(`ProjectImportService.import`)는 이름 규칙, 공개 범위, 저장소 종류(비면 Git, Git/Mercurial이 아니면 `error.invalid`), 소유자(사용자이면 본인, 조직이면 조직 관리자가 아니면 403 `project.error.noPermission`), 이름 중복, 주소(비면 `project.import.error.empty.url`, 허용 외 `project.import.error.wrong.url`)를 본다. 주소는 `http`, `https`, `ssh`, `git` 또는 `사용자@호스트:경로`만 받고 `file:`, 경로, 서버 안 주소(루프백, 링크 로컬, 사설망)는 거절한다(`importAllowLocalSources` 설정이 참이면 허용). 가져오기 실패(전송 오류, 인증 오류)는 `url`/`authId`/`repoAuth` 오류로 400 폼 재표시. 성공하면 **303 프로젝트 홈**. 메뉴 설정 저장은 `menus`에 든 것만 켠다.
 
 ### 7.4 시험
-`ImportTest`, `ImportSourceRestrictionTest` (`src/test/kotlin/dev/yona/web/project/`). 위키 체크박스를 켠 가져오기를 검증하는 시험은 없다(`ImportTest.kt:110`은 위키가 꺼진 결과만 확인).
+`ImportTest`, `ImportSourceRestrictionTest` (`src/test/kotlin/dev/yona/web/project/`). `ImportTest.kt:116-119`는 `wiki=true`를 보낸 가져오기의 위키 메뉴가 켜지고 보내지 않으면 꺼지는 것을, `:125-127`은 400 재표시에서 위키 체크 상태가 유지되는 것을 확인한다.
 
 ## 8. 통계 (`project/statistics.html`)
 `GET /{user}/{project}/statistics`, `@DefaultProjectCheck`(`StatisticsController.kt:27-31`), 메뉴 종류 `ISSUE`, 본문은 `<h1>Under Construction</h1>` 하나(영어 고정, 메시지 키 없음). 이 영역 템플릿 어디에도 이 화면으로 가는 링크가 없다(project-F11). 제목은 메시지 키 `statistics`.
@@ -283,21 +285,21 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 확인 방법 | 비고 |
 |---|---|---|---|
-| project-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 웹훅 화면이 쓰는 `project.webhook.includeGitPush`가 `messages_ko_KR.properties`에 없고 대문자 I인 `project.webhook.IncludeGitPush`만 있다. 한국어 화면에 영어 "Include git push events"가 나온다. v1.6 번들도 같은 철자 불일치(`conf/messages.ko-KR:741`) | 키 대조 (`messages_ko_KR.properties:785`, `messages.properties:786`, `webhooks.html:41`) | v1.6 결함 이월 |
+| project-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 웹훅 화면이 쓰는 `project.webhook.includeGitPush`가 `messages_ko_KR.properties`에 없고 대문자 I인 `project.webhook.IncludeGitPush`만 있다. (수정 전) 한국어 화면에 영어 "Include git push events"가 나왔다. v1.6 번들도 같은 철자 불일치(`conf/messages.ko-KR:741`) | 키 대조 (`messages_ko_KR.properties:785`, `messages.properties:786`, `webhooks.html:41`) | v1.6 결함 이월 (2026-11-11 수정: 한국어 번들에 소문자 철자 키 `project.webhook.includeGitPush`를 더했다, `messages_ko_KR.properties:2012`. 대문자 키는 그대로 남아 있다) |
 | project-F2 **[수정됨, A-457]** | 마일스톤 보기와 조직 보기의 검색 상자가 `data-toggle="item-search"`로 표시돼 있지만 이를 묶는 스크립트가 정적 자원에 없다. `jquery.search.js`가 "참조 없는 파일" 정리 때 지워졌다(커밋 `0fd8fcd58` 메시지). 시험은 속성의 존재만 확인한다(`MilestoneTest.kt:519`) | `grep item-search` 전 범위 | milestone.md의 milestone-F2와 같은 사실 |
-| project-F3 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 가져오기 폼의 위키 체크박스는 늘 체크된 채로 그려지지만 `ImportController`의 메뉴 목록(`ALL_MENUS`, `:434`)에 `wiki`가 없어 값이 버려지고 위키 메뉴가 꺼진 프로젝트가 만들어진다. v1.6은 폼 전체를 묶었다(`ImportApp.java:119-130`) | 코드 대조, 시험 없음 | |
-| project-F4 **[검증: 문서 문제]** | 위키 `web/project-layout.md:78`과 `refactoring-backlog.md` R-11은 `Q` 단축키가 "로그인 ID가 manager일 때"만 켜진다고 쓰지만 코드는 프로젝트 `MANAGER` 역할일 때 켠다(`ProjectViewContext.kt:161`, `decisions.md` A-353). 코드가 맞다. 또 설정 메뉴(톱니)는 `canUpdate`(그룹 관리자, 사이트 관리자 포함)라 두 조건이 같지 않다 | 코드와 결정 기록 대조 | 위키가 낡음 |
+| project-F3 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 가져오기 폼의 위키 체크박스는 늘 체크된 채로 그려지지만 `ImportController`의 메뉴 목록(`ALL_MENUS`, `:434`)에 `wiki`가 없어 값이 버려지고 위키 메뉴가 꺼진 프로젝트가 만들어진다. v1.6은 폼 전체를 묶었다(`ImportApp.java:119-130`) | 코드 대조, 시험 없음 | (2026-11-11 수정: `ALL_MENUS`에 `wiki`를 더했고 체크박스는 `th:checked="${form.menus.contains('wiki')}"`이다, `ImportController.kt:107`, `importing.html:196`. 시험 `ImportTest.kt:116-127`) |
+| project-F4 **[검증: 문서 문제]** | 위키 `web/project-layout.md:78`과 `refactoring-backlog.md` R-11은 `Q` 단축키가 "로그인 ID가 manager일 때"만 켜진다고 쓰지만 코드는 프로젝트 `MANAGER` 역할일 때 켠다(`ProjectViewContext.kt:164`, `decisions.md` A-353). 코드가 맞다. 또 설정 메뉴(톱니)는 `canUpdate`(그룹 관리자, 사이트 관리자 포함)라 두 조건이 같지 않다 | 코드와 결정 기록 대조 | 위키가 낡음 |
 | project-F5 **[검증: 결함 아님]** | 구독 단추는 화면 조건이 WATCH인데 서버는 READ만 검사한다(`WatchProjectController.kt:47-59`). 읽을 수 있는 비공개 프로젝트의 멤버가 아닌 그룹 구성원 같은 경우를 제외하면 둘이 같아 보이나 연산이 다르다 | 코드 대조 | 추측: 실제 차이가 드러나는 조합은 확인 못 함 |
-| project-F6 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 단축키 `C`, `P`는 `codeAccessible`를 보지 않고 등록된다. 코드 열람 제한 프로젝트의 비구성원이 누르면 403이다(탭은 숨겨짐). 입력란에서는 동작하지 않음 | `menu.html:14,26,79-90` | |
-| project-F7 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 "구성원 추가" 링크는 `canUpdateLabels`(멤버 이상)로 보이지만 대상 화면은 프로젝트 관리자만 연다. 일반 멤버는 링크를 눌러 403을 본다. v1.6도 같은 조건(`home.scala.html:123`) | 코드 대조 | v1.6 동일 |
-| project-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 사이트 관리자는 `isAllowed`가 항상 참이라 모든 프로젝트 홈에서 탈퇴 단추가 보이고, 소유자가 아닌 비구성원 관리자가 눌러도 아무 일 없이 홈으로 간다. 소유자인 사이트 관리자는 403 `project.member.ownerCannotLeave` | `AccessControl.kt:111`, `ProjectMemberController.kt:132-160` | |
-| project-F9 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `yona.Request`(`data-request-method`) 실패는 화면에 아무것도 나타나지 않는다(웹훅 삭제, 마일스톤 열기/닫기/삭제). 프로젝트 삭제만 `Request.send`의 결과를 보고 알림을 띄운다 | `esm/Request.js`, `project.Delete.js:54-59` | |
-| project-F10 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 `#leaveBtn` 클릭 처리기가 탈퇴 단추를 누를 때마다 중복 등록된다. 이전 모달을 닫고 다시 열어 "예"를 누르면 같은 삭제 요청이 여러 번 나간다 | `project.Home.js:102-125` | 추측: 두 번째 이후 요청은 서버가 멤버 부재로 무시하나 이동은 첫 응답이 결정 |
+| project-F6 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 단축키 `C`, `P`는 `codeAccessible`를 보지 않고 등록된다. 코드 열람 제한 프로젝트의 비구성원이 누르면 403이다(탭은 숨겨짐). 입력란에서는 동작하지 않음 | `menu.html:74,80,89` | (2026-11-11 수정: `C`, `P` 단축키 등록 조건에 `view.codeAccessible`을 더해 탭과 같게 했다. 비구성원은 이 키가 등록되지 않는다) |
+| project-F7 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 "구성원 추가" 링크는 `canUpdateLabels`(멤버 이상)로 보이지만 대상 화면은 프로젝트 관리자만 연다. 일반 멤버는 링크를 눌러 403을 본다. v1.6도 같은 조건(`home.scala.html:123`) | 코드 대조 | v1.6 동일 (2026-11-11 수정: 링크 조건을 `canUpdate`로 바꿔 일반 멤버에게는 보이지 않는다, `home.html:109`) |
+| project-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 사이트 관리자는 `isAllowed`가 항상 참이라 모든 프로젝트 홈에서 탈퇴 단추가 보이고, 소유자가 아닌 비구성원 관리자가 눌러도 아무 일 없이 홈으로 간다. 소유자인 사이트 관리자는 403 `project.member.ownerCannotLeave` | `AccessControl.kt:111`, `ProjectMemberController.kt:132-160` | (2026-11-11 수정: 홈의 `canLeave`가 구성원(`projectMember`)일 때만 참이라 비구성원 사이트 관리자에게는 단추가 보이지 않는다, `ProjectViewContext.kt:129`. 구성원인 소유자는 그대로 403 `project.member.ownerCannotLeave`) |
+| project-F9 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `yona.Request`(`data-request-method`) 실패는 화면에 아무것도 나타나지 않는다(웹훅 삭제, 마일스톤 열기/닫기/삭제). 프로젝트 삭제만 `Request.send`의 결과를 보고 알림을 띄운다 | `esm/Request.js`, `project.Delete.js:54-59` | (2026-11-11 수정: `Request.js`가 `request:error`를 `preventDefault()`하지 않은 실패에 `$yona.alert`를 띄운다, `Request.js:68-80,101-122`) |
+| project-F10 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈의 `#leaveBtn` 클릭 처리기가 탈퇴 단추를 누를 때마다 중복 등록된다. 이전 모달을 닫고 다시 열어 "예"를 누르면 같은 삭제 요청이 여러 번 나간다 | `project.Home.js:111-146` | 추측: 두 번째 이후 요청은 서버가 멤버 부재로 무시하나 이동은 첫 응답이 결정 (2026-11-11 수정: `$("#leaveBtn").off("click").on("click", ...)`로 이전 처리기를 떼고 붙인다, `:117`) |
 | project-F11 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `statistics.html`로 가는 링크가 이 영역 템플릿에 없고 본문은 "Under Construction"뿐이다 | grep | v1.6 동일 |
-| project-F12 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 목록의 읽을 수 없는 행 문구는 영어 고정이고 `readable`은 `displayPrivateRepositories`가 켜져 있으면 모든 행에 참이다 | `list.html:91`, `ProjectListController.kt:77` | |
-| project-F13 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 생성, 가져오기의 클라이언트 이름 검사는 `.wiki` 접미사를 모르고 서버만 거절한다(`ProjectNameRules`). 설정 화면도 같다 | `project.New.js:28-29`, `ProjectNameRules.kt` | |
-| project-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈 설명 입력란은 Enter로 저장되지 않는다(`<form onsubmit="return false">`). 저장 실패는 화면에 표시가 없다(콘솔만) | `home.html:32`, `project.Home.js:88-90` | |
-| project-F15 **[수정됨, A-457]** | 프로젝트 생성의 VCS 선택 처리기가 `evt.val`을 읽는데(`project.New.js:85`) 보통의 `change` 이벤트 객체에는 `val`이 없다. 그러면 Subversion 경고와 PR 체크 토글이 일어나지 않고 오류로 끝날 것이다 | 코드 읽기만(실행하지 않음) | **추측** |
+| project-F12 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 목록의 읽을 수 없는 행 문구는 영어 고정이고 `readable`은 `displayPrivateRepositories`가 켜져 있으면 모든 행에 참이다 | `list.html:92`, `ProjectListController.kt:85` | 그 가지 앞에 "쓰지 않는 가지" 템플릿 주석이 붙었고(`list.html:85`) 삭제는 선생님 확인 전까지 미룬 상태이다(A-463) |
+| project-F13 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 생성, 가져오기의 클라이언트 이름 검사는 `.wiki` 접미사를 모르고 서버만 거절한다(`ProjectNameRules`). 설정 화면도 같다 | `project.New.js:28-29,147-151`, `ProjectNameRules.kt:29-35` | (2026-11-11 수정: 생성, 가져오기 화면의 클라이언트 검사(`project.New.js:148`)는 예약어를 소문자로 비교하고 `.wiki` 접미사를 거른다. 설정 화면의 저장 처리기(`project.Setting.js:90-102`)는 고치지 않아 여전히 `.wiki` 접미사와 대문자 예약어(`.GIT`)를 모르고 서버(`ProjectNameRules`)만 400으로 거절한다) |
+| project-F14 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 홈 설명 입력란은 Enter로 저장되지 않는다(`<form onsubmit="return false">`). 저장 실패는 화면에 표시가 없다(콘솔만) | `home.html:32`, `project.Home.js:80-86,97-102` | (2026-11-11 수정: 입력란의 Enter가 저장 단추 클릭으로 처리되고 저장 실패는 `$yona.alert`로 알린다) |
+| project-F15 **[수정됨, A-457]** | 프로젝트 생성의 VCS 선택 처리기가 `evt.val`을 읽는데(`project.New.js:85`) 보통의 `change` 이벤트 객체에는 `val`이 없다. 그러면 Subversion 경고와 PR 체크 토글이 일어나지 않고 오류로 끝날 것이다 | 코드 읽기만(실행하지 않음) | **추측** (2026-11-11 확인: 현재 처리기는 `evt.target.value`를 읽는다, `project.New.js:84-85`) |
 
 ## 11. 범위 점검 (이 파일이 다룬 템플릿)
 
@@ -315,3 +317,12 @@ updated: 2026-11-11
 | `project/statistics.html` | 8 |
 | `project/watchers.html` | 9 |
 | `project/partial-settingmenu.html` 외 설정 계열 | [project-settings.md](project-settings.md) |
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿 11개: `project/header.html`, `menu.html`, `home.html`, `partial-readme.html`, `partial-history.html`, `partial-dashboard.html`, `list.html`, `create.html`, `importing.html`, `statistics.html`, `watchers.html`. 스크립트 `project.Home.js`, `project.New.js`, `project.Global.js`, `esm/Request.js`, 컨트롤러와 접근 검사(`ProjectCheckStage`, `AnonymousCheckStage`, `AccessControl`)도 대조했다.
+- 내용을 고친 행: 약 30개(접근 검사 체인의 메뉴 꺼짐 404와 로그인 리다이렉트 질의 문자열, `data-request-method` 실패 알림, 프로젝트 머리의 배경과 로고, 단축키 `C`, `P` 조건, 홈의 구성원 추가 링크 조건, 탈퇴 단추 조건과 처리기, 설명 입력란 Enter 저장과 실패 알림, 새 프로젝트 이름 검사, 가져오기 위키 체크박스와 메뉴 목록, 시험 설명, 권한 행렬 두 줄, 메시지 키 점검, 발견 사항 F1, F3, F6, F7, F8, F9, F10, F12, F13, F14, F15 비고).
+- 줄 번호만 고친 곳: 약 20개(`ProjectCheckStage`, `AnonymousCheckStage`, `AccessControl`, `project.Home.js`, `project.New.js`, `menu.html`, `list.html`, `ProjectViewContext.kt`).
+- 더한 행: 홈 표의 `#member-add-link`, 설명 입력란 `#project-description-input` 행을 다시 썼다(새 행 아님). 새 행 없음.
+- 없앤 행: 없음.
+- 새 발견 사항: 없음.

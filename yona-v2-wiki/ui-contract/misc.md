@@ -13,6 +13,7 @@ sources:
   - src/main/kotlin/dev/yona/web/welcome/SiteSecretInterceptor.kt
   - src/main/kotlin/dev/yona/web/welcome/FakeController.kt
   - src/main/kotlin/dev/yona/security/SiteSecret.kt
+  - src/main/kotlin/dev/yona/domain/user/PasswordPolicy.kt
   - src/main/kotlin/dev/yona/web/audit/AuditControllers.kt
   - src/main/kotlin/dev/yona/web/audit/AuditViewSupport.kt
   - src/main/resources/static/assets/javascripts/esm/service/Migration.js
@@ -28,7 +29,7 @@ updated: 2026-11-11
 | 템플릿 | URL (메서드) | 컨트롤러 | 용도 |
 |---|---|---|---|
 | `migration/home.html` | `/migration` (GET) | `MigrationController.home` (`web/migration/MigrationController.kt:39-61`) | Yona 프로젝트를 GitHub로 옮기는 화면(Vue 3 앱) |
-| `welcome/secret.html` | 비밀 키를 정하기 전의 모든 요청(POST `/`가 제출) | `SiteSecretInterceptor.pendingScreen` (`web/welcome/SiteSecretInterceptor.kt:59-73`), `FakeController.fake` (`web/welcome/FakeController.kt:16`) | 최초 기동: 기본 관리자 계정과 비밀 키 정하기 |
+| `welcome/secret.html` | 비밀 키를 정하기 전의 모든 요청(POST `/`가 제출) | `SiteSecretInterceptor.pendingScreen` (`web/welcome/SiteSecretInterceptor.kt:41-55`), `FakeController.fake` (`web/welcome/FakeController.kt:16`) | 최초 기동: 기본 관리자 계정과 비밀 키 정하기 |
 | `welcome/restart.html` | 같은 인터셉터 | 같음 | 비밀 키를 정한 뒤 재시작 안내 |
 | `audit/list.html` | (조각 `auditList(exportable, verifiable, showFilter)`) `/sites/audit`, `/organizations/{name}/audit`, `/user/editform/audit` | `web/audit/AuditControllers.kt`의 `SiteAuditController` `:59`, `OrganizationAuditController` `:94`, `UserAuditController` `:116` | 감사 로그 표, 필터, 내려받기, 무결성 검증 |
 
@@ -44,13 +45,13 @@ updated: 2026-11-11
 - 접근: 메서드에 `@AnonymousCheck(requiresLogin=true, displaysFlashMessage=true)`가 있어 익명은 로그인 폼 303(+`user.login.alert`).
 - 세션 `state`(R-58-2): `code`가 있으면 세션에 둔 `migration.oauth.state`와 `state`가 같아야 한다(다르거나 세션에 없으면 403). 맞으면 한 번 쓰고 지운다. 이어 `code`를 `GithubTokenClient.exchange`로 토큰으로 바꾼다(공백 `code`는 없는 것과 같다). 모든 응답에서 새 `state`(UUID 둘을 이은 64자)를 세션에 저장하고 화면에 넘긴다.
 - 모델: `oauthState`, `title`(`Migration`), `token`(없으면 빈 글자), `loginId`, `email`. 문서 제목은 `site.siteName`이다(`home.html:13`).
-- 틀: 전용 `layout/migration-layout`(푸터 없음, `#main` 안에 관리자 띠, 업데이트 알림, 상단 바, 본문, `common/scripts`). `<head>`에서 jQuery 3.7.1, `yona.Csrf.js`, `yona.Common.js`, `vue.global.prod.js`, ES 모듈 `esm/service/Migration.js`를 불러온다(`migration-layout.html`).
+- 틀: 전용 `layout/migration-layout`(푸터 없음, `#main` 안에 관리자 띠, 업데이트 알림, 상단 바, 본문, `common/scripts`). 상단 바의 즐겨찾기 별 버튼이 실패하면 `$yona.alert("Update failed: " + $yona.escapeHtml(<서버 reason>))`이다(`migration-layout.html:151`, `:167`). `<head>`에서 jQuery 3.7.1, `yona.Csrf.js`, `yona.Common.js`, `vue.global.prod.js`, ES 모듈 `esm/service/Migration.js`를 불러온다(`migration-layout.html`).
 - 화면은 `#migration-app`을 Vue 3(옵션 API, 화면 안에서 템플릿 컴파일)이 그린다. 서버 값은 `data-oauth-state`, `data-token`, `data-login-id`, `data-email`로 넘긴다(`home.html:15`). `v-cloak`은 `[v-cloak]{display:none}`.
 
 ### 2. 레이아웃 계약
 
 - 본문 전체가 `v-if="token"`인 `.header-pannel` 하나이다. **토큰이 없으면 본문이 비어 있다**(스크립트가 곧바로 GitHub 인증 화면으로 이동시킨다).
-- 위에서 아래: 메시지 상자 `#system-msg`(진행 메시지와 오류 JSON), 원본 → 대상 제목 줄(선택 전에는 경고색 안내 `migration.selectSource`, `migration.selectDestination`), 가운데 3열 `.row.source-destination`: 원본 목록 `col-lg-4`, 대상 목록 `col-lg-4`, 상태 `col-lg-6`(`home.html:40-152`). 목록 폭 합이 14/12를 넘는 레이아웃이다(`col-lg-4 + col-lg-4 + col-lg-6`, 줄이 넘어가 세 번째가 다음 줄로 내려간다. 추측: 의도는 v1.6과 같은 구성).
+- 위에서 아래: 메시지 상자 `#system-msg`(진행 메시지와 오류 JSON), 원본 → 대상 제목 줄(선택 전에는 경고색 안내 `migration.selectSource`, `migration.selectDestination`), 가운데 3열 `.row.source-destination`: 원본 목록 `col-lg-4`, 대상 목록 `col-lg-4`, 상태 `col-lg-6`(`home.html:40-143`). 목록 폭 합이 14/12를 넘는 레이아웃이다(`col-lg-4 + col-lg-4 + col-lg-6`, 줄이 넘어가 세 번째가 다음 줄로 내려간다. 추측: 의도는 v1.6과 같은 구성).
 - 상태 열: 진행 막대(`importResult.count / expectedImportCount`, 100% 미만이면 `bg-danger`, 100%면 `bg-success`), 표(마일스톤, 이슈, 게시글 행과 주의 행), 담당자 매핑 표(원본 프로젝트 담당자 목록이 있고 대상을 골랐을 때만, `v-show="destination.projectName"`).
 - 이미 대상에 데이터가 있으면 해당 행 칸에 `alert-bg` 배경과 `import-warning` 컴포넌트가 나온다.
 - 반응형: `col-lg-*`만 쓴다(992px 미만에서 세 열이 쌓임). `hide-in-mobile`은 없다.
@@ -65,26 +66,29 @@ updated: 2026-11-11
 | 원본 이름 링크 | 링크 | | 새 탭으로 `https://yona.dev/{full_name}` | | 고정 서버 주소(R-58-3: 시험은 "사라진 옛 서버가 아니라 yona 사이트"로 적는다) | | `home.html:47` |
 | 대상 검색 (둘째) | 입력란 | | 같음 | 없음 | | | `home.html:55` |
 | 대상 항목 `.project-list` | 행 | | 대상을 정하고 GitHub에서 마일스톤, 이슈, 게시글 현황을 읽는다(2초마다 반복) | `GET api.github.com/repos/{owner}/{name}/milestones?state=all`, `.../issues?state=all`, `.../issues?state=all&labels=게시글`. 조직이면 `GET .../orgs/{org}/memberships/{me}` | 대상에 데이터가 있으면 경고 | 사용자 토큰 | `Migration.js:setDestination`, `checkIfDestinationHaveDataAlready` |
-| 경고 배지 | 글자 | 대상이 조직이고 내가 admin이 아님 등 | `migration.noWorkerInAdmin`, `workerNeeded`, `bothNotAdmin`, `userUsedInstead`, `notAdmin`, `cannotNonAdmin` | | 문구의 `{0}` 자리에 `{{CONFIG.DEFAULT_WORKER}}`가 들어가는데 이 값은 정의되어 있지 않다([migration-F2](#발견-사항)) | | `home.html:63-79` |
-| 담당자 입력 `.assignee input` | 입력란 | 원본에 담당자가 있고 대상이 정해짐 | 입력이 멈추면(300ms) 대상 저장소의 협업자인지 확인. 확인되면 체크 아이콘(`yobicon-check-circle`), 아니면 `yobicon-delete-circle-alt`. 확인된 값은 `localStorage[원본 로그인 ID]`에 저장, 아니면 삭제 | `GET api.github.com/repos/{owner}/{name}/collaborators/{login}` (204면 확인) | 이후 이슈 담당자 매핑에 쓰임 | | `home.html:147`, `Migration.js:userExistAtDestinationProject` |
-| 마일스톤 옮기기 `button.btn-danger` | 단추 | 대상이 정해짐(`v-if="destination.projectName"`). 비활성: 원본 마일스톤 수 0 또는 작업 중 | 확인창 `migration.js.confirmStart`(`confirm`) 후 작업 시작 | `GET /migration/{owner}/projects/{name}/milestones?withWikiCommit=true`, 마일스톤마다 `POST api.github.com/repos/{owner}/{name}/milestones` | 성공 때마다 진행 막대 +1. 실패는 `#system-msg` 오류 JSON에 쌓임 | | `home.html:100`, `Migration.js:importMilestones`, `migrationService.importMilestones` |
-| 이슈 옮기기 | 단추 | 같음, 비활성: 이슈 수 0 또는 작업 중 | 확인창 후 라벨 정보를 먼저 읽고 이슈를 보낸다 | `GET .../labels`, `GET .../issuelabel`, `GET .../issues?withWikiCommit=true`, 이슈마다 0.5초 간격으로 `POST api.github.com/repos/{owner}/{name}/import/issues`(`Accept: application/vnd.github.golden-comet-preview+json`) | 202가 아니면 오류 목록에 쌓임 | | `home.html:111`, `Migration.js:importIssues` |
-| 게시글 옮기기 | 단추 | 같음, 비활성: 게시글 수 0 또는 작업 중 | 안내 문구(`showMoreDesc`) 토글 후 확인창, 게시글을 이슈(`게시글` 라벨)로 보낸다 | `GET .../posts?withWikiCommit=true`, `POST .../import/issues` | | | `home.html:123`, `Migration.js:onImportPosts` |
-| (자동) 작업 기록 | 스크립트 | 옮기기 시작 때 | 로그 저장소에 이슈를 올린다 | `POST api.github.com/repos/yona-projects/yona-migration-log/issues`(`Authorization: token <WORKER.TOKEN>`) | 응답은 무시. 사용자 정의 값(원본, 대상, 종류, 개수)이 외부 저장소에 남는다 | | `Migration.js:logToIssue` |
+| 경고 `.warn-not-admin` | 글자 둘(배지 `migration.notAdmin`, 안내 `migration.cannotNonAdmin`) | 대상 목록에서 고른 항목이고(`item.repo.full_name == destination.full_name`) `showNotAdminWarning`(대상 소유자가 조직이고 내 멤버십 역할이 `admin`이 아님) | 표시만. `v-show`라 조건이 아니면 숨는다 | 대상 선택 때 `GET api.github.com/orgs/{org}/memberships/{me}` | | | `home.html:63-66`, `Migration.js:isMigrationWorkerAdmin` |
+| 경고(개인 저장소) | 글자 둘(같은 두 문구) | 대상 항목의 소유자 종류가 `User`이고 소유자 로그인이 내 GitHub 로그인과 다름(항목마다, 선택과 무관) | 표시만 | 없음 | | | `home.html:67-70` |
+| 담당자 입력 `.assignee input` | 입력란 | 원본에 담당자가 있고 대상이 정해짐 | 입력이 멈추면(300ms) 대상 저장소의 협업자인지 확인. 확인되면 체크 아이콘(`yobicon-check-circle`), 아니면 `yobicon-delete-circle-alt`. 확인된 값은 `localStorage[원본 로그인 ID]`에 저장, 아니면 삭제 | `GET api.github.com/repos/{owner}/{name}/collaborators/{login}` (204면 확인) | 이후 이슈 담당자 매핑에 쓰임 | | `home.html:138`, `Migration.js:userExistAtDestinationProject` |
+| 마일스톤 옮기기 `button.btn-danger` | 단추 | 대상이 정해짐(`v-if="destination.projectName"`). 비활성: 원본 마일스톤 수 0 또는 작업 중 | 확인창(`confirm`) 후 작업 시작. 확인창 글자는 `migration.js.confirmStart` + 빈 줄 + `migration.js.confirmLog`(`이전 기록이 yona-projects/yona-migration-log의 이슈로 올라갑니다.`, `lastConfirm`)이고 이슈와 게시글 옮기기도 같다 | `GET /migration/{owner}/projects/{name}/milestones?withWikiCommit=true`, 마일스톤마다 `POST api.github.com/repos/{owner}/{name}/milestones` | 성공 때마다 진행 막대 +1. 실패는 `#system-msg` 오류 JSON에 쌓임 | | `home.html:91`, `Migration.js:importMilestones`, `migrationService.importMilestones` |
+| 이슈 옮기기 | 단추 | 같음, 비활성: 이슈 수 0 또는 작업 중 | 확인창 후 라벨 정보를 먼저 읽고 이슈를 보낸다 | `GET .../labels`, `GET .../issuelabel`, `GET .../issues?withWikiCommit=true`, 이슈마다 0.5초 간격으로 `POST api.github.com/repos/{owner}/{name}/import/issues`(`Accept: application/vnd.github.golden-comet-preview+json`) | 202가 아니면 오류 목록에 쌓임 | | `home.html:102`, `Migration.js:importIssues` |
+| 게시글 옮기기 | 단추 | 같음, 비활성: 게시글 수 0 또는 작업 중 | 안내 문구(`showMoreDesc`) 토글 후 확인창, 게시글을 이슈(`게시글` 라벨)로 보낸다 | `GET .../posts?withWikiCommit=true`, `POST .../import/issues` | | | `home.html:114`, `Migration.js:onImportPosts` |
+| (자동) 작업 기록 | 스크립트 | 옮기기 시작 때 | 로그 저장소에 이슈를 올린다 | `POST api.github.com/repos/yona-projects/yona-migration-log/issues`(`Authorization: token <WORKER.TOKEN>`, 이 값은 늘 사용자 토큰) | 응답은 무시. 사용자 정의 값(원본, 대상, 종류, 개수)이 외부 저장소에 남는다. 확인창이 이를 미리 알린다 | | `Migration.js:logToIssue` |
 
 ### 4. 스크립트 동작
 
+- 이 서버의 JSON 호출(`/migration/projects`, `/migration/{owner}/projects/{name}[/labels|/issuelabel|/milestones|/issues|/posts]`)의 주소는 `CONFIG.YONA_SERVER + 경로`이다. `CONFIG.YONA_SERVER`는 `window.yonaContextPath || ""`로 하위 경로 배포의 컨텍스트 경로를 접두어로 붙인다(`Migration.js:20`, `:223`, `:228`, `:240`, `:244`, `:292`, `:333`, `:378`).
+- 서버 호출이 거절되면(상태 코드가 있는 응답. `error` 처리기를 쓰는 호출) 콘솔에 남기고 `#system-msg`에 `<상태> <주소>`(예: `403 /migration/a/projects/b/issues`) 한 줄을 더한다(`error`, `reportFailure`, `Migration.js:101-116`). 화면이 마운트되기 전의 실패는 콘솔에만 남는다. 연결 실패(상태 -1)는 화면에 더하지 않는다.
 - 모든 GitHub 호출은 **브라우저가 직접** 한다(서버는 중계하지 않는다). `Authorization: token <사용자 토큰>`을 `fetch`로 보내며 `yona.Csrf.js`는 같은 출처 요청에만 토큰을 싣는다.
 - 토큰이 있으면 `mounted`에서 내 GitHub 저장소 목록(`GET api.github.com/user/repos?per_page=100&page=N`, 100쪽까지, 응답 `Link` 헤더의 `rel="next"`로 판단)과 내 계정(`GET api.github.com/user`)을 읽는다. 원본 목록은 `created`에서 `GET /migration/projects`.
 - 나가기 경고: `window.onload`에서 `beforeunload`를 걸어 토큰이 있으면 `migration.js.leavePage` 문구를 보인다.
 - 대상을 고른 뒤 로딩 막대 종료 때마다 2초 간격 `setInterval`로 대상의 기존 데이터를 다시 읽는다(폴링).
 - 로컬 저장소: `localStorage[원본 로그인 ID] = 대상 로그인 ID`(담당자 매핑). 저장소를 못 쓰면 무시.
-- 작업 토큰(`WORKER.TOKEN`): 대상 소유자가 개인이면 사용자 토큰, 조직이면 빈 글자로 시작하고 내가 그 조직의 admin이 아니면 사용자 토큰으로 바꾼다(`setDestination`, `isMigrationWorkerAdmin`). 조직 admin이면 빈 글자인 채라 GitHub 호출이 `token ` 헤더로 나간다([migration-F3](#발견-사항)).
+- 작업 토큰(`WORKER.TOKEN`): 대상을 정할 때마다 사용자 토큰으로 정한다(`setDestination`, `Migration.js:685-701`). 대상이 조직이면 `isMigrationWorkerAdmin`이 내 멤버십 역할을 읽어 `admin`이 아니면 `showNotAdminWarning`을 켠다(개인 저장소는 확인하지 않고 경고 상태를 끈다).
 - 시험용 제한 `hardCodedDestination.owner`는 빈 글자이다(제한 없음).
 
 ### 5. 단축키, 6. 팝업
 
-단축키 없음(키맵 조각 없음). 팝업은 브라우저 `confirm`(`migration.js.confirmStart`), `alert`(시험용 제한 위반 때만) 뿐이다.
+단축키 없음(키맵 조각 없음). 팝업은 브라우저 `confirm`(`migration.js.confirmStart` + `migration.js.confirmLog`), `alert`(시험용 제한 위반 때만) 뿐이다.
 
 ### 7. 요청과 응답 (서버 쪽)
 
@@ -114,14 +118,14 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| migration-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버 설정 `yona.github.client-id`/`client-secret`로 코드를 토큰으로 바꾸지만(`GithubTokenClient`), 인증 시작 주소의 `client_id`는 `Migration.js`의 상수 `CONFIG.CLIENT_ID = "e7f9ad76a3a4ba19b2a5"`로 고정이다. 사이트가 자기 GitHub OAuth 앱을 설정해도 화면은 이 고정 클라이언트 ID로 인증을 시작한다(v1.6 `yona.Migration.js`에도 같은 상수가 있다) | `Migration.js:22`, `GithubTokenClient.kt:26-31`, `YonaProperties.kt:327` |
-| migration-F2 **[검증: 수정함(A-464, 2026-11-11)]** | 템플릿이 `{{CONFIG.DEFAULT_WORKER}}`를 쓰지만 `CONFIG`에는 `DEFAULT_WORKER`가 없다. 경고 문구의 `{0}` 자리가 빈 글자로 나온다(v1.6의 `CONFIG`에도 없다: `public/javascripts/service/yona.Migration.js:17`, 확인) | `home.html:64-74`, `Migration.js:18-24` |
-| migration-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 대상이 조직이고 내가 그 조직의 admin이면 `WORKER.TOKEN`이 빈 글자인 채로 GitHub에 `Authorization: token `이 전송되고(작업 계정 개념의 잔재), 마일스톤, 이슈 전송이 실패하거나 작업 기록 이슈가 올라가지 않는다. v1.6도 같은 구조(`yona.Migration.js:426-428`, `:234`). 실제 GitHub 응답은 확인하지 못했다(추측) | `Migration.js:setDestination`, `isMigrationWorkerAdmin` |
-| migration-F4 **[검증: 수정함(A-464, 2026-11-11)]** | 작업 시작 때마다 외부 저장소 `yona-projects/yona-migration-log`에 원본과 대상 이름, 개수가 이슈로 올라가려 한다(작업 토큰이 맞을 때). 사용자에게 알리는 문구가 없다 | `Migration.js:logToIssue`, `CONFIG.LOGGING_PROJECT_FULLNAME` |
-| migration-F5 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 템플릿의 열 합계(`col-lg-4`+`col-lg-4`+`col-lg-6` = 14)가 12를 넘는다. 상태 열은 다음 줄로 내려간다 | `home.html:41`, `:53`, `:83` |
+| migration-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 서버 설정 `yona.github.client-id`/`client-secret`로 코드를 토큰으로 바꾸지만(`GithubTokenClient`), 인증 시작 주소의 `client_id`는 `Migration.js`의 상수 `CONFIG.CLIENT_ID = "e7f9ad76a3a4ba19b2a5"`로 고정이다. 사이트가 자기 GitHub OAuth 앱을 설정해도 화면은 이 고정 클라이언트 ID로 인증을 시작한다(v1.6 `yona.Migration.js`에도 같은 상수가 있다) | `Migration.js:23`, `GithubTokenClient.kt:26-31`, `YonaProperties.kt:327` |
+| migration-F2 **[검증: 수정함(A-464, 2026-11-11)]** | 템플릿이 `{{CONFIG.DEFAULT_WORKER}}`를 쓰지만 `CONFIG`에는 `DEFAULT_WORKER`가 없어 경고 문구의 `{0}` 자리가 빈 글자로 나왔다(v1.6의 `CONFIG`에도 없다: `public/javascripts/service/yona.Migration.js:17`). (2026-11-11 수정: 작업 계정 경고 둘(`warn-no-worker`, `warn-user-project`)을 없애고 `warn-not-admin`(`migration.notAdmin`, `migration.cannotNonAdmin`)만 남겼다. `showWorkerWarning`, `showUserProjectWarning` 상태도 없앴다) | `home.html:63-70`, `Migration.js:18-25` |
+| migration-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 대상이 조직이고 내가 그 조직의 admin이면 `WORKER.TOKEN`이 빈 글자인 채로 GitHub에 `Authorization: token `이 전송되어(작업 계정 개념의 잔재) 마일스톤, 이슈 전송이 실패하거나 작업 기록 이슈가 올라가지 않았다(v1.6도 같은 구조, `yona.Migration.js:426-428`, `:234`). (2026-11-11 수정: `WORKER.TOKEN`을 늘 사용자 토큰으로 정한다) | `Migration.js:685-701` |
+| migration-F4 **[검증: 수정함(A-464, 2026-11-11)]** | 작업 시작 때마다 외부 저장소 `yona-projects/yona-migration-log`에 원본과 대상 이름, 개수가 이슈로 올라가려 하는데 사용자에게 알리는 문구가 없었다. (2026-11-11 수정: 시작 확인창에 `migration.js.confirmLog`를 덧붙인다) | `Migration.js:logToIssue`, `:844-847`, `CONFIG.LOGGING_PROJECT_FULLNAME` |
+| migration-F5 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 템플릿의 열 합계(`col-lg-4`+`col-lg-4`+`col-lg-6` = 14)가 12를 넘는다. 상태 열은 다음 줄로 내려간다 | `home.html:41`, `:53`, `:74` |
 | migration-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `delegateAttachmentsMigration`은 호출만 되고 "Not Yet Support" 로그만 남긴다 | `Migration.js:delegateAttachmentsMigration` |
 | migration-F7 **[검증: 문서 문제]** | `migration-layout.html`의 설명 주석은 "jquery 1.9.0을 head에서 불러온다"고 적지만 실제로는 `jquery-3.7.1.js`이다 | `layout/migration-layout.html` 머리 주석, `:38-40` |
-| migration-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이슈, 마일스톤 전송 실패는 사용자에게 `#system-msg`의 JSON 덩어리로만 보인다(별도 오류 문구 없음). 서버 JSON 요청이 403, 404이어도 화면은 아무 안내가 없다(`http()`가 거부하고 호출 쪽 `error`는 콘솔만 기록) | `Migration.js:error`, `home.html:22` |
+| migration-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이슈, 마일스톤 전송 실패는 사용자에게 `#system-msg`의 JSON 덩어리로만 보이고(별도 오류 문구 없음), 서버 JSON 요청이 403, 404이어도 화면은 아무 안내가 없었다(호출 쪽 `error`는 콘솔만 기록). (2026-11-11 수정: 거절된 응답이면 `#system-msg`에 `<상태> <주소>` 줄을 더한다. 전송 실패의 JSON 덩어리 표시는 그대로이다) | `Migration.js:101-116`, `home.html:22` |
 
 ---
 
@@ -136,24 +140,24 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 ### 2. 레이아웃 계약
 
-중앙 정렬 `.secret-wrap`: 주황색 로고 상자(`.logo`, 123x55, 링크 `/`, 글자는 사이트 이름), `h3` 환영 문구, 경고 상자(`.alert-warning.secret-box`, 너비 50%)와 폼 `.signup-form-wrap.frm-wrap`. 아래 푸터 `Powered by <사이트 이름>`. 반응형 규칙은 없다(`.secret-box`가 50% 폭 고정이라 좁은 화면에서도 50%).
+중앙 정렬 `.secret-wrap`: 주황색 로고 상자(`.logo`, 123x55, 링크 `/`, 글자는 사이트 이름), `h3` 환영 문구, 경고 상자(`.alert-warning.secret-box`, 너비 50%)와 폼 `.signup-form-wrap.frm-wrap`. 아래 푸터 `Powered by <사이트 이름>`. 반응형: 화면 폭이 768px 이하이면 `.secret-box`의 너비가 92%이다(`@media (max-width: 768px)`, `secret.html:28`, `restart.html:27`). 그보다 넓으면 50%이다. `restart.html`의 안내 글 상자(`p.secret-box`)도 같다.
 
 ### 3. 동작 요소 표
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 근거 |
 |---|---|---|---|---|---|---|
-| 로고 링크 | 링크 | 항상 | `/`로 | `GET /` | 비밀 키가 기본값이면 같은 화면 | `secret.html:42`, `restart.html:41` |
-| `loginId` | 입력란 | 항상 | `readonly`, 값 `admin` | 필드 `loginId` | | `secret.html:59` |
-| 이름 `name` | 입력란 | 항상 | | 필드 `name` | 비어 있으면 오류 `error.required` | `secret.html:66` |
-| 이메일 `email` | 입력란(`type=text`) | 항상 | | 필드 `email` | 오류: 비어 있음 `validation.invalidEmail`, 형식 `user.wrongEmail.alert`, 다른 사용자가 쓰는 이메일 `user.email.duplicate`(기본 관리자 자신의 이메일은 중복이 아님) | `secret.html:73` |
-| 비밀번호 `password` | 비밀번호 | 항상 | | 필드 `password` | 비어 있으면 `user.wrongPassword.alert` | `secret.html:80` |
-| 비밀번호 확인 `retypedPassword` | 비밀번호 | 항상 | | 필드 `retypedPassword` | 다르면 `user.confirmPassword.alert` | `secret.html:87` |
-| 오류 배지 `.badge.bg-danger` | 글자 | 해당 항목에 오류 | 항목 라벨 옆에 메시지 | | | `secret.html:56`, `:63`, `:70`, `:77`, `:84` |
-| 제출 `app.welcome.submit` | 제출 | 항상 | `POST /`(urlencoded) | `POST /` | 아래 7절 | `secret.html:52`, `:91` |
+| 로고 링크 | 링크 | 항상 | `/`로(`@{/}`로 컨텍스트 경로 접두어) | `GET /` | 비밀 키가 기본값이면 같은 화면 | `secret.html:44`, `restart.html:43` |
+| `loginId` | 입력란 | 항상 | `readonly`, 값 `admin` | 필드 `loginId` | | `secret.html:61` |
+| 이름 `name` | 입력란 | 항상 | | 필드 `name` | 비어 있으면 오류 `error.required` | `secret.html:68` |
+| 이메일 `email` | 입력란(`type=text`) | 항상 | | 필드 `email` | 오류: 비어 있음 `validation.invalidEmail`, 형식 `user.wrongEmail.alert`, 다른 사용자가 쓰는 이메일 `user.email.duplicate`(기본 관리자 자신의 이메일은 중복이 아님) | `secret.html:75` |
+| 비밀번호 `password` | 비밀번호 | 항상 | | 필드 `password` | 비어 있거나 공백뿐이면 `user.wrongPassword.alert`. 아니면 비밀번호 정책(`PasswordPolicy.check(password, loginId, email)`): 8자 미만 `validation.tooShortPassword`, 128자 초과 `validation.tooLongPassword`, 흔한 비밀번호 목록이나 같은 글자만 반복한 값 `validation.commonPassword`, 아이디나 이메일(전체 또는 `@` 앞부분)과 같은 값(대소문자 무시) `validation.passwordSameAsId`. 글자 수는 유니코드 글자 단위 | `secret.html:82`, `SiteSecretInterceptor.kt:76-80`, `PasswordPolicy.kt` |
+| 비밀번호 확인 `retypedPassword` | 비밀번호 | 항상 | | 필드 `retypedPassword` | 다르면 `user.confirmPassword.alert`(비밀번호 오류와 따로 쌓인다) | `secret.html:89` |
+| 오류 배지 `.badge.bg-danger` | 글자 | 해당 항목에 오류 | 항목 라벨 옆에 메시지 | | | `secret.html:58`, `:65`, `:72`, `:79`, `:86` |
+| 제출 `app.welcome.submit` | 제출 | 항상 | `POST /`(urlencoded) | `POST /` | 아래 7절 | `secret.html:54`, `:93` |
 
 ### 4. 스크립트 동작
 
-`secret.html:104-108`이 `$("input[name=seed]").focus()`를 호출하지만 `seed` 입력란은 이 화면에 없다(아무 일도 하지 않는다. 이름 입력란에 초점을 주지 않는다). `yona.Csrf.js`가 제출 직전 `_csrf` 숨은 입력을 더한다.
+`secret.html:106-110`이 `$("input[name=seed]").focus()`를 호출하지만 `seed` 입력란은 이 화면에 없다(아무 일도 하지 않는다. 이름 입력란에 초점을 주지 않는다). `yona.Csrf.js`가 제출 직전 `_csrf` 숨은 입력을 더한다.
 
 ### 5~6. 단축키, 팝업
 
@@ -163,14 +167,14 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 요청 | 응답 | 근거 |
 |---|---|---|
-| `POST /` 검증 통과 | `SiteSecret.configure`가 새 비밀 키(130비트 난수, 32진수)를 `<데이터 디렉터리>/config/secret.properties`에 쓰고 기본 관리자 `admin`의 이름, 이메일, 비밀번호를 바꾼 뒤 `welcome/restart` 200 | `SiteSecretInterceptor.kt:66-72`, `SiteSecret.kt` |
-| 검증 실패 | 400으로 `welcome/secret`을 다시 그림. 항목마다 오류 키(같은 키는 한 번만) | `:64-65`, `:76-104` |
-| 설정 파일에 쓰지 못함 | 500으로 같은 폼, `password`에 `app.secret.writeFailed` 오류. 계정은 바뀌지 않는다 | `:68-71` |
-| `loginId` 또는 `password` 항목이 아예 없음 | 널 참조로 500(v1.6과 같게) | `:81`, `:95` |
+| `POST /` 검증 통과 | `SiteSecret.configure`가 새 비밀 키(130비트 난수, 32진수)를 `<데이터 디렉터리>/config/secret.properties`에 쓰고 기본 관리자 `admin`의 이름, 이메일, 비밀번호를 바꾼 뒤 `welcome/restart` 200 | `SiteSecretInterceptor.kt:48-54`, `SiteSecret.kt` |
+| 검증 실패 | 400으로 `welcome/secret`을 다시 그림. 항목마다 오류 키(같은 키는 한 번만). `name`, `email`은 제출한 값이 입력란에 남고 비밀번호 칸은 비워진다 | `:46-47`, `:58-88`, `:90-95` |
+| 설정 파일에 쓰지 못함 | 500으로 같은 폼, `password`에 `app.secret.writeFailed` 오류. 계정은 바뀌지 않는다 | `:50-52` |
+| `loginId` 또는 `password` 항목이 아예 없음 | 빈 값과 같게 다루어 400. `loginId`는 `error.required`와 `user.wrongloginId.alert`, `password`는 `user.wrongPassword.alert` | `:64-67`, `:72-73`, `:78` |
 | 비밀 키를 정한 뒤 `POST /` | `FakeController`가 400(본문 없음) | `FakeController.kt:16-17` |
-| 재시작이 필요한 상태의 모든 요청 | `welcome/restart` 200 | `:61` |
+| 재시작이 필요한 상태의 모든 요청 | `welcome/restart` 200 | `:43` |
 
-`loginId` 검사: 비면 `error.required`, 형식 `user.wrongloginId.alert`, 예약어 `validation.reservedWord`, `admin`이 아니면 `user.wrongloginId.alert`(`:84-90`).
+`loginId` 검사: 비면 `error.required`, 아니면 형식 `user.wrongloginId.alert`와 예약어 `validation.reservedWord`, 공백뿐이거나 `admin`이 아니면 `user.wrongloginId.alert`(`:64-73`).
 
 ### 8. 권한
 
@@ -178,16 +182,16 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 ### 9. 시험
 
-`SiteSecretTest`(기본이면 어떤 주소든 계정 설정 화면, 포괄 GET, 접근 검사 우선, 정적 자원 통과, ID 오류, 널 참조 500, 비밀번호, 이름, 이메일, 입력 보존, 설정 저장, 재시작 안내, 쓰기 실패, POST 루트 400, 비밀 키 형식).
+`SiteSecretTest`(기본이면 어떤 주소든 계정 설정 화면, 포괄 GET, 접근 검사 우선, 정적 자원 통과, ID 오류, 항목 누락, 비밀번호, 이름, 이메일, 입력 보존, 설정 저장, 재시작 안내, 쓰기 실패, POST 루트 400, 비밀 키 형식).
 
 ### 발견 사항
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| welcome-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 제출 처리에서 `loginId`와 `password` 항목이 없으면 500(NullPointerException)이다. 화면의 폼은 항상 보내지만 직접 요청은 500을 받는다(v1.6과 같다고 시험이 고정) | `SiteSecretInterceptor.kt:81`, `:95` |
-| welcome-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `$("input[name=seed]").focus()`는 대상이 없는 죽은 코드이다(v1.6 잔재). 화면이 열릴 때 초점이 이동하지 않는다 | `secret.html:104-108` |
-| welcome-F3 **[검증: 수정함(A-465, 2026-11-11)]** | 비밀번호에 길이 규칙이 없다(`user.wrongPassword.alert`는 빈 값일 때만). 사이트 비밀번호 정책 설정이 있는지는 이 화면에서 쓰지 않는다 | `SiteSecretInterceptor.kt:93-96` |
-| welcome-F4 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `.secret-box { width: 50% }` 고정이라 좁은 화면에서 안내 글이 좁다(반응형 규칙 없음) | `secret.html:26`, `restart.html:25` |
+| welcome-F1 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 제출 처리에서 `loginId`와 `password` 항목이 없으면 500(NullPointerException)이었다. (2026-11-11 수정: 항목이 없는 것을 빈 값과 같게 다루어 필수 오류와 함께 400으로 다시 그린다) | `SiteSecretInterceptor.kt:64`, `:76-78` |
+| welcome-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `$("input[name=seed]").focus()`는 대상이 없는 죽은 코드이다(v1.6 잔재). 화면이 열릴 때 초점이 이동하지 않는다 | `secret.html:106-110` |
+| welcome-F3 **[검증: 수정함(A-465, 2026-11-11)]** | 비밀번호에 길이 규칙이 없었다(`user.wrongPassword.alert`는 빈 값일 때만). (2026-11-11 수정: 비어 있지 않은 비밀번호에 `PasswordPolicy`를 적용한다. 8자 이상 128자 이하, 흔한 비밀번호와 같은 글자 반복과 아이디 또는 이메일과 같은 값 거절. 사이트 설정으로 바꿀 수 없다) | `SiteSecretInterceptor.kt:76-80`, `PasswordPolicy.kt` |
+| welcome-F4 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | `.secret-box { width: 50% }` 고정이라 좁은 화면에서 안내 글이 좁았다. (2026-11-11 수정: 768px 이하에서 너비 92%) | `secret.html:26-28`, `restart.html:25-27` |
 
 ---
 
@@ -217,16 +221,16 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답과 이어지는 동작 | 근거 |
 |---|---|---|---|---|---|---|
-| 필터 입력(`actor`, `action`, `target`, `ip`, `from`, `to`, `outcome`) | 입력, 선택, 날짜 | `showFilter` | 적용 단추나 Enter로 제출 | `GET {base}?actor=&action=&outcome=&target=&ip=&from=&to=`(빈 값도 폼이 보내고 서버는 빈 값을 필터에서 뺀다) | 1쪽부터 다시 그림 | `list.html:9-26` |
+| 필터 입력(`actor`, `action`, `target`, `ip`, `from`, `to`, `outcome`) | 입력, 선택, 날짜 | `showFilter` | 적용 단추나 Enter로 제출 | `GET @{{base}}?actor=&action=&outcome=&target=&ip=&from=&to=`(폼 `action`이 `@{}`라 컨텍스트 경로 접두어. 빈 값도 폼이 보내고 서버는 빈 값을 필터에서 뺀다) | 1쪽부터 다시 그림 | `list.html:9-26` |
 | `적용` | 제출 | `showFilter` | | 위와 같음 | | `list.html:23` |
-| `초기화` | 링크 | `showFilter` | 필터를 모두 지운 주소로 | `GET {base}` | | `list.html:24` |
+| `초기화` | 링크 | `showFilter` | 필터를 모두 지운 주소로 | `GET @{{base}}` | | `list.html:24` |
 | CSV, JSON 줄, JSON | 링크 | `exportable` | 현재 필터(`targetType`, `projectId` 포함)를 이어 받아 내려받기 | `GET {base}/export?<필터>&format=csv\|jsonl\|json` | 첨부 파일 응답(`Content-Disposition: attachment; filename=audit-{UTC 날짜}.{확장자}`). 이 내려받기도 `audit.exported` 기록으로 남는다. `limit`(기본 10000, 최대 100000)은 링크에 없고 직접 쿼리로만 준다(`AuditControllers.kt:34-44`, `AuditExporter.kt:49-50`). 알 수 없는 `format`은 400 | `list.html:30-34` |
-| `무결성 검증` `.audit-verify` | 단추 | `verifiable`(사이트 화면만) | 해시 사슬을 처음부터 다시 계산 | `GET {현재 경로}/verify` (`fetch`, `Accept: application/json`) | JSON `{ok, checked, brokenId, reason}`을 받아 `.audit-verify-result`에 `audit.verify.ok`(초록) 또는 `audit.verify.broken`(빨강) 문구를 보임. 오류 처리는 없다 | `list.html:35`, `:69-84`, `AuditControllers.kt:76-78` |
-| `최신`(`.audit-prev`), `이전`(`.audit-next`) | 링크 | `prevUrl`(`page > 1`), `nextUrl`(`page < pages`) | 쪽 이동. 필터와 `size`를 유지 | `GET {base}?<필터>&page=N&size=S` | 이름이 반대로 보인다: `audit.pager.prev`="최신", `next`="이전"(최신이 앞쪽이므로) | `list.html:65-68` |
+| `무결성 검증` `.audit-verify` | 단추 | `verifiable`(사이트 화면만) | 해시 사슬을 처음부터 다시 계산 | `GET {현재 경로}/verify` (`fetch`, `Accept: application/json`, 경로는 `window.location.pathname`이라 컨텍스트 경로를 포함) | 응답이 2xx이면 JSON `{ok, checked, brokenId, reason}`을 받아 `.audit-verify-result`에 `audit.verify.ok`(초록) 또는 `audit.verify.broken`(빨강) 문구를 보임. 응답이 2xx가 아니거나(403, 500 등) JSON을 읽지 못하면 `audit.verify.failed`(`감사 사슬을 확인하지 못했습니다.`)를 빨강으로 보임 | `list.html:35`, `:37-38`, `:69-89`, `AuditControllers.kt:76-78` |
+| `최신`(`.audit-prev`), `이전`(`.audit-next`) | 링크 | `prevUrl`(`page > 1`), `nextUrl`(`page < pages`) | 쪽 이동. 필터와 `size`를 유지 | `GET {base}?<필터>&page=N&size=S`(`th:href="${prevUrl}"`, `@{}` 없음, [audit-F6](#발견-사항)) | 이름이 반대로 보인다: `audit.pager.prev`="최신", `next`="이전"(최신이 앞쪽이므로) | `list.html:65-68` |
 
 ### 4. 스크립트 동작
 
-`list.html:69-84`의 인라인 즉시 실행 함수 하나(`verifiable`일 때만 출력). `fetch(..., {credentials:"same-origin"})`로 GET만 하므로 CSRF 토큰은 필요 없다. 메시지는 `data-ok`, `data-broken` 속성에 `{0}`, `{1}` 자리표시자를 남겨 두고(`#{audit.verify.ok('{0}')}`) 응답 값으로 `String.replace`한다. 로컬 저장소, 폴링 없음.
+`list.html:69-89`의 인라인 즉시 실행 함수 하나(`verifiable`일 때만 출력). `fetch(..., {credentials:"same-origin"})`로 GET만 하므로 CSRF 토큰은 필요 없다. 메시지는 `data-ok`, `data-broken`, `data-failed` 속성에 두고(`#{audit.verify.ok('{0}')}`처럼 `{0}`, `{1}` 자리표시자를 남김) 응답 값으로 `String.replace`한다. 응답이 `ok`가 아니거나 예외가 나면 `.catch`가 `data-failed` 글자를 `text-danger`로 보인다. 로컬 저장소, 폴링 없음.
 
 ### 5~6. 단축키, 팝업
 
@@ -261,8 +265,9 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 | audit-F1 **[검증: 결함 아님]** | 필터 폼에는 `targetType`과 `projectId` 입력이 없지만 서버는 쿼리로 받고(`filterOf`), 쪽 이동과 내려받기 링크는 이를 이어 붙인다. 화면에서는 직접 URL로만 쓸 수 있다 | `AuditViewSupport.kt:34-35`, `:84` |
 | audit-F2 **[검증: 결함 아님]** | 사용자 화면은 필터 폼을 그리지 않지만(`showFilter=false`) 쿼리의 필터(예: `?actor=`)는 서버가 적용한다. 범위 제한(본인, `auth.`/`token.`/`account.`)은 항상 먼저 걸린다 | `AuditControllers.kt:122`, `AuditQueryService.kt:103-108` |
 | audit-F3 **[검증: 결함 아님]** | 이전/다음 링크 글자가 "최신"(`audit.pager.prev`)과 "이전"(`audit.pager.next`)이다. `prev`가 앞쪽(최신)이다. 영어 기본 메시지에서도 같은 의미(`Newer`/`Older`)이다 | `messages_ko_KR.properties:1424-1425`, `list.html:66-67` |
-| audit-F4 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 검증 단추의 `fetch`는 응답 상태를 확인하지 않고 `r.json()`만 호출하므로 403이나 500 때는 화면에 아무 일도 일어나지 않는다. 단추는 `data-url`이 있으면 그 값을 쓰나 템플릿이 설정하지 않아 항상 `{현재 경로}/verify`이다 | `list.html:75-82` |
+| audit-F4 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 검증 단추의 `fetch`는 응답 상태를 확인하지 않고 `r.json()`만 호출해 403이나 500 때는 화면에 아무 일도 일어나지 않았다. (2026-11-11 수정: `!r.ok`이면 오류를 던져 `.catch`가 `audit.verify.failed`를 보인다.) 단추는 `data-url`이 있으면 그 값을 쓰나 템플릿이 설정하지 않아 항상 `{현재 경로}/verify`이다 | `list.html:38`, `:75-86` |
 | audit-F5 **[검증: 결함 아님]** | 사용자 범위에서 내가 행위자인 모든 기록 가운데 `auth.`, `token.`, `account.`이 아닌 조치(프로젝트 변경 등)는 보이지 않는다(설명 문구 `audit.description.user`와 일치) | `AuditQueryService.kt:103-108` |
+| audit-F6 **[재조사 2026-11-11]** | 필터 폼의 `action`과 `초기화` 링크는 `@{${base}}`로 컨텍스트 경로를 붙이지만, 내려받기 링크 셋(`exportCsv`, `exportJsonl`, `exportJson`)과 쪽 이동 링크(`prevUrl`, `nextUrl`)는 `th:href="${...}"`로 `@{}`가 없고 `AuditViewSupport.model`이 만든 주소(`base`는 `/sites/audit`처럼 컨텍스트 경로가 없는 경로)를 그대로 쓴다. 하위 경로 배포에서는 이 링크들에 접두어가 없다(코드상의 사실이며 하위 경로로 띄워 확인하지 않았다) | `list.html:31-33`, `:66-67`, `AuditViewSupport.kt:65-66` |
 
 ## 범위 점검
 
@@ -273,4 +278,13 @@ GitHub 저장소 목록 100개씩 100쪽까지, 이슈 전송 0.5초 간격(분�
 | `welcome/restart.html` | 시작 안내(1, 2, 3 로고, 7) |
 | `audit/list.html` | 감사 로그(1~9) |
 
-조사한 템플릿 4개 / 담당 4개(`migration` 1, `welcome` 2, `audit` 1). 함께 읽은 틀: `layout/migration-layout.html`. 따라간 코드: `MigrationController`, `MigrationService`, `GithubTokenClient`, `Migration.js`(전체), `SiteSecretInterceptor`, `FakeController`, `SiteSecret`, `WebConfig`(인터셉터 순서), `AuditControllers`, `AuditViewSupport`, `AuditQueryService`(범위), `AccessChainInterceptor`, `SiteManagerOnlyStage`.
+조사한 템플릿 4개 / 담당 4개(`migration` 1, `welcome` 2, `audit` 1). 함께 읽은 틀: `layout/migration-layout.html`. 도움말 단축키 안내(`help/keymap.html`)와 오류 화면(`error/`), 메인(`index/`)은 `shell` 담당이다([shell.md](shell.md)). 게시판 화면에서 안내가 보이는 조건 변화는 [board.md](board.md)의 5, 6절에 적었다. 따라간 코드: `MigrationController`, `MigrationService`, `GithubTokenClient`, `Migration.js`(전체), `SiteSecretInterceptor`, `FakeController`, `SiteSecret`, `WebConfig`(인터셉터 순서), `AuditControllers`, `AuditViewSupport`, `AuditQueryService`(범위), `AccessChainInterceptor`, `SiteManagerOnlyStage`.
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿 4개: `migration/home.html`, `welcome/secret.html`, `welcome/restart.html`, `audit/list.html`. 함께 `layout/migration-layout.html`, `Migration.js`, `SiteSecretInterceptor`, `PasswordPolicy`, `MigrationController`, `FakeController`, `AuditControllers`, `AuditViewSupport`, `YonaProperties`의 인용을 대조했다.
+- 내용을 고친 행과 문장: 약 24(작업 계정 경고 정리와 `warn-not-admin` 행, 개인 저장소 경고 행, 확인창의 `migration.js.confirmLog`, `CONFIG.YONA_SERVER`와 서버 거절 표시, 작업 토큰, 사이트 비밀 키 화면의 비밀번호 정책과 누락 항목 처리와 좁은 화면 폭, 감사 목록의 검증 실패 표시와 컨텍스트 경로, 발견 사항 migration-F2, F3, F4, F8, welcome-F1, F3, F4, audit-F4).
+- 줄 번호만 고친 곳: 약 26(`home.html`, `secret.html`, `restart.html`, `SiteSecretInterceptor.kt`, `Migration.js`, `audit/list.html`).
+- 더한 행: 개인 저장소 경고 행, 서버 JSON 주소와 거절 표시 설명 2항목, 발견 사항 audit-F6.
+- 없앤 행: 작업 계정 경고 배지 행의 옛 내용(`warn-no-worker`, `warn-user-project`)은 현재 경고 행으로 바꿨다.
+- 새 발견 사항: audit-F6(내려받기와 쪽 이동 링크에 `@{}`가 없어 컨텍스트 경로 접두어가 없음).

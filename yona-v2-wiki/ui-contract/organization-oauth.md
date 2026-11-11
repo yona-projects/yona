@@ -12,12 +12,12 @@ updated: 2026-11-11
 
 # UI 계약: 조직 설정의 OAuth 앱 화면 넷
 
-모두 v1.6에 없는 추가 화면이다(X-39, decisions.md D-78). 공통 틀, 권한 용어, CSRF는 [organization.md](organization.md) 2절. OAuth 서버 자체는 [../architecture/oauth2-server.md](../architecture/oauth2-server.md). 사용자 설정의 같은 화면은 `oauth/partial-apps.html`을 공유하며 소유자만 다르다.
+모두 v1.6에 없는 추가 화면이다(X-39, decisions.md D-78). 설정 탭 줄(`organization/partial-settingmenu`)의 링크는 컨텍스트 경로를 붙인 `th:href="@{...}"`이다(탭 줄 자체의 계약은 [organization.md](organization.md)). 공통 틀, 권한 용어, CSRF는 [organization.md](organization.md) 2절. OAuth 서버 자체는 [../architecture/oauth2-server.md](../architecture/oauth2-server.md). 사용자 설정의 같은 화면은 `oauth/partial-apps.html`을 공유하며 소유자만 다르다.
 
 ## 1. 공통 규칙
 
 - 두 컨트롤러 모두 `@AnonymousCheck(requiresLogin=true, displaysFlashMessage=true)`: 비로그인은 `/users/loginform?redirectUrl=...`로 303 + `user.login.alert`.
-- `guard`: 조직이 없으면 404 `organization.member.unknownOrganization`, 조직 `UPDATE` 권한(조직 관리자, 사이트 관리자)이 없으면 403 조직 403 화면(`error.forbidden`). 다른 조직의 앱은 `findFor(소유자, id)`가 null이라 404 (OrganizationOAuthAppsController.kt:135-142).
+- `guard`: 조직이 없으면 404 `organization.member.unknownOrganization`, 조직 `UPDATE` 권한(조직 관리자, 사이트 관리자)이 없으면 403 조직 403 화면(`error.forbidden`). 다른 조직의 앱은 `findFor(소유자, id)`가 null이라 404 (OrganizationOAuthAppsController.kt:137-143).
 - 사이트 설정 `oauthUserAppsEnabled`가 꺼져 있으면(사이트 관리자의 "보안" 화면) 새 앱 만들기만 막힌다: 목록의 만들기 단추 대신 `oauth.apps.disabled` 문구, `GET .../new`와 `POST .../oauth-apps`는 403 조직 화면. 이미 있는 앱은 보고 고치고 지울 수 있다 (OrganizationOAuthAppsController.kt:61-67, 69-73).
 - 앱은 소유자(조직)마다 20개까지(`MAX_PER_OWNER`), 이름 100자, 설명 500자, 홈 주소 500자, 리디렉션 주소 10개까지(`oauth.error.redirect`) (OAuthClientService.kt:264-268). 한도 초과는 `oauth.error.limit`.
 - 주소 모음 `OAuthAppUrls.organization(base)`: 목록, 수정, 만들기 `POST`, 수정 `POST`가 각각 `base`, `base/{id}`, `base`, `base/{id}`이고 새 앱 화면 `base/new`, 비밀 값 `base/{id}/secret`, 이전 `base/{id}/transfer`, 삭제 `base/{id}/delete`이다. `base`는 `/organizations/{name}/oauth-apps` (OAuthAppUrls.kt:12-35).
@@ -31,7 +31,7 @@ updated: 2026-11-11
 | 빈 상태 `#my-apps-empty` (`oauth.org.apps.empty`) | 문구 | 앱이 없음 | | | | | partial-apps.html:15 |
 | 앱 표 `#my-apps` | 표 | 앱이 있음 | 열: 이름, clientId, 유형(`oauth.type.confidential`, `oauth.type.public`), 생성일, 삭제 | | | | partial-apps.html:16-31 |
 | 이름 링크 | 링크 | 앱마다 | 수정 화면 | `GET .../oauth-apps/{id}` | 수정 양식 | 조직 `UPDATE` | partial-apps.html:20 |
-| 삭제 단추 (`oauth.apps.delete`) | 제출(폼 `onsubmit`의 `confirm('oauth.apps.delete.confirm')`) | 앱마다 | 브라우저 확인창에서 취소하면 보내지 않는다 | `POST .../oauth-apps/{id}/delete` | `303 → .../oauth-apps`. 없는 앱 404 | 조직 `UPDATE` | partial-apps.html:25-27; OrganizationOAuthAppsController.kt:127-133 |
+| 삭제 단추 (`oauth.apps.delete`) | 제출(폼 `onsubmit`의 `confirm('oauth.apps.delete.confirm')`) | 앱마다 | 브라우저 확인창에서 취소하면 보내지 않는다 | `POST .../oauth-apps/{id}/delete` | `303 → .../oauth-apps`. 없는 앱 404 | 조직 `UPDATE` | partial-apps.html:25-27; OrganizationOAuthAppsController.kt:128-134 |
 | 새 앱 `#oauth-app-new` | 링크 | `userAppsEnabled` | 만들기 양식 | `GET .../oauth-apps/new` | | | partial-apps.html:33 |
 | 비활성 문구 `#user-apps-disabled` | 문구 | `!userAppsEnabled` | | | | | partial-apps.html:34 |
 
@@ -39,7 +39,7 @@ updated: 2026-11-11
 
 ## 3. 앱 만들기와 수정 `organization/oauth-app-form.html`
 
-`GET .../oauth-apps/new`(만들기), `GET .../oauth-apps/{id}`(수정). 모델: `title`, `orgView`, `urls`, `client`(수정일 때 `id`, `clientId`, `confidential`), `form`, `formError`, `scopeChoices`, `oidcInfo`, `transferTargets` (OrganizationOAuthAppsController.kt:151-154). 양식은 `appForm` 조각 (partial-apps.html:40-118).
+`GET .../oauth-apps/new`(만들기), `GET .../oauth-apps/{id}`(수정). 모델: `title`, `orgView`, `urls`, `client`(수정일 때 `id`, `clientId`, `confidential`), `form`, `formError`, `scopeChoices`, `oidcInfo`, `transferTargets` (OrganizationOAuthAppsController.kt:152-155). 양식은 `appForm` 조각 (partial-apps.html:40-118).
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
@@ -49,9 +49,9 @@ updated: 2026-11-11
 | 이름 `name`(100), 설명 `description`(500), 홈 주소 `homeUrl`(500), 리디렉션 주소 `redirectUris`(textarea, 줄마다 하나) | 입력 | 항상 | | 바디 필드 같은 이름 | | | partial-apps.html:53-69 |
 | 유형 라디오 `type` (`public`, `confidential`) | 라디오 | 항상. **수정이면 `disabled`**(값이 전송되지 않는다) | 만들 때만 고른다 | 바디 `type` | 수정에서는 서버가 유형을 받지 않는다 | | partial-apps.html:74; OAuthAppsSettingsController.kt Form.of |
 | 범위 체크박스 `scope`(여러 값) | 체크박스 | `scopeChoices`(`OAuthScopes.forApps(OIDC 켜짐 여부)`)마다. 기본 선택 `read:user` | | 바디 `scope` 반복 | | | partial-apps.html:83-86 |
-| 만들기 / 저장 | 제출 | 항상 | 새 앱 `POST .../oauth-apps`, 수정 `POST .../oauth-apps/{id}` | | 거부(검증, 한도)는 `400` + 같은 양식(입력 되살림, `formError`). 만들기 성공: 기밀 앱이면 **그 자리에서** 비밀 값 화면(`200`, 캐시 금지 머리글), 공개 앱이면 `303 → .../oauth-apps/{id}`. 수정 성공 `303 → .../oauth-apps/{id}` + flash `success` `oauth.apps.saved` | 조직 `UPDATE` | partial-apps.html:90; OrganizationOAuthAppsController.kt:69-101 |
+| 만들기 / 저장 | 제출 | 항상. 폼 `#oauth-app-form`에 `data-submit-once` | 새 앱 `POST .../oauth-apps`, 수정 `POST .../oauth-apps/{id}`. 제출하는 순간 이 폼의 제출 단추를 모두 잠가 같은 요청이 두 번 가지 않게 한다(다른 스크립트가 제출을 취소하면 잠그지 않고, 뒤로 가기로 복원되면 푼다, `J/esm/ui/SubmitOnce.js:19-29`) | | 거부(검증, 한도)는 `400` + 같은 양식(입력 되살림, `formError`). 만들기 성공: 기밀 앱이면 **그 자리에서** 비밀 값 화면(`200`, 캐시 금지 머리글), 공개 앱이면 `303 → .../oauth-apps/{id}`. 수정 성공 `303 → .../oauth-apps/{id}` + flash `success` `oauth.apps.saved` | 조직 `UPDATE` | partial-apps.html:52, :90; OrganizationOAuthAppsController.kt:69-103 |
 | 취소 | 링크 | 항상 | 목록으로 | `GET .../oauth-apps` | | | partial-apps.html:91 |
-| 비밀 값 다시 만들기 (`oauth.secret.regenerate`) | 제출 (`confirm('oauth.secret.regenerate.confirm')`) | 수정이고 `client.confidential` | | `POST .../oauth-apps/{id}/secret` | `200` 비밀 값 화면 + flash 문구 `oauth.secret.regenerated`, 캐시 금지. 공개 앱이거나 없는 앱은 404 | | partial-apps.html:94-100; OrganizationOAuthAppsController.kt:104-111 |
+| 비밀 값 다시 만들기 (`oauth.secret.regenerate`) | 제출 (`confirm('oauth.secret.regenerate.confirm')`) | 수정이고 `client.confidential` | | `POST .../oauth-apps/{id}/secret` | `200` 비밀 값 화면 + flash 문구 `oauth.secret.regenerated`, 캐시 금지. 공개 앱이거나 없는 앱은 404 | | partial-apps.html:94-100; OrganizationOAuthAppsController.kt:105-112 |
 | 소유자 이전 `#oauth-transfer-form` | 폼 | 수정이고 `transferTargets`가 비어 있지 않음 | 대상 선택 `target`(`org:이름` 또는 `user`)과 확인용 앱 이름 `confirm` 입력 | `POST .../oauth-apps/{id}/transfer` | 성공 `303 → .../oauth-apps` + flash `oauth.transfer.done`. 허용되지 않은 대상 `400 oauth.transfer.error.target`, 이름 불일치 `oauth.transfer.error.confirm`, 같은 소유자 `oauth.transfer.error.same`, 대상 한도 `oauth.error.limit` | 이전 대상은 현재 사용자가 **관리자인** 다른 조직과(조직 소유 앱이므로) 자기 계정 | partial-apps.html:101-117; OAuthAppViewSupport.kt:42-56; OAuthClientService.kt:175-183 |
 
 수정할 수 있는 항목은 이름, 설명, 홈 주소, 리디렉션 주소, 범위이다. 스크립트 없음.
@@ -79,8 +79,8 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| organization-F20 **[검증: 결함 아님]** | 비밀 값 화면은 POST 응답으로만 존재해 새로고침이나 뒤로 가기에서 재전송 확인창이 뜬다. 다시 만들기를 재전송하면 비밀 값이 또 바뀐다. 의도된 한 번 보이기이다 | OrganizationOAuthAppsController.kt:78, 110 |
-| organization-F21 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 수정 양식에서 유형 라디오가 `disabled`라 `type`이 전송되지 않고, 서버의 `Form.of(request)`는 `confidential=false`로 읽지만 `updateFor`가 유형을 받지 않아 값이 바뀌지 않는다. 오류로 양식을 다시 그릴 때는 기존 앱의 값으로 되살린다 | partial-apps.html:74; OrganizationOAuthAppsController.kt:93-100 |
+| organization-F20 **[검증: 결함 아님]** | 비밀 값 화면은 POST 응답으로만 존재해 새로고침이나 뒤로 가기에서 재전송 확인창이 뜬다. 다시 만들기를 재전송하면 비밀 값이 또 바뀐다. 의도된 한 번 보이기이다. 앱 만들기 폼의 단추 중복 제출은 `data-submit-once`가 막는다 | OrganizationOAuthAppsController.kt:78, 111 |
+| organization-F21 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 수정 양식에서 유형 라디오가 `disabled`라 `type`이 전송되지 않고, 서버의 `Form.of(request)`는 `confidential=false`로 읽지만 `updateFor`가 유형을 받지 않아 값이 바뀌지 않는다. 오류로 양식을 다시 그릴 때는 `Form.of(request).copy(confidential = client.confidential == true)`로 기존 앱의 값으로 되살린다 | partial-apps.html:74; OrganizationOAuthAppsController.kt:93-101 (덮어 쓰는 줄 `:96-97`) |
 | organization-F22 **[검증: 결함 아님]** | 정책 저장과 결정의 이동 주소는 `UrlPaths.organizationPath`를 쓰지 않고 조직 이름을 그대로 문자열에 넣는다(다른 컨트롤러는 `basePath`로 인코딩). 이름 규칙(한글 허용) 때문에 한글 이름이면 `Location`의 인코딩은 `RedirectSupport.see`가 맡는다(`encodeLocation`) | OrganizationOAuthPolicyController.kt:57, 70; RedirectSupport.kt:123 |
 | organization-F23 **[검증: 결함 아님]** | 앱 만들기 비활성 설정은 화면에서 만들기 단추를 숨기고 서버가 403으로 막는다(둘이 같다). 이미 있는 앱의 수정, 삭제, 이전은 막지 않는다 | partial-apps.html:33-34; OrganizationOAuthAppsController.kt:65, 73 |
 | organization-F24 **[검증: 문서 문제]** | 앱 삭제는 `POST .../delete`(HTML 폼, JS 없음)이고 사용자 설정과 같은 조각을 쓴다. 이전 대상 선택에서 현재 소유자와 같은 조직은 빠진다. 위키의 OAuth 문서(`oauth2-server.md`)에 이 화면의 요청 계약 표는 없다 | OAuthAppViewSupport.kt:42-48 |
@@ -88,3 +88,9 @@ updated: 2026-11-11
 ## 7. 시험 근거
 
 `OrganizationOAuthAppsTest`(10), `OrganizationOAuthPolicyTest`(5). 정책이 토큰 접근에 미치는 효과는 `oauth2server` 시험 묶음에서 다룬다(이 조사에서 개별 확인하지 않았다).
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿: 5개(`organization/oauth-apps`, `oauth-app-form`, `oauth-app-secret`, `oauth-policy`, 공유 조각 `oauth/partial-apps`). 앞의 4개는 변경이 없고, `partial-apps`는 폼에 `data-submit-once`가 더해졌으며 `partial-settingmenu`(포함하는 탭 줄)는 링크에 컨텍스트 경로가 붙었다.
+- 다시 확인한 소스: `OrganizationOAuthAppsController`(수정 오류 때 `confidential` 유지 줄 추가로 줄 번호 이동), `OrganizationOAuthPolicyController`(변경 없음, 줄 번호 그대로 확인), `OAuthAppViewSupport`, `OAuthAppUrls`, `SubmitOnce.js`.
+- 고친 행: 3곳(만들기/저장 행, 서문 설명, F20과 F21 설명). 줄 번호만 고친 곳: 7곳. 더한 행: 없음. 없앤 행: 없음. 새 발견 사항: 없음.

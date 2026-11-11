@@ -4,6 +4,8 @@ type: ui-contract
 sources:
   - src/main/resources/templates/common/*.html
   - src/main/resources/templates/help/markdown.html
+  - src/main/resources/messages.properties
+  - src/main/resources/static/assets/javascripts/esm/CommentAttachmentsUpdate.js
   - src/main/resources/static/assets/javascripts/esm/Attachments.js
   - src/main/resources/static/assets/javascripts/esm/Files.js
   - src/main/resources/static/assets/javascripts/esm/Comment.js
@@ -40,13 +42,13 @@ updated: 2026-11-11
 
 | 요소 | 동작 | 요청 | 근거 |
 |---|---|---|---|
-| 미리보기 탭 클릭 | `Markdown.js`가 textarea 값을 서버로 보내 HTML을 받아 미리보기에 넣고 `min-height`를 textarea 높이로 맞춘다. `sMarkdownRendererUrl`이 없으면(`common/markdown`에 프로젝트가 null) **요청하지 않아 미리보기가 빈 채** 남는다 | `POST /markdown/{owner}/{project}` JSON `{body, breaks}` | `Markdown.js:74-100,132-147` |
-| `Tab`, `Shift+Tab`(textarea) | 4칸 들여쓰기와 내어쓰기(`KeyControl.js`), 브라우저 되돌리기 기록에 한 번으로 남는다 | 없음 | `Markdown.js:148-155`, `KeyControl.js` |
-| `.add-task-list-button` | 커서 위치에 `- [ ] Todo A/B/C` 세 줄 삽입(전역 `scripts.html:170-189`) | 없음 | |
+| 미리보기 탭 클릭 | `Markdown.js`가 textarea 값을 서버로 보내 HTML을 받아 미리보기에 넣고 `min-height`를 textarea 높이로 맞춘다. `sMarkdownRendererUrl`이 없으면(`common/markdown`에 프로젝트가 null) **요청하지 않아 미리보기가 빈 채** 남는다 | `POST /markdown/{owner}/{project}` JSON `{body, breaks}`(주소는 컨텍스트 경로 포함) | `Markdown.js:74-100,132-146` |
+| `Tab`, `Shift+Tab`(textarea) | 4칸 들여쓰기와 내어쓰기(`KeyControl.js`), 브라우저 되돌리기 기록에 한 번으로 남는다 | 없음 | `Markdown.js:148-158`, `KeyControl.js` |
+| `.add-task-list-button` | 커서 위치에 `- [ ] Todo A/B/C` 세 줄 삽입(전역 `scripts.html:173-192`) | 없음 | |
 | `#button-clear-temporary` | 임시 저장 초안 지우기(화면 모듈이 처리, 이 조각은 단추만) | 없음 | 확인: 이 담당 파일에는 처리기가 없다(화면 스크립트) |
-| `markdown-toolbar` 단추 | GitHub `markdown-toolbar-element`가 선택 범위에 문법을 넣는다 | 없음 | `scripts.html:57`, 시험 `EditorToolbarTest.kt` |
-| `@`, `#`, `:` 입력 | `yona.Mention`이 `text-expander`로 감싸 후보를 연다(`@` 사용자, `#` 이슈, `:` 이모지) | `GET /{owner}/{project}/mentionList?query=&mentionType=user\|issue`(`@IsAllowed(READ)`, `MentionListController.kt:43-70`) | `Mention.js` |
-| 입력 5초 뒤 | 초안을 `localStorage`에 저장하고 `.editor-notice-label`에 `Draft saved`(영문 고정) | 없음 | `temporarySaveHandler.js` |
+| `markdown-toolbar` 단추 | GitHub `markdown-toolbar-element`가 선택 범위에 문법을 넣는다 | 없음 | `scripts.html:59`, 시험 `EditorToolbarTest.kt` |
+| `@`, `#`, `:` 입력 | `yona.Mention`이 `text-expander`로 감싸 후보를 연다(`@` 사용자, `#` 이슈, `:` 이모지) | `GET /{owner}/{project}/mentionList?query=&mentionType=user\|issue`(`@IsAllowed(READ)`, `MentionListController.kt:43-69`) | `Mention.js` |
+| 입력 5초 뒤 | 초안을 `localStorage`에 저장하고 `.editor-notice-label`에 메시지 키 `draft.saved`(영어 "Draft saved", 한국어 "초안을 저장했습니다")를 보인다 | 없음 | `temporarySaveHandler.js:131` |
 
 ### 1.2 `common/file-uploader`, `common/upload-form`
 
@@ -54,12 +56,12 @@ updated: 2026-11-11
 
 | 요소 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|
-| 파일 선택, 끌어놓기, 붙여넣기(textarea) | 파일마다 임시 항목(`id=<submitId>`, 투명도 0.2)을 목록에 넣고 진행률을 그린다. 붙여넣은 `image.png`는 `<submitId>.png`로 이름을 바꾼다. textarea에 `<!--_<id>_-->` 임시 표지를 넣었다가 성공 때 `[이름](/files/<id>)`나 `![이름](...)`로 바꾼다 | `POST /files`(multipart `filePath`, 헤더 `X-Requested-With`, CSRF) | 201 새로 저장, 200 같은 내용이 이미 있음. JSON `{id, mimeType, name, url, size}`(Accept가 JSON이 아니면 `text/html`). 파일 없음 400 | **로그인 필요**: 올린 사람을 못 정하면 403(본문 없음) | `Files.js:100-160`, `AttachmentController.kt:110-137` |
-| 크기 초과 | 요청하지 않고 `error.toolargefile`을 알림 | 없음 | | 한도는 화면만(F12) | `Files.js:102-107` |
+| 파일 선택, 끌어놓기, 붙여넣기(textarea) | 파일마다 임시 항목(`id=<submitId>`, 투명도 0.2)을 목록에 넣고 진행률을 그린다. 붙여넣은 `image.png`는 `<submitId>.png`로 이름을 바꾼다. textarea에 `<!--_<id>_-->` 임시 표지를 넣었다가 성공 때 `[이름](/files/<id>)`나 `![이름](...)`로 바꾼다 | `POST /files`(multipart `filePath`, 헤더 `X-Requested-With`, CSRF) | 201 새로 저장, 200 같은 내용이 이미 있음. JSON `{id, mimeType, name, url, size}`(Accept가 JSON이 아니면 `text/html`). 파일 없음 400. 파일이 `site.maxFileSize`보다 크면 413 `text/plain` "The file is too large." | **로그인 필요**: 올린 사람을 못 정하면 403(본문 없음) | `Files.js:100-160`, `AttachmentController.kt:111-141` |
+| 크기 초과 | 요청하지 않고 `error.toolargefile`을 알림 | 없음 | | 한도는 화면과 서버 모두 지킨다(F12) | `Files.js:102-107` |
 | 업로드 성공 | 숨은 `input[name=temporaryUploadFiles]`(업로더 컨테이너 안에 prepend)에 id를 쉼표로 이어 넣는다. 폼 제출 때 서버가 이 임시 파일을 글에 붙인다 | 없음 | | | `Attachments.js:56-63,280-300` |
 | 목록 항목 클릭 | `.btn-delete`면 삭제, 아니면 링크를 textarea 커서 위치에 삽입. 동영상 MIME(`video/mp4`, `ogg`, `webm`)이면 `<video class="video-js">` 조각을 넣는다 | | | | `Attachments.js:362-374` |
-| `.btn-delete`(×) | 삭제 후 항목과 textarea의 링크, 임시 id를 지운다. 실패하면 `common.attach.error.delete` 알림 | `POST /files/{id}` multipart `_method=delete` | 200 평문. 멀티파트인데 `_method`가 `delete`가 아니면 400, 없는 파일 404 | `Operation.DELETE` 권한 없으면 **403**(본문 없음) | `Attachments.js:376-397`, `Files.js:224-236`, `AttachmentController.kt:167-185` |
-| 수정 화면의 기존 첨부 | `resourceType`과 `resourceId`가 있으면 목록 조회 | `GET /files?containerType=&containerId=` | `{attachments:[...], tempFiles:[...]}` JSON. 권한 없으면 403 | 읽기 권한 | `Files.js:246-258`, `AttachmentController.kt:153-165` |
+| `.btn-delete`(×) | 삭제 후 항목과 textarea의 링크, 임시 id를 지운다. 실패하면 `common.attach.error.delete` 알림 | `POST /files/{id}` multipart `_method=delete` | 200 평문. 멀티파트인데 `_method`가 `delete`가 아니면 400, 없는 파일 404 | `Operation.DELETE` 권한 없으면 **403**(본문 없음) | `Attachments.js:376-397`, `Files.js:224-236`, `AttachmentController.kt:175-197` |
+| 수정 화면의 기존 첨부 | `resourceType`과 `resourceId`가 있으면 목록 조회 | `GET /files?containerType=&containerId=` | `{attachments:[...], tempFiles:[...]}` JSON. 권한 없으면 403 | 읽기 권한 | `Files.js:246-258`, `AttachmentController.kt:161-173` |
 
 `resourceType` 값: `ISSUE_POST`, `BOARD_POST`, `MILESTONE`, `PULL_REQUEST`, `COMMIT_COMMENT`, `REVIEW_COMMENT`, `ISSUE_COMMENT`, `NONISSUE_COMMENT`(2절 표). 동시에 한 컨테이너나 textarea에는 업로더가 하나만 붙는다(`isYobiUploader`).
 
@@ -76,18 +78,18 @@ updated: 2026-11-11
 
 `commentUpdateForm(comment, action, resourceType, isAllowedUpdate)`: `div#comment-editform-<id>.comment-update-form > form[action=<action>/<id>][POST multipart]`(`comment-update-form.html:9-47`). 숨은 `id`, `editor('contents-<id>', 본문, '', 'update-comment-body', false)`, 드롭 안내, `label[for=upload-<id>]` + `input#upload-<id>[name=filePath][multiple]`, 메일 보내기 체크박스(`comment.own`일 때만, `name=notificationMail value=yes checked`, 호버 팝오버), 취소 단추(`button.ybtn-cancel[data-comment-id]`), 저장 단추(`isAllowedUpdate`일 때만), 숨은 `temporaryUploadFiles`, 기존 첨부 `.attachment-files`(`attachment-file` 조각 반복), 중복 id `div#upload-<id>[data-resourceType][data-resourceId]`(F11).
 
-`attachmentFile(file)`(`attachment-file.html:9-16`): `div.attached-file.attached-file-marker[data-name][data-href=/files/<id>][data-mime]`, 크기는 `helper.binaryPrefix`, `button.btn-delete[data-id]`(×).
+`attachmentFile(file)`(`attachment-file.html:9-16`): `div.attached-file.attached-file-marker[data-name][data-href=/files/<id>][data-mime]`(`data-href`에 컨텍스트 경로 접두어가 없다, F28), 크기는 `helper.binaryPrefix`, `button.btn-delete[data-id]`(×).
 
 | 요소 | 동작 | 요청 | 근거 |
 |---|---|---|---|
-| 취소 `.ybtn-cancel`, `[data-toggle=comment-edit]` | `Comment.js`가 수정 폼과 본문(`#comment-body-<id>`)을 토글하고 `.add-a-comment`를 숨기고 `autosize.update` | 없음 | `Comment.js:42-50,58-66` |
-| 기존 첨부 × | `CommentAttachmentsUpdate.js`가 링크 문자열을 textarea에서 지우고 `temporaryUploadFiles`에서 id를 빼고 삭제 요청 후 항목 제거. 실패는 콘솔 로그만 | `POST /files/{id}`(바디 없음, `_method` 없음. 멀티파트가 아니라 서버가 허용) | `CommentAttachmentsUpdate.js` |
-| `.file-upload__input` 변경 | 선택한 파일을 올려 커서 위치에 링크 삽입 | `POST /files` | 같은 파일 |
+| 취소 `.ybtn-cancel`, `[data-toggle=comment-edit]` | `Comment.js`가 수정 폼과 본문(`#comment-body-<id>`)을 토글하고 `.add-a-comment`를 숨기고 `autosize.update` | 없음 | `Comment.js:35-44,55-63` |
+| 기존 첨부 × | `CommentAttachmentsUpdate.js`가 링크 문자열을 textarea에서 지우고 `temporaryUploadFiles`에서 id를 빼고 삭제 요청 후 항목 제거. 실패는 콘솔 로그만 | `POST /files/{id}`(바디 없음, `_method` 없음. 멀티파트가 아니라 서버가 허용. 주소는 항목의 `data-href` 그대로이다, F28) | `CommentAttachmentsUpdate.js:18-33` |
+| `.file-upload__input` 변경 | 선택한 파일을 올려 커서 위치에 링크 삽입. 실패하면 `$yona.notify(실패 객체)` | `POST {window.yonaContextPath}/files` | `CommentAttachmentsUpdate.js:54,122` |
 | 저장 | 일반 폼 제출 | `POST {action}/{id}` | 권한은 담당 화면(이슈, 게시글) 컨트롤러. 이 담당에서는 확인하지 않음 |
 
 ### 1.5 `common/child-comments`, `child-comment-form`, `comment-delete-modal`
 
-`childComments(comment, baseUrl, number, commentsPath)`(`child-comments.html:10-29`): `.add-a-comment.float-end`("한 줄 댓글" 자리표시 문구), `.child-comments > .one-line-comment`(`comment.children` 반복: 본문 HTML `th:utext`, 숨은 `.subcomment-author`(작성자 링크 `'/' + authorLoginId`, 시각 링크 `#comment-<id>`, `child.canDelete`이면 `a[data-toggle=comment-delete][data-request-uri=<base>/<경로>/<번호>/comment/<id>/delete]`)), `comment.canReply`이면 `.child-comment-input-form > childCommentForm(action, parentCommentId)`. 등록 주소: 이슈 `…/issue/N/comments`, 게시글 `…/post/N/comment`(단수).
+`childComments(comment, baseUrl, number, commentsPath)`(`child-comments.html:10-29`): `.add-a-comment.float-end`("한 줄 댓글" 자리표시 문구), `.child-comments > .one-line-comment`(`comment.children` 반복: 본문 HTML `th:utext`, 숨은 `.subcomment-author`(작성자 링크 `@{|/${authorLoginId}|}`, 시각 링크 `#comment-<id>`, `child.canDelete`이면 `a[data-toggle=comment-delete][data-request-uri=@{<base>/<경로>/<번호>/comment/<id>/delete}]`, 둘 다 컨텍스트 경로 접두어 포함)), `comment.canReply`이면 `.child-comment-input-form > childCommentForm(action, parentCommentId)`. 등록 주소: 이슈 `…/issue/N/comments`, 게시글 `…/post/N/comment`(단수).
 
 `childCommentForm`(`child-comment-form.html:9-21`): `form[POST multipart]` 숨은 `parentCommentId`, `textarea.editorSeries[name=contents][markdown=true][rows=1]`(자리표시 끝에 `(CTRL|⌘ + ENTER)`), `button[type=submit]` 글자 `OK`(영문 고정), `.notification-receiver`.
 
@@ -95,10 +97,10 @@ updated: 2026-11-11
 
 | 요소 | 동작 | 요청 | 근거 |
 |---|---|---|---|
-| `[data-toggle=comment-delete]` 클릭(컨테이너 위임) | 주소(`data-request-uri`)를 기억하고 모달을 연다 | 없음 | `Comment.js:52-56` |
-| "예" `#comment-delete-confirm` | 기억한 주소로 삭제 | `DELETE <주소>`(`yona.Request.send('delete', url)`) | `Comment.js:36-41` |
+| `[data-toggle=comment-delete]` 클릭(컨테이너 위임) | 주소(`data-request-uri`)를 기억하고 모달을 연다 | 없음 | `Comment.js:36,68-71` |
+| "예" `#comment-delete-confirm` | 기억한 주소로 삭제 | `DELETE <주소>`(`yona.Request.send('delete', url)`) | `Comment.js:37,49-53` |
 | 삭제 성공 | 2xx면 화면 새로 고침(204+`Location`이면 그곳) | 응답 상태만 본다 | `Request.js` |
-| 삭제 실패 | **화면에 아무 알림 없음**(v1.6 그대로) | | `Request.js` |
+| 삭제 실패 | **화면에 아무 알림 없음**(v1.6 그대로). 요소 없이 `send`를 직접 부르므로 `Request.js`의 기본 오류 알림이 뜨지 않는다 | | `Comment.js:52`, `Request.js:70-81,91-122` |
 | `.add-a-comment` 클릭 | `.child-comment-input-form` 토글, textarea에 초점. `CTRL|⌘+ENTER`(keydown)는 폼 제출, `Esc`(keyup)는 모든 한 줄 입력 폼을 숨기고 `.add-a-comment`를 보인다 | 제출 때 `POST` 위 주소 | `SubComment.js` |
 | `.comment` 마우스 오버/아웃 | 입력 중이 아니면 `.add-a-comment`, `.new-issue-by`, `.share-link`를 300ms 페이드로 보이고 숨긴다 | 없음 | `SubComment.js` |
 | `.subcomment-author` | 로드 때 마지막 `<p>` 끝(없으면 `.contents` 끝)으로 옮겨 붙이고 원래 자리는 지운다 | 없음 | `SubComment.js` |
@@ -107,7 +109,7 @@ updated: 2026-11-11
 
 ### 1.6 `common/analytics` (`gtag(layout)`)
 
-`yona.send-yona-usage`와 `yona.analytics.measurement-id`가 모두 있을 때만 렌더링(`AnalyticsSettings.kt` `clientEnabled`, `analytics.html:7`). 설치된 모든 레이아웃이 아니라 `layout`(`'normal'`)과 `layout-framed`(`'left_sidebar'`)만 포함한다. `www.googletagmanager.com/gtag/js`를 불러오고 `send_page_view:false`, 광고 신호 끔. **실제 주소, 제목, 리퍼러는 보내지 않고** `maskPath`로 "화면 종류"(`/:owner/:project/issue` 등, 예약된 첫 구간 목록은 `analytics.html:11-14`)만 `page_location`(`https://yona.local<마스킹>`)으로 넣는다. 이벤트: `page_view`(`layout`, `in_frame`, `two_column`, 2단 보기 토글이 있는 화면이면 `screen`), 핀 최상위 창이면 `feature_use{left_sidebar_open}`, `#two-column-mode` 체크 변경 시 `two_column_on|off`, 2단 보기가 켜진 채 `.title`/`.twoColumeModeTarget` 클릭 시 `two_column_open`. 시험 `AnalyticsTagTest.kt`, `AnalyticsTagOffTest.kt`. 마이그레이션 레이아웃에는 없다.
+`yona.send-yona-usage`와 `yona.analytics.measurement-id`가 모두 있을 때만 렌더링(`AnalyticsSettings.kt` `clientEnabled`, `analytics.html:7`). 설치된 모든 레이아웃이 아니라 `layout`(`'normal'`)과 `layout-framed`(`'left_sidebar'`)만 포함한다. `www.googletagmanager.com/gtag/js`를 불러오고 `send_page_view:false`, 광고 신호 끔. **실제 주소, 제목, 리퍼러는 보내지 않고** `maskPath`로 "화면 종류"(`/:owner/:project/issue` 등, 예약된 첫 구간 목록은 `analytics.html:12-15`)만 `page_location`(`https://yona.local<마스킹>`)으로 넣는다. 이벤트: `page_view`(`layout`, `in_frame`, `two_column`, 2단 보기 토글이 있는 화면이면 `screen`), 핀 최상위 창이면 `feature_use{left_sidebar_open}`, `#two-column-mode` 체크 변경 시 `two_column_on|off`, 2단 보기가 켜진 채 `.title`/`.twoColumeModeTarget` 클릭 시 `two_column_open`. 시험 `AnalyticsTagTest.kt`, `AnalyticsTagOffTest.kt`. 마이그레이션 레이아웃에는 없다.
 
 ### 1.7 `common/login-dialog`
 
@@ -119,17 +121,17 @@ updated: 2026-11-11
 
 | 사건 | 동작 | 요청 | 응답 처리 | 근거 |
 |---|---|---|---|---|
-| `[data-login=required]` 클릭(문서 위임) | 모달을 열고 입력을 비우고 첫 단계로 돌리고 아이디에 초점. **경로가 `/users/…`이면 처리기를 달지 않는다**(`LoginDialog.js:35-36`) | 없음 | | `LoginDialog.js:34,62-80` |
-| 제출(비밀번호 단계) | ajax JSON | `POST /users/login` `{loginIdOrEmail, password, rememberMe}` | `200`이고 `{twoFactor:true, securityKey}`면 코드 단계, 아니면 화면 새로 고침. 실패는 아래 | `LoginDialog.js:132-170`, `PasswordLoginHandlers.kt:72-110` |
+| `[data-login=required]` 클릭(문서 위임) | 모달을 열고 입력을 비우고 첫 단계로 돌리고 아이디에 초점. **경로가 `/users/…`이면 처리기를 달지 않는다**(`LoginDialog.js:33-35`) | 없음 | | `LoginDialog.js:33-35,57,62-78` |
+| 제출(비밀번호 단계) | ajax JSON | `POST /users/login` `{loginIdOrEmail, password, rememberMe}` | `200`이고 `{twoFactor:true, securityKey}`면 코드 단계, 아니면 화면 새로 고침. 실패는 아래 | `LoginDialog.js:132-169`, `PasswordLoginHandlers.kt:72-115` |
 | 제출(코드 단계) | | `POST /users/login/2fa` `{code, rememberDevice}` | 성공이면 새로 고침 | `TwoFactorLoginController.kt:57` |
-| 보안 키 | `options`를 받아 `navigator.credentials.get`, 결과를 제출 | `POST /users/login/2fa/webauthn/options`, `POST /users/login/2fa/webauthn` | 성공 새로 고침, 실패 `Messages(message \|\| 'user.twoFactor.invalid')` | `LoginDialog.js:92-114` |
-| 실패 | 서버 JSON `message`(`user.login.invalid`, `user.locked`, `user.deleted`, `sso.error.ssoOnly`)를 `Messages()`로 번역해 오류칸에 보이고 대화상자를 흔든다. 본문이 JSON이 아니면 상태별 문구(4xx `user.login.failed.client`, 5xx `.server`, 그 밖 `user.login.failed`) | | 네트워크 문구 분기는 닿지 않는다(F2) | `LoginDialog.js:132-185` |
+| 보안 키 | `options`를 받아 `navigator.credentials.get`, 결과를 제출 | `POST /users/login/2fa/webauthn/options`, `POST /users/login/2fa/webauthn` | 성공 새로 고침, 실패 `Messages(message \|\| 'user.twoFactor.invalid')` | `LoginDialog.js:92-109` |
+| 실패 | 응답이 없는 연결 실패(`readyState` 0)이면 `user.login.failed.network`(F2). 아니면 서버 JSON `message`(`user.login.invalid`, `user.locked`, `user.login.tooMany`, `sso.error.ssoOnly`)를 `Messages()`로 번역해 오류칸에 보이고 대화상자를 흔든다. 본문이 JSON이 아니면 상태별 문구(4xx `user.login.failed.client`, 5xx `.server`, 그 밖 `user.login.failed`) | | | `LoginDialog.js:148-190` |
 
-서버 상태: 자격 오류 403 `user.login.invalid`, 잠김 403 `user.locked`, 삭제 404 `user.deleted`, SSO 전용 403 `sso.error.ssoOnly`, 입력 누락 400 `user.login.required`(`PasswordLoginHandlers.kt:129-160`, `LoginController.kt:31-40`). 2단계 인증을 켠 사용자의 성공 응답 `200 {"twoFactor":true,"securityKey":bool}`, 아니면 `text/plain` `{}`. 로그인 처리 자체의 계약은 사용자 영역 문서를 본다.
+서버 상태: 자격 오류 403 `user.login.invalid`(없는 사용자와 **삭제된 계정**도 같다. 계정의 존재를 알리지 않는다, usersec-F11), 승인 대기 잠김 403 `user.locked`, SSO 전용 403 `sso.error.ssoOnly`, 같은 아이디로 5번 틀린 뒤 15분 동안 429 `user.login.tooMany`(잠긴 동안의 요청은 비밀번호를 확인하지 않고 횟수에 세지 않는다. 횟수는 서버 DB `attempt_record`에 있다), 입력 누락 400 `user.login.required`(`PasswordLoginHandlers.kt:146-186`, `LoginController.kt:31-42`). 2단계 인증을 켠 사용자의 성공 응답 `200 {"twoFactor":true,"securityKey":bool}`, 아니면 `text/plain` `{}`. 로그인 처리 자체의 계약은 사용자 영역 문서를 본다.
 
 ### 1.8 `common/markdown`과 `help/markdown`
 
-`markdown(project)`(`common/markdown.html:6-28`): 하이라이트 CSS와 `highlight.pack.js`(11.12.0), `marked.js`(4.3.0), `marked-yona.js`를 불러오고 문서 준비 때 `hljs.configure({languages: []})`, `yona.Markdown.init({sMarkdownRendererUrl: '/markdown/<owner>/<name>'})`(프로젝트가 있을 때만), `hljs.highlightAll()`. 모든 마크다운을 보이는 화면과 편집기 화면이 포함한다(2절). `yona.Markdown.init`은 `[markdown]` 속성이 있는 요소를 훑어 textarea는 편집기로, 나머지는 보기(`marked` + `$yona.xssClean`)로 만든다(`Markdown.js:60-70,112-117,160-170`). `help/markdown`은 `shell.md` 10.3절.
+`markdown(project)`(`common/markdown.html:6-28`): 하이라이트 CSS와 `highlight.pack.js`(11.12.0), `marked.js`(4.3.0), `marked-yona.js`를 불러오고 문서 준비 때 `hljs.configure({languages: []})`, `yona.Markdown.init({sMarkdownRendererUrl: '<컨텍스트 경로>/markdown/<owner>/<name>'})`(프로젝트가 있을 때만, `@{...}`로 접두어 포함 `markdown.html:17`), `hljs.highlightAll()`. 모든 마크다운을 보이는 화면과 편집기 화면이 포함한다(2절). `yona.Markdown.init`은 `[markdown]` 속성이 있는 요소를 훑어 textarea는 편집기로, 나머지는 보기(`marked` + `$yona.xssClean`)로 만든다(`Markdown.js:64-66,108-114,165-177`). `help/markdown`은 `shell.md` 10.3절.
 
 ### 1.9 `common/select2`, `common/calendar`
 
@@ -166,7 +168,7 @@ updated: 2026-11-11
 | `child-comments` | `issue/partial-comment.html`, `board/partial-comments.html` |
 | `comment-delete-modal` | `issue/view:287`(`'#comments'`), `board/view:154`(`'#comments'`), `pullrequest/view:162`(`'#comments'`), `pullrequest/changes:152`(`'#changes'`), `code/diff:111`, `code/svn-diff:98`(`'#code-browse-wrap'`) |
 | `review-form` | `code/diff.html:68`(`'COMMIT_COMMENT', commentAction, null`), `pullrequest/changes.html:106`(`'REVIEW_COMMENT', commentAction, pendingCount`) |
-| `markdown` | `project/home:144`, `project/partial-readme:25`, `issue/create:95`, `issue/edit:131`, `issue/view:286`, `board/create:75`, `board/edit:66`, `board/view:153`, `code/diff:110`, `code/svn-diff:97`, `code/view:142`, `milestone/create:77`, `milestone/edit:77`, `milestone/view:91`, `pullrequest/create:66`, `pullrequest/edit:68`, `pullrequest/changes:151`, `pullrequest/view:161`, `wiki/edit:79`, `wiki/view:32`(인자는 프로젝트) |
+| `markdown` | `project/home:144`, `project/partial-readme:25`, `issue/create:95`, `issue/edit:131`, `issue/view:286`, `board/create:75`, `board/edit:66`, `board/view:153`, `code/diff:110`, `code/svn-diff:97`, `code/view:142`, `milestone/create:77`, `milestone/edit:77`, `milestone/view:91`, `pullrequest/create:66`, `pullrequest/edit:68`, `pullrequest/changes:151`, `pullrequest/view:161`, `wiki/edit:90`, `wiki/view:32`(인자는 프로젝트) |
 | `tasklist-bar` | `issue/view:75`, `issue/partial-comment:74`, `board/view:61`, `board/partial-comments:47` |
 | `partial-history` | `issue/view:63`(`issue.historyHtml`), `board/view:49`(`post.historyHtml`) |
 | `attachment-file` | `comment-update-form` 안 |
@@ -201,9 +203,20 @@ updated: 2026-11-11
 
 ## 3. 관련 발견 사항
 
-`shell.md` 17절의 F2(로그인 대화상자 네트워크 오류), F3(`beforeunload`와 단축키), F11(중복 id), F12(업로드 한도), F13(`/markdown` 접근 검사 없음), F16(컨텍스트 경로 없는 절대 경로, `attachment-file.html:10` 포함)이 이 파일의 조각과 관련이 있다. 이 파일에서 추가로 확인한 사실은 다음 둘이다.
+`shell.md` 17절의 F2(로그인 대화상자 네트워크 오류), F3(`beforeunload`와 단축키), F11(중복 id), F12(업로드 한도), F13(`/markdown` 접근 검사 없음), F16과 F28(컨텍스트 경로 없는 절대 경로, `attachment-file.html:10` 포함)이 이 파일의 조각과 관련이 있다. 이 파일에서 추가로 확인한 사실은 다음 둘이다.
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| shell-F23 **[검증: v1.6 결함 유지, 수정됨 A-460]** | 업로드 `POST /files`는 로그인하지 않으면 403이지만 `authorEmail`, `authorLoginId` 폼 항목이 있으면 그 사용자로 올린 것으로 처리된다(쿼리 문자열은 제외). 화면은 이 항목을 보내지 않으며 외부 연동용이다 | `AttachmentController.kt:140-150` |
+| shell-F23 **[검증: v1.6 결함 유지, 수정됨 A-460]** | 업로드 `POST /files`는 로그인하지 않으면 403이다. `authorEmail`, `authorLoginId` 폼 항목(쿼리 문자열은 제외)으로 다른 사용자 명의로 올릴 수 있던 것을 막았다: **사이트 관리자만** 명의를 지정할 수 있고, 그 밖의 요청은 이 항목을 무시하고 요청한 본인 명의로 올린다. 화면은 이 항목을 보내지 않으며 외부 연동용이다 | `AttachmentController.kt:143-159` |
 | shell-F24 **[검증: 결함 아님]** | `comment-delete-modal`은 `Comment.init`의 컨테이너 선택자를 `escapeXml`한 문자열로 박는다. 선택자에 따옴표가 있어도 JS 문자열이 깨지지 않지만 호출부는 모두 `#id` 고정 값이다(실제 영향 없음) | `comment-delete-modal.html:26` |
+
+## 갱신 기록 (2026-11-11 재조사)
+
+| 항목 | 내용 |
+|---|---|
+| 다시 확인한 템플릿 | `common/` 조각 23개(editor, file-uploader, upload-form, comment-form, comment-update-form, attachment-file, child-comments, child-comment-form, comment-delete-modal, analytics, login-dialog, markdown, select2, calendar, comment-count, vote-count, sharer-count, tasklist-bar, partial-history, review-form, notification-mail, show-subtasks-checkbox, two-column-mode-checkbox-area)와 `help/markdown.html`. 2절 사용처 표의 `파일:줄`은 조각 호출이 그 줄 근처에 있는지 모두 대조했다(어긋난 것은 `wiki/edit` 한 곳이고 고쳤다) |
+| 내용을 고친 행 | 약 17곳: 업로드 크기 서버 413과 관리자만 명의 지정(F23), 로그인 대화상자 실패 상태(삭제된 계정 일반 실패, 5회 실패 429 `user.login.tooMany`, 연결 실패 분기), 임시 저장 안내 키 `draft.saved`, 한 줄 댓글 링크의 컨텍스트 경로, 마크다운 렌더러 주소의 컨텍스트 경로, 첨부 항목 `data-href`의 접두어 없음(F28), 댓글 삭제 실패 알림이 없는 이유 |
+| 줄 번호만 고친 곳 | 약 11곳 (`AttachmentController`, `Comment.js`, `Markdown.js`, `LoginDialog.js`, `scripts.html`, `analytics.html`, `PasswordLoginHandlers.kt`, `LoginController.kt`, `MentionListController.kt`) |
+| 더한 행 | 없음 |
+| 없앤 행 | 없음 |
+| 새 발견 사항 | 없음 (`shell-F28`은 `shell.md`에 있고 `attachment-file.html:10`을 포함한다) |

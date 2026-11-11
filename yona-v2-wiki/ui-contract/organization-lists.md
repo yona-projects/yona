@@ -18,10 +18,10 @@ updated: 2026-11-11
 
 ## 1. 공통 규칙
 
-- 세 화면 모두 로그인하지 않아도 볼 수 있다(`@AnonymousCheck(requiresLogin=false, displaysFlashMessage=true)`. 사이트가 익명 접근을 막으면 로그인 폼으로 303). 조직이 없으면 404 `error.notfound.organization` (OrganizationListController.kt:36, 51; OrganizationBoardController.kt:24, 37).
+- 세 화면 모두 로그인하지 않아도 볼 수 있다(`@AnonymousCheck(requiresLogin=false, displaysFlashMessage=true)`. 사이트가 익명 접근을 막으면 로그인 폼으로 303). 조직이 없으면 404 `error.notfound.organization` (OrganizationListController.kt:36, 51; OrganizationBoardController.kt:25, 38).
 - 대상 프로젝트는 `OrganizationService.visibleProjects(조직, 보는 사람)`이다(규칙은 organization.md 5.1절). 프로젝트 선택기에서 이름을 고르면 그 가운데 보이는 것만 대상이 되고 보이지 않는 이름은 무시한다. 이름 비교는 대소문자를 무시한다 (OrganizationListController.kt:122-123).
 - 프로젝트 선택 인자는 `projectNames[]`와 `projectNames` 둘 다 읽고 빈 값은 버린다.
-- 쪽 번호 `pageNum`은 1부터. 숫자가 아니면 400. 쪽 번호 위젯은 `yona.Pagination.update`가 현재 주소(`document.URL`)의 쿼리를 유지한 채 `pageNum`만 바꿔 링크를 만든다 (Pagination.js).
+- 쪽 번호 `pageNum`은 1부터. 숫자가 아니면 이슈와 게시판은 400, 풀 리퀘스트는 1쪽으로 본다(OrganizationListController.kt:96). 쪽 번호 위젯은 `yona.Pagination.update`가 현재 주소(`document.URL`)의 쿼리를 유지한 채 `pageNum`만 바꿔 링크를 만든다 (Pagination.js).
 - 두 단 보기(`#two-column-mode` 체크박스, `common/two-column-mode-checkbox-area`): 켜면 `localStorage.useTwoColumnMode='true'`를 저장하고, 제목 링크(`.title`, `.twoColumeModeTarget`) 클릭을 가로채 오른쪽 offcanvas `#pageslide`에 `iframe`으로 연다(300ms 지연). 같은 제목을 다시 누르면 닫는다. 끄면 `'false'`. 열려 있으면 `.left-menu`를 숨긴다. 이슈와 게시판 목록이 쓴다 (twoColumnMode.js).
 - 메시지 키가 빠진 곳은 없다(정적 키 전수 검사).
 
@@ -29,11 +29,11 @@ updated: 2026-11-11
 
 ### 2.1 개요
 
-`GET /organizations/{name}/boards` → `OrganizationBoardController.organizationBoards` (OrganizationBoardController.kt:34-65). 쿼리: `orderBy`, `orderDir`, `filter`, `pageNum`, `projectNames[]`. 쪽 크기 15 (:71). 모델: `title`(`menu.board`), `orgView`, `cond`, `orderBy`, `items`, `totalRows`, `totalPageCount`, `sortLinks`, `projectOptions`. 틀은 `organization-layout`. 공지도 일반 글과 섞여 나온다.
+`GET /organizations/{name}/boards` → `OrganizationBoardController.organizationBoards` (OrganizationBoardController.kt:35-71). 쿼리: `orderBy`, `orderDir`, `filter`, `pageNum`, `projectNames[]`(`projectNames`도 읽는다). 쪽 크기 15 (:77). 모델: `title`(`menu.board`), `orgView`, `cond`, `orderBy`, `items`, `totalRows`, `totalPageCount`, `sortLinks`, `projectOptions`. 틀은 `organization-layout`. 공지도 일반 글과 섞여 나온다.
 
 ### 2.2 레이아웃
 
-`div.search-wrap.underline`(폼 `#option_form`: 프로젝트 다중 선택 `col-lg-7`, 검색 `col-lg-4`, 두 단 보기 체크박스) 아래, `totalRows == 0`이면 빈 상태 `error-wrap`(`post.is.empty`), 아니면 정렬줄(`totalRows > 1`일 때만)과 `ul.post-list-wrap`, 빈 `div.write-btn-wrap`, `#pagination` (board-list.html:17-79). 줄은 `li.post-item.title`: 작성자 아바타(`hide-in-mobile`), 제목, 작성자 이름, 프로젝트 이름 링크, `#번호`, 시각, 댓글 수(0이면 숨김).
+`div.search-wrap.underline`(폼 `#option_form`: 프로젝트 다중 선택 `col-lg-7`, 검색 `col-lg-4`, 두 단 보기 체크박스) 아래, `totalRows == 0`이면 빈 상태 `error-wrap`(`post.is.empty`), 아니면 정렬줄(`totalRows > 1`일 때만)과 `ul.post-list-wrap`, 빈 `div.write-btn-wrap`, `#pagination` (board-list.html:17-79). 줄은 `li.post-item.title`: 작성자 아바타(`hide-in-mobile`), 제목, 작성자 이름, 프로젝트 이름 링크, `#번호`, 시각, 댓글 수(0이면 숨김). 줄과 링크, 아바타 주소는 모두 `th:href="@{...}"`, `th:src="@{...}"`로 컨텍스트 경로를 붙인다 (board-list.html:47-59). 정렬 링크의 `href`(`link.href`, :41)만 `@{}`를 거치지 않고 서버가 만든 문자열을 그대로 쓴다(organization-F25).
 
 ### 2.3 동작 요소
 
@@ -43,11 +43,11 @@ updated: 2026-11-11
 | `orderBy`, `orderDir` | 숨김 입력 | 항상 | 현재 정렬을 검색에 실어 유지 | | | | board-list.html:19-20 |
 | 검색 `filter` (`title.searchByKeyword`) | 입력 | 항상 | 제목과 본문 키워드 | | | | board-list.html:27 |
 | 돋보기 | 제출 | 항상 | 폼 제출 | | | | board-list.html:28 |
-| 정렬 링크 (`sortLinks`: `updatedDate`, `createdDate`, `numOfComments`) | 링크 | `totalRows > 1` | 현재 정렬이면 방향을 뒤집고(`active`, 화살표 `down`), 아니면 내림차순으로 | `GET .../boards?orderBy={필드}&orderDir={asc|desc}` (**`filter`와 `projectNames`는 싣지 않는다**) | 같은 화면 | | board-list.html:39-45; OrganizationBoardController.kt:51-54 |
-| 작성자 아바타, 이름 링크 | 링크 | 작성자가 있을 때(이름이 비면 `issue.noAuthor` 글자) | 사용자 화면 | `GET /{loginId}` | | | board-list.html:48-58 |
-| 제목, 프로젝트 링크, 댓글 수 | 링크 | 항상 | 글 `{프로젝트}/post/{번호}`, 프로젝트, `...#comments` | | | 글 읽기 권한 | board-list.html:59-67 |
+| 정렬 링크 (`sortLinks`: `updatedDate`, `createdDate`, `numOfComments`) | 링크 | `totalRows > 1` | 현재 정렬이면 방향을 뒤집고(`active`, 화살표 `down`), 아니면 내림차순으로. 현재 검색어와 고른 프로젝트를 이어 받는다 | `GET .../boards?filter={검색어, 비었으면 생략}&projectNames[]={이름}...&orderBy={필드}&orderDir={asc|desc}` (값은 URL 인코딩) | 같은 화면 | | board-list.html:39-44; OrganizationBoardController.kt:52-60 |
+| 작성자 아바타, 이름 링크 | 링크 | 작성자가 있을 때(이름이 비면 `issue.noAuthor` 글자) | 사용자 화면 | `GET /{loginId}` | | | board-list.html:48-57 |
+| 제목, 프로젝트 링크, 댓글 수 | 링크 | 항상 | 글 `{프로젝트}/post/{번호}`, 프로젝트, `...#comments` | | | 글 읽기 권한 | board-list.html:53, 59, 64-66 |
 | 줄 `li[href]` | 줄 | 항상 | 줄에 `href` 속성이 있다. 줄 전체 클릭 이동은 이 화면의 스크립트가 하지 않는다 | | | | board-list.html:47 |
-| 쪽 번호 | 위젯 | 항상 (`nTotalPages = totalPageCount`) | 쪽 이동 | `GET ...?pageNum=N` | | | board-list.html:75, 84-87 |
+| 쪽 번호 | 위젯 | 항상 (`nTotalPages = totalPageCount`) | 쪽 이동 | `GET ...?pageNum=N` | | | board-list.html:75, 83-87 |
 
 스크립트: `twoColumnMode`(모듈), `board.List`(모듈) + 인라인에서 `$yona.loadModule("board.List", {elPagination, nTotalPages})` (board-list.html:80-93). 하는 일: 쪽 번호 그리기, 목록 줄 `hover` 배경(`#fafafa`/`#fff`), `.title-prefix` 클릭으로 검색어 채우고 제출, 두 단 보기 초기화. `common/select2`를 불러 select2를 연다. 단축키 없음.
 
@@ -55,7 +55,7 @@ updated: 2026-11-11
 
 ### 3.1 개요
 
-`GET /organizations/{name}/issues` → `OrganizationListController.issues` (OrganizationListController.kt:48-75). 쿼리: `pageNum`, `itemsPerPage`(기본 15, 최대 45), `projectNames[]`, `state`(기본 `open`), `orderBy`, `orderDir`, `filter`, `authorId`, `assigneeId`, `mentionId`, `milestoneId`, `labelIds`, `commenterId`, `sharerId`, `favoriteId`, `dueDate`(`yyyy-MM-dd`), `commentedCheck`. 숫자나 날짜 형식이 틀리면 400 (IssueListController.kt:222-242의 `IssueConditionBinder`). 모델: `title`, `orgView`, `cond`, `items`(`OrganizationIssueRow`), `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `meId`(비로그인이면 `null`), `projectOptions`.
+`GET /organizations/{name}/issues` → `OrganizationListController.issues` (OrganizationListController.kt:47-75). 쿼리: `pageNum`, `itemsPerPage`(기본 15, 최대 45), `projectNames[]`, `state`(기본 `open`), `orderBy`, `orderDir`, `filter`, `authorId`, `assigneeId`, `mentionId`, `milestoneId`, `labelIds`, `commenterId`, `sharerId`, `favoriteId`, `dueDate`(`yyyy-MM-dd`), `commentedCheck`. 숫자나 날짜 형식이 틀리면 400 (IssueListController.kt:222-242의 `IssueConditionBinder`). 모델: `title`, `orgView`, `cond`, `items`(`OrganizationIssueRow`), `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `meId`(비로그인이면 `null`), `projectOptions`.
 
 **`HX-Request` 차이**: htmx 요청이면 `organization/issue-list :: listWrap` 조각만, 아니면 전체 화면. JSON 구분은 없다 (OrganizationListController.kt:62-63).
 
@@ -87,25 +87,25 @@ updated: 2026-11-11
 
 ### 4.1 개요
 
-`GET /organizations/{name}/pullrequests?category=open|closed&filter=&contributorId=&pageNum=`, `GET /organizations/{name}/closedPullrequests` (`category=closed`과 같다) → `pullRequestList` (OrganizationListController.kt:78-112). `category`가 `open`이 아니면 모두 닫힌 목록이다. 쪽 크기 15 (PullRequestSearch.kt:89). 모델: `title`, `orgView`, `filter`, `open`, `openAction`, `closedAction`, `searchAction`, `openCount`, `closedCount`, `rows`, `totalPages`.
+`GET /organizations/{name}/pullrequests?category=open|closed&filter=&contributorId=&pageNum=`, `GET /organizations/{name}/closedPullrequests` (`category=closed`과 같다) → `pullRequestList` (OrganizationListController.kt:77-112). `category`가 `open`이 아니면 모두 닫힌 목록이다. 쪽 크기 15 (PullRequestSearch.kt:89). 모델: `title`, `orgView`, `filter`, `open`, `openAction`, `closedAction`, `searchAction`, `openCount`, `closedCount`, `rows`, `totalPages`.
 
 ### 4.2 레이아웃
 
-`div[list-container].row.cb`: 왼쪽 `left-menu col-lg-2 search-wrap hide-in-mobile`(검색 폼 `#search`), 오른쪽 `col-lg-10`에 탭 둘(`ul.pullrequeset-tab-menu`)과 `#list`. 줄 `li.post-item.title.row`: 보낸 사람 아바타, 번호, 제목 머리말(`headerWordsHtml`, 이스케이프 없이 출력되는 HTML), 제목(충돌이면 `conflict` 클래스), 라벨, 보낸 사람 이름, 시각, 프로젝트, 리뷰 진행 막대(`progress`가 있을 때), 오른쪽 `hide-in-mobile` 열(담당자, 받는 사람 아바타, 상태 글자). 비면 `error-wrap`(`pullRequest.is.empty`) (pullrequest-list.html:17-109).
+`div[list-container].row.cb`: 왼쪽 `left-menu col-lg-2 search-wrap hide-in-mobile`(검색 폼 `#search`), 오른쪽 `col-lg-10`에 탭 둘(`ul.pullrequeset-tab-menu`)과 `#list`. 줄 `li.post-item.title.row`: 보낸 사람 아바타, 번호, 제목 머리말(`headerWordsHtml`, 이스케이프 없이 출력되는 HTML), 제목(충돌이면 `conflict` 클래스), 라벨, 보낸 사람 이름, 시각, 프로젝트, 리뷰 진행 막대(`progress`가 있을 때), 오른쪽 `hide-in-mobile` 열(담당자, 받는 사람 아바타, 상태 글자). 비면 `error-wrap`(`pullRequest.is.empty`). 쪽 번호 `div#pagination`은 `ul.post-list-wrap` 밖, 줄이 있을 때만 그린다 (pullrequest-list.html:17-110). 아바타 주소는 `@{}`로 컨텍스트 경로를 붙인다.
 
 ### 4.3 동작 요소
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
 | 검색 `filter` + 돋보기 | 입력, 제출 | 항상 (모바일에서 숨김) | 폼의 `action`은 현재 탭의 주소(`searchAction`) | `GET /organizations/{name}/pullrequests?filter=` 또는 `closedPullrequests` | 같은 화면 전체 | | pullrequest-list.html:19-26 |
-| 탭 "열림", "닫힘" (`a[data-type=state]`, `data-url`) | 링크 | 항상. 현재 탭에 `active`, 배지 `openCount`, `closedCount` | 클릭하면 `#search`의 `action`을 `data-url`로 바꿔 제출한다(`filter` 유지, `pageNum` 초기화) | 위와 같다 | | | pullrequest-list.html:29-36, 110-116 |
+| 탭 "열림", "닫힘" (`a[data-type=state]`, `data-url`) | 링크 | 항상. 현재 탭에 `active`, 배지 `openCount`, `closedCount` | 클릭하면 `#search`의 `action`을 `data-url`로 바꿔 제출한다(`filter` 유지, `pageNum` 초기화) | 위와 같다 | | | pullrequest-list.html:29-36, 111-117 |
 | 줄, 제목 링크 | 링크 | 항목마다 | `{프로젝트}/pullRequest/{번호}` | | | 읽기 권한 | pullrequest-list.html:41, 50 |
 | 라벨 배지 | 링크 | 라벨마다 | 풀 리퀘스트로 이동(라벨 필터는 아님) | | | | pullrequest-list.html:51 |
 | 리뷰 진행 | 링크 | `progress != null` | `{풀 리퀘스트}/changes`. 툴팁은 `pullRequest.review.closed / pullRequest.review.total` | | | | pullrequest-list.html:59-69 |
-| 담당자, 받는 사람 아바타 | 링크 | 있을 때 | 사용자 화면. 둘 다 없으면 빈 아바타 | | | | pullrequest-list.html:73-81 |
+| 담당자, 받는 사람 아바타 | 링크 | 있을 때 | 사용자 화면. 둘 다 없으면 빈 아바타 | | | | pullrequest-list.html:74-80 |
 | 상태 글자 | 문구 | 항상 | 충돌이면 `pullRequest.state.conflict`, 아니면 `pullRequest.state.{open|closed|merged}` 등 | | | | pullrequest-list.html:82 |
-| `.title-prefix` | 클릭 | 머리말 HTML 안에 있을 때 | 그 글자를 `filter` 입력에 넣고 폼 제출 | | | | pullrequest-list.html:97-103 |
-| 쪽 번호 | 위젯 | 줄이 있을 때 | `yona.Pagination.update($("#pagination"), totalPages)` | `GET ...?pageNum=N` | | | pullrequest-list.html:85, 96 |
+| `.title-prefix` | 클릭 | 머리말 HTML 안에 있을 때 | 그 글자를 `filter` 입력에 넣고 폼 제출 | | | | pullrequest-list.html:98-104 |
+| 쪽 번호 | 위젯 | 줄이 있을 때 (`th:unless="${rows.isEmpty()}"`) | `yona.Pagination.update($("#pagination"), totalPages)` | `GET ...?pageNum=N` | | | pullrequest-list.html:93-94, 97 |
 
 스크립트는 모두 템플릿 인라인이다. 모듈 로딩과 단축키, 로컬 저장소는 없다. `contributorId` 쿼리는 서버가 받지만 화면에 입력이 없다.
 
@@ -113,10 +113,18 @@ updated: 2026-11-11
 
 | 번호 | 내용 | 근거 |
 |---|---|---|
-| organization-F17 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 게시판 목록의 정렬 링크는 `orderBy`, `orderDir`만 싣고 `filter`와 `projectNames[]`를 버린다. 정렬을 바꾸면 검색어와 프로젝트 선택이 풀린다. `board.List.js`는 `#pagination a` 클릭과 `input[name=pageNum]`을 쓰지만 템플릿에 그 입력이 없고, 쪽 번호가 그려지기 전에 `#pagination a`를 찾아 연결이 비어 있다(죽은 코드). 쪽 이동은 `Pagination` 위젯의 URL 링크가 한다 | board-list.html:41; OrganizationBoardController.kt:51-54; board.List.js `_initElement`, `_onClickPage` |
+| organization-F17 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 게시판 목록의 정렬 링크는 `orderBy`, `orderDir`만 싣고 `filter`와 `projectNames[]`를 버렸다. 정렬을 바꾸면 검색어와 프로젝트 선택이 풀렸다. (2026-11-11 수정: 정렬 링크가 비어 있지 않은 `filter`와 고른 `projectNames[]`를 URL 인코딩해 이어 받는다.) `board.List.js`는 `#pagination a` 클릭과 `input[name=pageNum]`을 쓰지만 템플릿에 그 입력이 없고, 쪽 번호가 그려지기 전에 `#pagination a`를 찾아 연결이 비어 있다(죽은 코드). 쪽 이동은 `Pagination` 위젯의 URL 링크가 한다 | board-list.html:41; OrganizationBoardController.kt:52-60; board.List.js `_initElement`, `_onClickPage` |
 | organization-F18 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 조직 이슈 목록의 빠른 필터 링크는 `data-project-names`, `data-milestone-id`를 싣지만 폼에 `[data-search=projectNames]`, `[data-search=milestoneId]` 입력이 없어 무시된다. 라벨 배지는 조직 목록이 아니라 프로젝트의 이슈 목록으로 간다. 상태 탭에 "전체"가 없다(서버는 `state=all`을 받는다). 빠른 필터가 누르는 순간 선택된 프로젝트는 폼의 select가 그대로 들고 있어 유지된다 | issue-list.html:24, 38, 116; issue.List.js `_onClickSearchFilter` |
-| organization-F19 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 풀 리퀘스트 목록은 줄이 있을 때만 `<div id="pagination">`을 `<ul>` 안에 둔다(구조상 올바르지 않음, v1.6 마크업). 탭 전환은 `pageNum`을 초기화한다. 이슈 목록만 htmx로 부분 교체하고 게시판과 풀 리퀘스트는 전체 화면 이동이다 | pullrequest-list.html:85; issue-list.html:19 |
+| organization-F19 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 풀 리퀘스트 목록은 줄이 있을 때만 `<div id="pagination">`을 `<ul>` 안에 두었다(구조상 올바르지 않음, v1.6 마크업). (2026-11-11 수정: `ul` 밖으로 옮겼고 줄이 있을 때만 그린다.) 탭 전환은 `pageNum`을 초기화한다. 이슈 목록만 htmx로 부분 교체하고 게시판과 풀 리퀘스트는 전체 화면 이동이다 | pullrequest-list.html:93-94; issue-list.html:19 |
+| organization-F25 [재조사 2026-11-11] | 게시판 목록의 정렬 링크는 `th:href="${link.href}"`로 서버가 만든 문자열(`/organizations/{이름}/boards?...`)을 그대로 쓴다. 같은 화면의 다른 링크와 달리 `@{}`를 거치지 않아 컨텍스트 경로가 붙지 않는다(컨텍스트 경로를 쓰는 배포에서 정렬 링크만 접두어가 없을 수 있다, 추측: 시험 없음) | board-list.html:41; OrganizationBoardController.kt:50, 59 |
 
 ## 6. 시험 근거
 
 `OrganizationListsTest`(26), `OrganizationBoardTest`(12). 스크립트는 `listviews.test.mjs`, `twocolumn.test.mjs`, `htmx.test.mjs`. `contributorId`, 두 단 보기와 조직 목록의 조합 시험은 찾지 못했다.
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿 3개(`organization/board-list.html`, `issue-list.html`, `pullrequest-list.html`)와 컨트롤러 `OrganizationBoardController`, `OrganizationListController`.
+- 고친 행: 게시판 정렬 링크 행(검색어와 프로젝트를 이어 받음), 게시판 개요와 레이아웃 문장(컨텍스트 경로 `@{}` 정리), 풀 리퀘스트 레이아웃 문장과 쪽 번호 행(`ul` 밖, 줄이 있을 때만), 발견 사항 F17과 F19. 줄 번호만 고친 곳: 게시판 6곳, 풀 리퀘스트 5곳, 컨트롤러 인용 4곳.
+- 더한 행: 없음. 없앤 행: 없음. 새 발견 사항: organization-F25(정렬 링크 `href`가 `@{}`를 거치지 않음).
+- 이슈 목록 템플릿은 아바타 주소를 `@{}`로 감싼 것 외에 바뀐 것이 없고 줄 번호도 그대로이다.

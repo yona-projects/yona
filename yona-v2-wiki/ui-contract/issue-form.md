@@ -31,6 +31,7 @@ updated: 2026-11-11
 | 수정 폼 | `GET /:user/:project/issue/:number/editform` | `IssueEditController.editIssueForm`(`:66-77`) | `issue/edit` | `@NullProjectCheck`(67) |
 | 수정 | `POST /:user/:project/issue/:number/edit`(멀티파트) | `editIssue`(`:79-120`) | 오류면 `issue/edit`를 400으로 | `@NullProjectCheck`(80) |
 
+- **메뉴 꺼짐 검사**: 프로젝트 설정에서 이슈 메뉴(`menuSetting.issue`)를 끈 프로젝트에서는 작성 폼 `GET .../issueform`과 작성 `POST .../issues/latest`가 404(`error.notfound`, 프로젝트 레이아웃)이다. 경로 셋째 구간이 `issues`, `issue`, `issueform`, `copyLabels`이면 `ProjectCheckStage.checkMenuEnabled`가 어노테이션 `@IsCreatable`을 처리하는 단계에서 막는다(`ProjectCheckStage.kt:86-111`). 수정 폼과 수정 제출은 `@NullProjectCheck`라 이 검사를 거치지 않는다(`NullProjectCheck`는 프로젝트가 있는지만 본다, `ProjectCheckStage.kt:60-62`). `/user/issues/new`, `/user/issues/new/mine`은 프로젝트 어노테이션이 없어 이 검사 대상이 아니다.
 - 레이아웃: `project-layout(제목, projectView, 'ISSUE', createPage|editPage)` + `project/menu :: projectMenu(..., 'main-menu-only')`(`create.html:12-14`, `edit.html:14-16`). 제목은 모델 `title`(메시지 키): 작성 `title.newIssue`, 검증 오류 `error.validation`, 수정 `title.editIssue`.
 - 작성 폼 모델: `title`, `bodyValue`, `commentId`, `errors`, `fromGlobalMenu`, `projectView`, `canAssign`, `canMilestone`, `openMilestones`, `closedMilestones`, `hasMilestones`, `labelGroups`, `selectedLabelIds`, `movableProjects`, `parentOptions`, `selectedParent`, `showSubtask`, `logoUrl`(`IssueCreateController.kt:206-216`, `IssueFormSupport.kt:45-69`). 수정 폼은 그 위에 `issueNumber`, `issueId`, `draft`, `titleValue`, `bodyValue`, `authorId`, `dueDateValue`, `stateName`, `assigneeLoginId`, `milestoneId`, `hasChild`, `canUpdate`, `canUpdateState`, `canUpdateAssignee`, `canUpdateMilestone`, `authoredByViewer`를 더한다(`IssueEditController.kt:131-156`).
 - 작성 폼의 본문 초기값: 저장소의 `ISSUE_TEMPLATE.md`(비어 있지 않으면). `parentIssueId`를 주면 템플릿을 쓰지 않고 빈 본문(`IssueCreateController.kt:212`). `commentId`를 주면 `{댓글 본문}\n\n_Originally posted by @작성자 in {댓글 주소}`(읽을 수 없는 프로젝트의 댓글이면 404, `:181-193`). 작성한 이슈가 초안이 아니면 원 댓글의 이슈에 `issue.derived: 새 이슈 주소` 한 줄 댓글을 단다(`:167-179`).
@@ -55,14 +56,14 @@ updated: 2026-11-11
 
 | 요소 | 종류 | 조건 | 동작 | 요청(바디 필드) | 응답과 이어지는 동작 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
-| 제목 `title-input#title[name=title]` | 커스텀 요소(`lib/title-input/title-input.min.js`) | 항상 | 자동 초점. Enter를 누르면 본문 textarea로 초점 이동(전송하지 않음). 입력 중 제목 머리말 자동 완성: `src`로 `GET /{owner}/{name}/titleHeads?query=` 호출, 후보 중 라벨을 고르면 라벨 선택 상자에서 그 라벨을 선택(배타 분류면 같은 분류의 앞 선택 해제) 후 `Label: 이름` 알림 3초 | `title=`(`maxlength=250`) | | 제출 때 서버가 255자 초과를 `error.maxLength`로 거부(`issue-F11`) | `create.html:25`, `J/esm/service/issue.Write.js:25-32`, `J/esm/TitleHeadAutoCompletion.js:29-87`, `K/web/api/IssueFormApiController.kt:43-62` |
+| 제목 `title-input#title[name=title]` | 커스텀 요소(`lib/title-input/title-input.min.js`) | 항상 | 자동 초점. Enter를 누르면 본문 textarea로 초점 이동(전송하지 않음). 입력 중 제목 머리말 자동 완성: `src`로 `GET /{owner}/{name}/titleHeads?query=` 호출, 후보 중 라벨을 고르면 라벨 선택 상자에서 그 라벨을 선택(배타 분류면 같은 분류의 앞 선택 해제) 후 `Label: 이름` 알림 3초(이름은 `$yona.escapeHtml`로 감쌈, `TitleHeadAutoCompletion.js:87`) | `title=`(`maxlength=250`) | | 제출 때 서버가 255자 초과를 `error.maxLength`로 거부(`issue-F11`) | `create.html:25`, `J/esm/service/issue.Write.js:25-32`, `J/esm/TitleHeadAutoCompletion.js:29-87`, `K/web/api/IssueFormApiController.kt:43-62` |
 | "옵션" `.subtask-message` | 단추형 글자 | 항상 | 클릭하면 하위 이슈 영역 토글, 켜지면 `option-on` 클래스, 두 select의 `disabled`를 뒤집는다(접히면 비활성이라 폼에 실리지 않음) | | | | `create.html:27`, `J/esm/Subtask.js:5-17` |
-| 대상 프로젝트 `select#targetProjectId[name=targetProjectId]` | select2(`data-format=projects`) | 하위 이슈 영역이 펼쳐졌을 때 활성. 옵션: 현재 프로젝트, 그 밖에 이슈를 만들 수 있는 프로젝트(`movableProjects`)(소유자, 로고) | 현재 프로젝트가 아닌 것을 고르면 부모 이슈 select를 첫 빈 값으로 되돌리고 비활성, select2 컨테이너를 숨기고 `Issue will be moved or written to '이름'` 알림 4초. 현재 프로젝트로 되돌리면 다시 활성 | `targetProjectId=`(활성일 때) | | 대상 프로젝트에 `ISSUE_POST` 생성 권한 필요, 없으면 403(`IssueCreateController.kt:138`) | `partial-select-subtask.html:14-19`, `Subtask.js:19-35` |
+| 대상 프로젝트 `select#targetProjectId[name=targetProjectId]` | select2(`data-format=projects`) | 하위 이슈 영역이 펼쳐졌을 때 활성. 옵션: 현재 프로젝트, 그 밖에 이슈를 만들 수 있는 프로젝트(`movableProjects`)(소유자, 로고) | 현재 프로젝트가 아닌 것을 고르면 부모 이슈 select를 첫 빈 값으로 되돌리고 비활성, select2 컨테이너를 숨기고 `Issue will be moved or written to '이름'` 알림 4초(이름은 `$yona.escapeHtml`로 감쌈, `Subtask.js:34`). 현재 프로젝트로 되돌리면 다시 활성 | `targetProjectId=`(활성일 때) | | 대상 프로젝트에 `ISSUE_POST` 생성 권한 필요, 없으면 403(`IssueCreateController.kt:138`) | `partial-select-subtask.html:14-19`, `Subtask.js:19-35` |
 | 부모 이슈 `select#parentId[name=parentIssueId]` | select2(`data-format=issues`) | 위와 같음. 옵션: 빈 값(안내 `issue.subtask.select`), 미리 고른 부모(`selectedParent`), 그 프로젝트의 부모 없는 이슈 최대 300개(최신순)(`#번호. 제목`) | 선택 | `parentIssueId=` | 하위 이슈로 만들어진다 | 없음(서버가 존재하는 이슈면 받는다) | `partial-select-subtask.html:21-29`, `IssueFormSupport.kt:49-52, 72`, `IssueListService.kt:135` |
 | 본문 에디터 `textarea[name=body]#editor-body-*` | `common/editor`(탭: 편집, 미리보기, 체크리스트 추가 단추, 서식 도구) | 항상. `tabindex=2` | 임시 저장(5초), `beforeunload` 경고(`issue.error.beforeunload`, 본문이 비어 있지 않을 때만, 한 번 초점을 받은 뒤부터), `@`와 `#` 자동 완성 | `body=` | | | `create.html:41`, `issue.Write.js:63-83`, `yona.Mention({url: {base}/mentionList})`(`create.html:117-121`) |
 | 파일 올리기 | `common/file-uploader('ISSUE_POST', null)` | 로그인 사용자(`!currentUser.anonymous`) | 업로드 영역 `#upload`. 올린 파일은 임시 첨부 | `POST /files`, 폼의 `temporaryUploadFiles` | 작성 때 이슈 첨부로 옮겨진다 | 로그인 | `create.html:45-47` |
-| 담당자 `select#assignee[name=assigneeLoginId]` | select2(`yonaAssgineeModule`, 업데이트 주소 없음) | `canAssign` | 열면 `GET /{owner}/{name}/assignableUsers`(검색어 없음: "나에게 할당" + 담당 가능 사용자들, 검색어 있음: 활성 사용자 10명). 선택해도 저장 요청은 없다 | `assigneeLoginId=` | | `@IsAllowed(READ)`, JSON이 아니면 406 | `create.html:56-61`, `partial-assignee.html`, `J/esm/service/issue.Assginee.js`, `K/web/api/IssueFormApiController.kt:69-96` |
-| 마일스톤 `select#milestoneId[name=milestoneId]` | select2(`data-format=milestone`) | `canMilestone`이고 열린 마일스톤이 있을 때. 없으면 "새 마일스톤" 링크(`target=_blank`) | 선택 | `milestoneId=`(`-1`은 없음) | | 서버는 마일스톤이 이슈의 프로젝트 것인지 확인하지 않는다(`issue-F11`) | `create.html:63-72` |
+| 담당자 `select#assignee[name=assigneeLoginId]` | select2(`yonaAssgineeModule`, 업데이트 주소 없음) | `canAssign` | 열면 `GET /{owner}/{name}/assignableUsers`(검색어 없음: "나에게 할당" + 담당 가능 사용자들, 검색어 있음: 활성 사용자 10명). 선택해도 저장 요청은 없다(알림 문구가 있으면 담당자 이름을 `$yona.escapeHtml`로 감싸 보임, `issue.Assginee.js:88`) | `assigneeLoginId=` | | `@IsAllowed(READ)`, JSON이 아니면 406 | `create.html:56-61`, `partial-assignee.html`, `J/esm/service/issue.Assginee.js`, `K/web/api/IssueFormApiController.kt:69-96` |
+| 마일스톤 `select#milestoneId[name=milestoneId]` | select2(`data-format=milestone`) | `canMilestone`이고 열린 마일스톤이 있을 때. 없으면 "새 마일스톤" 링크(`target=_blank`, `@{${base}/newMilestoneForm}`) | 선택 | `milestoneId=`(`-1`은 없음) | 서버는 번호의 마일스톤이 이슈의 프로젝트 소속일 때만 붙이고, 다른 프로젝트의 번호는 없는 것으로 보아 마일스톤 없이 만든다(`IssueService.kt:102-103`) | 마일스톤 칸 표시는 `canMilestone` (`issue-F11`) | `create.html:63-72` |
 | 마감일 `input#issueDueDate[name=dueDate][data-toggle=calendar]` | 달력 | 항상 | 날짜 선택. 제출 때 `isValidDate` 검사 | `dueDate=yyyy-MM-dd` | | | `create.html:74-82` |
 | 라벨 `select#labelIds[multiple]` | select2(`data-format=issuelabel`, `data-close-on-select=false`) | 프로젝트에 라벨이 있을 때. `[편집]` 링크는 `view.manager`일 때 | 배타 분류의 라벨을 고르면 같은 분류의 앞 선택을 해제 | `labelIds=`(여러 번) | 대상 프로젝트가 다르면 서버가 라벨을 버린다(`IssueCreateController.kt:145-147`) | | `create.html:84`, `partial-select-label.html` |
 | 숨은 `referCommentId` | 숨은 입력 | 항상(값 = `commentId`) | | `referCommentId=` | 초안이 아니면 원 댓글에 파생 이슈 댓글 | | `create.html:85` |
@@ -80,8 +81,8 @@ updated: 2026-11-11
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
 | 숨은 `authorId`, `isDraft`(false), `isPublish`(false) | 숨은 입력 | 항상 | `isDraft`, `isPublish`는 아래 단추가 `true`로 바꾼다 | `authorId=`(서버는 읽지 않는다), `isDraft=`, `isPublish=` | | | `edit.html:21-23`, 서버 `IssueEditController.kt:122-130` |
-| 상태 `#state[data-name=state]` | 드롭다운 | `canUpdateState`. 항목 `OPEN`, `CLOSED`(현재 상태에 `active`, `data-selected`) | **동작한다**(정정, 브라우저 확인). `common/scripts.html:77-82`가 `.btn-group[data-name]`(`data-activate="manual"`이 아닌 것)을 `yona.ui.Dropdown`으로 초기화해 숨은 입력 `state`와 라벨을 만든다. 항목을 누르면 `state=OPEN\|CLOSED`가 폼에 실린다 | `state=OPEN\|CLOSED` | 서버는 `state`가 없으면 현재 상태를 유지한다 | 이슈 `UPDATE` | `edit.html:74-87`, `common/scripts.html:77-82`, `IssueEditController.kt:122`, `K/domain/issue/IssueService.kt:285-290` |
-| 마일스톤 | select | 메뉴 켬 + `canUpdateMilestone`. 열린/닫힌 optgroup 모두 | | `milestoneId=`(보내지 않으면 **마일스톤 없음**으로 지워진다) | | | `edit.html:96-110` |
+| 상태 `#state[data-name=state]` | 드롭다운 | `canUpdateState`. 항목 `OPEN`, `CLOSED`(현재 상태에 `active`, `data-selected`) | **동작한다**(정정, 브라우저 확인). `common/scripts.html:77-82`가 `.btn-group[data-name]`(`data-activate="manual"`이 아닌 것)을 `yona.ui.Dropdown`으로 초기화해 숨은 입력 `state`와 라벨을 만든다. 항목을 누르면 `state=OPEN\|CLOSED`가 폼에 실린다 | `state=OPEN\|CLOSED` | 서버는 `state`가 없으면 현재 상태를 유지한다 | 이슈 `UPDATE` | `edit.html:74-87`, `common/scripts.html:77-82`, `IssueEditController.kt:122`, `K/domain/issue/IssueService.kt:293-298` |
+| 마일스톤 | select | 메뉴 켬 + `canUpdateMilestone`. 열린/닫힌 optgroup 모두. 마일스톤이 없으면 "새 마일스톤" 링크(`@{${base}/newMilestoneForm}`) | | `milestoneId=`(보내지 않으면 **마일스톤 없음**으로 지워진다) | 다른 프로젝트의 마일스톤 번호도 없는 것으로 보아 지워진다(`IssueService.kt:290`). 다른 프로젝트로 옮기는 수정이면 마일스톤은 늘 비운다 | | `edit.html:96-110` |
 | 마감일 | 달력 | 항상, 값 `dueDateValue` | | `dueDate=` | | | `edit.html:112-120` |
 | "알림 메일" 체크 `#notificationMail[name=notificationMail][value=yes]` | 체크박스 | `!draft and authoredByViewer`(작성자 본인이 초안이 아닌 이슈를 고칠 때), 기본 체크 | 체크되면 작성자가 고쳐도 변경 이벤트와 알림을 남긴다 | `notificationMail=yes` | | | `edit.html:58-63`, `IssueEditController.kt:122-130` |
 | "저장" `#button-save` | 제출 단추 | `canUpdate and !draft` | 3초 `disabled` 후 제출 | `POST {base}/issue/{n}/edit` | `303 → {이슈 위치}/issue/{번호}`(옮겼으면 새 위치) | 이슈 `UPDATE` | `edit.html:67-68, 198-206` |
@@ -90,7 +91,7 @@ updated: 2026-11-11
 | 임시 저장 지우기 `.editor-clear-temporary-button` | 단추(`common/editor` 안 `#button-clear-temporary`) | `localStorage[location.pathname]`이 있을 때만 `.editor-clear-temporary`를 보인다(`edit.html:171-173`) | 저장된 초안을 지우고 페이지 새로고침, 툴팁 `button.clear.temporary.description` | 없음 | | | `edit.html:171-184` |
 | "취소" | 링크 | 항상 | `history.back()` | | | | `edit.html:69` |
 
-수정 서버 검사 순서(`IssueEditController.kt:79-120`): 프로젝트 없음 404(`@NullProjectCheck`), 이슈 없음 404 프로젝트 오류 화면, 제목, 마감일 오류 400 폼(제목, 본문은 고치기 전 값), 수정 권한 없음 403, `targetProjectId`가 없는 프로젝트면 400 폼과 `error.notfound.project` 경고, 생성 권한 없음 403, `body` 없음 413, 같은 분류의 라벨 둘 이상이면 `400 text/plain "This category does not allow an issue to have two or more labels of the category"`. 수정 폼 열기: 이슈가 없으면 **404 상태에 403 모양**의 화면(`:73-74`), 읽기 권한 없음 403(75).
+수정 서버 검사 순서(`IssueEditController.kt:79-120`, 이슈 메뉴가 꺼진 프로젝트에서도 열린다): 프로젝트 없음 404(`@NullProjectCheck`), 이슈 없음 404 프로젝트 오류 화면, 제목, 마감일 오류 400 폼(제목, 본문은 고치기 전 값), 수정 권한 없음 403, `targetProjectId`가 없는 프로젝트면 400 폼과 `error.notfound.project` 경고, 생성 권한 없음 403, `body` 없음 413, 같은 분류의 라벨 둘 이상이면 `400 text/plain "This category does not allow an issue to have two or more labels of the category"`. 수정 폼 열기: 이슈가 없으면 **404 상태에 403 모양**의 화면(`:73-74`), 읽기 권한 없음 403(75).
 
 ### 3.3 `title-input`, 에디터 등 공통 부품
 
@@ -98,7 +99,7 @@ updated: 2026-11-11
 
 ## 4. 스크립트 동작
 
-- 불러오는 모듈: `Subtask.js`, `issue.Assginee.js`, `title-input.min.js`, `TitleHeadAutoCompletion.js`, `issue.Write.js`, 공통 `common/markdown`, `common/select2`, `common/calendar`, `labels.css`(`GET {base}/issue/labels.css`)(`create.html:95-104`).
+- 불러오는 모듈: `Subtask.js`, `issue.Assginee.js`, `title-input.min.js`, `TitleHeadAutoCompletion.js`, `issue.Write.js`, 공통 `common/markdown`, `common/select2`, `common/calendar`, `labels.css`(`GET {base}/issue/labels.css`)(`create.html:95-104`). 폼 `action`, `labels.css` 링크, 스크립트에 넘기는 주소(`sIssueFormURL`, `sIssueListURL`, 멘션 `url`, 담당자 `assignableUsers`, 제목 머리말 `titleHeads`)는 모두 `@{}`로 컨텍스트 경로를 가진다(`create.html:19,100,110-111,121,129,136`, `edit.html:21,136,147-148,158,162,169`). 라벨 선택 조각의 `[편집]` 링크도 같다(`partial-select-label.html:12`).
 - `$yona.loadModule("issue.Write", {sMode, sIssueFormURL, sIssueListURL, elTextarea, elMilestoneRefresh, elDueDate})`(`create.html:108-115`).
   - `$("form").submit(_onSubmitForm)`(`issue.Write.js:64`): 제목을 trim해서 비었으면 알림창 `issue.error.emptyTitle` 후 제출 중단, 마감일이 `isValidDate`가 아니면 `issue.error.invalid.duedate` 알림 3초 후 중단, 통과하면 `beforeunload` 해제와 임시 저장 삭제.
   - `_onReloadMilestone`(`:85-92`, 마일스톤 새로고침)은 `.yobicon-refresh`를 누를 때 도는데 두 템플릿에 그 요소가 없어 도달하지 않는다(`issue-F2`). `#options` 요소도 없다.
@@ -122,7 +123,7 @@ updated: 2026-11-11
 
 | 요청 | 형태 | CSRF | 성공 | 오류 |
 |---|---|---|---|---|
-| `POST .../issues/latest` | 멀티파트 폼(브라우저 폼 제출) | 제출 직전 `_csrf` 숨은 입력(`yona.Csrf.js`) | `303 Location` | 400 폼(검증), 403(권한, 대상 프로젝트), 404(프로젝트), 413(본문 없음) |
+| `POST .../issues/latest` | 멀티파트 폼(브라우저 폼 제출) | 제출 직전 `_csrf` 숨은 입력(`yona.Csrf.js`) | `303 Location` | 400 폼(검증), 403(권한, 대상 프로젝트), 404(프로젝트, 이슈 메뉴가 꺼진 프로젝트), 413(본문 없음) |
 | `POST .../issue/{n}/edit` | 멀티파트 | 같음 | `303` | 400 폼, 400 평문(라벨 분류), 403, 404, 413 |
 | `GET .../titleHeads?query=` | `title-input`이 fetch | | `{"result":[{name,frequency,category,searchText,...},...]}`: 머리말 후보 + 프로젝트의 모든 라벨(`id`, `labelColor`, `isExclusive`, `categoryId`) | JSON 아니면 406 |
 | `GET .../assignableUsers?query=` | select2 | | 사용자 노드 배열 | 406 |
@@ -135,8 +136,8 @@ updated: 2026-11-11
 
 | 기능 | 비로그인 | 로그인 비구성원(공개) | 구성원 | 프로젝트 관리자 | 조직 관리자 | 사이트 관리자 |
 |---|---|---|---|---|---|---|
-| 작성 폼 열기 | 로그인으로 303 | 허용 | 허용 | 허용 | 허용 | 허용 |
-| 작성 폼에서 담당자, 마일스톤 칸 | 없음 | 안 보임(`ISSUE_ASSIGNEE`, `ISSUE_MILESTONE`은 공개 프로젝트 비구성원 생성 대상이 아님, `AccessControl.kt:304-307`) | 보임 | 보임 | 보임 | 보임 |
+| 작성 폼 열기(이슈 메뉴가 꺼진 프로젝트는 모두 404) | 로그인으로 303 | 허용 | 허용 | 허용 | 허용 | 허용 |
+| 작성 폼에서 담당자, 마일스톤 칸 | 없음 | 안 보임(`ISSUE_ASSIGNEE`, `ISSUE_MILESTONE`은 공개 프로젝트 비구성원 생성 대상이 아님, `AccessControl.kt:307-311`) | 보임 | 보임 | 보임 | 보임 |
 | 작성 | 403 | 허용(공개), 비공개는 403 | 허용 | 허용 | 허용 | 허용 |
 | 수정 폼 열기 | 읽기 권한이면 열림("원본 보기") | 열림(저장 단추 없음) | 열림, 저장 가능 | 가능 | 가능 | 가능 |
 | 수정 저장 | 403 | 작성자 또는 담당자만 | 가능 | 가능 | 가능 | 가능 |
@@ -160,3 +161,11 @@ updated: 2026-11-11
 ## 10. 시험 근거
 
 `TEST/IssueCreateTest.kt`(폼 116-240, 등록 277-412, 직접 만들기 412-423), `TEST/IssueEditTest.kt`(폼 128-190, 수정 203-362), `src/test/kotlin/dev/yona/web/api/IssueFormApiTest.kt`(제목 머리말 79-116, 담당자 후보 126-186). `issue.Write.js`, `Subtask.js`의 단위 시험은 찾지 못했다. 상태 드롭다운 동작을 확인하는 시험은 없다(`IssueEditTest.kt:149`는 현재 값이 채워지는지만 본다).
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿 5개: `issue/create.html`, `issue/edit.html`, `issue/partial-select-subtask.html`, `issue/partial-select-label.html`, `issue/partial-assignee.html`. `IssueCreateController`, `IssueEditController`, `IssueFormSupport`, `IssueFormApiController`, `IssueService`(마일스톤 소속 확인), `issue.Write.js`, `Subtask.js`, `TitleHeadAutoCompletion.js`, `issue.Assginee.js`, `ProjectCheckStage`도 대조했다. 컨트롤러와 `issue.Write.js`는 5ef425c98 이후 바뀌지 않았다.
+- 내용을 고친 행: 약 8개(이슈 메뉴 꺼짐 404와 수정 폼의 예외, 작성과 수정의 마일스톤 소속 확인 두 행, 컨텍스트 경로가 붙는 주소, 알림의 `$yona.escapeHtml`, 요청과 응답표, 권한 행렬 한 줄).
+- 줄 번호만 고친 곳: 2개(`IssueService.kt`, `AccessControl.kt`).
+- 더한 행: 없음. 없앤 행: 없음. 새 발견 사항: 없음(발견 사항 번호는 [issue.md](issue.md)가 가진다).
+- `issue.md`의 issue-F11(다른 프로젝트의 마일스톤 번호)은 이 파일이 가리키는 동작이 바뀌었으므로 issue.md 담당이 수정 표시를 확인해야 한다.

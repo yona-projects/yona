@@ -26,10 +26,10 @@ updated: 2026-11-11
 | URL | `GET /user/issues`(`K/web/issue/MyIssuesController.kt:46`) |
 | 어노테이션 | 클래스 `@AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)`(34). 비로그인은 `303 → /users/loginform?redirectUrl=/user/issues`와 경고 `user.login.alert` |
 | 템플릿 | 전체 `issue/my-list`(레이아웃 `layout/site-layout :: siteLayout(#{issue.myIssue}, 'SITE_HOME', myListPage)`, `my-list.html:11`), 조각 `issue/my-partial-search :: mySearch`(htmx 요청) |
-| 모델 | `title="issue.myIssue"`, `menuTab="TAB_MY_ISSUES"`, `cond`, `items`(`UserIssueRow`), `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `meId`, `quickCounts{mentioned, shared, favorite}`(`MyIssuesController.kt:79-90`) |
-| 응답 분기 | `HX-Request` 조각(`Cache-Control: no-cache, no-store`), `X-Requested-With`만이면 JSON(`link` 없음), 그 밖은 전체. `format` 쿼리는 무시(항상 html, 57-61). 엑셀 없음 |
-| 기본값 | 조건(담당, 작성, 멘션, 댓글, 공유, 즐겨찾기)이 하나도 없으면 `assigneeId = 나`(51-52). `orderBy`가 비었으면 `updatedDate`(53). 쪽당 15개, `itemsPerPage` 최대 45(`:104-105`) |
-| 읽기 권한 | 프로젝트별 읽기 권한을 따지지 않았던 v1.6과 달리 v2는 읽을 수 있는 프로젝트의 이슈만 찾는다(`IssueSearchService.kt:213-218`, 시험 `TEST/MyIssuesTest.kt:119`) |
+| 모델 | `title="issue.myIssue"`, `menuTab="TAB_MY_ISSUES"`, `cond`, `items`(`UserIssueRow`), `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `meId`, `quickCounts{mentioned, shared, favorite}`(`MyIssuesController.kt:91-100`) |
+| 응답 분기 | `HX-Request` 조각(`Cache-Control: no-cache, no-store`), `X-Requested-With`만이면 JSON(`link` 없음), 그 밖은 전체. `format` 쿼리는 무시(항상 html, 55-57). 엑셀 없음 |
+| 기본값 | 조건(담당, 작성, 멘션, 댓글, 공유, 즐겨찾기)이 하나도 없으면 `assigneeId = 나`(52). `orderBy`가 비었으면 `updatedDate`(53). 쪽당 15개, `itemsPerPage` 최대 45(`:104-105`) |
+| 읽기 권한 | 프로젝트별 읽기 권한을 따지지 않았던 v1.6과 달리 v2는 읽을 수 있는 프로젝트의 이슈만 찾는다(`IssueSearchService.kt:211-217`, 시험 `TEST/MyIssuesTest.kt:119`) |
 
 ## 2. 레이아웃 계약
 
@@ -42,7 +42,7 @@ updated: 2026-11-11
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
-| 기본 로그인 페이지 설정 `#setDefaultLoginPage` | 단추 | `requestPath != '/'` 이고 `requestPath.substring(1) != currentUser.loginDefaultPage`(모바일 숨김, 팝오버) | 클릭하면 요청 후 `Set to default: 경로` 알림 3초와 단추 숨김, 실패는 `set Default page failed: ...` 경고 | `POST /user/defultLoginPage?path=user/issues`(주소를 문자열로 이어 만들고 인코딩하지 않는다) | 200 `{"defaultLoginPage": 경로}`. 외부로 가는 경로는 400 | 로그인(비로그인은 저장 없이 200) | `common/my-series-menu-tab.html:13-17`, `my-list.html:27-37`, `K/web/home/HomeController.kt:58-70` |
+| 기본 로그인 페이지 설정 `#setDefaultLoginPage` | 단추 | `requestPath != '/'` 이고 `requestPath.substring(1) != currentUser.loginDefaultPage`(모바일 숨김, 팝오버) | 클릭하면 요청 후 알림 3초(`common.defaultPage.set`, 한국어 "기본 화면으로 설정했습니다: 경로")와 단추 숨김, 실패는 경고창(`common.defaultPage.failed`, 이유는 응답 본문, 없으면 상태 글). 경로와 이유는 `$yona.escapeHtml`로 감싼다 | `POST @{/user/defultLoginPage}?path=user/issues`(컨텍스트 경로를 붙이고, `path`는 문자열로 이어 만들며 인코딩하지 않는다) | 200 `{"defaultLoginPage": 경로}`. 외부로 가는 경로는 400 | 로그인(비로그인은 저장 없이 200) | `common/my-series-menu-tab.html:13-18`, `my-list.html:27-37`, `K/web/home/HomeController.kt:58-70` |
 | 빠른 검색 6개: "내게 할당", "내가 작성", "내가 댓글", "내가 멘션됨", "내게 공유됨", "즐겨찾기" | 링크 `a[list-filter]` | 항상. `active`는 해당 조건 값이 `meId`일 때. 멘션, 공유, 즐겨찾기 옆 `(개수)`는 검색어가 비어 있을 때만 | 클릭하면 `data-*`로 `assigneeId`, `authorId`, `commenterId`, `mentionId`, `sharerId`, `favoriteId`를 하나만 내 번호로 채우고 나머지는 비운 뒤 제출 | `GET /user/issues?...`(HX-Request) | 조각 교체 | 로그인 | `my-partial-search.html:14-46` |
 | 검색어 폼 `#search`(`hx-get=/user/issues`) | 폼 | 항상 | 숨은 입력 `orderBy`, `orderDir`, `state`, `authorId`, `commenterId`, `assigneeId`, `mentionId`, `sharerId`, `favoriteId`(`data-search`)와 `filter`(placeholder `issue.search`). 돋보기는 `type=submit` | `GET /user/issues?filter=...` | 조각 교체 | 로그인 | `:49-65` |
 | 열림, 닫힘 탭 | 링크 `a[state]` | 항상 + 개수 | `state` 숨은 입력 | `state=open|closed` | 조각 교체 | | `:69-79` |
@@ -71,14 +71,14 @@ updated: 2026-11-11
 | 요청 | 응답 |
 |---|---|
 | `GET /user/issues` | 비로그인 303(`/users/loginform?redirectUrl=/user/issues`, 경고 `user.login.alert`). 숫자 아님 400. `pageNum`이 숫자 아니면 `toInt()` 예외로 500이다(`MyIssuesController.kt:50` `toInt()`는 검사 없이 던진다, 추측: 전역 오류 처리기가 500으로 응답) |
-| 조건 의미(서버) | `authorId`, `assigneeId`, `commenterId`, `mentionId`, `sharerId`, `favoriteId`는 값이 무엇이든 **현재 로그인 사용자 기준**이다(`IssueSearchService.kt:220-250`). `-1`만 "없음". `milestoneId`와 `labelIds`는 쓰지 않는다(시험 `TEST/MyIssuesTest.kt:253-260`) |
+| 조건 의미(서버) | `authorId`, `assigneeId`, `commenterId`, `mentionId`, `sharerId`, `favoriteId`는 값이 무엇이든 **현재 로그인 사용자 기준**이다(`IssueSearchService.kt:223-255`). `-1`만 "없음". `milestoneId`와 `labelIds`는 쓰지 않는다(시험 `TEST/MyIssuesTest.kt:253-268`) |
 | `POST /user/defultLoginPage?path=` | 위 표 |
 
 ## 6. 권한과 경계
 
 로그인한 모든 사용자가 쓴다(구성원 여부 무관). 비로그인은 로그인 폼. 사이트 관리자도 같다(내 것만 보인다). 초안은 목록에 없고 하위 이슈는 목록에 있다(프로젝트 목록과 반대, `TEST/MyIssuesTest.kt:218`). 쪽당 15개, 최대 45개. 문구는 `issue.is.empty`.
 
-시험: `TEST/MyIssuesTest.kt`(105-338).
+시험: `TEST/MyIssuesTest.kt`(105-345, 기본 페이지 설정 스크립트 331). 화면 스크립트는 `src/test/js/listviews.test.mjs`(`review.List.js`), `twocolumn.test.mjs`, `htmx.test.mjs`에 시험이 있다.
 
 # 나. 리뷰 목록 (`reviewthread/list`)
 
@@ -137,3 +137,10 @@ CSRF 대상 요청은 없다(전부 GET).
 ## 6. 권한과 경계
 
 로그인한 사용자 중 프로젝트를 읽을 수 있는 사람만. 구성원 여부, 역할에 따른 차이는 없다. 스레드 작성자는 첫 리뷰 댓글의 작성자다. 문구 `review.is.empty`(`messages_ko_KR.properties:908`). 시험: `src/test/kotlin/dev/yona/web/code/ReviewListTest.kt`(내용은 이 조사에서 열어 보지 않았다). `review.List.js`의 단위 시험은 찾지 못했다.
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿: `my-list.html`, `my-partial-search.html`, `my-partial-list.html`, `reviewthread/list.html`(4개). 이 넷 중 `my-list.html`과 `reviewthread/list.html`(이미지 주소만)만 바뀌었다.
+- 고친 행: 1곳(기본 로그인 페이지 설정 행: 메시지 키, 컨텍스트 경로, `$yona.escapeHtml`)과 시험 근거 문장 1곳.
+- 줄 번호만 고친 곳: 6곳(`MyIssuesController.kt`의 모델, 형식, 기본값, `IssueSearchService.kt` 2곳, `my-series-menu-tab.html`).
+- 더한 행: 없음. 없앤 행: 없음. 새 발견 사항: 없음.

@@ -9,6 +9,8 @@ sources:
   - src/main/kotlin/dev/yona/web/code/DiffHtmlRenderer.kt
   - src/main/kotlin/dev/yona/web/code/ThreadViewAssembler.kt
   - src/main/resources/templates/code/diff.html
+  - src/main/resources/templates/code/svn-diff.html
+  - src/main/resources/templates/code/compare-svn.html
   - src/main/resources/templates/pullrequest/changes.html
   - src/main/resources/templates/common/review-form.html
   - app/assets/stylesheets/scss/_page.scss
@@ -108,7 +110,7 @@ updated: 2026-11-11
 ### 5.1 카드 영역
 
 - 탭 두 개(`#reviewcards-open`, `#reviewcards-closed`, 부트스트랩 `data-bs-toggle=tab`), 카드 `a.review-card.<open|closed>[.outdated]`.
-- 커밋 보기: 카드 `href = #thread-<id>`, 내용은 첫 댓글, 아바타, 시각, 댓글 수(스레드 댓글이 2개 이상이면 전체 수). 변경 탭: `href = 스레드 주소(ReviewLinks)`, 어긋남 표시(`review.outdated`), 댓글 수는 답글 수.
+- 커밋 보기: 카드 `href = #thread-<id>`, 내용은 첫 댓글, 아바타, 시각, 댓글 수(스레드 댓글이 2개 이상이면 전체 수). 변경 탭: `href = 스레드 주소(ReviewLinks)`, 어긋남 표시(`review.outdated`), 댓글 수도 같은 규칙(스레드 댓글이 2개 이상이면 전체 수, 아니면 0).
 - `a.review-card` 클릭(`.review-wrap`에 위임): `href`의 `#` 뒤 id가 이 페이지에 있으면(`#<id>` 존재) `location.hash`를 바꿔 이동하고(이미 같은 해시이면 `hashchange`를 수동으로 일으킴) 기본 동작을 막는다. 없으면 일반 링크로 이동한다(다른 커밋의 스레드).
 
 ### 5.2 `hashchange`
@@ -121,14 +123,14 @@ updated: 2026-11-11
 |---|---|---|---|
 | 스레드 접기 | `.comment-thread-wrap`(코드 범위 스레드) | `.btn-thread-minimize`(헤더의 `maximize` 단추, 접힌 상태의 `btn-thread-here` 단추) 클릭(`.diff-body` 위임)이 조상 스레드의 `fold` 토글. 이어서 모든 `.btn-thread-here`의 위치를 다시 계산. 닫힌 스레드는 서버가 `fold`로 그림 | 커밋, 변경 |
 | 접힌 단추 위치 | `.btn-thread-here` | `right = (스레드 인덱스 * 단추 폭 + 10)px`, `top = 끝 줄 위치 - 10px`. 끝 줄은 스레드가 든 `tr`의 **바로 앞 `tr`**이 `[data-line=<range-endline>][data-side=<range-endside>]`일 때만 찾는다 | 커밋, 변경 |
-| 파일 diff 접기 | `.diff-partial-meta` | 클릭이 형제 `.diff-partial-code`를 `toggle`. 마우스 커서 `pointer`. **변경 탭 인라인에만 있다** | 변경 탭 |
+| 파일 diff 접기 | `.diff-partial-meta` | 클릭이 형제 `.diff-partial-code`를 `toggle`. 마우스 커서 `pointer`. 화면 템플릿의 인라인 스크립트가 건다(`T:pullrequest/changes.html:176-178`, `T:code/diff.html:136-139`). 비교 화면(`compare.html`)에는 없다 | 변경 탭, 커밋 |
 | 카드 영역 접기 | `.codediff-wrap.diffs-only` | 1절 | 커밋, 변경(스레드가 있을 때) |
 | 파일 단위 스레드 | `.non-ranged-threads-wrap` | `.btn-thread-minimize`를 CSS가 숨김, 접기 없음 | |
 | 댓글 숨기기 | `#toggle-comments` | `.diff-container`의 `show-comments` 토글 | Subversion만 |
 
 ## 7. Subversion 커밋 보기(`code.SvnDiff`)
 
-호출: `svn-diff.html:113`(`bCommentable`, `sWatchUrl`, `sUnwatchUrl`, `sParentCommitId`, `sCommitId`, `sCodeURL`), `compare-svn.html:28`(code-F2). Git과 달리 **서버가 diff HTML을 그리지 않고** 패치 원문을 `#commit.diff-body`에 텍스트로 넣고 브라우저가 해석한다.
+호출: `svn-diff.html:113`(`bCommentable`, `sWatchUrl`, `sUnwatchUrl`, `sParentCommitId`, `sCommitId`, `sCodeURL`), `compare-svn.html:28`(`bCommentable:false`, `sParentCommitId`, `sCommitId`, `sCodeURL`(모델 `filesUrl` = `<프로젝트>/code`), `sTplFileURL`, `sTplRawURL`. 파일 링크는 `<sCodeURL>/<리비전>/<경로>`, `S:code.SvnDiff.js:454`, code-F2). Git과 달리 **서버가 diff HTML을 그리지 않고** 패치 원문을 `#commit.diff-body`에 텍스트로 넣고 브라우저가 해석한다.
 
 - 해석: `Index: <경로>\n=====\n`로 파일을 나누고, `---`/`+++`로 파일 머리, `@@ -a,b +c,d @@`로 구간 머리(`tr.range`, `td.hunk`)를 만들고, 첫 구간이 시작된 뒤에는 모든 줄을 내용으로 본다(`add`, `remove`, `context`). 이진 파일(`file marked as a binary type`)은 `code.isBinary` 한 줄. 파일 구조는 Git과 같은 `diff-partial-*` 클래스이나 `tr`에 `data-line`, `data-type`만 있고 **`data-side`와 `data-file-path`(`table`에는 있음) 중 `data-side`는 없다**.
 - 줄 번호 클릭(`.diff-wrap td.linenum`): 그 줄 다음 행에 이미 댓글 폼(`#comment-form`)이 있으면 닫고, 아니면 줄(`add|context|remove`)에 인라인 댓글 상자를 연다. 폼(`#comment-form`)에 숨은 `path`, `line`, `side`(`remove`면 `A`, 아니면 `B`)를 채워 제출(`POST /commit/<ID>/comments`).
@@ -157,7 +159,7 @@ updated: 2026-11-11
 | click | `.btn-thread-minimize` | `.diff-body` 안 | 스레드 접기 토글, 단추 위치 재계산 |
 | click | `a.review-card` | 같은 페이지에 스레드가 있음 | 해시 이동, 카드 탭 전환, 스크롤, 강조 |
 | click | `.btn-show/hide-reviewcards` | | `diffs-only` 토글 |
-| click | `.diff-partial-meta` | 변경 탭만 | 파일 diff 접기 |
+| click | `.diff-partial-meta` | 변경 탭과 커밋 보기만 | 파일 diff 접기 |
 | click | `#watch-button` | | 구독 토글 |
 | hashchange | window | 해시가 있음 | 5.2 |
 | scroll, resize | window | | 미니맵 갱신 |
@@ -166,4 +168,14 @@ updated: 2026-11-11
 
 ## 10. 이 영역의 발견 사항
 
-[code.md](code.md)의 code-F1, F2, F4, F8, F9, F10, F11, F14와 [pullrequest.md](pullrequest.md)의 pullrequest-F12에 정리했다. 추가로 이 문서에서 확인한 사실: (1) 줄 번호를 눌러 팝업을 여는 처리기는 `data-outdated="true"`가 아닌 `.diff-body`에 건다고 쓰였으나 `data-outdated`를 내는 템플릿이 없어 조건이 항상 참이다. (2) `CodeCommentBox`가 `thread-id` 대상을 다루는 분기와 `code.Diff`의 `button.btn-thread` 처리기는 Git 화면의 마크업에서 도달하지 않는다. (3) 미니맵과 `#toggle-comments`는 Subversion 화면에서만 의미가 있다.
+[code.md](code.md)의 code-F1, F2, F4, F8(커밋 보기의 파일 머리 접기는 수정됨), F9, F10, F11, F14와 [pullrequest.md](pullrequest.md)의 pullrequest-F12에 정리했다. 추가로 이 문서에서 확인한 사실: (1) 줄 번호를 눌러 팝업을 여는 처리기는 `data-outdated="true"`가 아닌 `.diff-body`에 건다고 쓰였으나 `data-outdated`를 내는 템플릿이 없어 조건이 항상 참이다. (2) `CodeCommentBox`가 `thread-id` 대상을 다루는 분기와 `code.Diff`의 `button.btn-thread` 처리기는 Git 화면의 마크업에서 도달하지 않는다. (3) 미니맵과 `#toggle-comments`는 Subversion 화면에서만 의미가 있다.
+
+---
+
+## 갱신 기록 (2026-11-11 재조사)
+
+기준: 커밋 `5ef425c98` 이후 소스와 대조했다. `code.Diff.js`, `code.SvnDiff.js`, `CodeCommentBlock.js`, `CodeCommentBox.js`, `DiffHtmlRenderer.kt`, `ThreadViewAssembler.kt`, `_page.scss`, `_responsive.scss`는 바뀌지 않았고, 인용한 `파일:줄`(`code.Diff.js:33-45,597-639`, `diff.html:119`, `changes.html:167`, `compare.html:24`, `svn-diff.html:89-94,113`)이 지금도 같은 내용을 가리키는 것을 다시 확인했다.
+
+- 다시 확인한 템플릿: `code/diff.html`, `code/svn-diff.html`, `code/compare.html`, `code/compare-svn.html`, `pullrequest/changes.html`, `common/review-form.html`(6개).
+- 고친 행과 문장: 5곳(변경 탭 카드 댓글 수 규칙, 6절 파일 diff 접기 행, 9절 접기 행, 7절 `compare-svn` 호출 인자와 파일 링크, 10절 발견 사항 참조). 줄 번호만 고친 곳: 0곳. 더한 행: 0. 없앤 행: 0. 새 발견 사항: 없음.
+- `sources`에 `svn-diff.html`, `compare-svn.html`을 더했다.

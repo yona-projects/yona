@@ -13,6 +13,8 @@ sources:
   - src/main/kotlin/dev/yona/web/issue/IssueMassUpdateController.kt
   - src/main/kotlin/dev/yona/web/issue/IssueListAssembler.kt
   - src/main/kotlin/dev/yona/domain/issue/IssueSearchService.kt
+  - src/main/kotlin/dev/yona/domain/issue/IssueMassUpdateService.kt
+  - src/main/kotlin/dev/yona/web/access/ProjectCheckStage.kt
   - src/main/resources/static/assets/javascripts/esm/service/issue.List.js
   - src/main/resources/static/assets/javascripts/esm/service/issue.MassUpdate.js
 updated: 2026-11-11
@@ -28,28 +30,28 @@ updated: 2026-11-11
 
 | 항목 | 내용 |
 |---|---|
-| URL | `GET /:user/:project/issues` (`K/web/issue/IssueListController.kt:71`) |
-| 권한 어노테이션 | 메서드 `@IsAllowed(READ)`(72), 클래스 `@AnonymousCheck`(`IssueListController.kt:55`) |
-| 템플릿 | 전체 화면 `T/issue/list.html`, 조각 `T/issue/partial-list-wrap.html :: listWrap`(`IssueListController.kt:93`) |
+| URL | `GET /:user/:project/issues` (`K/web/issue/IssueListController.kt:72`) |
+| 권한 어노테이션 | 메서드 `@IsAllowed(READ)`(73), 클래스 `@AnonymousCheck`(`IssueListController.kt:54`). 프로젝트의 이슈 메뉴(`menuSetting.issue`)가 꺼져 있으면 읽기 검사 단계에서 `404`(`error/notfound`)이다. 일괄 변경 `POST`는 `@NullProjectCheck`라 이 검사를 거치지 않는다(`K/web/access/ProjectCheckStage.kt:88-111`, 시험 `src/test/kotlin/dev/yona/web/access/ProjectMenuOffAccessTest.kt:53`, `issue-F24`) |
+| 템플릿 | 전체 화면 `T/issue/list.html`, 조각 `T/issue/partial-list-wrap.html :: listWrap`(`IssueListController.kt:94`) |
 | 레이아웃 | `layout/project-layout :: projectLayout(제목, projectView, 'ISSUE', 본문)`(`list.html:11`), 본문 맨 위에 `project/menu :: projectMenu(..., 'main-menu-only')`(`list.html:13`) |
 | 문서 제목 | `프로젝트이름 - ` + `menu.issue` 메시지(`list.html:11`, 모델 `title="menu.issue"`) |
-| 모델 | `projectView`, `cond`(IssueSearchCondition), `items`, `drafts`, `showDrafts`, `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `quick`, `excelUrl`, `search`, `canMassUpdate`, `massUpdate`(구성원만)(`IssueListController.kt:129-157`) |
+| 모델 | `projectView`, `cond`(IssueSearchCondition), `items`, `drafts`, `showDrafts`, `pageIndex`, `totalPageCount`, `openCount`, `closedCount`, `quick`, `excelUrl`, `search`, `canMassUpdate`, `massUpdate`(구성원만)(`IssueListController.kt:134-159`) |
 | 쓰는 조각 | `partial-list-quicksearch`, `partial-searchform`, `partial-massupdate`, `partial-list`, `partial-select-label`, `milestone/partial-status`, `common/two-column-mode-checkbox-area`, `common/show-subtasks-checkbox`, `common/comment-count`, `common/vote-count`, `common/sharer-count`, `help/keymap :: keymap('issueList', projectView)`, `common/select2`, `common/calendar` |
 | 용도 | 프로젝트의 이슈 목록, 검색, 상태 탭, 정렬, 쪽 나누기, 엑셀 내려받기, 일괄 변경 |
 | 마일스톤 보기 | 같은 `partial-list`, `partial-massupdate`를 쓴다(마일스톤 담당 글 참조) |
 
-### 응답 형식 분기(`IssueListController.kt:83-96`)
+### 응답 형식 분기(`IssueListController.kt:84-101`)
 
 | 요청 | 결과 |
 |---|---|
-| 기본 | 전체 화면, 로그인 사용자의 최근 방문 프로젝트에 기록(`recentVisits.visits`, 93행) |
-| `HX-Request: true`(htmx) | `format=fragment`로 고정, 조각만, `Cache-Control: no-cache, no-store`(88-90) |
+| 기본 | 전체 화면, 로그인 사용자의 최근 방문 프로젝트에 기록(`recentVisits.visits`, 98행) |
+| `HX-Request: true`(htmx) | `format=fragment`로 고정, 조각만, `Cache-Control: no-cache, no-store`(87, 93) |
 | `format=fragment` | 위와 같음. 시험 `TEST/IssueListTest.kt:367`, `:379` |
-| `X-Requested-With: XMLHttpRequest`만 | JSON(이슈 PK를 키로 `{id,title,state,createdDate,link}`), `exceptId`가 숫자 아니면 400 JSON `{}`(117-120) |
-| `format=xls` | 엑셀(조건에 맞는 모든 이슈, 쪽 나누기 없음), 파일명 `프로젝트_issues_yyyyMMddHHmm.xls`(104-111) |
-| 숫자나 날짜 형식이 틀린 조건 | `ErrorViews.badRequest()` 400 HTML(83, `IssueConditionBinder` 217-243) |
+| `X-Requested-With: XMLHttpRequest`만 | JSON(이슈 PK를 키로 `{id,title,state,createdDate,link}`), `exceptId`가 숫자 아니면 400 JSON `{}`(118-120) |
+| `format=xls` | 엑셀(조건에 맞는 모든 이슈, 쪽 나누기 없음), 파일명 `프로젝트_issues_yyyyMMddHHmm.xls`(108-116) |
+| 숫자나 날짜 형식이 틀린 조건 | `ErrorViews.badRequest()` 400 HTML(84, `IssueConditionBinder` 217-243) |
 
-htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행). 쪽 번호는 `pageNum`(1부터, 기본 1)이고 서버 안에서 0부터로 바꾼다(82행).
+htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(87행). 쪽 번호는 `pageNum`(1부터, 기본 1)이고 서버 안에서 0부터로 바꾼다(83-84행).
 
 ## 2. 레이아웃 계약
 
@@ -65,7 +67,7 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 - 빈 상태와 목록 상태가 다르다(`partial-list-wrap.html:34-75`):
   - 일반 이슈가 0개: (초안 있으면 초안 목록) + `div.error-wrap`(`ico-err1` + `issue.is.empty` 한국어 "등록된 이슈가 없습니다.") + 단축키 도움말. 정렬 링크, 일괄 변경 막대, 엑셀 링크, 쪽 나누기가 모두 없다.
   - 1개 이상: 일괄 변경 막대(구성원), 정렬 링크(`items.size() > 1`), 초안 목록, 이슈 목록, 엑셀 링크, 단축키 도움말, `#pagination`.
-  - 초안: `showDrafts`(첫 쪽이고, 담당자, 작성자, 멘션, 댓글, 공유, 즐겨찾기 조건이 없고, `state != closed`, `IssueListController.kt:137`)일 때만. 이슈가 있는 분기에서는 초안이 0개여도 빈 `ul.post-list-wrap`을 그린다(63행, 시험 `TEST/IssueListTest.kt:234`). 이슈가 없는 분기에서는 초안이 있을 때만 그린다(36-38행, 시험 `:243`).
+  - 초안: `showDrafts`(첫 쪽이고, 담당자, 작성자, 멘션, 댓글, 공유, 즐겨찾기 조건이 없고, `state != closed`, `IssueListController.kt:138`)일 때만. 이슈가 있는 분기에서는 초안이 0개여도 빈 `ul.post-list-wrap`을 그린다(63행, 시험 `TEST/IssueListTest.kt:234`). 이슈가 없는 분기에서는 초안이 있을 때만 그린다(36-38행, 시험 `:243`).
 
 ## 3. 동작 요소 표
 
@@ -75,12 +77,12 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
-| "열린 이슈 전체"(`issue.list.all.open`, 닫힘 탭이면 `issue.list.all.closed`) + 개수 | 링크 | 항상. `active`는 담당자, 작성자, 댓글 조건이 모두 없을 때 | 세 조건을 비운다(`data-assignee-id=""` 등) | `GET {base}/issues?...`(HX-Request) | 목록 조각 교체 | READ | `partial-list-quicksearch.html:11-16`, 개수 `IssueListController.kt:161-174` |
+| "열린 이슈 전체"(`issue.list.all.open`, 닫힘 탭이면 `issue.list.all.closed`) + 개수 | 링크 | 항상. `active`는 담당자, 작성자, 댓글 조건이 모두 없을 때 | 세 조건을 비운다(`data-assignee-id=""` 등) | `GET {base}/issues?...`(HX-Request) | 목록 조각 교체 | READ | `partial-list-quicksearch.html:11-16`, 개수 `IssueListController.kt:165-176` |
 | "내게 할당" + 개수 | 링크 | `quick.meId != null`(로그인). `active`는 `cond.assigneeId == meId` | `assigneeId=내 번호`, 나머지 비움 | 위와 같음 | 위와 같음 | READ | `:17-23` |
 | "내가 작성" + 개수 | 링크 | 로그인 | `authorId=내 번호` | 위와 같음 | 위와 같음 | READ | `:24-29` |
 | "내가 댓글" + 개수 | 링크 | 로그인 | `commenterId=내 번호` | 위와 같음 | 위와 같음 | READ | `:30-35` |
 
-- 개수는 현재 검색 조건을 유지하되 담당자, 작성자, 댓글 조건만 뺀 값이다(`IssueListController.kt:164`).
+- 개수는 현재 검색 조건을 유지하되 담당자, 작성자, 댓글 조건만 뺀 값이다(`IssueListController.kt:167`).
 - `milestoneId`는 `th:attrappend`로 `cond.milestoneId`를 실어 보낸다(`:12`). 그러므로 마일스톤 조건은 빠른 검색을 눌러도 유지된다.
 
 ### 3.2 왼쪽 단: 검색 폼(`partial-searchform.html`)
@@ -96,7 +98,7 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 | 마일스톤 `milestoneId` | select2(`data-format=milestone`) | `search.hasMilestones`(프로젝트에 마일스톤이 하나라도 있을 때). 옵션: 전체, `-1` 마일스톤 없음, 열림, 닫힘 optgroup | 위와 같음 | `milestoneId=` | 위와 같음. 선택한 마일스톤이 있으면 그 아래에 `milestone/partial-status`(진행 막대, 마감일) + `<hr>` | READ | `:53-74` |
 | 마감일 `dueDate` | 텍스트 + 달력(`data-toggle=calendar`) + `.btn-calendar` | 항상 | 날짜를 고르거나 값이 바뀌면 `change` → 제출. 제출 직전 `isValidDate`로 검사해 틀리면 `issue.error.invalid.duedate` 알림 후 중단 | `dueDate=yyyy-MM-dd`(그날까지, 그날 포함) | 조각 교체 | READ | `:76-80`, 검증 `issue.List.js:293-309`(`htmx:beforeRequest` 위임) |
 | 라벨 `labelIds` | select2 다중(`data-format=issuelabel`, `data-allow-clear`) | `search.labels`가 비어 있지 않을 때만 `dl`을 그린다 | 값 바뀌면 제출. 고른 라벨을 모두 가진 이슈만 찾는다 | `labelIds=`(여러 번) | 조각 교체 | READ | `partial-select-label.html:9-28`, 서버 `IssueSearchService.addLabels` |
-| 라벨 관리 톱니바퀴 링크 | 링크 | `search.canManageLabels`(프로젝트 구성원 이상의 `ISSUE_LABEL` 생성 권한). 라벨이 없으면 "라벨 관리"(`label.manage`) 글자도 보인다 | 라벨 관리 화면으로 이동(같은 창) | `GET {base}/issue/labelsform` | 라벨 관리 화면 | 서버는 프로젝트 `UPDATE`(관리자)를 요구한다. 불일치는 `issue-F12` | `partial-searchform.html:84-88`, `K/web/issue/IssueLabelController.kt:88-90` |
+| 라벨 관리 톱니바퀴 링크 | 링크 | `search.canManageLabels`(프로젝트 `UPDATE` 권한: 프로젝트 관리자, 조직 관리자, 사이트 관리자. `accessControl.isAllowed(viewer, project.asResource(), UPDATE)`). 라벨이 없으면 "라벨 관리"(`label.manage`) 글자도 보인다 | 라벨 관리 화면으로 이동(같은 창) | `GET {base}/issue/labelsform` | 라벨 관리 화면 | 프로젝트 `UPDATE`(보이는 조건과 같다. 일반 구성원에게는 링크가 없다) | `partial-searchform.html:84-88`, `K/web/issue/IssueListController.kt:199`, `K/web/issue/IssueLabelController.kt:88-90` |
 | 라벨 `[편집]` 링크 | 링크 | `partial-select-label`이 그린 `dt` 안, `view.manager`일 때만(`target=_blank`) | 새 탭으로 라벨 관리 | 위와 같음 | 위와 같음 | 프로젝트 `UPDATE` | `partial-select-label.html:12` |
 
 - 입력란은 모두 폼 안에 있으며 선택 상자는 `data-search="필드명"` 속성으로 빠른 검색과 라벨 클릭이 값을 채울 수 있게 되어 있다.
@@ -117,9 +119,9 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
 | 정렬 링크 4개(마감일 `dueDate`, 수정일 `updatedDate`, 날짜 `createdDate`, 댓글 `numOfComments`) | 링크 `a[orderBy]` | `items.size() > 1`. 현재 정렬이면 `active`와 방향 화살표(`down`), 누르면 방향이 뒤집힌다(`orderDir`을 반대로). 현재가 아니면 `orderDir=desc`로 시작 | `orderBy`, `orderDir` 숨은 입력을 바꾸고 제출 | `orderBy=&orderDir=` | 조각 교체 | READ | `partial-list-wrap.html:52-58`, `issue.List.js:105-113` |
-| 일괄 변경 막대 | 아래 3.5 | `canMassUpdate`(= `projectView.projectMember`, 역할 무관 구성원) | | | | | `IssueListController.kt:140`, `partial-list-wrap.html:48-50` |
+| 일괄 변경 막대 | 아래 3.5 | `canMassUpdate`(= `projectView.projectMember`, 역할 무관 구성원) | | | | | `IssueListController.kt:156`, `partial-list-wrap.html:48-50` |
 
-서버는 정렬 기준이 `ORDERABLE`(`id, number, title, state, weight, createdDate, updatedDate, dueDate, numOfComments`)에 없으면 `createdDate`로 바꾸고, 정렬은 항상 `weight desc, isDraft desc, 기준, id`다(`IssueSearchService.kt:188-194`, 307). 마감일 정렬은 마감일 없는 이슈가 항상 뒤다.
+서버는 정렬 기준이 `ORDERABLE`(`id, number, title, state, weight, createdDate, updatedDate, dueDate, numOfComments`)에 없으면 `createdDate`로 바꾸고, 정렬은 항상 `weight desc, isDraft desc, 기준, id`다(`IssueSearchService.kt:188-193`, 307). 마감일 정렬은 마감일 없는 이슈가 항상 뒤다.
 
 ### 3.5 일괄 변경 막대(`partial-massupdate.html`)
 
@@ -128,7 +130,7 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답과 이어지는 동작 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
 | 전체 선택 `#check-all` | 체크박스 | 막대가 있을 때 | 모든 `[name=checked-issue]`를 같은 값으로 체크, 변경 이벤트 발생. 단축키 `CTRL+A`(폼 입력란 밖일 때)도 같은 일을 한다 | 없음 | 체크된 줄에 `active` 클래스 | 없음 | `partial-massupdate.html:28-32`, `issue.MassUpdate.js:120-130` |
-| 상태 드롭다운 `#state`(`data-name=state`) | 드롭다운 | 항상. 항목 `OPEN`, `CLOSED` | 항목 선택 즉시 폼 제출. 숨은 입력 `state`를 만들어 값을 넣는다(`yona.ui.Dropdown`) | `POST {base}/issues` 본문 `state=OPEN|CLOSED` + `issues[n].id` | Accept에 JSON이 없으므로 `303 Location: Referer`(없으면 목록 주소)(`IssueMassUpdateController.kt:111`) | 이슈마다 `UPDATE` | `:33-41`, `issue.MassUpdate.js:329-347` |
+| 상태 드롭다운 `#state`(`data-name=state`) | 드롭다운 | 항상. 항목 `OPEN`, `CLOSED` | 항목 선택 즉시 폼 제출. 숨은 입력 `state`를 만들어 값을 넣는다(`yona.ui.Dropdown`) | `POST {base}/issues` 본문 `state=OPEN|CLOSED` + `issues[n].id` | Accept에 JSON이 없으므로 `303 Location: Referer`. Referer가 없거나 이 사이트의 주소가 아니면 목록 주소(`IssueMassUpdateController.kt:119-120`) | 이슈마다 `UPDATE` | `:33-41`, `issue.MassUpdate.js:329-347` |
 | 담당자 `#assignee`(`data-name=assignee.id`) | 드롭다운 | 항상. 항목: `-1` 담당자 없음, "내게 할당"(`projectView.projectMember`), 구분선, 담당 가능한 사용자들(아바타, 이름, @로그인) | 위와 같음 | `assignee.id=번호|-1` | 위와 같음 | 위와 같음 | `:43-61` |
 | 마일스톤 `#milestone`(`data-name=milestone.id`) | 드롭다운 | `menuSetting.milestone`이고 **열린** 마일스톤이 있을 때 | 위와 같음 | `milestone.id=번호|-1` | 위와 같음 | 위와 같음 | `:63-74` |
 | 라벨 추가 `#attaching-label`(`data-name=attachingLabelIds`) | 드롭다운 | `massUpdate.hasLabels` | 라벨 선택 시, 같은 배타 분류(`exclusive`)에서 이미 달린 다른 라벨을 `detachingLabelIds[]`로 함께 보내고 제출 | `attachingLabelIds=번호`, `detachingLabelIds[]=번호...` | 위와 같음 | 위와 같음 | `:76-85`, `issue.MassUpdate.js:359-372` |
@@ -192,7 +194,7 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 | `CTRL+A` | 모든 줄 선택 토글(`#check-all` 클릭) | `issue.MassUpdate.js:124-130` | 일괄 변경 막대가 있고 초점이 폼 입력란이 아닐 때. 기본 동작(`preventDefault`) |
 
 - `ShortcutKey`는 키 하나에 처리기를 **하나만** 둔다(`attachHandler`가 `htHandlers[키]`를 덮어씀, `J/esm/ShortcutKey.js` `_setHandler`). 나중에 등록한 쪽이 이긴다. 이 화면에서는 `N`(스크립트 인라인), `LEFT`/`RIGHT`(쪽 나누기), `CTRL+A`(일괄 변경)가 서로 겹치지 않는다. 전역 키(`H`, `B`, `I`, `C`, `M`, `P`, `Q`, `A`, `U`, `F` 등)는 `common` 담당이다.
-- `help/keymap`의 도움말 모달은 `N`을 `section`에 `issue`가 들어 있으면 항상 보이고, 쪽 이동 키는 `List`가 들어 있을 때, `CTRL+A`는 `issueList`일 때만 보인다(`T/help/keymap.html`).
+- `help/keymap`의 도움말 모달은 전역 키 안내 `B`, `I`, `C`, `M`, `P`를 프로젝트 메뉴 설정이 켜져 있을 때만 보이고(`T/help/keymap.html:22-46`), `N`은 `section`에 `issue`가 들어 있으면 항상 보이고, 쪽 이동 키는 `List`가 들어 있을 때, `CTRL+A`는 `issueList`일 때만 보인다(`T/help/keymap.html`).
 
 ## 6. 팝업, 모달, 툴팁
 
@@ -211,23 +213,24 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 
 ### 7.1 `POST /:user/:project/issues`(일괄 변경, 이슈 보기 오른쪽 창도 같은 주소)
 
-`K/web/issue/IssueMassUpdateController.kt:57-112`. 권한 어노테이션은 `@NullProjectCheck`(프로젝트가 있는지만)이고 권한은 이슈마다 안에서 검사한다.
+`K/web/issue/IssueMassUpdateController.kt:58-121`. 권한 어노테이션은 `@NullProjectCheck`(프로젝트가 있는지만. 메뉴를 끈 프로젝트의 404 검사는 이 경로에 걸리지 않는다)이고 권한은 이슈마다 안에서 검사한다.
 
 | 조건 | 응답 |
 |---|---|
-| `issues[n].id`가 하나도 없다 | `400` JSON `{"issues":["This field is required"]}`(63) |
-| `state`가 `State` 열거형 이름(대문자)이 아니다(빈 값은 통과) | `400` JSON `{"state":["Invalid value"]}`(64-67) |
-| `dueDate`가 `yyyy-MM-dd`가 아니다 | `400` JSON `{"dueDate":["Invalid value"]}`(68-74) |
-| 없는 이슈 번호가 하나라도 있다 | `404` HTML. 아무것도 바꾸지 않는다(85) |
-| 초안 이슈 | 건너뛴다(88-90) |
-| 하나도 바꾸지 못했고 거부된 이슈가 있다 | `403` HTML 프로젝트 오류 화면(99) |
+| `issues[n].id`가 하나도 없다 | `400` JSON `{"issues":["This field is required"]}`(64) |
+| `state`가 `OPEN`, `CLOSED`가 아니다(소문자, `DRAFT`, `MERGED` 등. 빈 값은 통과) | `400` JSON `{"state":["Invalid value"]}`(65-69) |
+| `attachingLabelIds`에 같은 배타 분류(`exclusive`)의 라벨이 둘 이상 있다 | `400` JSON `{"attachingLabelIds":["Invalid value"]}`(70-74) |
+| `dueDate`가 `yyyy-MM-dd`가 아니다 | `400` JSON `{"dueDate":["Invalid value"]}`(75-81) |
+| 없는 이슈 번호가 하나라도 있거나, 경로의 프로젝트에 속하지 않은 이슈가 하나라도 있다 | `404` HTML. 아무것도 바꾸지 않는다(91-93) |
+| 초안 이슈 | 건너뛴다(97) |
+| 하나도 바꾸지 못했고 거부된 이슈가 있다 | `403` HTML 프로젝트 오류 화면(107) |
 | 일부만 허용 | 허용된 것만 바꾸고 정상 응답 |
-| `Accept`가 JSON을 선호 | `{}`. `isDueDateChanged=true`이면 `{"isOverDue":bool,"dueDateMsg":문자열|null}` |
-| 그 밖(브라우저 폼) | `303 Location: Referer`, 없으면 `{base}/issues` |
+| `Accept`가 JSON을 선호 | `{}`. `isDueDateChanged=true`이면 `{"isOverDue":bool,"dueDateMsg":문자열|null}`(109-117). 마감일을 지우거나 닫힌 이슈이면 `dueDateMsg`는 `null`이다 |
+| 그 밖(브라우저 폼) | `303 Location: Referer`. Referer가 없거나 이 사이트의 주소가 아니면(다른 호스트, 형식이 틀린 값) `{base}/issues`(119-120, `RedirectSupport.localTarget`) |
 
-- 체크한 이슈가 **경로의 프로젝트에 속하는지 확인하지 않는다**(번호만으로 찾는다). 권한은 이슈마다 `UPDATE`로 검사한다(`:92-95`).
-- `attachingLabelIds`, `detachingLabelIds`는 프로젝트 소속, 배타 분류를 서버가 검사하지 않는다(`K/domain/issue/IssueMassUpdateService.kt:73-80`). 배타 분류 해제는 화면 스크립트가 맡는다(`issue-F9`).
-- 시험: `TEST/IssueMassUpdateTest.kt:127-284`(상태, 담당자, 마일스톤, 라벨, 마감일, 초안, 삭제, 403, 400, 404, JSON 아님).
+- 체크한 이슈가 경로의 프로젝트에 속하는지 확인한다(`:93`). 권한은 이슈마다 `UPDATE`로 검사한다(`:103`).
+- 다른 프로젝트의 라벨은 `attachingLabelIds`에서 걸러져 붙지 않고, 다른 프로젝트의 마일스톤 번호는 없는 것으로 보아 바꾸지 않는다(`K/domain/issue/IssueMassUpdateService.kt:71, 80`). 같은 배타 분류 라벨을 둘 이상 붙이는 요청은 서버가 400으로 막는다. 화면 스크립트는 여전히 이미 달린 같은 분류 라벨을 `detachingLabelIds`로 함께 보낸다(`issue-F9`).
+- 시험: `TEST/IssueMassUpdateTest.kt:127-340`(상태, 담당자, 마일스톤, 라벨, 마감일, 초안, 삭제, 403, 400, 404, JSON 아님, 열림과 닫힘만 266, 배타 라벨 278, 외부 Referer 315, 다른 프로젝트 이슈 325, 다른 프로젝트 라벨 333).
 
 ## 8. 권한 행렬(이 화면)
 
@@ -238,24 +241,33 @@ htmx 요청이 `X-Requested-With`도 함께 보내도 htmx가 우선이다(86행
 | 목록 보기 | 보인다/허용(사이트가 익명 접근을 막으면 로그인 화면 403) | 허용 | 허용 | 허용 | 허용 | 허용 |
 | 새 이슈 단추 | 보인다, 누르면 로그인으로 303 | 보인다, 허용 | 허용 | 허용 | 허용 | 허용 |
 | 선택 상자, 일괄 변경 막대 | 안 보임 | 안 보임 | 보임, 이슈별 `UPDATE`면 허용 | 보임, 허용 | 구성원이 아니면 안 보임(`projectMember`는 역할 행 기준), 서버는 허용 | 구성원이 아니면 안 보임, 서버는 허용 |
-| 라벨 관리 톱니바퀴 | 안 보임 | 안 보임 | 보임, 서버는 403(`issue-F12`) | 보임, 허용 | 보임(`isProjectResourceCreatable`), 허용 | 보임, 허용 |
+| 라벨 관리 톱니바퀴 | 안 보임 | 안 보임 | 안 보임(프로젝트 `UPDATE` 권한이 없다) | 보임, 허용 | 보임, 허용 | 보임, 허용 |
 | 엑셀 내려받기 | 허용 | 허용 | 허용 | 허용 | 허용 | 허용 |
 
 ## 9. 빈 상태, 오류 상태, 경계 값
 
 | 값 | 정의 위치 |
 |---|---|
-| 한 쪽 15개 | `IssueListController.kt:210` |
-| `itemsPerPage` 최대 45(숫자가 아니면 15) | `IssueListController.kt:211`, `:104-105` |
-| `exceptId` 숫자가 아니면 400 | `IssueListController.kt:117-120` |
+| 한 쪽 15개 | `IssueListController.kt:212` |
+| `itemsPerPage` 최대 45(숫자가 아니면 15) | `IssueListController.kt:213`, `:105-106` |
+| `exceptId` 숫자가 아니면 400 | `IssueListController.kt:118-120` |
 | htmx 요청 제한 시간 3초 | `partial-list-wrap.html:10` |
-| 초안은 목록(`i.isDraft = false`)에 나오지 않고, 첫 쪽에서만 `drafts`가 따로 | `IssueSearchService.kt:197`, `IssueListController.kt:137-138` |
-| 작성자, 검색어, 라벨, 담당자, 멘션 조건이 모두 없으면 하위 이슈는 목록에서 뺀다 | `IssueSearchService.kt:285-287` |
+| 초안은 목록(`i.isDraft = false`)에 나오지 않고, 첫 쪽에서만 `drafts`가 따로 | `IssueSearchService.kt:199`, `IssueListController.kt:138-139` |
+| 작성자, 검색어, 라벨, 담당자, 멘션 조건이 모두 없으면 하위 이슈는 목록에서 뺀다 | `IssueSearchService.kt:267-269` |
 | 라벨이 존재하지 않는 번호면 결과 없음 | `IssueSearchService.kt:281-290` |
-| 마감일 필터는 그날 23:59:59까지 포함(다음 날 0시 미만) | `IssueSearchService.kt:283`, `nextDay` |
+| 마감일 필터는 그날 23:59:59까지 포함(다음 날 0시 미만) | `IssueSearchService.kt:264`, `nextDay` 301 |
 | 빈 상태 문구 `issue.is.empty` | `messages_ko_KR.properties:327` |
 | 쪽 번호 입력 상자는 1과 전체 쪽 수 사이로 고쳐진다 | `Pagination.js:`(`isValidInputNum`) |
 
 ## 10. 시험 근거
 
-화면별 주요 시험: `TEST/IssueListTest.kt`(제목과 탭 120, 빈 목록 142, 줄 구성 166, 초안 234-255, 빠른 검색 268, 검색 폼 284-301, 구성원에게만 막대 323, 15개씩 344, 엑셀 링크 356, 조각 367-379, 400 413). 클라이언트 스크립트(`issue.List.js`, `issue.MassUpdate.js`)의 단위 시험은 이 조사에서 찾지 못했다(시험 없음).
+화면별 주요 시험: `TEST/IssueListTest.kt`(제목과 탭 120, 빈 목록 142, 줄 구성 166, 초안 234-255, 빠른 검색 268, 검색 폼 284-301, 구성원에게만 막대 333, 라벨 관리 톱니바퀴 321, 15개씩 354, 엑셀 링크 366, 조각 377-389, 400 423). 클라이언트 스크립트의 시험은 `src/test/js/massupdate.test.mjs`(`issue.MassUpdate.js`의 라벨 목록 이스케이프), `htmx.test.mjs`(영역 교체와 `issue.List.js`), `twocolumn.test.mjs`, `shortcutkey.test.mjs`에 있다.
+
+## 갱신 기록 (2026-11-11 재조사)
+
+- 다시 확인한 템플릿: `list.html`, `partial-list-wrap.html`, `partial-list.html`, `partial-list-quicksearch.html`, `partial-searchform.html`, `partial-massupdate.html`, `partial-select-label.html`(7개). 범위 점검 표(`issue.md` 5절)와 같다.
+- 고친 행: 약 14곳(라벨 관리 톱니바퀴 행과 권한 행렬 행, 일괄 변경 응답 표의 상태, 외부 Referer, 경로 밖 이슈 404, 다른 프로젝트 라벨과 마일스톤, 303 이동 행, 시험 근거, 메뉴 꺼짐 404 표기, 단축키 도움말 조건).
+- 줄 번호만 고친 곳: 약 20곳(`IssueListController.kt` +1, `IssueMassUpdateController.kt`, `IssueSearchService.kt`의 틀렸던 인용 4곳, 시험 줄 번호).
+- 더한 행: 일괄 변경 응답 표의 배타 라벨 400 행, 1절 접근 행의 메뉴 꺼짐 404.
+- 없앤 행: 없음.
+- 새 발견 사항: 없음(`issue.md`의 F26이 이 화면의 일괄 변경 `POST`에도 해당한다).

@@ -7,6 +7,9 @@ sources:
   - src/main/kotlin/dev/yona/web/access/*.kt
   - src/main/kotlin/dev/yona/web/WatchController.kt
   - src/main/kotlin/dev/yona/domain/vcs/VcsType.kt
+  - src/main/kotlin/dev/yona/repository/hg/HgRefReader.kt
+  - src/main/kotlin/dev/yona/web/project/ProjectViewContext.kt
+  - src/main/resources/templates/project/menu.html
   - src/main/resources/static/assets/javascripts/esm/service/code.Browser.js
   - src/main/resources/static/assets/javascripts/esm/service/code.Nohead.js
   - src/main/resources/static/assets/javascripts/esm/service/review.CommentEdit.js
@@ -27,9 +30,9 @@ updated: 2026-11-11
 | `code/view.html` | `GET /:user/:project/code`(기본 브랜치로 `303`), `.../code/:branch`, `.../code/:branch/*path` | `K:code/CodeBrowserController.kt:54-104` | 폴더 목록과 파일 보기 |
 | `code/nohead.html`, `nohead-hg.html`, `nohead-svn.html` | `GET .../code`(저장소가 비었을 때) | `K:code/CodeBrowserController.kt:66-68`, `K:code/NoheadViews.kt` | 비어 있는 저장소의 처음 올리는 방법 안내 |
 | `code/history.html` | `GET .../commits`, `.../commits/:branch[/]`, `.../commits/:branch/*path` | `K:code/CommitHistoryController.kt:62-81` | 커밋 이력 |
-| `code/diff.html` | `GET .../commit/:id` (Git, Mercurial) | `K:code/CommitViewController.kt:91-135` | 커밋 보기(diff, 줄 댓글, 리뷰 카드) |
-| `code/svn-diff.html` | `GET .../commit/:id` (Subversion) | `K:code/CommitViewController.kt:140-175` | Subversion 커밋 보기 |
-| `code/compare.html` | `GET .../compare/:revA..:revB` (Git, Mercurial) | `K:code/CommitViewController.kt:195-216` | 두 커밋 비교 |
+| `code/diff.html` | `GET .../commit/:id` (Git, Mercurial) | `K:code/CommitViewController.kt:91-140` | 커밋 보기(diff, 줄 댓글, 리뷰 카드) |
+| `code/svn-diff.html` | `GET .../commit/:id` (Subversion) | `K:code/CommitViewController.kt:146-192` | Subversion 커밋 보기 |
+| `code/compare.html` | `GET .../compare/:revA..:revB` (Git, Mercurial) | `K:code/CommitViewController.kt:195-222` | 두 커밋 비교 |
 | `code/compare-svn.html` | 같은 URL (Subversion) | 같은 메서드 | Subversion 두 리비전 비교 |
 | `code/branches.html` | `GET .../branches`, `POST .../code/:branch/setAsDefault`, `DELETE .../code/:branch/` | `K:code/BranchController.kt:65-133` | 브랜치 목록과 관리 |
 | `code/tags.html` | `GET .../tags`, `DELETE .../tags/:tag` | `K:code/TagController.kt:62-102` | 태그 목록과 삭제 |
@@ -38,7 +41,7 @@ updated: 2026-11-11
 
 원본 파일 경로: `GET .../rawcode/:rev/*path`(`text/plain`), `.../image/:rev/*path`, `.../files/:rev/*path`, `.../code/:branch/download`(zip), `GET .../code/!`와 `.../code/:branch/!`(+`/!/*path`, 폴더 메타 JSON), `GET .../lfs/:oid`(LFS 객체)가 이 화면의 링크 대상이다(응답 형식은 [web/code-browser.md](../web/code-browser.md)).
 
-공통 권한 어노테이션: `@CodeAccessCheck`(읽기 권한 + `isCodeAccessibleMemberOnly`이면 구성원만, 아니면 익명 로그인 화면 `403`, 로그인 사용자 `403 error.forbidden.or.notfound`, `K:access/ProjectCheckStage.kt:72-76`)가 `code/:branch...`, `commits...`, `commit/:id`, `rawcode`, `image`, `branches`, `tags`, `lfs`에 있다. `/code`는 `@IsAllowed(READ)` 뒤 본문에서 같은 제한을 다시 검사하고(`403 error.forbidden`, 프로젝트 레이아웃), `files/...`와 `compare/...`는 `@IsAllowed(READ)`만 있다(발견 code-F3). 저장소 종류를 모르는 프로젝트의 `/code`와 하위는 `501`(`<vcs> is not supported!`, text/plain)이다.
+공통 권한 어노테이션: `@CodeAccessCheck`(읽기 권한 + `isCodeAccessibleMemberOnly`이면 구성원만, 아니면 익명 로그인 화면 `403`, 로그인 사용자 `403 error.forbidden.or.notfound`, `K:access/ProjectCheckStage.kt:72-76`)가 `code/:branch...`, `commits...`, `commit/:id`, `rawcode`, `image`, `files`, `compare`, `branches`, `tags`, `lfs`에 있다(`files`와 `compare`는 발견 code-F3 수정으로 더해졌다). `/code`는 `@IsAllowed(READ)` 뒤 본문에서 같은 제한을 다시 검사한다(`403 error.forbidden`, 프로젝트 레이아웃). 프로젝트 메뉴의 단축키 `C`(코드)와 `P`(코드 주고받기)는 `view.codeAccessible`(코드 접근을 구성원으로 제한한 프로젝트에서는 구성원)일 때만 등록한다(`T:project/menu.html:74-90`, `K:project/ProjectViewContext.kt:146`). 탭 링크와 같은 조건이다. 저장소 종류를 모르는 프로젝트의 `/code`와 하위는 `501`(`<vcs> is not supported!`, text/plain)이다.
 
 ---
 
@@ -47,7 +50,7 @@ updated: 2026-11-11
 ### 1.1 화면 개요
 
 - `K:code/CodeBrowserController.kt:77-104`가 `browse`를 부른다. 브랜치 구간은 두 번 디코딩(`UrlPaths.decodeSegmentOrSelf`), `*path`는 스프링이 한 번 디코딩한 값을 그대로 쓴다. 브랜치나 경로가 없으면 `404`(메시지는 브랜치 이름, 프로젝트 레이아웃, 메뉴 `code`).
-- 모델 `title="menu.code"`, `projectView`, `page(CodePage)`, `maxFileSize`. `page`: `showTabs`, `filesTabUrl`, `commitsTabUrl`, `branchesTabUrl`(Git, Mercurial만), `tagsTabUrl`, `branchGroups`, `rootUrl`, `projectName`, `crumbs`, `downloadUrl`(zip 지원 종류만), `newFileUrl`(온라인 편집 지원 종류이고 로그인했을 때만, Git만), `items`(폴더 목록들과 마지막 파일 보기를 차례로), `metaInfoUrl`, `basePathUrl`(`K:code/CodePageAssembler.kt:39-79`).
+- 모델 `title="menu.code"`, `projectView`, `page(CodePage)`, `maxFileSize`. `page`: `showTabs`, `filesTabUrl`, `commitsTabUrl`, `branchesTabUrl`(Git, Mercurial만), `tagsTabUrl`, `branchGroups`, `rootUrl`, `projectName`, `crumbs`, `downloadUrl`(zip 지원 종류만), `newFileUrl`(온라인 편집 지원 종류이고 로그인했을 때만, Git만), `items`(폴더 목록들과 마지막 파일 보기를 차례로), `metaInfoUrl`, `basePathUrl`(`K:code/CodePageAssembler.kt:39-79`). 파일 보기(`FileView`)는 짧은 커밋 번호 `shortRevId`를 가진다: 저장소 종류의 짧은 ID 길이(Git 7자, Mercurial 12자, 알 수 없으면 7자, `K:code/CodePageAssembler.kt:129`, `K:code/CodeViews.kt` `FileView.shortRevId`).
 - 레이아웃 `T:code/view.html:15-149`: `.code-browse-wrap` 안에 탭(`showTabs`일 때), `.code-browse-header`(브랜치 select 왼쪽, 이동 경로, 오른쪽 `내려받기`, `새 파일`), `.code-viewer-wrap`(스피너 `#spin`, 폴더 목록 `div.list-wrap[data-type=folder]`들, 파일 `div.file-wrap[data-type=file]`).
 - 반응형: 이 템플릿 자체의 `hide-in-mobile` 없음. 폴더 목록 줄의 열은 `col-lg-6/5/1`(992px 미만에서 세로로 쌓임).
 - 빈 상태: 폴더에 항목이 없으면 `div.alert.alert-warning`(`code.nofiles`). 저장소 자체가 비면 `nohead`(2절).
@@ -57,15 +60,15 @@ updated: 2026-11-11
 | 요소 | 종류 | 조건 | 동작 | 요청 | 응답 | 권한 | 근거 |
 |---|---|---|---|---|---|---|---|
 | 탭 `Files`(활성), `Commits`, `Branches`, `Tags` | 링크 | `showTabs`(첫 항목이 폴더). `Branches`는 `branchesTabUrl != null`, `Tags`는 `tagsTabUrl != null` | 이동 | `GET .../code/<브랜치>/<상위 경로>`, `.../commits/<브랜치>/`, `.../branches`, `.../tags` | | 읽기 | `T:code/view.html:18-23` |
-| 브랜치 `#branches` | select2(`data-format=branch`, 폭 220px) | 항상 | 값(같은 경로의 다른 브랜치 주소)이 바뀌면 이동. 구역은 `title.branches`(`refs/heads/`), `title.tags`(`refs/tags/`), Subversion은 구역 없음. 원격 참조(`refs/remotes/`)는 제외 | `GET .../code/<ref>/<경로>` | 전체 이동 | 읽기 | `:26-35,157-159`, `K:CodePageAssembler.kt:49-51,155-163` |
+| 브랜치 `#branches` | select2(`data-format=branch`, 폭 220px) | 항상 | 값(같은 경로의 다른 브랜치 주소)이 바뀌면 이동. 구역은 `title.branches`(`refs/heads/`), `title.tags`(`refs/tags/`), Subversion은 구역 없음. 원격 참조(`refs/remotes/`)는 제외 | `GET .../code/<ref>/<경로>` | 전체 이동 | 읽기 | `:26-35,157-159`, `K:CodePageAssembler.kt:49-51,156-164` |
 | 이동 경로 `#breadcrumbs` | 링크들 | 항상 | 프로젝트 이름 링크 + 경로 조각마다 링크. 폴더를 펼치면 JS가 다시 그림 | GET | | 읽기 | `:36-38`, `S:code.Browser.js:update Breadcrumbs` |
 | `내려받기` | 링크 | `downloadUrl != null`(Git, Mercurial) | 이동 | `GET .../code/<브랜치>/download` | `application/octet-stream` zip, `Content-Disposition: attachment; filename=<프로젝트>-<브랜치>.zip`(ASCII가 아니면 RFC 5987) | 코드 읽기 | `:39-41`, `K:CodeBrowserController.kt:129-146` |
 | `새 파일` `#new-file-link` | 링크 | `newFileUrl != null`(Git, 로그인) | 이동. 폴더를 펼칠 때마다 JS가 쿼리 `path=`를 바꿈 | `GET .../postform?path=<폴더/>&branch=<브랜치>` | 파일 작성 화면(다른 영역) | 로그인 | `:42-44`, `S:code.Browser.js` |
 | 폴더 목록 줄 `div.listitem[data-path]` | 영역 | 항목이 있을 때 | 폴더 링크 클릭은 이동하지 않고 해시 `#<경로>`로 바꿔 폴더 목록을 **Ajax로 펼치기, 접기**. 파일 링크는 일반 이동. 작성자 아바타 링크, 커밋 메시지 링크(`commitUrl`), 날짜 | 폴더 펼침 `GET .../code/<브랜치>/!/<경로>`(JSON `{data:{이름:{...}}}`) | 응답으로 `div.list-wrap`을 만들어 폴더 줄 뒤에 끼움(깊이 클래스 `depth-N`, 들여쓰기 `padding-left:20px*N`을 스타일시트에 규칙으로 더함) | 코드 읽기 | `:49-84`, `S:code.Browser.js` |
-| 파일 머리 | 표시 | 파일 | 작성자, 시각, 리비전(Git, Mercurial은 앞 7자, Subversion은 `Revision N`) 링크(`/commit/<ID>?branch=..#<경로>`)와 댓글 수(`code`에 스레드가 있을 때), 커밋 메시지, 줄바꿈 종류(`DOS`, `UNIX` 등) | | | | `:89-105`, `K:CodePageAssembler.kt:100-131` |
+| 파일 머리 | 표시 | 파일 | 작성자, 시각, 리비전(Git은 앞 7자, Mercurial은 앞 12자(`f.shortRevId`), Subversion은 `Revision N`) 링크(`/commit/<ID>?branch=..#<경로>`)와 댓글 수(`code`에 스레드가 있을 때), 커밋 메시지, 줄바꿈 종류(`DOS`, `UNIX` 등) | | | | `:89-105`, `K:CodePageAssembler.kt:100-132` |
 | `Raw` | 링크 `target=_blank` | 이진 파일이 아닐 때 | `GET .../rawcode/<리비전>/<경로>` | `text/plain` | 코드 읽기 | `:107-108` |
 | `Edit` | 링크 | `editUrl != null`(로그인, 이진 아님) | `GET .../postform?path=<경로>&branch=<브랜치>&edit=true` | | 로그인 | `:109` |
-| `브라우저로 열기` `#open-in-browser` | 링크 `target=_blank` | 항상 | 호버 팝오버(`code.open.desc`). `GET .../files/<브랜치 또는 리비전>/<경로>` | 감지한 종류 그대로 | 읽기만(발견 code-F3) | `:111-113,162` |
+| `브라우저로 열기` `#open-in-browser` | 링크 `target=_blank` | 항상 | 호버 팝오버(`code.open.desc`). `GET .../files/<브랜치 또는 리비전>/<경로>` | 감지한 종류 그대로 | 코드 읽기(`@CodeAccessCheck`, 발견 code-F3) | `:111-113,162` |
 | `변경 이력` | 링크 | 항상 | `GET .../commits/<브랜치>/<경로>` | | | `:114` |
 | LFS 안내 `#lfs-pointer` | 알림 | `f.lfs != null`(LFS 포인터 파일, 프로젝트가 LFS 사용) | `code.lfs.stored(크기)`. `내려받기` 링크(`lfs.downloadUrl`, 서버에 객체가 있을 때) 아니면 `code.lfs.missing` | `GET .../lfs/<oid>?name=<파일 이름>`(`@CodeAccessCheck`, `application/octet-stream` 첨부, 객체 없음 `404`) | | 코드 읽기 | `:118-122`, `K:lfs/LfsDownloadController.kt:26-38` |
 | 본문(방식별) | 영역 | `f.mode` | `image`: `<img src=rawUrl>`. `binary`: 파일 이름, 크기(JS가 읽기 쉬운 크기로 바꿈), `다운로드` 링크. `tooBig`: `code.tooBigFileForCodeBrowser(최대 크기)`, 사이트 관리자에게 `code.looseFileSizeLimitForCodeBrowser`, `원본 보기` 링크. `markdown`: 서버가 렌더링한 HTML. `code`: 숨은 `#codeVal`(텍스트)과 `pre#showCode[data-mimeType]` | | | | `:123-140`, `K:CodePageAssembler.kt:110-115` |
@@ -125,7 +128,7 @@ updated: 2026-11-11
 
 ### 3.3 단축키
 
-`history.html:120-129`가 `yona.ShortcutKey.setKeymapLink`로 `A`(newerUrl), `S`(olderUrl)를 등록한다(URL이 있을 때만). 입력란에 초점이 있으면(`bFormInput`) 무시, 아니면 `document.location.href`로 이동한다(`S:esm/ShortcutKey.js:253-268`). `A`는 전역 "내 이슈"와 같은 키이고 나중에 등록한 쪽이 이기는데 전역이 나중이라 `A`는 전역이 이긴다(이미 기록됨: [architecture/ui-shortcuts.md](../architecture/ui-shortcuts.md) 표의 `A, S`, R-147).
+`history.html:120-129`가 `yona.ShortcutKey.setKeymapLink`로 `A`(newerUrl), `S`(olderUrl)를 등록한다(URL이 있을 때만). 입력란에 초점이 있으면(`bFormInput`) 무시, 아니면 `document.location.href`로 이동한다(`S:esm/ShortcutKey.js:256-271`). `A`는 전역 "내 이슈"와 같은 키이고 나중에 등록한 쪽이 이기는데 전역이 나중이라 `A`는 전역이 이긴다(이미 기록됨: [architecture/ui-shortcuts.md](../architecture/ui-shortcuts.md) 표의 `A, S`, R-147).
 
 ### 3.4 경계 값
 
@@ -137,7 +140,7 @@ updated: 2026-11-11
 
 ### 4.1 화면 개요
 
-- `K:code/CommitViewController.kt:91-135`: `@CodeAccessCheck`. 커밋이 없으면 `404`(`error.notfound.commit`), diff를 못 만들면 `404`. 쿼리 `branch`, `path`는 "목록으로" 링크 계산에만 쓰인다(기본 `HEAD`).
+- `K:code/CommitViewController.kt:91-140`: `@CodeAccessCheck`. 커밋이 없으면 `404`(`error.notfound.commit`), diff를 못 만들면 `404`. 쿼리 `branch`, `path`는 "목록으로" 링크 계산에만 쓰인다(기본 `HEAD`).
 - 모델: `title="커밋 @<ID>"`, `commit`(작성자 정보), `signature`, `shortMessageHtml`, `moreMessageHtml`, `diffHtml`, `nonRangedHtml`, `canComment`(프로젝트에 `COMMIT_COMMENT` 만들기), `commentAction`(`/commit/<ID>/comments`), `cards`, `openCount`, `closedCount`, `watching`, `watchUrl`, `unwatchUrl`, `listUrl`, `mentionUrl`(`mentionListAtCommitDiff?commitId=`), 탭 URL 4개.
 - 레이아웃 `T:code/diff.html:16-109`: 탭(`Files`, `Commits`(활성), `Branches`, `Tags`), `.codediff-wrap` 안 왼쪽 `.diffs-wrap`(커밋 정보, `.diff-body`(diff + `.btnPop`), `.board-comment-wrap`(파일 단위 스레드, 댓글 폼), 줄 댓글 팝업 폼), 오른쪽 `.review-wrap`(카드). 바깥 아래에 `#watch-button`(왼쪽), `목록` 링크(`float-end`).
 - 반응형: [code-diff-script.md 1절](code-diff-script.md)의 CSS 값을 따른다(`.diffs-wrap`의 `margin-right:282px`, 720px 이하에서 해제).
@@ -149,26 +152,27 @@ updated: 2026-11-11
 |---|---|---|---|---|---|---|---|
 | 작성자 줄 | 표시 | 항상 | 가입 사용자면 아바타 링크와 이름, 아니면 아바타(이메일 Gravatar)와 이름, 시각(툴팁 정확한 시각) | | | | `T:code/diff.html:29-43` |
 | 서명 상자 `.gpg-signature-box` | 표시 | `signature != null` | 배지, `서명자`(`signer`), 키 ID 또는 SSH 지문(`format == ssh`이면 `sshKey.fingerprint`) | | | | `:45-49` |
-| 커밋 메시지 | 표시 | 항상 | 첫 줄 `.commitMsg.short`(비면 `code.commitMsg.empty`), 나머지 `pre.commitMsg.desc`(항상 보임). 자동 링크 적용 후 이스케이프 | | | | `:50-54`, `K:...:231-239` |
+| 커밋 메시지 | 표시 | 항상 | 첫 줄 `.commitMsg.short`(비면 `code.commitMsg.empty`), 나머지 `pre.commitMsg.desc`(항상 보임). 자동 링크 적용 후 이스케이프 | | | | `:50-54`, `K:...:224-232` |
 | `@<전체 ID>` | 표시 | 항상 | | | | | `:54` |
 | diff 본문 | 표시 | 항상 | [code-diff-script.md](code-diff-script.md) | | | | `:57-60` |
 | 파일 단위 스레드, 댓글 폼 `#comment-form` | 영역, 폼 | `canComment`이면 폼, 아니면 비활성 상자 | 커밋 전체(파일 단위) 댓글. 첨부 가능(로그인) | `POST .../commit/<ID>/comments` multipart(`contents`, `path`?, 범위 필드?) | `303`이 댓글 위치(`ReviewLinks`)로. 내용 비면 `400`, 커밋 없음 `404`, 스레드가 다른 프로젝트 `400` | 로그인, 프로젝트에 `COMMIT_COMMENT` 만들기(공개 프로젝트면 로그인 사용자 모두) | `:62-65`, `K:ReviewCommentController.kt:73-93` |
+| 파일 머리 `.diff-partial-meta` 클릭 | 영역 | diff가 있을 때 | 같은 파일 블록의 `.diff-partial-code`를 `toggle`(파일 접기, 펴기). 마우스 커서 `pointer` | JS만 | | | `T:code/diff.html:136-139`(발견 code-F8) |
 | 줄 댓글 팝업 | 폼 | `canComment` | `단일 댓글 쓰기`만(`pendingCount`가 `null`이라 임시 저장 단추 없음). 팝업 상세는 [code-diff-script.md 4절](code-diff-script.md) | 위와 같음 | | | `:67-69` |
-| 리뷰 카드 | 링크 | 항상 | 열림, 닫힘 탭. 카드 `a.review-card.<state>`는 `#thread-<id>`로 이동. 카드의 댓글 수는 스레드 댓글이 2개 이상일 때 **전체 댓글 수**(변경 탭 카드는 답글 수) | | | | `:72-102`, `K:...:241-246` |
+| 리뷰 카드 | 링크 | 항상 | 열림, 닫힘 탭. 카드 `a.review-card.<state>`는 `#thread-<id>`로 이동. 카드의 댓글 수는 스레드 댓글이 2개 이상일 때 **전체 댓글 수**이고 1개 이하이면 0이라 표시가 없다(변경 탭 카드도 같은 규칙) | | | | `:72-102`, `K:...:239-248` |
 | `#watch-button` | 토글 단추 | 항상 보임(조건 없음) | 클릭이면 `active`면 `unwatchUrl`, 아니면 `watchUrl`로 `$yona.sendForm`(POST). 성공이면 `active ybtn-watching` 토글. 토스트 없음 | `POST /watch?resource.type=commit&resource.id=<프로젝트번호>:<커밋ID>` / `/unwatch` | `200`. 익명 `403`(`Anonymous cannot watch it.`) | 로그인, `READ` | `:106`, `K:...:131-132`, `K:WatchController.kt:40-60`, `S:code.Diff.js:231-241` |
 | `목록` | 링크 | 항상 | `GET .../commits/<브랜치>/<경로>` | | | 읽기 | `:107` |
 | 스레드 상태 `열기`/`닫기`, 댓글 고치기와 삭제 | | | 7절과 8절 | | | | |
 
 ### 4.3 스크립트
 
-`T:code/diff.html:110-136`: `common/markdown`, 삭제 모달(컨테이너 `#code-browse-wrap`), `common/select2`, `CodeCommentBlock.js`, `CodeCommentBox.js`, jQuery UI, `code.Diff.js`, `review.CommentEdit.js`. `$yona.loadModule("code.Diff", {bCommentable: <canComment>, sWatchUrl, sUnwatchUrl})`(구독 주소의 `&`는 `&amp;`로 치환해 넘기고 `sendForm`이 풀어 쓴다). `yona.Mention`을 두 번 부르는데 두 번째의 `target:'review-editor'`는 요소가 없어 아무 일도 하지 않는다(발견 code-F4). 이 화면의 파일 머리 접기 처리기는 없다(발견 code-F8). 단축키 없음.
+`T:code/diff.html:110-141`: `common/markdown`, 삭제 모달(컨테이너 `#code-browse-wrap`), `common/select2`, `CodeCommentBlock.js`, `CodeCommentBox.js`, jQuery UI, `code.Diff.js`, `review.CommentEdit.js`. `$yona.loadModule("code.Diff", {bCommentable: <canComment>, sWatchUrl, sUnwatchUrl})`(구독 주소의 `&`는 `&amp;`로 치환해 넘기고 `sendForm`이 풀어 쓴다). `yona.Mention`을 두 번 부르는데 두 번째의 `target:'review-editor'`는 요소가 없어 아무 일도 하지 않는다(`:130-134`, 발견 code-F4). 이어서 인라인으로 파일 머리 접기 처리기를 건다(`:136-139`, 발견 code-F8). 화면 범위 단축키는 없다(프로젝트 메뉴 단축키는 0절).
 
 ---
 
 ## 5. Subversion 커밋 보기(svn-diff.html)
 
-- `K:code/CommitViewController.kt:140-175`. 모델: `commit`(맵), `patch`(원본 패치 글), `comments`, `canComment`, `commentAction`, `watching`, `watchUrl`, `unwatchUrl`, `listUrl`, `mentionUrl`, `filesUrl`, `commitsUrl`, `branches`, `parentId`.
-- 레이아웃 `T:code/svn-diff.html:17-96`: 오른쪽 위 `div#branches.btn-group`(부트스트랩 드롭다운, 토글 글자는 항상 `HEAD`: 조건식의 두 갈래가 같다, 발견 code-F5), 탭(`Files`, `Commits`(활성)만), 커밋 정보(작성자, 시각, `@ID`, **댓글이 있으면** `#toggle-comments` 체크박스), 메시지, `div.diff-wrap > #commit.diff-body.hide`(패치 글이 텍스트로 들어 있고 JS가 표로 바꿈), 댓글 목록 `ul.comments`, 댓글 폼, `#watch-button`, `목록`, 우측 고정 미니맵 `#minimap`.
+- `K:code/CommitViewController.kt:146-192`. 모델: `commit`(맵), `patch`(원본 패치 글), `comments`, `canComment`, `commentAction`, `watching`, `watchUrl`, `unwatchUrl`, `listUrl`, `mentionUrl`, `filesUrl`, `commitsUrl`, `branches`, `parentId`.
+- 레이아웃 `T:code/svn-diff.html:17-96`: 오른쪽 위 `div#branches.btn-group`(부트스트랩 드롭다운, 토글 글자는 `selected`인 항목의 `label`이고 선택된 항목이 없으면 `HEAD`, 발견 code-F5), 탭(`Files`, `Commits`(활성)만), 커밋 정보(작성자, 시각, `@ID`, **댓글이 있으면** `#toggle-comments` 체크박스), 메시지, `div.diff-wrap > #commit.diff-body.hide`(패치 글이 텍스트로 들어 있고 JS가 표로 바꿈), 댓글 목록 `ul.comments`, 댓글 폼, `#watch-button`, `목록`, 우측 고정 미니맵 `#minimap`.
 - 댓글 줄 `li.comment#comment-<번호>[data-path, data-side, data-line]`: 아바타, 로그인 ID 링크, 시각, 삭제 단추(`c.deletable`: 해당 댓글 `DELETE` 권한, `data-toggle=comment-delete`, `data-request-uri=/commit/<ID>/comments/<번호>/delete`, 삭제 모달), 본문(`th:utext`), 첨부.
 - 요청: 댓글 등록 `POST .../commit/<ID>/comments`(Subversion 분기: 커밋 리소스 아래 `COMMIT_COMMENT` 만들기, `path`, `line`, `side` 선택; `303 .../commit/<ID>#comment-<번호>`), 삭제 `DELETE .../commit/<ID>/comments/<번호>/delete`(`@IsAllowed(DELETE, COMMIT_COMMENT)`, `303` 커밋 보기, 없는 댓글 `404`).
 - 스크립트 `code.SvnDiff.js`(`T:...:110-127`)의 동작은 [code-diff-script.md 7절](code-diff-script.md).
@@ -178,9 +182,9 @@ updated: 2026-11-11
 
 ## 6. 두 커밋 비교(compare, compare-svn)
 
-- `K:code/CommitViewController.kt:195-216`: `@IsAllowed(READ)`만(코드 접근 제한 검사 없음, 발견 code-F3). 두 커밋 중 하나라도 없으면 `404`(`error.notfound.commit`). 제목 `<A>..<B>`.
+- `K:code/CommitViewController.kt:195-222`: `@CodeAccessCheck`(읽기 권한과 코드 접근 제한, 발견 code-F3). 두 커밋 중 하나라도 없으면 `404`(`error.notfound.commit`). 제목 `<A>..<B>`.
 - `compare.html`(Git, Mercurial): `p.commitInfo > strong.commitId`(`@A..B`), 변경이 없으면 `alert-warning`(`code.noChanges`), 있으면 `div.diff-body.discommentable`(diff HTML). `code.Diff`를 `{bCommentable:false}`로 불러온다. `.codediff-wrap`이 없어 리뷰 카드, 접기 처리기는 모두 빈 선택이라 동작하지 않는다. 줄 번호의 말풍선 아이콘 숨김 처리도 빈 선택에 걸려 일어나지 않는다. 이 화면의 diff에는 스레드가 없다(`threads = emptyList()`).
-- `compare-svn.html`: 같은 머리 + 패치 글(`#commit.diff-body.hide`) + `code.SvnDiff`를 `{bCommentable:false, sParentCommitId, sCommitId, sTplFileURL, sTplRawURL}`로 호출. **`sCodeURL`을 넘기지 않아** 파일 링크가 `undefined/<리비전>/<경로>`가 된다(발견 code-F2). 변경이 없으면 `alert-warning`.
+- `compare-svn.html`: 같은 머리 + 패치 글(`#commit.diff-body.hide`) + `code.SvnDiff`를 `{bCommentable:false, sParentCommitId, sCommitId, sCodeURL, sTplFileURL, sTplRawURL}`로 호출. `sCodeURL`은 모델의 `filesUrl`(`<프로젝트>/code`)이고 파일 링크는 `<sCodeURL>/<리비전>/<경로>`가 된다(`T:code/compare-svn.html:32`, `S:code.SvnDiff.js:454`, 발견 code-F2). 변경이 없으면 `alert-warning`.
 - 타임라인에서 "추가 변경"(`/compare/<이전>..<새>`)으로 들어온다([pullrequest.md 2.6](pullrequest.md)).
 
 ---
@@ -192,7 +196,7 @@ updated: 2026-11-11
 | 요청 | 본문, 파라미터 | 권한(서버) | 응답 |
 |---|---|---|---|
 | `POST /:user/:project/commit/:commitId/comments` | `contents`(필수), `thread.id`(선택), 범위(`path`, `startSide`, `startLine`, `startColumn`, `endSide`, `endLine`, `endColumn`: 줄과 열 네 값이 모두 숫자이면 코드 범위 스레드, 아니면 파일 단위) | `@IsCreatable(COMMIT_COMMENT)` | `303 <댓글 위치>`. `contents` 비면 `400`(메뉴 `PROJECT_HOME`), 커밋 없음 `404`, 스레드 불일치 `400`(메뉴 `CODE`) |
-| `POST /:user/:project/pullRequest/:pullRequestId/comments[?commitId=]` | 위 + `pending=true`(임시 저장). `commitId`는 쿼리 문자열만 읽는다 | `@IsCreatable(REVIEW_COMMENT)`, `@RequiresVcs(PULL_REQUESTS)` | `303 .../pullRequest/<번호>/changes[/<커밋>]#comment-<번호>`. 첨부 flash |
+| `POST /:user/:project/pullRequest/:pullRequestId/comments[?commitId=]` | 위 + `pending=true`(임시 저장). `commitId`는 쿼리 문자열만 읽는다 | `@IsCreatable(REVIEW_COMMENT)`, `@RequiresVcs(PULL_REQUESTS)`. 번호의 PR은 경로의 프로젝트(받는 프로젝트) 것이어야 한다 | `303 .../pullRequest/<번호>/changes[/<커밋>]#comment-<번호>`. 첨부 flash. 내용 비면 `400`, 없거나 경로 프로젝트의 것이 아닌 번호 `404`, 스레드 불일치 `400` |
 | `POST /threads/:id/open`, `/close` | 없음 | 스레드에 `REOPEN`, `CLOSE`(작성자, 매니저, 구성원, 조직 구성원, 조직 관리자, 사이트 관리자) | `200` 빈 본문. 없으면 `404`, 권한 없음 `403`(익명도 `403`) |
 | `POST /comments/review_comment/:id/edit` | `contents` | 로그인. 공개 댓글 `UPDATE`, 임시 댓글 작성자 | `200 {id, edited, bodyHtml}`, 권한 없음 `403`, 공백 `400`, 없는 임시 댓글 `404` |
 | `DELETE /comments/review_comment/:id`, `DELETE /comments/code_comment/:id` | 없음 | 댓글 `DELETE`(작성자, 매니저, 조직 관리자, 사이트 관리자. 일반 구성원은 불가, D-48) | `200` 빈 본문. 종류 모름, 없는 대상 `400`, 권한 없음 `403` |
@@ -232,7 +236,7 @@ updated: 2026-11-11
 
 ## 9. 브랜치 목록(branches)
 
-- `K:code/BranchController.kt:65-111`. 클래스에 `@RequiresVcs(BRANCHES)` → `@AnonymousCheck`, 메서드 `@CodeAccessCheck`. 기본 브랜치가 없으면 `404`(메뉴 `code`). Git과 Mercurial.
+- `K:code/BranchController.kt:65-111`. 클래스에 `@RequiresVcs(BRANCHES)` → `@AnonymousCheck`, 메서드 `@CodeAccessCheck`. 기본 브랜치가 없으면 `404`(메뉴 `code`). Git과 Mercurial. Mercurial은 `main`, `master`, `@` 같은 기본 이름표(bookmark)가 없어도 코드 화면과 같은 기본 위치(`default` 브랜치의 끝, 없으면 저장소 끝)를 `HEAD`라는 이름의 기본 브랜치로 보인다(`K:repository/hg/HgRefReader.kt:33-42`, `HgRepositories.kt:162`). 커밋이 하나도 없는 저장소만 `404`이다.
 - 모델: `filesTabUrl`, `commitsTabUrl`, `showActions`(`DELETE` 또는 `UPDATE` 권한), `rows`(첫 줄이 기본 브랜치, 나머지는 머리 커밋이 최근인 순).
 - 요소(`T:code/branches.html:17-61`): 탭(`Files`, `Commits`, `Branches`(활성), `Tags`: 탭 링크는 이 템플릿에 고정 주소), 표(열 `브랜치`, `커밋`, `풀 리퀘스트`, `showActions`이면 빈 머리 열).
 
@@ -245,7 +249,7 @@ updated: 2026-11-11
 | `삭제` `a.branch-delete[data-request-method=delete][data-confirm]` | `deleteUrl != null` = `DELETE` 권한, 기본이 아님, 삭제를 막는 규칙 묶음이 없거나 모두 우회 가능 | 캡처 단계 `click` 처리기(`T:...:65-71`)가 `confirm(code.branches.deleteConfirm(<이름>))`을 먼저 묻고 취소면 `preventDefault`+`stopImmediatePropagation`. 확인하면 `DELETE .../code/<ref>/` | `303 .../branches`(새로 고침). 규칙이 삭제를 막으면 `403` | `DELETE` + 규칙 |
 | `…`(`button.moreBtn`) | 이 화면에는 대상 요소가 없다 | 처리기만 있음(`:73-77`) | | | |
 
-`href`가 `DELETE` 주소라 JS 없이 열면 `GET`이 되어 `405`(발견 code-F13). 브랜치 이름은 참조 전체 이름을 두 번 인코딩해 주소에 넣는다.
+Mercurial의 `기본으로 설정`은 요청은 받지만 아무것도 바꾸지 않는다(`K:repository/hg/HgLifecycle.kt:26`). `href`가 `DELETE` 주소라 JS 없이 열면 `GET`이 되어 `405`(발견 code-F13). 브랜치 이름은 참조 전체 이름을 두 번 인코딩해 주소에 넣는다.
 
 ---
 
@@ -264,7 +268,7 @@ updated: 2026-11-11
 |---|---|---|---|---|---|
 | 코드 보기, 이력, 커밋, 비교(공개 프로젝트) | R | R | R | R | R |
 | 위 기능(코드 구성원 제한 프로젝트) | -(`403`, 익명은 로그인 화면) | -(`403`) | R | R | R |
-| `files/`, `compare/`(제한 프로젝트) | 읽기 권한만 있으면 R | R | R | R | R |
+| `files/`, `compare/`(제한 프로젝트) | -(`403`, 익명은 로그인 화면) | -(`403`) | R | R | R |
 | 새 파일, Edit 링크 | -(숨김) | 보임(로그인만 조건). 서버(`postform`)는 다른 영역 | R | R | R |
 | 커밋 댓글, 줄 댓글 | - | R(공개 프로젝트) | R | R | R |
 | 스레드 열기와 닫기 | - | 자기 스레드만 | R | R | R |
@@ -281,20 +285,20 @@ updated: 2026-11-11
 | 번호 | 구분 | 내용 | 근거 |
 |---|---|---|---|
 | code-F1 **[수정됨, A-457]** | 스크립트(코드 읽기, 실행 확인 안 함) | 이력 화면의 브랜치 select는 `evt.val`을 읽어 이동한다. select2 4.1.0은 일반 jQuery `change`만 내보내 `val` 속성이 없다(이 저장소의 `ui/Select2.js`에도 `val`을 채우는 코드가 없음). 코드 보기는 인라인(`$(this).val()`)이 맞게 이동하지만 `code.Browser`(`weEvt.val`)가 같은 이벤트에 `location.href = undefined`를 또 설정한다. `code.Diff`의 `#branches` 처리기도 같은 `weEvt.val`이나 그 화면에 `#branches` select가 없어 동작 대상이 없다. 시험 없음(`CommitHistoryTest`는 option 값만 확인) | `T:code/history.html:107-109`, `T:code/view.html:157-159`, `S:esm/service/code.Browser.js:105-107`, `S:esm/service/code.Diff.js:117-119`, `S:esm/ui/Select2.js`, `lib/select2/select2.js:2022` |
-| code-F2 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 스크립트 | `compare-svn`은 `code.SvnDiff`에 `sCodeURL`을 넘기지 않는데 `_makeCommitLink`는 `sCodeURL`로 링크를 만든다. 넘기는 `sTplFileURL`, `sTplRawURL`은 읽기만 하고 쓰지 않는다 | `T:code/compare-svn.html:26-35`, `S:esm/service/code.SvnDiff.js:36-46,396-403` |
-| code-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 화면과 서버 | `files/<rev>/<path>`와 `compare/<A>..<B>`는 `@IsAllowed(READ)`만 있어 코드 접근을 구성원으로 제한한 프로젝트의 비구성원도 서버에서는 허용한다. 화면의 코드 화면에는 들어갈 수 없다. 위키는 `files`의 "읽기 권한만"을 이미 적었다 | `K:code/CodeBrowserController.kt:178-186`, `K:code/CommitViewController.kt:195-197` |
-| code-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 죽은 코드 | `code/diff.html`의 두 번째 `yona.Mention({target:'review-editor'})`는 그런 요소가 없어 아무 일도 하지 않는다 | `T:code/diff.html:130-133` |
-| code-F5 **[검증: v2 신규 결함, 수정됨 A-460]** | 마크업 | `svn-diff.html`의 브랜치 드롭다운 토글 글자는 `isEmpty ? 'HEAD' : 'HEAD'`로 양쪽이 같다(선택한 브랜치를 반영하지 않음) | `T:code/svn-diff.html:20` |
+| code-F2 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 스크립트 | `compare-svn`은 `code.SvnDiff`에 `sCodeURL`을 넘기지 않는데 `_makeCommitLink`는 `sCodeURL`로 링크를 만들었다. 넘기는 `sTplFileURL`은 읽기만 하고 쓰지 않으며 `sTplRawURL`은 읽지도 않는다. (2026-11-11 수정: 모델 `filesUrl`(`<프로젝트>/code`)을 `sCodeURL`로 넘긴다. `sTplFileURL`, `sTplRawURL`은 여전히 쓰이지 않는다) | `T:code/compare-svn.html:26-36`, `K:code/CommitViewController.kt:210-211`, `S:esm/service/code.SvnDiff.js:54-55,454` |
+| code-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 화면과 서버 | `files/<rev>/<path>`와 `compare/<A>..<B>`는 `@IsAllowed(READ)`만 있어 코드 접근을 구성원으로 제한한 프로젝트의 비구성원도 서버에서는 허용했다. 화면의 코드 화면에는 들어갈 수 없다. 위키는 `files`의 "읽기 권한만"을 이미 적었다. (2026-11-11 수정: 두 요청에 `@CodeAccessCheck`를 붙여 비구성원은 `403`) | `K:code/CodeBrowserController.kt:178-181`, `K:code/CommitViewController.kt:195-198` |
+| code-F4 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 죽은 코드 | `code/diff.html`의 두 번째 `yona.Mention({target:'review-editor'})`는 그런 요소가 없어 아무 일도 하지 않는다 | `T:code/diff.html:130-134` |
+| code-F5 **[검증: v2 신규 결함, 수정됨 A-460]** | 마크업 | `svn-diff.html`의 브랜치 드롭다운 토글 글자는 `isEmpty ? 'HEAD' : 'HEAD'`로 양쪽이 같았다(선택한 브랜치를 반영하지 않음). (2026-11-11 수정: 선택된 항목이 있으면 그 `label`, 없으면 `HEAD`) | `T:code/svn-diff.html:20` |
 | code-F6 **[검증: 문서 문제]** | 문서 불일치 | `NoheadViews`의 KDoc은 "코드 화면과 커밋 이력 화면이 함께 쓴다"고 하나 호출은 `CodeBrowserController` 한 곳뿐이고 이력 화면은 빈 저장소에서 `404`다 | `K:code/NoheadViews.kt:18-21`, `K:code/CommitHistoryController.kt` |
-| code-F7 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 저장소 종류 | Mercurial에서 파일 리비전은 `substring(f.revId,0,7)`(7자)인데 짧은 ID 길이는 12자(A-378)다. 브랜치 `기본으로 설정` 단추는 `UPDATE` 권한만 보고 보이며 Mercurial은 `DEFAULT_BRANCH`를 지원하지 않는다(서버도 `BRANCHES` 지원만 확인). 실제 동작은 확인하지 못함(추측) | `T:code/view.html:98`, `D:vcs/VcsType.kt:50-60`, `K:code/BranchController.kt:100,125-133` |
-| code-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 화면 일관성 | 파일 머리(`.diff-partial-meta`)를 눌러 파일 diff를 접는 처리기는 PR 변경 탭의 인라인에만 있고 커밋 보기, 비교 화면에는 없다 | `T:pullrequest/changes.html:176-178`, `T:code/diff.html` |
-| code-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 계약 | 줄 댓글 팝업은 서버가 쓰지 않는 숨은 필드(`startType`, `endType`, `pathA`, `pathB`, `prevCommitId`, `commitId`, `filePath`)도 보낸다. 서버는 범위 7개 필드만 읽고, PR의 `commitId`는 쿼리 문자열에서만 읽는다 | `S:esm/CodeCommentBlock.js:_setBlockDataBySelection`, `K:code/ReviewCommentController.kt:195-203` |
+| code-F7 **[검증: v2 추가 기능의 결함, 수정됨 A-460]** | 저장소 종류 | Mercurial에서 파일 리비전은 `substring(f.revId,0,7)`(7자)인데 짧은 ID 길이는 12자(A-378)였다. 이름표가 없는 Mercurial 저장소는 브랜치 화면이 `404`였다. 브랜치 `기본으로 설정` 단추는 `UPDATE` 권한만 보고 보이며 Mercurial은 `DEFAULT_BRANCH`를 지원하지 않는다(서버도 `BRANCHES` 지원만 확인). (2026-11-11 수정: 파일 리비전은 `f.shortRevId`(Mercurial 12자), 기본 이름표가 없으면 기본 위치를 `HEAD` 브랜치로 보인다. 아직 그대로인 것: Mercurial의 `기본으로 설정`은 단추가 보이고 요청이 성공하지만 `HgLifecycle.setDefaultBranch`가 아무것도 하지 않는다) | `T:code/view.html:98`, `D:vcs/VcsType.kt:32-43`, `K:code/BranchController.kt:100,125-133`, `K:repository/hg/HgRefReader.kt:33-42`, `K:repository/hg/HgLifecycle.kt:26` |
+| code-F8 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 화면 일관성 | 파일 머리(`.diff-partial-meta`)를 눌러 파일 diff를 접는 처리기는 PR 변경 탭의 인라인에만 있고 커밋 보기, 비교 화면에는 없었다. (2026-11-11 수정: 커밋 보기 `diff.html`에도 같은 처리기를 더했다. 비교 화면 `compare.html`에는 아직 없다) | `T:pullrequest/changes.html:176-178`, `T:code/diff.html:136-139` |
+| code-F9 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 계약 | 줄 댓글 팝업은 서버가 쓰지 않는 숨은 필드(`startType`, `endType`, `pathA`, `pathB`, `prevCommitId`, `commitId`, `filePath`)도 보낸다. 서버는 범위 7개 필드만 읽고, PR의 `commitId`는 쿼리 문자열에서만 읽는다 | `S:esm/CodeCommentBlock.js:_setBlockDataBySelection`, `K:code/ReviewCommentController.kt:218-232`, `K:code/ReviewCommentController.kt:136-139` |
 | code-F10 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 죽은 코드 | 스레드 조각에는 `button.btn-thread`(답글 열기)가 없다. 그래서 `code.Diff`의 `_onClickBtnReplyOnThread`와 `CodeCommentBox`의 `thread-id` 경로(`welTarget.data("thread-id")`)는 Git 화면에서 실행되지 않는다. 답글 폼은 처음부터 `display:block`이다. `btn-thread`는 `svn-diff.html`의 mustache 템플릿에만 있다 | `T:code/partial-comment-thread.html:94-120`, `S:esm/service/code.Diff.js:308,325-355` |
 | code-F11 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 마크업 | 미니맵 요소는 `svn-diff.html`에만 있다. Git 화면의 `code.Diff`는 미니맵 계산을 하지만 `#minimap`이 없어 효과가 없다(스타일 `.minimap-outer`는 `app/assets/stylesheets/scss/_page.scss:4452`) | `T:code/svn-diff.html:89-94`, `S:esm/service/code.Diff.js:68-93,597-639` |
-| code-F12 **[검증: 수정함(A-464, 2026-11-11)]** | 계약 | 리뷰 카드의 댓글 수가 커밋 보기는 "댓글이 2개 이상이면 전체 수", 변경 탭은 "전체 수 - 1(답글 수)"로 다르다 | `K:code/CommitViewController.kt:241-246`, `K:pullrequest/PullRequestPageAssembler.kt:328-336` |
+| code-F12 **[검증: 수정함(A-464, 2026-11-11)]** | 계약 | 리뷰 카드의 댓글 수가 커밋 보기는 "댓글이 2개 이상이면 전체 수", 변경 탭은 "전체 수 - 1(답글 수)"로 달랐다. (2026-11-11 수정: 변경 탭도 "2개 이상이면 전체 수") | `K:code/CommitViewController.kt:239-248`, `K:pullrequest/PullRequestPageAssembler.kt:328-337` |
 | code-F13 **[검증: 결함 아님]** | 화면 | `a[data-request-method=delete]`의 `href`가 `DELETE`(또는 `POST`) 전용 주소라 JS가 처리하지 못하면 `GET`이 되어 `405`가 된다(브랜치 삭제, 태그 삭제) | `T:code/branches.html:53`, `T:code/tags.html:53` |
 | code-F14 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 화면 일관성 | 파일 단위 스레드의 삭제는 확인 모달 없이 즉시 `DELETE`하고(`nonRanged`), 코드 스레드의 삭제는 모달을 거친다 | `T:code/partial-comment-thread.html:80-82` 대 `:43-45` |
-| code-F15 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 메시지 | 일본어 번들에 이 영역 키 21개가 없다(`code.authorDate`, `code.copyCommitId`, `code.download`, `code.new.file`, `code.open`, `code.open.desc`, `code.viewRaw`, `code.tooBigFileForCodeBrowser`, `code.looseFileSizeLimitForCodeBrowser`, `commentThread.close/open`, `common.comment.delete/edit` 등). 기본 번들(영어)로 대체된다. 한국어와 기본 번들은 모두 있다 | `src/main/resources/messages_ja_JP.properties` |
+| code-F15 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 메시지 | 일본어 번들에 이 영역 키 21개가 없었다(`code.authorDate`, `code.copyCommitId`, `code.download`, `code.new.file`, `code.open`, `code.open.desc`, `code.viewRaw`, `code.tooBigFileForCodeBrowser`, `code.looseFileSizeLimitForCodeBrowser`, `commentThread.close/open`, `common.comment.delete/edit` 등). 기본 번들(영어)로 대체되었다. (2026-11-11 수정: 일본어 번들에 키를 더했다. `templates/code/*.html`이 `#{}`로 쓰는 정적 키 62개가 기본, 한국어, 일본어, 러시아어, 우즈베크어 번들에 모두 있다) | `src/main/resources/messages_ja_JP.properties` |
 | code-F16 **[검증: 문서 문제]** | 권한 해석(위키 보완) | 브랜치, 태그 삭제와 기본 브랜치 설정은 "삭제 권한", "수정 권한"이라고만 적혀 있으나 실제로는 프로젝트 자체의 `DELETE`, `UPDATE`라 일반 구성원은 불가이고 매니저, 조직 관리자, 사이트 관리자만 가능하다 | `K:code/BranchController.kt:80-81,113-133`, `K:code/TagController.kt:66-67,92-95`, `src/main/kotlin/dev/yona/access/AccessControl.kt:151-166` |
 | code-F17 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 계약 | 코드 보기의 `폴더 경로`는 인코딩하지 않고 파일 이름만 인코딩한다(v1.6 그대로). 브랜치와 리비전은 두 번 인코딩한다. 새 UI가 링크를 만들 때 이 규칙을 따라야 한다 | `K:code/CodePageAssembler.kt:81-98` |
 
@@ -316,3 +320,15 @@ updated: 2026-11-11
 | `code/partial-comment-thread.html` | 8.2, 8.3 |
 | `code/thread-wrapper.html` | 8.1 |
 | `code/partial-signature.html` | 8.3 |
+
+---
+
+## 갱신 기록 (2026-11-11 재조사)
+
+기준: 커밋 `5ef425c98` 이후 소스(`git diff 5ef425c98..HEAD`)와 지금 코드를 다시 대조했다.
+
+- 다시 확인한 템플릿: 14개(위 13절 목록 전부). 템플릿의 변경은 `@{}` 컨텍스트 경로 정리(이미지 주소), `diff.html`의 파일 머리 접기 처리기, `svn-diff.html`의 브랜치 토글 글자, `compare-svn.html`의 `sCodeURL`, `view.html`의 `shortRevId`이다.
+- 내용을 고친 행과 문장: 21곳(`files`와 `compare`의 `@CodeAccessCheck`와 권한 행렬, 프로젝트 메뉴 단축키 `C`, `P`의 접근 조건, 파일 머리 짧은 번호 길이, 커밋 보기의 파일 머리 접기, 카드 댓글 수, Subversion 브랜치 토글 글자, 비교 화면의 `sCodeURL`, 리뷰 댓글 등록의 PR 소속 검사, Mercurial 기본 브랜치 `HEAD`와 `기본으로 설정` 무동작, 발견 사항 code-F2, F3, F5, F7, F8, F12, F15 수정 설명, F4 줄 번호).
+- 줄 번호만 고친 곳: 약 13곳(`CommitViewController`, `CodePageAssembler`, `diff.html`, `ReviewCommentController`, `VcsType`, `ShortcutKey.js`).
+- 더한 행: 커밋 보기 파일 머리 접기 행 1개, 0절 권한 문단의 단축키 문장. 없앤 행: 없음.
+- 새로 더한 발견 사항: 없음.
