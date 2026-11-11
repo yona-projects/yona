@@ -84,4 +84,11 @@ class TemplateContractRegressionTest {
         val list = template("user/edit-two-factor.html")
         assertTrue(Regex("m\\.lastUsedText[^>]*apiToken\\.neverUsed|apiToken\\.neverUsed[^>]*m\\.lastUsedText").containsMatchIn(list), "빈 마지막 사용을 그대로 보인다")
     }
+
+    @Test
+    fun `관리자 권한 회수가 보호 규칙으로 403이 되면 화면을 다시 읽어 안내를 보인다 (site-F3, 아무 반응이 없었다)`() {
+        val users = template("site/user-list.html")
+        assertTrue(users.contains("site-admin-toggle"), "권한 단추를 가려낼 클래스가 없다")
+        assertTrue(Regex("request:error[\\s\\S]{0,160}403[\\s\\S]{0,80}reload").containsMatchIn(users), "403일 때 다시 읽지 않는다")
+    }
 }

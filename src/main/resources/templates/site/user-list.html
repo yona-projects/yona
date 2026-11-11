@@ -70,7 +70,7 @@
                 <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
                 <a th:if="${row.twoFactorEnabled}" class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.twoFactorResetUrl}}" th:text="#{button.user.resetTwoFactor}"></a>
                 <a th:if="${row.ssoLinked}" class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.ssoUnlinkUrl}}" th:text="#{button.user.unlinkSso}"></a>
-                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
+                <a class="ybtn ybtn-small site-admin-toggle" th:classappend="${row.siteManager} ? 'ybtn-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
             </div>
@@ -153,5 +153,11 @@
             <h4>sending requestHeader...</h4>
         </div>
     </script>
+<script type="text/javascript">
+    // 보호 규칙(자기 자신, 기본 관리자, 마지막 관리자)에 걸려 서버가 403으로 거부하면 안내가 다음 화면에 실려 있으므로 다시 읽어 보인다(site-F3)
+    document.querySelectorAll(".site-admin-toggle").forEach(function (el) {
+        el.addEventListener("request:error", function (e) { if (e.detail.status === 403) window.location.reload(); });
+    });
+</script>
 </th:block>
 </html>
