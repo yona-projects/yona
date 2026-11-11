@@ -129,11 +129,11 @@
                     if(data && data.isSuccess === true){
                         $yona.render($('#dismissable-alerts').text(), data).appendTo(that.parent());
                     } else {
-                        $yona.alert("password change failed: " + data.reason);
+                        $yona.alert("password change failed: " + $yona.escapeHtml(data.reason));
                     }
                 })
                 .fail(function(data){
-                    $yona.alert("password change failed: " + JSON.parse(data.responseText).reason);
+                    $yona.alert("password change failed: " + $yona.escapeHtml(JSON.parse(data.responseText).reason));
                 });
 
         });

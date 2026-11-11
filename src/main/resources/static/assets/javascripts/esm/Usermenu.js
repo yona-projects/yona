@@ -115,7 +115,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + failureReason(failure));
+                    $yona.alert("Update failed: " + $yona.escapeHtml(failureReason(failure)));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);
@@ -130,7 +130,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + failureReason(failure));
+                    $yona.alert("Update failed: " + $yona.escapeHtml(failureReason(failure)));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);
@@ -172,7 +172,7 @@ $(() => {
                 try {
                     data = await yona.http.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"));
                 } catch (failure) {
-                    $yona.alert("Update failed: " + failureReason(failure));
+                    $yona.alert("Update failed: " + $yona.escapeHtml(failureReason(failure)));
                     return;
                 }
                 that.find('i').toggleClass("starred", !!data.favored);

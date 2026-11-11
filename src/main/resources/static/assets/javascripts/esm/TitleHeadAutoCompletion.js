@@ -83,7 +83,7 @@ function yonaTitleHeadModule(htOptions){
         issueLabels.push($selectedLabel.val());
         $labelField.val(issueLabels).trigger("change.select2");
 
-        $yona.notify('Label: ' + item.name, 3000);
+        $yona.notify('Label: ' + $yona.escapeHtml(item.name), 3000);
     }
 
     /**

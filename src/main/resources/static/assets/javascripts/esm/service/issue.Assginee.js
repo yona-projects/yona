@@ -84,7 +84,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
         } catch (failure) {
             return; // 예전에도 실패 처리기가 없어 조용히 넘어갔다
         }
-        $yona.notify(message + ": " + response.assignee.name, 3000);
+        $yona.notify(message + ": " + $yona.escapeHtml(response.assignee.name), 3000);
     }
   });
 }

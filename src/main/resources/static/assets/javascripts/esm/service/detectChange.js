@@ -61,7 +61,7 @@ function detectPageChange(url){
         }
         if (data.numOfComments - numOfComments === 1) {
             numOfComments = data.numOfComments;
-            $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
+            $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + $yona.escapeHtml(data.commentAuthorName));
             getFavicon().badge('N');
         } else if (data.numOfComments - numOfComments > 1) {
             numOfComments = data.numOfComments;
