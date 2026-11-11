@@ -106,7 +106,7 @@
                     <div class="inner member-info">
                         <header>
                             <h3 th:text="#{project.members}"></h3>
-                            <a th:if="${projectView.canUpdateLabels}" th:href="@{/{owner}/{name}/members(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> <th:block th:text="#{button.add}"></th:block></a>
+                            <a th:if="${projectView.canUpdate}" th:href="@{/{owner}/{name}/members(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> <th:block th:text="#{button.add}"></th:block></a>
                         </header>
                         <div class="member-wrap">
                             <ul class="project-members">
