@@ -841,7 +841,8 @@ const MigrationApp = {
         },
 
         "lastConfirm": function (type, target) {
-            return confirm(Messages("migration.js.confirmStart", target.owner, target.projectName, type));
+            // 이전을 시작하면 사용자 토큰으로 외부 저장소에 기록 이슈가 올라간다. v1.6은 이를 알리지 않아 확인 창에 안내를 더했다(migration-F4)
+            return confirm(Messages("migration.js.confirmStart", target.owner, target.projectName, type) + "\n\n" + Messages("migration.js.confirmLog", CONFIG.LOGGING_PROJECT_FULLNAME));
         },
 
         "assertIsProjectSelected": function (name, project) {

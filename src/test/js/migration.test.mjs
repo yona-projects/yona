@@ -145,6 +145,13 @@ export const tests = [
     assert.equal(await page.evaluate(() => localStorage.getItem('kim')), null); await page.close();
   } },
 
+  { name: '이전 시작 확인 창에 이전 기록이 yona-projects/yona-migration-log에 남는다는 안내가 있다 (v1_6은 알리지 않고 외부 저장소에 기록 이슈를 올렸다, 고쳤다, migration-F4)', run: async () => {
+    const page = await mount({ confirmAnswer: false, routes: { ...ORG_ADMIN, '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, ...NO_DATA } });
+    await clickSource(page); await clickDestination(page, 0);
+    await page.getByRole('button').filter({ hasText: 'migration.moveMilestones' }).click(); await page.waitForTimeout(200);
+    const text = (await page.evaluate(() => window.__confirm))[0];
+    assert.ok(text.includes('migration.js.confirmLog') && text.includes('yona-projects/yona-migration-log'), text); await page.close();
+  } },
   { name: '마일스톤 이전: 확인 창에서 취소하면 아무 것도 보내지 않는다', run: async () => {
     const page = await mount({ confirmAnswer: false, routes: { ...ORG_ADMIN, '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, ...NO_DATA } });
     await clickSource(page); await clickDestination(page, 0); await page.evaluate(() => { window.__calls.length = 0; });
