@@ -2407,3 +2407,6 @@ TDD로 진행했다. 특성화 시험 10건(`UserPasswordCharacterizationTest`, 
 ## [2026-11-11] build | 변경된 화면 동작을 web 위키에 반영, 남은 발견 사항 집계와 다섯 건 확인 (R-160~R-164)
 
 선생님이 변경된 화면 사항의 위키 반영과 ui-improvements 중 발견된 결함을 점검하라고 하셨다. A-456~A-459의 화면과 서버 동작 변경을 `web/`의 열네 페이지와 `architecture/two-factor.md`, `standard-refactor-plan.md`에 반영했다. 계약 조사의 발견 사항 251건 중 221건이 코드 읽기 근거로만 남았음을 집계해 `ui-contract/index.md`에 적고, 그 가운데 영향이 있어 보이는 다섯 건을 브라우저로 확인해 장부에 올렸다.
+## [2026-11-11] build | 계약 조사 재현 결과의 수정과 선생님 결정 반영 (A-460)
+
+`ui-improvements`의 재현 검증에서 나온 v2 신규 결함과 v2 추가 기능의 결함을 이 브랜치에 고쳤다(커밋 약 20개, 시험 먼저). 메일 화면 표현식 실행, 익명 내 파일, 익명 파일 업로드 명의 위조를 막았고, 선생님 결정(`site-F6` 켜기 단추, `code-F7` Mercurial 기본 위치와 12자, `shell-F14` 죽은 파일 정리)을 반영했다. 컨텍스트 경로(`shell-F16`)와 OAuth 설계 한계는 선택을 기다린다. 표는 `architecture/differences-from-v16.md`에 있다.
