@@ -338,6 +338,15 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `다른 프로젝트의 마일스톤 번호는 무시한다 (v1_6은 그대로 붙였다, 고쳤다, issue-F11 c)`() {
+        val project = newProject(); val other = newProject()
+        val author = join(newUser(), project)
+        val foreign = milestones.save(Milestone(project = other, title = "남의 것", state = State.OPEN))
+        submit(project, login(author), "title" to "t", "body" to "b", "milestoneId" to foreign.id.toString()).andExpect(status().isSeeOther)
+        assertNull(issues.findByProjectIdAndNumber(project.id!!, 1)!!.milestone)
+    }
+
+    @Test
     fun `초안으로 저장하면 초안 상태이다`() {
         val project = newProject()
         submit(project, login(newUser()), "title" to "t", "body" to "b", "isDraft" to "true").andExpect(status().isSeeOther)

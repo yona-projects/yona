@@ -99,7 +99,8 @@ class IssueService(
             dueDate = MilestoneService.lastSecondOfDay(input.dueDate),
             parent = input.parentIssueId?.let { issues.findById(it).orElse(null) },
             assignee = findOrCreateAssignee(project, input.assigneeLoginId),
-            milestone = input.milestoneId?.let { milestones.findById(it).orElse(null) },
+            // 다른 프로젝트의 마일스톤 번호는 없는 것으로 본다. v1.6은 번호만 보고 붙였다(issue-F11)
+            milestone = input.milestoneId?.let { milestones.findById(it).orElse(null) }?.takeIf { it.project?.id == project.id },
             labels = projectLabels(project, input.labelIds)
         )
         issue.number = nextIssueNumber(project)
@@ -286,7 +287,7 @@ class IssueService(
         issue.body = edit.body
         issue.dueDate = MilestoneService.lastSecondOfDay(edit.dueDate)
         issue.assignee = findOrCreateAssignee(project, edit.assigneeLoginId)
-        issue.milestone = if (moved) null else edit.milestoneId?.let { milestones.findById(it).orElse(null) }
+        issue.milestone = if (moved) null else edit.milestoneId?.let { milestones.findById(it).orElse(null) }?.takeIf { it.project?.id == project.id }
         if (!moved) issue.labels = projectLabels(project, edit.labelIds)
         issue.isDraft = edit.draft
         issue.state = when {
