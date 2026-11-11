@@ -20,9 +20,9 @@ async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
   await page.evaluate((resp) => {
     window.UsermenuUrl = '/um'; window.UsermenuToggleFavoriteProjectUrl = '/fp/'; window.UsermenuToggleFoveriteOrganizationUrl = '/fo/'; window.UsermenuGetFoveriteProjectsUrl = '/fl'; window.UsermenuToggleFavoriteIssueUrl = '/fi/';
     window.__calls = []; window.__alerts = []; window.__notes = [];
-    const fake = (kind) => (url) => { window.__calls.push(kind + ' ' + url); const r = resp[url]; const h = { done(cb) { if (r && r.ok) setTimeout(() => cb(r.data), 0); return h; }, fail(cb) { if (r && !r.ok) setTimeout(() => cb({ responseText: JSON.stringify(r.data) }), 0); return h; },
+    const fake = (kind) => (url) => { window.__calls.push(kind + ' ' + url); const r = resp[url]; const h = { done(cb) { if (r && r.ok) setTimeout(() => cb(r.data), 0); return h; }, fail(cb) { if (r && !r.ok) setTimeout(() => cb({ responseText: (r.raw !== undefined ? r.raw : JSON.stringify(r.data)) }), 0); return h; },
       // 실제 yona.http처럼 await할 수 있게 한다. 응답을 정하지 않은 주소는 끝내 완료되지 않는다(예전에 done/fail이 불리지 않던 것과 같다)
-      then(ok, bad) { return new Promise((res, rej) => { if (r && r.ok) setTimeout(() => res(r.data), 0); else if (r) setTimeout(() => rej({ responseText: JSON.stringify(r.data) }), 0); }).then(ok, bad); } }; return h; };
+      then(ok, bad) { return new Promise((res, rej) => { if (r && r.ok) setTimeout(() => res(r.data), 0); else if (r) setTimeout(() => rej({ responseText: (r.raw !== undefined ? r.raw : JSON.stringify(r.data)) }), 0); }).then(ok, bad); } }; return h; };
     window.yona = window.yona || {}; yona.http = { get: fake('GET'), post: fake('POST') };
     $yona.alert = (m) => window.__alerts.push(m); $yona.notify = (m) => window.__notes.push(m);
   }, responses);
@@ -87,6 +87,10 @@ export const tests = [
     const page = await open({ responses: { '/fi/5': { ok: false, data: undefined } } });
     await page.dispatchEvent('.favorite-issue', 'click'); await page.waitForTimeout(100);
     const alerts = await page.evaluate(() => window.__alerts); assert.equal(alerts.length, 1); assert.ok(alerts[0].startsWith('Update failed:')); await page.close();
+  } },
+  { name: '프로젝트 즐겨찾기: 실패 응답이 JSON이 아니어도 본문 글자로 알림창을 띄운다 (shell-F20, v1.6은 JSON.parse 예외로 아무 반응이 없었다, 고쳤다)', run: async () => {
+    const page = await open({ responses: { '/fp/7': { ok: false, raw: 'Wrong project id' } } });
+    await page.dispatchEvent('.star-project[data-project-id="7"]', 'click'); await page.waitForTimeout(100); assert.deepEqual(await page.evaluate(() => window.__alerts), ['Update failed: Wrong project id']); await page.close();
   } },
   { name: '조직과 이슈 즐겨찾기: 각자 주소로 POST하고, 이슈는 서버 메시지를 알림으로 보인다', run: async () => {
     const page = await open({ responses: { '/fo/3': { ok: true, data: { favored: true } }, '/fi/5': { ok: true, data: { favored: true, message: 'issue.favorite.on' } } } });
