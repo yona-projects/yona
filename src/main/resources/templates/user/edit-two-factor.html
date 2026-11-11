@@ -28,7 +28,7 @@
             <tbody>
             <tr th:each="m : ${methods}" class="method-row" th:attr="data-type=${m.type}">
                 <td th:text="${m.type == 'TOTP'} ? #{twoFactor.method.totp} : #{twoFactor.method.securityKey}"></td>
-                <td th:text="${m.name}"></td><td th:text="${m.createdText}"></td><td th:text="${m.lastUsedText}"></td>
+                <td th:text="${m.name}"></td><td th:text="${m.createdText}"></td><td th:text="${#strings.isEmpty(m.lastUsedText)} ? #{apiToken.neverUsed} : ${m.lastUsedText}"></td>
                 <td class="text-end">
                     <form method="post" th:action="@{/user/two-factor/credentials/{id}/delete(id=${m.id})}" th:attr="onsubmit='return confirm(\'' + #{twoFactor.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{twoFactor.delete}"></button>

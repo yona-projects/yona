@@ -118,6 +118,16 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `승인 화면은 앱의 홈페이지 주소를 안전한 링크로 보인다 (oauth-F1, 모델에 있는데 화면이 보이지 않았다)`() {
+        val owner = user(); val visitor = user(); val s = login(visitor)
+        val doc = page(s, consentUrl(s, app(owner)))
+        val link = doc.selectFirst("#consent-home a")
+        assertTrue(link != null, "홈페이지 주소가 보이지 않는다")
+        assertEquals("https://app.example.com", link.attr("href"))
+        assertTrue(link.attr("rel").contains("noopener") && link.attr("rel").contains("nofollow"), "rel=${link.attr("rel")}")
+    }
+
+    @Test
     fun `승인 화면은 캐시를 막고 다른 곳에 끼워 넣는 것을 막는다`() {
         val owner = user(); val client = app(owner); val s = login(user())
         mockMvc.perform(get(java.net.URI.create(consentUrl(s, client))).session(s)).andExpect(status().isOk)

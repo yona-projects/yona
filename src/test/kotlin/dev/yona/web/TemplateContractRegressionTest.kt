@@ -78,4 +78,10 @@ class TemplateContractRegressionTest {
         assertTrue(audit.contains("data-failed=#{audit.verify.failed}"), "실패 문구가 없다")
         assertTrue(audit.contains("r.ok") && audit.contains(".catch("), "응답 상태를 보지 않고 실패를 처리하지 않는다")
     }
+
+    @Test
+    fun `2단계 수단 목록의 마지막 사용이 비어 있으면 사용한 적 없음으로 보인다 (usersec-F10, 새로 등록한 보안 키 행이 빈 칸이었다)`() {
+        val list = template("user/edit-two-factor.html")
+        assertTrue(Regex("m\\.lastUsedText[^>]*apiToken\\.neverUsed|apiToken\\.neverUsed[^>]*m\\.lastUsedText").containsMatchIn(list), "빈 마지막 사용을 그대로 보인다")
+    }
 }

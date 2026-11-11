@@ -15,6 +15,8 @@
     <h1 class="title" th:text="#{oauth.consent.heading(${clientName})}"></h1>
     <p class="tag-line" th:if="${ownerLoginId != null}" th:text="#{oauth.consent.by(${ownerLoginId})}"></p>
     <p class="tag-line" th:if="${ownerOrganization != null}" th:text="#{oauth.consent.byOrganization(${ownerOrganization})}"></p>
+    <!--/* 앱의 홈페이지 주소(oauth-F1). 사용자가 이 앱이 맞는지 가려내는 단서이므로 보인다. `http`나 `https`일 때만 링크로 만들어 `javascript:` 같은 주소를 막는다 */-->
+    <p id="consent-home" class="tag-line" th:if="${#strings.startsWith(homeUrl, 'https://') or #strings.startsWith(homeUrl, 'http://')}"><a th:href="${homeUrl}" th:text="${homeUrl}" target="_blank" rel="noopener nofollow"></a></p>
   </div>
   <div class="login-form-wrap frm-wrap oauth-consent tf-challenge">
     <div id="consent-warnings" class="alert alert-warning" th:if="${loopback or !#lists.isEmpty(restrictedOrganizations)}">
