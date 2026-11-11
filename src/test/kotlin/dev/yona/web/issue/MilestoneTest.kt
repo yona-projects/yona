@@ -414,14 +414,30 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `다른 프로젝트의 마일스톤은 지울 수 없다`() {
+    fun `다른 프로젝트의 마일스톤은 지울 수 없다 (v1_6은 500이었다, 404로 고쳤다, milestone-F1)`() {
         val project = newProject()
         val otherProject = newProject()
         val other = newMilestone(otherProject, "남의 것")
         val user = manager(project)
         join(user, otherProject, RoleType.MANAGER)
-        mockMvc.perform(delete("${base(project)}/milestone/${other.id}/delete").session(login(user))).andExpect(status().isInternalServerError)
+        mockMvc.perform(delete("${base(project)}/milestone/${other.id}/delete").session(login(user))).andExpect(status().isNotFound)
         assertNotNull(milestones.findById(other.id!!).orElse(null))
+    }
+
+    @Test
+    fun `다른 프로젝트 경로로는 마일스톤을 보거나 고치거나 열고 닫지 못한다 (v1_6은 번호만 보고 200과 303이었다, 고쳤다, milestone-F1)`() {
+        val project = newProject()
+        val otherProject = newProject()
+        val other = newMilestone(otherProject, "남의 것")
+        val user = manager(project)
+        join(user, otherProject, RoleType.MANAGER)
+        val session = login(user)
+        mockMvc.perform(get("${base(project)}/milestone/${other.id}").session(session)).andExpect(status().isNotFound)
+        mockMvc.perform(get("${base(project)}/milestone/${other.id}/editform").session(session)).andExpect(status().isNotFound)
+        mockMvc.perform(post("${base(project)}/milestone/${other.id}/close").session(session)).andExpect(status().isNotFound)
+        mockMvc.perform(post("${base(project)}/milestone/${other.id}/open").session(session)).andExpect(status().isNotFound)
+        mockMvc.perform(post("${base(project)}/milestone/${other.id}/edit").session(session).param("title", "x").param("state", "open")).andExpect(status().isNotFound)
+        mockMvc.perform(get("${base(otherProject)}/milestone/${other.id}").session(session)).andExpect(status().isOk)
     }
 
     @Test

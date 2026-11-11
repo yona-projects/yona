@@ -145,7 +145,7 @@ class MilestoneController(
     @Transactional(readOnly = true)
     fun editMilestoneForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        val milestone = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         val input = MilestoneInput(milestone.title, milestone.contents, milestone.dueDate?.let { DATE_FORMAT().format(it) }, milestone.state?.name)
         return editView(project, milestone, input, emptyMap())
     }
@@ -161,7 +161,7 @@ class MilestoneController(
         response: HttpServletResponse
     ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        val original = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        val original = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         val input = MilestoneInput.of(request)
         // 제목을 바꾸지 않았으면 중복 검사를 하지 않는다.
         val result = validate(project, input, checkTitle = original.title != input.title)
@@ -187,8 +187,8 @@ class MilestoneController(
         response: HttpServletResponse
     ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
-        if (milestone.project?.id != project.id) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<Void>()
+        // 다른 프로젝트의 마일스톤은 404이다. v1.6은 삭제만 500이었고 나머지는 번호만 보고 처리했다(milestone-F1)
+        val milestone = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         milestoneService.delete(milestone)
         val list = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/milestones"
         if (AjaxRequests.isXhr(request)) {
@@ -201,7 +201,8 @@ class MilestoneController(
     @IsAllowed(Operation.UPDATE, ResourceType.MILESTONE)
     @Transactional
     fun open(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
-        val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        val project = findProject(owner, name) ?: return ErrorViews.notFound()
+        val milestone = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         milestoneService.open(milestone)
         return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/milestone/$id")
     }
@@ -210,7 +211,8 @@ class MilestoneController(
     @IsAllowed(Operation.UPDATE, ResourceType.MILESTONE)
     @Transactional
     fun close(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
-        val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        val project = findProject(owner, name) ?: return ErrorViews.notFound()
+        val milestone = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         milestoneService.close(milestone)
         return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/milestone/$id")
     }
@@ -227,7 +229,7 @@ class MilestoneController(
         @RequestParam(name = "state", required = false) state: String?
     ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        val milestone = inProject(milestones.findById(id).orElse(null), project) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
         recentVisits.visits(viewer, project)
         val resource = milestone.asResource()
@@ -259,6 +261,9 @@ class MilestoneController(
     }
 
     // --- 도우미 ---
+
+    /** 마일스톤이 경로의 프로젝트 소속일 때만 돌려준다. 아니면 `null`이다. */
+    private fun inProject(milestone: Milestone?, project: Project): Milestone? = milestone?.takeIf { it.project?.id == project.id }
 
     private fun findProject(owner: String, name: String): Project? = projectService.findByOwnerAndProjectName(owner, name)
 
