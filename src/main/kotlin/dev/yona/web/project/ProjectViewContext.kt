@@ -122,8 +122,11 @@ class ProjectViewContext(
     /** 프로젝트의 라벨을 바꿀 수 있으면 `true`이다. 구성원 추가 링크를 보여 줄지 정한다 (v1.6 `labelsAsResource` `UPDATE`). */
     val canUpdateLabels: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.labelsAsResource(), Operation.UPDATE) }
 
-    /** 프로젝트를 탈퇴할 수 있으면 `true`이다 (`LEAVE` 권한). */
-    val canLeave: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.asResource(), Operation.LEAVE) }
+    /**
+     * 프로젝트를 탈퇴할 수 있으면 `true`이다 (`LEAVE` 권한이고 역할을 가진 구성원일 때).
+     * v1.6은 사이트 관리자에게 구성원이 아니어도 탈퇴 단추를 보였고, 눌러도 삭제할 행이 없어 아무 일도 일어나지 않았다(project-F8). 구성원일 때만 보인다.
+     */
+    val canLeave: Boolean by lazy { projectMember && deps.accessControl.isAllowed(viewer, project.asResource(), Operation.LEAVE) }
 
     /** 보는 사용자가 프로젝트를 탈퇴할 때 호출하는 주소이다. 익명이면 `null`이다. */
     val leaveUrl: String? get() = viewerId?.let { "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/member/$it/delete" }

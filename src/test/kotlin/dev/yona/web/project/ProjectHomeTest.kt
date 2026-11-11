@@ -19,6 +19,8 @@ import dev.yona.domain.project.ProjectUser
 import dev.yona.domain.project.ProjectUserRepository
 import dev.yona.domain.project.RecentProjectRepository
 import dev.yona.domain.user.RoleRepository
+import dev.yona.domain.user.SiteAdmin
+import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
@@ -61,6 +63,7 @@ import kotlin.test.assertTrue
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-project-home"])
 class ProjectHomeTest : AbstractIntegrationTest() {
 
+    @Autowired private lateinit var siteAdmins: SiteAdminRepository
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
@@ -340,6 +343,13 @@ class ProjectHomeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일반 구성원에게는 구성원 추가 링크를 보이지 않는다 (v1_6은 보였지만 누르면 403이었다, 고쳤다, project-F7)`() {
+        val project = newProject()
+        val member = newUser().also { join(it, project, RoleType.MEMBER) }
+        assertNull(home(project, login(member)).selectFirst("#member-add-link"))
+    }
+
+    @Test
     fun `프로젝트 탈퇴 버튼은 소유자가 아닌 구성원에게만 보인다`() {
         val project = newProject()
         val member = newUser().also { join(it, project, RoleType.MEMBER) }
@@ -347,6 +357,15 @@ class ProjectHomeTest : AbstractIntegrationTest() {
         assertEquals("/${project.owner}/${project.name}/member/${member.id}/delete", button?.attr("data-href"))
         assertNull(home(project, login(newUser())).selectFirst("#projectLeaveBtn"))
         assertNull(home(project).selectFirst("#projectLeaveBtn"))
+    }
+
+    @Test
+    fun `구성원이 아닌 사이트 관리자에게는 탈퇴 버튼을 보이지 않는다 (v1_6은 보였지만 눌러도 아무 일이 없었다, 고쳤다, project-F8)`() {
+        val project = newProject()
+        val admin = newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }
+        assertNull(home(project, login(admin)).selectFirst("#projectLeaveBtn"))
+        join(admin, project, RoleType.MEMBER)
+        assertEquals("/${project.owner}/${project.name}/member/${admin.id}/delete", home(project, login(admin)).selectFirst("#projectLeaveBtn")?.attr("data-href"))
     }
 
     @Test
