@@ -50,9 +50,12 @@ class HgRefReaderTest {
     }
 
     @Test
-    fun `이름표가 없으면 브랜치도 기본 브랜치도 없다`() {
+    fun `이름표가 없으면 브랜치 목록은 비고 기본 브랜치는 코드 화면과 같은 기본 위치(HEAD)이다 (code-F7, Git은 커밋이 있으면 늘 기본 브랜치가 있다)`() {
         assertThat(reader.branches(project)).isEmpty()
-        assertThat(reader.headBranch(project)).isNull()
+        val head = reader.headBranch(project)
+        assertThat(head).isNotNull()
+        assertThat(head!!.name).isEqualTo("HEAD")
+        assertThat(head.headCommitId).isNotEmpty()
         repos.create("tester", "empty")
         assertThat(reader.headBranch(Project(owner = "tester", name = "empty", vcs = "Mercurial"))).isNull()
     }
@@ -60,7 +63,8 @@ class HgRefReaderTest {
     @Test
     fun `기본 브랜치는 main, master, @ 이름표 순으로 고른다`() {
         HgTestSupport.bookmark(dir, "feature", "0")
-        assertThat(reader.headBranch(project)).isNull()
+        // main, master, @ 이름표가 없으면 기본 위치(HEAD)이다(code-F7)
+        assertThat(reader.headBranch(project)!!.name).isEqualTo("HEAD")
         HgTestSupport.bookmark(dir, "master", "0")
         assertThat(reader.headBranch(project)!!.name).isEqualTo("refs/heads/master")
         HgTestSupport.bookmark(dir, "main", "1")

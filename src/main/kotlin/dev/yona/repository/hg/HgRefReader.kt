@@ -32,8 +32,13 @@ class HgRefReader(private val hg: HgRepositories, private val tagWriter: HgTagWr
 
     override fun headBranch(project: Project): RefHead? = open(project).use { h ->
         val bookmarks = HgRevisions.bookmarks(h)
-        val name = HgRepositories.DEFAULT_BOOKMARKS.firstOrNull { it in bookmarks } ?: return null
-        head(HgRevisions.changelog(h), HgRepositories.HEADS + name, bookmarks.getValue(name))
+        val changelog = HgRevisions.changelog(h)
+        val name = HgRepositories.DEFAULT_BOOKMARKS.firstOrNull { it in bookmarks }
+        if (name != null) return@use head(changelog, HgRepositories.HEADS + name, bookmarks.getValue(name))
+        // 이름표가 없으면 코드 화면과 같은 기본 위치(`default` 브랜치의 끝, 없으면 저장소 끝, A-378)를 `HEAD`라는 이름의 기본 브랜치로 보인다.
+        // Git은 커밋이 있으면 늘 기본 브랜치가 있는데 Mercurial은 이름표가 없을 때 브랜치 화면이 404였다(code-F7). 커밋이 없으면 `null`이다
+        val node = HgRevisions.head(h) ?: return@use null
+        head(changelog, "HEAD", node)
     }
 
     override fun deleteBranch(project: Project, branchName: String) {

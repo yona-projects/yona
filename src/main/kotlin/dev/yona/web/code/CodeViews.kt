@@ -53,12 +53,13 @@ data class FolderView(val listPath: String, val entries: List<FolderEntry>)
  * @property commentCount 이 파일에 달린 코드 리뷰 스레드 수
  * @property mode 본문 표시 방식: `image`, `binary`, `tooBig`, `markdown`, `code`
  * @property git Git 프로젝트이면 `true`. Subversion이면 리비전 번호를 `Revision N`으로 보인다
+ * @property shortRevId 화면에 보이는 짧은 커밋 번호이다. 저장소 종류의 관례를 따른다(Git 7자, Mercurial 12자. 목록과 같은 길이)
  */
 data class FileView(
     val fileName: String, val path: String, val revId: String, val rawUrl: String, val openUrl: String, val historyUrl: String, val commitUrl: String,
     val userHref: String, val avatarUrl: String?, val author: String, val ago: String, val commitMessage: String, val lineEnding: String,
     val commentCount: Long, val binary: Boolean, val mode: String, val size: Long, val mimeType: String, val data: String?, val renderedMarkdown: String?,
-    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true, val lfs: LfsFileView? = null
+    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true, val lfs: LfsFileView? = null, val shortRevId: String = revId.take(7)
 ) {
     /**
      * 코드 영역(`#showCode`)의 `data-mimeType` 값이다. v1.6 템플릿은 `@files.get("mimeType")`의 JSON 노드를 그대로 찍어 따옴표가 값에 들어간다

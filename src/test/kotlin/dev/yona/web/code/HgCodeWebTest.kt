@@ -97,6 +97,19 @@ class HgCodeWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름표가 하나도 없어도 브랜치 화면이 열리고 기본 위치가 기본 브랜치로 보인다 (code-F7, 탭은 보이는데 404였다)`() {
+        HgTestSupport.hg(dir, "bookmark", "-d", "main"); HgTestSupport.hg(dir, "bookmark", "-d", "release")
+        val html = page("/branches").html()
+        assertTrue("HEAD" in html, html.take(500))
+    }
+
+    @Test
+    fun `파일 보기의 리비전 글자는 목록과 같은 12자이다 (code-F7, Mercurial 관례)`() {
+        val doc = page("/code/main/src/main.txt")
+        assertEquals(c1.take(12), doc.selectFirst("#revisionNo a")!!.text().trim())
+    }
+
+    @Test
     fun `이름표를 정해 코드와 하위 폴더와 파일을 본다`() {
         assertTrue("new.txt" !in page("/code/refs%2Fheads%2Frelease").html())
         assertTrue("main.txt" in page("/code/main/src").html())
