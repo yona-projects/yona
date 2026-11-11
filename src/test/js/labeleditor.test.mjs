@@ -97,6 +97,12 @@ export const tests = [
     assert.deepEqual(await get(page, '__ajax'), [['/labels/1', 'post', { _method: 'delete' }]]);
     assert.equal(await page.locator('tr[data-label-id]').count(), 0); assert.equal(await page.locator('div.category-wrap').count(), 0); await page.close();
   } },
+  { name: '삭제: 서버가 실패하면 오류 알림을 띄우고 행은 그대로 둔다 (v1.6은 아무 반응이 없었다, 고쳤다, project-F18)', run: async () => {
+    const page = await open({ resp: { fail: { responseText: '', status: 500, statusText: 'Server Error' } } }); await page.evaluate(() => { $('.del').trigger('click'); });
+    await page.evaluate(() => window.__confirms[0].cb({ nButtonIndex: 1 })); await page.waitForTimeout(60);
+    assert.deepEqual(await get(page, '__alerts'), ['error.failedTo|button.delete,500,Server Error']);
+    assert.equal(await page.locator('tr[data-label-id]').count(), 1); await page.close();
+  } },
   { name: '분류 수정: 단추를 누르면 이름과 배타 여부를 채우고 모달을 연다. 저장하면 PUT으로 보낸다', run: async () => {
     const page = await open({ resp: { fail: { responseText: '{"x":"e"}', status: 400, statusText: 'B' } } });
     await page.evaluate(() => { $('.cat').trigger('click'); });
