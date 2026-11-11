@@ -126,7 +126,8 @@ export const tests = [
   } },
   { name: '옛 플러그인은 없다: 파일, $.fn.requestAs, .requestAs( 호출, 번들 입력', run: async () => {
     assert.ok(!fs.existsSync(path.join(JS, 'lib/jquery/jquery.requestAs.js')), '플러그인 파일이 남아 있다');
-    const roots = [path.join(JS, 'common'), path.join(JS, 'service'), path.join(JS, '..', '..', '..', 'templates')];
+    // `service/`는 비어 있어 지웠다(shell-F14). 없는 디렉터리는 건너뛴다
+    const roots = [path.join(JS, 'common'), path.join(JS, 'service'), path.join(JS, '..', '..', '..', 'templates')].filter((r) => fs.existsSync(r));
     const files = roots.flatMap((r) => fs.readdirSync(r, { recursive: true }).map((f) => path.join(r, String(f)))).filter((f) => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
     const left = files.filter((f) => /\.requestAs\(|data\(["']requestAs["']\)/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(JS, f));
     assert.deepEqual(left, []);

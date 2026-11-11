@@ -57,7 +57,8 @@ export const tests = [
     await page.close();
   } },
   { name: '앱 스크립트와 템플릿에 keyCode와 which가 남지 않는다(조합 중 판별 세 곳만 예외)', run: async () => {
-    const roots = [path.join(JS, 'common'), path.join(JS, 'service'), path.join(JS, '..', '..', '..', 'templates')];
+    // `service/`는 비어 있어 지웠다(shell-F14). 없는 디렉터리는 건너뛴다
+    const roots = [path.join(JS, 'common'), path.join(JS, 'service'), path.join(JS, '..', '..', '..', 'templates')].filter((r) => fs.existsSync(r));
     const files = roots.flatMap((r) => fs.readdirSync(r, { recursive: true }).map((f) => path.join(r, String(f)))).filter((f) => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
     const allowed = new Set(['yona.Common.js', 'yona.Mention.js', 'yona.ShortcutKey.js']); // 조합 중(keyCode 229) 판별만 예외: 도우미, Mention 보호막, 단축키(Common 없이도 도는 파일)
     const offenders = [];

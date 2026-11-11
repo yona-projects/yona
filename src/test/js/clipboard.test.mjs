@@ -74,13 +74,25 @@ export const tests = [
       window.__alerts = []; window.__notes = [];
       $yona.alert = function (m) { window.__alerts.push(m); }; $yona.notify = function (m) { window.__notes.push(m); };
       yona.Clipboard.copy = function (t, c) { window.__calls.push(['copy', t, c && c.id]); return Promise.resolve(window.__result !== false); };`);
-    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal" id="voters"><button id="copyEmailBtn" data-copy-text="A &lt;a@x.org&gt;;B &lt;b@x.org&gt;;">e</button></div>'; });
+    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal" id="voters"><button class="copy-email-btn" data-copy-text="A &lt;a@x.org&gt;;B &lt;b@x.org&gt;;">e</button></div>'; });
     await page.evaluate((code) => new Function(code)(), snippet.replace(/\[\(\$\{[^}]*\}\)\]/g, 'MSG'));
-    await page.click('#copyEmailBtn'); await page.waitForTimeout(50);
+    await page.click('.copy-email-btn'); await page.waitForTimeout(50);
     const r = await page.evaluate(() => [window.__calls, window.__alerts.length, window.__notes.length]);
     assert.deepEqual(r[0], [['copy', 'A <a@x.org>;B <b@x.org>;', 'voters']]);
     assert.equal(r[1], 1); assert.equal(r[2], 0);
     assert.deepEqual(page.errors, []);
+    await page.close();
+  } },
+  { name: '이슈 보기의 메일 복사 단추: 추천자 모달이 둘이어도 둘째 모달의 단추도 복사한다 (issue-F20, id가 겹쳐 첫 단추에만 처리기가 걸렸다)', async run() {
+    const snippet = templateSnippet('issue/view.html', '// 이메일 복사 단추', '// timeline label text color adjusting');
+    const page = await setup(`
+      window.__alerts = []; window.__notes = [];
+      $yona.alert = function (m) { window.__alerts.push(m); }; $yona.notify = function (m) { window.__notes.push(m); };
+      yona.Clipboard.copy = function (t, c) { window.__calls.push(['copy', t, c && c.id]); return Promise.resolve(true); };`);
+    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal" id="m1"><button class="copy-email-btn" data-copy-text="one">e</button></div><div class="modal" id="m2"><button class="copy-email-btn" data-copy-text="two">e</button></div>'; });
+    await page.evaluate((code) => new Function(code)(), snippet.replace(/\[\(\$\{[^}]*\}\)\]/g, 'MSG'));
+    await page.click('#m2 .copy-email-btn'); await page.waitForTimeout(50);
+    assert.deepEqual(await page.evaluate(() => window.__calls.map((c) => [c[0], c[1], c[2]])), [['copy', 'two', 'm2']]);
     await page.close();
   } },
   { name: '이슈 보기의 메일 복사 단추: 복사하지 못하면 알림 대신 클립보드 미지원 안내를 띄운다', async run() {
@@ -89,9 +101,9 @@ export const tests = [
       window.__alerts = []; window.__notes = [];
       $yona.alert = function (m) { window.__alerts.push(m); }; $yona.notify = function (m) { window.__notes.push(m); };
       yona.Clipboard.copy = function () { return Promise.resolve(false); };`);
-    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal"><button id="copyEmailBtn" data-copy-text="x">e</button></div>'; });
+    await page.evaluate(() => { document.getElementById('box').innerHTML = '<div class="modal"><button class="copy-email-btn" data-copy-text="x">e</button></div>'; });
     await page.evaluate((code) => new Function(code)(), snippet.replace(/\[\(\$\{[^}]*\}\)\]/g, 'MSG'));
-    await page.click('#copyEmailBtn'); await page.waitForTimeout(50);
+    await page.click('.copy-email-btn'); await page.waitForTimeout(50);
     const r = await page.evaluate(() => [window.__alerts.length, window.__notes.length]);
     assert.deepEqual(r, [0, 1]);
     await page.close();
