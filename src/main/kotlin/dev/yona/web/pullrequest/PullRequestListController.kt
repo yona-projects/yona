@@ -2,6 +2,7 @@ package dev.yona.web.pullrequest
 
 import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
+import dev.yona.access.asResource
 import dev.yona.domain.comment.CommentThreadRepository
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
@@ -59,7 +60,7 @@ data class PullRequestRow(
 )
 
 /** 최근 푸시한 브랜치 한 줄이다. */
-data class PushedBranchRow(val label: String, val ago: String, val newPullRequestUrl: String, val deleteUrl: String)
+data class PushedBranchRow(val label: String, val ago: String, val newPullRequestUrl: String, val deleteUrl: String, val deletable: Boolean = true)
 
 /** 보낸 사람 선택지 하나이다. */
 /** 담당자 필터에서 "담당자 없음"을 뜻하는 `assigneeId` 값이다(GitHub의 `no:assignee`). */
@@ -223,7 +224,9 @@ class PullRequestListController(
             val target = repositories.defaultBranch(from.originalProject ?: from)
             PushedBranchRow(
                 "${from.owner}/${from.name}:${CodePageAssembler.branchItemName(branch.name.orEmpty())}", helper.agoOrDateString(branch.pushedDate),
-                "$base/newPullRequestForm?fromBranch=${branch.name}&toBranch=$target", "$base/pushedBranch/${branch.id}/delete"
+                "$base/newPullRequestForm?fromBranch=${branch.name}&toBranch=$target", "$base/pushedBranch/${branch.id}/delete",
+                // v1.6은 닫기 단추를 누구에게나 보였지만 삭제 요청은 포크의 삭제 권한이 필요해 눌러도 403이었다(pullrequest-F9). 지울 수 있는 사용자에게만 보인다.
+                deletable = accessControl.isAllowed(viewer, from.asResource(), Operation.DELETE)
             )
         }
     }
