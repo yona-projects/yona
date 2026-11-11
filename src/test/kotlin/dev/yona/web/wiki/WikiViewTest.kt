@@ -374,6 +374,35 @@ class WikiViewTest : AbstractIntegrationTest() {
     // --- 이력과 비교 ---
 
     @Test
+    fun `로그인하지 않은 사람이 쓰기 화면을 열면 403이 아니라 로그인 화면으로 보낸다 (wiki-F2, 게시글 쓰기와 같다)`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Home", "a\n", "첫 글")
+        for (path in listOf("${base(p)}/_new", "${base(p)}/Home/_edit")) {
+            val result = mockMvc.perform(get(path)).andReturn().response
+            assertEquals(303, result.status, "$path 상태")
+            assertTrue(result.getHeader("Location")!!.startsWith("/users/loginform"), "$path 이동 위치 ${result.getHeader("Location")}")
+        }
+        // 로그인했지만 구성원이 아니면 그대로 403이다
+        getPage(outsider(), "${base(p)}/_new").andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `구성원이 아닌 사람의 파일 올리기 거부는 화면이 아니라 JSON이다 (wiki-F3, 편집기 스크립트가 JSON으로 읽는다)`() {
+        val p = project()
+        val response = upload(outsider(), p, "photo.png").andExpect(status().isForbidden).andReturn().response
+        assertTrue(response.contentType!!.contains("json"), "거부 응답 형식 ${response.contentType}")
+    }
+
+    @Test
+    fun `리비전이 하나뿐인 이력에는 비교 단추가 없다 (wiki-F1, 눌러도 비교할 두 리비전이 없어 400이었다)`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Home", "a\n", "첫 글")
+        val history = doc(getPage(outsider(), "${base(p)}/Home/_history").andExpect(status().isOk))
+        assertEquals(1, history.select("tr.wiki-revision").size)
+        assertNull(history.selectFirst("form.wiki-compare-form button[type=submit]"), "비교할 수 없는데 단추가 보인다")
+    }
+
+    @Test
     fun `이력은 최신순이고 두 리비전을 골라 비교한다`() {
         val p = project(); val writer = member(p)
         create(writer, p, "Home", "a\n", "첫 글")

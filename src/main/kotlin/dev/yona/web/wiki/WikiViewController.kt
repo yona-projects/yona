@@ -145,6 +145,7 @@ class WikiViewController(
     // --- 쓰기 ---
 
     @GetMapping("/{user}/{project}/wiki/_new")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun newForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @RequestParam(required = false) title: String?): Any {
@@ -154,6 +155,7 @@ class WikiViewController(
     }
 
     @PostMapping("/{user}/{project}/wiki")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ)
     @Transactional
     fun create(
@@ -172,6 +174,7 @@ class WikiViewController(
     }
 
     @GetMapping("/{user}/{project}/wiki/{page}/_edit")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun editForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable page: String): Any {
@@ -182,6 +185,7 @@ class WikiViewController(
     }
 
     @PostMapping("/{user}/{project}/wiki/{page}/_edit")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ)
     @Transactional
     fun edit(
@@ -202,6 +206,7 @@ class WikiViewController(
     }
 
     @PostMapping("/{user}/{project}/wiki/{page}/_delete")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.READ)
     @Transactional
     fun delete(
@@ -235,7 +240,8 @@ class WikiViewController(
         @RequestParam(name = "file", required = false) file: MultipartFile?, @RequestParam(defaultValue = "") message: String
     ): Any {
         val project = wikiProject(owner, name) ?: return ErrorViews.notFound()
-        deny(project)?.let { return it }
+        // 편집기 스크립트가 JSON으로 읽으므로 거부도 JSON이다(화면 403이면 스크립트가 읽지 못한다, wiki-F3)
+        if (deny(project) != null) return json(HttpStatus.FORBIDDEN, mapOf("message" to "forbidden"))
         if (file == null || file.isEmpty) return json(HttpStatus.BAD_REQUEST, mapOf("message" to "file is required"))
         return try {
             val saved = wikiService.upload(project, requireNotNull(currentUserProvider.get().user), file.originalFilename.orEmpty(), file.bytes, message)
