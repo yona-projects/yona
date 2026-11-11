@@ -210,9 +210,11 @@ class ProjectShellTest : AbstractIntegrationTest() {
     @Test
     fun `사이드바 머리에 맥락 이름이 넓은 화면에서도 보인다(와이어프레임의 머리글)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
-        val title = page(base(p) + "/issues", s).selectFirst("nav.shell-sidebar .offcanvas-body .shell-sidebar-title")
+        val doc = page(base(p) + "/issues", s)
+        val title = doc.selectFirst("nav.shell-sidebar .offcanvas-body .shell-sidebar-title")
         assertNotNull(title)
         assertEquals("${p.owner}/${p.name}", title.text().trim())
         assertTrue(title.hasClass("d-none") && title.hasClass("d-lg-block"), "좁은 폭의 서랍은 자체 머리가 있으므로 넓은 화면에서만 보인다")
+        assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/fill.js") }, "짧은 본문에서도 사이드바 패널이 화면 아래까지 이어지게 하는 모듈을 불러온다")
     }
 }

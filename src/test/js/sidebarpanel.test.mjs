@@ -21,10 +21,12 @@ const SHELL = `<div class="page-wrap-outer"><div class="project-page-wrap shell"
   <div class="shell-main"><p style="height:900px">본문</p></div>
 </div></div>`;
 
-async function open(width) {
-  const page = await pageWith({ html: SHELL, stubs: false });
+async function open(width, html = SHELL) {
+  const page = await pageWith({ html, stubs: false });
   await page.setViewportSize({ width, height: 900 });
   for (const css of ['bootstrap.css', 'usermenu.css', 'yobi.css']) await page.addStyleTag({ path: path.join(CSS, css) });
+  // Bootstrap 링크의 색 전환(0.15초) 도중에 값을 읽으면 시험이 흔들리므로 전환을 끈다.
+  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' });
   return page;
 }
 
@@ -82,6 +84,15 @@ export const tests = [
       assert.notEqual(active.backgroundColor, 'rgba(0, 0, 0, 0)', '활성 항목 바탕이 투명하다');
       assert.notEqual(active.backgroundColor, plain.backgroundColor);
       assert.ok(Number(active.fontWeight) >= 600, `글자 굵기 ${active.fontWeight}`);
+    },
+  },
+  {
+    name: '본문이 길면 사이드바 패널도 본문 끝까지 이어진다',
+    async run() {
+      const page = await open(1280);
+      const side = await box(page, '.shell-sidebar');
+      const main = await box(page, '.shell-main');
+      assert.ok(side.bottom >= main.bottom - 1, `사이드바 아래 ${side.bottom}, 본문 아래 ${main.bottom}`);
     },
   },
 ];

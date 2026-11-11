@@ -8,7 +8,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id, active)"
           th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
-<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; initSidebar(); initNavigation();</script>
+<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; initSidebar(); initNavigation(); initFill();</script>
 <button type="button" class="btn btn-outline-secondary btn-sm shell-sidebar-expand" data-shell-sidebar-toggle aria-expanded="false" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.expand}" th:title="#{sidebar.expand}"><i class="yobicon-menu" aria-hidden="true"></i></button>
 <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
         data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
