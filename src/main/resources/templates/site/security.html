@@ -23,6 +23,7 @@
     </label>
     <div class="tf-actions">
         <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
+        <small class="text-body-secondary ms-2" th:text="#{site.security.saveScope(#{site.security.twoFactor})}"></small>
     </div>
 </form>
 
@@ -39,6 +40,7 @@
     </label>
     <div class="tf-actions">
         <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
+        <small class="text-body-secondary ms-2" th:text="#{site.security.saveScope(#{site.security.oauth})}"></small>
     </div>
 </form>
 
@@ -75,6 +77,7 @@
     </label>
     <div class="tf-actions">
         <button type="submit" class="btn btn-success" th:text="#{button.save}"></button>
+        <small class="text-body-secondary ms-2" th:text="#{site.security.saveScope(#{site.security.mcp})}"></small>
     </div>
 </form>
 </th:block>
