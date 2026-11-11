@@ -175,6 +175,11 @@
             yona.ui.Select2("#contributors").on("change", function(){
                 yona.Htmx.submit('#search');
             });
+
+            // 담당자, 리뷰 요청, 라벨 선택도 바꾸면 바로 제출한다(v2 추가 필터가 폼에 있는데 제출하지 않았다, pullrequest-F10)
+            $('#assignees, #reviewRequested, #labelIds').on('change', function(){
+                yona.Htmx.submit('#search');
+            });
         });
     </script>
 </div>

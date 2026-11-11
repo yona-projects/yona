@@ -54,4 +54,12 @@ class TemplateContractRegressionTest {
         assertFalse(view.contains("\$(\"button.moreBtn\").on(\"click\""), "다시 읽은 타임라인의 더 보기 단추에는 처리기가 걸리지 않는다")
         assertTrue(view.contains("on(\"click\", \"button.moreBtn\""), "문서에 위임해 다시 그린 단추에도 건다")
     }
+
+    @Test
+    fun `코드 주고받기 목록의 담당자, 리뷰 요청, 라벨 선택을 바꾸면 검색 폼이 제출된다 (pullrequest-F10, 추가 필터가 제출되지 않았다)`() {
+        val search = template("pullrequest/partial-search.html")
+        for (id in listOf("assignees", "reviewRequested", "labelIds")) {
+            assertTrue(Regex("\\$\\(['\"][^'\"]*#$id[^'\"]*['\"]\\)\\.on\\(['\"]change['\"]").containsMatchIn(search), "#$id 선택을 바꿔도 제출하지 않는다")
+        }
+    }
 }
