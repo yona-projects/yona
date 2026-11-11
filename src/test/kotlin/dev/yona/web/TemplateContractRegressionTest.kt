@@ -91,4 +91,10 @@ class TemplateContractRegressionTest {
         assertTrue(users.contains("site-admin-toggle"), "권한 단추를 가려낼 클래스가 없다")
         assertTrue(Regex("request:error[\\s\\S]{0,160}403[\\s\\S]{0,80}reload").containsMatchIn(users), "403일 때 다시 읽지 않는다")
     }
+
+    @Test
+    fun `LDAP와 OIDC 연결 확인 단추 옆에 저장한 설정으로 확인한다는 안내가 있다 (site-F16, 입력만 하고 눌러 저장 전 값이 확인된 줄 알았다)`() {
+        val sso = template("site/sso.html")
+        assertEquals(2, Regex("#\\{site\\.sso\\.check\\.saved}").findAll(sso).count(), "LDAP와 OIDC 확인 단추 각각에 안내가 있어야 한다")
+    }
 }
