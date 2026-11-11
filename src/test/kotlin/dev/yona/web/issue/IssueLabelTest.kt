@@ -353,6 +353,20 @@ class IssueLabelTest : AbstractIntegrationTest() {
         mockMvc.perform(post("${base(project)}/issue/label/${bug.id}/delete").session(login(newUser())).param("_method", "delete")).andExpect(status().isForbidden)
     }
 
+    @Test
+    fun `다른 프로젝트의 라벨은 내 프로젝트 주소로 지우거나 고칠 수 없다 (v1_6은 라벨이 속한 프로젝트만 보고 지웠다, 고쳤다, project-F24)`() {
+        val mine = newProject()
+        val other = newProject()
+        val user = join(newUser(), mine, RoleType.MANAGER)
+        join(user, other, RoleType.MANAGER)
+        val foreign = newLabel(other, newCategory(other, "Type"), "bug")
+        val session = login(user)
+        mockMvc.perform(post("${base(mine)}/issue/label/${foreign.id}/delete").session(session).param("_method", "delete")).andExpect(status().isNotFound)
+        entityManager.flush(); entityManager.clear()
+        assertNotNull(labels.findById(foreign.id!!).orElse(null))
+        mockMvc.perform(post("${base(other)}/issue/label/${foreign.id}/delete").session(session).param("_method", "delete")).andExpect(status().isOk)
+    }
+
     // --- 라벨 수정 ---
 
     @Test

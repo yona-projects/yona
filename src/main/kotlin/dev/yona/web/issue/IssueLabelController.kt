@@ -138,6 +138,8 @@ class IssueLabelController(
     fun delete(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest): Any {
         if (request.getParameter("_method")?.lowercase() != "delete") return ErrorViews.badRequest("_method must be 'delete'.")
         val label = labels.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        // 권한은 라벨이 속한 프로젝트로 판정하므로 경로의 프로젝트와 다르면 다른 프로젝트의 라벨을 지울 수 있었다(v1.6, project-F24). 경로의 프로젝트 라벨이 아니면 없는 것으로 본다.
+        if (label.project?.owner != owner || label.project?.name != name) return ErrorViews.notFound()
         issueService.deleteLabel(label)
         return ResponseEntity.ok().build<Void>()
     }
@@ -163,6 +165,7 @@ class IssueLabelController(
         if (errors.isNotEmpty()) return errorsJson(errors)
 
         val label = labels.findById(id).orElse(null) ?: return ErrorViews.notFound()
+        if (label.project?.id != project.id) return ErrorViews.notFound() // 삭제와 같다(project-F24)
         label.name = labelName
         label.color = color
         label.category = category
