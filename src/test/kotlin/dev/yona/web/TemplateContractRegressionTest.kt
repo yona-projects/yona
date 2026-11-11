@@ -159,4 +159,12 @@ class TemplateContractRegressionTest {
     fun `사이트 데이터 가져오기의 제출 단추에는 글자가 있다 (site-F13, v1_6은 value가 없어 브라우저 기본 글자로 그려졌다)`() {
         assertTrue(template("site/data.html").contains("<input type=\"submit\" th:value=\"#{site.data.import}\">"))
     }
+
+    @Test
+    fun `게시판 메뉴가 꺼진 프로젝트의 글 목록에는 글쓰기 단추가 없다 (board-F10, N 키와 글 보기의 글쓰기는 이미 같은 조건이다)`() {
+        val list = template("board/list.html")
+        val wrapper = Regex("<div class=\"float-end\"([^>]*)>\\s*<a th:href=\"\\$\\{base \\+ '/postform'}\"[^>]*#\\{post\\.write}").find(list)
+        assertTrue(wrapper != null, "글쓰기 단추를 찾지 못했다")
+        assertTrue(wrapper.groupValues[1].contains("projectView.menuSetting.board"), "게시판 메뉴가 꺼져도 글쓰기 단추가 보인다")
+    }
 }

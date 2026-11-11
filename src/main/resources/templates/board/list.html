@@ -27,7 +27,7 @@
                 </div>
                 <th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block>
             </form>
-            <div class="float-end">
+            <div class="float-end" th:if="${projectView.menuSetting.board}">
                 <a th:href="${base + '/postform'}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
             </div>
         </div>
