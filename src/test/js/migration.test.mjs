@@ -114,21 +114,23 @@ export const tests = [
     const u = await urls(page);
     assert.ok(u.includes('GET https://api.github.com/orgs/myorg/memberships/me')); assert.ok(u.includes('GET https://api.github.com/repos/myorg/repoA/milestones?state=all'));
     assert.ok(u.includes('GET https://api.github.com/repos/myorg/repoA/issues?state=all&labels=게시글')); assert.ok(u.includes('GET https://api.github.com/repos/myorg/repoA/issues?state=all'));
-    assert.deepEqual(await page.evaluate(() => [$('.project-list.selected .warn-no-worker').css('display'), $('.project-list.selected .warn-user-project').css('display')]), ['none', 'none']);
+    assert.equal(await page.evaluate(() => $('.project-list.selected .warn-not-admin').css('display')), 'none');
     assert.equal((await page.locator('.destination-title .project-name').textContent()).trim(), 'myorg/repoA'); await page.close();
   } },
-  { name: '대상 선택(조직, 관리자가 아님): 작업 계정 경고와 관리자 아님 경고를 보이고 사용자 토큰으로 바꿔 쓴다', run: async () => {
+  { name: '대상 선택(조직, 관리자가 아님): 관리자 아님 경고만 보이고 값이 빈 작업 계정 문구는 없으며 사용자 토큰으로 바꿔 쓴다 (v1_6은 작업 계정 이름이 빈 깨진 경고를 함께 보였다, 고쳤다, migration-F2)', run: async () => {
     const page = await mount({ routes: { 'https://api.github.com/orgs/myorg/memberships/me': { body: { role: 'member' } }, '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, 'https://api.github.com/repos/myorg/repoA/': { body: [] } } });
     await clickSource(page); await clickDestination(page, 0);
     // 경고 요소는 저장소마다 있고 v-show로 가려지므로 선택된 항목 안의 것을 본다
-    assert.equal(await page.evaluate(() => $('.destination-project .project-list.selected .warn-no-worker').css('display')), 'block');
-    assert.equal(await page.locator('.destination-project .project-list.selected .warn-no-worker .text-bg-warning').count(), 1);
+    assert.equal(await page.evaluate(() => $('.destination-project .project-list.selected .warn-not-admin').css('display')), 'block');
+    assert.equal(await page.locator('.destination-project .project-list.selected .warn-not-admin .text-bg-warning').count(), 1);
+    assert.equal(await page.locator('.warn-no-worker').count(), 0, '작업 계정 경고가 남아 있다');
+    assert.equal(await page.locator('.destination-project').innerText().then((t) => /\{\{|undefined/.test(t)), false, '채워지지 않은 자리가 화면에 보인다');
     await page.evaluate(() => { window.__calls.length = 0; }); await page.close();
   } },
-  { name: '대상 선택(개인 저장소): "User Project" 경고를 보이고 멤버십은 확인하지 않으며 사용자 토큰을 작업 토큰으로 쓴다', run: async () => {
+  { name: '대상 선택(개인 저장소): 멤버십은 확인하지 않고 사용자 토큰을 작업 토큰으로 쓰며 작업 계정 문구는 없다 (migration-F2)', run: async () => {
     const page = await mount({ routes: { '/migration/alpha/projects/one': { body: SOURCE_DETAIL }, 'https://api.github.com/repos/me/mine/': { body: [] } } });
     await clickSource(page); await clickDestination(page, 2);
-    assert.equal(await page.evaluate(() => $('.destination-project .project-list.selected .warn-user-project').css('display')), 'block');
+    assert.equal(await page.locator('.warn-user-project').count(), 0, '값이 빈 "User Project" 경고가 남아 있다');
     const cs = await calls(page); assert.equal(cs.some((c) => /memberships/.test(c.url)), false);
     assert.equal(cs.find((c) => /repos\/me\/mine\/milestones/.test(c.url)).headers.Authorization, 'token tok123'); await page.close();
   } },
