@@ -23,7 +23,9 @@
  *
  * <h4>서버 계약</h4>
  * 성공(2xx)이면 상태가 204이고 `Location` 머리글이 있을 때 그곳으로 이동하고, 아니면 화면을 새로 고친다.
- * 실패는 사용자에게 알리지 않는다(v1.6 그대로). 알리려면 `request:error`를 듣거나 `send`의 결과를 본다.
+ * 실패(2xx가 아님, 네트워크 오류)는 `request:error`로 알리고, 그 이벤트를 `preventDefault()`하지 않았으면 오류 알림(`$yona.alert`)을 띄운다.
+ * v1.6은 실패해도 아무 알림이 없어 눌러도 반응이 없는 것처럼 보였다(project-F9). 스스로 알리는 처리기는 `request:error`에서 `preventDefault()`한다.
+ * 요소 없이 `send`를 직접 부르면 알림 없이 결과만 돌려준다.
  *
  * <h4>이벤트</h4>
  * 요소를 넘기면 그 요소에 표준 `CustomEvent`를 보낸다(버블링하지 않는다).
@@ -65,6 +67,20 @@ const Request = (function(){
     }
 
     /**
+     * 실패했을 때 보여 줄 기본 알림이다. `request:error`가 취소되지 않았고 요소가 있을 때만 띄운다.
+     *
+     * @param {HTMLElement|null} elSource
+     * @param {Number} nStatus HTTP 상태(네트워크 오류는 0)
+     */
+    function _alertFailure(elSource, nStatus){
+        if(!elSource || typeof $yona === "undefined" || typeof $yona.alert !== "function" || typeof Messages !== "function"){
+            return;
+        }
+        const sKey = nStatus === 403 ? "error.forbidden" : (nStatus === 404 ? "error.notfound" : "error.internalServerError");
+        $yona.alert(Messages(sKey));
+    }
+
+    /**
      * 서버에 요청을 보낸다.
      *
      * @param {String} sMethod post, put, delete 등(대소문자 무관)
@@ -83,7 +99,9 @@ const Request = (function(){
             "cache"  : "no-store"
         }).then((oResponse) =>{
             if(!oResponse.ok){
-                _dispatch(elSource, "request:error", {"status": oResponse.status, "response": oResponse});
+                if(_dispatch(elSource, "request:error", {"status": oResponse.status, "response": oResponse}) !== false){
+                    _alertFailure(elSource, oResponse.status);
+                }
                 return {"ok": false, "status": oResponse.status};
             }
             if(_dispatch(elSource, "request:load", {"status": oResponse.status, "response": oResponse}) !== false){
@@ -96,7 +114,9 @@ const Request = (function(){
             }
             return {"ok": true, "status": oResponse.status};
         }, () =>{
-            _dispatch(elSource, "request:error", {"status": 0, "response": null});
+            if(_dispatch(elSource, "request:error", {"status": 0, "response": null}) !== false){
+                _alertFailure(elSource, 0);
+            }
             return {"ok": false, "status": 0};
         });
     }
