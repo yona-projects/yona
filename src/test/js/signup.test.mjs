@@ -4,7 +4,7 @@ import { pageWith } from './harness.mjs';
 const HTML = `<form name="signup"><input id="loginId" name="loginId"><input id="email" name="email"><input id="password" name="password"><input id="retypedPassword" name="retypedPassword"></form>`;
 const STUBS = {
   content: `
-    $yona.getTrim = function (s) { return $.trim(s); };
+    $yona.getTrim = function (s) { return String(s).trim(); };
     window.__popovers = [];
     $yona.showPopover = function (el, o) { window.__popovers.push(el.attr('name') + ':' + o.content); };
     $yona.hidePopover = function () {};
@@ -41,4 +41,20 @@ export const tests = [{
     await page.close();
     assert.ok(urls.includes('/y/pl%2Bus%40example.com'), '이메일이 인코딩되지 않았다: ' + JSON.stringify(urls));
   }
-}];
+}
+  , {
+  name: '가입 화면의 아이디 검사는 한글을 허용한다 (v1_6의 화면은 한글을 거부했고 서버는 받았다, 서버에 맞춰 고쳤다, usersec-F3)',
+  async run() {
+    const page = await pageWith({ html: HTML, scripts: [STUBS, 'esm/service/user.SignUp.js'] });
+    const out = await page.evaluate(async () => {
+      window.__popovers.length = 0;
+      new yona.user.SignUp({ sLogindIdCheckUrl: '/x/', sEmailCheckUrl: '/y/' });
+      const ok = [];
+      for (const id of ['홍길동', 'kim_길동', 'a..b']) { $('#loginId').val(id).trigger('focusout'); await new Promise((r) => setTimeout(r, 50)); ok.push(window.__popovers.filter((p) => p.startsWith('loginId:')).length); window.__popovers.length = 0; }
+      return ok;
+    });
+    await page.close();
+    assert.deepEqual(out, [0, 0, 1], '한글 아이디는 형식 오류가 없어야 하고 a..b는 형식 오류여야 한다: ' + JSON.stringify(out));
+  }
+}
+];

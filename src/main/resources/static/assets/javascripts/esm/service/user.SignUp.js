@@ -56,7 +56,8 @@ const SignUp = function(htOptions){
      * initialize variables
      */
     function _initVar(htOptions){
-        htVar.rxLoginId = /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/;
+        // 서버 규칙(`LoginIdRules`)과 같게 한글을 허용한다. v1.6의 화면은 한글을 거부했지만 서버는 받아 직접 요청으로만 한글 아이디가 만들어졌다(usersec-F3)
+        htVar.rxLoginId = /^[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*$/;
         htVar.sLogindIdCheckUrl = htOptions.sLogindIdCheckUrl;
         htVar.sEmailCheckUrl = htOptions.sEmailCheckUrl;
     }

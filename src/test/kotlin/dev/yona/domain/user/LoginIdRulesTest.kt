@@ -14,12 +14,17 @@ class LoginIdRulesTest {
 
     @Test
     fun `영문 숫자 한글 하이픈으로 시작하고 밑줄이나 점으로 이어 쓸 수 있다`() {
-        listOf("alice", "Alice-1", "홍길동", "a_b", "a.b", "a-b_c.d", "a1_b2.c3", "a..b").forEach { assertTrue(LoginIdRules.isValidFormat(it), it) }
+        listOf("alice", "Alice-1", "홍길동", "a_b", "a.b", "a-b_c.d", "a1_b2.c3").forEach { assertTrue(LoginIdRules.isValidFormat(it), it) }
     }
 
     @Test
     fun `공백이나 허용하지 않는 기호가 있으면 형식 오류이다`() {
         listOf("", "a b", "a@b", "a/b", "_a", ".a", "a_", "a#", "a!").forEach { assertFalse(LoginIdRules.isValidFormat(it), it) }
+    }
+
+    @Test
+    fun `구분 기호를 연달아 쓰는 이름은 거절한다 (v1_6의 서버 규칙은 연속 구분 기호 이름을 받았고 화면 규칙과 달랐다, 고쳤다, organization-F5)`() {
+        listOf("a..b", "a__b", "a_.b", "a._b", "홍..길동").forEach { assertFalse(LoginIdRules.isValidFormat(it), it) }
     }
 
     @Test

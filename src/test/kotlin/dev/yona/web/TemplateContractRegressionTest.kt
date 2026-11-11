@@ -196,4 +196,11 @@ class TemplateContractRegressionTest {
         assertTrue(Regex("<form id=\"token-create\"[^>]*data-submit-once").containsMatchIn(template("user/edit-token-new.html")), "토큰 만들기")
         assertTrue(Regex("<form id=\"oauth-app-form\"[^>]*data-submit-once").containsMatchIn(template("oauth/partial-apps.html")), "OAuth 앱 만들기와 수정")
     }
+
+    @Test
+    fun `구성원 추가 입력의 아이디 규칙은 한글을 허용한다 (usersec-F3, organization-F5, 서버 규칙과 같다)`() {
+        for (name in listOf("project/members.html", "organization/members.html")) {
+            assertTrue(template(name).contains("pattern=\"^[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*$\""), "$name: 한글을 거부하는 규칙이다")
+        }
+    }
 }
