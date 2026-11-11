@@ -68,6 +68,11 @@ updated: 2026-11-11
 | `.site-setting-nav` 규칙(옛 사이트 관리 사이드바 모양) | `app/assets/stylesheets/scss/_page.scss`의 `.site-setting-wrap` 안 | 사이트 관리 화면을 새 사이드바로 옮긴 커밋 36217925c | `.site-setting-wrap`의 나머지(`title_area`, `listhead` 등 본문 스타일)는 아직 쓰인다 |
 | `organization/menu :: menu` 조각(회색 가로 메뉴)과 `organization/partial-settingmenu` | `templates/organization/menu.html`, `partial-settingmenu.html` | 조직 화면 12개와 오류 화면을 사이드바로 옮긴 커밋 3ea5d5da4 | 이제 어디에서도 쓰이지 않는다(검색 결과를 옮긴 커밋 76d6aecf2에서 확인). 모든 작업이 끝난 뒤 지운다 |
 
+### 지운 것 (2026-11-11)
+호출 여부를 `th:replace`, `loadModule`, 시험까지 풀어서 확인한 뒤 지웠다. 템플릿 쪽만 지웠고 SCSS는 아래에 남긴다.
+- `project/menu.html`의 `projectMenu` 조각(단축키 스크립트는 `shortcuts` 조각에 같은 내용이 있다), `organization/menu.html`의 `menu` 조각, `common/my-series-menu-tab.html`의 `mySeriesMenuTab` 조각, `project/partial-settingmenu.html`, `organization/partial-settingmenu.html`(파일 삭제).
+- 남은 것: `.project-menu-*`, `.short-menu`, `.menu-name`, `.project-setting`, `.site-setting-nav` SCSS 규칙(`_page.scss`, `_responsive.scss`)과 `board/create.html`, `common/scripts.html`이 아직 가리키는 `.project-menu-nav` 선택자. 규칙이 큰 파일 안에 중첩되어 있어 별도 단계에서 모양 확인과 함께 지운다.
+
 ## 아직 새 셸로 옮기지 않은 화면(참고)
 | 화면 | 이유 |
 |---|---|

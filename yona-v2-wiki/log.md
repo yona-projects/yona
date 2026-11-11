@@ -72,3 +72,7 @@ ssh, gpg, oauth-apps, linked-accounts, token-edit, two-factor. 브라우저 교�
 브라우저 교체 5회 오류 없음.
 
 ## [2026-11-11] feat | 조직 홈, 조직 PR 목록, 이슈 라벨 swap-safe
+
+## [2026-11-11] refactor | 죽은 템플릿 조각 제거
+
+옛 가로 메뉴 조각 4개와 설정 메뉴 파일 2개를 지웠다. SCSS 규칙은 남겼다. 관련 시험 클래스 통과.
