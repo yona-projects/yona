@@ -207,7 +207,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         val token = events.stream(PasswordResetRequestedEvent::class.java).toList().single().token
         mockMvc.perform(post("/resetPassword").param("hashString", "bogus").param("password", "x")).andExpect(status().isBadRequest)
         mockMvc.perform(post("/resetPassword").param("password", "x")).andExpect(status().isBadRequest)
-        mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", "x")).andExpect(status().isOk)
+        mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", "Xk9#mQ2v")).andExpect(status().isOk)
         val again = mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", "y")).andExpect(status().isBadRequest).andReturn().response.contentAsString
         assertTrue(again.contains("Wrong url to reset password."))
     }
@@ -272,5 +272,19 @@ class PasswordResetTest : AbstractIntegrationTest() {
         assertTrue(tokens.isValid(token), "확인이 틀렸을 뿐이므로 주소는 그대로 쓸 수 있어야 한다")
         users.flush()
         assertTrue(!dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "brand-new"))
+    }
+
+    @Test
+    fun `재설정할 때 정책을 어긴 비밀번호는 바꾸지 않고 토큰도 남긴다 (welcome-F3)`() {
+        val user = newUser()
+        request(user.loginId, user.email)
+        val token = events.stream(PasswordResetRequestedEvent::class.java).toList().single().token
+        for (weak in listOf("short12", "password123")) {
+            val result = mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", weak)).andReturn()
+            assertEquals(400, result.response.status, weak)
+        }
+        assertTrue(tokens.isValid(token), "정책에 걸렸을 뿐이므로 주소는 그대로 쓸 수 있어야 한다")
+        users.flush()
+        assertTrue(dev.yona.security.UserPasswordService().matches(users.findById(user.id!!).get(), "old-pass"))
     }
 }

@@ -55,6 +55,12 @@ class SignupController(
                 .also { it.status = HttpStatus.BAD_REQUEST }
         }
 
+        // welcome-F3: 길이와 흔한 비밀번호, 아이디와 이메일과 같은 값을 거절한다(NIST SP 800-63B, A-465)
+        dev.yona.domain.user.PasswordPolicy.check(form.password, form.loginId, form.email)?.let { violation ->
+            return signupView().also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to violation.messageKey)) }
+                .also { it.status = HttpStatus.BAD_REQUEST }
+        }
+
         if (!signupService.isAllowedEmailDomain(form.email)) {
             return signupView().also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.INFO to "user.unacceptable.email.domain")) }
                 .also { it.status = HttpStatus.BAD_REQUEST }

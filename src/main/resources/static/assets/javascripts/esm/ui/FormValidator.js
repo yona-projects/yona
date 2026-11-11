@@ -14,7 +14,7 @@
  * <pre>
  * var oValidator = new yona.ui.FormValidator("signup", [
  *     {"name": "loginId",  "rules": "required|callback_check_loginId"},
- *     {"name": "password", "rules": "required|min_length[4]"},
+ *     {"name": "password", "rules": "required|min_length[8]"},
  *     {"name": "retyped",  "rules": "required|matches[password]", "display": "비밀번호 확인"}
  * ], function (aErrors, eEvent) { ... });
  * oValidator.registerCallback("check_loginId", function (sValue) { return /^[a-z0-9]+$/.test(sValue); });
