@@ -75,7 +75,19 @@
         document.getElementById('projectDeleteBtn').addEventListener('click', function(e){
             e.preventDefault();
             e.stopPropagation();
-            yona.Request.send('delete', deleteUrl);
+            // site-F5 시작
+            // v1.6은 이미 지워졌거나 지울 수 없어서 실패해도 확인창이 그대로 남고 안내가 없었다.
+            // 확인창을 닫고, 없어진 프로젝트(404)와 거절(403)은 화면을 다시 열어 목록을 맞추고, 그 밖의 실패는 알린다.
+            yona.Request.send('delete', deleteUrl).then(function(result){
+                if (result.ok) { return; }
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).hide();
+                if (result.status === 404 || result.status === 403) {
+                    yona.Request.navigation.reload();
+                } else {
+                    $yona.alert(Messages('error.internalServerError'));
+                }
+            });
+            // site-F5 끝
         });
 
         yona.Pagination.update($("#pagination"), [[${totalPageCount}]]);
