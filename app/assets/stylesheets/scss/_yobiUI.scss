@@ -1236,7 +1236,14 @@ span.issue-label {
     height: calc(20px + 10px);
     background-color: #FFF;
 
+    // A-496: 입력란에 포커스가 가면(목록 화면은 autofocus) 브라우저 기본의 검은 링 대신, 다른 입력란처럼 검색줄이 요나 주황 테두리로 바뀐다.
+    &:focus-within {
+        border-color: $orange;
+        box-shadow: 0 0 0 3px rgba($orange, .18);
+    }
+
     .textbox {
+        outline: 0;
         border:0 none;
         height: 20px;
         width:350px;
