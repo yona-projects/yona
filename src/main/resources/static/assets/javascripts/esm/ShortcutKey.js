@@ -227,9 +227,12 @@ const ShortcutKey = (function(htOptions){
     function _normalizeKeyString(sKey){
         sKey = sKey.toUpperCase() || "";
         sKey = sKey.replace(htVar.rxTrim, '');
-        sKey = sKey.split("+").sort((v) =>{
-            return -1 * (htVar.aCombinationKeys.indexOf(v));
-        }).join("+");
+        // 보조키를 ALT, CTRL, SHIFT 순으로 앞에 두고 주 키를 맨 뒤에 둔다. `_getKeyString`이 이벤트에서 만드는 문자열과 같은 순서이다.
+        // v1.6은 인자 하나짜리 비교 함수(`sort((v) => -indexOf(v))`)라 결과가 엔진의 정렬 방식에 달렸고, 등록한 `CTRL+SHIFT+ENTER`가
+        // `SHIFT+CTRL+ENTER`로 바뀌어 실제 키 입력(`CTRL+SHIFT+ENTER`)과 맞지 않아 단축키가 동작하지 않았다(shell-F4).
+        const aOrder = ["ALT", "CTRL", "SHIFT"];
+        const rank = (v) => { const i = aOrder.indexOf(v); return i < 0 ? aOrder.length : i; };
+        sKey = sKey.split("+").sort((a, b) => rank(a) - rank(b)).join("+");
 
         return sKey;
     }
