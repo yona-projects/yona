@@ -73,6 +73,14 @@ class MessageParityTest {
         // X-7 9a: Mercurial LFS 화면
         "lfs.hg.description", "lfs.hg.limits", "lfs.hg.files.title", "lfs.hg.files.empty", "lfs.hg.files.path", "lfs.hg.files.size", "lfs.hg.files.oid", "lfs.hg.guide.title", "lfs.hg.guide.intro", "lfs.hg.guide.url", "project.lfs.hg")
 
+    /**
+     * 일본어 번들에만 채운 키이다. v1.6 일본어 번들에 없어 영어로 나오던 풀 리퀘스트 화면 문구 7개이다(UI 계약 재조사, code-F15).
+     * 러시아어와 우즈베크어 번들의 같은 누락은 이번에 다루지 않았으므로 일본어 번들에만 기대한다.
+     */
+    private val japaneseOnlyFixKeys = setOf(
+        "pullRequest.additional.changes", "pullRequest.changes.all", "pullRequest.error.newPullRequestForm", "pullRequest.merge", "pullRequest.review", "pullRequest.review.closed", "pullRequest.review.total"
+    )
+
     private val defectFixKeys = setOf(
         // code-F15: v1.6 일본어 번들에 없어 영어로 나오던 코드 화면 문구 13개, project-F1: 한국어 번들은 대문자 `IncludeGitPush`만 있어 화면의 `includeGitPush`가 영어로 나왔다(ja, ru, uz에도 없었다)
         "code.authorDate", "code.copyCommitId", "code.download", "code.new.file", "code.open", "code.open.desc", "code.viewRaw", "code.tooBigFileForCodeBrowser", "code.looseFileSizeLimitForCodeBrowser",
@@ -100,7 +108,7 @@ class MessageParityTest {
         ).forEach { (tag, file) ->
             val v16 = snapshot(tag); val v2 = bundleKeys(file)
             assertEquals(emptySet(), v16 - v2, "$file: v1.6에 있고 v2에 없는 키")
-            assertEquals(addedKeys + (defectFixKeys - v16) + mercurialKeys, v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
+            assertEquals(addedKeys + (defectFixKeys - v16) + mercurialKeys + (if (file == "messages_ja_JP.properties") japaneseOnlyFixKeys - v16 else emptySet()), v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
         }
     }
 
