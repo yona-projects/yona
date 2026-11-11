@@ -1769,6 +1769,8 @@
                 width: 50px;
                 height: 50px;
                 margin-right: 10px;
+                box-sizing: content-box; /* 이미지는 v1.6의 50px 그대로 두고 테두리 2px가 바깥에 더해진다 */
+                border: 1px solid #d5d5d5; /* A-495: 기본 로고는 흰 바탕의 이미지라 흰 화면에서는 영역이 보이지 않았다 */
                 border-radius: 3px !important;
                 position: relative;
                 img {
