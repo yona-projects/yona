@@ -35,7 +35,7 @@
                 <span class="act-row float-end">
                     <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent ml10 comment-translate" data-bs-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
-                    <button th:if="${c.canRead}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
+                    <button th:if="${c.canUpdate}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
                     <button th:if="${c.canDelete}" type="button" class="btn-transparent ml6" data-toggle="comment-delete"
                             th:attr="data-request-uri=${base + '/post/' + post.number + '/comment/' + c.id + '/delete'}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                 </span>
