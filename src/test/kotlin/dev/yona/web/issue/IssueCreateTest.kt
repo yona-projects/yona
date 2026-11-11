@@ -347,6 +347,16 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `부모 이슈 후보에는 초안을 넣지 않는다 (v1_6은 남의 초안도 후보였다, 고쳤다, issue-F19)`() {
+        val project = newProject()
+        issues.save(Issue(project = project, number = 1, title = "공개글", state = State.OPEN, createdDate = Date(), updatedDate = Date()))
+        issues.save(Issue(project = project, number = 2, title = "남의초안", state = State.DRAFT, isDraft = true, createdDate = Date(), updatedDate = Date()))
+        val options = form(project, "", login(newUser())).select("select#parentId option").map { it.text().trim() }
+        assertTrue(options.contains("#1. 공개글"))
+        assertFalse(options.any { it.contains("남의초안") }, "초안이 부모 후보에 들어 있다: $options")
+    }
+
+    @Test
     fun `초안으로 저장하면 초안 상태이다`() {
         val project = newProject()
         submit(project, login(newUser()), "title" to "t", "body" to "b", "isDraft" to "true").andExpect(status().isSeeOther)
