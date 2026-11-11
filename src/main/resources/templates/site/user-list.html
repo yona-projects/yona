@@ -156,7 +156,7 @@
 <script type="text/javascript">
     // 보호 규칙(자기 자신, 기본 관리자, 마지막 관리자)에 걸려 서버가 403으로 거부하면 안내가 다음 화면에 실려 있으므로 다시 읽어 보인다(site-F3)
     document.querySelectorAll(".site-admin-toggle").forEach(function (el) {
-        el.addEventListener("request:error", function (e) { if (e.detail.status === 403) window.location.reload(); });
+        el.addEventListener("request:error", function (e) { if (e.detail.status === 403) { e.preventDefault(); window.location.reload(); } });
     });
 </script>
 </th:block>

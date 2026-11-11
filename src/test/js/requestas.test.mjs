@@ -61,6 +61,16 @@ export const tests = [
     assert.deepEqual(await page.evaluate(() => window.__err), [403, 500, 0]); assert.deepEqual((await state(page)).nav, []);
     assert.deepEqual(page.errors, []); await page.close();
   } },
+  { name: '실패하면 request:error 를 취소하지 않은 요소는 오류 알림을 띄우고, 취소하면 띄우지 않는다 (v1.6은 알림이 없었다, 고쳤다, project-F9)', run: async () => {
+    const page = await open('<button id="b" data-request-method="delete" data-request-uri="/x">x</button><button id="c" data-request-method="delete" data-request-uri="/x">c</button>');
+    await page.evaluate(() => { window.Messages = (k) => k; window.__alerts = []; $yona.alert = (m) => window.__alerts.push(m); document.getElementById('c').addEventListener('request:error', (e) => e.preventDefault()); });
+    await reply(page, { status: 500 }); await page.click('#b'); await settle(page);
+    await reply(page, { status: 403 }); await page.click('#b'); await settle(page);
+    await reply(page, 'network'); await page.click('#b'); await settle(page);
+    assert.deepEqual(await page.evaluate(() => window.__alerts), ['error.internalServerError', 'error.forbidden', 'error.internalServerError']);
+    await page.evaluate(() => { window.__alerts = []; }); await reply(page, { status: 500 }); await page.click('#c'); await settle(page);
+    assert.deepEqual(await page.evaluate(() => window.__alerts), []); await page.close();
+  } },
   { name: 'request:before 에서 preventDefault 하면 요청을 보내지 않는다(수락 단추 비활성화 같은 사전 처리도 여기서)', run: async () => {
     const page = await open('<button id="b" data-request-method="post" data-request-uri="/x">x</button>');
     await page.evaluate(() => { window.__cancel = true; document.getElementById('b').addEventListener('request:before', (e) => { window.__before = (window.__before || 0) + 1; if (window.__cancel) e.preventDefault(); }); });
