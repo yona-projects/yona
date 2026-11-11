@@ -330,7 +330,7 @@ class PullRequestPageAssembler(
         val author = thread.authorLoginId?.let { users.findByLoginId(it) }
         PullRequestReviewCard(
             href = threadUrl(thread), state = (thread.state ?: ThreadState.OPEN).name.lowercase(), outdated = (thread as? CodeCommentThread)?.let { changes.isOutdated(it) } == true,
-            content = first?.contents.orEmpty(), commentCount = (thread.reviewComments.size - 1).coerceAtLeast(0), ago = helper.agoOrDateString(thread.createdDate),
+            content = first?.contents.orEmpty(), commentCount = (if (thread.reviewComments.size > 1) thread.reviewComments.size else 0), ago = helper.agoOrDateString(thread.createdDate),
             agoTitle = helper.dateString(thread.createdDate), avatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(), authorName = thread.authorName
         )
     }

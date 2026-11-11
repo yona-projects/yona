@@ -269,6 +269,20 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `변경 탭의 리뷰 카드는 커밋 화면과 같이 댓글이 둘 이상일 때 전체 댓글 수를 보인다 (v1_6은 첫 댓글을 뺀 답글 수였다, 고쳤다, code-F12)`() {
+        val s = withCommit(setup()); val pr = open(s)
+        val a = user(); val b = user()
+        fun thread(vararg authors: User) {
+            val t = threads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "c").also { it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date() })
+            authors.forEach { u -> reviewComments.save(dev.yona.domain.comment.ReviewComment(contents = "c", createdDate = java.util.Date(), authorId = u.id, authorLoginId = u.loginId, authorName = u.name, thread = t)) }
+        }
+        thread(a, b); thread(a)
+        entityManager.flush(); entityManager.clear()
+        val counts = page(url(s, pr, "/changes"), login(s.manager)).select(".review-cards .comments, .comments.float-start").map { it.text().trim() }
+        assertEquals(listOf("2"), counts, "댓글이 둘인 스레드는 2, 하나인 스레드는 표시 없음이어야 한다")
+    }
+
+    @Test
     fun `멘션 후보는 스레드 순서로 훑고 스레드 안에서는 댓글 순서로 훑는다 (v1_6 addCommentAuthors)`() {
         val s = withCommit(setup()); val pr = open(s)
         val a = user(); val b = user(); val c = user()
