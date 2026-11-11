@@ -129,4 +129,14 @@ class OrganizationShellTest : AbstractIntegrationTest() {
         }
         assertNull(page("/organizations/${org.name}", session).selectFirst("[data-swap-safe]"), "조직 홈은 일반 이동이다")
     }
+
+    @Test
+    fun `모듈을 불러오는 조직 설정 화면은 스크립트를 본문 안에 두고 swap-safe 표지를 갖는다(D-136)`() {
+        val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }; val session = login(admin)
+        listOf("members", "settingform").forEach { sub ->
+            val doc = page("/organizations/${org.name}/$sub", session)
+            assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
+            assertTrue(doc.select(".shell-main script").any { it.data().contains("loadModule") }, sub)
+        }
+    }
 }

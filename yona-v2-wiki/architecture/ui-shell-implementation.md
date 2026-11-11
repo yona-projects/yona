@@ -61,6 +61,7 @@ updated: 2026-11-11
 - **교체되는 것**: 본문, 사이드바(활성 항목 갱신), 제목 띠(`id="pageTitle"`, 내 설정 20개 화면). `hx-select-oob`는 같은 `id`의 요소끼리 맞바꾼다. 문서 제목은 `hx-select`가 응답의 `<title>`을 쓰지 않아 모듈이 직접 옮긴다.
 - **지금 표지가 있는 화면**: 사이트 관리 7개(`audit`, `diagnostic`, `lfs`, `mail`, `security`, `sso`, `update`), 내 설정 8개(`edit-audit`, `edit-gpg-new`, `edit-ssh-new`, `edit-token-new`, `edit-two-factor-codes`, `edit-two-factor-setup`, `edit-oauth-app-form`, `edit-oauth-app-secret`). 판정 기준은 템플릿에 `<script>`, `th:inline`, `loadModule`, `onsubmit`, `onclick`이 없는 것이다(예비 판정이며 화면 시험으로 확정한다).
 - 조직 설정 5개(`audit`, `oauth-apps`, `oauth-app-form`, `oauth-app-secret`, `oauth-policy`)와 프로젝트 4개(`watchers`, `rulesets`, `lfs-hg`, `deploykey-new`)도 같은 기준으로 표지를 달았다(2026-11-11). 홈, 이슈, 위키처럼 스크립트가 많은 화면은 일반 이동이다.
+- **`loadModule`을 쓰는 화면**(프로젝트 `members`, `changeVCS`, `deleteform`, `transfer`, 조직 `members`, `settingform`)도 옵트인했다. 조건은 둘이다. (1) 초기화 스크립트가 본문 밖에 있으면 `hx-select`에서 빠지므로 `.shell-main` 안으로 옮긴다. (2) 본문을 교체하면 `<script type="module" src>`가 늦게 실행되어 `loadModule`이 먼저 돌고 옛 적재 경로(`service/yona.*.js`, 404)로 물러나므로, 초기화 스크립트를 `type="module"`로 바꾸고 첫 줄에서 `await import(모듈)`을 한 뒤 초기화한다. 직접 열 때와 교체할 때 모두 오류와 404가 없는 것을 브라우저에서 확인했다. 이 모듈들에는 `document`나 `window`에 거는 처리기가 없다(`user.Setting`, `user.View`는 있어 제외).
 - 이동 이력은 `yona.Htmx.js`의 설정대로 서버 재로드이다(`historyCacheSize=0`).
 
 ## 시험

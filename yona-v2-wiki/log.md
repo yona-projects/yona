@@ -50,3 +50,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | 조직 설정 5개, 프로젝트 4개 swap-safe 표지 (A-473 이어서)
 
 스크립트 없는 화면에 표지를 달고 시험 2개를 더했다. 옛 선택자로 실패하던 DeployKeySettingsTest도 고쳤다.
+
+## [2026-11-11] feat | loadModule 화면 6개 swap-safe (A-473 이어서)
+
+초기화 스크립트를 본문 안으로 옮기고 await import로 순서를 보장했다. 교체 뒤 404 없음 확인.
