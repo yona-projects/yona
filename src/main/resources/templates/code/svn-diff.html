@@ -15,6 +15,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div id="code-browse-wrap" class="code-browse-wrap">
             <div id="branches" class="btn-group branches float-end" data-name="branch" data-activate="manual">
                 <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">

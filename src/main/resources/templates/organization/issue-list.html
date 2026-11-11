@@ -11,11 +11,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::issuePage})}">
 <th:block th:fragment="issuePage" th:with="org=${orgView}">
-<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
 <div class="page-wrap-outer">
     <div class="page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{organization/header :: header(${org})}"></th:block><span data-swap-safe hidden></span>
 <th:block th:fragment="listWrap" th:with="org=${orgView}">
         <div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}' class="row issue-list-wrap">
             <div class="left-menu col-lg-2 span-hard-wrap">

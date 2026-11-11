@@ -14,6 +14,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="content-wrap frm-wrap">
             <legend th:text="#{fork.forking(${originalOwner}, ${originalName}, ${forkOwner}, ${forkName})}"></legend>
             <p th:text="#{fork.forking.message.1}"></p>

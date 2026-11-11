@@ -14,6 +14,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PROJECT_HOME')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <!--/* A-483: 프로젝트에 올린 이미지(로고와 같은 첨부)가 있으면 본문 맨 위의 표지로만 보인다. 올린 이미지가 없으면 표지가 없다. */-->
         <div class="project-cover" th:if="${projectView.hasLogo}" th:style="'background-image:url(' + @{${projectView.backgroundUrl}} + ')'" role="img" th:attr="aria-label=${projectView.displayName}"></div>
         <div class="project-breadcrumb hide show-in-mobile">

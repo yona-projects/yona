@@ -14,7 +14,8 @@
 <div class="page-wrap-outer">
     <div class="post-list project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'BOARD')}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
         <div class="search-wrap underline">
             <form id="option_form" th:action="@{${base + '/posts'}}" method="get" class="float-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">

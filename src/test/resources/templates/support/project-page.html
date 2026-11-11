@@ -5,7 +5,7 @@
 <th:block th:fragment="projectPageBody">
     <div class="shell">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, ${menuType})}"></th:block>
-        <div class="shell-main"><div id="project-test-body">본문</div></div>
+        <div class="shell-main"><th:block th:replace="~{project/header :: header(${projectView})}"></th:block><div id="project-test-body">본문</div></div>
     </div>
 </th:block>
 </html>

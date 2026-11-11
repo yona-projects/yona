@@ -14,6 +14,7 @@
 <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
     <div class="code-browse-wrap">
         <p class="commitInfo">
             <strong class="commitId" th:text="'@' + ${commitA} + '..' + ${commitB}"></strong>

@@ -15,8 +15,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectBody(view, menu, content)">
     <th:block th:replace="~{common/navbar :: navbar(${menu}, ${view.project}, null)}"></th:block>
 
-    <th:block th:replace="~{project/header :: header(${view})}"></th:block>
-
+    <!--/* A-485: 머리(프로젝트 이름, 로고, 지켜보기)는 사이드바 오른쪽 본문(.shell-main)의 첫 요소로 각 화면이 넣는다. */-->
     <th:block th:replace="${content}"></th:block>
 
     <th:block th:replace="~{common/footer :: footer}"></th:block>

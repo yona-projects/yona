@@ -14,7 +14,8 @@
 <div class="page-wrap-outer">
 <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PROJECT_REVIEW')}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
     <div class="row issue-list-wrap">
         <div class="col-lg-2 search-wrap span-hard-wrap">
             <div class="inner advanced">

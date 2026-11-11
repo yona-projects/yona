@@ -13,7 +13,8 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner" id="rulesetPage">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
 
         <div class="clearfix mt10 mb10">
             <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>

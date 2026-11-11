@@ -13,7 +13,8 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner" id="deployKeyNewPage">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
         <div th:if="${deployKeyError != null}" class="alert alert-danger mt10" th:text="#{${deployKeyError}}"></div>
         <form id="deploy-key-create" method="post" class="mt10" th:action="@{${base + '/setting/deploykeys'}}">
             <h4 th:text="#{deployKey.add}"></h4>

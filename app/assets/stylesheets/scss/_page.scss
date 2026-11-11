@@ -474,6 +474,17 @@
     background-color: #fff;
     border-bottom: 1px solid var(--bs-border-color, #dee2e6);
 
+    // 사이드바 오른쪽 본문(.shell-main)의 첫 요소일 때(A-485): 본문 폭 안에서 좌우 여백 없이 본문과 줄을 맞춘다.
+    .shell-main > & {
+        margin-bottom: 14px;
+
+        // 아래의 기본 규칙(.project-header-inner .project-header-wrap)보다 우선하도록 같은 깊이로 쓴다.
+        .project-header-inner .project-header-wrap {
+            margin: 0;
+            padding: 2px 0 10px;
+        }
+    }
+
     .project-header-inner {
         .project-header-wrap {
             display: flex;

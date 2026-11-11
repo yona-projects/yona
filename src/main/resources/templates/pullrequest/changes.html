@@ -15,6 +15,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="code-browse-wrap">
             <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
 

@@ -13,7 +13,8 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
         <div class="bubble-wrap gray wp">
             <div class="">
                 <h3><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <span class="next-vcs" th:text="${nextVcs}"></span></h3>

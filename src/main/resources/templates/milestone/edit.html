@@ -16,6 +16,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="content-wrap frm-wrap">
             <form th:action="@{${base + '/milestone/' + milestone.id + '/edit'}}" method="post" id="milestone-form">
                 <div class="row">

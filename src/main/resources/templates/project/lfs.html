@@ -11,7 +11,8 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner" id="lfsPage">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
-        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block><span data-swap-safe hidden></span>
         <p class="form-text mt10" th:text="#{lfs.description}"></p>
         <div class="alert alert-warning" th:unless="${enabled}" th:text="#{lfs.disabled}"></div>
 

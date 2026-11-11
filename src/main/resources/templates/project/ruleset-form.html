@@ -16,6 +16,7 @@
     <div class="project-page-wrap shell shell-below-banner" id="rulesetFormPage">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
 
         <nav aria-label="breadcrumb" class="mt10"><ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{${base + '/setting/rulesets'}}" th:text="#{project.ruleset}"></a></li>

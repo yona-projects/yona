@@ -12,6 +12,7 @@
     <div class="project-page-wrap shell shell-below-banner wiki-wrap">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'WIKI')}"></th:block>
         <div class="shell-main">
+        <th:block th:replace="~{project/header :: header(${projectView})}"></th:block>
         <div class="row">
             <div class="col-lg-9">
                 <div th:if="${errorKey != null}" class="wiki-error alert alert-danger" th:text="#{${errorKey}}">Error</div>

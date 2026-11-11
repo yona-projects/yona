@@ -210,3 +210,9 @@ $shell-gap: 14px;
     }
 }
 
+// 머리(프로젝트 이름, 로고)가 본문 첫 줄에 있는 화면은 사이드바 머리글(프로젝트 이름)이 같은 이름을 되풀이하므로 넓은 화면에서 숨긴다(A-485).
+// 좁은 폭의 서랍 머리(offcanvas-header)는 그대로 이름을 보인다.
+.shell:has(> .shell-main > .project-header-outer) .shell-sidebar-title {
+    display: none !important;
+}
+
