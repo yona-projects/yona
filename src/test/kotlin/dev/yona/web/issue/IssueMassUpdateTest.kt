@@ -263,6 +263,30 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈 일괄 변경은 열림과 닫힘만 받는다 (v1_6은 DRAFT, MERGED 같은 값도 받아 이슈가 초안이 되었다, 고쳤다, issue-F9)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1)
+        for (bad in listOf("DRAFT", "MERGED", "REJECTED", "ALL", "CONFLICT", "RESOLVED")) {
+            post(project, login(member), "issues[0].id" to a.id.toString(), "state" to bad).andExpect(status().isBadRequest)
+                .andExpect(content().json("""{"state":["Invalid value"]}""", true))
+        }
+        assertEquals(State.OPEN, reload(a).state)
+        post(project, login(member), "issues[0].id" to a.id.toString(), "state" to "CLOSED").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `같은 배타 분류의 라벨을 한꺼번에 둘 붙이려 하면 400이다 (v1_6은 서버에서 막지 않아 화면이 막던 규칙을 API로 우회했다, 고쳤다, issue-F9)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1)
+        val exclusive = categories.save(IssueLabelCategory(project = project, name = "e", isExclusive = true))
+        val x = labels.save(IssueLabel(project = project, category = exclusive, name = "x", color = "#fff"))
+        val y = labels.save(IssueLabel(project = project, category = exclusive, name = "y", color = "#000"))
+        post(project, login(member), "issues[0].id" to a.id.toString(), "attachingLabelIds" to x.id.toString(), "attachingLabelIds" to y.id.toString())
+            .andExpect(status().isBadRequest).andExpect(content().json("""{"attachingLabelIds":["Invalid value"]}""", true))
+        post(project, login(member), "issues[0].id" to a.id.toString(), "attachingLabelIds" to x.id.toString()).andExpect(status().isOk)
+    }
+
+    @Test
     fun `상태가 열거형 이름이 아니면 400 Invalid value이다 (v1_6 폼 바인딩)`() {
         val project = newProject(); val member = join(newUser(), project)
         val a = issue(project, 1)
