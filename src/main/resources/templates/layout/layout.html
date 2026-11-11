@@ -47,7 +47,7 @@
 
         if (window.parent === window) {
             if (shallWeOpenLeftNavigation === "true" && ![(${currentUser.anonymous})]) {
-                window.location.href = [[@{/user/sidebar}]] + "?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+                window.location.href = [[@{/user/sidebar}]] + "?path=" + encodeURIComponent(window.location.pathname + window.location.search) + "&hash=" + window.location.hash.replace('#','');
             }
         }
 
@@ -103,7 +103,7 @@
             $(".pin").on("click", function () {
                 if (window.parent === window) {
                     localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                    window.location.href = [[@{/user/sidebar}]] + "?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+                    window.location.href = [[@{/user/sidebar}]] + "?path=" + encodeURIComponent(window.location.pathname + window.location.search) + "&hash=" + window.location.hash.replace('#','');
                 } else {
                     localStorage.setItem('shallWeOpenLeftNavigation', "false");
                     window.parent.location = window.location.href;
