@@ -208,7 +208,7 @@ class IssueLabelController(
 
     // --- 분류 ---
 
-    /** 분류 목록이다. */
+    /** 분류 목록이다. 화면이 쓰지 않는 경로이다(project-F17). v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */
     @GetMapping("/{user}/{project}/issue/label/categories")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
@@ -219,7 +219,7 @@ class IssueLabelController(
         return json(HttpStatus.OK, labelService.categories(project).map { categoryMap(it) })
     }
 
-    /** 분류 하나이다. */
+    /** 분류 하나이다. 화면이 쓰지 않는 경로이다(project-F17). v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */
     @GetMapping("/{user}/{project}/issue/label/category/{id}")
     @IsAllowed(Operation.READ, ResourceType.ISSUE_LABEL_CATEGORY)
     @Transactional(readOnly = true)
@@ -262,7 +262,7 @@ class IssueLabelController(
         return json(HttpStatus.CREATED, categoryMap(category))
     }
 
-    /** 분류를 지운다. 속한 라벨도 함께 지운다. */
+    /** 분류를 지운다. 속한 라벨도 함께 지운다. 화면이 쓰지 않는 경로이다(project-F17). v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */
     @DeleteMapping("/{user}/{project}/issue/label/category/{id}")
     @IsAllowed(Operation.DELETE, ResourceType.ISSUE_LABEL_CATEGORY)
     @Transactional
