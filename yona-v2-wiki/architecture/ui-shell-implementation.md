@@ -60,6 +60,7 @@ updated: 2026-11-11
 - **응답 쪽 물러남**: 응답에 표지(또는 목록 표지 `list-container`)가 없으면 `yona.Htmx.js`가 일반 이동으로 같은 주소를 다시 연다(요청이 한 번 더 나가지만 안전하다). 번들(`yona-layout.js`)을 다시 만들어 커밋했다.
 - **교체되는 것**: 본문, 사이드바(활성 항목 갱신), 제목 띠(`id="pageTitle"`, 내 설정 20개 화면). `hx-select-oob`는 같은 `id`의 요소끼리 맞바꾼다. 문서 제목은 `hx-select`가 응답의 `<title>`을 쓰지 않아 모듈이 직접 옮긴다.
 - **지금 표지가 있는 화면**: 사이트 관리 7개(`audit`, `diagnostic`, `lfs`, `mail`, `security`, `sso`, `update`), 내 설정 8개(`edit-audit`, `edit-gpg-new`, `edit-ssh-new`, `edit-token-new`, `edit-two-factor-codes`, `edit-two-factor-setup`, `edit-oauth-app-form`, `edit-oauth-app-secret`). 판정 기준은 템플릿에 `<script>`, `th:inline`, `loadModule`, `onsubmit`, `onclick`이 없는 것이다(예비 판정이며 화면 시험으로 확정한다).
+- 조직 설정 5개(`audit`, `oauth-apps`, `oauth-app-form`, `oauth-app-secret`, `oauth-policy`)와 프로젝트 4개(`watchers`, `rulesets`, `lfs-hg`, `deploykey-new`)도 같은 기준으로 표지를 달았다(2026-11-11). 홈, 이슈, 위키처럼 스크립트가 많은 화면은 일반 이동이다.
 - 이동 이력은 `yona.Htmx.js`의 설정대로 서버 재로드이다(`historyCacheSize=0`).
 
 ## 시험

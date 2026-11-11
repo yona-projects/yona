@@ -46,3 +46,7 @@ Gradle `installTs`와 `compileTs`로 `src/main/frontend/ts`를 빌드해 `/asset
 ## [2026-11-11] feat | 상단 바: 전환 단추와 짧은 아바타 메뉴 (A-474)
 
 핀 사이드바(iframe) 진입을 전환 단추로 합쳤다. 시험 3개를 새 동작에 맞게 고쳤고 TopBarShellTest 4개를 더했다.
+
+## [2026-11-11] feat | 조직 설정 5개, 프로젝트 4개 swap-safe 표지 (A-473 이어서)
+
+스크립트 없는 화면에 표지를 달고 시험 2개를 더했다. 옛 선택자로 실패하던 DeployKeySettingsTest도 고쳤다.

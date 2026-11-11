@@ -12,7 +12,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
-        <div class="shell-main">
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="two-factor-page">
         <th:block th:replace="~{oauth/partial-apps :: appForm(${client}, ${form}, ${formError}, ${scopeChoices}, ${oidcInfo}, ${urls}, ${transferTargets})}"></th:block>
         </div>

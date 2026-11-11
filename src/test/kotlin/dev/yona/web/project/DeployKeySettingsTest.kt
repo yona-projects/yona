@@ -105,9 +105,9 @@ class DeployKeySettingsTest : AbstractIntegrationTest() {
     @Test
     fun `설정 메뉴에 배포 키 탭이 있고 목록 화면에서 활성이다`() {
         val project = newProject(); val s = manager(project)
-        val tab = page(project, s).select("ul.nav-tabs a[href$=/setting/deploykeys]").single()
+        val tab = page(project, s).select("nav.shell-sidebar a.nav-link[href$=/setting/deploykeys]").single()
         assertTrue(tab.hasClass("active"))
-        assertNotNull(Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/settingform").session(s)).andReturn().response.contentAsString).selectFirst("ul.nav-tabs a[href$=/setting/deploykeys]"))
+        assertNotNull(Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/settingform").session(s)).andReturn().response.contentAsString).selectFirst("nav.shell-sidebar a.nav-link[href$=/setting/deploykeys]"))
     }
 
     @Test

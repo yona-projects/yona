@@ -134,4 +134,12 @@ class ProjectShellTest : AbstractIntegrationTest() {
         assertTrue("\"H\"" in script && "\"M\"" in script && "\"B\"" in script)
         assertTrue("\"I\"" !in script, "이슈 메뉴를 끄면 I 키도 없어야 한다")
     }
+
+    @Test
+    fun `스크립트가 없는 프로젝트 화면만 swap-safe 표지를 갖는다(D-136)`() {
+        val owner = newUser(); val s = login(owner); val p = project(owner)
+        assertNotNull(page("${base(p)}/watchers", s).selectFirst(".shell-main [data-swap-safe]"))
+        assertNotNull(page("${base(p)}/setting/rulesets", s).selectFirst(".shell-main [data-swap-safe]"))
+        assertNull(page(base(p), s).selectFirst("[data-swap-safe]"), "프로젝트 홈은 일반 이동이다")
+    }
 }

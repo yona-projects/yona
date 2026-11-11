@@ -120,4 +120,13 @@ class OrganizationShellTest : AbstractIntegrationTest() {
         assertNotNull(doc.selectFirst(".shell > .shell-main"))
         assertNull(doc.selectFirst(".project-menu-outer"), "옛 조직 가로 메뉴가 없어야 한다")
     }
+
+    @Test
+    fun `스크립트가 없는 조직 설정 화면만 swap-safe 표지를 갖는다(D-136)`() {
+        val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }; val session = login(admin)
+        listOf("oauth-apps", "oauth-policy").forEach { sub ->
+            assertNotNull(page("/organizations/${org.name}/$sub", session).selectFirst(".shell-main [data-swap-safe]"), sub)
+        }
+        assertNull(page("/organizations/${org.name}", session).selectFirst("[data-swap-safe]"), "조직 홈은 일반 이동이다")
+    }
 }
