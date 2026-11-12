@@ -30,15 +30,11 @@
                 <input class="form-check-input" type="checkbox" id="check-all" data-target="checked-issue"/>
             </label>
         </div>
-        <div id="state" class="btn-group" data-name="state">
-            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" disabled="disabled">
-                <span class="d-label" th:text="#{issue.update.state}"></span>
-            </button>
-            <ul class="dropdown-menu mass-update-list">
-                <li data-value="OPEN"><a th:text="#{issue.state.open}" class="dropdown-item"></a></li>
-                <li data-value="CLOSED"><a th:text="#{issue.state.closed}" class="dropdown-item"></a></li>
-            </ul>
-        </div>
+        <!--/* A-523: 선택해야 도구줄이 나타난다. 하나도 고르지 않으면 .mass-update-wrap에 has-selection이 없어 숨는다(CSS). 상태는 드롭다운 대신 "닫기"/"다시 열기" 단추이다. */-->
+        <div class="mass-actions">
+        <span class="mass-selected"><b class="mass-count">0</b><th:block th:text="#{issue.massupdate.selected}"></th:block></span>
+        <button type="button" class="btn btn-outline-secondary" data-mass-state="CLOSED" hidden th:text="#{issue.massupdate.close}"></button>
+        <button type="button" class="btn btn-outline-secondary" data-mass-state="OPEN" hidden th:text="#{issue.massupdate.reopen}"></button>
 
         <div id="assignee" class="btn-group" data-name="assignee.id">
             <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" disabled="disabled">
@@ -92,6 +88,8 @@
             </ul>
         </div>
         </th:block>
+        <a href="#" class="mass-clear" data-mass-clear th:text="#{issue.massupdate.clear}"></a>
+        </div><!--/* .mass-actions */-->
     </form>
 </div>
 <script type="module" th:inline="javascript">

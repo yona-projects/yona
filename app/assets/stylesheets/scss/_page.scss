@@ -625,7 +625,8 @@
     border-bottom: 0;
 
     .project-header-inner {
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+        // 글자 그림자(BS2식, 감사 시험이 금지)를 쓰지 않으므로 그라데이션으로 글자 대비를 확보한다.
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.48));
 
         .project-header-wrap {
             .project-header-avatar {
@@ -634,7 +635,6 @@
 
             .project-breadcrumb-wrap {
                 .project-breadcrumb {
-                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 
                     .project-author a,
                     .project-name a {
@@ -666,7 +666,6 @@
                 }
 
                 .project-origin {
-                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 
                     .project-origin-title {
                         color: rgba(255, 255, 255, 0.85);
@@ -8391,4 +8390,59 @@ textarea.editorSeries.content {
   padding: 0 0 0 12px;
   line-height: 1.25rem;
   text-align: left;
+}
+
+
+// 이슈 일괄 변경 도구줄(A-523): 이슈를 하나도 고르지 않으면 단추들을 숨기고(비활성 단추 줄이 늘 보이던 것을 없앴다),
+// 고르면 같은 자리에 "N개 선택됨", 상태 단추, 담당자, 마일스톤, 라벨 단추, 선택 해제가 나타난다(`issue.MassUpdate.js`가 `has-selection`을 붙인다).
+// 필터 줄은 고정 높이 30px이었으나 도구줄이 두 줄이 되면 아래 이슈와 겹치므로 늘어날 수 있게 한다(최소 30px).
+.filter-wrap.mass-update-sticky {
+    height: auto;
+    min-height: 30px;
+}
+
+.mass-update-wrap {
+    // 전체 선택 체크박스와 도구줄을 한 줄에 놓고, 좁으면 아래로 접는다.
+    .mass-update-form {
+        float: none !important;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .mass-actions {
+        display: none;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    &.has-selection .mass-actions {
+        display: inline-flex;
+    }
+
+    // 상태 단추(닫기, 다시 열기)는 옆의 드롭다운 단추와 같은 크기(높이 30px, 글자 12px)로 맞춘다.
+    .mass-actions > .btn[data-mass-state] {
+        height: 30px;
+        padding: 0 12px;
+        font-size: 0.75rem;
+        line-height: 1.75rem;
+    }
+
+    .mass-selected {
+        font-weight: 600;
+        margin-right: 6px;
+        white-space: nowrap;
+
+        .mass-count {
+            margin-right: 2px;
+        }
+    }
+
+    .mass-clear {
+        margin-left: 6px;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
 }

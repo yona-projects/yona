@@ -71,7 +71,8 @@ const MassUpdate = function(htOptions){
         htVar.htExclusiveLabels = {};
         htVar.detachingLabelName = htOptions.welDetachingLabel.data('name') + '[]';
 
-        htVar.oState     = new yona.ui.Dropdown({"elContainer": htOptions.welState});
+        // 상태는 드롭다운이 아니라 "닫기"/"다시 열기" 단추(`[data-mass-state]`)로 바꿨다. 옛 드롭다운 요소가 있으면 그대로 쓴다.
+        htVar.oState     = (htOptions.welState && $(htOptions.welState).length) ? new yona.ui.Dropdown({"elContainer": htOptions.welState}) : null;
         htVar.oAssignee  = new yona.ui.Dropdown({"elContainer": htOptions.welAssignee});
         htVar.oMilestone = new yona.ui.Dropdown({"elContainer": htOptions.welMilestone});
         htVar.oAttachingLabel = new yona.ui.Dropdown({"elContainer": htOptions.welAttachingLabel});
@@ -104,11 +105,27 @@ const MassUpdate = function(htOptions){
      */
     function _attachEvent(){
         // massUpdate dropdowns
-        htVar.oState.onChange(_onChangeUpdateField);
+        if(htVar.oState){
+            htVar.oState.onChange(_onChangeUpdateField);
+        }
         htVar.oMilestone.onChange(_onChangeUpdateField);
         htVar.oAssignee.onChange(_onChangeUpdateField);
         htVar.oAttachingLabel.onChange(_onChangeAttachingLabelField);
         htVar.oDetachingLabel.onChange(_onChangeUpdateField);
+
+        // 상태 단추: 누르면 state 값을 담아 선택한 이슈 모두를 제출한다
+        $(document).on('click', '[data-mass-state]', function(){
+            _addFormField(htElement.welMassUpdateForm, 'state', $(this).data('mass-state'));
+            _onChangeUpdateField();
+        });
+
+        // 선택 해제
+        $(document).on('click', '[data-mass-clear]', function(weEvt){
+            weEvt.preventDefault();
+            $(htVar.sIssueCheckBoxesSelector).prop('checked', false);
+            htElement.weAllCheckbox.prop('checked', false);
+            _onCheckIssue();
+        });
 
         // massUpdate checkboxes
         htElement.waCheckboxes.change(_onCheckIssue);
@@ -150,12 +167,37 @@ const MassUpdate = function(htOptions){
         const bDisabled = (waChecked.length === 0);
 
         htElement.welMassUpdateButtons.attr('disabled', bDisabled);
+        _renderSelection(waChecked);
 
         if(bDisabled){
             _restoreLabelList();
         } else {
             _makeLabelListByChecked(waChecked);
         }
+    }
+
+    /**
+     * 선택 개수와 도구줄 표시를 갱신한다. 하나도 고르지 않으면 `.mass-update-wrap`의 `has-selection`이 없어 단추들이 숨고(CSS),
+     * 고르면 "N개 선택됨"과 함께 나타난다. 선택한 이슈가 열려 있으면 "닫기", 닫혀 있으면 "다시 열기"를 보이고 섞여 있으면 둘 다 보인다.
+     *
+     * @param {Wrapped Array} waChecked
+     */
+    function _renderSelection(waChecked){
+        const nCount = waChecked.length;
+        $('.mass-update-wrap').toggleClass('has-selection', nCount > 0);
+        $('.mass-count').text(nCount);
+
+        let bOpen = false, bClosed = false;
+        waChecked.each((i, el) =>{
+            const sState = String($(el).data('issue-state') || '').toLowerCase();
+            if(sState === 'closed'){
+                bClosed = true;
+            } else {
+                bOpen = true;
+            }
+        });
+        $('[data-mass-state="CLOSED"]').prop('hidden', !bOpen);
+        $('[data-mass-state="OPEN"]').prop('hidden', !bClosed);
     }
 
     /**

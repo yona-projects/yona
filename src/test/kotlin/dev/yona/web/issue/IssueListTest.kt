@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.util.Calendar
 import java.util.Date
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -341,7 +342,11 @@ class IssueListTest : AbstractIntegrationTest() {
         assertTrue(doc.select("input[name=checked-issue]").isNotEmpty())
         val bar = doc.selectFirst(".mass-update-wrap form#mass-update-form")!!
         assertEquals("${base(project)}/issues", bar.attr("action"))
-        assertEquals(listOf("OPEN", "CLOSED"), bar.select("#state li").map { it.attr("data-value") })
+        // A-523: 상태는 드롭다운이 아니라 "닫기"/"다시 열기" 단추이고, 선택 개수와 선택 해제가 있으며 이슈 체크박스는 상태를 가진다.
+        assertTrue(bar.select("#state").isEmpty(), "상태 드롭다운은 없다")
+        assertEquals(listOf("CLOSED", "OPEN"), bar.select("button[data-mass-state]").map { it.attr("data-mass-state") })
+        assertNotNull(bar.selectFirst(".mass-actions .mass-selected .mass-count")); assertNotNull(bar.selectFirst(".mass-actions [data-mass-clear]"))
+        assertTrue(doc.select("input[name=checked-issue]").all { it.attr("data-issue-state").lowercase() in listOf("open", "closed") }, "체크박스에 data-issue-state가 있다")
         assertTrue(bar.select("#assignee li[data-value=${assignable.id}]").isNotEmpty())
         assertTrue(bar.select("#assignee li[data-value=-1]").isNotEmpty())
         assertTrue(bar.select("#milestone li").size >= 2)
