@@ -106,4 +106,10 @@ export const tests = [
     const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar');
     assert.ok(Math.abs(side.top - header.bottom) <= 0.5, `머리 아래 ${header.bottom}, 사이드바 위 ${side.top}`);
   } },
+  { name: '사이드바는 머리 줄에 붙지만 본문은 머리 줄에서 12px 이상 떨어져 시작한다', async run() {
+    const page = await open(1280);
+    const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar'); const body = await box(page, '.shell-main > p');
+    assert.ok(Math.abs(side.top - header.bottom) <= 0.5, `사이드바는 붙는다: ${header.bottom} / ${side.top}`);
+    assert.ok(body.top - header.bottom >= 12, `본문 위 여백 ${body.top - header.bottom}px`);
+  } },
 ];

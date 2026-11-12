@@ -151,6 +151,11 @@ $shell-gap: 14px;
     > .shell-below-banner {
         margin-top: 0 !important;
     }
+
+    // 사이드바는 머리 줄에 붙이되 본문(필터 열, 목록, 상세)은 머리 줄에 붙지 않게 위 여백을 둔다(A-515).
+    .shell-main {
+        padding-top: 12px;
+    }
 }
 
 // 개수 배지는 옛 메뉴처럼 요나 주황 알약이다(Bootstrap의 `text-bg-secondary`는 !important라 같은 우선순위로 덮는다).
