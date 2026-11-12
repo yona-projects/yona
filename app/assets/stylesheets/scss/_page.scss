@@ -2405,25 +2405,28 @@ label.inline-list {
 }
 
 .milesion-wrap {
-    // 마일스톤 정보 열(A-520): 이슈 목록 오른쪽의 좁은 열이다. 기한과 상태 배지는 제목 아래 별도 줄로 두고 날짜가 줄 한가운데서 끊기지 않게 한다.
-    .milestone-info {
+    // 마일스톤 머리(A-521): 이슈 목록 위, 왼쪽 본문 맨 위에 제목, 진행률, 검색바를 쌓는다. 서로 붙지 않게 간격을 둔다.
+    .milestone-head {
         h4 {
-            padding: 0 0 8px;
+            padding: 0 0 10px;
             margin: 0;
-
-            small {
-                display: block;
-                margin: 4px 0 0 !important;
-
-                .due-date,
-                .date {
-                    white-space: nowrap;
-                }
-            }
         }
 
+        .progress {
+            margin-bottom: 14px;
+        }
+
+        .milestone-search {
+            float: none;
+            display: block;
+            margin: 0 0 16px;
+        }
+    }
+
+    // 설명과 단추 열(A-520, A-521): 오른쪽의 좁은 열이다.
+    .milestone-info {
         .milestone-desc {
-            margin: 10px 0;
+            margin: 0 0 10px;
         }
     }
 

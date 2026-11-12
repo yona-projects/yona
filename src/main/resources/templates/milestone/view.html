@@ -15,10 +15,31 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
         <div class="shell-main">
-        <!--/* A-520: 사이드바가 생겼으므로 이슈 목록이 사이드바 바로 오른쪽 본문 맨 위에서 시작한다. 제목, 기한, 진행률, 설명, 단추는 오른쪽 열(.milestone-info)로 옮겼다. 좁은 화면에서는 정보가 먼저 온다. */-->
+        <!--/* A-520: 사이드바가 생겼으므로 이슈 목록이 사이드바 바로 오른쪽 본문 맨 위에서 시작한다. 설명과 단추는 오른쪽 열(.milestone-info)에 둔다(제목, 진행률, 검색바는 A-521에서 왼쪽 본문 머리로 옮겼다). 좁은 화면에서는 오른쪽 열이 먼저 온다. */-->
         <div class="milesion-wrap">
             <div class="row d-flex">
             <div class="col-lg-9">
+            <!--/* A-521: 제목, 진행률, 검색바는 필터(일괄 변경 줄) 위, 왼쪽 본문 맨 위에 둔다. 설명과 단추만 오른쪽 열에 남긴다. */-->
+            <div class="milestone-head">
+                <h4>
+                    <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>
+                    <small class="ml10">
+                        <th:block th:if="${status.dueDateString != null}">
+                            <span class="due-date"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${status.dueDateString}"></strong></span>
+                            <span th:if="${milestone.state.name() != 'CLOSED'}" class="date">(<th:block th:text="${status.until}"></th:block>)</span>
+                        </th:block>
+                        <span class="badge rounded-pill margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
+                    </small>
+                </h4>
+
+                <div class="progress">
+                    <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                </div>
+                <div class="search search-bar milestone-search">
+                    <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+            </div>
             <div id="issues">
                 <ul class="nav nav-tabs mb-3">
                     <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
@@ -32,30 +53,12 @@
                 <div class="issues">
                     <div class="filter-wrap mass-update-sticky">
                         <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
-                        <div class="float-end search search-bar">
-                            <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
-                            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
-                        </div>
                     </div>
                     <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
                 </div>
             </div>
             </div>
             <div class="col-lg-3 milestone-info order-first order-lg-last">
-            <h4>
-                <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>
-                <small class="ml10">
-                    <th:block th:if="${status.dueDateString != null}">
-                        <span class="due-date"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${status.dueDateString}"></strong></span>
-                        <span th:if="${milestone.state.name() != 'CLOSED'}" class="date">(<th:block th:text="${status.until}"></th:block>)</span>
-                    </th:block>
-                    <span class="badge rounded-pill margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
-                </small>
-            </h4>
-
-            <div class="progress">
-                <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
-            </div>
             <div th:if="${contentsHtml == null}" class="content empty-content"></div>
             <div th:unless="${contentsHtml == null}" class="milestone-desc">
                 <div class="markdown-wrap" th:utext="${contentsHtml}"></div>
