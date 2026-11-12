@@ -4,9 +4,10 @@
 import assert from 'node:assert/strict';
 import { buildTs, openTs } from './tsmodule.mjs';
 
-const OVERLAY = `<div id="mySidenav" class="sidenav"><div class="right-menu"><ul class="nav-tabs"><li class="myProjectList"><a href="#myProjectList">프로젝트</a></li></ul><div id="usermenu-tab-content-list"><input class="search-input"></div></div></div>`;
+const OVERLAY = `<div id="mySidenav" class="sidenav"><div class="right-menu"><ul class="nav-tabs"><li class="myOrganizationList"><a href="#myOrganizationList">즐겨찾기</a></li><li class="myProjectList"><a href="#myProjectList">프로젝트</a></li><li class="myRecentIssueList"><a href="#myRecentIssueList">최근</a></li></ul><div id="usermenu-tab-content-list"><input class="search-input"></div></div></div>`;
 const BAR = `<button type="button" id="ham" data-shell-switcher>햄버거</button>`;
-const SIDEBAR = `<nav class="shell-sidebar offcanvas-lg" id="shellSidebar"><div class="offcanvas-body"><ul class="shell-sidebar-nav"><li>항목</li></ul><section data-shell-shortcuts aria-label="바로가기"></section><button class="shell-sidebar-fold">접기</button></div></nav>`;
+const SWITCH = `<div class="shell-sidebar-switch" role="tablist"><button type="button" role="tab" data-shell-switch="home" aria-selected="true">홈</button><button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false">즐겨찾기</button><button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false">프로젝트</button><button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button></div>`;
+const SIDEBAR = `<nav class="shell-sidebar offcanvas-lg" id="shellSidebar" data-shell-view="home"><div class="offcanvas-body">${SWITCH}<div data-shell-pane="home"><ul class="shell-sidebar-nav"><li>항목</li></ul></div><section data-shell-pane="shortcuts" data-shell-shortcuts aria-label="바로가기"></section><button class="shell-sidebar-fold">접기</button></div></nav>`;
 const MOD = `<script type="module">import { initShortcuts } from 'yona/shell/shortcuts.js'; window.__api = initShortcuts(); window.__ready = true;</script>`;
 
 async function open(body, opts = {}) {
@@ -62,5 +63,38 @@ export const tests = [
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.click('#ham');
     assert.deepEqual(await page.evaluate(() => [window.__toggled || 0, window.__old || 0]), [0, 1]); await ctx.close();
+  } },
+  { name: '선택 단추를 누르면 보기가 바뀐다: 홈은 맥락 메뉴, 나머지는 바로가기이고 눌린 단추만 선택 상태이다', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);
+    const st = () => page.evaluate(() => ({ view: document.getElementById('shellSidebar').getAttribute('data-shell-view'), selected: [...document.querySelectorAll('[data-shell-switch]')].map((b) => b.getAttribute('aria-selected')).join() }));
+    assert.deepEqual(await st(), { view: 'home', selected: 'true,false,false,false' });
+    await page.click('[data-shell-switch=myProjectList]');
+    assert.deepEqual(await st(), { view: 'shortcuts', selected: 'false,false,true,false' });
+    await page.click('[data-shell-switch=home]');
+    assert.deepEqual(await st(), { view: 'home', selected: 'true,false,false,false' });
+    assert.deepEqual(page.errors, []); await ctx.close();
+  } },
+  { name: '바로가기 단추를 누르면 안쪽의 같은 탭 링크를 눌러 준다(탭 전환과 Usermenu.js의 기억이 그대로 동작한다)', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + `<script>window.__tabs = []; document.querySelectorAll('.right-menu .nav-tabs a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); window.__tabs.push(a.getAttribute('href')); }));</script>` + MOD);
+    await page.click('[data-shell-switch=myRecentIssueList]'); await page.click('[data-shell-switch=myOrganizationList]');
+    assert.deepEqual(await page.evaluate(() => window.__tabs), ['#myRecentIssueList', '#myOrganizationList']);
+    await page.click('[data-shell-switch=home]');
+    assert.deepEqual(await page.evaluate(() => window.__tabs), ['#myRecentIssueList', '#myOrganizationList'], '홈은 탭을 누르지 않는다'); await ctx.close();
+  } },
+  { name: '고른 보기는 기억되어 다음 화면과 사이드바 교체 뒤에도 이어진다', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);
+    await page.click('[data-shell-switch=myProjectList]');
+    assert.equal(await page.evaluate(() => localStorage.getItem('shellSidebarView')), 'shortcuts');
+    // htmx가 사이드바를 새로 그리면(보기는 서버가 홈으로 그린다) 기억한 보기를 다시 적용한다
+    await page.evaluate((html) => { const old = document.getElementById('shellSidebar'); const t = document.createElement('div'); t.innerHTML = html; old.replaceWith(t.firstElementChild); document.body.dispatchEvent(new CustomEvent('htmx:afterSettle', { bubbles: true })); }, SIDEBAR);
+    const r = await page.evaluate(() => ({ view: document.getElementById('shellSidebar').getAttribute('data-shell-view'), selected: [...document.querySelectorAll('[data-shell-switch]')].map((b) => b.getAttribute('aria-selected')).join() }));
+    assert.deepEqual(r, { view: 'shortcuts', selected: 'false,false,true,false' });
+    await page.click('[data-shell-switch=home]');
+    assert.equal(await page.evaluate(() => localStorage.getItem('shellSidebarView')), 'home'); await ctx.close();
+  } },
+  { name: '기억한 보기와 탭이 있으면 처음부터 그 단추가 선택되어 있다', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD, { head: '<script>localStorage.setItem("shellSidebarView","shortcuts"); localStorage.setItem("sidebarActiveMenu","myRecentIssueList");</script>' });
+    const r = await page.evaluate(() => ({ view: document.getElementById('shellSidebar').getAttribute('data-shell-view'), selected: [...document.querySelectorAll('[data-shell-switch]')].map((b) => b.getAttribute('aria-selected')).join() }));
+    assert.deepEqual(r, { view: 'shortcuts', selected: 'false,false,false,true' }); await ctx.close();
   } },
 ];

@@ -8,6 +8,8 @@
  * - 사이드바가 없는 화면(프로필, 새 프로젝트 등)에서는 아무것도 하지 않아 덮는 패널이 그대로 쓰인다.
  * - 사이드바가 htmx로 교체되면(`hx-select-oob`) 새로 그려진 빈 자리에 옮겨 둔 내용을 다시 붙인다.
  * - 좁은 폭(992px 미만)에서는 사이드바가 서랍이므로, 상단 바의 햄버거가 그 서랍을 연다(바로가기가 서랍 안에 있다).
+ * - 사이드바 맨 위의 선택 단추 줄(홈, 즐겨찾기, 프로젝트, 최근 읽은 이슈)로 보기를 고른다. 홈은 맥락 메뉴(`data-shell-view="home"`),
+ *   나머지는 바로가기(`data-shell-view="shortcuts"`)이며 안쪽의 같은 탭 링크를 눌러 `Usermenu.js`의 탭 전환과 기억이 그대로 동작하게 한다.
  */
 
 /** 바로가기를 담을 사이드바 안의 자리이다. */
@@ -21,12 +23,72 @@ const SIDEBAR_SELECTOR = "nav.shell-sidebar";
 /** 서랍으로 바뀌는 폭이다. Bootstrap 기본 `lg` 미만과 같다. */
 const NARROW_QUERY = "(max-width: 991.98px)";
 
+/** 보기 기억 키이다. `home` 또는 `shortcuts`. 바로가기 안의 탭은 `Usermenu.js`가 쓰는 `sidebarActiveMenu`를 그대로 쓴다. */
+const VIEW_KEY = "shellSidebarView";
+const TAB_KEY = "sidebarActiveMenu";
+const TAB_NAMES = ["myOrganizationList", "myProjectList", "myRecentIssueList"];
+const DEFAULT_TAB = "myOrganizationList";
+const SWITCH_SELECTOR = "[data-shell-switch]";
+type View = "home" | "shortcuts";
+
 interface OffcanvasStatic {
   getOrCreateInstance(element: Element): { toggle(): void };
 }
 
 /** 옮겨 둔 내용이다. 사이드바가 교체되어 자리가 새로 그려지면 이 요소를 다시 붙인다. */
 let kept: HTMLElement | null = null;
+
+function read(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function write(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // 저장소를 쓸 수 없으면 이번 화면에서만 동작한다.
+  }
+}
+
+function currentTab(): string {
+  const stored = read(TAB_KEY);
+  return stored && TAB_NAMES.includes(stored) ? stored : DEFAULT_TAB;
+}
+
+/** 사이드바의 보기와 선택 단추의 선택 상태를 맞춘다. 사이드바가 교체되어 서버가 홈으로 다시 그린 뒤에도 부른다. */
+function render(): void {
+  const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+  if (!sidebar) return;
+  const view: View = read(VIEW_KEY) === "shortcuts" ? "shortcuts" : "home";
+  const tab = currentTab();
+  sidebar.setAttribute("data-shell-view", view);
+  sidebar.querySelectorAll<HTMLElement>(SWITCH_SELECTOR).forEach((button) => {
+    const key = button.getAttribute("data-shell-switch");
+    const selected = view === "home" ? key === "home" : key === tab;
+    button.setAttribute("aria-selected", String(selected));
+  });
+}
+
+/** 선택 단추 클릭: 홈이면 맥락 메뉴, 아니면 바로가기를 보이고 안쪽의 같은 탭 링크를 눌러 준다. */
+function onSwitchClick(event: Event): void {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest<HTMLElement>(SWITCH_SELECTOR);
+  if (!button) return;
+  const key = button.getAttribute("data-shell-switch");
+  if (key === "home") {
+    write(VIEW_KEY, "home");
+  } else if (key && TAB_NAMES.includes(key)) {
+    write(VIEW_KEY, "shortcuts");
+    write(TAB_KEY, key);
+    document.querySelector<HTMLElement>(`${HOST_SELECTOR} .nav-tabs .${key} > a`)?.click();
+  }
+  render();
+}
 
 /**
  * 내용을 사이드바 자리에 붙인다. 이미 붙어 있으면 아무것도 하지 않는다.
@@ -43,6 +105,12 @@ function adopt(): boolean {
   kept = menu;
   document.querySelector(OVERLAY_SELECTOR)?.remove();
   return true;
+}
+
+/** 내용을 붙이고(필요하면) 보기를 다시 맞춘다. htmx 교체 뒤에도 같은 길로 부른다. */
+function refresh(): void {
+  adopt();
+  render();
 }
 
 /** 좁은 폭에서 햄버거 클릭을 사이드바 서랍 열기로 바꾼다. 덮는 패널을 여는 옛 핸들러로는 넘기지 않는다. */
@@ -65,9 +133,11 @@ function onHamburgerClick(event: Event): void {
  */
 export function initShortcuts(): boolean {
   const adopted = adopt();
+  render();
   // 사이드바가 교체되는 응답은 본문 교체와 함께 `htmx:afterSettle`을 낸다. 같은 화면에서 여러 번 불려도 한 번만 붙는다.
-  document.addEventListener("htmx:afterSettle", adopt);
-  document.addEventListener("htmx:oobAfterSwap", adopt);
+  document.addEventListener("htmx:afterSettle", refresh);
+  document.addEventListener("htmx:oobAfterSwap", refresh);
   document.addEventListener("click", onHamburgerClick, true);
+  document.addEventListener("click", onSwitchClick);
   return adopted;
 }

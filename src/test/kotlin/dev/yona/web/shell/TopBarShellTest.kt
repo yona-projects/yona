@@ -104,16 +104,32 @@ class TopBarShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `맥락 사이드바 안에 즐겨찾기, 프로젝트, 최근 읽은 이슈 바로가기를 담을 자리가 항목 목록과 접기 단추 사이에 있다(sidebar 브랜치)`() {
+    fun `사이드바 맨 위에 홈, 즐겨찾기, 프로젝트, 최근 읽은 이슈를 고르는 작은 단추 줄이 있고 홈이 선택되어 있다(sidebar 브랜치)`() {
         val doc = page("/user/issues", login())
         val body = doc.selectFirst("nav.shell-sidebar .offcanvas-body")!!
-        val host = body.selectFirst("[data-shell-shortcuts]")
-        assertNotNull(host, "바로가기를 담을 자리")
-        val kids = body.children().map { it.className() + "|" + it.tagName() }
-        val nav = kids.indexOfFirst { it.contains("shell-sidebar-nav") }
-        val hostAt = body.children().indexOf(host)
-        val fold = kids.indexOfFirst { it.contains("shell-sidebar-fold") }
-        assertTrue(nav in 0 until hostAt && hostAt < fold, "항목 목록($nav) 다음, 접기 단추($fold) 앞: $hostAt")
+        val row = body.children().first()!!
+        assertTrue(row.hasClass("shell-sidebar-switch"), "본문의 첫 요소가 선택 단추 줄이다: ${row.className()}")
+        assertEquals("tablist", row.attr("role"))
+        assertTrue(row.attr("aria-label").isNotBlank())
+        val keys = row.select("button[data-shell-switch]").map { it.attr("data-shell-switch") }
+        assertEquals(listOf("home", "myOrganizationList", "myProjectList", "myRecentIssueList"), keys)
+        assertEquals(listOf("true", "false", "false", "false"), row.select("button").map { it.attr("aria-selected") })
+        assertTrue(row.select("button").all { it.attr("role") == "tab" && it.text().isNotBlank() }, "각 단추는 탭이고 글자가 있다")
+        assertEquals("home", doc.selectFirst("nav.shell-sidebar")!!.attr("data-shell-view"), "처음 보기는 홈이다")
+    }
+
+    @Test
+    fun `맥락 메뉴와 바로가기는 각각 하나의 구역이고, 바로가기 구역은 항목 목록과 접기 단추 사이에 있다(sidebar 브랜치)`() {
+        val doc = page("/user/issues", login())
+        val body = doc.selectFirst("nav.shell-sidebar .offcanvas-body")!!
+        val home = body.selectFirst("[data-shell-pane=home]")
+        val host = body.selectFirst("[data-shell-pane=shortcuts][data-shell-shortcuts]")
+        assertNotNull(home, "맥락 메뉴 구역"); assertNotNull(host, "바로가기 구역")
+        assertNotNull(home.selectFirst("ul.shell-sidebar-nav"), "맥락 메뉴 구역 안에 항목 목록")
+        val kids = body.children()
+        val hostAt = kids.indexOf(host)
+        val fold = kids.indexOfFirst { it.hasClass("shell-sidebar-fold") }
+        assertTrue(kids.indexOf(home) < hostAt && hostAt < fold, "맥락 메뉴($home) 다음, 접기 단추 앞: $hostAt")
         assertTrue(host.attr("aria-label").isNotBlank(), "구역의 이름표")
         assertNotNull(doc.selectFirst("#mySidenav .right-menu"), "옮겨 올 원본 패널은 서버가 그대로 그린다(사이드바가 없는 화면에서는 덮는 패널로 쓰인다)")
     }

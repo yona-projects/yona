@@ -15,12 +15,20 @@
     <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>
 </button>
 <th:block th:replace="~{shell/icons :: icons}"></th:block>
-<nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
+<nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" data-shell-view="home" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
     <div class="offcanvas-header d-lg-none">
         <h2 class="offcanvas-title h5" th:id="${id} + '-label'" th:text="${title}"></h2>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" th:attr="data-bs-target='#' + ${id}" th:aria-label="#{sidebar.close}"></button>
     </div>
     <div class="offcanvas-body">
+        <!--/* sidebar 브랜치: 사이드바 맨 위의 작은 선택 단추 줄이다. 홈은 맥락 메뉴(아래 data-shell-pane=home), 나머지는 바로가기(data-shell-pane=shortcuts)의 해당 탭을 보인다. 동작은 shell/shortcuts.ts가 맡고, 서버는 홈을 선택한 모양으로 그린다. */-->
+        <div class="shell-sidebar-switch" role="tablist" th:aria-label="#{sidebar.switch}">
+            <button type="button" role="tab" data-shell-switch="home" aria-selected="true" th:text="#{sidebar.switch.home}">홈</button>
+            <button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false" th:text="#{title.favorite}">즐겨찾기</button>
+            <button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false" th:text="#{title.project}">프로젝트</button>
+            <button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false" th:text="#{title.recently.visited.issue}">최근 읽은 이슈</button>
+        </div>
+        <div data-shell-pane="home">
         <!--/* 넓은 화면의 머리글이다. 좁은 폭의 서랍은 위의 offcanvas-header가 같은 이름을 보인다. */-->
         <div class="shell-sidebar-title d-none d-lg-block" th:text="${title}"></div>
         <a class="shell-sidebar-back" th:if="${menu.back != null}" th:href="@{${menu.back.path}}">&larr; <th:block th:text="#{${menu.back.labelKey}}"></th:block></a>
@@ -34,8 +42,9 @@
                 </a>
             </li>
         </ul>
+        </div><!--/* data-shell-pane=home */-->
         <!--/* sidebar 브랜치: 햄버거 패널(즐겨찾기, 프로젝트, 최근 읽은 이슈)의 내용을 shell/shortcuts.ts가 이 자리로 옮긴다. 자리는 서버가 비워 두고, 내용의 원본은 상단 바의 #mySidenav가 그대로 그린다(사이드바가 없는 화면에서는 그 패널이 덮어서 열린다). 접힌 띠에서는 숨는다. */-->
-        <section class="shell-shortcuts" data-shell-shortcuts th:aria-label="#{sidebar.shortcuts}"></section>
+        <section class="shell-shortcuts" data-shell-pane="shortcuts" data-shell-shortcuts th:aria-label="#{sidebar.shortcuts}"></section>
         <!--/* A-488: 넓은 화면에서 사이드바를 접고 펴는 단추이다. 사이드바 맨 아래에 있고(긴 화면에서는 화면 아래에 붙는다), 접으면 좁은 띠의 맨 아래에 남는다. 폰 폭의 서랍은 상단 바 햄버거가 연다. */-->
         <button type="button" class="shell-sidebar-fold d-none d-lg-flex" data-shell-sidebar-toggle aria-expanded="true" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.toggle}" th:title="#{sidebar.toggle} + ' ([)'">
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
