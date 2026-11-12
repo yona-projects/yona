@@ -557,6 +557,23 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일괄 변경의 마일스톤 선택지는 진행 중인(열린) 마일스톤만이다`() {
+        val project = newProject()
+        val current = newMilestone(project, "진행중", dueDate = daysFromNow(3))
+        newMilestone(project, "끝난것", State.CLOSED, daysFromNow(-3))
+        newIssue(project, current, State.OPEN, 1)
+        entityManager.flush()
+        val me = login(manager(project))
+        // 마일스톤 보기와 이슈 목록 모두 같은 선택지를 쓴다.
+        for (path in listOf("${base(project)}/milestone/${current.id}", "${base(project)}/issues")) {
+            val titles = page(path, me).select("#milestone ul.mass-update-list li[data-value] a").map { it.text() }
+            assertEquals(2, titles.size, "$path 선택지는 마일스톤 없음과 진행중뿐이다: $titles")
+            assertEquals("진행중", titles.last(), path)
+            assertTrue("끝난것" !in titles, "$path 에 닫힌 마일스톤이 보인다: $titles")
+        }
+    }
+
+    @Test
     fun `보기 화면에는 일괄 변경 막대와 이슈 검색 상자가 있다`() {
         val project = newProject()
         val m = newMilestone(project, "v1")
