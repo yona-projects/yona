@@ -2731,7 +2731,10 @@ label.inline-list {
         width:35px;
         display:inline-block;
     }
-    .progress { margin-top:7px; width:100px; height:7px; }
+    // A-501: v1.6의 고정 폭 100px은 BS5 열 안쪽 여백(24px) 때문에 더 좁아진 칸(약 74px)을 넘어 오른쪽 열 위로 겹쳤다. 칸에 맞추되 v1.6의 100px을 넘지 않는다.
+    // 대시보드의 줄(열 여백)은 8px로 줄여 막대가 칸 안에서 더 길게 보이게 한다.
+    .row { --bs-gutter-x: 0.5rem; }
+    .progress { margin-top:7px; width:100%; max-width:100px; height:7px; }
     .num {
         text-align:right;
         padding-right:15px;
