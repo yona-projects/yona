@@ -2477,7 +2477,7 @@ label.inline-list {
                 @include border-radius(5px);
 
                 .due-date    { width: 236px; margin-bottom:0; }
-                [data-vc="calendar"] { width:232px; min-width:0; }
+                [data-vc="calendar"] { width:100%; max-width:232px; min-width:0; }
                 .date-picker { margin-top:5px; }
 
                 label { color:#777; }
@@ -8273,7 +8273,9 @@ text-expander {
 /* 항상 보이는 달력(마일스톤, API 토큰): Pikaday는 폭 258에 1px 테두리의 상자였다. 라이브러리는 부모 폭을 다 채우고 테두리가 없다. */
 /* 라이브러리는 담는 요소의 class 를 `vc`로 바꾸므로 `.date-picker`로 고를 수 없다. 팝업이 아닌(`data-vc-input`이 없는) 달력이 항상 보이는 달력이다. */
 [data-vc="calendar"]:not([data-vc-input]) {
-  width: 258px;
+  // 폭은 담는 열을 채우되 v1.6의 258px를 넘지 않는다. 사이드바를 편 상태에서는 열이 232px라 고정 258px면 26px 넘쳐 요일과 화살표가 잘렸다(A-518).
+  width: 100%;
+  max-width: 258px;
   min-width: 0;
   border: 1px solid #ccc;
   border-radius: 0;
