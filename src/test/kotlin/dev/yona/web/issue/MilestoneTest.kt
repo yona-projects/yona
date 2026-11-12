@@ -481,7 +481,7 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `보기 화면은 왼쪽 본문에 제목, 진행률, 검색바를 필터 위에 두고 설명과 단추는 오른쪽 열에 둔다(A-521)`() {
+    fun `보기 화면은 왼쪽 본문 머리에 제목과 진행률을, 이슈 탭 줄 오른쪽 끝에 검색바를 두고 설명과 단추는 오른쪽 열에 둔다(A-528)`() {
         val project = newProject()
         val m = newMilestone(project, "v1", dueDate = daysFromNow(2), contents = "설명")
         newIssue(project, m, State.OPEN, 1)
@@ -491,9 +491,12 @@ class MilestoneTest : AbstractIntegrationTest() {
         val left = row.selectFirst("> .col-lg-9")!!
         val head = left.selectFirst("> .milestone-head")!!
         assertNotNull(head.selectFirst("h4 a.title"), "제목"); assertNotNull(head.selectFirst(".progress"), "진행률")
-        assertNotNull(head.selectFirst("input.textbox[data-toggle=item-search]"), "검색바")
-        assertTrue(left.children().indexOf(head) < left.children().indexOf(left.selectFirst("> #issues")!!), "머리가 이슈 탭과 필터보다 위이다")
-        assertNull(left.selectFirst("#issues input.textbox"), "필터 줄에는 검색바가 없다")
+        assertNull(head.selectFirst("input.textbox"), "머리에는 검색바가 없다(탭 줄로 옮겼다)")
+        val issues = left.selectFirst("> #issues")!!
+        assertTrue(left.children().indexOf(head) < left.children().indexOf(issues), "머리가 이슈 탭과 필터보다 위이다")
+        val bar = issues.selectFirst("> .milestone-tabbar")!!
+        assertNotNull(bar.selectFirst("> ul.nav-tabs"), "탭"); assertNotNull(bar.selectFirst("> .milestone-search input.textbox[data-toggle=item-search]"), "탭 줄 안의 검색바")
+        assertTrue(bar.children().last()!!.hasClass("milestone-search"), "검색바는 탭 줄의 오른쪽 끝(마지막)이다")
         val info = row.selectFirst("> .col-lg-3.milestone-info")!!
         assertNotNull(info.selectFirst(".milestone-desc")); assertNotNull(info.selectFirst(".actrow a.ybtn"), "목록, 수정 같은 단추는 오른쪽 열에 있다")
         assertNull(info.selectFirst("h4"), "오른쪽 열에는 제목이 없다")
@@ -580,8 +583,8 @@ class MilestoneTest : AbstractIntegrationTest() {
         newIssue(project, m, State.OPEN, 1)
         val doc = page("${base(project)}/milestone/${m.id}")
         assertTrue(doc.select("#issues .mass-update-wrap form#mass-update-form").isNotEmpty())
-        assertEquals("search at current milestone", doc.selectFirst(".milestone-head input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
-        assertEquals("issue-item", doc.selectFirst(".milestone-head input.textbox")!!.attr("data-items"))
+        assertEquals("search at current milestone", doc.selectFirst(".milestone-tabbar input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
+        assertEquals("issue-item", doc.selectFirst(".milestone-tabbar input.textbox")!!.attr("data-items"))
         assertTrue(doc.select("script").any { "milestone.View" in it.data() && "\"${m.id}\"" in it.data() })
     }
 }

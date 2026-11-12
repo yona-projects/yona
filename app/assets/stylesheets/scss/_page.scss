@@ -2415,10 +2415,30 @@ label.inline-list {
             margin-bottom: 14px;
         }
 
+    }
+
+    // 이슈 탭 줄(A-528): 탭은 왼쪽, 검색바(약 220px)는 같은 줄 오른쪽 끝에 둔다. 폭이 모자라면 검색바가 아래 줄로 내려간다.
+    // 밑줄은 탭 목록이 아니라 줄 전체에 그어 검색바 아래까지 이어지게 한다.
+    .milestone-tabbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 6px 12px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+
+        .nav-tabs {
+            border-bottom: 0;
+        }
+
         .milestone-search {
             float: none;
             display: block;
-            margin: 0 0 16px;
+            flex: 0 1 220px;
+            width: 220px;
+            max-width: 100%;
+            margin: 0 0 6px;
         }
     }
 

@@ -19,7 +19,7 @@
         <div class="milesion-wrap">
             <div class="row d-flex">
             <div class="col-lg-9">
-            <!--/* A-521: 제목, 진행률, 검색바는 필터(일괄 변경 줄) 위, 왼쪽 본문 맨 위에 둔다. 설명과 단추만 오른쪽 열에 남긴다. */-->
+            <!--/* A-521: 제목과 진행률은 필터(일괄 변경 줄) 위, 왼쪽 본문 맨 위에 둔다(검색바는 A-528에서 탭 줄로 옮겼다). 설명과 단추만 오른쪽 열에 남긴다. */-->
             <div class="milestone-head">
                 <h4>
                     <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>
@@ -35,20 +35,23 @@
                 <div class="progress">
                     <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
                 </div>
-                <div class="search search-bar milestone-search">
-                    <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
-                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
-                </div>
             </div>
             <div id="issues">
-                <ul class="nav nav-tabs mb-3">
-                    <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
-                        <a th:href="@{${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
-                            <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
-                            <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
-                        </a>
-                    </li>
-                </ul>
+                <!--/* A-528: 검색바는 한 줄을 통째로 쓰지 않고 이슈 탭 줄의 오른쪽 끝에 둔다(폭이 모자라면 아래 줄로 내려간다). */-->
+                <div class="milestone-tabbar">
+                    <ul class="nav nav-tabs mb-0">
+                        <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
+                            <a th:href="@{${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
+                                <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
+                                <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="search search-bar milestone-search">
+                        <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
 
                 <div class="issues">
                     <div class="filter-wrap mass-update-sticky">
