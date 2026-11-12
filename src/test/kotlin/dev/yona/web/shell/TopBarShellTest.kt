@@ -104,6 +104,21 @@ class TopBarShellTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `맥락 사이드바 안에 즐겨찾기, 프로젝트, 최근 읽은 이슈 바로가기를 담을 자리가 항목 목록과 접기 단추 사이에 있다(sidebar 브랜치)`() {
+        val doc = page("/user/issues", login())
+        val body = doc.selectFirst("nav.shell-sidebar .offcanvas-body")!!
+        val host = body.selectFirst("[data-shell-shortcuts]")
+        assertNotNull(host, "바로가기를 담을 자리")
+        val kids = body.children().map { it.className() + "|" + it.tagName() }
+        val nav = kids.indexOfFirst { it.contains("shell-sidebar-nav") }
+        val hostAt = body.children().indexOf(host)
+        val fold = kids.indexOfFirst { it.contains("shell-sidebar-fold") }
+        assertTrue(nav in 0 until hostAt && hostAt < fold, "항목 목록($nav) 다음, 접기 단추($fold) 앞: $hostAt")
+        assertTrue(host.attr("aria-label").isNotBlank(), "구역의 이름표")
+        assertNotNull(doc.selectFirst("#mySidenav .right-menu"), "옮겨 올 원본 패널은 서버가 그대로 그린다(사이드바가 없는 화면에서는 덮는 패널로 쓰인다)")
+    }
+
+    @Test
     fun `예전 핀 화살표(상단 바)와 iframe 사이드바 스크립트는 없고 아바타는 패널을 열지 않는다(A-491)`() {
         val s = login()
         val doc = page("/user/issues", s)

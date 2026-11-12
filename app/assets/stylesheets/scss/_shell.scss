@@ -172,6 +172,81 @@ $shell-gap: 14px;
     }
 }
 
+// 바로가기 구역(sidebar 브랜치): 햄버거 패널의 내용(즐겨찾기, 프로젝트, 최근 읽은 이슈)을 shell/shortcuts.ts가 사이드바 안으로 옮겨 온 자리이다.
+// 옛 덮는 패널은 `.sidenav > .right-menu { flex: 0 0 350px }`로 폭을 잡았으므로 사이드바 폭(232px)에 맞게 다시 잡는다.
+// 항목 목록 아래에서 남는 높이를 쓰고 길면 이 구역 안에서 스크롤한다. 접기 단추는 구역 아래, 사이드바 맨 아래에 남는다.
+.shell-shortcuts {
+    flex: 1 1 0;
+    min-height: 220px; // 짧은 화면에서도 탭, 검색, 목록 몇 줄이 보이게 한다
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .right-menu {
+        flex: none;
+        width: 100%;
+        max-width: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    // 탭 세 개와 새로고침이 232px 한 줄에 들어가도록 작게 한다.
+    .nav-tabs {
+        flex-wrap: nowrap;
+        margin-bottom: 8px !important;
+        font-size: 0.6875rem;
+
+        // 전역 탭 규칙(`.page-wrap-outer .nav-tabs:not(.small) > .nav-item > .nav-link { padding: 0 30px }`, v1.6의 탭 여백)과 같은 우선순위로
+        // 뒤에 두어 사이드바 안의 탭만 좁힌다. 30px 여백이면 세 번째 탭과 새로고침이 구역 밖으로 잘린다.
+        &:not(.small) > .nav-item > .nav-link {
+            padding: 4px 4px;
+            font-size: 0.75rem; // `.nav-link`가 글자 크기를 직접 가지므로 위 `.nav-tabs`의 크기를 물려받지 못한다
+            white-space: nowrap;
+        }
+
+        .refresh-button {
+            padding: 8px 0 0 4px;
+        }
+    }
+
+    // 목록과 검색 입력은 구역 폭을 따른다.
+    .tab-content,
+    .tab-box,
+    .search-input,
+    .group,
+    input[type="text"] {
+        max-width: 100%;
+    }
+
+    // 하단 문구는 흐름대로 구역 맨 아래에 놓는다(덮는 패널에서는 패널 바닥에 붙었다).
+    .sidebar-bottom {
+        position: static;
+        width: auto;
+        padding: 10px 4px 4px;
+        font-size: 0.6875rem;
+        text-align: center;
+        color: gray;
+        pointer-events: auto;
+
+        .yobicon-hearts { color: red; vertical-align: middle; }
+    }
+}
+
+// 접힌 띠에서는 바로가기 구역을 숨긴다(아이콘 항목과 펴기 단추만 남는다).
+html[data-sidebar="collapsed"] .shell-shortcuts {
+    display: none;
+}
+
+// 사이드바가 있는 화면의 햄버거: 넓은 폭에서는 사이드바가 바로가기를 담고 있어 숨기고, 좁은 폭에서는 서랍을 연다(shell/shortcuts.ts).
+// 사이드바가 없는 화면에서는 그대로 보여 덮는 패널을 연다.
+@media (min-width: 992px) {
+    .main:has(.shell-sidebar) .gnb-switcher {
+        display: none;
+    }
+}
+
 // 접힌 사이드바는 44px 좁은 띠이다(shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 항목은 아이콘만 남고(이름은 이름표) 펴기 단추가 띠 맨 아래에 남으며 화살표가 돌아선다.
 @media (min-width: 992px) {
     html[data-sidebar="collapsed"] .shell-sidebar {

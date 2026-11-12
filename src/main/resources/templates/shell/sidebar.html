@@ -8,7 +8,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id, active)"
           th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
 <script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
-<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; initSidebar(); initNavigation(); initFill();</script>
+<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; import { initShortcuts } from 'yona/shell/shortcuts.js'; initSidebar(); initNavigation(); initFill(); initShortcuts();</script>
 <!--/* A-489: 상단 바 햄버거는 v1.6 사이드바(전환 패널)를 여므로, 좁은 폭에서 이 맥락 사이드바를 서랍으로 여는 단추는 본문 위에 둔다. 넓은 화면의 접기는 사이드바 맨 아래 단추(shell-sidebar-fold)가 한다. */-->
 <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
         data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
@@ -34,6 +34,8 @@
                 </a>
             </li>
         </ul>
+        <!--/* sidebar 브랜치: 햄버거 패널(즐겨찾기, 프로젝트, 최근 읽은 이슈)의 내용을 shell/shortcuts.ts가 이 자리로 옮긴다. 자리는 서버가 비워 두고, 내용의 원본은 상단 바의 #mySidenav가 그대로 그린다(사이드바가 없는 화면에서는 그 패널이 덮어서 열린다). 접힌 띠에서는 숨는다. */-->
+        <section class="shell-shortcuts" data-shell-shortcuts th:aria-label="#{sidebar.shortcuts}"></section>
         <!--/* A-488: 넓은 화면에서 사이드바를 접고 펴는 단추이다. 사이드바 맨 아래에 있고(긴 화면에서는 화면 아래에 붙는다), 접으면 좁은 띠의 맨 아래에 남는다. 폰 폭의 서랍은 상단 바 햄버거가 연다. */-->
         <button type="button" class="shell-sidebar-fold d-none d-lg-flex" data-shell-sidebar-toggle aria-expanded="true" th:attr="aria-controls=${id}" th:aria-label="#{sidebar.toggle}" th:title="#{sidebar.toggle} + ' ([)'">
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
