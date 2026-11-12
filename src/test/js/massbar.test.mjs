@@ -15,9 +15,10 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"><style>${fs.readF
 <ul class="issue-list"><li class="post-item" id="first">첫 이슈</li></ul>
 </div></div></div></body></html>`;
 
-async function open(selected) {
+async function open(selected, withSort = true) {
   const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
   await page.setContent(HTML);
+  if (!withSort) await page.evaluate(() => document.querySelector('.filters').remove());
   if (selected) await page.evaluate(() => document.querySelector('.mass-update-wrap').classList.add('has-selection'));
   return { page, ctx };
 }
@@ -58,6 +59,17 @@ export const tests = [
     const { page, ctx } = await open(true);
     const count = await rect(page, '.mass-selected'), all = await rect(page, '.mass-select-all-link');
     assert.ok(all.left >= count.right - 1 && all.left - count.right <= 24, `개수(${count.right.toFixed(0)})와 모두 선택(${all.left.toFixed(0)}) 사이 ${(all.left - count.right).toFixed(0)}px`);
+    await ctx.close();
+  } },
+  { name: '정렬이 없는 화면(마일스톤)은 선택 전에 필터 줄이 자리를 차지하지 않고 이슈 목록이 바로 이어진다', run: async () => {
+    const { page, ctx } = await open(false, false);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.filter-wrap')).display), 'none', '내용 없는 필터 줄이 보인다');
+    await ctx.close();
+  } },
+  { name: '정렬이 없는 화면도 이슈를 고르면 도구줄이 보인다', run: async () => {
+    const { page, ctx } = await open(true, false);
+    const bar = await rect(page, '.filter-wrap'), count = await rect(page, '.mass-selected');
+    assert.ok(bar.h >= 20 && count.h > 0, `필터 줄 높이 ${bar.h}px, 개수 표시 높이 ${count.h}px`);
     await ctx.close();
   } },
 ];
