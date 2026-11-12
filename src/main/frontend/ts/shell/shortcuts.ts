@@ -23,8 +23,7 @@ const SIDEBAR_SELECTOR = "nav.shell-sidebar";
 /** 서랍으로 바뀌는 폭이다. Bootstrap 기본 `lg` 미만과 같다. */
 const NARROW_QUERY = "(max-width: 991.98px)";
 
-/** 보기 기억 키이다. `home` 또는 `shortcuts`. 바로가기 안의 탭은 `Usermenu.js`가 쓰는 `sidebarActiveMenu`를 그대로 쓴다. */
-const VIEW_KEY = "shellSidebarView";
+/** 바로가기 안의 탭 기억 키이다. `Usermenu.js`가 쓰는 것과 같다. 보기(홈 또는 바로가기)는 저장하지 않는다. */
 const TAB_KEY = "sidebarActiveMenu";
 const TAB_NAMES = ["myOrganizationList", "myProjectList", "myRecentIssueList"];
 const DEFAULT_TAB = "myOrganizationList";
@@ -37,6 +36,12 @@ interface OffcanvasStatic {
 
 /** 옮겨 둔 내용이다. 사이드바가 교체되어 자리가 새로 그려지면 이 요소를 다시 붙인다. */
 let kept: HTMLElement | null = null;
+
+/**
+ * 지금 고른 보기이다. 브라우저에 저장하지 않는다: 선택 단추 줄은 목록을 잠깐 보고 맥락 메뉴로 돌아오는 용도라, 화면을 새로 열면(새로고침,
+ * 링크로 이동) 홈으로 시작한다. htmx로 사이드바만 교체되는 동안에는 이 값이 남아 같은 보기를 다시 적용한다.
+ */
+let view: View = "home";
 
 function read(key: string): string | null {
   try {
@@ -63,7 +68,6 @@ function currentTab(): string {
 function render(): void {
   const sidebar = document.querySelector(SIDEBAR_SELECTOR);
   if (!sidebar) return;
-  const view: View = read(VIEW_KEY) === "shortcuts" ? "shortcuts" : "home";
   const tab = currentTab();
   sidebar.setAttribute("data-shell-view", view);
   sidebar.querySelectorAll<HTMLElement>(SWITCH_SELECTOR).forEach((button) => {
@@ -81,9 +85,9 @@ function onSwitchClick(event: Event): void {
   if (!button) return;
   const key = button.getAttribute("data-shell-switch");
   if (key === "home") {
-    write(VIEW_KEY, "home");
+    view = "home";
   } else if (key && TAB_NAMES.includes(key)) {
-    write(VIEW_KEY, "shortcuts");
+    view = "shortcuts";
     write(TAB_KEY, key);
     document.querySelector<HTMLElement>(`${HOST_SELECTOR} .nav-tabs .${key} > a`)?.click();
   }

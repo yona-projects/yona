@@ -81,20 +81,23 @@ export const tests = [
     await page.click('[data-shell-switch=home]');
     assert.deepEqual(await page.evaluate(() => window.__tabs), ['#myRecentIssueList', '#myOrganizationList'], '홈은 탭을 누르지 않는다'); await ctx.close();
   } },
-  { name: '고른 보기는 기억되어 다음 화면과 사이드바 교체 뒤에도 이어진다', run: async () => {
+  { name: '고른 보기는 브라우저에 저장하지 않고, htmx로 사이드바가 교체되는 동안에만 이어진다', run: async () => {
     const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);
     await page.click('[data-shell-switch=myProjectList]');
-    assert.equal(await page.evaluate(() => localStorage.getItem('shellSidebarView')), 'shortcuts');
-    // htmx가 사이드바를 새로 그리면(보기는 서버가 홈으로 그린다) 기억한 보기를 다시 적용한다
+    assert.equal(await page.evaluate(() => localStorage.getItem('shellSidebarView')), null, '보기는 저장하지 않는다(새로고침하면 홈으로 시작한다)');
+    // htmx가 사이드바를 새로 그리면(보기는 서버가 홈으로 그린다) 이 화면에서 고른 보기를 다시 적용한다
     await page.evaluate((html) => { const old = document.getElementById('shellSidebar'); const t = document.createElement('div'); t.innerHTML = html; old.replaceWith(t.firstElementChild); document.body.dispatchEvent(new CustomEvent('htmx:afterSettle', { bubbles: true })); }, SIDEBAR);
     const r = await page.evaluate(() => ({ view: document.getElementById('shellSidebar').getAttribute('data-shell-view'), selected: [...document.querySelectorAll('[data-shell-switch]')].map((b) => b.getAttribute('aria-selected')).join() }));
     assert.deepEqual(r, { view: 'shortcuts', selected: 'false,false,true,false' });
     await page.click('[data-shell-switch=home]');
-    assert.equal(await page.evaluate(() => localStorage.getItem('shellSidebarView')), 'home'); await ctx.close();
+    assert.equal(await page.evaluate(() => document.getElementById('shellSidebar').getAttribute('data-shell-view')), 'home'); await ctx.close();
   } },
-  { name: '기억한 보기와 탭이 있으면 처음부터 그 단추가 선택되어 있다', run: async () => {
+  { name: '예전에 저장된 보기 값이 있어도 새로 열면 홈으로 시작하고, 마지막에 고른 탭만 기억해 둔다', run: async () => {
     const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD, { head: '<script>localStorage.setItem("shellSidebarView","shortcuts"); localStorage.setItem("sidebarActiveMenu","myRecentIssueList");</script>' });
     const r = await page.evaluate(() => ({ view: document.getElementById('shellSidebar').getAttribute('data-shell-view'), selected: [...document.querySelectorAll('[data-shell-switch]')].map((b) => b.getAttribute('aria-selected')).join() }));
-    assert.deepEqual(r, { view: 'shortcuts', selected: 'false,false,false,true' }); await ctx.close();
+    assert.deepEqual(r, { view: 'home', selected: 'true,false,false,false' });
+    // 바로가기 단추를 누르면 기억해 둔 탭이 아니라 누른 탭이 선택된다
+    await page.click('[data-shell-switch=myProjectList]');
+    assert.equal(await page.evaluate(() => localStorage.getItem('sidebarActiveMenu')), 'myProjectList'); await ctx.close();
   } },
 ];
