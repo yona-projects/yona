@@ -4478,6 +4478,11 @@ label.issue-item-row {
     position:relative;
 
     .code-browse-header {
+        // 도구 줄의 오른쪽 단추들(새 파일, 커밋 이력, 압축 파일로 내려받기)은 맞붙지 않게 6px 띄운다(A-516).
+        > .float-end + .float-end {
+            margin-right: 6px;
+        }
+
       margin-top:10px;
       margin-bottom:10px;
       display:block; height:34px;

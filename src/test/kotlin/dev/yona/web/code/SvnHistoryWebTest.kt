@@ -24,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -94,7 +96,7 @@ class SvnHistoryWebTest : AbstractIntegrationTest() {
         val p = project()
         commit(p, "hdev", "하나", mapOf("a.txt" to "1"))
         val doc = page("/${p.owner}/${p.name}/commits/HEAD/")
-        assertEquals(listOf("Files", "Commit"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
+        assertNull(doc.selectFirst(".code-browse-wrap ul.nav-tabs"), "Subversion 이력도 탭 줄이 없다(A-516)"); assertNotNull(doc.selectFirst(".code-browse-wrap a.code-back-link"))
         assertEquals("Commit date", doc.selectFirst("td.date strong")!!.text())
     }
 

@@ -16,9 +16,9 @@
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
         <div class="code-browse-wrap">
-            <ul class="nav nav-tabs mb-3" th:if="${page.showTabs}">
+            <!--/* A-516: 커밋 탭은 없앴다. 커밋 이력은 아래 도구 줄의 "커밋 이력" 링크로 간다. 브랜치와 태그가 없는 저장소(Subversion)는 탭이 파일 하나뿐이라 줄을 보이지 않는다. */-->
+            <ul class="nav nav-tabs mb-3" th:if="${page.showTabs and (page.branchesTabUrl != null or page.tagsTabUrl != null)}">
                 <li class="nav-item"><a th:href="${page.filesTabUrl}" th:text="#{code.files}" class="nav-link active"></a></li>
-                <li class="nav-item"><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}" class="nav-link"></a></li>
                 <li th:if="${page.branchesTabUrl != null}" class="nav-item"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
                 <li th:if="${page.tagsTabUrl != null}" class="nav-item"><a th:href="${page.tagsTabUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
             </ul>
@@ -39,6 +39,9 @@
                 </div>
                 <div class="float-end" th:if="${page.downloadUrl != null}">
                     <a th:href="${page.downloadUrl}" class="ybtn" th:text="#{code.download}"></a>
+                </div>
+                <div class="float-end">
+                    <a id="commit-history-link" th:href="${page.commitsTabUrl}" class="ybtn" th:text="#{code.commit.history}"></a>
                 </div>
                 <div class="float-end" th:if="${page.newFileUrl != null}">
                     <a id="new-file-link" th:href="${page.newFileUrl}" class="ybtn" th:text="#{code.new.file}"></a>

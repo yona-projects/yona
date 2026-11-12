@@ -27,10 +27,7 @@
                 </ul>
             </div>
 
-            <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li class="nav-item"><a th:href="${filesUrl}" th:text="#{code.files}" class="nav-link"></a></li>
-                <li class="nav-item"><a th:href="${commitsUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
-            </ul>
+            <div class="mb-3"><a class="code-back-link" th:href="${commitsUrl}">&larr; <th:block th:text="#{code.back.history}"></th:block></a></div>
 
             <p class="commitInfo">
                 <th:block th:if="${commit.known}">

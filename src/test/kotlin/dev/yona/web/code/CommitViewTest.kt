@@ -109,10 +109,11 @@ class CommitViewTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/commit/$second")
         assertEquals("@$second", doc.selectFirst(".commitId")!!.text())
         assertEquals("둘째 커밋", doc.selectFirst(".commitMsg.short")!!.text())
-        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap > ul.nav-tabs li").map { it.text() })
         assertTrue(doc.select(".diff-body").first()!!.text().contains("two"))
         assertNotNull(doc.selectFirst("#watch-button"))
         assertTrue(page("/${p.owner}/${p.name}/commit/$first").selectFirst("pre.commitMsg.desc")!!.text().contains("상세 설명"))
+        assertNull(doc.selectFirst(".code-browse-wrap > ul.nav-tabs"), "커밋 상세에는 탭 줄이 없다(A-516)")
+        assertTrue(doc.selectFirst(".code-browse-wrap a.code-back-link")!!.attr("href").startsWith("/${p.owner}/${p.name}/commits"), "커밋 이력으로 되돌아가는 링크")
     }
 
     @Test

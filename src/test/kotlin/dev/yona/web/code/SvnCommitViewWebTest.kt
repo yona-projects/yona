@@ -137,7 +137,7 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         assertEquals("둘째 커밋\n설명 줄", doc.selectFirst("pre.commitMsg")!!.wholeText())
         val patch = doc.selectFirst("#commit[data-commit-origin=true]")!!.wholeText()
         assertTrue(patch.contains("+line2"), patch)
-        assertEquals(listOf("Files", "Commit"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
+        assertNull(doc.selectFirst(".code-browse-wrap > ul.nav-tabs"), "Subversion 커밋 상세도 탭 줄이 없다(A-516)"); assertNotNull(doc.selectFirst(".code-browse-wrap a.code-back-link"))
         assertNotNull(dev.id)
     }
 

@@ -190,7 +190,10 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     fun `폴더 화면은 폴더를 앞세운 목록과 탭, 브랜치 선택, 내려받기를 보여 준다`() {
         val p = filled()
         val doc = page("/${p.owner}/${p.name}/code/master")
-        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
+        assertEquals(listOf("Files", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() }, "커밋 탭은 없다(A-516)")
+        val history = doc.selectFirst(".code-browse-header a#commit-history-link")
+        assertNotNull(history, "파일 화면의 도구 줄에 커밋 이력 링크가 있다")
+        assertTrue(history.attr("href").startsWith("/${p.owner}/${p.name}/commits/"), history.attr("href"))
         assertEquals(listOf("refs/heads/master"), doc.select("select#branches option").map { it.text() })
         // 브랜치 선택 상자는 form-select(폭 100%)를 달아도 select2 상자 폭을 `_page.scss`가 고정해 탭이 옆으로 밀리지 않는다(BranchSelectWidthTest)
         // v1.6 역방향 라우트는 경로가 비면 끝에 `/` 없는 `/code/:branch`를 만든다
