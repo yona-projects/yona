@@ -15,7 +15,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectBody(view, menu, content)">
     <th:block th:replace="~{common/navbar :: navbar(${menu}, ${view.project}, null)}"></th:block>
 
-    <th:block th:replace="~{project/header :: header(${view})}"></th:block>
+    <th:block th:replace="~{project/header :: header(${view}, ${menu})}"></th:block>
 
     <th:block th:replace="${content}"></th:block>
 

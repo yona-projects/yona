@@ -1,10 +1,11 @@
 <!--/*
   이식 원본: app/views/project/header.scala.html
-  매개변수: view(ProjectViewContext)
+  매개변수: view(ProjectViewContext), menu(메뉴 종류, 프로젝트 홈이면 'PROJECT_HOME')
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view, menu)">
 <!--/* A-483: 머리는 GitHub, GitLab처럼 배경 이미지 없는 얇은 한 줄이다. 올린 이미지는 프로젝트 홈 본문 맨 위의 표지(project/home)로 보인다. */-->
-<div class="project-header-outer">
+<!--/* 프로젝트 홈에서만 머리에 배경 이미지를 깐다(선생님 지시 2026-11-12, A-511). 올린 이미지(로고와 같은 첨부) 또는 기본 벽돌 배경이며, 어두운 그라데이션과 흰 글자는 .has-banner 스타일이 맡는다. 본문 표지(.project-cover)는 확정 전까지 임시로 그대로 둔다. */-->
+<div class="project-header-outer" th:classappend="${menu == 'PROJECT_HOME'} ? 'has-banner'" th:style="${menu == 'PROJECT_HOME'} ? 'background-image:url(' + @{${view.backgroundUrl}} + ')'">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">
