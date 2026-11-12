@@ -8401,7 +8401,7 @@ textarea.editorSeries.content {
     min-height: 30px;
     // 전체 선택 체크박스(왼쪽)와 정렬 필터(오른쪽 끝)를 같은 줄에 둔다. 따로 두 줄을 차지하던 빈 줄을 없앴다(A-524).
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
 

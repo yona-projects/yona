@@ -53,7 +53,7 @@ export const tests = [
   { name: '선택 전에는 전체 선택 체크박스와 정렬 필터가 같은 줄에 있고 빈 줄을 차지하지 않는다', run: async () => {
     const { page, ctx } = await open(false);
     const chk = await rect(page, '#check-all'), sort = await rect(page, '.filters'), bar = await rect(page, '.filter-wrap');
-    assert.ok(Math.abs((chk.top + chk.bottom) / 2 - (sort.top + sort.bottom) / 2) <= 14, `체크박스 중심 ${((chk.top + chk.bottom) / 2).toFixed(0)}, 정렬 중심 ${((sort.top + sort.bottom) / 2).toFixed(0)}: 서로 다른 줄이다`);
+    assert.ok(Math.abs((chk.top + chk.bottom) / 2 - (sort.top + sort.bottom) / 2) <= 3, `체크박스 중심 ${((chk.top + chk.bottom) / 2).toFixed(0)}, 정렬 중심 ${((sort.top + sort.bottom) / 2).toFixed(0)}: 서로 다른 줄이다`);
     assert.ok(bar.h <= 40, `필터 줄 높이 ${bar.h}px`);
     assert.ok(sort.left > chk.right, '정렬은 체크박스 오른쪽(줄의 오른쪽 끝)에 있다');
     await ctx.close();
