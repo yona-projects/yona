@@ -96,6 +96,24 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `올린 시각은 24시간제 yyyy-MM-dd HH시 mm분 형식이라 오전 오후 없이 짧게 보인다(A-499)`() {
+        val me = newUser()
+        attach(me, "t.txt", 1_700_000_000_000)
+        val date = page(login(me)).selectFirst(".attachment-file-detail .file-date")!!.text()
+        assertTrue(Regex("""\d{4}-\d{2}-\d{2} \d{2}:\d{2}""").matches(date), "형식이 yyyy-MM-dd HH:mm이다: $date")
+    }
+
+    @Test
+    fun `내려받기 열의 머리글은 글자 대신 아이콘이고 이름표와 보조 글자가 있다(A-499)`() {
+        val me = newUser()
+        attach(me, "t.txt", 1_700_000_000_000)
+        val head = page(login(me)).selectFirst(".attachment-files-header .header-download")!!
+        assertTrue(head.selectFirst("i.yobicon-cloud-download") != null, "아이콘이 있다")
+        assertEquals("Download", head.attr("title"), "마우스를 올리면 이름이 보인다")
+        assertEquals("Download", head.selectFirst(".visually-hidden")!!.text(), "화면 낭독기에는 이름이 읽힌다")
+    }
+
+    @Test
     fun `파일 이름은 열기 링크이고 내려받기 링크와 읽기 쉬운 크기가 있다`() {
         val me = newUser()
         val file = attach(me, "report.pdf", 1_700_000_000_000, size = 1500)

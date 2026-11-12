@@ -6948,13 +6948,14 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .attachment-files {
     color: gray;
     .attachment-files-header {
-        font-size: 1rem;
-        font-weight: bold;
+        // A-499: 머리글은 작은 글자와 얇은 줄이다(선생님 지적: 표 머리글이 크다).
+        font-size: 0.75rem;
+        font-weight: 600;
         text-align: center;
-        padding: 10px 5px;
+        padding: 4px 5px;
         background-color: #f1f1f1;
         border-radius: 5px;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
         .header-file-name {
             text-align: center;
         }
@@ -6964,6 +6965,20 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         .header-location {
             text-align: center;
         }
+        .header-download {
+            text-align: center;
+        }
+    }
+
+    // A-499: 큰 화면에서는 열 폭을 내용에 맞춘다. 내려받기와 크기, 날짜 열은 고정 폭, 파일 이름은 남는 폭을 모두 쓰고, 올린 위치는 비율 폭이다.
+    // 예전의 12칸 비율(`col-lg-*`)에서는 파일 이름이 `.p`와 `ng`로 끊기고 날짜가 두 줄이 되었다. 좁은 화면(992px 미만)은 열이 한 줄씩 쌓이는 기본 동작이다.
+    @media (min-width: 992px) {
+        .row > .header-preview, .row > .file-preview { flex: 0 0 56px; width: 56px; max-width: 56px; }
+        .row > .header-file-name, .row > .file-name { flex: 1 1 0; width: auto; max-width: none; min-width: 0; }
+        .row > .header-size, .row > .file-size { flex: 0 0 72px; width: 72px; max-width: 72px; }
+        .row > .header-download, .row > .file-download { flex: 0 0 52px; width: 52px; max-width: 52px; padding-left: 0; padding-right: 0; }
+        .row > .file-date { flex: 0 0 130px; width: 130px; max-width: 130px; white-space: nowrap; }
+        .row > .header-location, .row > .file-location { flex: 0 0 22%; width: 22%; max-width: 22%; }
     }
     .attachment-file-detail {
         padding: 5px;
@@ -6980,6 +6995,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             }
         }
         .file-name {
+            overflow-wrap: anywhere; // 아주 긴 이름도 칸 밖으로 넘치지 않고 줄을 바꾼다(글자 중간이 아니라 칸이 모자랄 때만).
             font-size: 0.875rem;
             .icon:before {
                 padding-right: 5px;
