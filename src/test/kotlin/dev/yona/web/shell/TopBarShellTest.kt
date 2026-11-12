@@ -103,8 +103,12 @@ class TopBarShellTest : AbstractIntegrationTest() {
         assertTrue(row.attr("aria-label").isNotBlank())
         val keys = row.select("button[data-shell-switch]").map { it.attr("data-shell-switch") }
         assertEquals(listOf("home", "myOrganizationList", "myProjectList", "myRecentIssueList"), keys)
-        assertEquals(listOf("true", "false", "false", "false"), row.select("button").map { it.attr("aria-selected") })
-        assertTrue(row.select("button").all { it.attr("role") == "tab" && it.text().isNotBlank() }, "각 단추는 탭이고 글자가 있다")
+        assertEquals(listOf("true", "false", "false", "false"), row.select("button[role=tab]").map { it.attr("aria-selected") })
+        assertTrue(row.select("button[role=tab]").all { it.text().isNotBlank() }, "각 탭 단추에는 글자가 있다")
+        val refresh = row.children().last()!!
+        assertTrue(refresh.tagName() == "button" && refresh.hasAttr("data-shell-refresh"), "줄 맨 끝은 새로고침 단추이다: ${refresh.outerHtml().take(80)}")
+        assertTrue(refresh.attr("aria-label").isNotBlank() && refresh.attr("role") != "tab", "새로고침 단추는 탭이 아니고 이름표가 있다")
+        assertNotNull(refresh.selectFirst("i.yobicon-refresh"), "새로고침 아이콘")
         assertEquals("home", doc.selectFirst("nav.shell-sidebar")!!.attr("data-shell-view"), "처음 보기는 홈이다")
     }
 

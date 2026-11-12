@@ -13,14 +13,15 @@ const MENU = `<div class="col-lg-5 right-menu span-hard-wrap">
     <li class="nav-item myRecentIssueList"><a href="#c" class="nav-link">최근 읽은 이슈</a></li>
     <li class="nav-item"><div><i class="yobicon-refresh refresh-button" role="button" tabindex="0"></i></div></li>
   </ul>
-  <div class="tab-content tab-box"><div id="usermenu-tab-content-list" class="tab-content"><input class="search-input" type="text" placeholder="검색할 이름"><ul class="user-ul">${items}</ul></div></div>
+  <div class="tab-content tab-box"><div id="usermenu-tab-content-list" class="tab-content"><input class="search-input" type="text" placeholder="검색할 이름"><div class="subtab-wrap subtab-group"><ul class="nav-subtab list-unstyled" role="tablist"><li class="active"><a href="#r" data-bs-toggle="tab">최근 방문</a></li><li><a href="#c" data-bs-toggle="tab">내가 만든</a></li><li><a href="#w" data-bs-toggle="tab">지켜보는</a></li><li><a href="#j" data-bs-toggle="tab">참여 중인</a></li></ul></div><ul class="user-ul">${items}</ul></div></div>
   <div class="sidebar-bottom">Yona, 사랑으로 만들었습니다</div>
 </div>`;
 const SWITCH = `<div class="shell-sidebar-switch" role="tablist" aria-label="보기">
   <button type="button" role="tab" data-shell-switch="home" aria-selected="true">홈</button>
   <button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false">즐겨찾기</button>
   <button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false">프로젝트</button>
-  <button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button></div>`;
+  <button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button>
+  <button type="button" data-shell-refresh aria-label="새로고침"><i class="yobicon-refresh"></i></button></div>`;
 const sidebar = (min = 600, view = 'home') => `<div id="main" class="main"><header class="gnb-outer"><div class="gnb-inner"><ul class="gnb-nav"><li class="gnb-switcher"><button class="shell-switcher-btn" data-shell-switcher>M</button></li></ul></div></header>
 <div class="page-wrap-outer"><div class="shell"><nav class="shell-sidebar offcanvas-lg offcanvas-start" id="shellSidebar" data-shell-view="${view}"><div class="offcanvas-body">
   ${SWITCH}
@@ -92,12 +93,31 @@ export const tests = [
     },
   },
   {
-    name: '안쪽 탭 글자는 선택 단추 줄이 대신하므로 숨기고, 새로고침 아이콘은 남는다',
+    name: '안쪽 탭 줄(글자 탭과 새로고침)은 선택 단추 줄이 대신하므로 통째로 숨는다',
     async run() {
       const page = await open(1280, sidebar(600, 'shortcuts'));
-      const r = await page.evaluate(() => ({ tabs: [...document.querySelectorAll('.shell-shortcuts .nav-tabs > li > a')].map((a) => a.getBoundingClientRect().height), refresh: document.querySelector('.shell-shortcuts .refresh-button').getBoundingClientRect().width }));
-      assert.ok(r.tabs.every((h) => h === 0), `안쪽 탭이 보인다: ${r.tabs}`);
-      assert.ok(r.refresh > 0, '새로고침 아이콘은 보인다');
+      const h = await page.evaluate(() => document.querySelector('.shell-shortcuts .nav-tabs').getBoundingClientRect().height);
+      assert.equal(h, 0, `안쪽 탭 줄이 보인다: ${h}px`);
+    },
+  },
+  {
+    name: '새로고침 단추는 선택 단추 줄의 맨 끝에 작은 정사각형으로 있고 눈에 보인다',
+    async run() {
+      const page = await open();
+      const r = await page.evaluate(() => { const row = document.querySelector('.shell-sidebar-switch'); const last = row.lastElementChild; const b = last.getBoundingClientRect(); const rr = row.getBoundingClientRect(); return { isRefresh: last.hasAttribute('data-shell-refresh'), w: b.width, h: b.height, inside: b.right <= rr.right + 0.5, top: Math.round(b.top), tabTop: Math.round(row.querySelector('[data-shell-switch]').getBoundingClientRect().top) }; });
+      assert.equal(r.isRefresh, true);
+      assert.ok(r.w >= 22 && r.w <= 36, `폭 ${r.w}px`); assert.ok(r.h >= 22, `높이 ${r.h}px`);
+      assert.ok(r.inside, '줄 안에 있다'); assert.equal(r.top, r.tabTop, '탭 단추와 같은 줄이다');
+    },
+  },
+  {
+    name: '프로젝트 하위 탭(최근 방문, 내가 만든, 지켜보는, 참여 중인) 네 개가 한 줄에 다 보인다',
+    async run() {
+      const page = await open(1280, sidebar(700, 'shortcuts'));
+      const info = await page.evaluate(() => { const host = document.querySelector('.shell-shortcuts').getBoundingClientRect(); return { l: host.left, r: host.right, items: [...document.querySelectorAll('.shell-shortcuts .nav-subtab > li')].map((li) => { const b = li.getBoundingClientRect(); return { top: Math.round(b.top), left: b.left, right: b.right }; }) }; });
+      assert.equal(info.items.length, 4);
+      assert.equal(new Set(info.items.map((i) => i.top)).size, 1, `하위 탭이 여러 줄로 접혔다: ${JSON.stringify(info.items.map((i) => i.top))}`);
+      for (const [i, it] of info.items.entries()) assert.ok(it.left >= info.l - 1 && it.right <= info.r + 1, `하위 탭 ${i}(${Math.round(it.left)}~${Math.round(it.right)})가 구역(${Math.round(info.l)}~${Math.round(info.r)}) 밖으로 잘린다`);
     },
   },
   {

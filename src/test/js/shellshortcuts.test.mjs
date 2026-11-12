@@ -6,7 +6,7 @@ import { buildTs, openTs } from './tsmodule.mjs';
 
 const OVERLAY = `<div id="mySidenav" class="sidenav"><div class="right-menu"><ul class="nav-tabs"><li class="myOrganizationList"><a href="#myOrganizationList">즐겨찾기</a></li><li class="myProjectList"><a href="#myProjectList">프로젝트</a></li><li class="myRecentIssueList"><a href="#myRecentIssueList">최근</a></li></ul><div id="usermenu-tab-content-list"><input class="search-input"></div></div></div>`;
 const BAR = `<button type="button" id="ham" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" aria-label="사이드바" data-toggle-label="사이드바 접기와 펴기">햄버거</button>`;
-const SWITCH = `<div class="shell-sidebar-switch" role="tablist"><button type="button" role="tab" data-shell-switch="home" aria-selected="true">홈</button><button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false">즐겨찾기</button><button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false">프로젝트</button><button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button></div>`;
+const SWITCH = `<div class="shell-sidebar-switch" role="tablist"><button type="button" role="tab" data-shell-switch="home" aria-selected="true">홈</button><button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false">즐겨찾기</button><button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false">프로젝트</button><button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button><button type="button" data-shell-refresh aria-label="새로고침"><i class="yobicon-refresh"></i></button></div>`;
 const SIDEBAR = `<nav class="shell-sidebar offcanvas-lg" id="shellSidebar" data-shell-view="home"><div class="offcanvas-body">${SWITCH}<div data-shell-pane="home"><ul class="shell-sidebar-nav"><li>항목</li></ul></div><section data-shell-pane="shortcuts" data-shell-shortcuts aria-label="바로가기"></section></div></nav>`;
 const MOD = `<script type="module">import { initShortcuts } from 'yona/shell/shortcuts.js'; window.__api = initShortcuts(); window.__ready = true;</script>`;
 
@@ -113,5 +113,13 @@ export const tests = [
     // 바로가기 단추를 누르면 기억해 둔 탭이 아니라 누른 탭이 선택된다
     await page.click('[data-shell-switch=myProjectList]');
     assert.equal(await page.evaluate(() => localStorage.getItem('sidebarActiveMenu')), 'myProjectList'); await ctx.close();
+  } },
+  { name: '새로고침 단추를 누르면 화면을 다시 읽고, 보기 선택 상태는 건드리지 않는다', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);
+    await page.evaluate(() => { window.__marker = 1; });
+    await Promise.all([page.waitForNavigation({ timeout: 5000 }), page.click('[data-shell-refresh]')]);
+    await page.waitForFunction(() => window.__ready === true, null, { timeout: 5000 });
+    assert.equal(await page.evaluate(() => window.__marker === undefined), true, '화면을 다시 읽었다(표시가 사라졌다)');
+    assert.deepEqual(page.errors, []); await ctx.close();
   } },
 ];

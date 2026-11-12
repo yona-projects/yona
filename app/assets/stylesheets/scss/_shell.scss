@@ -168,8 +168,8 @@ $shell-gap: 14px;
     }
 
     // 안쪽 탭 글자(즐겨찾기, 프로젝트, 최근 읽은 이슈)는 사이드바 맨 위의 선택 단추 줄이 대신하므로 숨긴다. 탭 요소는 그대로 두어
-    // 선택 단추가 누르면 탭 전환과 `Usermenu.js`의 기억이 그대로 동작한다. 새로고침 아이콘 칸만 남는다.
-    .nav-tabs > .nav-item:has(> a) {
+    // 선택 단추가 누르면 탭 전환과 `Usermenu.js`의 기억이 그대로 동작한다. 새로고침은 선택 단추 줄 끝의 단추가 맡는다.
+    .nav-tabs {
         display: none;
     }
 
@@ -190,6 +190,26 @@ $shell-gap: 14px;
 
         .refresh-button {
             padding: 8px 0 0 4px;
+        }
+    }
+
+    // 프로젝트의 하위 탭(최근 방문, 내가 만든, 지켜보는, 참여 중인) 네 개가 구역 폭 한 줄에 들어가도록 칸을 나누어 쓴다. 원래는 각 탭이
+    // 좌우 8px 여백으로 떠 있어 합이 구역 폭보다 커 마지막 탭이 아래 줄로 밀렸다.
+    .nav-subtab {
+        display: flex;
+        width: 100%;
+
+        > li {
+            flex: 1 1 auto;
+            float: none;
+            text-align: center;
+        }
+
+        > li > a {
+            display: block;
+            padding: 5px 2px;
+            font-size: 0.75rem;
+            white-space: nowrap;
         }
     }
 
@@ -260,6 +280,17 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
             background-color: rgba($orange, 0.14);
             color: #E95E01;
             font-weight: 700;
+        }
+
+        // 맨 끝의 새로고침 단추는 글자 없이 아이콘만 있는 작은 정사각형이다(탭이 아니다).
+        &[data-shell-refresh] {
+            flex: 0 0 26px;
+            width: 26px;
+            margin-left: 2px;
+            padding: 3px 0;
+            border-left: 1px solid var(--bs-border-color, #dee2e6);
+            border-radius: 0 4px 4px 0;
+            font-size: 0.75rem;
         }
     }
 }

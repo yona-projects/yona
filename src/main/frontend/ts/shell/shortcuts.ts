@@ -30,6 +30,8 @@ const TAB_KEY = "sidebarActiveMenu";
 const TAB_NAMES = ["myOrganizationList", "myProjectList", "myRecentIssueList"];
 const DEFAULT_TAB = "myOrganizationList";
 const SWITCH_SELECTOR = "[data-shell-switch]";
+/** 선택 단추 줄 끝의 새로고침 단추이다(v1.6 핀 사이드바의 탭 옆 새로고침 아이콘). */
+const REFRESH_SELECTOR = "[data-shell-refresh]";
 type View = "home" | "shortcuts";
 
 interface OffcanvasStatic {
@@ -77,6 +79,11 @@ function render(): void {
     const selected = view === "home" ? key === "home" : key === tab;
     button.setAttribute("aria-selected", String(selected));
   });
+}
+
+/** 새로고침 단추 클릭: v1.6처럼 화면을 다시 읽는다. */
+function onRefreshClick(event: Event): void {
+  if (event.target instanceof Element && event.target.closest(REFRESH_SELECTOR)) window.location.reload();
 }
 
 /** 선택 단추 클릭: 홈이면 맥락 메뉴, 아니면 바로가기를 보이고 안쪽의 같은 탭 링크를 눌러 준다. */
@@ -167,5 +174,6 @@ export function initShortcuts(): boolean {
   document.addEventListener("htmx:oobAfterSwap", refresh);
   document.addEventListener("click", onHamburgerClick, true);
   document.addEventListener("click", onSwitchClick);
+  document.addEventListener("click", onRefreshClick);
   return adopted;
 }
