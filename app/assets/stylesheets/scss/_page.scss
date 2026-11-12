@@ -614,25 +614,20 @@
     }
 }
 
-// 프로젝트 홈의 머리(A-511, 선생님 지시 2026-11-12): 프로젝트 이미지(올린 이미지 또는 기본 벽돌 배경)를 배경으로 깔고 v1.6처럼 120px 배너로 키운다.
-// 밝은 바탕을 전제로 한 글자색은 어두운 그라데이션 위에서 읽히도록 흰색 계열로 바꾼다. 다른 화면의 머리는 위의 얇은 흰 줄 그대로이다.
+// 프로젝트 홈의 머리(A-511, 선생님 지시 2026-11-12): 원래 있던 얇은 줄의 높이는 키우지 않고 그 위에 프로젝트 이미지(올린 이미지 또는 기본 벽돌 배경)를 깐다.
+// 이미지는 잘려도 그대로 둔다(가운데를 보인다). 밝은 바탕을 전제로 한 글자색은 어두운 그라데이션 위에서 읽히도록 흰색 계열로 바꾼다.
+// 다른 화면의 머리는 위의 얇은 흰 줄 그대로이다.
 .project-header-outer.has-banner {
-    height: 120px;
     background-color: #565656;
-    background-position: center bottom;
+    background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     border-bottom: 0;
 
     .project-header-inner {
-        height: 100%;
         background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
 
         .project-header-wrap {
-            height: 100%;
-            align-items: flex-end;
-            padding-bottom: 14px;
-
             .project-header-avatar {
                 border-color: rgba(255, 255, 255, 0.85);
             }

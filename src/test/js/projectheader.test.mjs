@@ -84,11 +84,11 @@ export const tests = [
     const page = await open(1280);
     assert.equal(await page.isVisible('.shell-sidebar-title'), false, '머리줄이 이름을 보이므로 사이드바에서 되풀이하지 않는다');
   } },
-  { name: '프로젝트 홈의 머리(has-banner)는 120px 배너에 어두운 그라데이션을 깔고 이름과 작성자를 흰 글자로 보인다', run: async () => {
+  { name: '프로젝트 홈의 머리(has-banner)는 높이를 키우지 않은 얇은 줄 그대로 배경 이미지와 어두운 그라데이션을 깔고 이름과 작성자를 흰 글자로 보인다', run: async () => {
     const page = await open(1280);
     await page.evaluate(() => { const h = document.querySelector('.project-header-outer'); h.classList.add('has-banner'); h.style.backgroundImage = 'url(data:image/gif;base64,R0lGODlhAQABAAAAACw=)'; });
     const r = await page.evaluate(() => { const h = document.querySelector('.project-header-outer'); const c = (sel) => getComputedStyle(document.querySelector(sel)).color; const inner = getComputedStyle(h.querySelector('.project-header-inner')); return { h: Math.round(h.getBoundingClientRect().height), size: getComputedStyle(h).backgroundSize, grad: inner.backgroundImage.startsWith('linear-gradient'), name: c('.project-name a'), author: c('.project-author a'), sep: c('.project-separator') }; });
-    assert.equal(r.h, 120, `머리 높이 ${r.h}px`); assert.equal(r.size, 'cover'); assert.equal(r.grad, true, '어두운 그라데이션');
+    assert.ok(r.h < 80, `머리 높이 ${r.h}px: 얇은 줄 그대로여야 한다`); assert.equal(r.size, 'cover'); assert.equal(r.grad, true, '어두운 그라데이션');
     for (const k of ['name', 'author', 'sep']) assert.ok(r[k] === 'rgb(255, 255, 255)' || /^rgba?\(2[2-5]\d, 2[2-5]\d, 2[2-5]\d/.test(r[k]), `${k} 글자색 ${r[k]}가 밝지 않다`);
     await page.context().close();
   } },
