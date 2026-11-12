@@ -3,7 +3,8 @@
   매개변수: view(OrganizationViewContext)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
-<div class="project-header-outer">
+<!--/* 프로젝트 머리와 같은 원리(A-514): v1.6처럼 조직 로고를 머리 배경으로 깐다(`urlToOrganizationLogo`). 어두운 그라데이션과 흰 글자는 .has-banner 스타일이 맡는다. */-->
+<div class="project-header-outer has-banner" th:style="'background-image:url(' + @{${view.logoUrl}} + ')'">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">

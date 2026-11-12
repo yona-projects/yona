@@ -153,11 +153,11 @@ class OrganizationShellTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `조직 머리도 로고를 흐린 배경으로 깔지 않는 얇은 한 줄이다(A-483)`() {
+    fun `조직 머리도 로고를 배경으로 까는 얇은 한 줄이다(A-514)`() {
         val org = org(); val admin = newUser().also { join(org, it, RoleType.ORG_ADMIN) }
         val header = page("/organizations/${org.name}", login(admin)).selectFirst(".project-header-outer")
         assertNotNull(header)
-        assertTrue(header.attr("style").isBlank(), "인라인 배경 이미지가 없어야 한다: ${header.attr("style")}")
+        assertTrue(header.hasClass("has-banner") && header.attr("style").contains("background-image"), "조직 머리도 배경을 깐다: ${header.className()} ${header.attr("style")}")
         assertNotNull(header.selectFirst(".project-header-avatar img"))
     }
 }

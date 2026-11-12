@@ -75,11 +75,11 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
     private fun base(p: Project) = "/${p.owner}/${p.name}"
 
     @Test
-    fun `머리는 배경 이미지를 깔지 않는 얇은 한 줄이고 아바타, 이름, 동작 단추를 가진다`() {
+    fun `머리는 하위 화면에서도 배경 이미지를 까는 얇은 한 줄이고 아바타, 이름, 동작 단추를 가진다(A-514)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
         val header = page(base(p) + "/issues", s).selectFirst(".project-header-outer")
         assertNotNull(header)
-        assertTrue(header.attr("style").isBlank(), "머리에 인라인 배경 이미지가 없어야 한다: ${header.attr("style")}")
+        assertTrue(header.hasClass("has-banner") && header.attr("style").contains("background-image"), "하위 화면의 머리도 배경 이미지를 깐다: ${header.className()} ${header.attr("style")}")
         assertNotNull(header.selectFirst(".project-header-avatar img"))
         assertEquals(p.name, header.selectFirst(".project-name a")!!.text())
         assertEquals(p.owner, header.selectFirst(".project-author a")!!.text())
@@ -103,6 +103,6 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
         assertNull(home.selectFirst(".project-cover"), "본문 표지는 없앴다(머리 배경으로 대신한다, A-512)")
         assertEquals("/files/${file.id}", home.selectFirst(".project-header-avatar img")!!.attr("src"), "로고와 배경은 같은 첨부이다")
         assertTrue(home.selectFirst(".project-header-outer.has-banner")!!.attr("style").contains("/files/${file.id}"), "머리 배경도 올린 이미지이다")
-        listOf("/issues", "/posts", "/milestones").forEach { sub -> assertNull(page(base(p) + sub, s).selectFirst(".project-header-outer.has-banner"), "$sub 머리에는 배경이 없다") }
+        listOf("/issues", "/posts", "/milestones").forEach { sub -> assertTrue(page(base(p) + sub, s).selectFirst(".project-header-outer.has-banner")!!.attr("style").contains("/files/${file.id}"), "$sub 머리 배경도 올린 이미지이다") }
     }
 }
