@@ -32,14 +32,16 @@
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="btn btn-yona" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
                 <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="btn btn-yona dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" th:title="#{pullRequest.merge.options}"><span class="visually-hidden" th:text="#{pullRequest.merge.options}"></span></button>
-                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu dropdown-menu-end" style="min-width:320px;">
+                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu dropdown-menu-end py-1" style="min-width:340px;">
                     <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
                         th:data-title="${option.defaultTitle}" th:data-message="${option.defaultMessage}"
                         th:classappend="${!option.available} ? 'disabled'" th:title="${option.reason}">
-                        <a href="#" style="white-space:normal;">
-                            <strong th:text="${option.label}"></strong>
-                            <span class="merge-method-check" th:if="${option.code == header.accept.defaultMethod}">&#10003;</span>
-                            <small class="text-body-secondary" style="display:block;" th:text="${option.reason ?: option.description}"></small>
+                        <a href="#" class="dropdown-item py-2" th:classappend="${!option.available} ? 'disabled'" th:attr="aria-disabled=${!option.available}" style="white-space:normal;">
+                            <span class="d-flex justify-content-between align-items-baseline gap-3">
+                                <strong th:text="${option.label}"></strong>
+                                <span class="merge-method-check text-success" th:if="${option.code == header.accept.defaultMethod}">&#10003;</span>
+                            </span>
+                            <small class="d-block mt-1 text-body-secondary" th:text="${option.reason ?: option.description}"></small>
                         </a>
                     </li>
                 </ul>

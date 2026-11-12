@@ -220,6 +220,8 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         assertTrue(accept.hasClass("btn") && accept.hasClass("btn-yona") && !accept.hasClass("ybtn"), "병합 단추는 Bootstrap 단추: ${accept.className()}")
         assertTrue(toggle.hasClass("btn") && toggle.hasClass("btn-yona") && toggle.hasClass("dropdown-toggle-split") && !toggle.hasClass("ybtn"), "삼각형은 분할 토글: ${toggle.className()}")
         assertTrue(doc.select("style").none { it.data().contains("#merge-box .btn-group") }, "분할 단추를 흉내 내는 style이 없다")
+        assertTrue(doc.select("#merge-method-menu li.merge-method-item > a").all { it.hasClass("dropdown-item") }, "방식 항목은 Bootstrap dropdown-item이라 여백과 호버가 있다")
+        assertTrue(doc.select("#merge-method-menu li.merge-method-item > a").all { it.selectFirst("small.d-block") != null }, "설명은 제목 아래 별도 줄이다")
         assertEquals("요청 (#${pr.number})", doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-title"))
         assertTrue(doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-message").contains("* 새 파일"))
         assertEquals("", doc.select("#merge-method-menu li[data-method=rebase]").single().attr("data-title"))
