@@ -19,9 +19,9 @@
 <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header'">
     <div class="gnb-inner">
         <ul class="gnb-nav">
-            <!--/* D-134 결정 7, D-141, A-489: v1.6의 핀 사이드바(`.pin`, 즐겨찾기와 프로젝트 목록)를 이 햄버거 단추 하나로 합쳤다. 누르면 전환 패널(#mySidenav)이 열린다. F 키도 같다. 맥락 사이드바의 접기는 사이드바 맨 아래 단추가 한다. */-->
+            <!--/* D-134 결정 7, D-141, A-489: v1.6의 핀 사이드바(`.pin`, 즐겨찾기와 프로젝트 목록)를 이 햄버거 단추 하나로 합쳤다. 누르면 전환 패널(#mySidenav)이 열린다. F 키도 같다. 사이드바가 있는 화면에서는 shell/shortcuts.ts가 이 단추를 접고 펴는 단추로 바꾼다(sidebar 브랜치). */-->
             <li th:if="${!currentUser.anonymous}" class="gnb-switcher">
-                <button type="button" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" th:aria-label="#{layout.sidebar.tooltip}" th:title="#{layout.sidebar.tooltip} + ' (F)'">
+                <button type="button" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" th:aria-label="#{layout.sidebar.tooltip}" th:title="#{layout.sidebar.tooltip} + ' (F)'" th:attr="data-toggle-label=#{sidebar.toggle}">
                     <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" focusable="false"><path d="M0 1h18M0 7h18M0 13h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
                 </button>
             </li>

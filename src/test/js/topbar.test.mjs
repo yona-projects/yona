@@ -53,7 +53,7 @@ export const tests = [...[1280, 420].flatMap((width) => [
   {
     name: `햄버거의 세로 중심은 로고, 검색창, 상단 바와 같다(폭 ${width})`,
     async run() {
-      const page = await open(width, width < 992); // 넓은 폭에서는 사이드바가 있으면 햄버거가 숨으므로 사이드바 없는 화면에서 잰다(sidebar 브랜치)
+      const page = await open(width);
       const barBox = await center(page, '.gnb-outer');
       const b = await center(page, '.shell-switcher-btn');
       const logo = await center(page, '.gnb-nav .logo');
@@ -67,18 +67,18 @@ export const tests = [...[1280, 420].flatMap((width) => [
   {
     name: `햄버거는 로고보다 왼쪽에 있고 겹치지 않는다(폭 ${width})`,
     async run() {
-      const page = await open(width, width < 992);
+      const page = await open(width);
       const b = await center(page, '.shell-switcher-btn'); const logo = await center(page, '.gnb-nav .logo');
       assert.ok(b.right <= logo.left + 0.5, `햄버거 오른쪽 ${b.right}, 로고 왼쪽 ${logo.left}`);
     },
   },
 ]),
 {
-  name: '햄버거는 사이드바가 있는 넓은 화면에서만 숨고(사이드바가 바로가기를 담는다) 그 밖에는 보인다(sidebar 브랜치)',
+  name: '햄버거는 사이드바가 있든 없든 모든 폭에서 보인다(넓은 폭에서는 접기, 좁은 폭에서는 서랍, 사이드바가 없으면 덮는 패널)',
   async run() {
-    for (const [width, withSidebar, visible] of [[1280, true, false], [1280, false, true], [700, true, true], [700, false, true]]) {
+    for (const [width, withSidebar] of [[1280, true], [1280, false], [700, true], [700, false]]) {
       const page = await open(width, withSidebar);
-      assert.equal(await page.isVisible('.shell-switcher-btn'), visible, `폭 ${width}, 사이드바 ${withSidebar}`);
+      assert.equal(await page.isVisible('.shell-switcher-btn'), true, `폭 ${width}, 사이드바 ${withSidebar}`);
     }
   },
 },

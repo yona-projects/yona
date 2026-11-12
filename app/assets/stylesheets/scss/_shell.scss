@@ -1,7 +1,7 @@
 // 새 셸(D-141)의 스타일이다. 사이드바는 Bootstrap 5의 `offcanvas-lg` 하나로 만든다(lg 이상 고정, 미만 서랍).
 // 직접 만드는 규칙은 폭, 간격, 활성 색뿐이고 색은 테마 변수(`$yobi-orange`)를 그대로 쓴다. 새 색을 만들지 않는다(D-58).
 
-$shell-sidebar-width: 232px; // 패널 안쪽 여백(8px씩)과 항목 아이콘(16px)을 더해도 "코드 주고받기"와 개수 배지가 한 줄에 들어가는 폭이다.
+$shell-sidebar-width: 256px; // 232px에서 늘렸다(sidebar 브랜치): 선택 단추 줄과 바로가기 목록이 들어가면서 좁아 보였다. 패널 안쪽 여백(8px씩)과 항목 아이콘(16px)을 더해도 "코드 주고받기"와 개수 배지가 한 줄에 들어간다.
 $shell-gap: 14px;
 
 .shell {
@@ -150,31 +150,9 @@ $shell-gap: 14px;
     font-weight: normal;
 }
 
-// 사이드바 접기와 펴기 단추이다(A-488). 사이드바 맨 아래에 있고, 긴 화면에서는 화면 아래에 붙어 따라온다(sticky).
-.shell-sidebar-fold {
-    position: sticky;
-    bottom: 0;
-    align-items: center;
-    gap: 6px;
-    width: calc(100% + 16px);
-    margin: auto -8px 0; // 패널 안쪽 여백(8px)을 지나 가장자리까지 채운다. 위 auto는 단추를 맨 아래로 민다.
-    padding: 10px 18px;
-    border: 0;
-    border-top: 1px solid var(--bs-border-color, #dee2e6);
-    background-color: var(--bs-tertiary-bg, #f8f9fa);
-    color: #6c757d;
-    font-size: 0.8125rem;
-
-    &:hover,
-    &:focus-visible {
-        color: $yobi-orange-dark;
-        background-color: rgba(0, 0, 0, 0.04);
-    }
-}
-
 // 바로가기 구역(sidebar 브랜치): 햄버거 패널의 내용(즐겨찾기, 프로젝트, 최근 읽은 이슈)을 shell/shortcuts.ts가 사이드바 안으로 옮겨 온 자리이다.
-// 옛 덮는 패널은 `.sidenav > .right-menu { flex: 0 0 350px }`로 폭을 잡았으므로 사이드바 폭(232px)에 맞게 다시 잡는다.
-// 항목 목록 아래에서 남는 높이를 쓰고 길면 이 구역 안에서 스크롤한다. 접기 단추는 구역 아래, 사이드바 맨 아래에 남는다.
+// 옛 덮는 패널은 `.sidenav > .right-menu { flex: 0 0 350px }`로 폭을 잡았으므로 사이드바 폭(256px)에 맞게 다시 잡는다.
+// 선택 단추 줄 아래에서 남는 높이를 쓰고 길면 이 구역 안에서 스크롤한다. 사이드바 아래의 접기 단추는 없앴고 접고 펴기는 상단 바 햄버거가 맡는다.
 .shell-shortcuts {
     flex: 1 1 0;
     min-height: 220px; // 짧은 화면에서도 검색과 목록 몇 줄이 보이게 한다
@@ -249,14 +227,6 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
     display: block;
 }
 
-// 사이드바가 있는 화면의 햄버거: 넓은 폭에서는 사이드바가 바로가기를 담고 있어 숨기고, 좁은 폭에서는 서랍을 연다(shell/shortcuts.ts).
-// 사이드바가 없는 화면에서는 그대로 보여 덮는 패널을 연다.
-@media (min-width: 992px) {
-    .main:has(.shell-sidebar) .gnb-switcher {
-        display: none;
-    }
-}
-
 // 사이드바 맨 위의 선택 단추 줄(홈, 즐겨찾기, 프로젝트, 최근 읽은 이슈)이다(sidebar 브랜치). shell/shortcuts.ts가 선택 상태를 맞춘다.
 .shell-sidebar-switch {
     display: flex;
@@ -300,7 +270,7 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
     display: none;
 }
 
-// 접힌 사이드바는 44px 좁은 띠이다(shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 항목은 아이콘만 남고(이름은 이름표) 펴기 단추가 띠 맨 아래에 남으며 화살표가 돌아선다.
+// 접힌 사이드바는 44px 좁은 띠이다(shell/sidebar.ts가 `html[data-sidebar="collapsed"]`를 붙인다). 항목은 아이콘만 남는다(이름은 이름표). 접고 펴기는 상단 바 햄버거가 맡는다.
 @media (min-width: 992px) {
     html[data-sidebar="collapsed"] .shell-sidebar {
         flex-basis: 44px;
@@ -308,7 +278,6 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
 
         .shell-sidebar-title,
         .shell-sidebar-back,
-        .shell-sidebar-fold-label,
         .shell-sidebar-label,
         .nav-link .badge {
             display: none !important;
@@ -324,21 +293,11 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
         .offcanvas-body {
             padding: 0;
         }
-
-        .shell-sidebar-fold {
-            justify-content: center;
-            width: 100%;
-            margin: auto 0 0;
-            padding: 10px 0;
-
-            svg {
-                transform: rotate(180deg);
-            }
-        }
     }
 }
 
-// 상단 바 맨 왼쪽의 햄버거(.shell-switcher-btn)이다(A-489). 누르면 v1.6 사이드바(즐겨찾기, 프로젝트, 최근 이슈 패널)가 열린다.
+// 상단 바 맨 왼쪽의 햄버거(.shell-switcher-btn)이다(A-489). 사이드바가 있는 화면에서는 넓은 폭에서 사이드바를 접고 펴고, 좁은 폭에서는 서랍을 연다(sidebar 브랜치, shell/shortcuts.ts).
+// 사이드바가 없는 화면에서는 v1.6 사이드바(즐겨찾기, 프로젝트, 최근 이슈) 덮는 패널을 연다.
 // 상단 바의 다른 항목과 같은 줄에서 세로 가운데로 맞춘다.
 .gnb-switcher {
     display: flex;

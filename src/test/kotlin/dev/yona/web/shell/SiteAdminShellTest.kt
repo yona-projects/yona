@@ -100,11 +100,11 @@ class SiteAdminShellTest : AbstractIntegrationTest() {
     @Test
     fun `넓은 폭에서 사이드바를 숨기고 다시 보이는 단추는 상단 바에 있고 모듈이 켠다`() {
         val doc = page("/sites/userList")
-        val toggle = doc.selectFirst("nav.shell-sidebar button[data-shell-sidebar-toggle]")
-        assertNotNull(toggle, "넓은 화면에서 접고 펴는 단추는 사이드바 맨 아래에 있다(A-488)")
-        assertEquals("true", toggle.attr("aria-expanded"))
-        assertNotNull(doc.selectFirst("nav.shell-sidebar .offcanvas-body > button.shell-sidebar-fold[data-shell-sidebar-toggle]"), "넓은 화면에서 접고 펴는 단추는 사이드바 맨 아래에 있다(A-488)")
-        assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
+        assertNull(doc.selectFirst("nav.shell-sidebar [data-shell-sidebar-toggle]"), "사이드바 안에는 접기 단추가 없다(sidebar 브랜치)")
+        val hamburger = doc.selectFirst("header.gnb-outer button.shell-switcher-btn[data-toggle-label]")
+        assertNotNull(hamburger, "접고 펴는 일은 상단 바 햄버거가 맡는다. 모듈이 사이드바가 있는 화면에서 접기 단추로 바꾼다")
+        assertTrue(hamburger.attr("data-toggle-label").isNotBlank())
+        assertTrue(doc.select("script[type=module]").any { it.data().contains("yona/shell/sidebar.js") && it.data().contains("yona/shell/shortcuts.js") && !it.data().contains("/assets/") }, "import map 이름으로 불러 컨텍스트 경로에 안전해야 한다")
         assertTrue(doc.select("script").any { it.data().contains("shellSidebarCollapsed") }, "첫 그림 전에 기억한 상태를 적용하는 짧은 스크립트")
     }
 

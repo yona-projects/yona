@@ -5,9 +5,9 @@ import assert from 'node:assert/strict';
 import { buildTs, openTs } from './tsmodule.mjs';
 
 const OVERLAY = `<div id="mySidenav" class="sidenav"><div class="right-menu"><ul class="nav-tabs"><li class="myOrganizationList"><a href="#myOrganizationList">즐겨찾기</a></li><li class="myProjectList"><a href="#myProjectList">프로젝트</a></li><li class="myRecentIssueList"><a href="#myRecentIssueList">최근</a></li></ul><div id="usermenu-tab-content-list"><input class="search-input"></div></div></div>`;
-const BAR = `<button type="button" id="ham" data-shell-switcher>햄버거</button>`;
+const BAR = `<button type="button" id="ham" class="shell-switcher-btn" data-shell-switcher aria-controls="mySidenav" aria-haspopup="true" aria-label="사이드바" data-toggle-label="사이드바 접기와 펴기">햄버거</button>`;
 const SWITCH = `<div class="shell-sidebar-switch" role="tablist"><button type="button" role="tab" data-shell-switch="home" aria-selected="true">홈</button><button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false">즐겨찾기</button><button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false">프로젝트</button><button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false">최근 읽은 이슈</button></div>`;
-const SIDEBAR = `<nav class="shell-sidebar offcanvas-lg" id="shellSidebar" data-shell-view="home"><div class="offcanvas-body">${SWITCH}<div data-shell-pane="home"><ul class="shell-sidebar-nav"><li>항목</li></ul></div><section data-shell-pane="shortcuts" data-shell-shortcuts aria-label="바로가기"></section><button class="shell-sidebar-fold">접기</button></div></nav>`;
+const SIDEBAR = `<nav class="shell-sidebar offcanvas-lg" id="shellSidebar" data-shell-view="home"><div class="offcanvas-body">${SWITCH}<div data-shell-pane="home"><ul class="shell-sidebar-nav"><li>항목</li></ul></div><section data-shell-pane="shortcuts" data-shell-shortcuts aria-label="바로가기"></section></div></nav>`;
 const MOD = `<script type="module">import { initShortcuts } from 'yona/shell/shortcuts.js'; window.__api = initShortcuts(); window.__ready = true;</script>`;
 
 async function open(body, opts = {}) {
@@ -58,11 +58,25 @@ export const tests = [
     assert.deepEqual(await page.evaluate(() => [window.__toggled, window.__el, window.__old || 0]), [1, 'shellSidebar', 0]);
     assert.deepEqual(page.errors, []); await ctx.close();
   } },
-  { name: '넓은 폭에서는 햄버거를 가로채지 않는다(사이드바가 이미 보이므로 단추는 숨겨진다)', run: async () => {
-    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + `<script>window.bootstrap = { Offcanvas: { getOrCreateInstance: () => ({ toggle: () => { window.__toggled = 1; } }) } }; document.getElementById('ham').addEventListener('click', () => { window.__old = (window.__old || 0) + 1; });</script>` + MOD);
+  { name: '사이드바가 있으면 햄버거는 접기 단추가 된다: 접기 속성과 이름표를 얻고 덮는 패널을 여는 속성은 잃는다', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);
+    const r = await page.evaluate(() => { const b = document.getElementById('ham'); return { toggle: b.hasAttribute('data-shell-sidebar-toggle'), switcher: b.hasAttribute('data-shell-switcher'), controls: b.getAttribute('aria-controls'), haspopup: b.hasAttribute('aria-haspopup'), label: b.getAttribute('aria-label'), title: b.getAttribute('title') }; });
+    assert.deepEqual(r, { toggle: true, switcher: false, controls: 'shellSidebar', haspopup: false, label: '사이드바 접기와 펴기', title: '사이드바 접기와 펴기 ([)' });
+    assert.deepEqual(page.errors, []); await ctx.close();
+  } },
+  { name: '사이드바가 없으면 햄버거는 그대로이다(덮는 패널을 여는 속성을 유지한다)', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + MOD);
+    const r = await page.evaluate(() => { const b = document.getElementById('ham'); return { toggle: b.hasAttribute('data-shell-sidebar-toggle'), switcher: b.hasAttribute('data-shell-switcher'), controls: b.getAttribute('aria-controls'), label: b.getAttribute('aria-label') }; });
+    assert.deepEqual(r, { toggle: false, switcher: true, controls: 'mySidenav', label: '사이드바' }); await ctx.close();
+  } },
+  { name: '넓은 폭에서 햄버거를 누르면 사이드바가 접히고 펴지며 aria-expanded가 따라간다(shell/sidebar와 함께)', run: async () => {
+    const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + `<script type="module">import { initShortcuts } from 'yona/shell/shortcuts.js'; import { initSidebar } from 'yona/shell/sidebar.js'; initShortcuts(); window.__sb = initSidebar(); window.__ready = true;</script>`);
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.click('#ham');
-    assert.deepEqual(await page.evaluate(() => [window.__toggled || 0, window.__old || 0]), [0, 1]); await ctx.close();
+    const st = () => page.evaluate(() => [document.documentElement.getAttribute('data-sidebar'), document.getElementById('ham').getAttribute('aria-expanded')]);
+    assert.deepEqual(await st(), [null, 'true']);
+    await page.click('#ham'); assert.deepEqual(await st(), ['collapsed', 'false']);
+    await page.click('#ham'); assert.deepEqual(await st(), [null, 'true']);
+    assert.deepEqual(page.errors, []); await ctx.close();
   } },
   { name: '선택 단추를 누르면 보기가 바뀐다: 홈은 맥락 메뉴, 나머지는 바로가기이고 눌린 단추만 선택 상태이다', run: async () => {
     const { page, ctx } = await open(BAR + OVERLAY + SIDEBAR + MOD);

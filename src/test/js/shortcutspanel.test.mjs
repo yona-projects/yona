@@ -27,7 +27,6 @@ const sidebar = (min = 600, view = 'home') => `<div id="main" class="main"><head
   <div data-shell-pane="home"><div class="shell-sidebar-title d-none d-lg-block">홈</div>
   <ul class="nav nav-pills flex-column shell-sidebar-nav"><li class="nav-item"><a class="nav-link" href="#"><span class="shell-sidebar-label">프로젝트 목록</span></a></li><li class="nav-item"><a class="nav-link active" href="#"><span class="shell-sidebar-label">내 이슈</span></a></li></ul></div>
   <section class="shell-shortcuts" data-shell-pane="shortcuts" data-shell-shortcuts aria-label="바로가기">${MENU}</section>
-  <button type="button" class="shell-sidebar-fold d-none d-lg-flex"><span class="shell-sidebar-fold-label">접기</span></button>
 </div></nav><div class="shell-main" style="min-height:${min}px">본문</div></div></div></div>`;
 
 async function open(width = 1280, html = sidebar(), collapsed = false) {
@@ -71,14 +70,13 @@ export const tests = [
     },
   },
   {
-    name: '바로가기 보기에서는 구역이 사이드바 남는 높이를 모두 쓰고 접기 단추는 맨 아래에 남는다',
+    name: '바로가기 보기에서는 구역이 사이드바 남는 높이를 모두 쓰고 사이드바 바닥까지 이어진다(접기 단추가 없다)',
     async run() {
       const page = await open(1280, sidebar(700, 'shortcuts'));
-      const sb = await rect(page, '.shell-sidebar'); const host = await rect(page, '.shell-shortcuts'); const fold = await rect(page, '.shell-sidebar-fold'); const row = await rect(page, '.shell-sidebar-switch');
+      const sb = await rect(page, '.shell-sidebar'); const host = await rect(page, '.shell-shortcuts'); const row = await rect(page, '.shell-sidebar-switch');
       assert.ok(host.top >= row.bottom - 1, `구역(${Math.round(host.top)})이 단추 줄(${Math.round(row.bottom)}) 아래에서 시작한다`);
-      assert.ok(Math.abs(fold.bottom - sb.bottom) <= 1, `접기 단추 아래 ${Math.round(fold.bottom)}, 사이드바 아래 ${Math.round(sb.bottom)}`);
-      assert.ok(fold.top - host.bottom <= 2 && host.bottom <= fold.top + 1, `구역(${Math.round(host.bottom)})이 접기 단추(${Math.round(fold.top)}) 바로 위까지 이어진다`);
-      assert.ok(host.height >= 400, `구역 높이 ${Math.round(host.height)}px: 남는 높이를 쓴다(예전 220px이 아니다)`);
+      assert.ok(sb.bottom - host.bottom <= 14, `구역 아래 ${Math.round(host.bottom)}가 사이드바 아래 ${Math.round(sb.bottom)}까지 이어진다`);
+      assert.ok(host.height >= 450, `구역 높이 ${Math.round(host.height)}px: 남는 높이를 쓴다`);
     },
   },
   {
@@ -113,22 +111,21 @@ export const tests = [
     },
   },
   {
-    name: '접힌 띠(44px)에서는 선택 단추 줄과 바로가기 구역이 숨고, 보기와 상관없이 맥락 메뉴 아이콘과 펴기 단추만 남는다',
+    name: '접힌 띠(44px)에서는 선택 단추 줄과 바로가기 구역이 숨고, 보기와 상관없이 맥락 메뉴 아이콘만 남는다',
     async run() {
       const page = await open(1280, sidebar(600, 'shortcuts'), true);
       assert.equal(await page.isVisible('.shell-sidebar-switch'), false);
       assert.equal(await page.isVisible('.shell-shortcuts'), false);
       assert.equal(await page.isVisible('[data-shell-pane=home] .shell-sidebar-nav'), true, '바로가기 보기였어도 띠에서는 맥락 메뉴가 보인다');
-      assert.equal(await page.isVisible('.shell-sidebar-fold'), true);
     },
   },
   {
-    name: '사이드바가 있는 화면에서 햄버거는 넓은 폭(992 이상)에서 숨고 좁은 폭에서는 보인다',
+    name: '사이드바가 있는 화면에서도 햄버거는 모든 폭에서 보인다(넓은 폭에서는 사이드바를 접고 펴고, 좁은 폭에서는 서랍을 연다)',
     async run() {
-      let page = await open(1280);
-      assert.equal(await page.isVisible('.shell-switcher-btn'), false);
-      page = await open(700);
-      assert.equal(await page.isVisible('.shell-switcher-btn'), true);
+      for (const w of [1280, 700]) {
+        const page = await open(w);
+        assert.equal(await page.isVisible('.shell-switcher-btn'), true, `폭 ${w}`);
+      }
     },
   },
   {

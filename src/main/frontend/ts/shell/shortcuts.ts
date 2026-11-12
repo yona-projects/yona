@@ -7,7 +7,9 @@
  *
  * - 사이드바가 없는 화면(프로필, 새 프로젝트 등)에서는 아무것도 하지 않아 덮는 패널이 그대로 쓰인다.
  * - 사이드바가 htmx로 교체되면(`hx-select-oob`) 새로 그려진 빈 자리에 옮겨 둔 내용을 다시 붙인다.
- * - 좁은 폭(992px 미만)에서는 사이드바가 서랍이므로, 상단 바의 햄버거가 그 서랍을 연다(바로가기가 서랍 안에 있다).
+ * - 사이드바가 있는 화면에서는 상단 바의 햄버거가 접기 단추가 된다. 넓은 폭(992px 이상)에서는 사이드바를 접고 펴고(`shell/sidebar.ts`가
+ *   `data-shell-sidebar-toggle` 요소의 클릭을 맡는다), 좁은 폭에서는 사이드바 서랍을 연다(바로가기가 서랍 안에 있다).
+ *   덮는 패널을 여는 속성(`data-shell-switcher`)은 떼어 `Usermenu.js`가 이 단추에 열기 핸들러를 달지 않게 한다. 사이드바가 없는 화면은 그대로이다.
  * - 사이드바 맨 위의 선택 단추 줄(홈, 즐겨찾기, 프로젝트, 최근 읽은 이슈)로 보기를 고른다. 홈은 맥락 메뉴(`data-shell-view="home"`),
  *   나머지는 바로가기(`data-shell-view="shortcuts"`)이며 안쪽의 같은 탭 링크를 눌러 `Usermenu.js`의 탭 전환과 기억이 그대로 동작하게 한다.
  */
@@ -18,7 +20,7 @@ const HOST_SELECTOR = "[data-shell-shortcuts]";
 const OVERLAY_SELECTOR = "#mySidenav";
 const MENU_SELECTOR = ".right-menu";
 /** 상단 바의 햄버거이다. */
-const HAMBURGER_SELECTOR = "[data-shell-switcher]";
+const HAMBURGER_SELECTOR = ".shell-switcher-btn, [data-shell-switcher]";
 const SIDEBAR_SELECTOR = "nav.shell-sidebar";
 /** 서랍으로 바뀌는 폭이다. Bootstrap 기본 `lg` 미만과 같다. */
 const NARROW_QUERY = "(max-width: 991.98px)";
@@ -117,6 +119,26 @@ function refresh(): void {
   render();
 }
 
+/**
+ * 사이드바가 있는 화면에서 햄버거를 접기 단추로 바꾼다. 서버는 햄버거를 덮는 패널을 여는 단추(`data-shell-switcher`)로 그리고 사이드바가
+ * 있는지 모르므로(상단 바가 본문보다 먼저 그려진다) 클라이언트가 바꾼다. `Usermenu.js`가 `[data-shell-switcher]`에 핸들러를 다는
+ * `$(...)` 준비 처리기는 모듈이 실행된 뒤에 돌므로 속성을 먼저 떼면 핸들러가 붙지 않는다. `shell/sidebar.ts`보다 먼저 불러야
+ * `aria-expanded`가 처음부터 맞게 정해진다.
+ */
+function repurposeHamburger(sidebar: Element): void {
+  const button = document.querySelector<HTMLElement>(HAMBURGER_SELECTOR);
+  if (!button) return;
+  button.removeAttribute("data-shell-switcher");
+  button.setAttribute("data-shell-sidebar-toggle", "");
+  button.removeAttribute("aria-haspopup");
+  if (sidebar.id) button.setAttribute("aria-controls", sidebar.id);
+  const label = button.getAttribute("data-toggle-label");
+  if (label) {
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", `${label} ([)`);
+  }
+}
+
 /** 좁은 폭에서 햄버거 클릭을 사이드바 서랍 열기로 바꾼다. 덮는 패널을 여는 옛 핸들러로는 넘기지 않는다. */
 function onHamburgerClick(event: Event): void {
   const target = event.target;
@@ -137,6 +159,8 @@ function onHamburgerClick(event: Event): void {
  */
 export function initShortcuts(): boolean {
   const adopted = adopt();
+  const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+  if (sidebar) repurposeHamburger(sidebar);
   render();
   // 사이드바가 교체되는 응답은 본문 교체와 함께 `htmx:afterSettle`을 낸다. 같은 화면에서 여러 번 불려도 한 번만 붙는다.
   document.addEventListener("htmx:afterSettle", refresh);
