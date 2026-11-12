@@ -78,4 +78,20 @@ export const tests = [
       assert.ok(rows[0].ddRight - rows[0].numRight > 20, `숫자가 오른쪽 끝(${rows[0].ddRight})에 붙어 있다: ${rows[0].numRight}`);
     },
   })),
+  ...[1100, 1280, 1920].map((w) => ({
+    name: `분류 이름(우선순위, 종류)은 첫 배지와 같은 줄에서 오른쪽으로 정렬되어 배지 바로 앞에 붙는다(폭 ${w}, v1.6의 dl-horizontal)`,
+    async run() {
+      const page = await open(w);
+      const rows = await page.evaluate(() => [...document.querySelectorAll('.overview-label')].map((dl) => {
+        const dt = dl.querySelector('dt'); const badge = dl.querySelector('.issue-label').getBoundingClientRect();
+        const range = document.createRange(); range.selectNodeContents(dt); const text = range.getBoundingClientRect();
+        const box = dt.getBoundingClientRect();
+        return { textRight: text.right, textCy: text.top + text.height / 2, badgeLeft: badge.left, badgeCy: badge.top + badge.height / 2, dtLeft: box.left, dlLeft: dl.getBoundingClientRect().left, align: getComputedStyle(dt).textAlign, float: getComputedStyle(dt).float };
+      }));
+      for (const [i, r] of rows.entries()) {
+        assert.ok(Math.abs(r.textCy - r.badgeCy) <= 12, `분류 ${i}: 이름(세로 ${Math.round(r.textCy)})이 첫 배지(세로 ${Math.round(r.badgeCy)})와 같은 줄이 아니다`);
+        assert.ok(r.badgeLeft - r.textRight >= 0 && r.badgeLeft - r.textRight <= 30, `분류 ${i}: 이름 오른쪽과 배지 왼쪽 사이 ${Math.round(r.badgeLeft - r.textRight)}px (30px 이하여야 이어져 읽힌다)`);
+      }
+    },
+  })),
 ];

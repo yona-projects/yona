@@ -2748,7 +2748,9 @@ label.inline-list {
         border-bottom:1px solid #eee;
         padding:5px 0;
 
-        dt { width:120px; line-height:1.875rem; }
+        // A-501: v1.6(Bootstrap 2)의 `.dl-horizontal dt`는 분류 이름을 왼쪽에 띄우고(float) 오른쪽으로 정렬해 첫 배지와 같은 줄, 배지 바로 앞에 놓았다("Area [ui]").
+        // Bootstrap 5에는 이 규칙이 없어 이름이 배지 위 별도 줄에 왼쪽 끝으로 떨어져 있었다(선생님 지적: 배지가 가운데에 떠 보인다). v1.6의 규칙을 대시보드 범위에 되살린다.
+        dt { float:left; clear:left; width:120px; line-height:1.875rem; overflow:hidden; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
         // A-501: 라벨 배지와 개수는 배지 바로 옆의 두 열(배지 | 개수)로 모은다. 예전에는 배지 칸이 10/12, 개수 칸이 2/12라 화면이 넓을수록 개수가 오른쪽 끝으로 벌어져
         // 배지와 같은 줄로 읽히지 않았다. 줄(.row)을 `display: contents`로 풀고 `dd`의 격자 열에 놓아 모든 줄의 개수가 같은 세로 선에 맞는다.
         dd {
