@@ -160,4 +160,14 @@ export const tests = [
     assert.ok((await page.evaluate(() => window.__calls.slice())).some((c) => c.startsWith('POST') && c.endsWith('5')), '번호가 있는 별은 요청을 보낸다');
     await page.close();
   } },
+  { name: '기억한 탭을 복원해도 안쪽 하위 탭(예: 프로젝트의 "최근 방문")의 active는 지워지지 않아 목록 줄이 보인다 (A-491 결함 수정)', run: async () => {
+    const page = await open({ storage: { sidebarActiveMenu: 'myProjectList' }, responses: { '/um': { ok: true, data: '<div class="tab-pane user-project-list active" id="myOrganizationList"><ul class="tab-pane user-ul active" id="organizations"><li class="org-li">조직</li></ul></div><div class="tab-pane user-project-list" id="myProjectList"><ul class="nav-subtab"><li class="active"><a href="#recentlyVisited">최근</a></li></ul><ul class="tab-pane user-ul active" id="recentlyVisited"><li class="user-li">p1</li></ul><ul class="tab-pane user-ul" id="watching"><li class="user-li">w1</li></ul></div>' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(250);
+    const r = await page.evaluate(() => ({
+      outer: [...document.querySelectorAll('#usermenu-tab-content-list > .tab-pane')].map((e) => e.id + ':' + e.classList.contains('active')),
+      inner: ['organizations', 'recentlyVisited', 'watching'].map((id) => id + ':' + document.getElementById(id).classList.contains('active')),
+    }));
+    assert.deepEqual(r.outer, ['myOrganizationList:false', 'myProjectList:true']);
+    assert.deepEqual(r.inner, ['organizations:true', 'recentlyVisited:true', 'watching:false'], '하위 탭의 active는 그대로이다');
+    await page.close();
+  } },
 ];

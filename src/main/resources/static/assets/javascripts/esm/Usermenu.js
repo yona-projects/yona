@@ -268,7 +268,8 @@ $(() => {
         if (!["myOrganizationList", "myProjectList", "myRecentIssueList"].includes(name)) return;
         $(".nav-tabs li > a.active").removeClass("active");
         $(".nav-tabs ." + name + " > a").addClass("active");
-        $("#usermenu-tab-content-list .tab-pane.active").removeClass("active");
+        // 바깥 탭(즐겨찾기, 프로젝트, 최근 읽은 이슈)만 바꾼다. 안쪽 하위 탭(최근 방문 등)의 active까지 지우면 목록 줄이 숨는다.
+        $("#usermenu-tab-content-list > .tab-pane.active").removeClass("active");
         $("#" + name).addClass("active");
     }
 
