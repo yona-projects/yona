@@ -222,6 +222,17 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         assertTrue(doc.select("style").none { it.data().contains("#merge-box .btn-group") }, "분할 단추를 흉내 내는 style이 없다")
         assertTrue(doc.select("#merge-method-menu li.merge-method-item > a").all { it.hasClass("dropdown-item") }, "방식 항목은 Bootstrap dropdown-item이라 여백과 호버가 있다")
         assertTrue(doc.select("#merge-method-menu li.merge-method-item > a").all { it.selectFirst("small.d-block") != null }, "설명은 제목 아래 별도 줄이다")
+        // 확인 칸(z-index 1000)이 열려 있어도 방식 목록이 그 위에 떠서 방식을 바꿀 수 있어야 한다.
+        val menuZ = Regex("z-index:\\s*(\\d+)").find(doc.selectFirst("#merge-method-menu")!!.attr("style"))?.groupValues?.get(1)?.toInt() ?: 0
+        assertTrue(menuZ > 1000, "방식 목록의 z-index($menuZ)는 확인 칸(1000)보다 커야 한다")
+        // 확인 칸: 이름표가 있고 메시지 칸이 넉넉하며 단추는 Bootstrap 단추이다.
+        val form = doc.selectFirst("form#merge-options")!!
+        assertEquals(listOf("commitTitle", "commitMessage"), form.select("label.form-label[for]").map { it.attr("for") }, "커밋 제목과 커밋 메시지 이름표")
+        assertTrue(form.select("label.form-label[for]").all { l -> form.selectFirst("#" + l.attr("for")) != null }, "이름표가 가리키는 입력이 있다")
+        assertTrue((form.selectFirst("textarea[name=commitMessage]")!!.attr("rows").toIntOrNull() ?: 0) >= 8, "메시지 칸은 8줄 이상")
+        val submit = form.selectFirst("#btnMergeSubmit")!!
+        assertTrue(submit.hasClass("btn") && submit.hasClass("btn-yona") && !submit.hasClass("ybtn"), "제출 단추는 Bootstrap 단추: ${submit.className()}")
+        assertTrue(form.selectFirst("#btnMergeCancel")!!.hasClass("btn"), "취소 단추도 Bootstrap 단추")
         assertEquals("요청 (#${pr.number})", doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-title"))
         assertTrue(doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-message").contains("* 새 파일"))
         assertEquals("", doc.select("#merge-method-menu li[data-method=rebase]").single().attr("data-title"))
