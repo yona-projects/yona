@@ -76,4 +76,16 @@ export const tests = [
     await page.setViewportSize({ width: 700, height: 500 }); await page.waitForTimeout(150);
     assert.equal(await page.evaluate(() => document.querySelector('.filter-wrap.mass-update-sticky').classList.contains('stuck')), true); await page.close();
   } },
+  { name: '일괄 수정: 라벨이 없는 이슈를 골라도 프로젝트에 붙일 라벨이 있으면 "라벨 추가"가 켜진다(옛 수정이 선택한 이슈의 라벨 분류만 훑어 꺼 두던 회귀)', run: async () => {
+    const page = await open('');
+    await check(page);
+    assert.equal(await page.evaluate(() => $('#al button').prop('disabled')), false, '붙일 라벨이 있는데 라벨 추가가 꺼져 있다');
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '일괄 수정: 선택한 이슈가 프로젝트의 모든 라벨을 이미 가지면 "라벨 추가"는 꺼진다', run: async () => {
+    const page = await open(issueLabels('Bug', 1, 'Bug1'));
+    await check(page);
+    assert.equal(await page.evaluate(() => $('#al button').prop('disabled')), true, '붙일 라벨이 없는데 라벨 추가가 켜져 있다');
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
 ];

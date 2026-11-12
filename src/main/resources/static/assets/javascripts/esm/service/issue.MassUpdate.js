@@ -211,7 +211,10 @@ const MassUpdate = function(htOptions){
             bVisible = _getLabelCategoryVisibility(htElement.welAttachLabels, sCategory) || bVisible;
         } // end-for-category
 
-        // v1.6은 `htLabels.hasOwnProperty()`에 인자가 없어 항상 false라 단추가 늘 켜져 있었다(C011)
+        // v1.6은 `htLabels.hasOwnProperty()`에 인자가 없어 항상 false라 단추가 늘 켜져 있었다(C011).
+        // 위의 반복은 체크한 이슈가 가진 라벨의 분류만 훑는다. 라벨이 없는 이슈만 골라도 프로젝트에 붙일 라벨이 있으면 단추는 켜져야 하므로,
+        // 켜짐 여부는 목록 전체에서 숨겨지지 않은 라벨이 하나라도 남았는지로 정한다.
+        bVisible = htElement.welAttachLabels.find('li').filter((i, el) => typeof $(el).data("value") !== "undefined" && $(el).css("display") !== "none").length > 0;
         htElement.welBtnAttachingLabel.attr("disabled", !bVisible);
     }
 
