@@ -2731,10 +2731,17 @@ label.inline-list {
         width:35px;
         display:inline-block;
     }
-    // A-501: v1.6의 고정 폭 100px은 BS5 열 안쪽 여백(24px) 때문에 더 좁아진 칸(약 74px)을 넘어 오른쪽 열 위로 겹쳤다. 칸에 맞추되 v1.6의 100px을 넘지 않는다.
-    // 대시보드의 줄(열 여백)은 8px로 줄여 막대가 칸 안에서 더 길게 보이게 한다.
-    .row { --bs-gutter-x: 0.5rem; }
-    .progress { margin-top:7px; width:100%; max-width:100px; height:7px; }
+    // A-501: 막대는 v1.6처럼 100px 고정이다. 칸 폭은 아래 `.overview-assignee, .overview-milestone`에서 v1.6(Bootstrap 2 row-fluid)의 비율로 맞춘다.
+    .progress { margin-top:7px; width:100px; height:7px; }
+
+    // v1.6(Bootstrap 2 `row-fluid`)의 세 칸 줄: 이름 6칸(48.936%), 개수 3칸과 막대 3칸(각 23.404%), 칸 사이 2.1277%, 칸 안쪽 여백 없음.
+    // BS5의 `.row`는 칸 안쪽 여백(24px)과 음수 바깥 여백이 있어 막대 칸이 74px로 좁아졌다(v1.6 실측: 같은 열 폭에서 86px). 실행 중인 v1.6의 실제 CSS로 잰 비율이다.
+    .overview-assignee, .overview-milestone {
+        > .row { --bs-gutter-x: 0; }
+        > .row > .col-lg-6 { flex:0 0 auto; width:48.936170213%; }
+        > .row > .col-lg-3 { flex:0 0 auto; width:23.404255319%; }
+        > .row > :nth-child(n+2) { margin-left:2.127659574%; }
+    }
     .num {
         text-align:right;
         padding-right:15px;
@@ -2751,22 +2758,7 @@ label.inline-list {
         // A-501: v1.6(Bootstrap 2)의 `.dl-horizontal dt`는 분류 이름을 왼쪽에 띄우고(float) 오른쪽으로 정렬해 첫 배지와 같은 줄, 배지 바로 앞에 놓았다("Area [ui]").
         // Bootstrap 5에는 이 규칙이 없어 이름이 배지 위 별도 줄에 왼쪽 끝으로 떨어져 있었다(선생님 지적: 배지가 가운데에 떠 보인다). v1.6의 규칙을 대시보드 범위에 되살린다.
         dt { float:left; clear:left; width:120px; line-height:1.875rem; overflow:hidden; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
-        // A-501: 라벨 배지와 개수는 배지 바로 옆의 두 열(배지 | 개수)로 모은다. 예전에는 배지 칸이 10/12, 개수 칸이 2/12라 화면이 넓을수록 개수가 오른쪽 끝으로 벌어져
-        // 배지와 같은 줄로 읽히지 않았다. 줄(.row)을 `display: contents`로 풀고 `dd`의 격자 열에 놓아 모든 줄의 개수가 같은 세로 선에 맞는다.
-        dd {
-            margin-left:140px;
-            line-height:1.875rem;
-            display:grid;
-            grid-template-columns:max-content max-content;
-            column-gap:14px;
-            justify-content:start;
-
-            > .row { display:contents; }
-            .issue-label { white-space:nowrap; } // 격자 열 폭이 한글 한 글자 폭까지 줄면 배지가 글자마다 접힌다(실제 화면에서 확인)
-            // 앱 전체의 `.row:has(> .col-lg-2):has(> .col-lg-10)` 호환 규칙(Bootstrap 2의 row-fluid 폭 14.9%/83%와 사이 여백 2.1%)이 우선순위가 더 높아 `!important`로 덮는다.
-            > .row > [class*="col-"] { flex:none !important; width:auto !important; max-width:none; margin-left:0 !important; padding:0; }
-            > .row > .num { padding-right:0; text-align:right; }
-        }
+        dd { margin-left:140px; line-height:1.875rem; }
 
         &:first-of-type { padding-top:0; }
         &:last-of-type { border-bottom:none; }
