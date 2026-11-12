@@ -39,8 +39,9 @@
         </div>
 
         <th:block th:unless="${rows.isEmpty()}">
-        <div class="filter-wrap milestone">
-            <th:block th:if="${rows.size() > 1}">
+        <!--/* A-519: 정렬과 검색은 마일스톤이 둘 이상일 때만 있으므로, 하나뿐일 때 높이 30px의 빈 상자가 탭 줄과 목록 사이에 남지 않게 상자째 그린다. */-->
+        <div class="filter-wrap milestone" th:if="${rows.size() > 1}">
+            <th:block>
             <div class="filters">
                 <th:block th:each="field : ${ {'dueDate', 'completionRate'} }">
                     <a th:if="${orderBy == field}" class="filter active"

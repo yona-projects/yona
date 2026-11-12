@@ -133,6 +133,18 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `마일스톤이 하나뿐이면 비어 있는 필터 상자를 두지 않고 둘 이상이면 정렬과 검색을 둔다(A-519)`() {
+        val project = newProject()
+        newMilestone(project, "하나", dueDate = daysFromNow(5))
+        val one = page("${base(project)}/milestones")
+        assertNull(one.selectFirst(".filter-wrap.milestone"), "하나뿐이면 필터 상자(높이 30px의 빈 칸)가 없어야 한다")
+        newMilestone(project, "둘", dueDate = daysFromNow(9))
+        val two = page("${base(project)}/milestones")
+        assertNotNull(two.selectFirst(".filter-wrap.milestone .filters"), "둘 이상이면 정렬이 있다")
+        assertNotNull(two.selectFirst(".filter-wrap.milestone .search-bar"), "둘 이상이면 검색이 있다")
+    }
+
+    @Test
     fun `마감일이 없는 마일스톤은 먼저 나오고 내림차순이면 나중에 나온다`() {
         val project = newProject()
         newMilestone(project, "기한없음")
