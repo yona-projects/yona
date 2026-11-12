@@ -148,6 +148,12 @@ $shell-gap: 14px;
     background-color: $yobi-orange !important;
     color: #fff !important;
     font-weight: normal;
+    // 항목 글자(약 0.9rem)보다 작게 둔다. 예전에는 Bootstrap 배지 기본 크기(글자 .75em, 안쪽 여백 .35em .65em)에 요나의 큰 글자 설정이
+    // 겹쳐 높이 30px의 큰 알약이 되었다.
+    padding: 2px 7px;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    min-width: 20px;
 }
 
 // 바로가기 구역(sidebar 브랜치): 햄버거 패널의 내용(즐겨찾기, 프로젝트, 최근 읽은 이슈)을 shell/shortcuts.ts가 사이드바 안으로 옮겨 온 자리이다.
