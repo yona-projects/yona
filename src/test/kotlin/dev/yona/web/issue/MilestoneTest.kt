@@ -481,6 +481,21 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `보기 화면은 이슈 목록을 왼쪽 본문에 두고 마일스톤 정보를 오른쪽 열에 둔다(A-520)`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1", dueDate = daysFromNow(2), contents = "설명")
+        newIssue(project, m, State.OPEN, 1)
+        entityManager.flush()
+        val doc = page("${base(project)}/milestone/${m.id}")
+        val row = doc.selectFirst(".milesion-wrap > .row")!!
+        assertNotNull(row.selectFirst("> .col-lg-9 #issues"), "이슈 목록(탭, 필터, 목록)은 왼쪽 본문이다")
+        val info = row.selectFirst("> .col-lg-3.milestone-info")!!
+        assertNotNull(info.selectFirst("h4 a.title"), "제목"); assertNotNull(info.selectFirst(".progress")); assertNotNull(info.selectFirst(".milestone-desc"))
+        assertNotNull(info.selectFirst(".actrow a.ybtn"), "목록, 수정 같은 단추도 오른쪽 열에 있다")
+        assertNull(row.selectFirst("> .col-lg-9 h4"), "왼쪽 본문에는 제목이 없다")
+    }
+
+    @Test
     fun `설명이 없으면 빈 칸이다`() {
         val project = newProject()
         val m = newMilestone(project, "v1")

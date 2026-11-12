@@ -2405,6 +2405,28 @@ label.inline-list {
 }
 
 .milesion-wrap {
+    // 마일스톤 정보 열(A-520): 이슈 목록 오른쪽의 좁은 열이다. 기한과 상태 배지는 제목 아래 별도 줄로 두고 날짜가 줄 한가운데서 끊기지 않게 한다.
+    .milestone-info {
+        h4 {
+            padding: 0 0 8px;
+            margin: 0;
+
+            small {
+                display: block;
+                margin: 4px 0 0 !important;
+
+                .due-date,
+                .date {
+                    white-space: nowrap;
+                }
+            }
+        }
+
+        .milestone-desc {
+            margin: 10px 0;
+        }
+    }
+
     .progress {
         // 바탕은 BS5 진행 막대의 기본 색이다. v1.6은 BS2의 회색 그라데이션 배경이 이 지정 색을 가려 회색으로 보였다.
         .progress-bar {
