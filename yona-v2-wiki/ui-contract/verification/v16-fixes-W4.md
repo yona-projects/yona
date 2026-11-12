@@ -46,7 +46,7 @@ updated: 2026-11-11
 | user-F3 | FIX | v1.6은 확인 메일 안내가 한국어 고정이었다. 지금은 메시지 키 `user.email.validationSent` | EmailSettingsTest |
 | user-F4 | FIX | v1.6은 탭을 바꾼 뒤 `daysAgo`에서 Enter를 치면 처음 탭으로 돌아갔다. 지금은 `shown.bs.tab`에서 기억한다 (`user.View.js`) | userview.test.mjs |
 | user-F6 | SKIP | 이메일 확인 링크로 로그인되는 것은 v1.6 의도이고 2단계 인증 사용자는 이미 코드 화면을 거친다 | |
-| user-F8 | FIX | v1.6은 파일 검색 입력란이 늘 비었다. 지금은 검색한 값을 보인다 | UserFilesTest |
+| user-F8 | ~~FIX~~ 되돌림(A-500, 2026-11-12) | v1.6은 파일 검색 입력란이 늘 비었다. 한때 검색한 값을 보였으나 선생님 지시로 v1.6과 같게 비운다 | UserFilesTest |
 | user-F9 | SKIP | 구독 단추를 비로그인이 누르면 로그인 폼으로 가며 서버가 막는다. 오동작이 아니다 | |
 | user-F10 | FIX | v1.6은 본인 초안이 이슈 건수에만 들어가 배지와 목록 합이 달랐다. 지금은 초안을 건수에서 모두 뺀다 | UserPageTest |
 | usersec-F2 | FIX | v1.6은 비밀번호 확인을 서버가 보지 않았다. 지금은 가입, 재설정, 변경 세 곳에서 확인 입력이 있고 다르면 400 (확인 입력이 아예 없는 요청은 허용) | SignupTest, PasswordResetTest, ProfileEditTest |

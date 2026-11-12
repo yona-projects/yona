@@ -147,11 +147,26 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색한 값이 입력란에 남는다 (v1_6은 입력란이 늘 비어 있었다, 고쳤다 user-F8)`() {
+    fun `검색한 뒤에도 입력란은 v1_6처럼 늘 비어 있다(A-500, user-F8을 되돌렸다)`() {
         val me = newUser()
         attach(me, "Design.PNG", 1_700_000_100_000)
-        assertEquals("sign", page(login(me), "filter" to "sign").selectFirst("input[name=filter]")!!.attr("value"))
+        assertEquals("", page(login(me), "filter" to "sign").selectFirst("input[name=filter]")!!.attr("value"))
         assertEquals("", page(login(me)).selectFirst("input[name=filter]")!!.attr("value"))
+        assertEquals(1, page(login(me), "filter" to "sign").select(".attachment-file-detail").size, "거르기는 그대로 된다")
+    }
+
+    @Test
+    fun `검색과 쪽 이동은 목록 영역만 바꾸는 htmx 영역 안에 있다(A-500)`() {
+        val me = newUser()
+        attach(me, "a.png", 1_700_000_100_000)
+        val doc = page(login(me))
+        val box = doc.selectFirst("div[list-container][hx-target=this][hx-push-url=true]")
+        assertTrue(box != null, "다른 목록과 같은 영역 표지와 속성")
+        assertTrue(box!!.attr("hx-select").contains("list-container"), "응답에서 같은 영역만 고른다")
+        val form = box.selectFirst("form")!!
+        assertEquals("/user/files", form.attr("hx-get"))
+        assertTrue(box.selectFirst(".attachment-files") != null, "표가 영역 안에 있다")
+        assertTrue(box.selectFirst("#pagination[data-total]") != null, "페이지 막대가 영역 안에 있고 전체 쪽 수를 가진다")
     }
 
     @Test
@@ -163,7 +178,7 @@ class UserFilesTest : AbstractIntegrationTest() {
         assertEquals(50, first.select(".attachment-file-detail").size)
         assertEquals(5, second.select(".attachment-file-detail").size)
         assertEquals("f5.txt", second.select(".attachment-file-detail").first()!!.selectFirst(".file-name")!!.text().trim())
-        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertEquals("2", first.selectFirst("#pagination")!!.attr("data-total"), "전체 쪽 수를 페이지 막대에 넘긴다(A-500)")
     }
 
     @Test

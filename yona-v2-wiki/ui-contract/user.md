@@ -231,7 +231,7 @@ updated: 2026-11-11
 | 위치 링크 | 링크 `target=_blank` | `row.location != null` | 새 창 | 파일이 붙은 리소스 주소(`ResourceUrls.urlOf`) | | | `:38`, `UserFilesController.kt:58` |
 | 쪽 나누기 | `yona.Pagination.update($("#pagination"), totalPages)` | 항상 | 번호 이동 시 쿼리 `pageNum`을 바꿔 이동 | `GET /user/files?pageNum=n` | | | `files.html:69`, `J/esm/Pagination.js:80-89, :133` |
 
-검색한 뒤에는 입력란에 검색어가 남는다(`user-F8`). 쪽 이동 때 `filter`가 유지되는지는 `Pagination.js`가 현재 쿼리를 이어 붙이는 방식에 달려 있다(미확인). `.user-file-search > button`에 `submit` 핸들러(콘솔 로그)가 있지만 그 요소는 `button`의 `submit` 이벤트를 받지 않으므로 동작하지 않는 죽은 코드이다(`:65-67`). 날짜는 `yyyy-MM-dd h:mm a`(`helper.dateString`), 크기는 `humanReadableByteCount(size, true)`.
+검색한 뒤에도 입력란은 v1.6처럼 비어 있다(`user-F8`을 A-500에서 되돌렸다). 검색과 쪽 이동은 `div[list-container]` 안에서 htmx로 목록만 바꾼다(A-500). 쪽 이동 때 `filter`가 유지되는지는 `Pagination.js`가 현재 쿼리를 이어 붙이는 방식에 달려 있다(미확인). `.user-file-search > button`에 `submit` 핸들러(콘솔 로그)가 있지만 그 요소는 `button`의 `submit` 이벤트를 받지 않으므로 동작하지 않는 죽은 코드이다(`:65-67`). 날짜는 `yyyy-MM-dd h:mm a`(`helper.dateString`), 크기는 `humanReadableByteCount(size, true)`.
 
 단축키, 팝업, 모달 없음. 시험 `TT/web/user/UserFilesTest.kt`.
 
@@ -247,7 +247,7 @@ updated: 2026-11-11
 |---|---|---|
 | user-F1 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `GET /user/editform/{tabId}`가 `GET`과 `POST` 둘 다 받는다. 화면은 `GET`만 부르지만 `POST`로도 열린다(v1.6 라우트 재현으로 보이나 v1.6 대조는 하지 않음) | `AccountController.kt:103` |
 | user-F2 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | `POST /user/resetVisitedList`에 로그인 강제 어노테이션이 없다. 비로그인이면 아무것도 하지 않고 `303 /user/editform`+flash를 돌려주며 이 `303`을 따라가면 다시 로그인으로 간다 | `AccountController.kt:151-156` |
-| user-F3 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 이메일 확인 안내 flash가 한국어 고정 문자열 `확인 메일을 전송했습니다.`이다(다른 언어 설정에서도 한국어). `messageText`는 경고 키만 번역한다(2026-11-11 수정: 메시지 키 `user.email.validationSent`를 넘겨 언어 설정대로 번역한다) | `AccountController.kt:204` |
+| user-F3 **[검증: v1.6 결함 유지, 수정했다가 2026-11-12 v1.6과 같게 되돌림(A-500)]** | 이메일 확인 안내 flash가 한국어 고정 문자열 `확인 메일을 전송했습니다.`이다(다른 언어 설정에서도 한국어). `messageText`는 경고 키만 번역한다(2026-11-11 수정: 메시지 키 `user.email.validationSent`를 넘겨 언어 설정대로 번역한다) | `AccountController.kt:204` |
 | user-F4 **[검증: v1.6 결함 유지, 수정함(A-462, 2026-11-11)]** | 사용자 페이지의 며칠 전 입력 Enter 이동이 탭을 눌러도 갱신되지 않는 `sTabSelected`(처음 값)를 쓴다(2026-11-11 수정: 위쪽 탭이 바뀔 때마다 지금 탭을 기억해 Enter 이동이 보던 탭을 유지한다) | `J/esm/service/user.View.js:77-79, :90-96, :144-161` |
 | user-F5 **[브라우저로 확인됨 2026-11-11, R-162]** | 알 수 없는 설정 탭 id(`/user/editform/foo`)는 예외가 되어 500 화면이다(404가 아님). 11개 탭 중 5개만 이 메서드가 처리한다 | `AccountController.kt:108-116` |
 | user-F6 **[검증: v1.6 결함 유지, 미수정(v1.6과 같아 지침대로 유지)]** | 이메일 확인 링크는 토큰(숫자 50자리)만으로 해당 사용자로 로그인한다. 2단계 인증 사용자는 코드 화면을 거친다(추가 항목) | `AccountController.kt:207-221` |
