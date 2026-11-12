@@ -214,6 +214,12 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         val doc = page(s, pr)
         assertEquals(listOf("merge", "squash", "rebase"), doc.select("#merge-method-menu li").map { it.attr("data-method") })
         assertTrue(doc.select("#merge-method-menu").hasClass("dropdown-menu") && doc.select("#btnMergeOptions").hasClass("dropdown-toggle"), "부트스트랩 드롭다운을 쓴다")
+        // 분할 단추는 Bootstrap 5 그대로이다: btn-group 안에 .btn 두 개, 토글은 dropdown-toggle-split. 모서리와 여백을 맞추는 별도 style은 없다.
+        val accept = doc.selectFirst("#merge-box .btn-group > #btnAccept")!!
+        val toggle = doc.selectFirst("#merge-box .btn-group > #btnMergeOptions")!!
+        assertTrue(accept.hasClass("btn") && accept.hasClass("btn-yona") && !accept.hasClass("ybtn"), "병합 단추는 Bootstrap 단추: ${accept.className()}")
+        assertTrue(toggle.hasClass("btn") && toggle.hasClass("btn-yona") && toggle.hasClass("dropdown-toggle-split") && !toggle.hasClass("ybtn"), "삼각형은 분할 토글: ${toggle.className()}")
+        assertTrue(doc.select("style").none { it.data().contains("#merge-box .btn-group") }, "분할 단추를 흉내 내는 style이 없다")
         assertEquals("요청 (#${pr.number})", doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-title"))
         assertTrue(doc.select("#merge-method-menu li[data-method=squash]").single().attr("data-message").contains("* 새 파일"))
         assertEquals("", doc.select("#merge-method-menu li[data-method=rebase]").single().attr("data-title"))

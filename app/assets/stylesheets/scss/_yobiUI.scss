@@ -1294,3 +1294,21 @@ span.issue-label {
 del {
     color: #aaa;
 }
+
+// Bootstrap 5 단추의 요나 주황 변형이다. `.btn`의 단추 변수(`--bs-btn-*`)만 덮으므로 `btn-group`, `dropdown-toggle-split` 같은
+// Bootstrap 구조와 그대로 함께 쓴다(예: 풀 리퀘스트의 분할 병합 단추). 옛 `ybtn-success`(요나 주황)와 같은 색이다.
+.btn-yona {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #{$yobi-btn-primary};
+    --bs-btn-border-color: #{$yobi-btn-primary-hover};
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #{$yobi-btn-primary-hover};
+    --bs-btn-hover-border-color: #{$yobi-btn-primary-hover};
+    --bs-btn-focus-shadow-rgb: 255, 115, 50;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #{$yobi-btn-primary-hover};
+    --bs-btn-active-border-color: #{$yobi-btn-primary-hover};
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #{$yobi-btn-primary};
+    --bs-btn-disabled-border-color: #{$yobi-btn-primary};
+}

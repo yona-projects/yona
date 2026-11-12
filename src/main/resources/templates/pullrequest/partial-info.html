@@ -27,18 +27,12 @@
     </th:block>
 
     <th:block th:if="${header.accept != null}">
-        <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록(부트스트랩 드롭다운)으로 방식을 고르고, 단추를 누르면 기록될 커밋 제목과 본문을 미리 채운 확인 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
-        <style th:if="${header.accept.enabled}">
-            #merge-box .btn-group > .ybtn { margin-left: 0; }
-            #merge-box .btn-group > .ybtn + .ybtn { margin-left: -1px; }
-            #merge-box .btn-group > .ybtn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-            #merge-box .btn-group > .dropdown-toggle { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-        </style>
+        <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록(부트스트랩 드롭다운)으로 방식을 고르고, 단추를 누르면 기록될 커밋 제목과 본문을 미리 채운 확인 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다. 분할 단추는 Bootstrap 5의 btn-group과 dropdown-toggle-split 그대로 쓴다(단추를 붙이려고 모서리와 여백을 직접 맞추던 style은 없앴다) */-->
         <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left; position:relative;">
             <div class="btn-group">
-                <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
-                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-bs-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
-                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu float-end" style="min-width:320px;">
+                <button type="button" id="btnAccept" class="btn btn-yona" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
+                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="btn btn-yona dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" th:title="#{pullRequest.merge.options}"><span class="visually-hidden" th:text="#{pullRequest.merge.options}"></span></button>
+                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu dropdown-menu-end" style="min-width:320px;">
                     <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
                         th:data-title="${option.defaultTitle}" th:data-message="${option.defaultMessage}"
                         th:classappend="${!option.available} ? 'disabled'" th:title="${option.reason}">
