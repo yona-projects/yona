@@ -99,4 +99,11 @@ export const tests = [
     const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar');
     assert.ok(Math.abs(side.top - header.bottom) <= 1, `머리 아래 ${header.bottom}, 사이드바 위 ${side.top}`);
   } },
+  { name: '머리 줄과 사이드바 사이에 회색 선(아래 테두리)이 없다', async run() {
+    const page = await open(1280);
+    const w = parseFloat((await style(page, '.project-header-outer', ['borderBottomWidth'])).borderBottomWidth);
+    assert.equal(w, 0, `머리 줄 아래 테두리 ${w}px`);
+    const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar');
+    assert.ok(Math.abs(side.top - header.bottom) <= 0.5, `머리 아래 ${header.bottom}, 사이드바 위 ${side.top}`);
+  } },
 ];
