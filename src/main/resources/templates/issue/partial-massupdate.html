@@ -25,15 +25,10 @@
 
 <div class="mass-update-wrap hide-in-mobile">
     <form id="mass-update-form" class="mass-update-form float-start" th:action="@{${base + '/issues'}}" method="post">
-        <div class="btn-group check-all">
-            <label for="check-all">
-                <input class="form-check-input" type="checkbox" id="check-all" data-target="checked-issue"/>
-                <span class="mass-select-all" th:text="#{issue.massupdate.selectAll}"></span>
-            </label>
-        </div>
-        <!--/* A-523: 선택해야 도구줄이 나타난다. 하나도 고르지 않으면 .mass-update-wrap에 has-selection이 없어 숨는다(CSS). 상태는 드롭다운 대신 "닫기"/"다시 열기" 단추이다. */-->
+        <!--/* A-523: 선택해야 도구줄이 나타난다(A-526: 전체 선택 체크박스는 없앴고, 하나 이상 고르면 "모두 선택" 링크가 나온다). 하나도 고르지 않으면 .mass-update-wrap에 has-selection이 없어 숨는다(CSS). 상태는 드롭다운 대신 "닫기"/"다시 열기" 단추이다. */-->
         <div class="mass-actions">
         <span class="mass-selected"><b class="mass-count">0</b><th:block th:text="#{issue.massupdate.selected}"></th:block></span>
+        <a href="#" class="mass-select-all-link" data-mass-select-all th:text="#{issue.massupdate.selectAll}"></a>
         <button type="button" class="btn btn-outline-secondary" data-mass-state="CLOSED" hidden th:text="#{issue.massupdate.close}"></button>
         <button type="button" class="btn btn-outline-secondary" data-mass-state="OPEN" hidden th:text="#{issue.massupdate.reopen}"></button>
 

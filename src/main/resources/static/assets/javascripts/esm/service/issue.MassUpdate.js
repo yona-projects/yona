@@ -92,7 +92,6 @@ const MassUpdate = function(htOptions){
         htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
         htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
         htElement.waCheckboxes  = $(htOptions.sIssueCheckBoxesSelector);
-        htElement.weAllCheckbox = $('#check-all');
 
         htElement.welBtnAttachingLabel = $(htOptions.welAttachingLabel).find("button");
         htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button");
@@ -123,7 +122,6 @@ const MassUpdate = function(htOptions){
         $(document).on('click', '[data-mass-clear]', function(weEvt){
             weEvt.preventDefault();
             $(htVar.sIssueCheckBoxesSelector).prop('checked', false);
-            htElement.weAllCheckbox.prop('checked', false);
             _onCheckIssue();
         });
 
@@ -133,15 +131,15 @@ const MassUpdate = function(htOptions){
             _onCheckIssue();
         }
 
-        // selectAll
-        $(htElement.weAllCheckbox).on('click', function(){
-            $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked).change();
-            _onCheckIssue();
+        // 전체 선택 체크박스는 없앴다(A-526). 이슈를 하나 이상 고르면 도구줄의 "모두 선택" 링크로, 또는 Ctrl+A로 모든 이슈를 고른다.
+        $(document).on('click', '[data-mass-select-all]', function(weEvt){
+            weEvt.preventDefault();
+            _selectAll();
         });
         yona.ShortcutKey.attach("CTRL+A", (htInfo) =>{
             if(!htInfo.bFormInput){
                 htInfo.weEvt.preventDefault();
-                $(htElement.weAllCheckbox).trigger('click');
+                _selectAll();
                 return false;
             }
         });
@@ -177,6 +175,14 @@ const MassUpdate = function(htOptions){
     }
 
     /**
+     * 목록의 모든 이슈를 고른다.
+     */
+    function _selectAll(){
+        $(htVar.sIssueCheckBoxesSelector).prop('checked', true).change();
+        _onCheckIssue();
+    }
+
+    /**
      * 선택 개수와 도구줄 표시를 갱신한다. 하나도 고르지 않으면 `.mass-update-wrap`의 `has-selection`이 없어 단추들이 숨고(CSS),
      * 고르면 "N개 선택됨"과 함께 나타난다. 선택한 이슈가 열려 있으면 "닫기", 닫혀 있으면 "다시 열기"를 보이고 섞여 있으면 둘 다 보인다.
      *
@@ -186,6 +192,7 @@ const MassUpdate = function(htOptions){
         const nCount = waChecked.length;
         $('.mass-update-wrap').toggleClass('has-selection', nCount > 0);
         $('.mass-count').text(nCount);
+        $('[data-mass-select-all]').prop('hidden', nCount >= $(htVar.sIssueCheckBoxesSelector).length);
 
         let bOpen = false, bClosed = false;
         waChecked.each((i, el) =>{

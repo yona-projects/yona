@@ -8399,7 +8399,7 @@ textarea.editorSeries.content {
 .filter-wrap.mass-update-sticky {
     height: auto;
     min-height: 30px;
-    // 전체 선택 체크박스(왼쪽)와 정렬 필터(오른쪽 끝)를 같은 줄에 둔다. 따로 두 줄을 차지하던 빈 줄을 없앴다(A-524).
+    // 선택 전에는 정렬 필터만 오른쪽 끝에 남고, 선택하면 도구줄이 왼쪽에서 시작한다(A-524, A-526).
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -8413,6 +8413,7 @@ textarea.editorSeries.content {
     > .filters.float-end {
         float: none !important;
         flex: none;
+        margin-left: auto; // 도구줄 상자가 없을 때도 오른쪽 끝에 둔다
     }
 
     // 이슈를 고르는 동안에는 정렬을 숨겨 도구줄이 한 줄에 들어가게 한다(GitHub처럼 선택 도구줄이 머리를 대신한다).
@@ -8450,23 +8451,15 @@ textarea.editorSeries.content {
         line-height: 1.75rem;
     }
 
-    // 체크박스 옆의 "전체 선택" 글자: 빈 체크박스처럼 보이지 않게 한다. 고르면 "N개 선택됨"이 대신하므로 숨긴다(A-524).
-    .check-all label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin: 0;
-        cursor: pointer;
-    }
-
-    .mass-select-all {
-        font-size: 0.8125rem;
-        color: #666;
-        white-space: nowrap;
-    }
-
-    &.has-selection .mass-select-all {
+    // 선택 전에는 도구줄 상자 자체를 보이지 않는다(전체 선택 체크박스를 없앴으므로 빈 줄이 남지 않게 한다, A-526).
+    &:not(.has-selection) {
         display: none;
+    }
+
+    .mass-select-all-link {
+        font-size: 0.8125rem;
+        white-space: nowrap;
+        margin-right: 6px;
     }
 
     .mass-selected {

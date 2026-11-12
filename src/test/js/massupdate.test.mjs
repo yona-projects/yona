@@ -8,8 +8,8 @@ const TPL = `<script type="text/x-yona-template" id="labelListItem">
 </script>`;
 const issueLabels = (category, id, name) => `${category},${id},${name},9,false`;
 const HTML = (labelsOfIssue1, sticky = false, state = 'open') => `${TPL}
-${sticky ? '<style>body{margin:0}.filter-wrap.mass-update-sticky{position:sticky;top:0;height:30px;background:#fff}</style><div style="height:300px">위 여백</div><div class="filter-wrap mass-update-sticky">막대</div><div style="height:3000px">긴 목록</div>' : ''}<div class="inner"><input id="check-all" type="checkbox">
-<div class="mass-update-wrap"><form id="mass-form-bar"><input class="chk" type="checkbox" data-issue-id="1" data-issue-state="${state}" data-issue-labels="${labelsOfIssue1.replace(/"/g, '&quot;')}"><div class="mass-actions"><span class="mass-selected"><b class="mass-count">0</b>개 선택됨</span><button type="button" id="mass-close" data-mass-state="CLOSED" hidden>닫기</button><button type="button" id="mass-reopen" data-mass-state="OPEN" hidden>다시 열기</button><a href="#" id="mass-clear" data-mass-clear>선택 해제</a></div></form></div>
+${sticky ? '<style>body{margin:0}.filter-wrap.mass-update-sticky{position:sticky;top:0;height:30px;background:#fff}</style><div style="height:300px">위 여백</div><div class="filter-wrap mass-update-sticky">막대</div><div style="height:3000px">긴 목록</div>' : ''}<div class="inner">
+<div class="mass-update-wrap"><form id="mass-form-bar"><input class="chk" type="checkbox" data-issue-id="1" data-issue-state="${state}" data-issue-labels="${labelsOfIssue1.replace(/"/g, '&quot;')}"><div class="mass-actions"><span class="mass-selected"><b class="mass-count">0</b>개 선택됨</span><button type="button" id="mass-close" data-mass-state="CLOSED" hidden>닫기</button><button type="button" id="mass-reopen" data-mass-state="OPEN" hidden>다시 열기</button><a href="#" id="mass-all" data-mass-select-all>모두 선택</a><a href="#" id="mass-clear" data-mass-clear>선택 해제</a></div></form></div><input class="chk" type="checkbox" data-issue-id="2" data-issue-state="open" data-issue-labels="">
 <div id="st"></div><div id="as"></div><div id="ms"></div>
 <div id="al"><button>붙이기</button></div><div id="dl" data-name="detachingLabelIds"><button>떼기</button></div>
 <ul id="attach-label-list"><li data-category="Bug" data-value="1">Bug1</li></ul><ul id="delete-label-list"></ul>
@@ -19,7 +19,7 @@ async function open(labels, sticky = false, state = 'open') {
   const page = await pageWith({ stubs: false, html: HTML(labels, sticky, state), scripts: [{ content: 'window.Messages = function (k) { return k; };' }, 'common/yona.Common.js'] });
   await page.evaluate(() => {
     yona.ui = yona.ui || {}; yona.ui.Dropdown = function () { this.onChange = function () {}; };
-    yona.ShortcutKey = { attach() {} };
+    yona.ShortcutKey = { attach(k, f) { if (k === 'CTRL+A') window.__ctrlA = f; } };
   });
   await page.addScriptTag({ content: classicFromEsm('esm/service/issue.MassUpdate.js') });
   await page.evaluate(() => { new yona.issue.MassUpdate({ sIssueCheckBoxesSelector: '.chk', welState: '#st', welAssignee: '#as', welMilestone: '#ms', welAttachingLabel: $('#al'), welDetachingLabel: $('#dl'), welMassUpdateForm: $('#mf'), welMassUpdateButtons: $('#btns button'), sURL: '/x', nTotalPages: 1 }); });
@@ -120,6 +120,23 @@ export const tests = [
     await page.evaluate(() => $('#mass-clear').trigger('click'));
     assert.equal(await page.evaluate(() => document.querySelector('.chk').checked), false);
     assert.equal(await page.evaluate(() => $('.mass-update-wrap').hasClass('has-selection')), false);
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '일괄 수정: Ctrl+A는 전체 선택 체크박스 없이 모든 이슈를 고른다', run: async () => {
+    const page = await open('');
+    assert.equal(await page.evaluate(() => $('#check-all').length), 0, '틀에 전체 선택 체크박스가 있다');
+    await page.evaluate(() => window.__ctrlA({ bFormInput: false, weEvt: { preventDefault() {} } }));
+    assert.deepEqual(await page.evaluate(() => $('.chk').map((i, e) => e.checked).get()), [true, true]);
+    assert.equal(await page.evaluate(() => $('.mass-count').text()), '2');
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '일괄 수정: "모두 선택" 링크는 모든 이슈를 고르고, 이미 모두 골랐으면 숨는다', run: async () => {
+    const page = await open('');
+    await page.evaluate(() => { const c = $('.chk')[0]; c.checked = true; $(c).trigger('change'); });
+    assert.equal(await page.evaluate(() => document.getElementById('mass-all').hidden), false, '일부만 골랐는데 모두 선택이 숨어 있다');
+    await page.evaluate(() => $('#mass-all').trigger('click'));
+    assert.deepEqual(await page.evaluate(() => $('.chk').map((i, e) => e.checked).get()), [true, true]);
+    assert.equal(await page.evaluate(() => document.getElementById('mass-all').hidden), true, '모두 골랐는데 모두 선택이 보인다');
     assert.deepEqual(page.errors, []); await page.close();
   } },
 ];
