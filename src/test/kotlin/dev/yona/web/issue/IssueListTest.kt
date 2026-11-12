@@ -345,6 +345,7 @@ class IssueListTest : AbstractIntegrationTest() {
         // A-523: 상태는 드롭다운이 아니라 "닫기"/"다시 열기" 단추이고, 선택 개수와 선택 해제가 있으며 이슈 체크박스는 상태를 가진다.
         assertTrue(bar.select("#state").isEmpty(), "상태 드롭다운은 없다")
         assertEquals(listOf("CLOSED", "OPEN"), bar.select("button[data-mass-state]").map { it.attr("data-mass-state") })
+        assertNotNull(bar.selectFirst("label[for=check-all] .mass-select-all"), "전체 선택 체크박스 옆에 글자가 있다")
         assertNotNull(bar.selectFirst(".mass-actions .mass-selected .mass-count")); assertNotNull(bar.selectFirst(".mass-actions [data-mass-clear]"))
         assertTrue(doc.select("input[name=checked-issue]").all { it.attr("data-issue-state").lowercase() in listOf("open", "closed") }, "체크박스에 data-issue-state가 있다")
         assertTrue(bar.select("#assignee li[data-value=${assignable.id}]").isNotEmpty())
