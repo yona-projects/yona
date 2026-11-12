@@ -147,4 +147,17 @@ export const tests = [
     const reloaded = await page.waitForFunction(() => !window.__marker, null, { timeout: 3000 }).then(() => true, () => false);
     assert.equal(reloaded, true); await page.close();
   } },
+  { name: '이슈 번호(data-issue-id)가 없는 "즐겨 찾는 이슈" 필터 라벨을 눌러도 즐겨찾기 요청을 보내지 않고, 눌림이 바깥 링크로 이어져 필터가 걸린다 (R-150 수정, A-498)', run: async () => {
+    const html = HTML.replace('<span class="favorite-issue" data-issue-id="5"><i></i></span>', '<span class="favorite-issue" data-issue-id="5"><i></i></span><a id="flt" href="#"><span id="flabel" class="favorite-issue"><i></i> 즐겨 찾는 이슈</span></a>');
+    const page = await open({ html, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.evaluate(() => { window.__filter = 0; document.getElementById('flt').addEventListener('click', (e) => { e.preventDefault(); window.__filter++; }); });
+    await page.dispatchEvent('#flabel', 'click'); await page.waitForTimeout(150);
+    const calls = await page.evaluate(() => window.__calls.slice());
+    assert.deepEqual(calls.filter((c) => c.startsWith('POST')), [], '이슈 번호가 없으면 즐겨찾기 요청을 보내지 않는다(예전에는 POST /user/favoriteIssues/undefined가 400이었다)');
+    assert.equal(await page.evaluate(() => window.__filter), 1, '눌림이 바깥 링크까지 이어져 필터가 걸린다');
+    // 이슈 번호가 있는 별은 그대로 즐겨찾기를 보낸다
+    await page.dispatchEvent('[data-issue-id="5"]', 'click'); await page.waitForTimeout(150);
+    assert.ok((await page.evaluate(() => window.__calls.slice())).some((c) => c.startsWith('POST') && c.endsWith('5')), '번호가 있는 별은 요청을 보낸다');
+    await page.close();
+  } },
 ];

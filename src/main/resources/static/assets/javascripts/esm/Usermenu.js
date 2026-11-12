@@ -138,7 +138,9 @@ $(() => {
                 that.find('i').toggleClass("starred", !!data.favored);
             });
 
-        $(".favorite-issue")
+        // A-498(R-150 수정): 이슈 번호(data-issue-id)가 있는 별에만 연결한다. 내 이슈 화면의 "즐겨 찾는 이슈" 필터 라벨도 같은 클래스인데
+        // 번호가 없어, 예전에는 눌러도 POST /user/favoriteIssues/undefined가 400이 되고 필터가 걸리지 않았다.
+        $(".favorite-issue[data-issue-id]")
             .off("click.toggleProjectFavorite")
             .on("click.toggleProjectFavorite", async function toggleProjectFavorite(e) {
                 e.stopPropagation();
