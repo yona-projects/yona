@@ -140,7 +140,17 @@ $shell-gap: 14px;
 
 // 머리 아래의 여백이다. 예전에는 조직 머리의 로고가 배너 밖으로 튀어나와 40px가 필요했지만, 머리가 얇은 한 줄이 되어(A-483) 작은 여백이면 된다.
 .shell-below-banner {
-    padding-top: 12px;
+    padding-top: 0; // 머리 줄과 사이드바 사이에 틈을 두지 않는다(A-512, 선생님 지시)
+}
+
+// 머리 줄 바로 다음의 화면 틀은 전역 마진(.page-wrap-outer 10px, .project-page-wrap 위 5px)도 없애 사이드바가 머리 줄에 붙게 한다.
+.project-header-outer ~ .page-wrap-outer {
+    margin-top: 0;
+
+    // `_responsive.scss`의 `@media all .project-page-wrap { margin-top: 5px !important }`를 같은 !important로 덮는다.
+    > .shell-below-banner {
+        margin-top: 0 !important;
+    }
 }
 
 // 개수 배지는 옛 메뉴처럼 요나 주황 알약이다(Bootstrap의 `text-bg-secondary`는 !important라 같은 우선순위로 덮는다).

@@ -17,7 +17,7 @@ const PAGE = `<div id="main" class="main">
   </div></div></div>
   <div class="page-wrap-outer"><div class="project-page-wrap shell shell-below-banner">
     <nav class="shell-sidebar offcanvas-lg offcanvas-start"><div class="offcanvas-body"><div class="shell-sidebar-title d-none d-lg-block">admin/demo</div><ul class="nav"><li class="nav-item"><a class="nav-link" href="/a">홈</a></li></ul></div></nav>
-    <div class="shell-main"><div class="project-cover" style="background-image:url(data:image/gif;base64,R0lGODlhAQABAAAAACw=)"></div><p>본문</p></div>
+    <div class="shell-main"><p>본문</p></div>
   </div></div></div>`;
 
 async function open(width) {
@@ -61,17 +61,12 @@ export const tests = [
     const header = await box(page, '.project-header-outer');
     assert.ok(header.right - util.right <= 24, `단추 오른쪽 끝 ${util.right}, 머리 오른쪽 ${header.right}`);
   } },
-  { name: '사이드바 위 여백이 줄었다(로고가 튀어나오지 않으므로 40px가 필요 없다)', async run() {
+  { name: '머리 줄과 사이드바 사이에 틈이 없다(위 여백 0)', async run() {
     const page = await open(1280);
     const pad = parseFloat((await style(page, '.shell-below-banner', ['paddingTop'])).paddingTop);
-    assert.ok(pad <= 16, `위쪽 여백 ${pad}`);
-  } },
-  { name: '프로젝트 홈 표지는 본문 폭을 채우고 이미지를 덮어 맞춘다', async run() {
-    const page = await open(1280);
-    const cover = await box(page, '.project-cover'); const main = await box(page, '.shell-main');
-    assert.ok(Math.abs(cover.width - main.width) <= 1, `표지 폭 ${cover.width}, 본문 폭 ${main.width}`);
-    assert.ok(cover.height >= 120 && cover.height <= 220, `표지 높이 ${cover.height}`);
-    assert.equal((await style(page, '.project-cover', ['backgroundSize'])).backgroundSize, 'cover');
+    assert.equal(pad, 0, `위쪽 여백 ${pad}`);
+    const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar');
+    assert.ok(Math.abs(side.top - header.bottom) <= 1, `머리 아래 ${header.bottom}, 사이드바 위 ${side.top}`);
   } },
   { name: '폰 폭(420)에서도 가로로 넘치지 않고 이름과 단추가 겹치지 않는다', async run() {
     const page = await open(420);
@@ -97,5 +92,11 @@ export const tests = [
     const r = await page.evaluate(() => { const h = document.querySelector('.project-header-outer'); return { h: Math.round(h.getBoundingClientRect().height), bg: getComputedStyle(h).backgroundColor, name: getComputedStyle(document.querySelector('.project-name a')).color }; });
     assert.ok(r.h < 80, `머리 높이 ${r.h}px`); assert.equal(r.bg, 'rgb(255, 255, 255)'); assert.equal(r.name, 'rgb(33, 37, 41)');
     await page.context().close();
+  } },
+  { name: '머리 줄 뒤에 script 같은 요소가 끼어 있어도(조직 화면) 사이드바와의 틈이 없다', async run() {
+    const page = await open(1280);
+    await page.evaluate(() => { const h = document.querySelector('.project-header-outer'); h.insertAdjacentHTML('afterend', '<script type="text/plain"></script>'); });
+    const header = await box(page, '.project-header-outer'); const side = await box(page, 'nav.shell-sidebar');
+    assert.ok(Math.abs(side.top - header.bottom) <= 1, `머리 아래 ${header.bottom}, 사이드바 위 ${side.top}`);
   } },
 ];

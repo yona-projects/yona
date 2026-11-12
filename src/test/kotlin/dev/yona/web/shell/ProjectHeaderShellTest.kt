@@ -89,9 +89,7 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
     fun `올린 이미지가 없으면 프로젝트 홈 표지는 원래 요나 기본 배경 이미지이고 로고는 기본 로고이다(A-486)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
         val home = page(base(p), s)
-        val cover = home.selectFirst(".shell-main > .project-cover")
-        assertNotNull(cover, "올린 이미지가 없어도 표지가 있다")
-        assertTrue(cover.attr("style").contains("/assets/images/project_default.jpg"), "원래 요나 기본 배경: ${cover.attr("style")}")
+        assertNull(home.selectFirst(".project-cover"), "본문 표지는 없앴다(머리 배경으로 대신한다, A-512)")
         assertEquals("/assets/images/project_default_logo.png", home.selectFirst(".project-header-avatar img")!!.attr("src"))
         val banner = home.selectFirst(".project-header-outer")!!
         assertTrue(banner.hasClass("has-banner") && banner.attr("style").contains("/assets/images/project_default.jpg"), "프로젝트 홈의 머리는 배경 이미지를 깐다: ${banner.className()} ${banner.attr("style")}")
@@ -102,13 +100,9 @@ class ProjectHeaderShellTest : AbstractIntegrationTest() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
         val file = attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = p.id!!, name = "cover.png"))
         val home = page(base(p), s)
-        val cover = home.selectFirst(".shell-main > .project-cover")
-        assertNotNull(cover, "표지는 사이드바 오른쪽 본문(.shell-main)의 첫 요소이다")
-        assertTrue(cover.attr("style").contains("/files/${file.id}"))
+        assertNull(home.selectFirst(".project-cover"), "본문 표지는 없앴다(머리 배경으로 대신한다, A-512)")
         assertEquals("/files/${file.id}", home.selectFirst(".project-header-avatar img")!!.attr("src"), "로고와 배경은 같은 첨부이다")
         assertTrue(home.selectFirst(".project-header-outer.has-banner")!!.attr("style").contains("/files/${file.id}"), "머리 배경도 올린 이미지이다")
         listOf("/issues", "/posts", "/milestones").forEach { sub -> assertNull(page(base(p) + sub, s).selectFirst(".project-header-outer.has-banner"), "$sub 머리에는 배경이 없다") }
-        // 홈이 아닌 화면에는 표지가 없다
-        listOf("/issues", "/posts", "/milestones").forEach { sub -> assertNull(page(base(p) + sub, s).selectFirst(".project-cover"), sub) }
     }
 }

@@ -469,7 +469,7 @@
 }
 
 // 프로젝트와 조직의 머리이다(A-483). GitHub, GitLab처럼 배경 이미지 없는 흰 바탕의 얇은 한 줄이다: 작은 아바타, 이름, 별과 배지, 오른쪽의 동작 단추.
-// 예전에는 120px 배너 위에 로고가 튀어나오고 상단 바가 그 위에 반투명으로 겹쳤다(v1.6). 올린 이미지는 프로젝트 홈 본문 맨 위의 표지(.project-cover)로만 보인다.
+// 예전에는 120px 배너 위에 로고가 튀어나오고 상단 바가 그 위에 반투명으로 겹쳤다(v1.6). 올린 이미지는 프로젝트 홈의 머리 줄 배경으로 보인다(.has-banner).
 .project-header-outer {
     background-color: #fff;
     border-bottom: 1px solid var(--bs-border-color, #dee2e6);
@@ -673,17 +673,6 @@
             }
         }
     }
-}
-
-// 프로젝트 홈 본문 맨 위의 표지이다. 프로젝트에 올린 이미지(로고와 같은 첨부)가 있을 때만 그린다.
-.project-cover {
-    height: 160px;
-    margin-bottom: 14px;
-    border-radius: 6px;
-    background-color: #565656;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
 }
 
 .page-wrap-outer {

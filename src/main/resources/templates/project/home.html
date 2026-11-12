@@ -14,8 +14,7 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PROJECT_HOME')}"></th:block>
         <div class="shell-main">
-        <!--/* A-483, A-486: 프로젝트의 배경 이미지는 프로젝트 홈 본문 맨 위의 표지로만 보인다. 올린 이미지(로고와 같은 첨부)가 있으면 그것을, 없으면 원래 요나의 기본 배경(v1.6 `urlToProjectBG`)을 쓴다. */-->
-        <div class="project-cover" th:style="'background-image:url(' + @{${projectView.backgroundUrl}} + ')'" role="img" th:attr="aria-label=${projectView.displayName}"></div>
+        <!--/* A-512: 본문 맨 위의 표지(project-cover)는 없앴다. 프로젝트 이미지는 홈의 머리 줄 배경으로 보인다(project/header, A-511). */-->
         <div class="project-breadcrumb hide show-in-mobile">
             <span class="project-author"><a th:href="@{/{user}(user=${projectView.project.owner})}" th:text="${projectView.project.owner}"></a></span>
             <span class="project-separator">/</span>
