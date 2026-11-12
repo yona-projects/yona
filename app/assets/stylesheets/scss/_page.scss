@@ -7302,8 +7302,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+// 도구 줄 단추 사이의 간격은 `.code-browse-header > .float-end + .float-end`가 정한다. 이 링크만 자체 여백을 두면 간격이 달라진다(A-516).
 #new-file-link {
-    margin: 0 5px;
+    margin: 0;
 }
 
 .show-subtasks-li {

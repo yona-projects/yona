@@ -14,12 +14,14 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"><style>${fs.readF
 </div></div></div></body></html>`;
 
 export const tests = [
-  { name: '도구 줄의 단추들은 서로 6px 이상 떨어져 있다', run: async () => {
+  { name: '도구 줄의 단추 사이 간격은 모두 같고 6px 이상이다(새 파일 링크의 자체 여백 때문에 달라지지 않는다)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1000, height: 600 } }); const page = await ctx.newPage();
     await page.setContent(HTML);
     const r = await page.evaluate(() => [...document.querySelectorAll('.code-browse-header .float-end a')].map((a) => { const x = a.getBoundingClientRect(); return { left: x.left, right: x.right }; }));
     assert.equal(r.length, 3);
-    for (let i = 0; i < 2; i++) assert.ok(r[i].left - r[i + 1].right >= 6, `단추 ${i}와 ${i + 1} 사이 ${r[i].left - r[i + 1].right}px`);
+    const gaps = [r[0].left - r[1].right, r[1].left - r[2].right];
+    for (const g of gaps) assert.ok(g >= 6, `간격 ${g}px`);
+    assert.ok(Math.abs(gaps[0] - gaps[1]) <= 1, `간격이 서로 다르다: ${gaps.map((g) => g.toFixed(1)).join(', ')}px`);
     await ctx.close();
   } },
 ];
