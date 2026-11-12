@@ -2749,7 +2749,22 @@ label.inline-list {
         padding:5px 0;
 
         dt { width:120px; line-height:1.875rem; }
-        dd { margin-left:140px; line-height:1.875rem; }
+        // A-501: 라벨 배지와 개수는 배지 바로 옆의 두 열(배지 | 개수)로 모은다. 예전에는 배지 칸이 10/12, 개수 칸이 2/12라 화면이 넓을수록 개수가 오른쪽 끝으로 벌어져
+        // 배지와 같은 줄로 읽히지 않았다. 줄(.row)을 `display: contents`로 풀고 `dd`의 격자 열에 놓아 모든 줄의 개수가 같은 세로 선에 맞는다.
+        dd {
+            margin-left:140px;
+            line-height:1.875rem;
+            display:grid;
+            grid-template-columns:max-content max-content;
+            column-gap:14px;
+            justify-content:start;
+
+            > .row { display:contents; }
+            .issue-label { white-space:nowrap; } // 격자 열 폭이 한글 한 글자 폭까지 줄면 배지가 글자마다 접힌다(실제 화면에서 확인)
+            // 앱 전체의 `.row:has(> .col-lg-2):has(> .col-lg-10)` 호환 규칙(Bootstrap 2의 row-fluid 폭 14.9%/83%와 사이 여백 2.1%)이 우선순위가 더 높아 `!important`로 덮는다.
+            > .row > [class*="col-"] { flex:none !important; width:auto !important; max-width:none; margin-left:0 !important; padding:0; }
+            > .row > .num { padding-right:0; text-align:right; }
+        }
 
         &:first-of-type { padding-top:0; }
         &:last-of-type { border-bottom:none; }

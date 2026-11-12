@@ -12,7 +12,7 @@ const HTML = `<div class="page-wrap-outer"><div class="page-wrap shell">
 <div class="shell-main"><div class="row"><div class="col-lg-9 span-left-pane"><div class="content-container nm"><div class="project-overview-home row">
   <div class="col-lg-6"><h5>담당자별 열린 이슈</h5><div class="overview-assignee">${row('user', 2, 25)}${row('담당자 없음', 6, 75)}</div>
     <h5>마일스톤별 열린 이슈</h5><div class="overview-milestone">${row('v0.1', 4, 50)}</div></div>
-  <div class="col-lg-6"><h5>라벨별 열린 이슈</h5><dl class="dl-horizontal overview-label"><dt>우선순위</dt><dd><div class="row"><div class="col-lg-10"><span class="issue-label list-label active">높음</span></div><div class="col-lg-2 num"><strong>0</strong></div></div></dd></dl></div>
+  <div class="col-lg-6"><h5>라벨별 열린 이슈</h5><dl class="dl-horizontal overview-label"><dt>우선순위</dt><dd><div class="row"><div class="col-lg-10"><a><span class="issue-label list-label active">높음</span></a></div><div class="col-lg-2 num"><strong>0</strong></div></div><div class="row"><div class="col-lg-10"><a><span class="issue-label list-label active">아주 긴 라벨 이름</span></a></div><div class="col-lg-2 num"><strong>12</strong></div></div></dd></dl><dl class="dl-horizontal overview-label"><dt>종류</dt><dd><div class="row"><div class="col-lg-10"><a><span class="issue-label list-label active">버그</span></a></div><div class="col-lg-2 num"><strong>3</strong></div></div></dd></dl></div>
 </div></div></div></div></div></div></div>`;
 
 async function open(width = 1280) {
@@ -51,4 +51,31 @@ export const tests = [
       for (const b of g.bars) { assert.ok(b.w >= 70, `막대 폭 ${b.w}px`); assert.ok(b.w <= 100.5, `막대 폭 ${b.w}px`); }
     },
   },
+  ...[1100, 1280, 1920].map((w) => ({
+    name: `라벨 배지와 숫자는 한 줄로 읽힌다: 배지 바로 옆 숫자 열에 모이고 줄마다 숫자 오른쪽이 같은 선에 맞는다(폭 ${w}, A-501)`,
+    async run() {
+      const page = await open(w);
+      const rows = await page.evaluate(() => [...document.querySelectorAll('.overview-label .row')].map((r) => {
+        const badge = r.querySelector('.issue-label').getBoundingClientRect();
+        const num = r.querySelector('.num').getBoundingClientRect();
+        const dd = r.closest('dd').getBoundingClientRect();
+        const numText = r.querySelector('.num strong').getBoundingClientRect();
+        return { badgeRight: badge.right, numLeft: numText.left, numRight: numText.right, ddRight: dd.right, numCellRight: num.right, h: badge.height };
+      }));
+      assert.equal(rows.length, 3);
+      // 숫자 열을 같은 선에 맞추므로, 같은 분류에서 짧은 배지 뒤에는 가장 긴 배지와의 폭 차이만큼 간격이 더 생긴다. 그 차이를 뺀 간격은 열 사이 여백(14px)에 한 자리 숫자를 오른쪽에 맞춘 폭 차이와 여유를 더해 40px 이하여야 한다.
+      const widths = await page.evaluate(() => [...document.querySelectorAll('.overview-label .row .issue-label')].map((e) => e.getBoundingClientRect().width));
+      const longest = Math.max(widths[0], widths[1]); // 우선순위 분류의 두 줄
+      rows.forEach((r, i) => {
+        const gap = r.numLeft - r.badgeRight;
+        const extra = i < 2 ? longest - widths[i] : 0;
+        assert.ok(gap >= 0 && gap - extra <= 40, `줄 ${i}: 배지와 숫자 사이 ${Math.round(gap)}px, 폭 차이 ${Math.round(extra)}px를 빼도 40px를 넘는다`);
+        assert.ok(r.h <= 30, `배지 높이 ${r.h}px: 한 줄이다(글자가 접히지 않는다)`);
+      });
+      // 같은 분류의 두 줄은 숫자 오른쪽이 같은 선에 있다
+            assert.ok(Math.abs(rows[0].numRight - rows[1].numRight) <= 1, `숫자 오른쪽 ${rows[0].numRight} / ${rows[1].numRight}`);
+      // 숫자가 칸 오른쪽 끝에 붙어 배지와 멀리 떨어지지 않는다
+      assert.ok(rows[0].ddRight - rows[0].numRight > 20, `숫자가 오른쪽 끝(${rows[0].ddRight})에 붙어 있다: ${rows[0].numRight}`);
+    },
+  })),
 ];
