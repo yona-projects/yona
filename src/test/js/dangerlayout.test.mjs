@@ -100,4 +100,18 @@ export const tests = [
     assert.ok(Math.abs((c.top + c.bottom) / 2 - (t.top + t.bottom) / 2) <= 6, `체크 상자 중심 ${((c.top + c.bottom) / 2).toFixed(0)}, 제목 중심 ${((t.top + t.bottom) / 2).toFixed(0)}`);
     await ctx.close();
   } },
+  { name: '프로젝트 설정 폼의 구역 제목은 눈에 띄고 항목 레이블 열 너비가 구역마다 같으며 체크 상자는 16px이다(A-551)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    const row = (id, label, control) => `<div class="box-wrap middle"><div class="cu-label" id="${id}">${label}</div><div class="cu-desc">${control}</div></div>`;
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px;flex:none"><form id="saveSetting" class="nm"><div class="bubble-wrap gray">
+<h4 class="setting-section-title" id="t1">공개와 접근</h4>${row('l1', '공개 설정', '<input type="radio" class="form-check-input"> 공개')}
+<h4 class="setting-section-title" id="t2">이슈와 메뉴</h4>${row('l2', '메뉴 설정', '<label><input id="c" type="checkbox" class="form-check-input"> 코드</label>')}
+</div></form></div></div></div></body></html>`);
+    const fs = await page.evaluate(() => { const c = getComputedStyle(document.getElementById('t1')); return { size: parseFloat(c.fontSize), weight: parseInt(c.fontWeight, 10) }; });
+    assert.ok(fs.size >= 16 && fs.weight >= 600, `구역 제목이 ${fs.size}px, 굵기 ${fs.weight}이다`);
+    const a = await r(page, '#l1'), c2 = await r(page, '#l2'); assert.equal(Math.round(a.right - a.left), Math.round(c2.right - c2.left), '레이블 열 너비가 구역마다 다르다');
+    const cb = await r(page, '#c'); assert.ok(cb.h >= 15 && cb.h <= 18, `체크 상자 ${cb.h}px`);
+    await ctx.close();
+  } },
 ];

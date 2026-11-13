@@ -9052,3 +9052,28 @@ textarea.editorSeries.content {
         margin: 18px 0;
     }
 }
+
+
+// 프로젝트 설정 첫 화면(A-551): 저장 단추가 하나인 단일 폼이라 카드로 나누지 않고 구역 제목으로 묶는다(D-143).
+// 항목 줄(레이블 열과 컨트롤)은 그대로 두고, 구역 제목을 위쪽 구분선과 함께 두며 선택 상자는 16px로 맞춘다.
+#saveSetting {
+    .setting-section-title {
+        margin: 0;
+        padding: 18px 20px 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #212529;
+        border-top: 1px solid #e5e5e5;
+
+        &:first-child {
+            border-top: 0;
+        }
+    }
+
+    .form-check-input {
+        width: 1rem;
+        height: 1rem;
+        margin-top: 0;
+        vertical-align: middle;
+    }
+}

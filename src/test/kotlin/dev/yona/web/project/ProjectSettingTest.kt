@@ -172,6 +172,30 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `설정 폼은 항목을 구역 제목으로 묶고 스크립트가 쓰는 패널은 해당 구역 아래에 둔다(A-551)`() {
+        val project = newProject()
+        val form = settingForm(project, login(manager(project))).selectFirst("form#saveSetting")!!
+        val titles = form.select("h4.setting-section-title")
+        assertEquals(listOf("Basic information", "Visibility and access", "Code and pull requests", "Issues and menus"), titles.map { it.text() })
+        val all = form.allElements.toList()
+        fun index(selector: String) = all.indexOf(form.selectFirst(selector)!!)
+        val code = all.indexOf(titles[2]); val menus = all.indexOf(titles[3])
+        listOf("#reviewerCountSettingPanel", "#mergeMethodSettingPanel", "#defaultBranceSettingPanel").forEach {
+            assertTrue(index(it) in (code + 1) until menus, "$it 는 '코드와 풀 리퀘스트' 구역에 있어야 한다")
+        }
+        assertTrue(index("#menuSettingCode") > menus, "메뉴 체크는 '이슈와 메뉴' 구역에 있다")
+        assertTrue(index("input[name=projectScope]") in (all.indexOf(titles[1]) + 1) until code, "공개 범위는 '공개와 접근' 구역에 있다")
+        assertTrue(index("#project-name") in (all.indexOf(titles[0]) + 1) until all.indexOf(titles[1]))
+    }
+
+    @Test
+    fun `풀 리퀘스트와 기본 브랜치가 없는 Subversion 프로젝트에는 코드 구역이 없다(A-551)`() {
+        val project = newProject(vcs = "Subversion")
+        val titles = settingForm(project, login(manager(project))).select("form#saveSetting h4.setting-section-title").map { it.text() }
+        assertEquals(listOf("Basic information", "Visibility and access", "Issues and menus"), titles)
+    }
+
+    @Test
     fun `공개 범위 라디오는 현재 값을 고르고 그룹 공개는 조직 프로젝트에만 있다`() {
         val plain = newProject()
         val page = settingForm(plain, login(manager(plain)))

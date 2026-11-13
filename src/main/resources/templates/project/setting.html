@@ -19,6 +19,7 @@
             <div class="bubble-wrap gray" style="overflow: visible">
                 <input type="hidden" name="id" th:value="${project.id}">
                 <input type="hidden" name="watchingCount" th:value="${projectView.watchingCount}">
+                <h4 class="setting-section-title" th:text="#{project.setting.section.basic}"></h4>
                 <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
                     <div class="setting-box left">
                         <div class="logo-wrap" th:style="'background-image:url(\'' + @{${projectView.logoUrl}} + '\')'"></div>
@@ -55,6 +56,7 @@
                     </dl>
                 </div>
 
+                <h4 class="setting-section-title" th:text="#{project.setting.section.access}"></h4>
                 <div class="box-wrap middle">
                     <div class="cu-label" th:text="#{project.shareOption}"></div>
                     <div class="cu-desc">
@@ -66,14 +68,6 @@
                         <span class="note" th:text="#{project.private.notice}"></span>
                     </div>
                 </div>
-            <th:block th:if="${vcs.onlineEditing}">
-                <div class="box-wrap middle">
-                    <div class="cu-label" th:text="#{issue.template}"></div>
-                    <div class="cu-desc">
-                        <a th:href="@{/{owner}/{name}/postform(owner=${project.owner},name=${project.name},issueTemplate=true)}" class="ybtn" target="_blank" th:text="#{issue.template.edit}"></a>
-                    </div>
-                </div>
-            </th:block>
                 <div class="box-wrap middle">
                     <div class="cu-label" th:text="#{project.codeAccessible}"></div>
                     <div class="cu-desc">
@@ -84,6 +78,7 @@
                 </div>
 
                 <th:block th:if="${vcs.pullRequests}">
+                <h4 class="setting-section-title" th:text="#{project.setting.section.code}"></h4>
                 <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
                     <div class="cu-label vmiddle" th:text="#{project.reviewer.count}"></div>
                     <div class="cu-desc">
@@ -137,6 +132,15 @@
                 </div>
                 </th:block>
 
+                <h4 class="setting-section-title" th:text="#{project.setting.section.menus}"></h4>
+            <th:block th:if="${vcs.onlineEditing}">
+                <div class="box-wrap middle">
+                    <div class="cu-label" th:text="#{issue.template}"></div>
+                    <div class="cu-desc">
+                        <a th:href="@{/{owner}/{name}/postform(owner=${project.owner},name=${project.name},issueTemplate=true)}" class="ybtn" target="_blank" th:text="#{issue.template.edit}"></a>
+                    </div>
+                </div>
+            </th:block>
                 <div class="box-wrap middle">
                     <div class="cu-label vmiddle" th:text="#{project.menu.setting}"></div>
                     <div class="cu-desc">
