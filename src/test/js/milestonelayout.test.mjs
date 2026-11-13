@@ -11,7 +11,7 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"><style>${fs.readF
 <div class="shell-main" style="width:min(990px, calc(100vw - 24px));flex:none"><div class="milesion-wrap"><div class="row d-flex">
   <div class="col-lg-9"><div class="milestone-head"><h4><a class="title" href="#">v0.1 첫 릴리스</a><small class="ml10"><span class="due-date">기한 <strong>2026-12-31</strong></span> <span class="date">(49일 남음)</span><span class="badge rounded-pill margin-left-5">진행중</span></small></h4><div class="progress"><div class="progress-bar" style="width:0"></div></div></div>
   <div id="issues"><div class="milestone-tabbar"><ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" href="#">열림</a></li><li class="nav-item"><a class="nav-link" href="#">닫힘</a></li></ul><div class="search search-bar milestone-search"><input name="filter" class="textbox" type="text" placeholder="검색"><button type="submit" class="search-btn"><i class="yobicon-search"></i></button></div></div><div class="filter-wrap">필터</div><div class="issues">목록</div></div></div>
-  <div class="col-lg-3 milestone-info order-first order-lg-last"><div class="milestone-desc"><div class="markdown-wrap"><p>설명</p></div></div><div class="actrow"><a class="ybtn" href="#">목록</a></div></div>
+  <div class="col-lg-3 milestone-info order-first order-lg-last"><a class="milestone-back" href="#">목록</a><div class="milestone-desc"><div class="markdown-wrap"><p>설명</p></div></div><div class="actrow milestone-actions d-grid gap-2"><a class="ybtn" href="#">수정</a><button class="ybtn">마일스톤 종료</button><a class="ybtn ybtn-danger" href="#">삭제</a></div></div>
 </div></div></div></div></div></body></html>`;
 
 async function open(width) {
@@ -59,6 +59,21 @@ export const tests = [
     assert.ok(inp.right <= box.right + 0.5, `입력칸 오른쪽 ${inp.right.toFixed(1)}가 상자 오른쪽 ${box.right.toFixed(1)}을 넘는다(잘림)`);
     assert.ok(inp.left >= box.left - 0.5, '입력칸이 상자 왼쪽 밖이다');
     assert.ok(btn.left >= inp.left && btn.right <= box.right + 0.5, '돋보기 단추가 상자 안에 있다');
+    await ctx.close();
+  } },
+  { name: '동작 단추는 열 폭을 채우는 세로 묶음이라 한 줄에 둘이 놓이지 않고 혼자 남는 단추가 없다', run: async () => {
+    const { page, ctx } = await open(1280);
+    const r = await page.evaluate(() => { const col = document.querySelector('.milestone-actions').getBoundingClientRect(); return { colW: col.width, btns: [...document.querySelectorAll('.milestone-actions .ybtn')].map((e) => { const b = e.getBoundingClientRect(); return { top: Math.round(b.top), w: Math.round(b.width), l: Math.round(b.left) }; }) }; });
+    assert.equal(r.btns.length, 3);
+    for (const b of r.btns) assert.ok(Math.abs(b.w - r.colW) <= 2, `단추 폭 ${b.w}이 묶음 폭 ${Math.round(r.colW)}과 다르다`);
+    assert.ok(r.btns[0].top < r.btns[1].top && r.btns[1].top < r.btns[2].top, `한 줄에 둘 이상이다: ${r.btns.map((b) => b.top)}`);
+    await ctx.close();
+  } },
+  { name: '"목록" 이동 링크는 설명 상자보다 위에 있는 글자 링크이다', run: async () => {
+    const { page, ctx } = await open(1280);
+    const back = await rect(page, '.milestone-back'), desc = await rect(page, '.milestone-desc');
+    assert.ok(back.bottom <= desc.top + 1, `목록 링크(${back.bottom.toFixed(0)})가 설명(${desc.top.toFixed(0)})보다 위가 아니다`);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.milestone-back')).backgroundColor), 'rgba(0, 0, 0, 0)', '단추 바탕이 있다');
     await ctx.close();
   } },
 ];

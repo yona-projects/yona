@@ -62,23 +62,23 @@
             </div>
             </div>
             <div class="col-lg-3 milestone-info order-first order-lg-last">
+            <a th:href="@{${base + '/milestones'}}" class="milestone-back" th:text="'← ' + #{button.list}"></a>
             <div th:if="${contentsHtml == null}" class="content empty-content"></div>
             <div th:unless="${contentsHtml == null}" class="milestone-desc">
                 <div class="markdown-wrap" th:utext="${contentsHtml}"></div>
                 <div class="attachments" th:attr="data-attachments=${attachmentsJson}"></div>
             </div>
 
-            <div class="actrow d-flex flex-wrap gap-2" style="padding: 15px 0;">
-                <a th:href="@{${base + '/milestones'}}" class="ybtn" th:text="#{button.list}"></a>
-
-                <a th:if="${canDelete}" href="#deleteConfirm" data-bs-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}"></a>
-
+            <!--/* A-530: 동작 단추는 열 폭을 채우는 세로 묶음이다(수정, 종료 또는 다시 열기, 삭제 순이고 위험한 삭제가 맨 아래). 이동용 "목록"은 설명 위의 글자 링크로 뺐다. */-->
+            <div class="actrow milestone-actions d-grid gap-2">
                 <th:block th:if="${canUpdate}">
-                    <a th:href="@{${base + '/milestone/' + milestone.id + '/editform'}}" class="ybtn" th:text="#{button.edit}"></a>
+                    <a th:href="@{${base + '/milestone/' + milestone.id + '/editform'}}" class="ybtn" data-action="수정" th:text="#{button.edit}"></a>
 
-                    <button th:if="${milestone.state.name() == 'OPEN'}" type="button" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/close'}}" class="ybtn" th:text="#{milestone.close}"></button>
-                    <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/open'}}" class="ybtn" th:text="#{milestone.open}"></button>
+                    <button th:if="${milestone.state.name() == 'OPEN'}" type="button" data-action="종료" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/close'}}" class="ybtn" th:text="#{milestone.close}"></button>
+                    <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-action="다시열기" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/open'}}" class="ybtn" th:text="#{milestone.open}"></button>
                 </th:block>
+
+                <a th:if="${canDelete}" href="#deleteConfirm" data-bs-toggle="modal" class="ybtn ybtn-danger" data-action="삭제" th:text="#{button.delete}"></a>
             </div>
 
             </div>

@@ -486,7 +486,7 @@ class MilestoneTest : AbstractIntegrationTest() {
         val m = newMilestone(project, "v1", dueDate = daysFromNow(2), contents = "설명")
         newIssue(project, m, State.OPEN, 1)
         entityManager.flush()
-        val doc = page("${base(project)}/milestone/${m.id}")
+        val doc = page("${base(project)}/milestone/${m.id}", login(manager(project)))
         val row = doc.selectFirst(".milesion-wrap > .row")!!
         val left = row.selectFirst("> .col-lg-9")!!
         val head = left.selectFirst("> .milestone-head")!!
@@ -498,8 +498,23 @@ class MilestoneTest : AbstractIntegrationTest() {
         assertNotNull(bar.selectFirst("> ul.nav-tabs"), "탭"); assertNotNull(bar.selectFirst("> .milestone-search input.textbox[data-toggle=item-search]"), "탭 줄 안의 검색바")
         assertTrue(bar.children().last()!!.hasClass("milestone-search"), "검색바는 탭 줄의 오른쪽 끝(마지막)이다")
         val info = row.selectFirst("> .col-lg-3.milestone-info")!!
-        assertNotNull(info.selectFirst(".milestone-desc")); assertNotNull(info.selectFirst(".actrow a.ybtn"), "목록, 수정 같은 단추는 오른쪽 열에 있다")
+        assertNotNull(info.selectFirst(".milestone-desc")); assertNotNull(info.selectFirst(".actrow a.ybtn"), "수정 같은 단추는 오른쪽 열에 있다")
+        assertEquals("${base(project)}/milestones", info.selectFirst("> a.milestone-back")?.attr("href"), "목록으로 가는 글자 링크는 설명 위에 따로 있다(A-530)")
         assertNull(info.selectFirst("h4"), "오른쪽 열에는 제목이 없다")
+    }
+
+    @Test
+    fun `동작 단추는 수정, 종료(또는 다시 열기), 삭제 순의 세로 묶음이고 위험한 삭제가 맨 아래이다(A-530)`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1")
+        val me = login(manager(project))
+        val open = page("${base(project)}/milestone/${m.id}", me).selectFirst(".milestone-info .milestone-actions")!!
+        assertEquals(listOf("수정", "종료", "삭제"), open.children().map { it.attr("data-action") }, "열린 마일스톤의 단추 순서: ${open.children().map { it.text() }}")
+        assertTrue(open.children().all { it.hasClass("ybtn") }, "모두 같은 단추 모양")
+        assertTrue(open.children().last()!!.hasClass("ybtn-danger"), "삭제는 위험 색이고 맨 아래이다")
+        val closed = newMilestone(project, "v0", State.CLOSED)
+        val c = page("${base(project)}/milestone/${closed.id}", me).selectFirst(".milestone-info .milestone-actions")!!
+        assertEquals(listOf("수정", "다시열기", "삭제"), c.children().map { it.attr("data-action") })
     }
 
     @Test

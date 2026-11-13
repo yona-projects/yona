@@ -2453,6 +2453,29 @@ label.inline-list {
 
     // 설명과 단추 열(A-520, A-521): 오른쪽의 좁은 열이다.
     .milestone-info {
+        // "← 목록": 단추가 아니라 설명 위의 글자 링크이다(A-530).
+        .milestone-back {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 0.8125rem;
+        }
+
+        // 동작 단추: 열 폭을 채우는 세로 묶음. 위험한 삭제는 맨 아래에서 조금 띄운다.
+        .milestone-actions {
+            padding: 4px 0 0;
+
+            .ybtn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                margin: 0;
+            }
+
+            .ybtn-danger {
+                margin-top: 8px;
+            }
+        }
+
         .milestone-desc {
             margin: 0 0 10px;
         }
