@@ -9778,3 +9778,99 @@ form#newProjectForm, form#importGit {
 
     pre { margin-bottom: 0; }
 }
+
+// A-571: 변경된 내용을 보여 주는 화면의 변경 파일 트리(code.DiffTree.js, v1.6에 없는 추가 기능). diff 왼쪽 240px 칸이고, 긴 diff를 읽는 동안 따라온다.
+.diff-tree-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    > .diff-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+.diff-tree {
+    position: sticky;
+    top: 12px;
+    flex: 0 0 240px;
+    width: 240px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.8125rem;
+
+    .diff-tree-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
+        background: #f8f9fa;
+
+        .diff-tree-title { font-weight: 600; }
+
+        .diff-tree-all {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: $primary;
+            font-size: 0.75rem;
+            cursor: pointer;
+
+            &.active { color: #adb5bd; cursor: default; }
+        }
+    }
+
+    .diff-tree-list {
+        margin: 0;
+        padding: 4px 0;
+        list-style: none;
+
+        .diff-tree-list { padding: 0 0 0 14px; }
+    }
+
+    li.folder > .name {
+        display: block;
+        padding: 3px 10px;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    li.file {
+        padding: 0;
+        cursor: pointer;
+
+        > a {
+            display: block;
+            padding: 3px 10px;
+            overflow: hidden;
+            color: #212529;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        &:hover { background: #f5f5f5; }
+
+        &.active {
+            background: #fff3ec;
+            box-shadow: inset 3px 0 0 $primary;
+
+            > a { font-weight: 600; }
+        }
+    }
+}
+
+.diff-body .diff-partial-outer.diff-tree-hidden {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .diff-tree-layout { flex-direction: column; }
+    .diff-tree { position: static; flex: none; width: 100%; max-height: 240px; }
+}

@@ -112,6 +112,7 @@
 <script type="module" th:src="@{/assets/javascripts/esm/CodeCommentBox.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.14.2.custom.min.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.Diff.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/code.DiffTree.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yona.loadModule("code.Diff", {
@@ -119,6 +120,8 @@
             "sWatchUrl"   : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
             "sUnwatchUrl" : "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]"
         });
+        // 변경 파일이 둘 이상이면 diff 왼쪽에 파일 트리를 보인다(추가 기능, A-571). diff를 그리는 모듈 뒤에 부른다
+        $yona.loadModule("code.DiffTree", {"sContainer": ".diff-body"});
 
         yona.Mention({
             target:'textarea[id^=editor-]',

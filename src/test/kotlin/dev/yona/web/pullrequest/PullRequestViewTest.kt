@@ -222,6 +222,13 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `변경 화면도 변경 파일 트리 모듈을 부른다(A-571)`() {
+        val s = withCommit(setup()); val pr = open(s)
+        val script = page(url(s, pr, "/changes"), login(s.manager)).select("script").joinToString("\n") { it.data() }
+        assertTrue(script.contains("loadModule(\"code.DiffTree\"") && script.indexOf("code.Diff\"") < script.indexOf("code.DiffTree"))
+    }
+
+    @Test
     fun `변경 화면은 차이와 커밋 선택 상자를 보여 주고 커밋 하나의 변경도 볼 수 있다`() {
         val s = withCommit(setup()); val pr = open(s)
         val doc = page(url(s, pr, "/changes"), login(s.manager))

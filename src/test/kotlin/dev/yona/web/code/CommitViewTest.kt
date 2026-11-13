@@ -209,6 +209,19 @@ class CommitViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비교와 커밋 화면은 변경 파일 트리 모듈을 diff 모듈 뒤에 부른다(A-571)`() {
+        val p = project()
+        val (first, second) = twoCommits(p)
+        for (path in listOf("/${p.owner}/${p.name}/compare/$first..$second", "/${p.owner}/${p.name}/commit/$second")) {
+            val doc = page(path)
+            val script = doc.select("script").joinToString("\n") { it.data() }
+            assertTrue(script.contains("\"code.Diff\"") && script.contains("loadModule(\"code.DiffTree\""), path)
+            assertTrue(script.indexOf("\"code.Diff\"") < script.indexOf("code.DiffTree"), "트리는 diff를 그리는 모듈 뒤에 부른다: $path")
+            assertTrue(doc.select("script[type=module]").any { it.attr("src").endsWith("code.DiffTree.js") }, path)
+        }
+    }
+
+    @Test
     fun `두 커밋을 비교하면 차이가 나오고 같으면 변경 없음 안내가 나온다`() {
         val p = project()
         val (first, second) = twoCommits(p)

@@ -325,6 +325,19 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `커밋과 비교 화면은 변경 파일 트리 모듈을 SvnDiff 모듈 뒤에 부른다(A-571)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n", "b/c.txt" to "x\n"))
+        for (path in listOf("/${p.owner}/${p.name}/commit/2", "/${p.owner}/${p.name}/compare/1..2")) {
+            val doc = page(path)
+            val script = doc.select("script").joinToString("\n") { it.data() }
+            assertTrue(script.contains("code.SvnDiff") && script.contains("loadModule(\"code.DiffTree\""), path)
+            assertTrue(script.indexOf("code.SvnDiff") < script.indexOf("code.DiffTree"), path)
+        }
+    }
+
+    @Test
     fun `두 리비전을 비교하면 패치를 보여 준다`() {
         val p = project()
         commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
