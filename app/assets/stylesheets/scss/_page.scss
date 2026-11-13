@@ -9644,6 +9644,16 @@ form#newProjectForm, form#importGit {
         border-bottom: 0;
     }
 
+    // 2단 보기 상자도 단추처럼 마지막 탭에서 떨어지고 밑줄 위에 놓인다(A-569)
+    > .pullrequeset-tab-menu > li:has(> .two-column-icon) {
+        display: flex;
+        align-items: flex-end;
+
+        > .two-column-icon {
+            margin: 0 0 5px 20px;
+        }
+    }
+
     .pr-new-wrap {
         flex: none;
         margin: 0 0 5px 12px;
