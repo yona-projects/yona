@@ -21,7 +21,7 @@ class RulesetFormWidthTest {
     @Test
     fun `규칙 묶음 폼의 글 입력란은 같은 너비를 가진다`() {
         val body = ruleBody("#rulesetForm input.form-control[type=\"text\"]")
-        assertTrue(body != null && Regex("width:\\s*420px").containsMatchIn(body), "_page.scss에 `#rulesetForm input.form-control[type=\"text\"] { width: 420px }` 규칙이 있어야 한다")
+        assertTrue(body != null && Regex("width:\\s*100%").containsMatchIn(body), "_page.scss에 `#rulesetForm input.form-control[type=\"text\"] { width: 100% }` 규칙이 있어야 한다(구역 카드 안에서 이름과 대상 브랜치가 같은 너비, A-550)")
     }
 
     @Test

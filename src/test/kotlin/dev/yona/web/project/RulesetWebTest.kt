@@ -289,16 +289,20 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `편집 화면은 다른 설정 화면과 같은 카드 구조와 부트스트랩 요소를 쓴다`() {
+    fun `편집 화면은 구역 카드 네 개와 규칙마다 제목과 설명이 있는 선택 칸을 쓴다(A-550)`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        val doc = page(project, session, "/new")
-        val card = doc.selectFirst("form#rulesetForm .bubble-wrap.gray")!!
-        assertEquals(listOf("규칙 묶음 이름", "적용 상태", "바이패스", "대상 브랜치", "규칙"), card.select(".box-wrap .cu-label").map { it.text() })
-        assertEquals(1, card.select(".box-wrap.bottom button#saveRuleset").size, "저장 단추는 카드 아래 칸에 있다")
-        assertEquals(2, card.select("input[type=radio][name=enforcement]").size)
-        assertTrue(card.select(".form-check label").size >= 6, "부트스트랩 checkbox 라벨")
-        assertTrue(card.select(".form-text").isNotEmpty(), "부트스트랩 form-text")
-        assertTrue(card.select("[style]").none { it.attr("style").contains("background") || it.attr("style").contains("margin") && it.id() != "rulesetPullRequestOptions" }, "꾸밈은 클래스로 하고 인라인 스타일은 쓰지 않는다")
+        val form = page(project, session, "/new").selectFirst("form#rulesetForm")!!
+        assertEquals(listOf("rulesetBasics", "rulesetBypass", "rulesetTarget", "rulesetRules"), form.select("section.ruleset-section").map { it.id() })
+        assertEquals(listOf("규칙 묶음 이름과 적용 상태", "바이패스", "대상 브랜치", "규칙"), form.select("section.ruleset-section > .ruleset-section-title").map { it.text() })
+        assertTrue(form.select(".box-wrap, .bubble-wrap, .cu-label").isEmpty(), "옛 표 모양 클래스는 쓰지 않는다")
+        assertEquals(1, form.select(".ruleset-actions button#saveRuleset").size, "저장 단추는 아래 단추 줄에 있다")
+        assertEquals(2, form.select("input[type=radio][name=enforcement]").size)
+        val options = form.select("#rulesetRules label.rule-option")
+        assertEquals(listOf("restrictUpdates", "restrictDeletions", "requireLinearHistory", "requireSignedCommits", "requirePullRequest", "blockForcePushes"),
+            options.map { it.selectFirst("input[type=checkbox]")!!.attr("name") })
+        assertTrue(options.all { it.selectFirst(".rule-option-title")!!.text().isNotBlank() && it.selectFirst(".rule-option-desc")!!.text().isNotBlank() }, "규칙마다 제목과 설명")
+        assertNotNull(form.selectFirst("#rulesetPullRequestOptions input[name=approvals]"))
+        assertTrue(form.select("[style]").none { it.id() != "rulesetPullRequestOptions" }, "꾸밈은 클래스로 하고 인라인 스타일은 쓰지 않는다")
     }
 
     @Test

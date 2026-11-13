@@ -8317,7 +8317,7 @@ text-expander {
  * 규칙 묶음 폼의 입력란 너비(A-453): 옛 크기 클래스(`input-xlarge`, `input-large`, `input-mini`)의 정의가 없어져 `.form-control`의 `width: 100%`가 내용 크기로 줄어드는
  * 칸(`.cu-desc`) 안에서 풀렸다. 이름과 대상 브랜치가 같은 너비가 되도록 글 입력란을 정하고, 승인 수는 좁게 둔다.
  */
-#rulesetForm input.form-control[type="text"] { width: 420px; max-width: 100%; }
+#rulesetForm input.form-control[type="text"] { width: 100%; }
 #rulesetForm input.input-mini { width: 5rem; }
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
@@ -8964,5 +8964,91 @@ textarea.editorSeries.content {
         display: flex;
         gap: 8px;
         margin-top: 18px;
+    }
+}
+
+
+// 규칙 묶음 편집 화면(A-550): 레이블 열이 있는 옛 표 모양을 구역 카드로 바꾼다. 레이블은 입력란 위, 규칙은 제목과 설명이 있는 선택 칸이다.
+.ruleset-form {
+    max-width: 760px;
+
+    .ruleset-section {
+        margin-bottom: 14px;
+        padding: 16px 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .ruleset-section-title {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .rule-option {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 10px;
+        align-items: start;
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        cursor: pointer;
+
+        & + .rule-option,
+        & + .ruleset-pr-options {
+            margin-top: 8px;
+        }
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 3px 0 0;
+        }
+
+        .rule-option-text {
+            display: block;
+            min-width: 0;
+        }
+
+        .rule-option-title {
+            display: block;
+            font-weight: 600;
+        }
+
+        .rule-option-desc {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            color: #6c757d;
+        }
+
+        &:has(input:checked) {
+            border-color: #f57c3a;
+            background: #fffaf6;
+        }
+    }
+
+    // 풀 리퀘스트 필요를 켰을 때 펼치는 하위 항목
+    .ruleset-pr-options {
+        margin: 0 0 8px 28px;
+        padding: 10px 14px;
+        border-left: 3px solid #f57c3a;
+        background: #f8f9fa;
+        font-size: 0.875rem;
+
+        .form-check {
+            margin: 6px 0 0;
+        }
+    }
+
+    .ruleset-actions {
+        display: flex;
+        gap: 8px;
+        margin: 18px 0;
     }
 }
