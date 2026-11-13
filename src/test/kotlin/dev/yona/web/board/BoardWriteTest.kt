@@ -202,14 +202,16 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈 템플릿 편집 화면은 사이드바에서 이슈가 활성이고 새 글과 README 편집은 게시판이 활성이다(A-561)`() {
+    fun `이슈 템플릿 편집 화면은 사이드바에서 프로젝트 설정이 활성이고 새 글과 README 편집은 게시판이 활성이다(A-561)`() {
         val project = newProject(); val member = login(join(newUser(), project))
+        // 이슈 템플릿 편집은 설정 화면(프로젝트 관리자)에서만 들어가므로 관리자로 연다. 설정 항목은 관리자에게만 보인다.
+        val manager = login(newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) })
         GitTestSupport.commitFiles(repositories, project, mapOf("README.md" to "# 소개".toByteArray()))
-        fun active(query: String): String? =
-            Jsoup.parse(get(project, query, member).andExpect(status().isOk).andReturn().response.contentAsString).selectFirst("nav.shell-sidebar a.nav-link.active")?.attr("href")
-        assertEquals("${base(project)}/issues", active("postform?issueTemplate=true"), "이슈 템플릿은 이슈 화면이다")
-        assertEquals("${base(project)}/posts", active("postform"), "새 글은 게시판이다")
-        assertEquals("${base(project)}/posts", active("postform?readme="), "README 편집은 지금처럼 게시판으로 둔다")
+        fun active(query: String, session: org.springframework.mock.web.MockHttpSession): String? =
+            Jsoup.parse(get(project, query, session).andExpect(status().isOk).andReturn().response.contentAsString).selectFirst("nav.shell-sidebar a.nav-link.active")?.attr("href")
+        assertEquals("${base(project)}/settingform", active("postform?issueTemplate=true", manager), "이슈 템플릿 편집은 설정에서만 들어가는 관리자 기능이다")
+        assertEquals("${base(project)}/posts", active("postform", member), "새 글은 게시판이다")
+        assertEquals("${base(project)}/posts", active("postform?readme=", member), "README 편집은 지금처럼 게시판으로 둔다")
     }
 
     @Test
@@ -390,6 +392,14 @@ class BoardWriteTest : AbstractIntegrationTest() {
         assertEquals("새 본문", saved.body); assertEquals("새 제목", saved.title)
         assertEquals(1, postings.findAll().size)
         assertEquals("새 본문\n", headFiles(project)["README.md"])
+    }
+
+    @Test
+    fun `프로젝트 구성원이 아닌 로그인 사용자도 이슈 템플릿과 README를 커밋할 수 있다(v1_6 결함 재현, R-167)`() {
+        val project = newProject()
+        val outsider = login(newUser())
+        submit(project, "posts", outsider, "title" to "t", "body" to "외부인이 쓴 템플릿", "issueTemplate" to "true").andExpect(status().isSeeOther)
+        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "외부인이 쓴 템플릿\n"), headFiles(project), "v1.6은 이 분기에 구성원 검사가 없다(`isMemberOf`는 경로 편집 분기에만 있다)")
     }
 
     @Test
