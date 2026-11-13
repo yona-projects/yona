@@ -87,6 +87,27 @@ class WebhookSettingsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `등록 폼은 옵션마다 이름과 설명을 보여 주고 주소, 토큰, 푸시 포함의 도움말이 있다(A-544)`() {
+        val p = project(); val session = manager(p)
+        val doc = Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}/webhooks").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertEquals("Message format", doc.selectFirst(".webhook-type-legend")?.text())
+        val options = doc.select("label.webhook-type-option")
+        assertEquals(listOf("SIMPLE", "DETAIL_SLACK", "DETAIL_HANGOUT_CHAT", "JSON"), options.map { it.selectFirst("input[name=webhookType]")!!.attr("value") })
+        assertEquals(listOf("Messenger (Only text)", "Slack (Meta)", "Google Chat (Thread)", "Continuous Integration tool (Only push event)"), options.map { it.selectFirst(".webhook-type-name")!!.text() })
+        val desc = options.map { it.selectFirst(".webhook-type-desc")!!.text() }
+        assertTrue("only a \"text\" line" in desc[0], desc[0])
+        assertTrue("\"attachments\"" in desc[1] && "color" in desc[1], desc[1])
+        assertTrue("\"thread\"" in desc[2] && "new thread" in desc[2], desc[2])
+        assertTrue("push events only" in desc[3] && "never receives issue" in desc[3], desc[3])
+        val url = doc.selectFirst("input[name=payloadUrl]")!!
+        assertEquals("webhookPayloadUrlHelp", url.attr("aria-describedby"))
+        assertTrue("POST" in doc.selectFirst("#webhookPayloadUrlHelp")!!.text() && "customKey=value" in doc.selectFirst("#webhookPayloadUrlHelp")!!.text())
+        assertEquals("webhookSecretHelp", doc.selectFirst("input[name=secret]")!!.attr("aria-describedby"))
+        assertTrue("Authorization: token" in doc.selectFirst("#webhookSecretHelp")!!.text())
+        assertTrue("one-line text" in doc.selectFirst("#gitPushHelp")!!.text())
+    }
+
+    @Test
     fun `수정 권한이 없으면 볼 수 없다`() {
         val p = project()
         mockMvc.perform(get("/${p.owner}/${p.name}/webhooks").session(login(user()))).andExpect(status().isForbidden)

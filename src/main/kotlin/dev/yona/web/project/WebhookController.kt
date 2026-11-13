@@ -57,6 +57,7 @@ class WebhookController(
             .addObject("projectView", views.of(project))
             .addObject("creatable", accessControl.isProjectResourceCreatable(currentUserProvider.get().user, project, ResourceType.WEBHOOK))
             .addObject("action", "$base/webhooks")
+            .addObject("webhookTypeOptions", WEBHOOK_TYPE_OPTIONS)
             .addObject("webhooks", webhooks.list(project).map {
                 WebhookRow(requireNotNull(it.id), it.payloadUrl.orEmpty(), it.secret.orEmpty(), (it.webhookType ?: WebhookType.SIMPLE).name, it.gitPush == true, "$base/webhooks/${it.id}")
             })
@@ -103,3 +104,16 @@ class WebhookController(
         val TRUE_VALUES = setOf("true", "on", "yes", "1")
     }
 }
+
+/**
+ * 웹후크 등록 폼의 형식 선택지이다. [value]는 `webhookType` 요청 값이고 [nameKey], [descKey]는 이름과 설명의 메시지 키이다.
+ * 설명은 실제로 받아 본 발송 결과를 적은 것이다(결정 A-544).
+ */
+data class WebhookTypeOption(val value: String, val nameKey: String, val descKey: String)
+
+private val WEBHOOK_TYPE_OPTIONS = listOf(
+    WebhookTypeOption("SIMPLE", "project.webhook.type.simple", "project.webhook.type.simple.desc"),
+    WebhookTypeOption("DETAIL_SLACK", "project.webhook.type.slack", "project.webhook.type.slack.desc"),
+    WebhookTypeOption("DETAIL_HANGOUT_CHAT", "project.webhook.type.hangout", "project.webhook.type.hangout.desc"),
+    WebhookTypeOption("JSON", "project.webhook.type.json", "project.webhook.type.json.desc")
+)

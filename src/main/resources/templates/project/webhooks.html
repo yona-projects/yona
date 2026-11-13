@@ -19,30 +19,33 @@
             <strong class="form-legend" th:text="#{project.webhook.new}"></strong>
             <div class="form-wrap">
                 <div class="d-flex flex-wrap gap-2 align-items-start">
-                    <input type="text" name="payloadUrl" class="input-webhook-payload form-control" maxlength="2000" autocomplete="off" th:placeholder="#{project.webhook.payloadUrl}">
-                    <input type="text" name="secret" class="input-webhook-secret form-control" maxlength="250" autocomplete="off" th:placeholder="#{project.webhook.secret}">
+                    <div class="webhook-field webhook-field-url">
+                        <input type="text" name="payloadUrl" class="input-webhook-payload form-control" maxlength="2000" autocomplete="off" aria-describedby="webhookPayloadUrlHelp" th:placeholder="#{project.webhook.payloadUrl}">
+                        <div id="webhookPayloadUrlHelp" class="form-text" th:text="#{project.webhook.payloadUrl.help}"></div>
+                    </div>
+                    <div class="webhook-field webhook-field-secret">
+                        <input type="text" name="secret" class="input-webhook-secret form-control" maxlength="250" autocomplete="off" aria-describedby="webhookSecretHelp" th:placeholder="#{project.webhook.secret}">
+                        <div id="webhookSecretHelp" class="form-text" th:text="#{project.webhook.secret.help}"></div>
+                    </div>
                     <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
                 </div>
-                <div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="SIMPLE" checked class="form-check-input"> Messenger (Only text)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="DETAIL_SLACK" class="form-check-input"> Slack (Meta)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT" class="form-check-input"> Google Chat (Thread)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="JSON" class="form-check-input"> Continuous Integration tool (Only push event)
-                    </label></div>
-                    <div class="form-check form-check-inline"><label class="form-check-label"> | </label></div><div class="form-check form-check-inline"><label class="form-check-label"></label></div>
-                    <div class="form-check form-check-inline"><label for="gitPush" class="form-check-label">
-                        <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input"> <th:block th:text="#{project.webhook.includeGitPush}"></th:block>
-                    </label></div>
+                <!--/* 보내는 형식(A-544): 옵션마다 무엇을 보내고 어떤 이벤트를 받는지 설명한다. 설명은 실제 발송을 받아 본 결과이다 */-->
+                <div class="webhook-type-legend" th:text="#{project.webhook.type.legend}"></div>
+                <div class="webhook-types" role="radiogroup" th:aria-label="#{project.webhook.type.legend}">
+                    <label class="webhook-type-option" th:each="o : ${webhookTypeOptions}">
+                        <input type="radio" name="webhookType" class="form-check-input" th:value="${o.value}" th:checked="${o.value == 'SIMPLE'}">
+                        <span class="webhook-type-text">
+                            <span class="webhook-type-name" th:text="#{${o.nameKey}}"></span>
+                            <span class="webhook-type-desc" th:text="#{${o.descKey}}"></span>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-check webhook-git-push">
+                    <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input" aria-describedby="gitPushHelp">
+                    <label for="gitPush" class="form-check-label" th:text="#{project.webhook.includeGitPush}"></label>
+                    <div id="gitPushHelp" class="form-text" th:text="#{project.webhook.includeGitPush.help}"></div>
                 </div>
             </div>
-            <div th:utext="#{project.webhook.help}"></div>
         </form>
         <div id="webhooksList" class="webhook-list-wrap">
             <div th:if="${#lists.isEmpty(webhooks)}" class="error-wrap">

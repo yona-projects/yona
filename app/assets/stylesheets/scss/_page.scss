@@ -6739,6 +6739,89 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             vertical-align: top;
             min-width:100px;
         }
+
+        // 옵션 설명(A-544): 입력란마다 도움말을 아래에 붙이고, 보내는 형식은 설명이 있는 선택 칸 네 개로 보인다.
+        .form-wrap {
+            display: block;
+            max-width: 780px;
+        }
+
+        .webhook-field {
+            .form-text {
+                margin: 4px 0 0;
+                font-size: 0.75rem;
+                line-height: 1.4;
+            }
+        }
+
+        .webhook-field-url {
+            width: 367px; // 입력란 355px + 안쪽 여백와 테두리
+        }
+
+        .webhook-field-secret {
+            width: 226px;
+        }
+
+        .webhook-type-legend {
+            margin: 16px 0 6px;
+            font-weight: 600;
+        }
+
+        .webhook-types {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .webhook-type-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+
+            .form-check-input {
+                flex: none;
+                float: none;
+                margin: 3px 0 0;
+            }
+
+            &:has(input:checked) {
+                border-color: #f57c3a;
+                box-shadow: 0 0 0 1px #f57c3a inset;
+            }
+        }
+
+        .webhook-type-text {
+            display: block;
+            min-width: 0;
+        }
+
+        .webhook-type-name {
+            display: block;
+            font-weight: 600;
+        }
+
+        .webhook-type-desc {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            color: #6c757d;
+        }
+
+        .webhook-git-push {
+            margin-top: 14px;
+
+            .form-text {
+                margin: 2px 0 0;
+                font-size: 0.75rem;
+            }
+        }
     }
 
     .webhook-list-wrap {
