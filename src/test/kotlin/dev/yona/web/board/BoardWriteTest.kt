@@ -480,7 +480,9 @@ class BoardWriteTest : AbstractIntegrationTest() {
         assertEquals("본문", form.selectFirst("textarea[name=body]")!!.text())
         assertTrue(form.selectFirst("input#notice")!!.hasAttr("checked"))
         assertTrue(form.select("input#notificationMail").isNotEmpty())
-        assertTrue(form.select(".actions button.ybtn-info").isNotEmpty())
+        assertTrue(form.select(".actions button.ybtn-success").isNotEmpty(), "저장 단추는 테마색이다(A-573)")
+        assertTrue(form.select("label[for=title]").isEmpty(), "제목 라벨은 없앴다(A-573)"); assertEquals("Title", form.selectFirst("input#title")!!.attr("aria-label"), "라벨을 없애도 화면 읽기 도구에는 이름이 남는다")
+        assertTrue(form.select(".right-txt input#notificationMail").isNotEmpty() && form.select(".actions input#notificationMail").isEmpty(), "수정 알림 체크는 공지, README 체크와 같은 줄 묶음에 있다(A-573)")
         assertTrue(doc.select("script").any { "board.Write" in it.data() && "\"edit\"" in it.data() })
     }
 
@@ -489,9 +491,9 @@ class BoardWriteTest : AbstractIntegrationTest() {
         val project = newProject(); val author = join(newUser(), project); val member = join(newUser(), project)
         post(project, author)
         val reader = Jsoup.parse(get(project, "post/1/editform", login(newUser())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(reader.select(".actions button.ybtn-info").isEmpty()); assertTrue(reader.select("input#notificationMail").isEmpty())
+        assertTrue(reader.select(".actions button.ybtn-success").isEmpty()); assertTrue(reader.select("input#notificationMail").isEmpty())
         val other = Jsoup.parse(get(project, "post/1/editform", login(member)).andReturn().response.contentAsString)
-        assertTrue(other.select("input#notificationMail").isEmpty()); assertTrue(other.select(".actions button.ybtn-info").isNotEmpty())
+        assertTrue(other.select("input#notificationMail").isEmpty()); assertTrue(other.select(".actions button.ybtn-success").isNotEmpty())
     }
 
     @Test

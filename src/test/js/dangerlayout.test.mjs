@@ -263,4 +263,15 @@ export const tests = [
     assert.equal(m.folderCursor, 'pointer', '폴더도 누를 수 있어 보여야 한다'); assert.notEqual(m.folderBg, 'rgba(0, 0, 0, 0)', '고른 폴더가 구분되지 않는다');
     await ctx.close();
   } },
+  { name: '글 수정의 체크박스 세 개(공지, README, 수정 알림)는 한 줄에 모여 오른쪽 끝에 놓인다(A-573)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px"><form class="nm"><div class="content-wrap frm-wrap">
+<div class="right-txt mt10 mb10" id="g"><div class="form-check" id="c1"><label class="form-check-label"><input type="checkbox" class="form-check-input"> 이 글을 공지사항으로 설정합니다</label></div><div class="form-check" id="c2"><label class="form-check-label"><input type="checkbox" class="form-check-input"> 이 글을 프로젝트 README 파일로 만듭니다</label></div><span class="send-notification-check"><div class="form-check" id="c3"><label class="form-check-label"><input type="checkbox" class="form-check-input"> <strong>수정 알림 메일 발송</strong></label></div></span></div>
+<div class="actions"><button class="ybtn ybtn-success" id="sv">저장</button><a class="ybtn">취소</a></div></div></form></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { g: r('#g'), c1: r('#c1'), c2: r('#c2'), c3: r('#c3') }; });
+    const mid = (x) => x.top + x.height / 2;
+    assert.ok(Math.max(mid(m.c1), mid(m.c2), mid(m.c3)) - Math.min(mid(m.c1), mid(m.c2), mid(m.c3)) <= 4, `체크박스 셋이 같은 줄에 있지 않다: ${[m.c1, m.c2, m.c3].map((x) => Math.round(mid(x)))}`);
+    assert.ok(m.g.right - m.c3.right <= 20, `묶음 오른쪽 끝(${m.g.right})에 마지막 체크박스(${m.c3.right})가 붙어야 한다`);
+    await ctx.close();
+  } },
 ];
