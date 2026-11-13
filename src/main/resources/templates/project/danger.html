@@ -83,7 +83,6 @@
             </div>
             <div class="modal-body">
                 <p> <th:block th:text="#{project.transfer.description}"></th:block></p>
-                <p> <th:block th:text="#{project.transfer.reaccept}"></th:block> </p>
                 <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
                 <p class="mb-0">
                     <label for="transferConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
@@ -104,7 +103,6 @@
             </div>
             <div class="modal-body">
                 <p th:text="#{project.changeVCS.description2}"></p>
-                <p th:text="#{project.changeVCS.reaccept}"></p>
                 <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
                 <p class="mb-0">
                     <label for="vcsConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
@@ -125,7 +123,6 @@
             </div>
             <div class="modal-body">
                 <p> <th:block th:text="#{project.delete.description}"></th:block></p>
-                <p> <th:block th:text="#{project.delete.reaccept}"></th:block> </p>
                 <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
                 <p class="mb-0">
                     <label for="deleteConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
