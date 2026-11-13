@@ -206,6 +206,8 @@ class CommitViewController(
                 .addObject("title", "${commitA.id}..${commitB.id}")
                 .addObject("projectView", views.of(project))
                 .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
+                // A-570: 비교하는 두 쪽을 "r1 → r2"로 보인다(리비전은 이름이 따로 없다)
+                .addObject("fromName", "r${commitA.id}").addObject("fromId", "").addObject("toName", "r${commitB.id}").addObject("toId", "")
                 .addObject("patch", patch)
                 // v1.6은 이 값을 넘기지 않아 파일 머리의 리비전 링크가 `undefined/<리비전>/<경로>`였다(code-F2). 커밋 화면과 같은 코드 화면 기준 주소를 넘긴다.
                 .addObject("filesUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code"))
@@ -217,9 +219,18 @@ class CommitViewController(
             .addObject("title", "${commitA.id}..${commitB.id}")
             .addObject("projectView", views.of(project))
             .addObject("range", "${commitA.id}..${commitB.id}")
+            // A-570: 비교하는 두 쪽을 이름과 짧은 번호로 나눠 보인다. 이름이 커밋 번호 자체이면 번호를 되풀이하지 않는다
+            .addObject("fromName", rangeName(revA)).addObject("fromId", rangeId(revA, commitA.id))
+            .addObject("toName", rangeName(revB)).addObject("toId", rangeId(revB, commitB.id))
             .addObject("empty", fileDiffs.isEmpty())
             .addObject("diffHtml", diffHtml.render(fileDiffs, emptyList(), project, project) { "" })
     }
+
+    /** 비교 범위에 보이는 한쪽의 이름이다. 커밋 번호로 준 값은 짧게 줄이고 브랜치나 태그 이름은 그대로 둔다. */
+    private fun rangeName(rev: String): String = if (HEX_ID.matches(rev)) rev.take(SHORT_ID) else rev
+
+    /** 이름이 브랜치나 태그일 때 곁들이는 짧은 커밋 번호이다. 이름이 번호 자체이면 빈 문자열이다. */
+    private fun rangeId(rev: String, commitId: String): String = if (HEX_ID.matches(rev)) "" else commitId.take(SHORT_ID)
 
     private fun messageHtml(message: String, project: dev.yona.domain.project.Project): String = autoLinks.render(HtmlUtils.htmlEscape(message), project, null)
 
@@ -244,5 +255,11 @@ class CommitViewController(
             commentCount = if (thread.reviewComments.size > 1) thread.reviewComments.size else 0, avatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(),
             ago = helper.agoOrDateString(thread.createdDate), agoTitle = helper.dateString(thread.createdDate), authorName = thread.authorName
         )
+    }
+
+    private companion object {
+        /** 커밋 번호처럼 보이는 값(16진수 7자 이상 40자 이하)이다. */
+        val HEX_ID = Regex("[0-9a-fA-F]{7,40}")
+        const val SHORT_ID = 7
     }
 }

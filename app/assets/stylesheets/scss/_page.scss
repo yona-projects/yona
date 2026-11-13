@@ -6349,13 +6349,17 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
         a { color:$blue;font-family:$fixed-font-family; }
 
+        // A-570: 누를 수 있는 단추처럼 보이던 테두리 상자를 연한 바탕의 칩으로 바꿨다
         .headBranch {
-            color: $theme-link;
-            background-color: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            padding:3px 5px;
-            @include inline-block;
-            @include border-radius(3px);
+            display: inline-block;
+            padding: 1px 10px;
+            border: 0;
+            border-radius: 10px;
+            background-color: #e7f1ff;
+            color: #0d6efd;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.4;
         }
     }
 
@@ -9696,4 +9700,81 @@ form#newProjectForm, form#importGit {
 
 .fork-actions {
     margin: 20px 0 30px;
+}
+
+// A-570: 비교 화면의 범위 표시. 긴 해시 한 줄 대신 비교하는 두 쪽을 이름과 짧은 번호로 보인다.
+.compare-range {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin: 4px 0 14px;
+    font-size: 0.9375rem;
+
+    .compare-name { font-weight: 600; }
+    .compare-id {
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: #f1f3f5;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .compare-arrow { color: #adb5bd; }
+}
+
+// A-570: Subversion 커밋 화면 맨 위. 되돌아가기 링크는 왼쪽, 브랜치 선택은 오른쪽 한 줄이다.
+.code-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+// A-570: 태그 행. 이름과 종류 표시는 윗줄, 메시지와 태그를 단 사람은 아랫줄이며 행 높이는 같고 칸은 세로 가운데에 놓인다.
+.tag-list-wrap {
+    > tbody > tr {
+        height: 64px;
+
+        > td { vertical-align: middle; }
+    }
+
+    .tag-title { line-height: 1.5; }
+
+    .tag-meta {
+        margin-top: 2px;
+        font-size: 0.8125rem;
+        line-height: 1.4;
+
+        .tagger::before { content: "·"; margin: 0 6px; }
+        .tag-message:empty + .tagger::before { content: none; }
+    }
+}
+
+// A-570: 빈 저장소 안내. 제목은 본문 왼쪽 끝에 맞고, 안내 문장은 굵은 글씨 대신 왼쪽 주황 막대로 명령 상자와 구분한다.
+.nohead-wrap {
+    .alert-block {
+        margin: 6px 0 22px;
+        padding: 0;
+        background: none;
+        border: 0;
+
+        h4 {
+            margin: 0;
+            padding: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+    }
+
+    h5 {
+        margin: 26px 0 8px;
+        padding: 2px 0 2px 10px;
+        border-left: 3px solid $primary;
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.6;
+        color: #343a40;
+    }
+
+    pre { margin-bottom: 0; }
 }

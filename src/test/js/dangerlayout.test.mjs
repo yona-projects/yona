@@ -228,4 +228,27 @@ export const tests = [
     assert.ok(m.t.width >= 600, `제목 입력란 폭 ${m.t.width}px`); assert.ok(m.t2.width < 300, `폭 클래스가 없는 입력란은 v1.6처럼 좁다(${m.t2.width}px)`); assert.ok(m.t.height >= 34, `제목 입력란 높이 ${m.t.height}px`);
     await ctx.close();
   } },
+  { name: '비교 화면은 diff 표가 본문 왼쪽 끝에서 시작하고 비교 범위는 이름과 번호가 한 줄에 놓인다(A-570)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main"><div class="code-browse-wrap" id="w">
+<p class="commitInfo compare-range" id="cr"><span class="compare-from"><strong class="compare-name">v0.1.0</strong> <code class="compare-id">6122e43</code></span><span class="compare-arrow">→</span><span class="compare-to"><strong class="compare-name">feature/greeting</strong> <code class="compare-id">a2d700e</code></span></p>
+<div class="diff-body discommentable" id="db"><div class="diff-partial-outer" id="po"><div class="diff-partial-inner">x</div></div></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const cr = [...document.querySelectorAll('#cr > *')].map((e) => Math.round(e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2)); return { w: r('#w'), po: r('#po'), cr }; });
+    assert.ok(Math.abs(m.po.left - m.w.left) <= 1, `diff 표 왼쪽(${m.po.left})이 본문 왼쪽(${m.w.left})과 같아야 한다`);
+    assert.ok(Math.max(...m.cr) - Math.min(...m.cr) <= 6, `비교 범위의 요소가 한 줄에 있지 않다: ${m.cr}`);
+    await ctx.close();
+  } },
+  { name: '브랜치의 기본 표시는 단추가 아닌 칩이고, 태그 행은 높이가 같으며, 빈 저장소 안내는 본문 왼쪽 끝에 맞고 안내 문장이 굵지 않다(A-570)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:900px">
+<div class="bubble-wrap dark-gray repo-wrap"><div class="code-browse-wrap"><table class="table branch-list-wrap"><tbody><tr class="head"><td class="branchName"><a>master</a><span class="headBranch ml10" id="hb">기본 브랜치</span></td></tr></tbody></table>
+<table class="table tag-list-wrap"><tbody><tr id="t1"><td class="tagName"><div class="tag-title"><a class="tag-name">v0.1.0</a> <strong class="branch-label tag tag-type annotated ml10">주석 태그</strong></div><div class="tag-meta disabled"><span class="tag-message">첫 릴리스</span> <span class="tagger">Ji-ho Lee, 1일 전</span></div></td><td class="commit"><a class="commitId">6122e43</a></td><td class="actions"><a class="ybtn ybtn-danger ybtn-small">삭제</a></td></tr>
+<tr id="t2"><td class="tagName"><div class="tag-title"><a class="tag-name">light</a> <strong class="branch-label tag tag-type lightweight ml10">경량 태그</strong></div></td><td class="commit"><a class="commitId">a2d700e</a></td><td class="actions"><a class="ybtn ybtn-danger ybtn-small">삭제</a></td></tr></tbody></table></div></div>
+<div class="row nohead-wrap" id="nh"><div class="col-lg-12"><div class="alert alert-block"><h4 id="nt">저장소가 비어있습니다!</h4></div><h5 id="n5">Yona에 생성된 Git 저장소를 clone 받아서 로컬에 올릴 수 있습니다.</h5><pre><code>git clone x</code></pre></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); const r = (s) => document.querySelector(s).getBoundingClientRect(); return { hbBorder: parseFloat(g('#hb').borderTopWidth), hbRadius: parseFloat(g('#hb').borderTopLeftRadius), hbBg: g('#hb').backgroundColor, t1: r('#t1').height, t2: r('#t2').height, nhLeft: r('#nh').left, ntLeft: r('#nt').left, n5w: parseInt(g('#n5').fontWeight, 10) }; });
+    assert.equal(m.hbBorder, 0, `기본 브랜치 표시에 테두리(${m.hbBorder}px)가 있으면 단추처럼 보인다`); assert.ok(m.hbRadius >= 8, `칩 모서리 ${m.hbRadius}px`); assert.notEqual(m.hbBg, 'rgba(0, 0, 0, 0)', '칩에 바탕색이 있어야 한다');
+    assert.ok(Math.abs(m.t1 - m.t2) <= 2, `태그 행 높이가 다르다: ${m.t1}px, ${m.t2}px`);
+    assert.ok(Math.abs(m.ntLeft - m.nhLeft - 12) <= 14 && m.ntLeft - m.nhLeft <= 14, `제목 왼쪽 ${m.ntLeft}이 본문 왼쪽 ${m.nhLeft}에서 ${(m.ntLeft - m.nhLeft).toFixed(0)}px 들어갔다(본문 안쪽 여백만큼만 허용)`); assert.ok(m.n5w <= 500, `안내 문장 글자 굵기 ${m.n5w}`);
+    await ctx.close();
+  } },
 ];

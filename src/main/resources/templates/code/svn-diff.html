@@ -16,20 +16,22 @@
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
         <div id="code-browse-wrap" class="code-browse-wrap">
-            <div id="branches" class="btn-group branches float-end" data-name="branch" data-activate="manual">
-                <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="d-label" th:text="${#lists.isEmpty(branches.?[selected])} ? 'HEAD' : ${branches.?[selected][0].label}"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li th:each="b : ${branches}" th:attr="data-value=${b.label}, data-selected=${b.selected} ? 'true' : null">
-                        <a th:href="${b.url}" th:text="${b.label}" class="dropdown-item"></a>
-                    </li>
-                </ul>
+            <!--/* A-570: 되돌아가기 링크와 브랜치 선택을 한 줄에 둔다 */-->
+            <div class="code-head-row mb-3">
+                <a class="code-back-link" th:href="${commitsUrl}">&larr; <th:block th:text="#{code.back.history}"></th:block></a>
+                <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <span class="d-label" th:text="${#lists.isEmpty(branches.?[selected])} ? 'HEAD' : ${branches.?[selected][0].label}"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li th:each="b : ${branches}" th:attr="data-value=${b.label}, data-selected=${b.selected} ? 'true' : null">
+                            <a th:href="${b.url}" th:text="${b.label}" class="dropdown-item"></a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="mb-3"><a class="code-back-link" th:href="${commitsUrl}">&larr; <th:block th:text="#{code.back.history}"></th:block></a></div>
-
-            <p class="commitInfo">
+            <p class="commitInfo d-flex align-items-center">
                 <th:block th:if="${commit.known}">
                     <a th:href="${commit.authorHref}" class="avatar-wrap"><img th:src="@{${commit.avatarUrl}}" th:alt="${commit.authorName}" width="32" height="32"/></a>
                     <strong th:text="${commit.authorName}"></strong>
@@ -39,11 +41,12 @@
                     <strong th:if="${commit.authorName == null}" th:text="#{user.notExists.name}"></strong>
                 </th:block>
                 <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
-                <strong class="commitId float-end" th:text="'@' + ${commit.id}"></strong>
-                <span class="float-end mt5 mr10" th:if="${!#lists.isEmpty(comments)}">
+                <!--/* A-570: 댓글 보기 선택과 리비전 번호를 작성자 줄 오른쪽 끝에 한 줄로 둔다(자동 여백은 앞의 것 하나만) */-->
+                <span class="ms-auto me-3" th:if="${!#lists.isEmpty(comments)}">
                     <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox form-check-input">
                     <label for="toggle-comments" class="form-label" th:text="#{code.showcomments}"></label>
                 </span>
+                <strong class="commitId" th:classappend="${#lists.isEmpty(comments)} ? 'ms-auto'" th:text="'@' + ${commit.id}"></strong>
             </p>
             <pre class="commitMsg" th:text="${commit.message}"></pre>
             <div class="diff-wrap">

@@ -314,12 +314,25 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     // --- 비교 ---
 
     @Test
+    fun `커밋 화면 맨 위는 되돌아가기 링크와 브랜치 선택이 한 줄에 있다(A-570)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        val doc = page("/${p.owner}/${p.name}/commit/1")
+        assertNotNull(doc.selectFirst(".code-head-row > a.code-back-link"))
+        assertNotNull(doc.selectFirst(".code-head-row > #branches"))
+        // 작성자 줄의 리비전 번호는 같은 줄 오른쪽 끝에 놓인다
+        assertNotNull(doc.selectFirst("p.commitInfo.d-flex > strong.commitId.ms-auto"))
+    }
+
+    @Test
     fun `두 리비전을 비교하면 패치를 보여 준다`() {
         val p = project()
         commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
         commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n"))
         val doc = page("/${p.owner}/${p.name}/compare/1..2")
-        assertEquals("@1..2", doc.selectFirst("strong.commitId")!!.text())
+        assertEquals("r1", doc.selectFirst(".compare-range .compare-from .compare-name")!!.text())
+        assertEquals("r2", doc.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertNotNull(doc.selectFirst("#commit.diff-body.discommentable"), "줄 댓글이 없는 비교 화면은 diff 표 왼쪽 자리를 비운다(A-570)")
         assertTrue(doc.selectFirst("#commit[data-commit-origin=true]")!!.wholeText().contains("+2"))
         val script = doc.select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
         assertTrue(script.contains("code.SvnDiff") && script.contains("\"sParentCommitId\"") && script.contains("sTplFileURL"), script)

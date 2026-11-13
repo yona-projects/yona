@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/compare.scala.html
-  모델: title, projectView, range, empty, diffHtml
+  모델: title, projectView, range, fromName, fromId, toName, toId(비교 범위 두 쪽), empty, diffHtml
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::comparePage})}">
@@ -15,7 +15,11 @@
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
     <div class="code-browse-wrap">
-        <p class="commitInfo"><strong class="commitId" th:text="'@' + ${range}"></strong></p>
+        <p class="commitInfo compare-range">
+            <span class="compare-from"><strong class="compare-name" th:text="${fromName}"></strong> <code th:if="${!#strings.isEmpty(fromId)}" class="compare-id" th:text="${fromId}"></code></span>
+            <span class="compare-arrow">&rarr;</span>
+            <span class="compare-to"><strong class="compare-name" th:text="${toName}"></strong> <code th:if="${!#strings.isEmpty(toId)}" class="compare-id" th:text="${toId}"></code></span>
+        </p>
         <div class="alert alert-warning" th:if="${empty}" th:text="#{code.noChanges}"></div>
         <div class="diff-body discommentable" th:unless="${empty}" th:utext="${diffHtml}"></div>
     </div>

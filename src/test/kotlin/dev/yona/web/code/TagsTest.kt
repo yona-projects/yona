@@ -104,6 +104,7 @@ class TagsTest : AbstractIntegrationTest() {
         val annotated = byName.getValue("v1.0")
         assertNotNull(annotated.selectFirst(".tag-type.annotated"))
         assertEquals("첫 릴리스", annotated.selectFirst(".tag-message")!!.text())
+        assertNotNull(annotated.selectFirst("td.tagName .tag-title .tag-name")); assertNotNull(annotated.selectFirst("td.tagName .tag-meta .tag-message")); assertNotNull(annotated.selectFirst("td.tagName .tag-meta .tagger"))
         assertTrue(annotated.selectFirst(".tag-message")!!.attr("title").contains("자세한 설명입니다"))
         assertTrue(annotated.selectFirst(".tagger")!!.text().contains("릴리서"))
         val light = byName.getValue("light-0.1")

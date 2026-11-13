@@ -134,6 +134,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val p = project(); val m = member(p, RoleType.MANAGER)
         val doc = page("/${p.owner}/${p.name}/code", login(m))
         assertNotNull(doc.selectFirst(".alert.alert-block"))
+        assertNotNull(doc.selectFirst(".row.nohead-wrap .alert.alert-block"), "빈 저장소 안내는 전용 틀(nohead-wrap) 안에 있다(A-570)")
         val commands = doc.select("pre code").map { it.text() }
         assertTrue(commands.first().startsWith("git clone http://"), commands.first())
         assertTrue(commands.first().contains("${m.loginId}@"), commands.first())

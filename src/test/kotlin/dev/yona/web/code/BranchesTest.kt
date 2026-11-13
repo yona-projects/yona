@@ -55,6 +55,7 @@ class BranchesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var branchService: dev.yona.repository.BranchService
+    @Autowired private lateinit var pullRequests: dev.yona.domain.pullrequest.PullRequestRepository
 
     private var sequence = 0
 
@@ -83,6 +84,16 @@ class BranchesTest : AbstractIntegrationTest() {
 
     private fun page(path: String, session: MockHttpSession? = null): Document =
         Jsoup.parse(mockMvc.perform(get(path).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
+
+    @Test
+    fun `코드 주고받기 열은 식별자가 아니라 요청 제목을 보인다(A-570)`() {
+        val p = twoBranches()
+        pullRequests.save(dev.yona.domain.pullrequest.PullRequest(title = "기능을 합쳐 주세요", body = "본문", toProject = p, fromProject = p, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature", number = 1L, state = dev.yona.domain.enumeration.State.OPEN, created = java.util.Date(), updated = java.util.Date()))
+        val doc = page("/${p.owner}/${p.name}/branches")
+        val link = doc.select("table.branch-list-wrap tbody tr").first { it.selectFirst("td.branchName a")!!.text() == "feature" }.selectFirst("td.pullRequest a")!!
+        assertEquals("기능을 합쳐 주세요", link.text())
+        assertTrue(!doc.text().contains("pullRequest-1"), "영문 식별자는 보이지 않는다")
+    }
 
     @Test
     fun `기본 브랜치를 맨 위에 두고 나머지는 최근 커밋 순으로 보여 준다`() {

@@ -213,8 +213,14 @@ class CommitViewTest : AbstractIntegrationTest() {
         val p = project()
         val (first, second) = twoCommits(p)
         val doc = page("/${p.owner}/${p.name}/compare/$first..$second")
-        assertEquals("@$first..$second", doc.selectFirst(".commitId")!!.text())
+        // A-570: 긴 해시 두 개를 이어 붙인 한 줄이 아니라 비교하는 두 쪽을 이름과 짧은 번호로 나눠 보인다
+        assertEquals(first.take(7), doc.selectFirst(".compare-range .compare-from .compare-name")!!.text())
+        assertEquals(second.take(7), doc.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertTrue(doc.select(".compare-range .compare-from .compare-id").isEmpty(), "이름이 번호 자체이면 번호를 되풀이하지 않는다")
         assertTrue(doc.selectFirst(".diff-body")!!.text().contains("two"))
+        val named = page("/${p.owner}/${p.name}/compare/$first..master")
+        assertEquals("master", named.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertEquals(second.take(7), named.selectFirst(".compare-range .compare-to .compare-id")!!.text(), "브랜치나 태그 이름이면 가리키는 커밋 번호를 곁들인다")
         assertNotNull(page("/${p.owner}/${p.name}/compare/$second..$second").selectFirst(".alert"))
         mockMvc.perform(get("/${p.owner}/${p.name}/compare/${"0".repeat(40)}..$second")).andExpect(status().isNotFound)
     }

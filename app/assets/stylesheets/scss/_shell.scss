@@ -385,6 +385,10 @@ html[data-sidebar="collapsed"] .shell-sidebar[data-shell-view="shortcuts"] [data
 .shell-main .diff-body {
     padding-left: 34px;
 }
+// A-570: 줄 댓글을 못 다는 화면(비교)에는 아이콘이 없으므로 그 자리를 비워 diff 표가 본문 왼쪽 끝에서 시작한다.
+.shell-main .diff-body.discommentable {
+    padding-left: 0;
+}
 
 // 좁은 폭의 상단 바: 왼쪽 항목(햄버거, 로고, 전환, 전체 목록, 문의하기)과 오른쪽 사용자 메뉴(약 222px)의 합계가 폭보다 크면 float된 사용자 메뉴가
 // 아래 줄로 밀려 머리 위에 겹친다. 덜 중요한 항목을 폭에 따라 숨기고 여백을 줄인다(문의하기는 576 미만, 전체 목록은 480 미만에서. 프로젝트 목록은 홈 사이드바에도 있다).

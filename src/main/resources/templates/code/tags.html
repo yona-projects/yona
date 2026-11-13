@@ -33,14 +33,19 @@
                     <tbody>
                         <tr th:each="t : ${rows}">
                             <td class="tagName">
+                                <!--/* A-570: 이름과 종류 표시는 윗줄, 메시지와 태그를 단 사람은 아랫줄 흐린 글씨로 두 줄에 가지런히 놓는다 */-->
+                                <div class="tag-title">
                                 <!--/* 커밋이 아닌 대상을 가리키는 태그는 코드 화면이 열리지 않으므로(404) 링크 없이 이름만 보인다 */-->
                                 <a th:if="${t.commitUrl != null}" class="tag-name" th:href="${t.codeUrl}" th:text="${t.shortName}"></a>
                                 <span th:if="${t.commitUrl == null}" class="tag-name" th:text="${t.shortName}"></span>
                                 <strong th:if="${t.annotated}" class="branch-label tag tag-type annotated ml10" th:text="#{code.tags.annotated}"></strong>
                                 <strong th:unless="${t.annotated}" class="branch-label tag tag-type lightweight ml10" th:text="#{code.tags.lightweight}"></strong>
                                 <th:block th:replace="~{code/partial-signature :: badge(${t.signature})}"></th:block>
-                                <div th:if="${t.shortMessage != null}" class="tag-message disabled" th:title="${t.message}" th:text="${t.shortMessage}"></div>
-                                <div th:if="${t.tagger != null}" class="tagger disabled" th:text="${t.tagger}"></div>
+                                </div>
+                                <div th:if="${t.shortMessage != null or t.tagger != null}" class="tag-meta disabled">
+                                    <span th:if="${t.shortMessage != null}" class="tag-message" th:title="${t.message}" th:text="${t.shortMessage}"></span>
+                                    <span th:if="${t.tagger != null}" class="tagger" th:text="${t.tagger}"></span>
+                                </div>
                             </td>
                             <td class="commit">
                                 <th:block th:if="${t.commitUrl != null}">
