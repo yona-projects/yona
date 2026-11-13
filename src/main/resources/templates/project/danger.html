@@ -42,15 +42,16 @@
 
         <!--/* 2. 코드 저장소 타입 변경(코드 메뉴가 켜진 프로젝트에서만) */-->
         <section th:if="${showVcs}" id="danger-vcs" class="danger-section">
-            <h3 class="danger-title vcs-heading"><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <span class="next-vcs" th:text="${nextVcs}"></span></h3>
+            <h3 class="danger-title" th:text="#{project.changeVCS}"></h3>
             <div class="cu-desc">
-                <!--/* 바꿀 수 있는 종류가 둘 이상일 때만 보인다(Mercurial 도입, D-86 6번). 기본 선택은 v1.6처럼 번갈아 바꾸는 종류이다 */-->
-                <p th:if="${#lists.size(targets) > 1}">
-                    <label for="targetVcs" th:text="#{project.changeVCS.target}"></label>
-                    <select id="targetVcs" name="targetVcs" class="form-select d-inline-block w-auto ms-2">
-                        <option th:each="t : ${targets}" th:value="${t}" th:text="${t}" th:selected="${t == nextVcs}"></option>
-                    </select>
-                </p>
+                <!--/* 저장소 종류 전부를 보여 준다. 지금 종류는 "현재"로 막고, 기본 선택은 v1.6처럼 번갈아 바꾸는 종류이다 */-->
+                <div class="vcs-types" role="radiogroup" th:aria-label="#{project.changeVCS.target}">
+                    <label th:each="t : ${allTypes}" class="vcs-type" th:classappend="${t == project.vcs} ? 'is-current'">
+                        <input type="radio" name="targetVcs" class="form-check-input" th:value="${t}" th:checked="${t == nextVcs}" th:disabled="${t == project.vcs}">
+                        <span class="vcs-name" th:text="${t}"></span>
+                        <em class="vcs-current" th:if="${t == project.vcs}" th:text="#{project.changeVCS.current}"></em>
+                    </label>
+                </div>
                 <ul>
                     <li class="notice"><strong class="vcs-description" th:text="#{project.changeVCS.description1(${nextVcs})}"></strong></li>
                     <li class="notice"><strong th:text="#{project.changeVCS.description2}"></strong></li>

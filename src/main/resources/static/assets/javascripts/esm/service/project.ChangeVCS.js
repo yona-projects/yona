@@ -42,7 +42,7 @@ const ChangeVCS = function(options){
         elements.btnChangeVCSExec = $("#btnChangeVCSExec");
         elements.confirmName = $("#vcsConfirmName");
         elements.modal = $("#alertChangeVCS");
-        elements.targetVCS = $("#targetVcs");
+        elements.targetVCS = $("input[name=targetVcs]");
     }
 
     /**
@@ -61,11 +61,15 @@ const ChangeVCS = function(options){
     /**
      * 선택한 종류에 맞게 안내와 확인 문구를 갈아 끼운다
      */
+    /** 선택한 종류이다. 라디오가 없는 화면이면 비어 있다 */
+    function selectedTarget(){
+        return elements.targetVCS.filter(":checked").val();
+    }
+
     function showTexts(texts){
-        const target = elements.targetVCS.val();
+        const target = selectedTarget();
         const text = texts[target];
         if(!text){ return; }
-        $(".next-vcs").text(target);
         $(".vcs-description").text(text.description);
         $(".vcs-requestion").text(text.requestion);
     }
@@ -99,7 +103,7 @@ const ChangeVCS = function(options){
         };
         // 바꿀 종류를 고르게 한 화면이면 고른 종류를 보낸다. 없으면 v1.6처럼 번갈아 바꾼다
         if(elements.targetVCS.length){
-            ajaxOptions.data = {"targetVcs": elements.targetVCS.val()};
+            ajaxOptions.data = {"targetVcs": selectedTarget()};
         }
         yona.http.ajax(options.sTransferURL, ajaxOptions);
     }

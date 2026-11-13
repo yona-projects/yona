@@ -8623,6 +8623,43 @@ textarea.editorSeries.content {
     .danger-actions {
         margin-top: 12px;
     }
+
+    // 저장소 종류 선택(Git, Subversion, Mercurial): 종류마다 한 칸이고 지금 종류는 흐리게 "현재"로 막는다.
+    .vcs-types {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 12px;
+    }
+
+    .vcs-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+
+        .form-check-input {
+            float: none;
+            margin: 0;
+        }
+
+        &.is-current {
+            background: #f1f3f5;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .vcs-current {
+            font-size: 0.75rem;
+            font-style: normal;
+            color: #6c757d;
+        }
+    }
 }
 
 

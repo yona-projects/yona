@@ -48,7 +48,8 @@ class ProjectDangerController(
             .addObject("title", "title.projectDanger")
             .addObject("projectView", projectView)
             .addObject("showVcs", projectView.menuSetting.code)
-            // 바꿀 수 있는 종류가 하나뿐이면 v1.6 화면 그대로이고, 둘 이상이면 고르게 한다
+            // 저장소 종류 전부를 보여 주고 지금 종류는 "현재"로 막는다. 바꿀 수 있는 종류는 targets이다
+            .addObject("allTypes", vcsService.types())
             .addObject("targets", targets)
             .addObject("texts", texts(targets))
     }

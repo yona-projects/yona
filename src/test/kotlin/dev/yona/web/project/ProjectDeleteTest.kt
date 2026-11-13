@@ -151,6 +151,13 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `위험 구역 맨 위 안내는 동의가 아니라 프로젝트 이름 입력을 말한다(A-542)`() {
+        val project = newProject()
+        val page = deleteForm(project, login(manager(project)))
+        assertEquals("These actions are hard to undo. To run one, you must type the project name.", page.selectFirst(".shell-main > p.form-text")?.text())
+    }
+
+    @Test
     fun `옛 이관, 삭제, 타입 변경 주소는 위험 구역으로 이동시키고 구성원은 막는다(A-535)`() {
         val project = newProject(); val session = login(manager(project)); val base = "/${project.owner}/${project.name}"
         listOf("/transfer", "/deleteform", "/changeVCS").forEach { old ->

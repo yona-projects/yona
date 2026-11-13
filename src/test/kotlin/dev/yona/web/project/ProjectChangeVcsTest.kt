@@ -105,7 +105,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         val project = newProject()
         val page = page(project, login(manager(project)))
         assertEquals("Danger Zone - ${project.owner}/${project.name}", page.title())
-        assertEquals("GIT Subversion", page.selectFirst("#danger-vcs h3.vcs-heading")?.text())
+        assertEquals("Repository Type Change", page.selectFirst("#danger-vcs h3.danger-title")?.text())
         assertEquals("Changing the repository to Subversion.", page.select("#danger-vcs li.notice")[0].text())
         assertEquals("If the repository is changed, all code and history will be deleted.", page.select("#danger-vcs li.notice")[1].text())
         assertNull(page.selectFirst("#acceptChangeVCS"), "동의 체크박스는 없다(A-537)")
@@ -160,15 +160,17 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `선택 상자는 바꿀 수 있는 종류를 보여 주고 기본은 v1_6처럼 번갈아 바꾸는 종류이다`() {
+    fun `저장소 종류 전부를 라디오로 보여 주고 지금 종류는 현재 표시와 함께 비활성이며 기본은 v1_6처럼 번갈아 바꾸는 종류이다`() {
         val git = newProject()
         val gitPage = page(git, login(manager(git)))
-        assertEquals(listOf("Subversion", "Mercurial"), gitPage.select("select#targetVcs option").map { it.attr("value") })
-        assertEquals("Subversion", gitPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+        assertEquals(listOf("GIT", "Subversion", "Mercurial"), gitPage.select("#danger-vcs input[name=targetVcs]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), gitPage.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals("Current", gitPage.selectFirst("#danger-vcs label.vcs-type.is-current .vcs-current")?.text())
+        assertEquals(listOf("Subversion"), gitPage.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
         val svn = newProject("Subversion")
         val svnPage = page(svn, login(manager(svn)))
-        assertEquals(listOf("GIT", "Mercurial"), svnPage.select("select#targetVcs option").map { it.attr("value") })
-        assertEquals("GIT", svnPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+        assertEquals(listOf("Subversion"), svnPage.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), svnPage.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
     }
 
     @Test
@@ -179,10 +181,11 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Mercurial 프로젝트의 화면은 Git과 Subversion을 고르게 한다`() {
+    fun `Mercurial 프로젝트의 화면은 Git과 Subversion을 고르게 하고 Mercurial은 현재로 막는다`() {
         val project = newProject("Mercurial")
         val page = page(project, login(manager(project)))
-        assertEquals(listOf("GIT", "Subversion"), page.select("select#targetVcs option").map { it.attr("value") })
+        assertEquals(listOf("Mercurial"), page.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), page.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
     }
 
     @Test
