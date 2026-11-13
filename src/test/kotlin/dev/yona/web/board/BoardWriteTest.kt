@@ -202,6 +202,17 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈 템플릿 편집 화면은 사이드바에서 이슈가 활성이고 새 글과 README 편집은 게시판이 활성이다(A-561)`() {
+        val project = newProject(); val member = login(join(newUser(), project))
+        GitTestSupport.commitFiles(repositories, project, mapOf("README.md" to "# 소개".toByteArray()))
+        fun active(query: String): String? =
+            Jsoup.parse(get(project, query, member).andExpect(status().isOk).andReturn().response.contentAsString).selectFirst("nav.shell-sidebar a.nav-link.active")?.attr("href")
+        assertEquals("${base(project)}/issues", active("postform?issueTemplate=true"), "이슈 템플릿은 이슈 화면이다")
+        assertEquals("${base(project)}/posts", active("postform"), "새 글은 게시판이다")
+        assertEquals("${base(project)}/posts", active("postform?readme="), "README 편집은 지금처럼 게시판으로 둔다")
+    }
+
+    @Test
     fun `이슈 템플릿으로 열면 안내가 있고 업로더가 없다`() {
         val project = newProject(); val member = join(newUser(), project)
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "템플릿 본문".toByteArray()))
