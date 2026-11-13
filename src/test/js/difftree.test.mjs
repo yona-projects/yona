@@ -36,6 +36,19 @@ export const tests = [
     await page.click(file(0)); await page.click(file(0)); assert.deepEqual(await visible(page), [true, true, true], '같은 파일을 다시 누르면 전체가 보인다');
     await page.close();
   } },
+  { name: '변경 파일 트리: 폴더를 고르면 그 폴더 아래(하위 폴더 포함) 변경된 파일의 diff를 모두 보이고, 다시 누르면 전체가 보인다', run: async () => {
+    const page = await open(['src/a.kt', 'src/util/b.kt', 'src/util/c.kt', 'docs/d.md']);
+    const folder = (name) => page.locator('.diff-tree li.folder > .name', { hasText: new RegExp('^' + name + '$') });
+    await folder('src').click(); assert.deepEqual(await visible(page), [true, true, true, false], 'src 아래 파일 셋');
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.diff-tree li.active')].map((e) => e.classList.contains('folder') ? 'folder:' + e.querySelector(':scope > .name').textContent : 'file')), ['folder:src']);
+    await folder('util').click(); assert.deepEqual(await visible(page), [false, true, true, false], '하위 폴더 util 아래 파일 둘');
+    await page.click('.diff-tree li.file[data-index="3"]'); assert.deepEqual(await visible(page), [false, false, false, true], '폴더 선택 뒤에 파일을 고르면 그 파일만');
+    assert.equal(await page.evaluate(() => document.querySelectorAll('.diff-tree li.active').length), 1, '선택 표시는 하나뿐이다');
+    await folder('docs').click(); assert.deepEqual(await visible(page), [false, false, false, true]);
+    await folder('docs').click(); assert.deepEqual(await visible(page), [true, true, true, true], '같은 폴더를 다시 누르면 전체가 보인다');
+    await folder('src').click(); await page.click('.diff-tree .diff-tree-all'); assert.deepEqual(await visible(page), [true, true, true, true]);
+    await page.close();
+  } },
   { name: '변경 파일 트리: 파일이 하나뿐이면 트리를 만들지 않고, 두 번 불러도 한 번만 만든다', run: async () => {
     const one = await open(['only.txt']); assert.equal(await one.evaluate(() => document.querySelectorAll('.diff-tree').length), 0); await one.close();
     const two = await open(['a.txt', 'b.txt']); await two.evaluate(() => { new yona.code.DiffTree({ sContainer: '.diff-body' }); });

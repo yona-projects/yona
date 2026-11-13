@@ -4,8 +4,9 @@ import { register } from "../namespace.js";
  * 변경된 내용을 보여 주는 화면(커밋, 비교, 코드 주고받기 변경 내용, Subversion 커밋과 비교)에 변경된 파일의 경로 트리를 더한다.
  *
  * v1.6에는 없는 추가 기능이다(decisions.md A-571). 이 모듈은 서버가 그린 diff 블록(`.diff-partial-outer`)을 그대로 두고 화면에서만 다룬다.
- * 변경 파일이 둘 이상일 때 diff 왼쪽에 경로 트리를 두고, 파일을 고르면 그 파일의 diff만 보인다. 같은 파일을 다시 누르거나 "전체 보기"를
- * 누르면 모든 파일이 보인다. 파일이 하나뿐이면 트리가 필요 없어 아무것도 하지 않는다.
+ * 변경 파일이 둘 이상일 때 diff 왼쪽에 경로 트리를 두고, 파일을 고르면 그 파일의 diff만, 폴더를 고르면 그 폴더 아래(하위 폴더 포함) 변경된
+ * 파일의 diff를 모두 보인다. 같은 항목을 다시 누르거나 "전체 보기"를 누르면 모든 파일이 보인다. 파일이 하나뿐이면 트리가 필요 없어
+ * 아무것도 하지 않는다.
  *
  * Subversion 화면은 diff를 스크립트가 나중에 그리므로, diff 블록이 나타날 때까지 짧게 기다렸다가 트리를 만든다.
  *
@@ -66,16 +67,17 @@ const DiffTree = function(htOptions){
         welContainer.data("diffTree", true);
         aBlocks = welBlocks.toArray();
 
-        const root = {folders: {}, order: [], files: []};
+        const root = {folders: {}, order: [], files: [], indices: []};
         aBlocks.forEach(function(elBlock, nIndex){
             const aParts = _pathOf($(elBlock)).split("/").filter(function(s){ return s.length > 0; });
             let node = root;
             aParts.slice(0, -1).forEach(function(sDir){
                 if (!node.folders[sDir]) {
-                    node.folders[sDir] = {folders: {}, order: [], files: []};
+                    node.folders[sDir] = {folders: {}, order: [], files: [], indices: []};
                     node.order.push(sDir);
                 }
                 node = node.folders[sDir];
+                node.indices.push(nIndex);
             });
             node.files.push({name: aParts.length > 0 ? aParts[aParts.length - 1] : "?", index: nIndex});
         });
@@ -94,10 +96,16 @@ const DiffTree = function(htOptions){
         welAside.on("click", "li.file", function(e){
             e.preventDefault();
             e.stopPropagation();
-            _select(parseInt($(this).attr("data-index"), 10));
+            _select($(this), [parseInt($(this).attr("data-index"), 10)]);
+        });
+        // 폴더 이름을 누르면 그 폴더 아래 변경된 파일을 모두 보인다. 폴더 줄 안의 하위 목록을 누른 것은 건드리지 않는다
+        welAside.on("click", "li.folder > .name", function(e){
+            e.stopPropagation();
+            const welFolder = $(this).parent();
+            _select(welFolder, String(welFolder.attr("data-indices")).split(",").map(function(s){ return parseInt(s, 10); }));
         });
         welAside.on("click", ".diff-tree-all", function(){
-            _select(-1);
+            _select(null, []);
         });
     }
 
@@ -109,7 +117,7 @@ const DiffTree = function(htOptions){
     function _renderNode(node){
         const welList = $('<ul class="diff-tree-list"></ul>');
         node.order.forEach(function(sDir){
-            const welFolder = $('<li class="folder"></li>');
+            const welFolder = $('<li class="folder"></li>').attr("data-indices", node.folders[sDir].indices.join(","));
             welFolder.append($('<span class="name"></span>').text(sDir));
             welFolder.append(_renderNode(node.folders[sDir]));
             welList.append(welFolder);
@@ -123,22 +131,25 @@ const DiffTree = function(htOptions){
     }
 
     /**
-     * 파일 하나를 골라 그 diff만 보이게 한다. 이미 고른 파일이거나 -1이면 전체를 보인다.
-     * @param {number} nIndex 고른 블록의 번호, 전체는 -1
+     * 트리 항목(파일 또는 폴더)을 골라 그 항목에 속한 diff만 보이게 한다. 이미 고른 항목을 다시 고르거나 항목이 없으면 전체를 보인다.
+     * @param {jQuery|null} welItem 고른 트리 항목, 전체 보기는 null
+     * @param {number[]} aIndices 보일 diff 블록의 번호들
      */
-    function _select(nIndex){
+    function _select(welItem, aIndices){
         const welTree = welContainer.parent().find(".diff-tree");
-        const bToggleOff = nIndex >= 0 && welTree.find("li.file.active").attr("data-index") === String(nIndex);
-        const nShown = (bToggleOff || nIndex < 0) ? -1 : nIndex;
+        const bToggleOff = welItem !== null && welItem.hasClass("active");
+        const aShown = (bToggleOff || welItem === null) ? [] : aIndices;
+        const bAll = aShown.length === 0;
 
         aBlocks.forEach(function(elBlock, i){
-            const bHide = nShown >= 0 && i !== nShown;
+            const bHide = !bAll && aShown.indexOf(i) < 0;
             $(elBlock).toggleClass("diff-tree-hidden", bHide).css("display", bHide ? "none" : "");
         });
-        welTree.find("li.file").each(function(){
-            $(this).toggleClass("active", parseInt($(this).attr("data-index"), 10) === nShown);
-        });
-        welTree.find(".diff-tree-all").toggleClass("active", nShown < 0);
+        welTree.find("li.active").removeClass("active");
+        if (!bAll) {
+            welItem.addClass("active");
+        }
+        welTree.find(".diff-tree-all").toggleClass("active", bAll);
     }
 
     _init(htOptions);

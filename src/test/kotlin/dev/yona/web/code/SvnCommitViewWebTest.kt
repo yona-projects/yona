@@ -325,6 +325,18 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비교 화면은 코드로 돌아가는 링크와 변경 요약을 보인다(A-572)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n", "b.txt" to "x\ny\n"))
+        val doc = page("/${p.owner}/${p.name}/compare/1..2")
+        assertEquals("/${p.owner}/${p.name}/code", doc.selectFirst(".compare-back a.code-back-link")!!.attr("href"))
+        assertEquals("2 changed files", doc.selectFirst(".compare-summary .summary-files")!!.text())
+        assertEquals("+3", doc.selectFirst(".compare-summary .summary-added")!!.text())
+        assertEquals("−0", doc.selectFirst(".compare-summary .summary-deleted")!!.text())
+    }
+
+    @Test
     fun `커밋과 비교 화면은 변경 파일 트리 모듈을 SvnDiff 모듈 뒤에 부른다(A-571)`() {
         val p = project()
         commit(p, "dev", "a", mapOf("a.txt" to "1\n"))

@@ -209,6 +209,19 @@ class CommitViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비교 화면은 코드로 돌아가는 링크와 변경 요약(파일 수, 추가와 삭제 줄)을 보인다(A-572)`() {
+        val p = project()
+        val (first, second) = twoCommits(p)
+        val doc = page("/${p.owner}/${p.name}/compare/$first..$second")
+        assertEquals("/${p.owner}/${p.name}/code", doc.selectFirst(".compare-back a.code-back-link")!!.attr("href"))
+        assertEquals("1 changed files", doc.selectFirst(".compare-summary .summary-files")!!.text())
+        assertEquals("+1", doc.selectFirst(".compare-summary .summary-added")!!.text())
+        assertEquals("−0", doc.selectFirst(".compare-summary .summary-deleted")!!.text())
+        // 변경이 없는 비교에는 요약이 없다
+        assertTrue(page("/${p.owner}/${p.name}/compare/$second..$second").select(".compare-summary").isEmpty())
+    }
+
+    @Test
     fun `비교와 커밋 화면은 변경 파일 트리 모듈을 diff 모듈 뒤에 부른다(A-571)`() {
         val p = project()
         val (first, second) = twoCommits(p)

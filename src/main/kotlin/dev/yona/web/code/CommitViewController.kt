@@ -208,6 +208,7 @@ class CommitViewController(
                 .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
                 // A-570: 비교하는 두 쪽을 "r1 → r2"로 보인다(리비전은 이름이 따로 없다)
                 .addObject("fromName", "r${commitA.id}").addObject("fromId", "").addObject("toName", "r${commitB.id}").addObject("toId", "")
+                .addObject("backUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code")).addObject("stat", DiffStat.ofPatch(patch))
                 .addObject("patch", patch)
                 // v1.6은 이 값을 넘기지 않아 파일 머리의 리비전 링크가 `undefined/<리비전>/<경로>`였다(code-F2). 커밋 화면과 같은 코드 화면 기준 주소를 넘긴다.
                 .addObject("filesUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code"))
@@ -220,6 +221,7 @@ class CommitViewController(
             .addObject("projectView", views.of(project))
             .addObject("range", "${commitA.id}..${commitB.id}")
             // A-570: 비교하는 두 쪽을 이름과 짧은 번호로 나눠 보인다. 이름이 커밋 번호 자체이면 번호를 되풀이하지 않는다
+            .addObject("backUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code")).addObject("stat", DiffStat.of(fileDiffs))
             .addObject("fromName", rangeName(revA)).addObject("fromId", rangeId(revA, commitA.id))
             .addObject("toName", rangeName(revB)).addObject("toId", rangeId(revB, commitB.id))
             .addObject("empty", fileDiffs.isEmpty())
@@ -261,5 +263,37 @@ class CommitViewController(
         /** 커밋 번호처럼 보이는 값(16진수 7자 이상 40자 이하)이다. */
         val HEX_ID = Regex("[0-9a-fA-F]{7,40}")
         const val SHORT_ID = 7
+    }
+}
+
+/**
+ * 비교 화면 맨 위 변경 요약에 보이는 값이다(추가 기능, decisions.md A-572).
+ *
+ * @property files 변경된 파일 수
+ * @property added 추가된 줄 수 합계
+ * @property deleted 삭제된 줄 수 합계
+ */
+data class DiffStat(val files: Int, val added: Int, val deleted: Int) {
+
+    companion object {
+        /** Git 파일별 차이에서 센다. 바이너리나 크기 초과로 줄 차이가 없는 파일은 파일 수에만 들어간다. */
+        fun of(diffs: List<dev.yona.repository.diff.FileDiff>): DiffStat = DiffStat(
+            diffs.size,
+            diffs.sumOf { d -> d.editList?.sumOf { it.endB - it.beginB } ?: 0 },
+            diffs.sumOf { d -> d.editList?.sumOf { it.endA - it.beginA } ?: 0 }
+        )
+
+        /**
+         * Subversion이 만든 통합 diff 본문에서 센다. 파일 수는 `Index:` 줄 수이고, 추가와 삭제는 `+`와 `-`로 시작하는 줄 가운데
+         * 파일 머리(`+++`, `---`)가 아닌 것이다.
+         */
+        fun ofPatch(patch: String?): DiffStat {
+            val lines = patch.orEmpty().lines()
+            return DiffStat(
+                lines.count { it.startsWith("Index: ") },
+                lines.count { it.startsWith("+") && !it.startsWith("+++") },
+                lines.count { it.startsWith("-") && !it.startsWith("---") }
+            )
+        }
     }
 }

@@ -15,11 +15,16 @@
         <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
         <div class="shell-main">
     <div class="code-browse-wrap">
+        <div class="compare-back mb-2"><a class="code-back-link" th:href="${backUrl}">&larr; <th:block th:text="#{code.compare.back}"></th:block></a></div>
         <p class="commitInfo compare-range">
             <span class="compare-from"><strong class="compare-name" th:text="${fromName}"></strong> <code th:if="${!#strings.isEmpty(fromId)}" class="compare-id" th:text="${fromId}"></code></span>
             <span class="compare-arrow">&rarr;</span>
             <span class="compare-to"><strong class="compare-name" th:text="${toName}"></strong> <code th:if="${!#strings.isEmpty(toId)}" class="compare-id" th:text="${toId}"></code></span>
         </p>
+        <div class="compare-summary" th:if="${stat != null and stat.files > 0}">
+            <span class="summary-files" th:text="#{code.compare.files(${stat.files})}"></span>
+            <span><b class="summary-added" th:text="'+' + ${stat.added}"></b> <b class="summary-deleted" th:text="'&minus;' + ${stat.deleted}"></b></span>
+        </div>
         <div class="alert alert-warning" th:if="${#strings.isEmpty(patch)}" th:text="#{code.noChanges}"></div>
         <div class="diff-wrap" th:unless="${#strings.isEmpty(patch)}">
             <div id="commit" data-commit-origin="true" class="diff-body discommentable hide" th:text="${patch}"></div>

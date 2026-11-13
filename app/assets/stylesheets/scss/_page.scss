@@ -9834,11 +9834,21 @@ form#newProjectForm, form#importGit {
         .diff-tree-list { padding: 0 0 0 14px; }
     }
 
+    // 폴더 이름도 누를 수 있다: 누르면 그 폴더 아래 변경된 파일의 diff를 모두 보인다(하위 폴더 포함)
     li.folder > .name {
         display: block;
         padding: 3px 10px;
         color: #6c757d;
         font-weight: 600;
+        cursor: pointer;
+
+        &:hover { background: #f5f5f5; }
+    }
+
+    li.folder.active > .name {
+        background: #fff3ec;
+        box-shadow: inset 3px 0 0 $primary;
+        color: #212529;
     }
 
     li.file {
@@ -9873,4 +9883,24 @@ form#newProjectForm, form#importGit {
 @media (max-width: 900px) {
     .diff-tree-layout { flex-direction: column; }
     .diff-tree { position: static; flex: none; width: 100%; max-height: 240px; }
+}
+
+// A-572: 비교 화면의 되돌아가는 링크와 변경 요약 줄(파일 수, 추가와 삭제 줄).
+.compare-back { margin-bottom: 8px; }
+
+.compare-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 18px;
+    margin: 0 0 14px;
+    padding: 9px 14px;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #f8f9fa;
+    font-size: 0.875rem;
+
+    .summary-files { font-weight: 600; }
+    .summary-added { color: #1a7f37; font-weight: 600; }
+    .summary-deleted { color: #cf222e; font-weight: 600; }
 }

@@ -255,11 +255,12 @@ export const tests = [
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px"><div class="code-browse-wrap">
 <div class="diff-tree-layout" id="lay"><aside class="diff-tree" id="tr"><div class="diff-tree-head"><strong class="diff-tree-title">변경된 파일 2개</strong><button type="button" class="diff-tree-all active">전체 보기</button></div>
-<ul class="diff-tree-list"><li class="folder"><span class="name">src</span><ul class="diff-tree-list"><li class="file active" id="af" data-index="0"><a href="#">Main.kt</a></li></ul></li><li class="file" data-index="1"><a href="#">README.md</a></li></ul></aside>
+<ul class="diff-tree-list"><li class="folder active" id="fo"><span class="name" id="fn">src</span><ul class="diff-tree-list"><li class="file active" id="af" data-index="0"><a href="#">Main.kt</a></li></ul></li><li class="file" data-index="1"><a href="#">README.md</a></li></ul></aside>
 <div class="diff-body discommentable" id="db"><div class="diff-partial-outer" id="b0">a</div><div class="diff-partial-outer diff-tree-hidden" id="b1" style="display:none">b</div></div></div></div></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const cs = (s) => getComputedStyle(document.querySelector(s)); return { tr: r('#tr'), db: r('#db'), lay: r('#lay'), actBg: cs('#af').backgroundColor, hidden: cs('#b1').display, pos: cs('#tr').position }; });
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const cs = (s) => getComputedStyle(document.querySelector(s)); return { tr: r('#tr'), db: r('#db'), lay: r('#lay'), actBg: cs('#af').backgroundColor, hidden: cs('#b1').display, pos: cs('#tr').position, folderCursor: cs('#fn').cursor, folderBg: cs('#fn').backgroundColor }; });
     assert.ok(m.tr.right <= m.db.left + 1, `트리(${m.tr.right})가 diff(${m.db.left}) 왼쪽에 있어야 한다`); assert.ok(m.tr.width >= 200 && m.tr.width <= 260, `트리 폭 ${m.tr.width}px`);
     assert.ok(m.db.right >= m.lay.right - 2, `diff가 나머지 폭을 채워야 한다(${m.db.right} / ${m.lay.right})`); assert.notEqual(m.actBg, 'rgba(0, 0, 0, 0)', '고른 파일이 구분되지 않는다'); assert.equal(m.hidden, 'none'); assert.equal(m.pos, 'sticky', '긴 diff를 읽는 동안 트리가 따라와야 한다');
+    assert.equal(m.folderCursor, 'pointer', '폴더도 누를 수 있어 보여야 한다'); assert.notEqual(m.folderBg, 'rgba(0, 0, 0, 0)', '고른 폴더가 구분되지 않는다');
     await ctx.close();
   } },
 ];
