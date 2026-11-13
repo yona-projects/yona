@@ -109,11 +109,9 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         assertEquals("Danger Zone - ${project.owner}/${project.name}", page.title())
         assertEquals("Delete project", page.selectFirst("#danger-delete .cu-label")?.text())
         assertTrue(page.selectFirst("#danger-delete .cu-desc .notice")!!.text().startsWith("Once you delete the project"))
-        assertNotNull(page.selectFirst("input#acceptDelete[type=checkbox]"))
-        assertEquals("I agree to delete this project.", page.selectFirst("label[for=acceptDelete]")?.text())
         val button = page.selectFirst("a#btnDelete")!!
         assertEquals("#alertDeletion", button.attr("href"))
-        assertFalse(button.hasAttr("data-bs-toggle"), "확인 창은 스크립트가 동의를 확인한 뒤에만 연다(동의 없이 열리던 결함)")
+        assertEquals("modal", button.attr("data-bs-toggle"), "확인 창이 곧 확인 절차라 단추가 바로 연다(체크박스 없음, A-537)")
         assertEquals("Delete this project", button.text().trim())
         val dialog = page.selectFirst("#alertDeletion")!!
         assertEquals("Do you want to delete this project?", dialog.selectFirst(".modal-header h3")?.text())
@@ -138,7 +136,8 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
         assertEquals(listOf("danger-transfer", "danger-vcs", "danger-delete"), page.select("section.danger-section").map { it.id() })
-        assertEquals(listOf("acceptTransfer", "acceptChangeVCS", "acceptDelete"), page.select("section.danger-section input[type=checkbox]").map { it.id() })
+        assertTrue(page.select("section.danger-section input[type=checkbox]").isEmpty(), "동의 체크박스는 없다(A-537)")
+        assertEquals(listOf("modal", "modal", "modal"), page.select("section.danger-section a.ybtn-danger").map { it.attr("data-bs-toggle") })
         assertEquals(listOf("btnTransfer", "btnChangeVCS", "btnDelete"), page.select("section.danger-section a.ybtn-danger").map { it.id() })
         assertEquals(3, page.select("section.danger-section").map { it.id() }.toSet().size)
     }

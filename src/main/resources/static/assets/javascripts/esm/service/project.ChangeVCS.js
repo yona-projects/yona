@@ -39,8 +39,6 @@ const ChangeVCS = function(options){
      * initialize element variables
      */
     function _initElement(optinos){
-        elements.acceptChangeVCS = $("#acceptChangeVCS");
-        elements.btnChangeVCS = $("#btnChangeVCS");
         elements.btnChangeVCSExec = $("#btnChangeVCSExec");
         elements.targetVCS = $("#targetVcs");
     }
@@ -49,7 +47,6 @@ const ChangeVCS = function(options){
      * attach event handlers
      */
     function _attachEvent(options){
-        elements.btnChangeVCS.on('click', showConfirmPopup);
         elements.btnChangeVCSExec.on("click", changeVCS);
         elements.targetVCS.on("change", () =>{ showTexts(options.oTexts || {}); });
     }
@@ -66,17 +63,6 @@ const ChangeVCS = function(options){
         $(".vcs-requestion").text(text.requestion);
     }
     
-    /** 종류 변경 단추: 동의했을 때만 확인 창을 연다(이유는 이관 단추와 같다). */
-    function showConfirmPopup(event) {
-        event.preventDefault();
-        if(elements.acceptChangeVCS.is(":checked") === false){
-            $yona.alert(Messages("project.changeVCS.alert"));
-            return false;
-        }
-        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertChangeVCS")).show();
-        return false;
-    }
-
     function changeVCS() {
         const ajaxOptions = {
             "method" : "post",

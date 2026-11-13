@@ -8620,29 +8620,35 @@ textarea.editorSeries.content {
         margin: 0;
     }
 
-    // 동의 체크박스: 글자와 같은 높이, 크기 16px(전역 설정은 12px이고 위로 치우친다).
-    .danger-consent {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-height: 0;
-        margin: 8px 0 0;
-        padding-left: 0;
-
-        .form-check-input {
-            float: none;
-            flex: none;
-            width: 1rem;
-            height: 1rem;
-            margin: 0;
-        }
-
-        .form-check-label {
-            margin: 0;
-        }
-    }
-
     .danger-actions {
         margin-top: 12px;
+    }
+}
+
+
+// 모달 머리글(A-537): v1.6(BS2) 마크업은 × 닫기 단추를 제목 앞에 두어 BS5에서 × 가 제목 왼쪽에 붙고 제목(h3)이 크게 나왔다.
+// 마크업 순서는 그대로 두고 단추를 오른쪽 끝으로 보내며 제목을 BS5 모달 제목 크기로 맞춘다. 15개 화면의 모달이 같은 마크업이다.
+.modal-header {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+
+    h3, h4, h5 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+}
+
+// 삭제 확인 창의 이름 입력(A-536)
+#alertDeletion .modal-body {
+    p + p {
+        margin-top: 0.5rem;
+    }
+
+    label[for=deleteConfirmName] {
+        display: block;
+        margin: 0.75rem 0 0.375rem;
     }
 }

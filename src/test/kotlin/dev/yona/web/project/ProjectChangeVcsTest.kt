@@ -108,7 +108,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         assertEquals("GIT Subversion", page.selectFirst("#danger-vcs h3.vcs-heading")?.text())
         assertEquals("Changing the repository to Subversion.", page.select("#danger-vcs li.notice")[0].text())
         assertEquals("If the repository is changed, all code and history will be deleted.", page.select("#danger-vcs li.notice")[1].text())
-        assertEquals("I agree with changing the repository type.", page.selectFirst("label[for=acceptChangeVCS]")?.text())
+        assertNull(page.selectFirst("#acceptChangeVCS"), "동의 체크박스는 없다(A-537)")
         assertNotNull(page.selectFirst("a#btnChangeVCS"))
         assertEquals("Do you want to change the repository to Subversion?", page.selectFirst("#alertChangeVCS h3")?.text())
         assertEquals("Yes", page.selectFirst("#btnChangeVCSExec")?.text())

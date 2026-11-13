@@ -38,8 +38,6 @@ const Delete = function(htOptions){
      * initialize element variables
      */
     function _initElement(htOptions){
-        htElement.welChkAccept    = $("#acceptDelete");
-        htElement.welBtnDeletePop = $("#btnDelete");
         htElement.welBtnDeletePrj = $("#btnDeleteExec");
         htElement.welConfirmName  = $("#deleteConfirmName");
         htElement.welModal        = $("#alertDeletion");
@@ -58,7 +56,6 @@ const Delete = function(htOptions){
      * attach event handlers
      */
     function _attachEvent(htOptions){
-        htElement.welBtnDeletePop.click(_onClickBtnDeletePrj);
         htElement.welConfirmName.on("input", _syncExecButton);
         // 확인 창을 열 때마다 입력을 비우고 "예"를 끈다
         htElement.welModal.on("show.bs.modal", () => { htElement.welConfirmName.val(""); _syncExecButton(); });
@@ -73,17 +70,6 @@ const Delete = function(htOptions){
                 }
             });
         });
-    }
-
-    /** 삭제 단추: 동의했을 때만 확인 창을 연다(이유는 이관 단추와 같다). */
-    function _onClickBtnDeletePrj(weEvt){
-        weEvt.preventDefault();
-        if(htElement.welChkAccept.is(":checked") === false){
-            $yona.alert(Messages("project.delete.alert"));
-            return false;
-        }
-        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).show();
-        return false;
     }
 
     _init(htOptions || {});

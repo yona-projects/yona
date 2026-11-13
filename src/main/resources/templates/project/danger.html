@@ -17,7 +17,7 @@
         <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="form-text mt-2 mb-3" th:text="#{project.danger.description}"></p>
 
-        <!--/* 위험 작업의 확인 창은 단추의 data-bs-toggle가 아니라 스크립트가 동의를 확인한 뒤에만 연다(동의 없이 열리던 결함, A-535) */-->
+        <!--/* 확인 창이 곧 확인 절차라 동의 체크박스는 두지 않는다. 단추가 바로 확인 창을 연다(A-537, GitHub 방식) */-->
         <!--/* 1. 프로젝트 이관 */-->
         <section id="danger-transfer" class="danger-section">
             <h3 class="danger-title" th:text="#{project.transfer}"></h3>
@@ -33,13 +33,9 @@
                     <li class="notice"><strong th:text="#{project.transfer.description4}"></strong></li>
                     <li class="notice"><strong th:text="#{project.transfer.description5}"></strong></li>
                 </ul>
-                <div class="form-check danger-consent">
-                    <input type="checkbox" class="form-check-input" autocomplete="off" id="acceptTransfer">
-                    <label for="acceptTransfer" class="form-check-label label-agreement" th:text="#{project.transfer.accept}"></label>
-                </div>
             </div>
             <div class="danger-actions">
-                <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger"><!--
+                <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger" data-bs-toggle="modal"><!--
              --><i class="yobicon-database"></i> <th:block th:text="#{project.transfer.this}"></th:block></a>
             </div>
         </section>
@@ -59,13 +55,9 @@
                     <li class="notice"><strong class="vcs-description" th:text="#{project.changeVCS.description1(${nextVcs})}"></strong></li>
                     <li class="notice"><strong th:text="#{project.changeVCS.description2}"></strong></li>
                 </ul>
-                <div class="form-check danger-consent">
-                    <input id="acceptChangeVCS" type="checkbox" class="form-check-input" autocomplete="off">
-                    <label for="acceptChangeVCS" class="form-check-label label-agreement" th:text="#{project.changeVCS.accept}"></label>
-                </div>
             </div>
             <div class="danger-actions">
-                <a id="btnChangeVCS" href="#alertChangeVCS" class="ybtn ybtn-danger">
+                <a id="btnChangeVCS" href="#alertChangeVCS" class="ybtn ybtn-danger" data-bs-toggle="modal">
                     <i class="yobicon-database"></i> <th:block th:text="#{project.changeVCS.this}"></th:block>
                 </a>
             </div>
@@ -76,13 +68,9 @@
             <h3 class="danger-title cu-label" th:text="#{project.delete}"></h3>
             <div class="cu-desc">
                 <p><strong class="notice" th:text="#{project.delete.description}"></strong></p>
-                <div class="form-check danger-consent">
-                    <input type="checkbox" class="form-check-input" autocomplete="off" id="acceptDelete">
-                    <label for="acceptDelete" class="form-check-label label-agreement" th:text="#{project.delete.accept}"></label>
-                </div>
             </div>
             <div class="danger-actions">
-                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger"><!--
+                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-bs-toggle="modal"><!--
              --><i class="yobicon-database-remove"></i> <th:block th:text="#{project.delete.this}"></th:block></a>
             </div>
         </section>
@@ -131,7 +119,7 @@
                 <!--/* 이름 재입력(A-536): 정확히 입력해야 "예"가 켜진다 */-->
                 <p class="mb-0">
                     <label for="deleteConfirmName" class="form-label" th:utext="#{project.delete.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
-                    <input type="text" id="deleteConfirmName" class="form-control" autocomplete="off" spellcheck="false">
+                    <input type="text" id="deleteConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
                 </p>
             </div>
             <div class="modal-footer">
