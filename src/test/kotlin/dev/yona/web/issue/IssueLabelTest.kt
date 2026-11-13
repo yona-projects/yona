@@ -138,6 +138,11 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertTrue(box.select("form#copyLabel").size == 1, "복사 폼은 접이식 안에 있다")
         assertEquals("Add new label", form.selectFirst(".label-form-title")?.text())
         assertTrue(page.select("#editCategory, #editLabel").size == 2)
+        // A-558: 수정 모달도 색상 선택기와 새 라벨 폼과 같은 17색 견본, 현재 색 칩을 쓴다
+        val edit = page.selectFirst("#editLabel")!!
+        assertEquals("color", edit.selectFirst("input[name=color]")!!.attr("type"))
+        assertEquals(form.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, edit.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, "견본은 새 라벨 폼과 같다")
+        assertNotNull(edit.selectFirst(".edit-label-chip"))
         assertTrue(page.select("script").any { "issue.LabelEditor" in it.data() && "${base(project)}/issue/labels" in it.data().replace("\\/", "/") })
     }
 

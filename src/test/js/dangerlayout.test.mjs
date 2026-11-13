@@ -144,4 +144,24 @@ export const tests = [
     assert.ok(m.w >= 36 && m.w <= 64, `색상 선택기 너비 ${m.w}px`); assert.ok(Math.abs(m.h - m.nh) <= 2, `색상 선택기 높이 ${m.h}px, 이름 입력란 ${m.nh}px`); assert.equal(m.shadow, 'none', `옛 안쪽 그림자가 남았다: ${m.shadow}`);
     await ctx.close();
   } },
+  { name: '라벨 수정 모달의 입력란은 모달 폭에 맞고 견본이 모달 밖으로 넘치지 않으며 이름 옆에 색 칩이 있다(A-558)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    const sw = Array.from({ length: 17 }, (_, i) => `<button type="button" class="issue-label btn-preset-color" style="background-color:hsl(${i * 20},60%,50%)"></button>`).join('');
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div id="editLabel" class="modal yobiDialog show" style="display:block" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="message edit-label-form"><div class="center-txt">
+<select class="form-select" name="category.id"><option>종류</option></select>
+<div class="edit-label-name-row"><input id="nm" type="text" name="name" class="text input-label-name form-control" value="버그"><span class="edit-label-chip issue-label active" id="chip" style="background-color:#d73a4a">버그</span></div>
+<div class="label-preset-colors edit" id="sw">${sw}<input id="col" type="color" name="color" value="#d73a4a" class="input-label-color form-control form-control-color"></div>
+</div></div></div></div></div></body></html>`);
+    const box = await r(page, '#editLabel .modal-content'), nm = await r(page, '#nm'), sel = await r(page, '#editLabel select'), sw2 = await r(page, '#sw'), col = await r(page, '#col'), chip = await r(page, '#chip');
+    assert.ok(nm.right <= box.right + 0.5 && nm.left >= box.left, `이름 입력란이 모달 밖이다: ${nm.left.toFixed(0)}~${nm.right.toFixed(0)} / 모달 ${box.left.toFixed(0)}~${box.right.toFixed(0)}`);
+    assert.ok(sw2.right <= box.right + 0.5, `견본 줄이 모달 밖으로 나갔다: ${sw2.right.toFixed(0)} > ${box.right.toFixed(0)}`);
+    assert.ok(Math.abs(nm.left - sel.left) <= 2, `이름 입력란 왼쪽(${nm.left.toFixed(0)})이 분류 선택 왼쪽(${sel.left.toFixed(0)})과 어긋난다`);
+    const row = await r(page, '#editLabel .edit-label-name-row');
+    assert.ok(Math.abs((row.right - row.left) - (sel.right - sel.left)) <= 2, `이름 줄 ${(row.right - row.left).toFixed(0)}px, 분류 선택 ${(sel.right - sel.left).toFixed(0)}px(폭이 서로 맞아야 한다)`);
+    assert.ok(Math.abs(sw2.left - sel.left) <= 2, `견본 줄 왼쪽(${sw2.left.toFixed(0)})이 분류 선택 왼쪽(${sel.left.toFixed(0)})과 어긋난다`);
+    assert.ok(col.right - col.left <= 64, `색상 선택기 너비 ${(col.right - col.left).toFixed(0)}px`); assert.ok(chip.h >= 14 && chip.h <= 30, `색 칩 높이 ${chip.h}px`);
+    const bg = await page.evaluate(() => getComputedStyle(document.getElementById('nm')).backgroundColor); assert.ok(bg === 'rgb(255, 255, 255)' || bg === 'rgba(0, 0, 0, 0)', `이름 입력란이 칠해졌다: ${bg}`);
+    await ctx.close();
+  } },
 ];

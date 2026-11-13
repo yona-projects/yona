@@ -150,4 +150,25 @@ export const tests = [
     await submit(page); await page.waitForTimeout(60);
     const ajax = await get(page, '__ajax'); assert.equal(ajax.length, 1); assert.equal(ajax[0][2].labelColor, '#ff0000'); await page.close();
   } },
+  // --- 라벨 수정 모달의 색상 선택기와 현재 색 칩(A-558) ---
+  { name: '수정 모달: 색은 선택기 값으로 채우고 현재 색 칩이 이름과 색을 보이며 이름 입력란은 색으로 칠하지 않는다', run: async () => {
+    const html = HTML.replace('<div id="elab">', '<div id="elab" class="edit-label-form">').replace('<input name="name"><input name="color">\n  <div class="label-preset-colors">', '<input name="name"><span class="edit-label-chip issue-label"></span><input name="color" type="color" value="#000000">\n  <div class="label-preset-colors">');
+    const page = await open({ html });
+    await page.evaluate(() => { $('.upd').trigger('click'); });
+    const r = await page.evaluate(() => ({ color: $('#elab [name=color]').val(), chipBg: $('#elab .edit-label-chip').css('background-color'), chipText: $('#elab .edit-label-chip').text(), nameBg: $('#elab [name=name]').css('background-color') }));
+    assert.equal(r.color, '#0000ff'); assert.equal(r.chipBg, 'rgb(0, 0, 255)'); assert.equal(r.chipText, 'Crash');
+    assert.ok(r.nameBg === 'rgba(0, 0, 0, 0)' || r.nameBg === 'rgb(255, 255, 255)', `이름 입력란이 칠해졌다: ${r.nameBg}`);
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '수정 모달: 선택기로 색을 바꾸거나 이름을 고치면 칩이 바로 따라가고 견본을 누르면 색이 그 값이 된다', run: async () => {
+    const html = HTML.replace('<div id="elab">', '<div id="elab" class="edit-label-form">').replace('<input name="name"><input name="color">\n  <div class="label-preset-colors">', '<input name="name"><span class="edit-label-chip issue-label"></span><input name="color" type="color" value="#000000">\n  <div class="label-preset-colors">');
+    const page = await open({ html });
+    await page.evaluate(() => { $('.upd').trigger('click'); const c = $('#elab [name=color]'); c.val('#ff00ff').trigger('input'); });
+    assert.equal(await page.evaluate(() => $('#elab .edit-label-chip').css('background-color')), 'rgb(255, 0, 255)');
+    await page.evaluate(() => { $('#elab [name=name]').val('Renamed').trigger('input'); });
+    assert.equal(await page.evaluate(() => $('#elab .edit-label-chip').text()), 'Renamed');
+    await page.evaluate(() => { $('#elab .btn-preset-color').first().trigger('click'); });
+    assert.equal(await page.evaluate(() => $('#elab [name=color]').val()), '#00ff00');
+    assert.equal(await page.evaluate(() => $('#elab .edit-label-chip').css('background-color')), 'rgb(0, 255, 0)'); await page.close();
+  } },
 ];

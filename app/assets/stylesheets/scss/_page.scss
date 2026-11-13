@@ -7004,11 +7004,66 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     &.multiple { color:$yobi-yello-dark; }
 }
 
+// 라벨 수정 모달(A-558): 분류 선택, 이름과 현재 색 칩, 색 견본과 색상 선택기를 모달 폭에 맞춰 위에서 아래로 쌓는다.
 .edit-label-form {
     margin-top:20px;
 
-    .input-label-name  { margin-left:20px; margin-bottom:0; }
-    .select2-container { text-align:left; }
+    .edit-label-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .select2-container { width: 100% !important; text-align:left; }
+    .form-select { width: 100%; }
+
+    .edit-label-name-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .input-label-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0;
+            box-sizing: border-box;
+            height: auto;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+
+        .edit-label-chip {
+            flex: none;
+            max-width: 45%;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .label-preset-colors.edit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 3px;
+        margin: 0;
+
+        .input-label-color {
+            width: 48px;
+            height: 38px;
+            padding: 2px 4px;
+            margin-left: 6px;
+            cursor: pointer;
+            box-shadow: none !important;
+        }
+    }
 }
 
 .label-preset-colors {
