@@ -89,7 +89,7 @@ class KoreanNameLinksTest : AbstractIntegrationTest() {
         projectUsers.save(ProjectUser(user = user, project = fork, role = roles.findById(RoleType.MANAGER.id).get()))
         val base = "/${project.owner}/${project.name}"
         val pages = listOf(base, "$base/issues", "$base/issue/1", "$base/posts", "$base/post/1", "$base/milestones", "$base/milestone/${milestone.id}", "$base/members", "$base/pullRequests",
-            "$base/code", "$base/changeVCS", "$base/settingform", "$base/issueform", "$base/postform", "$base/transfer", "$base/deleteform", "$base/statistics", "$base/search?keyword=x&searchType=issue", "/projects", "/", "/kl1")
+            "$base/code", "$base/setting/danger", "$base/settingform", "$base/issueform", "$base/postform", "$base/statistics", "$base/search?keyword=x&searchType=issue", "/projects", "/", "/kl1")
         val problems = pages.flatMap { page ->
             val response = mockMvc.perform(get(page).session(session)).andReturn().response
             // 화면이 제대로 열렸는지 먼저 본다(오류 화면이면 검사가 의미 없다)

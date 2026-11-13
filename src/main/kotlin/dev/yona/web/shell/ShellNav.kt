@@ -44,7 +44,7 @@ object NavIcons {
         "settings" to "gear", "general" to "gear", "members" to "users", "users" to "user", "profile" to "user",
         "rulesets" to "shield", "two-factor" to "shield", "security" to "shield",
         "deployKeys" to "key", "ssh" to "key", "gpg" to "key", "token" to "key", "sso" to "login",
-        "lfs" to "database", "data" to "database", "labels" to "tag", "webhooks" to "bolt", "transfer" to "swap", "delete" to "trash", "changeVcs" to "branch",
+        "lfs" to "database", "data" to "database", "labels" to "tag", "webhooks" to "bolt", "danger" to "trash", "transfer" to "swap", "delete" to "trash", "changeVcs" to "branch",
         "projects" to "folder", "organizations" to "grid", "notifications" to "bell", "myFiles" to "file",
         "oauthApps" to "apps", "oauth-apps" to "apps", "oauthPolicy" to "apps", "audit" to "clipboard",
         "password" to "lock", "emails" to "mail", "mail" to "mail", "massMail" to "mail", "linked-accounts" to "link",
@@ -204,9 +204,8 @@ object ShellNav {
             // 순서는 지금의 설정 탭과 같다(라벨이 웹훅보다 앞).
             add(NavItem("labels", "issue.label", "$base/issue/labelsform"))
             add(NavItem("webhooks", "project.webhook", "$base/webhooks"))
-            add(NavItem("transfer", "project.transfer", "$base/transfer"))
-            add(NavItem("delete", "project.delete", "$base/deleteform"))
-            if (input.menu.code) add(NavItem("changeVcs", "project.changeVCS", "$base/changeVCS"))
+            // 이관, 저장소 종류 변경, 삭제는 "위험 구역" 한 항목으로 합쳤다(A-535).
+            add(NavItem("danger", "project.danger", "$base/setting/danger"))
         }
         return NavMenu(NavContext.PROJECT_SETTINGS, NavBack("sidebar.back.project", base), items)
     }

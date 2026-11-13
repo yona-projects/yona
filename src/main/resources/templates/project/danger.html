@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  v1.6에서 따로 있던 이관(transfer.scala.html), 저장소 종류 변경(changeVCSForm.scala.html), 삭제(delete.scala.html) 화면을 한 화면의 세 구역으로 합쳤다(결정 A-535).
+  GitHub 설정의 "Danger Zone"과 같은 구성이다. 구역마다 동의 체크박스와 단추가 따로 있고, 단추가 부르는 요청(PUT transfer, POST changeVCS, DELETE delete)은 그대로이다.
+  모델: title, projectView, showVcs(코드 메뉴가 켜졌을 때만 저장소 종류 구역), targets(바꿀 수 있는 종류), texts(종류마다의 안내와 확인 문구)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::dangerPage})}">
+<th:block th:fragment="dangerPage" th:with="project=${projectView.project}, nextVcs=${projectView.project.nextVcs()}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
+        <p class="form-text mt-2 mb-3" th:text="#{project.danger.description}"></p>
+
+        <!--/* 위험 작업의 확인 창은 단추의 data-bs-toggle가 아니라 스크립트가 동의를 확인한 뒤에만 연다(동의 없이 열리던 결함, A-535) */-->
+        <!--/* 1. 프로젝트 이관 */-->
+        <section id="danger-transfer" class="danger-section">
+            <h3 class="danger-title" th:text="#{project.transfer}"></h3>
+            <div class="cu-desc">
+                <p>
+                    <label for="owner" class="form-label d-block" th:text="#{project.transfer.new.owner}"></label>
+                    <input class="form-control" type="text" id="owner" name="owner" />
+                </p>
+                <ul>
+                    <li class="notice"><strong th:text="#{project.transfer.description1}"></strong></li>
+                    <li class="notice"><strong th:text="#{project.transfer.description2}"></strong></li>
+                    <li class="notice"><strong th:text="#{project.transfer.description3}"></strong></li>
+                    <li class="notice"><strong th:text="#{project.transfer.description4}"></strong></li>
+                    <li class="notice"><strong th:text="#{project.transfer.description5}"></strong></li>
+                </ul>
+                <div class="form-check danger-consent">
+                    <input type="checkbox" class="form-check-input" autocomplete="off" id="acceptTransfer">
+                    <label for="acceptTransfer" class="form-check-label label-agreement" th:text="#{project.transfer.accept}"></label>
+                </div>
+            </div>
+            <div class="danger-actions">
+                <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger"><!--
+             --><i class="yobicon-database"></i> <th:block th:text="#{project.transfer.this}"></th:block></a>
+            </div>
+        </section>
+
+        <!--/* 2. 코드 저장소 타입 변경(코드 메뉴가 켜진 프로젝트에서만) */-->
+        <section th:if="${showVcs}" id="danger-vcs" class="danger-section">
+            <h3 class="danger-title vcs-heading"><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <span class="next-vcs" th:text="${nextVcs}"></span></h3>
+            <div class="cu-desc">
+                <!--/* 바꿀 수 있는 종류가 둘 이상일 때만 보인다(Mercurial 도입, D-86 6번). 기본 선택은 v1.6처럼 번갈아 바꾸는 종류이다 */-->
+                <p th:if="${#lists.size(targets) > 1}">
+                    <label for="targetVcs" th:text="#{project.changeVCS.target}"></label>
+                    <select id="targetVcs" name="targetVcs" class="form-select d-inline-block w-auto ms-2">
+                        <option th:each="t : ${targets}" th:value="${t}" th:text="${t}" th:selected="${t == nextVcs}"></option>
+                    </select>
+                </p>
+                <ul>
+                    <li class="notice"><strong class="vcs-description" th:text="#{project.changeVCS.description1(${nextVcs})}"></strong></li>
+                    <li class="notice"><strong th:text="#{project.changeVCS.description2}"></strong></li>
+                </ul>
+                <div class="form-check danger-consent">
+                    <input id="acceptChangeVCS" type="checkbox" class="form-check-input" autocomplete="off">
+                    <label for="acceptChangeVCS" class="form-check-label label-agreement" th:text="#{project.changeVCS.accept}"></label>
+                </div>
+            </div>
+            <div class="danger-actions">
+                <a id="btnChangeVCS" href="#alertChangeVCS" class="ybtn ybtn-danger">
+                    <i class="yobicon-database"></i> <th:block th:text="#{project.changeVCS.this}"></th:block>
+                </a>
+            </div>
+        </section>
+
+        <!--/* 3. 프로젝트 삭제 */-->
+        <section id="danger-delete" class="danger-section">
+            <h3 class="danger-title cu-label" th:text="#{project.delete}"></h3>
+            <div class="cu-desc">
+                <p><strong class="notice" th:text="#{project.delete.description}"></strong></p>
+                <div class="form-check danger-consent">
+                    <input type="checkbox" class="form-check-input" autocomplete="off" id="acceptDelete">
+                    <label for="acceptDelete" class="form-check-label label-agreement" th:text="#{project.delete.accept}"></label>
+                </div>
+            </div>
+            <div class="danger-actions">
+                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger"><!--
+             --><i class="yobicon-database-remove"></i> <th:block th:text="#{project.delete.this}"></th:block></a>
+            </div>
+        </section>
+
+        <!--/* Confirm to transfer project */-->
+        <div id="alertTransfer" class="modal"><div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3 th:text="#{project.transfer.requestion}"></h3>
+            </div>
+            <div class="modal-body">
+                <p> <th:block th:text="#{project.transfer.description}"></th:block></p>
+                <p> <th:block th:text="#{project.transfer.reaccept}"></th:block> </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnTransferExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div></div></div>
+
+        <!--/* Confirm to change the repository type */-->
+        <div th:if="${showVcs}" id="alertChangeVCS" class="modal"><div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3 class="vcs-requestion" th:text="#{project.changeVCS.requestion(${nextVcs})}"></h3>
+            </div>
+            <div class="modal-body">
+                <p th:text="#{project.changeVCS.description2}"></p>
+                <p th:text="#{project.changeVCS.reaccept}"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div></div></div>
+
+        <!--/* Confirm to delete project */-->
+        <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3 th:text="#{project.delete.requestion}"></h3>
+            </div>
+            <div class="modal-body">
+                <p> <th:block th:text="#{project.delete.description}"></th:block></p>
+                <p> <th:block th:text="#{project.delete.reaccept}"></th:block> </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div></div></div>
+
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/project.Transfer.js}]]);
+await import([[@{/assets/javascripts/esm/service/project.Delete.js}]]);
+await import([[@{/assets/javascripts/esm/service/project.ChangeVCS.js}]]);
+    $(document).ready(function(){
+        $yona.loadModule("project.Transfer", {
+            "sTransferURL": [[${projectBase + '/transfer'}]]
+        });
+        $yona.loadModule("project.Delete", {
+            "sDeleteURL": [[@{${projectBase + '/delete'}}]]
+        });
+        /*[# th:if="${showVcs}"]*/
+        $yona.loadModule("project.ChangeVCS", {
+            "sTransferURL": [[${projectBase + '/changeVCS'}]],
+            "oTexts": [[${texts}]]
+        });
+        /*[/]*/
+    });
+</script>
+        </div><!--/* .shell-main */-->
+    </div>
+</div>
+</th:block>
+</html>

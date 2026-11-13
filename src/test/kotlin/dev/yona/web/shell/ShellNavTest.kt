@@ -126,9 +126,9 @@ class ShellNavTest {
         val menu = ShellNav.projectSettings(project())
         assertEquals(NavContext.PROJECT_SETTINGS, menu.context)
         assertEquals(NavBack("sidebar.back.project", "/owner/proj"), menu.back)
-        assertEquals(listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "transfer", "delete", "changeVcs"), menu.keys())
+        assertEquals(listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "danger"), menu.keys())
         assertEquals(
-            listOf("project.setting", "project.member", "project.ruleset", "project.deployKey", "project.lfs", "issue.label", "project.webhook", "project.transfer", "project.delete", "project.changeVCS"),
+            listOf("project.setting", "project.member", "project.ruleset", "project.deployKey", "project.lfs", "issue.label", "project.webhook", "project.danger"),
             menu.items.map { it.labelKey }
         )
     }
@@ -136,7 +136,7 @@ class ShellNavTest {
     @Test
     fun `Subversion은 규칙과 배포 키와 LFS가 없고 Mercurial은 LFS 이름이 다르다`() {
         val svn = ShellNav.projectSettings(project(vcs = "Subversion"))
-        assertEquals(listOf("general", "members", "labels", "webhooks", "transfer", "delete", "changeVcs"), svn.keys())
+        assertEquals(listOf("general", "members", "labels", "webhooks", "danger"), svn.keys())
         val hg = ShellNav.projectSettings(project(vcs = "Mercurial")).items.first { it.key == "lfs" }
         assertEquals("project.lfs.hg", hg.labelKey)
     }
@@ -152,15 +152,13 @@ class ShellNavTest {
         assertEquals("/owner/proj/setting/lfs", items.getValue("lfs").path)
         assertEquals("/owner/proj/webhooks", items.getValue("webhooks").path)
         assertEquals("/owner/proj/issue/labelsform", items.getValue("labels").path)
-        assertEquals("/owner/proj/transfer", items.getValue("transfer").path)
-        assertEquals("/owner/proj/deleteform", items.getValue("delete").path)
-        assertEquals("/owner/proj/changeVCS", items.getValue("changeVcs").path)
+        assertEquals("/owner/proj/setting/danger", items.getValue("danger").path, "이관, 삭제, 타입 변경은 위험 구역 한 항목이다(A-535)")
     }
 
     @Test
-    fun `저장소 종류 변경은 코드 메뉴가 켜졌을 때만 있다(지금의 설정 탭과 같다)`() {
-        assertTrue("changeVcs" !in ShellNav.projectSettings(project(menu = allOn.copy(code = false))).keys())
-        assertTrue("transfer" in ShellNav.projectSettings(project(menu = allOn.copy(code = false))).keys())
+    fun `위험 구역 항목은 코드 메뉴와 상관없이 항상 있다(저장소 종류 구역의 조건은 화면 안에서 본다, A-535)`() {
+        assertTrue("danger" in ShellNav.projectSettings(project(menu = allOn.copy(code = false))).keys())
+        assertTrue("changeVcs" !in ShellNav.projectSettings(project(menu = allOn)).keys(), "옛 항목은 없다")
     }
 
     @Test

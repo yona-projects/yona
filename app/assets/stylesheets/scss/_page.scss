@@ -2160,6 +2160,8 @@ label.inline-list {
 .members.project {
     margin: 0;
     list-style: none;
+    // 본문 폭 전체(약 990px)는 이름과 역할이 너무 멀어 읽기 어렵다. 읽기 좋은 폭까지만 쓴다(A-535).
+    max-width: 760px;
 
     .member {
         border-bottom:1px solid #DDD;
@@ -8587,5 +8589,60 @@ textarea.editorSeries.content {
         padding: 18px 0 6px;
         text-align: center;
         color: #8a8a8a;
+    }
+}
+
+
+// 위험 구역(A-535): 이관, 저장소 종류 변경, 삭제를 한 화면에 구역으로 보인다. 구역마다 붉은 테두리 카드이다.
+.danger-section {
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background: #fff;
+
+    .danger-title {
+        margin: 0 0 10px;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: #b02a37;
+    }
+
+    // 삭제 구역의 제목은 옛 화면의 `cu-label`(옆으로 나란히 놓는 항목 이름)을 같이 달고 있다. 구역에서는 다른 구역처럼 제목을 위에 둔다.
+    .cu-label {
+        display: block;
+        width: auto;
+        padding: 0;
+    }
+
+    .cu-desc {
+        display: block;
+        margin: 0;
+    }
+
+    // 동의 체크박스: 글자와 같은 높이, 크기 16px(전역 설정은 12px이고 위로 치우친다).
+    .danger-consent {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 0;
+        margin: 8px 0 0;
+        padding-left: 0;
+
+        .form-check-input {
+            float: none;
+            flex: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+
+        .form-check-label {
+            margin: 0;
+        }
+    }
+
+    .danger-actions {
+        margin-top: 12px;
     }
 }

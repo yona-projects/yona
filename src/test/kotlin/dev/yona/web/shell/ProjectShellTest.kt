@@ -112,7 +112,7 @@ class ProjectShellTest : AbstractIntegrationTest() {
         val nav = doc.selectFirst("nav.shell-sidebar")!!
         assertEquals(base(p), nav.selectFirst("a.shell-sidebar-back")!!.attr("href"))
         val hrefs = nav.select("a.nav-link").map { it.attr("href") }
-        assertTrue(hrefs.containsAll(listOf("/settingform", "/members", "/webhooks", "/issue/labelsform", "/transfer", "/deleteform").map { base(p) + it }), hrefs.toString())
+        assertTrue(hrefs.containsAll(listOf("/settingform", "/members", "/webhooks", "/issue/labelsform", "/setting/danger").map { base(p) + it }), hrefs.toString())
         assertEquals(base(p) + "/members", nav.selectFirst("a.nav-link.active")!!.attr("href"))
         assertTrue(doc.select(".shell-main ul.nav-tabs a[href\$=/settingform]").isEmpty(), "옛 설정 탭 줄이 없어야 한다")
     }
@@ -148,7 +148,7 @@ class ProjectShellTest : AbstractIntegrationTest() {
     @Test
     fun `모듈을 불러오는 설정 화면은 스크립트를 본문 안에 두고 swap-safe 표지를 갖는다(D-136)`() {
         val owner = newUser(); val s = login(owner); val p = project(owner)
-        listOf("/members", "/changeVCS", "/deleteform", "/transfer", "/webhooks", "/issue/labelsform", "/reviews").forEach { sub ->
+        listOf("/members", "/setting/danger", "/webhooks", "/issue/labelsform", "/reviews").forEach { sub ->
             val doc = page("${base(p)}$sub", s)
             assertNotNull(doc.selectFirst(".shell-main [data-swap-safe]"), sub)
             assertTrue(doc.select(".shell-main script").any { it.data().contains("loadModule") }, "$sub 의 초기화 스크립트는 본문 안에 있어야 교체 때 다시 돈다")

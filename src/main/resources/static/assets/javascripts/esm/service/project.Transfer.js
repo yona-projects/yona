@@ -37,7 +37,7 @@ const Transfer = function(htOptions){
      * initialize element variables
      */
     function _initElement(htOptions){
-        htElement.welChkAccept      = $("#accept");
+        htElement.welChkAccept      = $("#acceptTransfer");
         htElement.welBtnTransferPop = $("#btnTransfer");
         htElement.welBtnTransferPrj = $("#btnTransferExec");
     }
@@ -78,12 +78,18 @@ const Transfer = function(htOptions){
         });
     }
     
-    function _onClickBtnTransferPop(){
+    /**
+     * 이관 단추: 동의 체크박스에 동의했을 때만 확인 창을 연다. 단추가 `data-bs-toggle="modal"`이면 BS5가 `return false`로 막히지 않고 열어 버리므로,
+     * 확인 창은 여기서 직접 연다(동의하지 않으면 경고만 한다).
+     */
+    function _onClickBtnTransferPop(weEvt){
+        weEvt.preventDefault();
         if(htElement.welChkAccept.is(":checked") === false){
             $yona.alert(Messages("project.transfer.alert"));
             return false;
         }
-        return true;
+        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertTransfer")).show();
+        return false;
     }
 
     _init(htOptions || {});

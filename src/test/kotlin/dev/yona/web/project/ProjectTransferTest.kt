@@ -112,7 +112,7 @@ class ProjectTransferTest : AbstractIntegrationTest() {
     }
 
     private fun page(project: Project, session: MockHttpSession): Document =
-        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/transfer").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
 
     private fun request(project: Project, session: MockHttpSession?, owner: String?, xhr: Boolean = false) =
         mockMvc.perform(
@@ -127,22 +127,22 @@ class ProjectTransferTest : AbstractIntegrationTest() {
     fun `이전 화면은 관리자만 볼 수 있다`() {
         val project = newProject()
         val member = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
-        mockMvc.perform(get("/${project.owner}/${project.name}/transfer").session(login(member))).andExpect(status().isForbidden)
-        mockMvc.perform(get("/${project.owner}/${project.name}/transfer")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(login(member))).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger")).andExpect(status().isForbidden)
     }
 
     @Test
     fun `이전 화면의 구성`() {
         val project = newProject()
         val page = page(project, login(manager(project)))
-        assertEquals("Project Transfer - ${project.owner}/${project.name}", page.title())
+        assertEquals("Danger Zone - ${project.owner}/${project.name}", page.title())
         assertNotNull(page.selectFirst("input#owner[name=owner]"))
-        assertEquals(5, page.select("li.notice").size)
-        assertNotNull(page.selectFirst("input#accept[type=checkbox]"))
-        assertEquals("I agree with the transfer of this project.", page.selectFirst("label[for=accept]")?.text())
+        assertEquals(5, page.select("#danger-transfer li.notice").size)
+        assertNotNull(page.selectFirst("input#acceptTransfer[type=checkbox]"))
+        assertEquals("I agree with the transfer of this project.", page.selectFirst("label[for=acceptTransfer]")?.text())
         assertEquals("Transfer this project", page.selectFirst("a#btnTransfer")?.text()?.trim())
         assertEquals("Yes", page.selectFirst("#alertTransfer #btnTransferExec")?.text())
-        assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/transfer]")!!.hasClass("active"))
+        assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/danger]")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.Transfer" in it }
         assertTrue("/${project.owner}/${project.name}/transfer" in script, script)
     }

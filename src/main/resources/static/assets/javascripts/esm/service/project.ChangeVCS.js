@@ -66,12 +66,15 @@ const ChangeVCS = function(options){
         $(".vcs-requestion").text(text.requestion);
     }
     
-    function showConfirmPopup() {
+    /** 종류 변경 단추: 동의했을 때만 확인 창을 연다(이유는 이관 단추와 같다). */
+    function showConfirmPopup(event) {
+        event.preventDefault();
         if(elements.acceptChangeVCS.is(":checked") === false){
             $yona.alert(Messages("project.changeVCS.alert"));
             return false;
         }
-        return true;
+        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertChangeVCS")).show();
+        return false;
     }
 
     function changeVCS() {

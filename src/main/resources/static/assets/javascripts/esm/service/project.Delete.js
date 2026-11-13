@@ -38,7 +38,7 @@ const Delete = function(htOptions){
      * initialize element variables
      */
     function _initElement(htOptions){
-        htElement.welChkAccept    = $("#accept");
+        htElement.welChkAccept    = $("#acceptDelete");
         htElement.welBtnDeletePop = $("#btnDelete");
         htElement.welBtnDeletePrj = $("#btnDeleteExec");
     }
@@ -60,12 +60,15 @@ const Delete = function(htOptions){
         });
     }
 
-    function _onClickBtnDeletePrj(){
+    /** 삭제 단추: 동의했을 때만 확인 창을 연다(이유는 이관 단추와 같다). */
+    function _onClickBtnDeletePrj(weEvt){
+        weEvt.preventDefault();
         if(htElement.welChkAccept.is(":checked") === false){
             $yona.alert(Messages("project.delete.alert"));
             return false;
         }
-        return true;
+        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).show();
+        return false;
     }
 
     _init(htOptions || {});

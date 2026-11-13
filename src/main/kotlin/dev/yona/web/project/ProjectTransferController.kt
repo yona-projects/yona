@@ -36,15 +36,9 @@ class ProjectTransferController(
     private val views: ProjectViewFactory,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val dangerController: ProjectDangerController
 ) {
-
-    @GetMapping("/{user}/{project}/transfer")
-    @IsAllowed(Operation.DELETE)
-    fun form(@PathVariable("user") ownerId: String, @PathVariable("project") projectName: String): ModelAndView {
-        val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound("error.notfound")
-        return formView(project)
-    }
 
     @PutMapping("/{user}/{project}/transfer")
     @IsAllowed(Operation.DELETE)
@@ -93,8 +87,6 @@ class ProjectTransferController(
         }
     }
 
-    private fun formView(project: dev.yona.domain.project.Project): ModelAndView =
-        ModelAndView("project/transfer")
-            .addObject("title", "title.projectTransfer")
-            .addObject("projectView", views.of(project))
+    /** 같은 소유자로 이관을 요청하면 위험 구역 화면을 다시 그린다(안내는 flash로 보인다). */
+    private fun formView(project: dev.yona.domain.project.Project): ModelAndView = dangerController.view(project)
 }

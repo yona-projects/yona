@@ -279,10 +279,10 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         val page = settingForm(project, login(manager(project)))
         val tabs = page.select("nav.shell-sidebar li.nav-item")
         assertEquals(
-            listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "transfer", "delete", "changeVcs").map { "/${project.owner}/${project.name}" + mapOf("general" to "/settingform", "members" to "/members", "rulesets" to "/setting/rulesets", "deployKeys" to "/setting/deploykeys", "lfs" to "/setting/lfs", "webhooks" to "/webhooks", "labels" to "/issue/labelsform", "transfer" to "/transfer", "delete" to "/deleteform", "changeVcs" to "/changeVCS").getValue(it) },
+            listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "danger").map { "/${project.owner}/${project.name}" + mapOf("general" to "/settingform", "members" to "/members", "rulesets" to "/setting/rulesets", "deployKeys" to "/setting/deploykeys", "lfs" to "/setting/lfs", "webhooks" to "/webhooks", "labels" to "/issue/labelsform", "danger" to "/setting/danger").getValue(it) },
             tabs.map { it.selectFirst("a")!!.attr("href") }
         )
-        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.selectFirst(".shell-sidebar-label")!!.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
+        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Danger Zone"), tabs.map { it.selectFirst(".shell-sidebar-label")!!.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
         assertEquals(listOf("active"), tabs.filter { it.selectFirst("a")!!.hasClass("active") }.map { "active" }, tabs.outerHtml())
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
