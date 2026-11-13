@@ -53,4 +53,12 @@ export const tests = [
     assert.ok(search.right <= 360 + 1 && search.left >= 0, `검색바 ${search.left.toFixed(0)}~${search.right.toFixed(0)}가 화면(360) 밖이다`);
     await ctx.close();
   } },
+  { name: '검색 입력칸이 검색 상자 안에 온전히 들어가 오른쪽 테두리가 잘리지 않고 돋보기 단추와 겹치지 않는다', run: async () => {
+    const { page, ctx } = await open(1280);
+    const box = await rect(page, '.milestone-search'), inp = await rect(page, '.milestone-search input'), btn = await rect(page, '.milestone-search button');
+    assert.ok(inp.right <= box.right + 0.5, `입력칸 오른쪽 ${inp.right.toFixed(1)}가 상자 오른쪽 ${box.right.toFixed(1)}을 넘는다(잘림)`);
+    assert.ok(inp.left >= box.left - 0.5, '입력칸이 상자 왼쪽 밖이다');
+    assert.ok(btn.left >= inp.left && btn.right <= box.right + 0.5, '돋보기 단추가 상자 안에 있다');
+    await ctx.close();
+  } },
 ];

@@ -2439,6 +2439,15 @@ label.inline-list {
             width: 220px;
             max-width: 100%;
             margin: 0 0 6px;
+
+            // 입력칸의 기본 폭(350px)이 상자(220px) 밖까지 뻗어 상자 가장자리에서 오른쪽 테두리와 포커스 표시가 잘렸다(A-529).
+            // 상자 폭에 맞추고 오른쪽에는 돋보기 단추 자리를 남긴다.
+            input.textbox {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                padding-right: 28px;
+            }
         }
     }
 
