@@ -6636,7 +6636,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
         .form-legend {
             display:block;
-            margin-bottom:10px;
+            margin: 8px 0 14px;
+            font-size: 1.125rem;
+            font-weight: 600;
         }
         .form-wrap {
             position:relative;
@@ -6705,6 +6707,28 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .webhook-editor-wrap {
+    // 목록 화면 위쪽: 제목은 왼쪽, 추가 단추는 오른쪽 끝(A-545)
+    .webhook-list-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 8px 0 14px;
+
+        .webhook-list-title {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+    }
+
+    // 등록 화면 아래쪽 단추: 추가와 취소를 한 줄에 둔다
+    .webhook-new-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+    }
+
     .new-webhook-wrap {
         margin:30px auto;
 
@@ -6815,7 +6839,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
 
         .webhook-git-push {
-            margin-top: 14px;
+            margin-top: 18px;
 
             .form-text {
                 margin: 2px 0 0;

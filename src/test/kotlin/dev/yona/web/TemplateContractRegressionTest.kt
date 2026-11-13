@@ -122,7 +122,7 @@ class TemplateContractRegressionTest {
 
     @Test
     fun `웹훅 형식을 JSON으로 바꾸면 푸시 포함 체크는 상태 값(prop)으로 켜고 끈다 (project-F20, attr로 바꾸어 이미 눌러 본 뒤에는 체크가 꺼진 채 잠겼다)`() {
-        val hooks = template("project/webhooks.html")
+        val hooks = template("project/webhook-new.html")
         assertFalse(hooks.contains("attr('checked'"), "체크 속성은 처음 상태만 바꾸고 사용자가 누른 뒤에는 상태가 바뀌지 않는다")
         assertTrue(hooks.contains("prop('checked', true)") && hooks.contains("prop('checked', false)"), "체크 상태를 prop으로 바꾼다")
     }

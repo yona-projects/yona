@@ -77,19 +77,38 @@ class WebhookSettingsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `웹훅이 없으면 안내가 나오고 등록 폼이 보인다`() {
+    fun `웹훅이 없으면 안내가 나오고 목록에는 폼이 없이 추가 링크만 있다(A-545)`() {
         val p = project(); val session = manager(p)
         val doc = Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}/webhooks").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertNotNull(doc.selectFirst("#webhooksList .error-wrap"))
+        assertNull(doc.selectFirst("form#formNewWebhook"), "등록 폼은 따로 화면이다")
+        assertEquals("/${p.owner}/${p.name}/webhooks/new", doc.selectFirst("a#webhook-new")!!.attr("href"))
+        assertEquals("Add webhook", doc.selectFirst("a#webhook-new")!!.text())
+        assertTrue(doc.select("#webhooksList button[data-request-method=delete]").isEmpty())
+    }
+
+    @Test
+    fun `새 웹후크 화면은 등록 폼과 취소 링크가 있고 사이드바는 웹후크가 활성이다(A-545)`() {
+        val p = project(); val session = manager(p)
+        val doc = Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}/webhooks/new").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("/${p.owner}/${p.name}/webhooks", doc.selectFirst("form#formNewWebhook")!!.attr("action"))
         assertEquals(listOf("SIMPLE", "DETAIL_SLACK", "DETAIL_HANGOUT_CHAT", "JSON"), doc.select("input[name=webhookType]").map { it.attr("value") })
         assertEquals("SIMPLE", doc.selectFirst("input[name=webhookType][checked]")!!.attr("value"))
+        assertEquals("/${p.owner}/${p.name}/webhooks", doc.selectFirst("a#webhook-cancel")!!.attr("href"))
+        assertTrue(doc.selectFirst("nav.shell-sidebar a.nav-link[href\$=/webhooks]")!!.hasClass("active"))
+        assertNull(doc.selectFirst("#webhooksList"), "목록은 따로 화면이다")
+    }
+
+    @Test
+    fun `새 웹후크 화면은 수정 권한이 없으면 볼 수 없다(A-545)`() {
+        val p = project()
+        mockMvc.perform(get("/${p.owner}/${p.name}/webhooks/new").session(login(user()))).andExpect(status().isForbidden)
     }
 
     @Test
     fun `등록 폼은 옵션마다 이름과 설명을 보여 주고 주소, 토큰, 푸시 포함의 도움말이 있다(A-544)`() {
         val p = project(); val session = manager(p)
-        val doc = Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}/webhooks").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        val doc = Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}/webhooks/new").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("Message format", doc.selectFirst(".webhook-type-legend")?.text())
         val options = doc.select("label.webhook-type-option")
         assertEquals(listOf("SIMPLE", "DETAIL_SLACK", "DETAIL_HANGOUT_CHAT", "JSON"), options.map { it.selectFirst("input[name=webhookType]")!!.attr("value") })

@@ -56,11 +56,26 @@ class WebhookController(
             .addObject("title", "project.webhook")
             .addObject("projectView", views.of(project))
             .addObject("creatable", accessControl.isProjectResourceCreatable(currentUserProvider.get().user, project, ResourceType.WEBHOOK))
-            .addObject("action", "$base/webhooks")
-            .addObject("webhookTypeOptions", WEBHOOK_TYPE_OPTIONS)
+            .addObject("newUrl", "$base/webhooks/new")
             .addObject("webhooks", webhooks.list(project).map {
                 WebhookRow(requireNotNull(it.id), it.payloadUrl.orEmpty(), it.secret.orEmpty(), (it.webhookType ?: WebhookType.SIMPLE).name, it.gitPush == true, "$base/webhooks/${it.id}")
             })
+    }
+
+    /** 새 웹후크 등록 화면이다(목록과 따로 화면, 결정 A-545). 웹후크를 만들 권한이 없으면 403이다. */
+    @GetMapping("/{user}/{project}/webhooks/new")
+    @IsAllowed(Operation.UPDATE)
+    @Transactional(readOnly = true)
+    fun newForm(@PathVariable("user") owner: String, @PathVariable("project") name: String): Any {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        if (!accessControl.isProjectResourceCreatable(currentUserProvider.get().user, project, ResourceType.WEBHOOK)) return ErrorViews.forbidden()
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
+        return ModelAndView("project/webhook-new")
+            .addObject("title", "project.webhook.new")
+            .addObject("projectView", views.of(project))
+            .addObject("action", "$base/webhooks")
+            .addObject("listUrl", "$base/webhooks")
+            .addObject("webhookTypeOptions", WEBHOOK_TYPE_OPTIONS)
     }
 
     @PostMapping("/{user}/{project}/webhooks")
