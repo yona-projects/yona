@@ -95,6 +95,9 @@ export const tests = [
 <section class="ruleset-section" id="rulesetRules"><h4 class="ruleset-section-title">규칙</h4><label class="rule-option"><input id="c" type="checkbox" class="form-check-input"><span class="rule-option-text"><span class="rule-option-title">삭제 제한</span><span class="rule-option-desc">대상 브랜치를 지우지 못하게 합니다.</span></span></label></section>
 </form></div></div></div></body></html>`);
     const f = await r(page, '#rulesetForm'); assert.ok(f.right - f.left <= 760, `폼 너비 ${(f.right - f.left).toFixed(0)}px`);
+    // 구역 제목과 내용 사이 간격은 눈에 보이는 거리가 14px 이하이다(A-554)
+    const gaps = await page.evaluate(() => ['#rulesetBasics', '#rulesetRules'].map((id) => { const sec = document.querySelector(id), ti = sec.querySelector('.ruleset-section-title'); const content = sec.querySelector('label.form-label, .rule-option-title'); return { id, titleH: ti.getBoundingClientRect().height, gap: content.getBoundingClientRect().top - ti.getBoundingClientRect().bottom }; }));
+    gaps.forEach((g) => { assert.ok(g.titleH <= 28, `${g.id} 제목 박스 높이가 ${g.titleH}px이다`); assert.ok(g.gap <= 14, `${g.id} 제목과 내용 사이가 ${g.gap.toFixed(0)}px이다`); });
     // 텍스트 박스는 읽기 편한 크기와 모양이고 포커스가 보인다(A-552)
     const ib = await page.evaluate(() => { const e = document.getElementById('n'); const c = getComputedStyle(e); const before = c.boxShadow; e.focus(); const after = getComputedStyle(e).boxShadow; return { h: e.getBoundingClientRect().height, font: parseFloat(c.fontSize), radius: parseFloat(c.borderTopLeftRadius), focusChanged: before !== after && after !== 'none' }; });
     assert.ok(ib.h >= 34, `텍스트 박스 높이 ${ib.h}px`); assert.ok(ib.font >= 14, `텍스트 박스 글자 ${ib.font}px`); assert.ok(ib.radius >= 4, `텍스트 박스 모서리 ${ib.radius}px`); assert.ok(ib.focusChanged, '포커스 표시가 없다');

@@ -9005,10 +9005,18 @@ textarea.editorSeries.content {
         }
     }
 
+    // 전역 `h4` 규칙이 제목 박스에 위아래 여분을 더해 제목과 내용 사이가 벌어졌다(A-554). 이 폼에서는 여분을 없앤다.
     .ruleset-section-title {
-        margin: 0 0 12px;
+        margin: 0 0 8px;
+        padding: 0;
         font-size: 1rem;
         font-weight: 600;
+        line-height: 1.4;
+    }
+
+    // 제목 바로 아래 첫 규칙 줄은 위쪽 여백을 두지 않는다
+    .ruleset-section-title + .rule-option {
+        padding-top: 0;
     }
 
     .rule-option {
