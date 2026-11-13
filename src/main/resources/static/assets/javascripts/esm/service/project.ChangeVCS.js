@@ -40,6 +40,8 @@ const ChangeVCS = function(options){
      */
     function _initElement(optinos){
         elements.btnChangeVCSExec = $("#btnChangeVCSExec");
+        elements.confirmName = $("#vcsConfirmName");
+        elements.modal = $("#alertChangeVCS");
         elements.targetVCS = $("#targetVcs");
     }
 
@@ -47,7 +49,12 @@ const ChangeVCS = function(options){
      * attach event handlers
      */
     function _attachEvent(options){
-        elements.btnChangeVCSExec.on("click", changeVCS);
+        elements.confirmName.on("input", syncExecButton);
+        // 확인 창을 열 때마다 입력을 비우고 "예"를 끈다
+        elements.modal.on("show.bs.modal", () => { elements.confirmName.val(""); syncExecButton(); });
+        elements.btnChangeVCSExec.on("click", () => {
+            if(elements.confirmName.val() === options.sProjectName){ changeVCS(); }
+        });
         elements.targetVCS.on("change", () =>{ showTexts(options.oTexts || {}); });
     }
 
@@ -63,6 +70,15 @@ const ChangeVCS = function(options){
         $(".vcs-requestion").text(text.requestion);
     }
     
+
+    /**
+     * 확인 창의 "예" 단추는 `owner/name`을 정확히(대소문자 포함) 입력했을 때만 켠다(A-538, GitHub 방식).
+     * 서버 요청 계약은 그대로이고 화면에서만 한 번 더 확인한다.
+     */
+    function syncExecButton(){
+        elements.btnChangeVCSExec.prop("disabled", elements.confirmName.val() !== options.sProjectName);
+    }
+
     function changeVCS() {
         const ajaxOptions = {
             "method" : "post",

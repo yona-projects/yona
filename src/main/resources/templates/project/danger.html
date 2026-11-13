@@ -84,9 +84,14 @@
             <div class="modal-body">
                 <p> <th:block th:text="#{project.transfer.description}"></th:block></p>
                 <p> <th:block th:text="#{project.transfer.reaccept}"></th:block> </p>
+                <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
+                <p class="mb-0">
+                    <label for="transferConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
+                    <input type="text" id="transferConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
+                </p>
             </div>
             <div class="modal-footer">
-                <button id="btnTransferExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button id="btnTransferExec" type="button" class="ybtn ybtn-danger" disabled th:text="#{button.yes}"></button>
                 <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
@@ -100,9 +105,14 @@
             <div class="modal-body">
                 <p th:text="#{project.changeVCS.description2}"></p>
                 <p th:text="#{project.changeVCS.reaccept}"></p>
+                <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
+                <p class="mb-0">
+                    <label for="vcsConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
+                    <input type="text" id="vcsConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
+                </p>
             </div>
             <div class="modal-footer">
-                <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" disabled th:text="#{button.yes}"></button>
                 <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
@@ -116,9 +126,9 @@
             <div class="modal-body">
                 <p> <th:block th:text="#{project.delete.description}"></th:block></p>
                 <p> <th:block th:text="#{project.delete.reaccept}"></th:block> </p>
-                <!--/* 이름 재입력(A-536): 정확히 입력해야 "예"가 켜진다 */-->
+                <!--/* 이름 재입력(A-538): 정확히 입력해야 "예"가 켜진다 */-->
                 <p class="mb-0">
-                    <label for="deleteConfirmName" class="form-label" th:utext="#{project.delete.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
+                    <label for="deleteConfirmName" class="form-label" th:utext="#{project.danger.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
                     <input type="text" id="deleteConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
                 </p>
             </div>
@@ -135,7 +145,8 @@ await import([[@{/assets/javascripts/esm/service/project.Delete.js}]]);
 await import([[@{/assets/javascripts/esm/service/project.ChangeVCS.js}]]);
     $(document).ready(function(){
         $yona.loadModule("project.Transfer", {
-            "sTransferURL": [[${projectBase + '/transfer'}]]
+            "sTransferURL": [[${projectBase + '/transfer'}]],
+            "sProjectName": [[${project.owner + '/' + project.name}]]
         });
         $yona.loadModule("project.Delete", {
             "sDeleteURL": [[@{${projectBase + '/delete'}}]],
@@ -144,6 +155,7 @@ await import([[@{/assets/javascripts/esm/service/project.ChangeVCS.js}]]);
         /*[# th:if="${showVcs}"]*/
         $yona.loadModule("project.ChangeVCS", {
             "sTransferURL": [[${projectBase + '/changeVCS'}]],
+            "sProjectName": [[${project.owner + '/' + project.name}]],
             "oTexts": [[${texts}]]
         });
         /*[/]*/

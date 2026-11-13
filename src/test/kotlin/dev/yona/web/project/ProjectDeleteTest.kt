@@ -120,15 +120,19 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `삭제 확인 창은 owner와 name을 다시 입력받고 입력 전에는 예 단추가 비활성이다(A-536)`() {
+    fun `위험 구역의 세 확인 창은 모두 owner와 name을 다시 입력받고 입력 전에는 예 단추가 비활성이다(A-536, A-538)`() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
-        val input = page.selectFirst("#alertDeletion input#deleteConfirmName")!!
-        assertEquals("off", input.attr("autocomplete"))
-        assertTrue(page.selectFirst("#alertDeletion label[for=deleteConfirmName]")!!.text().contains("${project.owner}/${project.name}"))
-        assertTrue(page.selectFirst("#alertDeletion #btnDeleteExec")!!.hasAttr("disabled"))
+        val full = "${project.owner}/${project.name}"
+        listOf(Triple("alertTransfer", "transferConfirmName", "btnTransferExec"), Triple("alertChangeVCS", "vcsConfirmName", "btnChangeVCSExec"), Triple("alertDeletion", "deleteConfirmName", "btnDeleteExec")).forEach { (modal, input, exec) ->
+            val box = page.selectFirst("#$modal input#$input")!!
+            assertEquals("off", box.attr("autocomplete"), modal)
+            assertTrue(page.selectFirst("#$modal label[for=$input]")!!.text().contains(full), "$modal 안내에 $full")
+            assertTrue(page.selectFirst("#$modal #$exec")!!.hasAttr("disabled"), "$modal 예 단추")
+        }
         // JS 인라인은 슬래시를 `\/`로 내보낸다
-        assertTrue(page.select("script").any { it.data().replace("\\/", "/").contains("\"sProjectName\": \"${project.owner}/${project.name}\"") })
+        val scripts = page.select("script").joinToString("\n") { it.data().replace("\\/", "/") }
+        assertEquals(3, Regex("\"sProjectName\": \"${Regex.escape(full)}\"").findAll(scripts).count(), "세 모듈에 프로젝트 이름을 넘긴다")
     }
 
     @Test
