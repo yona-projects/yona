@@ -78,12 +78,12 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         File("build/tmp/it-project-setting").deleteRecursively()
     }
 
-    private fun newUser(): User {
+    private fun newUser(loginId: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
         return users.save(
             User(
-                loginId = "ps$n", name = "ps$n", email = "ps$n@example.com", state = UserState.ACTIVE,
+                loginId = loginId ?: "ps$n", name = "ps$n", email = "ps$n@example.com", state = UserState.ACTIVE,
                 passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)
             )
         )
@@ -110,6 +110,9 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     private fun manager(project: Project): User = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+
+    /** 프로젝트 소유자(로그인 아이디가 `owner`)이면서 관리자 역할인 사용자이다. 프로젝트를 만든 사람이 이 상태이다. */
+    private fun ownerManager(project: Project): User = newUser(project.owner!!).also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
 
     private fun settingForm(project: Project, session: MockHttpSession): Document =
         Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/settingform").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
@@ -174,7 +177,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `설정 폼은 구역 네 개와 값의 종류에 맞는 컨트롤을 쓰고 스크립트가 쓰는 id를 지킨다(A-563)`() {
         val project = newProject()
-        val form = settingForm(project, login(manager(project))).selectFirst("form#saveSetting")!!
+        val form = settingForm(project, login(ownerManager(project))).selectFirst("form#saveSetting")!!
         assertEquals(listOf("settingInfo", "settingAccess", "settingFeatures", "settingCode"), form.select("section.setting-section").map { it.id() })
         assertEquals(listOf("Project information", "Visibility and access", "Features", "Code and merge"), form.select("section.setting-section > .setting-section-head > h4").map { it.text() })
         assertTrue(form.select(".box-wrap, .bubble-wrap, .cu-label, .cu-desc").isEmpty(), "옛 표 모양 클래스는 쓰지 않는다")
@@ -195,6 +198,13 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         // 스크립트와 다른 화면이 쓰는 id
         listOf("project-name", "project-desc", "logoPath", "save", "defaultBranceSettingPanel", "reviewerCountSettingPanel", "mergeMethodSettingPanel", "menuSettingCode", "menuSettingPullRequest", "menuSettingReview", "project-default-branch")
             .forEach { assertNotNull(form.getElementById(it), "#$it") }
+    }
+
+    @Test
+    fun `이슈 템플릿 편집 단추는 소유자와 사이트 관리자에게만 보이고 소유자가 아닌 프로젝트 관리자에게는 없다(A-565)`() {
+        val project = newProject()
+        assertNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"))
+        assertNotNull(settingForm(project, login(ownerManager(project))).selectFirst("a#issueTemplateEdit"))
     }
 
     @Test
@@ -220,7 +230,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `이슈 템플릿 링크와 리뷰어 수와 기본 브랜치는 Git 프로젝트에만 있다`() {
         val git = newProject()
-        val page = settingForm(git, login(manager(git)))
+        val page = settingForm(git, login(ownerManager(git)))
         assertEquals("/${git.owner}/${git.name}/postform?issueTemplate=true", page.selectFirst("a[target=_blank].ybtn")?.attr("href"))
         assertNotNull(page.selectFirst("#reviewerCountSettingPanel"))
         assertNotNull(page.selectFirst("select#project-default-branch"))

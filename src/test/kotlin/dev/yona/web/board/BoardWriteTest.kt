@@ -22,6 +22,8 @@ import dev.yona.domain.misc.Attachment
 import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.Organization
+import dev.yona.domain.user.SiteAdmin
+import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.project.OrganizationUser
 import dev.yona.domain.project.ProjectMenuSetting
 import dev.yona.domain.project.ProjectMenuSettingRepository
@@ -82,6 +84,7 @@ class BoardWriteTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var siteAdmins: SiteAdminRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -113,6 +116,12 @@ class BoardWriteTest : AbstractIntegrationTest() {
         menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         if (git) repositories.createRepository(project)
         return project
+    }
+
+    /** 프로젝트 소유자(로그인 아이디가 프로젝트의 `owner`인 사용자)를 만든다. */
+    private fun ownerOf(project: Project): User {
+        val salt = LegacyPasswordHasher.generateSalt()
+        return users.save(User(loginId = project.owner, name = project.owner, email = "${project.owner}@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
     }
 
     private fun join(user: User, project: Project): User {
@@ -205,7 +214,8 @@ class BoardWriteTest : AbstractIntegrationTest() {
     fun `이슈 템플릿 편집 화면은 사이드바에서 프로젝트 설정이 활성이고 새 글과 README 편집은 게시판이 활성이다(A-561)`() {
         val project = newProject(); val member = login(join(newUser(), project))
         // 이슈 템플릿 편집은 설정 화면(프로젝트 관리자)에서만 들어가므로 관리자로 연다. 설정 항목은 관리자에게만 보인다.
-        val manager = login(newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) })
+        // 실제로는 프로젝트를 만든 소유자가 관리자 역할도 갖는다. 설정 항목은 프로젝트를 고칠 수 있는 사용자에게만 보인다
+        val manager = login(ownerOf(project).also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) })
         GitTestSupport.commitFiles(repositories, project, mapOf("README.md" to "# 소개".toByteArray()))
         fun active(query: String, session: org.springframework.mock.web.MockHttpSession): String? =
             Jsoup.parse(get(project, query, session).andExpect(status().isOk).andReturn().response.contentAsString).selectFirst("nav.shell-sidebar a.nav-link.active")?.attr("href")
@@ -216,9 +226,9 @@ class BoardWriteTest : AbstractIntegrationTest() {
 
     @Test
     fun `이슈 템플릿으로 열면 안내가 있고 업로더가 없다`() {
-        val project = newProject(); val member = join(newUser(), project)
+        val project = newProject(); val owner = ownerOf(project)
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "템플릿 본문".toByteArray()))
-        val doc = Jsoup.parse(get(project, "postform?issueTemplate=true", login(member)).andExpect(status().isOk).andReturn().response.contentAsString)
+        val doc = Jsoup.parse(get(project, "postform?issueTemplate=true", login(owner)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("ISSUE_TEMPLATE.md: Project Issue Template", doc.selectFirst("title-input#title")!!.attr("value"))
         assertEquals("템플릿 본문", doc.selectFirst("textarea[name=body]")!!.text())
         assertEquals("Issue templates do not support attachments.", doc.selectFirst(".attach-wrap .help")!!.text())
@@ -395,17 +405,44 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 구성원이 아닌 로그인 사용자도 이슈 템플릿과 README를 커밋할 수 있다(v1_6 결함 재현, R-167)`() {
+    fun `이슈 템플릿은 프로젝트 소유자와 사이트 관리자만 저장하고 구성원과 외부인은 막는다(R-167, A-565)`() {
         val project = newProject()
-        val outsider = login(newUser())
-        submit(project, "posts", outsider, "title" to "t", "body" to "외부인이 쓴 템플릿", "issueTemplate" to "true").andExpect(status().isSeeOther)
-        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "외부인이 쓴 템플릿\n"), headFiles(project), "v1.6은 이 분기에 구성원 검사가 없다(`isMemberOf`는 경로 편집 분기에만 있다)")
+        fun save(session: MockHttpSession, text: String) = submit(project, "posts", session, "title" to "t", "body" to text, "issueTemplate" to "true")
+        save(login(newUser()), "외부인").andExpect(status().isForbidden)
+        save(login(join(newUser(), project)), "구성원").andExpect(status().isForbidden)
+        val manager = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+        save(login(manager), "프로젝트 관리자").andExpect(status().isForbidden)
+        assertEquals(emptyMap(), headFiles(project), "막힌 요청은 저장소를 바꾸지 않는다")
+        save(login(ownerOf(project)), "소유자").andExpect(status().isSeeOther)
+        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "소유자\n"), headFiles(project))
+        save(login(newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }), "사이트 관리자").andExpect(status().isSeeOther)
+        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "사이트 관리자\n"), headFiles(project))
+    }
+
+    @Test
+    fun `이슈 템플릿 편집 화면도 소유자와 사이트 관리자만 열 수 있다(A-565)`() {
+        val project = newProject()
+        get(project, "postform?issueTemplate=true", login(join(newUser(), project))).andExpect(status().isForbidden)
+        get(project, "postform?issueTemplate=true", login(ownerOf(project))).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `조직 프로젝트의 이슈 템플릿은 조직 관리자가 소유자로서 저장한다(A-565)`() {
+        val org = organizations.save(Organization(name = "bwtpl${++sequence}"))
+        val project = projects.save(Project(owner = org.name, name = "tp$sequence", vcs = "GIT", projectScope = ProjectScope.PUBLIC, organization = org))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(project)
+        val admin = newUser().also { organizationUsers.save(OrganizationUser(user = it, organization = org, role = roles.findById(RoleType.ORG_ADMIN.id).get())) }
+        val member = newUser().also { organizationUsers.save(OrganizationUser(user = it, organization = org, role = roles.findById(RoleType.ORG_MEMBER.id).get())) }
+        submit(project, "posts", login(member), "title" to "t", "body" to "조직원", "issueTemplate" to "true").andExpect(status().isForbidden)
+        submit(project, "posts", login(admin), "title" to "t", "body" to "조직 관리자", "issueTemplate" to "true").andExpect(status().isSeeOther)
+        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "조직 관리자\n"), headFiles(project))
     }
 
     @Test
     fun `이슈 템플릿이면 ISSUE_TEMPLATE md를 커밋하고 글은 저장하지 않는다`() {
-        val project = newProject(); val member = join(newUser(), project)
-        submit(project, "posts", login(member), "title" to "msg", "body" to "템플릿", "issueTemplate" to "true").andExpect(status().isSeeOther).andExpect(redirectedUrl(base(project)))
+        val project = newProject(); val owner = ownerOf(project)
+        submit(project, "posts", login(owner), "title" to "msg", "body" to "템플릿", "issueTemplate" to "true").andExpect(status().isSeeOther).andExpect(redirectedUrl(base(project)))
         assertEquals(mapOf("ISSUE_TEMPLATE.md" to "템플릿\n"), headFiles(project))
         assertEquals(0, postings.findAll().size)
     }

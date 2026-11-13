@@ -6,6 +6,10 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.Ruleset
 import dev.yona.domain.project.RulesetRepository
+import dev.yona.domain.user.SiteAdmin
+import dev.yona.domain.user.SiteAdminRepository
+import dev.yona.domain.user.User
+import dev.yona.domain.user.UserRepository
 import dev.yona.domain.vcs.RefUpdate
 import dev.yona.domain.vcs.RefUpdateType
 import dev.yona.support.AbstractIntegrationTest
@@ -30,6 +34,8 @@ class PushPolicyTest : AbstractIntegrationTest() {
     @Autowired private lateinit var rulesets: RulesetRepository
     @Autowired private lateinit var audits: AuditLogRepository
     @Autowired private lateinit var entityManager: EntityManager
+    @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var siteAdmins: SiteAdminRepository
 
     private val a = "a".repeat(40)
     private val b = "b".repeat(40)
@@ -49,7 +55,7 @@ class PushPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `내부용 ref에는 밀어 넣지 못하고 감사 기록에 종류 이름이 붙는다`() {
         val project = project()
-        val rejections = policy.evaluate(project, null, "hg", listOf(update("refs/yona/pull/1/head", RefUpdateType.UPDATE)), noCommits())
+        val rejections = policy.evaluate(project, null, "hg", listOf(update("refs/yona/pull/1/head", RefUpdateType.UPDATE)), unverifiedCommits = noCommits())
         assertEquals(listOf("reserved"), rejections.map { it.kind })
         assertTrue(rejections.single().message.contains("reserved for internal use"))
         assertTrue(audits.findAll().any { it.action == "hg.push_rejected" && it.projectId == project.id })
@@ -58,14 +64,14 @@ class PushPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `보호 규칙이 강제 푸시와 삭제를 막고 보호하지 않은 브랜치는 막지 않는다`() {
         val project = project { blockForcePushes = true; restrictDeletions = true }
-        val forced = policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.FORCE_UPDATE)), noCommits())
+        val forced = policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.FORCE_UPDATE)), unverifiedCommits = noCommits())
         assertEquals(listOf("ruleset_force"), forced.map { it.kind }); assertTrue(forced.single().message.contains("force pushes to 'master' are not allowed"))
-        val deleted = policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.DELETE)), noCommits())
+        val deleted = policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.DELETE)), unverifiedCommits = noCommits())
         assertEquals(listOf("ruleset_deletion"), deleted.map { it.kind })
         // 빨리 감기 갱신과 보호하지 않는 브랜치, 태그는 막지 않는다
         val allowed = policy.evaluate(
             project, null, "hg",
-            listOf(update("refs/heads/master", RefUpdateType.UPDATE), update("refs/heads/feature", RefUpdateType.FORCE_UPDATE), update("refs/tags/v1", RefUpdateType.CREATE)), noCommits()
+            listOf(update("refs/heads/master", RefUpdateType.UPDATE), update("refs/heads/feature", RefUpdateType.FORCE_UPDATE), update("refs/tags/v1", RefUpdateType.CREATE)), unverifiedCommits = noCommits()
         )
         assertTrue(allowed.isEmpty())
     }
@@ -80,11 +86,30 @@ class PushPolicyTest : AbstractIntegrationTest() {
         val failed = policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.UPDATE))) { error("서명 읽기 실패") }
         assertEquals(listOf("ruleset_signed_commits"), failed.map { it.kind }); assertTrue(failed.single().message.contains("? (error)"))
         // 모두 Verified이면 통과하고, 삭제는 커밋이 없어 확인하지 않는다
-        assertTrue(policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.UPDATE)), noCommits()).isEmpty())
+        assertTrue(policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.UPDATE)), unverifiedCommits = noCommits()).isEmpty())
         assertTrue(policy.evaluate(project, null, "hg", listOf(update("refs/heads/master", RefUpdateType.DELETE))) { listOf("x" to "unsigned") }.isEmpty())
     }
 
     private companion object {
         val counter = AtomicInteger()
+    }
+
+    @Test
+    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 소유자와 사이트 관리자만 할 수 있다(A-565)`() {
+        val project = project()
+        val changed: (RefUpdate, String) -> Boolean = { _, file -> file == "ISSUE_TEMPLATE.md" }
+        val branch = update("refs/heads/feature", RefUpdateType.UPDATE)
+        fun user(login: String) = users.save(User(loginId = login, name = login, email = "$login@example.com"))
+        fun run(sender: User?) = policy.evaluate(project, sender, "git", listOf(branch), changed, unverifiedCommits = noCommits())
+
+        assertEquals(listOf("issue_template"), run(null).map { it.kind })
+        assertEquals(listOf("issue_template"), run(user("ppstranger")).map { it.kind })
+        assertTrue(run(user("ppstranger2")).single().message.contains("ISSUE_TEMPLATE.md"))
+        assertEquals(emptyList(), run(user("pp")).map { it.kind }, "프로젝트 소유자")
+        assertEquals(emptyList(), run(user("ppsite").also { siteAdmins.save(SiteAdmin(admin = it)) }).map { it.kind }, "사이트 관리자")
+        // 템플릿을 건드리지 않는 푸시와 브랜치 삭제는 막지 않는다
+        assertEquals(emptyList(), policy.evaluate(project, null, "git", listOf(branch), unverifiedCommits = noCommits()).map { it.kind })
+        assertEquals(emptyList(), policy.evaluate(project, null, "git", listOf(update("refs/heads/feature", RefUpdateType.DELETE)), changed, unverifiedCommits = noCommits()).map { it.kind })
+        assertTrue(audits.findAll().any { it.action == "git.push_rejected" && it.projectId == project.id })
     }
 }
