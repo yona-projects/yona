@@ -16,11 +16,29 @@
         <div class="shell-main"><span data-swap-safe hidden></span>
 
         <div class="clearfix mt10 mb10">
-            <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>
+            <a id="newRuleset" th:unless="${#lists.isEmpty(rulesets)}" class="ybtn ybtn-success float-end" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>
             <p class="form-text" th:text="#{project.ruleset.description}"></p>
         </div>
         <div id="rulesetMigrated" class="alert alert-info" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></div>
 
+        <!--/* 규칙 묶음이 없으면 무엇이고 어떻게 시작하는지 보여 주는 빈 상태 카드이다(A-548) */-->
+        <section id="rulesetEmpty" class="empty-state" th:if="${#lists.isEmpty(rulesets)}">
+            <i class="yobicon-lock empty-state-icon" aria-hidden="true"></i>
+            <h4 class="empty-state-title" th:text="#{project.ruleset.empty.title}"></h4>
+            <p class="empty-state-lead" th:text="#{project.ruleset.empty.lead}"></p>
+            <ul class="empty-state-list">
+                <li th:text="#{project.ruleset.empty.item.pr}"></li>
+                <li th:text="#{project.ruleset.empty.item.review}"></li>
+                <li th:text="#{project.ruleset.empty.item.history}"></li>
+                <li th:text="#{project.ruleset.empty.item.push}"></li>
+            </ul>
+            <p class="empty-state-example" th:text="#{project.ruleset.empty.example}"></p>
+            <a id="newRulesetEmpty" class="ybtn ybtn-success" th:href="@{${base + '/setting/rulesets/new'}}" th:text="#{project.ruleset.new}"></a>
+        </section>
+
+        <th:block th:if="${!#lists.isEmpty(rulesets)}">
+        <p id="rulesetSummary" class="form-text mb-2" th:with="activeCount=${#lists.size(rulesets.?[active])}"
+           th:text="#{project.ruleset.summary(${#lists.size(rulesets)}, ${activeCount}, ${#lists.size(rulesets) - activeCount})}"></p>
         <table class="table table-striped table-hover" id="rulesetList">
             <thead>
             <tr>
@@ -31,9 +49,6 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${#lists.isEmpty(rulesets)}" class="ruleset-empty">
-                <td colspan="4" class="text-body-secondary" th:text="#{project.ruleset.empty}"></td>
-            </tr>
             <tr th:each="r : ${rulesets}" class="ruleset-row">
                 <td class="ruleset-name"><a th:href="@{${base + '/setting/rulesets/' + r.id}}" th:text="${r.name}"></a></td>
                 <td class="ruleset-target"><code th:text="${r.pattern}"></code></td>
@@ -55,6 +70,7 @@
             </tr>
             </tbody>
         </table>
+        </th:block>
     
         </div><!--/* .shell-main */-->
     </div>

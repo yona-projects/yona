@@ -8826,3 +8826,76 @@ textarea.editorSeries.content {
         margin: 0.75rem 0 0.375rem;
     }
 }
+
+
+// 빈 상태 카드(A-548): 규칙 묶음과 배포 키 목록이 비었을 때 무엇이고 어떻게 시작하는지 알려 준다.
+.empty-state {
+    max-width: 720px;
+    margin: 18px 0 24px;
+    padding: 24px 28px;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    background: #f8f9fa;
+
+    .empty-state-icon {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.75rem;
+        color: #6c757d;
+    }
+
+    .empty-state-title {
+        margin: 0 0 8px;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .empty-state-lead {
+        margin: 0 0 12px;
+        color: #495057;
+        line-height: 1.55;
+    }
+
+    .empty-state-list {
+        margin: 0 0 12px;
+        padding-left: 1.25rem;
+        line-height: 1.7;
+    }
+
+    .empty-state-example {
+        margin: 0 0 16px;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+
+    .deploy-key-steps {
+        margin: 0 0 12px;
+        padding-left: 1.25rem;
+        line-height: 1.7;
+
+        li + li {
+            margin-top: 4px;
+        }
+    }
+
+    .deploy-key-command {
+        margin: 6px 0 4px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #212529;
+        color: #f8f9fa;
+        font-size: 0.8125rem;
+
+        code {
+            color: inherit;
+            white-space: pre-wrap;
+        }
+    }
+
+    .deploy-key-types,
+    .deploy-key-write-note {
+        margin: 0 0 10px;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+}

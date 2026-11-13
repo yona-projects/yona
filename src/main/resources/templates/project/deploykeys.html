@@ -14,9 +14,34 @@
     <div class="project-page-wrap shell shell-below-banner" id="deployKeysPage">
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
-        <p class="form-text mt10" th:text="#{deployKey.description}"></p>
+        <div class="clearfix mt10 mb10">
+            <a th:href="@{${base + '/setting/deploykeys/new'}}" id="deploy-key-new" th:unless="${#lists.isEmpty(keys)}" class="ybtn ybtn-success float-end" th:text="#{deployKey.add}"></a>
+            <p class="form-text" th:text="#{deployKey.description}"></p>
+        </div>
 
-        <table id="deploy-key-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
+        <!--/* 키가 없으면 배포 키가 무엇이고 어떻게 시작하는지 보여 주는 빈 상태 카드이다(A-548) */-->
+        <section id="deployKeyEmpty" class="empty-state" th:if="${#lists.isEmpty(keys)}">
+            <i class="yobicon-key empty-state-icon" aria-hidden="true"></i>
+            <h4 class="empty-state-title" th:text="#{deployKey.empty.title}"></h4>
+            <p class="empty-state-lead" th:text="#{deployKey.empty.lead}"></p>
+            <ol class="deploy-key-steps">
+                <li>
+                    <span th:text="#{deployKey.empty.step1}"></span>
+                    <pre class="deploy-key-command"><code>ssh-keygen -t ed25519 -C "deploy@your-server"</code></pre>
+                </li>
+                <li th:text="#{deployKey.empty.step2}"></li>
+                <li th:text="#{deployKey.empty.step3}"></li>
+            </ol>
+            <p class="deploy-key-types" th:text="#{deployKey.empty.types}"></p>
+            <p class="deploy-key-write-note" th:text="#{deployKey.empty.write}"></p>
+            <a th:href="@{${base + '/setting/deploykeys/new'}}" id="deploy-key-new-empty" class="ybtn ybtn-success" th:text="#{deployKey.add}"></a>
+        </section>
+
+        <th:block th:if="${!#lists.isEmpty(keys)}" th:with="readOnlyCount=${#lists.size(keys.?[readOnly])}">
+        <p id="deployKeySummary" class="form-text mb-2"
+           th:text="#{deployKey.summary(${#lists.size(keys)}, ${readOnlyCount}, ${#lists.size(keys) - readOnlyCount})}"></p>
+        <div id="deployKeyWriteWarning" class="alert alert-warning py-2" th:if="${#lists.size(keys) > readOnlyCount}" th:text="#{deployKey.writable.warning}"></div>
+        <table id="deploy-key-list" class="table table-striped">
             <thead>
             <tr>
                 <th th:text="#{deployKey.name}"></th><th th:text="#{deployKey.fingerprint}"></th><th th:text="#{deployKey.access}"></th><th th:text="#{deployKey.createdDate}"></th><th></th>
@@ -36,9 +61,7 @@
             </tr>
             </tbody>
         </table>
-        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{deployKey.list.empty}"></p>
-
-        <a th:href="@{${base + '/setting/deploykeys/new'}}" id="deploy-key-new" class="btn btn-success" th:text="#{deployKey.add}"></a>
+        </th:block>
     
         </div><!--/* .shell-main */-->
     </div>

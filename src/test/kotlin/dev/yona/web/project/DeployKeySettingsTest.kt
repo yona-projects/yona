@@ -114,8 +114,8 @@ class DeployKeySettingsTest : AbstractIntegrationTest() {
     fun `키가 없으면 빈 목록 안내와 추가 링크만 보인다`() {
         val project = newProject(); val list = page(project, manager(project))
         assertNull(list.selectFirst("table#deploy-key-list"))
-        assertNotNull(list.selectFirst("p.empty"))
-        assertEquals(url(project, "/new"), list.selectFirst("a#deploy-key-new")!!.attr("href"))
+        assertEquals(url(project, "/new"), list.selectFirst("a#deploy-key-new-empty")!!.attr("href"))
+        assertNull(list.selectFirst("a#deploy-key-new"), "비어 있으면 추가 단추는 카드 안에 하나만 둔다(A-548)")
         assertNull(list.selectFirst("form#deploy-key-create"), "목록 화면에는 추가 폼이 없다")
     }
 
@@ -129,6 +129,40 @@ class DeployKeySettingsTest : AbstractIntegrationTest() {
         val writable = form.selectFirst("input[type=checkbox][name=writable]")!!
         assertFalse(writable.hasAttr("checked"), "기본은 읽기 전용이다")
         assertEquals(url(project), form.selectFirst("a.cancel")!!.attr("href"))
+    }
+
+    @Test
+    fun `키가 없으면 배포 키가 무엇이고 어떻게 시작하는지 보여 주는 빈 상태 카드를 보인다(A-548)`() {
+        val project = newProject(); val list = page(project, manager(project))
+        val card = list.selectFirst("section#deployKeyEmpty")!!
+        assertFalse(card.selectFirst(".empty-state-title")!!.text().isBlank())
+        assertEquals(3, card.select("ol.deploy-key-steps li").size, "시작 순서 세 단계")
+        assertTrue(card.selectFirst("pre code")!!.text().startsWith("ssh-keygen -t ed25519"), "키를 만드는 명령 예")
+        assertNotNull(card.selectFirst("p.deploy-key-types"))
+        assertNotNull(card.selectFirst("p.deploy-key-write-note"))
+        assertEquals(url(project, "/new"), card.selectFirst("a#deploy-key-new-empty")!!.attr("href"))
+        assertNull(list.selectFirst("#deployKeySummary"))
+    }
+
+    @Test
+    fun `키가 있으면 개수 요약을 보이고 읽기와 쓰기 키가 있을 때만 경고를 보인다(A-548)`() {
+        val project = newProject(); val s = manager(project)
+        mockMvc.perform(add(project, s, "빌드 서버", TestSshKey.generate().publicLine))
+        val readOnlyOnly = page(project, s)
+        assertEquals(listOf("1", "1", "0"), Regex("\\d+").findAll(readOnlyOnly.selectFirst("#deployKeySummary")!!.text()).map { it.value }.toList())
+        assertNull(readOnlyOnly.selectFirst("#deployKeyWriteWarning"), "쓰기 키가 없으면 경고도 없다")
+        assertNull(readOnlyOnly.selectFirst("section#deployKeyEmpty"))
+        mockMvc.perform(add(project, s, "배포 서버", TestSshKey.generate().publicLine, writable = true))
+        val both = page(project, s)
+        assertEquals(listOf("2", "1", "1"), Regex("\\d+").findAll(both.selectFirst("#deployKeySummary")!!.text()).map { it.value }.toList())
+        assertNotNull(both.selectFirst("#deployKeyWriteWarning"))
+    }
+
+    @Test
+    fun `키가 있으면 목록 위쪽에 추가 단추가 있다(A-548)`() {
+        val project = newProject(); val s = manager(project)
+        mockMvc.perform(add(project, s, "빌드 서버", TestSshKey.generate().publicLine))
+        assertEquals(url(project, "/new"), page(project, s).selectFirst("a#deploy-key-new")!!.attr("href"))
     }
 
     @Test

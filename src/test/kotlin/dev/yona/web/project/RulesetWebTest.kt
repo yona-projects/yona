@@ -193,9 +193,28 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `규칙 묶음이 없으면 비어 있다는 안내를 보인다`() {
+    fun `규칙 묶음이 없으면 무엇이고 어떻게 시작하는지 보여 주는 빈 상태 카드를 보인다(A-548)`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        assertEquals("만든 규칙 묶음이 없습니다.", page(project, session).selectFirst("tr.ruleset-empty")!!.text())
+        val doc = page(project, session)
+        val card = doc.selectFirst("section#rulesetEmpty")!!
+        assertEquals("중요한 브랜치를 규칙으로 보호하세요", card.selectFirst(".empty-state-title")!!.text())
+        assertEquals(4, card.select("ul.empty-state-list li").size, "할 수 있는 일 네 가지")
+        assertNotNull(card.selectFirst("p.empty-state-example"))
+        assertEquals(url(project, "/new"), card.selectFirst("a#newRulesetEmpty")!!.attr("href"))
+        assertNull(doc.selectFirst("table#rulesetList"), "비어 있으면 빈 표를 그리지 않는다")
+        assertNull(doc.selectFirst("a#newRuleset"), "비어 있으면 추가 단추는 카드 안에 하나만 둔다")
+        assertNull(doc.selectFirst("#rulesetSummary"))
+    }
+
+    @Test
+    fun `규칙 묶음이 있으면 개수 요약을 보이고 빈 상태 카드는 없다(A-548)`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        send(project, session, "", "name" to "a main", "enforcement" to "active", "pattern" to "master")
+        send(project, session, "", "name" to "b release", "enforcement" to "disabled", "pattern" to "release/*")
+        send(project, session, "", "name" to "c hotfix", "enforcement" to "active", "pattern" to "hotfix/*")
+        val doc = page(project, session)
+        assertEquals("규칙 묶음 3개 (활성 2개, 비활성 1개)", doc.selectFirst("#rulesetSummary")!!.text())
+        assertNull(doc.selectFirst("section#rulesetEmpty"))
     }
 
     @Test
