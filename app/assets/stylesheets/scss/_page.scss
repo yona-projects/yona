@@ -8317,8 +8317,30 @@ text-expander {
  * 규칙 묶음 폼의 입력란 너비(A-453): 옛 크기 클래스(`input-xlarge`, `input-large`, `input-mini`)의 정의가 없어져 `.form-control`의 `width: 100%`가 내용 크기로 줄어드는
  * 칸(`.cu-desc`) 안에서 풀렸다. 이름과 대상 브랜치가 같은 너비가 되도록 글 입력란을 정하고, 승인 수는 좁게 둔다.
  */
-#rulesetForm input.form-control[type="text"] { width: 100%; box-sizing: border-box; }
+#rulesetForm input.form-control[type="text"] { width: 100%; }
 #rulesetForm input.input-mini { width: 5rem; }
+
+/*
+ * 규칙 묶음 폼의 텍스트 박스(A-552): 사이트 기본 입력란은 v1.6 모양(높이 20px, 글자 12px, 모서리 2px, 포커스 표시 없음)이라 읽고 누르기 불편하다.
+ * 이 폼에서는 높이 약 38px, 글자 14px, 모서리 6px로 하고 포커스를 주황 테두리와 고리로 보인다. `box-sizing`을 border-box로 두어 폭 100%가 폼 밖으로 나가지 않는다.
+ */
+#rulesetForm input.form-control[type="text"],
+#rulesetForm input.form-control[type="number"] {
+    box-sizing: border-box;
+    height: auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+
+    &:focus {
+        outline: 0;
+        border-color: #f57c3a;
+        box-shadow: 0 0 0 0.2rem rgba(245, 124, 58, 0.2);
+    }
+}
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {

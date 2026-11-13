@@ -95,6 +95,9 @@ export const tests = [
 <section class="ruleset-section" id="rulesetRules"><h4 class="ruleset-section-title">규칙</h4><label class="rule-option"><input id="c" type="checkbox" class="form-check-input"><span class="rule-option-text"><span class="rule-option-title">삭제 제한</span><span class="rule-option-desc">대상 브랜치를 지우지 못하게 합니다.</span></span></label></section>
 </form></div></div></div></body></html>`);
     const f = await r(page, '#rulesetForm'); assert.ok(f.right - f.left <= 760, `폼 너비 ${(f.right - f.left).toFixed(0)}px`);
+    // 텍스트 박스는 읽기 편한 크기와 모양이고 포커스가 보인다(A-552)
+    const ib = await page.evaluate(() => { const e = document.getElementById('n'); const c = getComputedStyle(e); const before = c.boxShadow; e.focus(); const after = getComputedStyle(e).boxShadow; return { h: e.getBoundingClientRect().height, font: parseFloat(c.fontSize), radius: parseFloat(c.borderTopLeftRadius), focusChanged: before !== after && after !== 'none' }; });
+    assert.ok(ib.h >= 34, `텍스트 박스 높이 ${ib.h}px`); assert.ok(ib.font >= 14, `텍스트 박스 글자 ${ib.font}px`); assert.ok(ib.radius >= 4, `텍스트 박스 모서리 ${ib.radius}px`); assert.ok(ib.focusChanged, '포커스 표시가 없다');
     const l = await r(page, 'label[for=n]'), i = await r(page, '#n'); assert.ok(i.right <= f.right + 0.5, `입력란 오른쪽(${i.right.toFixed(0)})이 폼 오른쪽(${f.right.toFixed(0)})보다 튀어나왔다`); assert.ok(l.bottom <= i.top + 2, `레이블(${l.bottom.toFixed(0)})이 입력란(${i.top.toFixed(0)}) 위에 있지 않다`);
     const c = await r(page, '#c'), t = await r(page, '.rule-option-title'); assert.ok(c.h >= 15 && c.h <= 18, `체크 상자 ${c.h}px`);
     // 단일 폼이라 카드 상자로 감싸지 않는다: 구역과 규칙 줄에 테두리 상자와 배경색이 없다(D-143, A-552)
