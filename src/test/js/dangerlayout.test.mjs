@@ -186,4 +186,31 @@ export const tests = [
     assert.notEqual(c.z, c.n, `0개 개수(${c.z})가 다른 개수(${c.n})와 구분되지 않는다`);
     await ctx.close();
   } },
+  { name: '이슈 옵션 단추는 처음부터 활성처럼 테마색이고, 라벨 입력 칸은 모노스페이스가 아닌 본문 글꼴이다(A-567)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div class="subtask-message" id="o">이슈 옵션</div><div class="select2 select2-container select2-container--bootstrap-5 issue-labels bordered"><span class="select2-selection select2-selection--multiple"><ul class="select2-selection__rendered"><li class="select2-search select2-search--inline"><textarea class="select2-search__field" placeholder="라벨 선택"></textarea></li></ul></span></div></div></body></html>`);
+    const c = await page.evaluate(() => { const o = getComputedStyle(document.getElementById('o')), f = getComputedStyle(document.querySelector('.select2-search__field')); return { bc: o.borderTopColor, col: o.color, ff: f.fontFamily }; });
+    const rgb = (s) => s.match(/\d+/g).map(Number);
+    const [r, g] = rgb(c.col); assert.ok(r > 200 && g < 170, `이슈 옵션 글자색 ${c.col}이 테마색(주황)이 아니다`);
+    assert.equal(c.bc, c.col, `테두리(${c.bc})와 글자(${c.col})가 같은 색이어야 활성처럼 보인다`);
+    assert.ok(!/monospace|consolas|menlo/i.test(c.ff), `라벨 입력 칸 글꼴 ${c.ff}`);
+    await ctx.close();
+  } },
+  { name: '하위 이슈 블록은 부모 줄이 한 줄이고 진행 막대가 충분히 길며, 하위 이슈가 줄마다 한 줄로 정돈된다(A-567)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    const child = (n, t, cls, sel) => `<div class="issue-item child-issue${sel ? ' selected-child' : ''}"><span class="state-label ${cls}"></span><a class="twoColumeModeTarget"><span class="item-name"><span class="subtask-number">#${n}</span><span>${t}</span><span>- user</span></span></a><span class="font12 no-border-at-child"></span><a class="badge issue-label list-label active bg-secondary" style="background:#d33">버그</a><span class="child-issue-date">13초 전</span></div>`;
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="shell"><div class="shell-main" style="width:760px"><div class="subtasks">
+<div class="child-issues"><div class="issue-item parent-issue"><a id="pt">#2 [긴급] 로그인 오류에 대한 아주 긴 제목이 들어가도 한 줄을 유지해야 한다</a><div class="upload-progress red-outline" id="pg"><div class="bar red" style="width: 50%;"></div></div><span id="cnt">1/2 </span><span class="parent-issue-state open" id="st">열림</span></div>
+<hr class="parent-issue-delimeter"/><div class="child-issues" id="list">${child(10, '하위 이슈 확인용', 'open', true)}${child(11, '두 번째 하위 이슈의 제목도 길어질 수 있다', 'closed', false)}</div></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const pt = r('#pt'), pg = r('#pg'), cnt = r('#cnt'), st = r('#st'); const rows = [...document.querySelectorAll('#list .child-issue')].map((e) => { const x = e.getBoundingClientRect(); const kids = [...e.children].map((k) => k.getBoundingClientRect()); return { h: x.height, tops: kids.map((k) => Math.round(k.top + k.height / 2)) }; }); const hr = getComputedStyle(document.querySelector('hr.parent-issue-delimeter')).display; const outer = getComputedStyle(document.querySelector('.subtasks > .child-issues')); const sel = getComputedStyle(document.querySelector('.selected-child')).backgroundColor; return { pt, pg, cnt, st, rows, hr, outerBorder: outer.borderTopWidth, outerRadius: outer.borderTopLeftRadius, sel }; });
+    const mid = (x) => x.top + x.height / 2;
+    assert.ok(m.pg.width >= 100, `진행 막대 폭 ${m.pg.width}px (100px 이상이어야 한다)`); assert.ok(m.pg.height >= 6 && m.pg.height <= 12, `진행 막대 높이 ${m.pg.height}px`);
+    assert.ok(Math.max(mid(m.pt), mid(m.pg), mid(m.cnt), mid(m.st)) - Math.min(mid(m.pt), mid(m.pg), mid(m.cnt), mid(m.st)) <= 4, '부모 줄의 제목, 막대, 개수, 상태가 같은 높이에 한 줄로 놓여야 한다');
+    assert.ok(m.pt.right <= m.pg.left, `긴 제목(${m.pt.right.toFixed(0)})이 진행 막대(${m.pg.left.toFixed(0)})를 밀어내지 않아야 한다`);
+    assert.equal(m.hr, 'none', '점선 구분선은 없앴다'); assert.ok(parseFloat(m.outerBorder) >= 1 && parseFloat(m.outerRadius) >= 6, `바깥 상자 테두리 ${m.outerBorder}, 모서리 ${m.outerRadius}`);
+    m.rows.forEach((row, i) => { assert.ok(row.h <= 44, `하위 이슈 ${i} 줄 높이 ${row.h}px (한 줄이어야 한다)`); assert.ok(Math.max(...row.tops) - Math.min(...row.tops) <= 6, `하위 이슈 ${i}의 요소가 같은 줄에 있지 않다: ${row.tops}`); });
+    assert.notEqual(m.sel, 'rgba(0, 0, 0, 0)', '선택된 하위 이슈가 구분되지 않는다');
+    await ctx.close();
+  } },
 ];

@@ -7612,10 +7612,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .subtask-message {
     font-size: 0.75rem;
-    color: #9E9E9E;
+    // A-567: 비활성처럼 보이던 회색을 처음부터 테마색으로 둔다. 펼치면 바탕색이 더해져 켜진 상태가 구분된다
+    color: $primary;
     line-height: 0.9375rem;
     padding: 7px 0 5px 0;
-    border: 1px solid #ddd;
+    border: 1px solid $primary;
     text-align: center;
     max-width: 80px;
     overflow: hidden;
@@ -7630,6 +7631,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     &.option-on {
         border: 1px solid $primary;
         color: $primary;
+        background: #fff3ec;
+        font-weight: 600;
     }
 }
 
@@ -9509,5 +9512,112 @@ form#newProjectForm, form#importGit {
         padding: 0;
         font-size: 1.125rem;
         font-weight: 600;
+    }
+}
+
+// A-567: 라벨 선택 입력 칸은 `textarea`라 모노스페이스 글꼴로 그려져 안내 문구의 공백이 넓어 보였다. 본문 글꼴을 따른다.
+// 전역 `textarea` 규칙이 `!important`라서 이 칸도 `!important`로 이긴다.
+.select2-container .select2-search--inline .select2-search__field {
+    font-family: inherit !important;
+}
+
+// A-567: 이슈 상세의 부모 이슈 줄과 하위 이슈 목록. 점선으로 나뉘던 두 덩어리를 하나의 상자로 묶고 줄마다 한 줄로 정돈한다.
+.subtasks > .child-issues {
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+
+    .parent-issue {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: #f8f9fa;
+        font-size: 0.9375rem;
+
+        > a {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .upload-progress {
+            flex: none;
+            width: 120px;
+            height: 8px;
+            margin: 0;
+            border: 0;
+            border-radius: 4px;
+            background: #e4e6e8;
+
+            .bar { border-radius: 4px; }
+            .bar.red { background: $primary; }
+        }
+
+        > span:not(.parent-issue-state) {
+            flex: none;
+            font-size: 0.8125rem;
+            color: #6c757d;
+        }
+
+        .parent-issue-state {
+            flex: none;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            line-height: 1.25rem;
+            vertical-align: baseline;
+        }
+    }
+
+    .parent-issue-delimeter {
+        display: none;
+    }
+
+    .child-issues {
+        .child-issue {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-top: 1px solid #eee;
+            font-size: 0.875rem;
+
+            &:hover { background: #fafafa; }
+
+            .item-name {
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+            }
+
+            > a:not(.badge) {
+                flex: 1 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .child-issue-date {
+                display: inline-block;
+                flex: none;
+                margin-left: auto;
+                font-size: 0.75rem;
+                color: #aaa;
+                white-space: nowrap;
+            }
+        }
+
+        .selected-child {
+            border: 0;
+            border-top: 1px solid #eee;
+            border-radius: 0;
+            box-shadow: inset 3px 0 0 $primary;
+            background: #fff3ec;
+        }
     }
 }
