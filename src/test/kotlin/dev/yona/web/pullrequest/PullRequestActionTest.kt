@@ -339,6 +339,7 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         val s = setup(); addChange(s); val pr = open(s, title = "원래 제목", body = "원래 본문")
         val doc = org.jsoup.Jsoup.parse(mockMvc.perform(get(url(s, pr, "/editform")).session(s.managerSession)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("원래 제목", doc.selectFirst("input#title")!!.attr("value"))
+        assertTrue(doc.selectFirst("input#title")!!.hasClass("w-100") && doc.selectFirst("input#title")!!.hasClass("pr-title"), "제목 입력란은 편집기와 같은 전체 폭이다(A-568)")
         assertEquals("원래 본문", doc.selectFirst("textarea[name=body]")!!.text())
         assertEquals("refs/heads/master", doc.selectFirst("input[type=hidden][name=fromBranch]")!!.attr("value"))
         assertEquals(url(s, pr, "/edit"), doc.selectFirst("form[enctype]")!!.attr("action"))

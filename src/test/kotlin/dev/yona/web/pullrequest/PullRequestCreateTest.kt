@@ -203,6 +203,20 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `커밋이 없으면 커밋 탭은 변경이 아니라 커밋 내역이 없다고 알린다(A-568)`() {
+        val s = setup()
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequest/mergeResult?fromProjectId=${s.fork.id}&toProjectId=${s.origin.id}&fromBranch=refs/heads/master&toBranch=refs/heads/master", login(s.owner))
+        assertEquals("There are no commits.", doc.selectFirst("#mergeResult h5")!!.text())
+    }
+
+    @Test
+    fun `제목 입력란은 전체 폭 클래스를 달아 편집기와 폭이 같다(A-568)`() {
+        val s = withMemberOwner()
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        assertTrue(doc.selectFirst("input#title")!!.hasClass("w-100") && doc.selectFirst("input#title")!!.hasClass("pr-title"))
+    }
+
+    @Test
     fun `커밋이 여럿이면 제목은 비우고 본문에 첫 줄들을 나열하며 변경이 없으면 안내한다`() {
         val s = setup()
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("첫째", mapOf("b.txt" to "b".toByteArray())), TestCommit("둘째\n상세", mapOf("c.txt" to "c".toByteArray())))

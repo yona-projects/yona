@@ -151,6 +151,11 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertEquals("There are conflicts.", manager.selectFirst("button.ybtn-disabled")!!.attr("title"))
         assertNull(manager.selectFirst(".howto-resolve-conflict"))
         val help = page(url(s, pr), login(s.contributor)).selectFirst(".howto-resolve-conflict")!!
+        // A-568: 해결 절차는 기본으로 접혀 있고 단추로 펼친다
+        val panel = help.selectFirst(".collapse")!!
+        assertTrue(!panel.hasClass("show"), "처음에는 접혀 있다")
+        val toggle = help.selectFirst("[data-bs-toggle=collapse]")!!
+        assertEquals("#" + panel.id(), toggle.attr("data-bs-target")); assertEquals("false", toggle.attr("aria-expanded"))
         assertEquals("git checkout master", help.select("code")[0].text())
         assertTrue(help.select("code")[1].text().startsWith("git remote add upstream http"))
         assertEquals("git push -f origin master", help.select("code").last()!!.text())

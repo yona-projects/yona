@@ -65,7 +65,7 @@ class FormModernizationTest {
             assertTrue(doc("user/edit-password.html").getElementById(id)!!.hasClass("w-25"), "비밀번호 입력창 #$id 는 w-25 여야 한다")
         }
         listOf("project-owner", "inputName").forEach { id ->
-            assertTrue(doc("pullrequest/fork.html").getElementById(id)!!.hasClass("w-50"), "포크 입력창 #$id 는 w-50 여야 한다")
+            assertTrue(doc("pullrequest/fork.html").getElementById(id)!!.hasClass("w-100"), "포크 입력창 #$id 는 프로젝트 만들기 폼처럼 w-100이다(A-568)")
         }
     }
 }

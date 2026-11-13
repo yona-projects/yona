@@ -213,4 +213,17 @@ export const tests = [
     assert.notEqual(m.sel, 'rgba(0, 0, 0, 0)', '선택된 하위 이슈가 구분되지 않는다');
     await ctx.close();
   } },
+  { name: '코드 주고받기 목록의 새 코드 보내기 단추는 탭 줄과 같은 높이이고, 제목 입력란은 w-100이면 폼 폭을 채운다(A-568)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main"><div class="row cb"><div class="col-lg-10 span-hard-wrap" style="width:800px">
+<div class="float-end pr-new-wrap"><a class="ybtn ybtn-success" id="nb">새 코드 보내기</a></div>
+<ul class="nav nav-tabs nm pullrequeset-tab-menu mb-3" id="tabs"><li class="nav-item"><a class="nav-link active">열림 1</a></li><li class="nav-item"><a class="nav-link">닫힘 0</a></li></ul></div></div>
+<div style="width:700px"><input id="t" type="text" class="text form-control w-100 pr-title" placeholder="제목"><input id="t2" type="text" class="text form-control" placeholder="x"></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { nb: r('#nb'), tabs: r('#tabs'), t: r('#t'), t2: r('#t2') }; });
+    assert.ok(Math.abs(m.nb.top - m.tabs.top) <= 1, `단추 위(${m.nb.top})와 탭 줄 위(${m.tabs.top})가 같아야 한다`);
+    assert.ok(Math.abs(m.nb.height - m.tabs.height) <= 1, `단추 높이 ${m.nb.height}px, 탭 줄 높이 ${m.tabs.height}px`);
+    assert.ok(m.t.width >= 600, `제목 입력란 폭 ${m.t.width}px`); assert.ok(m.t2.width < 300, `폭 클래스가 없는 입력란은 v1.6처럼 좁다(${m.t2.width}px)`); assert.ok(m.t.height >= 34, `제목 입력란 높이 ${m.t.height}px`);
+    await ctx.close();
+  } },
 ];

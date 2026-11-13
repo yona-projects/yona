@@ -59,7 +59,7 @@
                      오른쪽 열은 받는 프로젝트에 수정 권한이 있을 때만 있고, 없으면 왼쪽이 전체 폭을 쓴다. 고른 값은 폼과 함께 보낸다 */-->
                 <div class="row">
                     <div class="span-left-pane" th:classappend="${assigneeArea != null} ? 'col-lg-9' : 'col-lg-12'">
-                        <input type="text" id="title" name="title" maxlength="255" class="text form-control" th:placeholder="#{title}">
+                        <input type="text" id="title" name="title" maxlength="255" class="text form-control w-100 pr-title" th:placeholder="#{title}">
                         <div style="position: relative;">
                             <th:block th:replace="~{common/editor :: editor('body', ${body}, '', 'content-body', false)}"></th:block>
                         </div>
