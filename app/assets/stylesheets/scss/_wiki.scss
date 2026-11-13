@@ -1,16 +1,15 @@
 // 프로젝트 위키 화면(X-17, D-60). GitHub 위키 모양이다. 색은 BS5 테마 별칭을 쓴다(D-58).
 .wiki-wrap {
-  // A-574: 위키 화면의 페이지 제목(본문, 이력, 비교)과 빈 위키 제목은 다른 화면의 제목과 같은 크기(1.125rem, 굵게)이다.
-  // 제목 줄의 h2가 글자 크기를 정하므로 h2와 안의 링크를 함께 맞추고, 부제(`small`)는 제목보다 작게 둔다.
-  .wiki-page-header h2,
   .wiki-page-title {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.75rem;
   }
 
-  .wiki-page-header h2 small {
-    font-size: 0.875rem;
-    font-weight: 400;
+  // A-574: 이력, 비교의 제목 줄과 빈 위키 제목은 다른 화면의 페이지 제목과 같은 크기(1.125rem, 굵게)이다.
+  // 위키 본문(페이지 보기)의 제목(`h2.wiki-page-title`)은 지시 밖이라 원래 크기를 지킨다. 부제(`small`)도 건드리지 않는다.
+  .wiki-page-header h2:not(.wiki-page-title),
+  .wiki-page-header h2 > a.wiki-page-title {
+    font-size: 1.125rem;
+    font-weight: 600;
   }
 
   .wiki-empty h3 {
