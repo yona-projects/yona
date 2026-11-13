@@ -110,7 +110,7 @@ class ProjectSettingController(
             .addObject("defaultBranchName", itemName(defaultBranch))
             .addObject("branchItemNames", branches.filter { itemType(it) == "branch" }.associateWith { itemName(it) })
             .addObject("oldPlaceHtml", oldPlace)
-            // 이슈 템플릿 편집은 소유자와 사이트 관리자만 하므로 단추도 그들에게만 보인다(A-565)
+            // 이슈 템플릿 편집은 프로젝트 관리자와 사이트 관리자만 하므로 단추도 그들에게만 보인다(A-565)
             .addObject("canEditIssueTemplate", accessControl.canChangeIssueTemplate(currentUserProvider.get().user, project))
             .also { mav ->
                 if (warning != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warning)) }

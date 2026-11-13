@@ -50,9 +50,9 @@ class PushPolicy(
                 continue
             }
             if (!ref.startsWith(HEADS)) continue
-            // 이슈 템플릿은 프로젝트 소유자와 사이트 관리자만 바꾼다(A-565). 보호 규칙의 바이패스와 무관하고 브랜치를 가리지 않는다
+            // 이슈 템플릿은 프로젝트 프로젝트 관리자와 사이트 관리자만 바꾼다(A-565). 보호 규칙의 바이패스와 무관하고 브랜치를 가리지 않는다
             if (update.type != RefUpdateType.DELETE && !accessControl.canChangeIssueTemplate(sender, project) && rootFileChanged(update, ISSUE_TEMPLATE)) {
-                rejections += reject(project, vcsTag, update, "$ISSUE_TEMPLATE can be changed only by the project owner or a site administrator", "issue_template")
+                rejections += reject(project, vcsTag, update, "$ISSUE_TEMPLATE can be changed only by a project manager or a site administrator", "issue_template")
                 continue
             }
             // 맞는 활성 규칙 묶음마다 따지고, 우회하지 못하는 규칙 묶음이 막으면 거부한다. 우회는 규칙 묶음마다 판정한다(바이패스를 허용한 규칙 묶음만 우회)

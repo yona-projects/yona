@@ -85,7 +85,7 @@
                         <label class="setting-check" for="menuSettingBoard"><input type="checkbox" class="form-check-input" id="menuSettingBoard" name="board" value="true" th:checked="${projectView.menuSetting.board == true}"> <th:block th:text="#{menu.board}"></th:block></label>
                         <label class="setting-check" for="menuSettingWiki"><input type="checkbox" class="form-check-input" id="menuSettingWiki" name="wiki" value="true" th:checked="${projectView.menuSetting.wiki == true}"> <th:block th:text="#{menu.wiki}"></th:block></label>
                     </div>
-                    <!--/* 이슈 템플릿(저장소의 ISSUE_TEMPLATE.md) 편집은 설정에서만 들어가는 기능이라 기능 체크가 아니라 독립 항목이다. 프로젝트 소유자와 사이트 관리자에게만 보인다(A-565) */-->
+                    <!--/* 이슈 템플릿(저장소의 ISSUE_TEMPLATE.md) 편집은 설정에서만 들어가는 기능이라 기능 체크가 아니라 독립 항목이다. 프로젝트 관리자와 사이트 관리자에게만 보인다(A-565) */-->
                     <div class="setting-field" th:if="${vcs.onlineEditing and canEditIssueTemplate}">
                         <a id="issueTemplateEdit" th:href="@{/{owner}/{name}/postform(owner=${project.owner},name=${project.name},issueTemplate=true)}" class="ybtn" target="_blank"><th:block th:text="#{issue.template}"></th:block> <th:block th:text="#{issue.template.edit}"></th:block></a>
                     </div>

@@ -274,12 +274,12 @@ class AccessControl(
         user != null && rulesets.all { it.bypassAdmins == true } && (isSiteManager(user) || isProjectManager(user, project))
 
     /**
-     * 저장소의 `ISSUE_TEMPLATE.md`를 바꿀 수 있는지이다(추가 보안 정책 A-565, R-167). 프로젝트 소유자와 사이트 관리자만 바꾼다.
-     * 소유자는 프로젝트의 `owner`가 로그인 아이디인 사용자이고, 조직 프로젝트는 소유자가 조직이므로 그 조직의 관리자를 소유자로 본다.
-     * 프로젝트 관리자와 구성원은 바꾸지 못한다. 온라인 편집과 Git 푸시가 같은 기준을 쓴다.
+     * 저장소의 `ISSUE_TEMPLATE.md`를 바꿀 수 있는지이다(추가 보안 정책 A-565, R-167). 프로젝트 관리자와 사이트 관리자만 바꾼다.
+     * 프로젝트 관리자는 프로젝트 소유자 역할을 하는 사람이고 몇 명이든 둘 수 있다. 주소의 소유자 아이디와 일치하는 사용자와 조직 프로젝트의
+     * 조직 관리자도 포함한다. 구성원과 외부인은 바꾸지 못한다. 온라인 편집과 Git 푸시가 같은 기준을 쓴다.
      */
     fun canChangeIssueTemplate(user: User?, project: Project): Boolean =
-        user != null && (isSiteManager(user) || project.isOwner(user) || isOrganizationAdmin(project.organization, user))
+        user != null && (isSiteManager(user) || isProjectManager(user, project) || project.isOwner(user) || isOrganizationAdmin(project.organization, user))
 
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {

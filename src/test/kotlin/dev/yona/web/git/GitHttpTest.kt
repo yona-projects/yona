@@ -618,13 +618,13 @@ class GitHttpTest {
     }
 
     @Test
-    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 소유자만 받고 구성원은 막는다 (A-565, R-167)`() {
+    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 관리자만 받고 구성원은 막는다 (A-565, R-167)`() {
         push(project, member)
         val plain = plainMember()
         // 다른 파일은 구성원도 밀어 넣는다
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(plain, "notes.txt", "n").status)
         // 이슈 템플릿은 막는다(기본 브랜치와 다른 브랜치 모두)
-        assertRejected(pushFile(plain, "ISSUE_TEMPLATE.md", "구성원"), "ISSUE_TEMPLATE.md", "owner")
+        assertRejected(pushFile(plain, "ISSUE_TEMPLATE.md", "구성원"), "ISSUE_TEMPLATE.md", "manager")
         assertRejected(pushFile(plain, "ISSUE_TEMPLATE.md", "구성원", branch = "feature"), "ISSUE_TEMPLATE.md")
         // 템플릿을 바꾸지 않고 새 브랜치만 만드는 푸시는 막지 않는다
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(plain, "other.txt", "o", branch = "feature2").status)
@@ -634,10 +634,10 @@ class GitHttpTest {
     }
 
     @Test
-    fun `소유자가 아닌 프로젝트 관리자도 이슈 템플릿을 푸시하지 못하고 사이트 관리자는 한다 (A-565)`() {
+    fun `프로젝트 관리자는 여러 명이어도 모두 이슈 템플릿을 푸시하고 사이트 관리자도 한다 (A-565)`() {
         push(project, member)
         val manager = user("gmgr").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
-        assertRejected(pushFile(manager, "ISSUE_TEMPLATE.md", "관리자"), "ISSUE_TEMPLATE.md")
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(manager, "ISSUE_TEMPLATE.md", "관리자").status)
         val siteAdmin = user("gsite").also { siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = it)) }
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(siteAdmin, "ISSUE_TEMPLATE.md", "사이트 관리자").status)
     }

@@ -405,14 +405,17 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈 템플릿은 프로젝트 소유자와 사이트 관리자만 저장하고 구성원과 외부인은 막는다(R-167, A-565)`() {
+    fun `이슈 템플릿은 프로젝트 관리자와 사이트 관리자만 저장하고 구성원과 외부인은 막는다(R-167, A-565)`() {
         val project = newProject()
         fun save(session: MockHttpSession, text: String) = submit(project, "posts", session, "title" to "t", "body" to text, "issueTemplate" to "true")
         save(login(newUser()), "외부인").andExpect(status().isForbidden)
         save(login(join(newUser(), project)), "구성원").andExpect(status().isForbidden)
         val manager = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
-        save(login(manager), "프로젝트 관리자").andExpect(status().isForbidden)
         assertEquals(emptyMap(), headFiles(project), "막힌 요청은 저장소를 바꾸지 않는다")
+        save(login(manager), "프로젝트 관리자").andExpect(status().isSeeOther)
+        assertEquals(mapOf("ISSUE_TEMPLATE.md" to "프로젝트 관리자\n"), headFiles(project))
+        val second = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+        save(login(second), "두 번째 프로젝트 관리자").andExpect(status().isSeeOther)
         save(login(ownerOf(project)), "소유자").andExpect(status().isSeeOther)
         assertEquals(mapOf("ISSUE_TEMPLATE.md" to "소유자\n"), headFiles(project))
         save(login(newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }), "사이트 관리자").andExpect(status().isSeeOther)
@@ -420,10 +423,11 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈 템플릿 편집 화면도 소유자와 사이트 관리자만 열 수 있다(A-565)`() {
+    fun `이슈 템플릿 편집 화면도 프로젝트 관리자와 사이트 관리자만 열 수 있다(A-565)`() {
         val project = newProject()
         get(project, "postform?issueTemplate=true", login(join(newUser(), project))).andExpect(status().isForbidden)
-        get(project, "postform?issueTemplate=true", login(ownerOf(project))).andExpect(status().isOk)
+        val manager = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+        get(project, "postform?issueTemplate=true", login(manager)).andExpect(status().isOk)
     }
 
     @Test

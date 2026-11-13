@@ -201,10 +201,10 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈 템플릿 편집 단추는 소유자와 사이트 관리자에게만 보이고 소유자가 아닌 프로젝트 관리자에게는 없다(A-565)`() {
+    fun `이슈 템플릿 편집 단추는 프로젝트 관리자에게 보인다(A-565)`() {
         val project = newProject()
-        assertNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"))
-        assertNotNull(settingForm(project, login(ownerManager(project))).selectFirst("a#issueTemplateEdit"))
+        assertNotNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"))
+        assertNotNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"), "프로젝트 관리자는 몇 명이든 같다")
     }
 
     @Test

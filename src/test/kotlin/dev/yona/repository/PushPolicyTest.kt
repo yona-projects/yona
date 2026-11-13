@@ -6,6 +6,8 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.Ruleset
 import dev.yona.domain.project.RulesetRepository
+import dev.yona.domain.project.ProjectUser
+import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.user.SiteAdmin
 import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
@@ -35,6 +37,8 @@ class PushPolicyTest : AbstractIntegrationTest() {
     @Autowired private lateinit var audits: AuditLogRepository
     @Autowired private lateinit var entityManager: EntityManager
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var projectUsers: dev.yona.domain.project.ProjectUserRepository
+    @Autowired private lateinit var roles: dev.yona.domain.user.RoleRepository
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
 
     private val a = "a".repeat(40)
@@ -95,7 +99,7 @@ class PushPolicyTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 소유자와 사이트 관리자만 할 수 있다(A-565)`() {
+    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 관리자와 사이트 관리자만 할 수 있다(A-565)`() {
         val project = project()
         val changed: (RefUpdate, String) -> Boolean = { _, file -> file == "ISSUE_TEMPLATE.md" }
         val branch = update("refs/heads/feature", RefUpdateType.UPDATE)
@@ -106,6 +110,8 @@ class PushPolicyTest : AbstractIntegrationTest() {
         assertEquals(listOf("issue_template"), run(user("ppstranger")).map { it.kind })
         assertTrue(run(user("ppstranger2")).single().message.contains("ISSUE_TEMPLATE.md"))
         assertEquals(emptyList(), run(user("pp")).map { it.kind }, "프로젝트 소유자")
+        val manager = user("ppmanager").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+        assertEquals(emptyList(), run(manager).map { it.kind }, "프로젝트 관리자")
         assertEquals(emptyList(), run(user("ppsite").also { siteAdmins.save(SiteAdmin(admin = it)) }).map { it.kind }, "사이트 관리자")
         // 템플릿을 건드리지 않는 푸시와 브랜치 삭제는 막지 않는다
         assertEquals(emptyList(), policy.evaluate(project, null, "git", listOf(branch), unverifiedCommits = noCommits()).map { it.kind })
