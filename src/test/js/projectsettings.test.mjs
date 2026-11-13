@@ -49,6 +49,21 @@ export const tests = [
     assert.deepEqual((await state()).slice(0, 3), [true, false, true]); await page.close();
   } },
 
+  { name: '프로젝트 설정: 코드 메뉴를 껐다 다시 켜면 끄기 전의 풀 리퀘스트와 리뷰 선택, 리뷰 설정과 기본 브랜치 패널이 돌아온다(A-564)', run: async () => {
+    const page = await base(SETTING, 'esm/service/project.Setting.js', 'yona.project.Setting');
+    const state = () => page.evaluate(() => ['menuSettingCode', 'menuSettingPullRequest', 'menuSettingReview'].map((id) => document.getElementById(id).checked).concat([$('#reviewerCountSettingPanel').css('display'), $('#defaultBranceSettingPanel').css('display')]));
+    await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [false, false, false, 'none', 'none']);
+    await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [true, true, true, 'block', 'block'], '끄기 전에 켜 두었던 풀 리퀘스트와 리뷰, 두 패널이 돌아온다');
+    // 풀 리퀘스트만 켜 둔 채 껐다 켜면 리뷰는 꺼진 채로 돌아온다
+    await page.click('#menuSettingReview'); await page.click('#menuSettingCode'); await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [true, true, false, 'block', 'block']);
+    // 끈 상태에서 풀 리퀘스트를 켜면 코드가 켜지고, 그 뒤 코드를 끄면 다시 모두 꺼진다
+    await page.click('#menuSettingCode'); await page.click('#menuSettingPullRequest');
+    assert.deepEqual((await state()).slice(0, 3), [true, true, false]); await page.close();
+  } },
+
   { name: '프로젝트 전역: 관심 단추는 href로 POST하고 기본 동작을 막는다. 실패하면 "Server Error"를 알린다', run: async () => {
     const page = await base(`<a class="watchBtn" href="/watch/1">w</a><a id="enrollBtn" href="/enroll/1">e</a>`, 'esm/service/project.Global.js', 'yona.project.Global');
     assert.equal(await clickResult(page, '.watchBtn'), true);

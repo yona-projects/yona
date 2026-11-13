@@ -101,17 +101,33 @@ const Setting = function(htOptions){
         return true;
     }
 
+    /**
+     * 코드 메뉴를 바꿀 때 연동 항목을 맞춘다.
+     * 끄면 풀 리퀘스트와 리뷰 선택을 기억해 두고 함께 끈 뒤 관련 설정 패널을 숨긴다.
+     * 다시 켜면 기억해 둔 선택과 패널을 되돌려, 껐다 켜기만 했는데 두 메뉴가 꺼진 채 저장되지 않게 한다
+     * (v1.6은 끌 때만 처리해 껐다 켜면 풀 리퀘스트와 리뷰가 꺼진 채 남았다).
+     */
     function _onClickMenuSettingCode() {
         const isChecked = $(this).prop("checked");
-        
+
         if (!isChecked) {
+            htVar.bRememberedPullRequest = htElement.welMenuSettingPullRequest.prop("checked");
+            htVar.bRememberedReview = htElement.welMenuSettingReview.prop("checked");
+
             htElement.welMenuSettingCode.prop("checked", false);
             htElement.welMenuSettingPullRequest.prop("checked", false);
             htElement.welMenuSettingReview.prop("checked", false);
-            
+
             htElement.welReviewerCountSettingPanel.hide();
             htElement.welDefaultBranceSettingPanel.hide();
             htElement.welSubMenuProjectChangeVCS.hide();
+        } else {
+            htElement.welMenuSettingPullRequest.prop("checked", htVar.bRememberedPullRequest === true);
+            htElement.welMenuSettingReview.prop("checked", htVar.bRememberedReview === true);
+
+            htElement.welReviewerCountSettingPanel.show();
+            htElement.welDefaultBranceSettingPanel.show();
+            htElement.welSubMenuProjectChangeVCS.show();
         }
     }
 
