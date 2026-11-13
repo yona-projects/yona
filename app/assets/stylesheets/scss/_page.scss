@@ -8647,6 +8647,17 @@ textarea.editorSeries.content {
         margin-top: 0.5rem;
     }
 
+    // GitHub처럼 실행 단추 하나가 푸터 전체 너비를 쓴다(A-540). 닫기는 머리글의 ×이다.
+    .modal-footer {
+        display: block;
+
+        .ybtn-danger {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+    }
+
     label.form-label {
         display: block;
         margin: 0.75rem 0 0.375rem;

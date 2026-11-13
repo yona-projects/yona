@@ -140,7 +140,7 @@ class ProjectTransferTest : AbstractIntegrationTest() {
         assertEquals(5, page.select("#danger-transfer li.notice").size)
         assertNull(page.selectFirst("#acceptTransfer"), "동의 체크박스는 없다(A-537)")
         assertEquals("Transfer this project", page.selectFirst("a#btnTransfer")?.text()?.trim())
-        assertEquals("Yes", page.selectFirst("#alertTransfer #btnTransferExec")?.text())
+        assertEquals("Transfer this project", page.selectFirst("#alertTransfer #btnTransferExec")?.text())
         assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/danger]")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.Transfer" in it }
         assertTrue("/${project.owner}/${project.name}/transfer" in script, script)

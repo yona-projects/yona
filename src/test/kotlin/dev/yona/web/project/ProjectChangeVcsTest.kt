@@ -111,7 +111,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         assertNull(page.selectFirst("#acceptChangeVCS"), "동의 체크박스는 없다(A-537)")
         assertNotNull(page.selectFirst("a#btnChangeVCS"))
         assertEquals("Do you want to change the repository to Subversion?", page.selectFirst("#alertChangeVCS h3")?.text())
-        assertEquals("Yes", page.selectFirst("#btnChangeVCSExec")?.text())
+        assertEquals("Change Repository Type.", page.selectFirst("#btnChangeVCSExec")?.text())
         assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/danger]")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.ChangeVCS" in it }
         assertTrue("/${project.owner}/${project.name}/changeVCS" in script, script)

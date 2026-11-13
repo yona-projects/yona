@@ -116,7 +116,7 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         val dialog = page.selectFirst("#alertDeletion")!!
         assertEquals("Do you want to delete this project?", dialog.selectFirst(".modal-header h3")?.text())
         assertEquals(1, dialog.select(".modal-body p").count { !it.hasClass("mb-0") }, "설명 문단 하나와 입력 안내만 둔다")
-        assertEquals("Yes", dialog.selectFirst("#btnDeleteExec")?.text())
+        assertEquals("Delete this project", dialog.selectFirst("#btnDeleteExec")?.text())
     }
 
     @Test
@@ -124,6 +124,8 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
         val full = "${project.owner}/${project.name}"
+        // GitHub처럼 실행 단추 하나만 둔다(아니요 단추 없음, 닫기는 ×, A-540)
+        listOf("alertTransfer", "alertChangeVCS", "alertDeletion").forEach { assertEquals(1, page.select("#$it .modal-footer button").size, "$it 푸터 단추 수") }
         // 입력이 곧 확인이라 "정말로 ...하시겠습니까?" 같은 재확인 문구는 없다(A-539)
         listOf("alertTransfer", "alertChangeVCS", "alertDeletion").forEach { assertFalse(page.selectFirst("#$it .modal-body")!!.text().contains("Are you sure"), it) }
         listOf(Triple("alertTransfer", "transferConfirmName", "btnTransferExec"), Triple("alertChangeVCS", "vcsConfirmName", "btnChangeVCSExec"), Triple("alertDeletion", "deleteConfirmName", "btnDeleteExec")).forEach { (modal, input, exec) ->

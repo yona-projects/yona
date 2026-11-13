@@ -38,4 +38,12 @@ export const tests = [
     assert.ok(fs <= 22, `제목 글자가 ${fs}px로 크다`);
     await ctx.close();
   } },
+  { name: '확인 창의 실행 단추는 푸터 전체 너비를 쓰는 하나뿐이다(A-540)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div id="alertDeletion" class="modal show" style="display:block"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h3>제목</h3></div><div class="modal-body">본문</div><div class="modal-footer"><button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">프로젝트를 삭제합니다.</button></div></div></div></div></body></html>`);
+    const f = await r(page, '.modal-footer'), x = await r(page, '#btnDeleteExec');
+    assert.ok(x.right - x.left >= (f.right - f.left) - 40, `단추 너비 ${(x.right - x.left).toFixed(0)}px, 푸터 ${(f.right - f.left).toFixed(0)}px`);
+    await ctx.close();
+  } },
 ];
