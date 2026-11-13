@@ -65,4 +65,15 @@ export const tests = [
     assert.ok(ratio >= 3, `비활성 단추의 글자 대비가 ${ratio.toFixed(2)}이다`);
     await ctx.close();
   } },
+  { name: '알림 창(yobiDialog)은 겉껍질이 화면 전체를 덮고 창이 가운데에 놓인다(A-546)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div id="yobiDialog" class="modal yobiDialog show" style="display:block" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="btn-dismiss"><button type="button" class="btn-transparent">×</button></div><div class="message"><div class="center-text"><p class="msg">알림 문구입니다.</p><p class="desc"></p></div><div class="center-txt buttons"><button type="button" class="ybtn ybtn-info">확인</button></div></div></div></div></div></body></html>`);
+    const shell = await r(page, '#yobiDialog'), box = await r(page, '#yobiDialog .modal-content');
+    assert.ok(Math.round(shell.right - shell.left) >= 1280, `겉껍질 너비가 ${(shell.right - shell.left).toFixed(0)}px라 화면 전체를 덮지 못한다`);
+    const center = (box.left + box.right) / 2;
+    assert.ok(Math.abs(center - 640) <= 2, `창 가운데가 ${center.toFixed(0)}px에 있다(640이어야 한다)`);
+    assert.ok(box.right - box.left <= 540, `창 너비가 ${(box.right - box.left).toFixed(0)}px이다`);
+    await ctx.close();
+  } },
 ];

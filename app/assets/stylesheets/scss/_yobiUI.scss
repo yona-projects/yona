@@ -455,9 +455,17 @@ span.issue-label {
 
 /** alert **/
 .yobiDialog {
-    @include border-radius(none);
-    border:10px solid #bebebe;
-    padding:16px 20px; width:500px;
+    // 테두리, 안쪽 여백, 폭은 모달 겉껍질(`.modal`, 화면 전체를 덮는 BS5 모달)이 아니라 대화상자에 준다. v1.6(BS2)은 겉껍질에
+    // `width: 500px`와 테두리를 줘서 BS5에서 겉껍질이 화면 왼쪽 500px만 덮고 창이 왼쪽 위에 붙어 열렸다(A-546).
+    .modal-dialog {
+        max-width: 520px;
+    }
+
+    .modal-content {
+        @include border-radius(none);
+        border:10px solid #bebebe;
+        padding:16px 20px;
+    }
 
     .btn-dismiss {
         padding:0; margin:0; width:100%; text-align: right;
