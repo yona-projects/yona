@@ -76,4 +76,15 @@ export const tests = [
     assert.ok(box.right - box.left <= 540, `창 너비가 ${(box.right - box.left).toFixed(0)}px이다`);
     await ctx.close();
   } },
+  { name: '새 배포 키 폼은 폭이 760px 이하이고 쓰기 허용 체크 상자는 글자와 같은 높이의 16px이다(A-549)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px;flex:none"><form id="deploy-key-create" class="deploy-key-form"><div class="mb-3"><input class="form-control w-100" type="text"></div><div class="form-check deploy-key-writable"><input id="w" type="checkbox" class="form-check-input"><label for="w" class="form-check-label">쓰기 허용</label><div class="form-text">도움말</div></div></form></div></div></div></body></html>`);
+    const f = await r(page, '#deploy-key-create');
+    assert.ok(f.right - f.left <= 760, `폼 너비가 ${(f.right - f.left).toFixed(0)}px이다`);
+    const c = await r(page, '#w'), l = await r(page, 'label[for=w]');
+    assert.ok(c.h >= 15 && c.h <= 18, `체크 상자 크기 ${c.h}px`);
+    assert.ok(Math.abs((c.top + c.bottom) / 2 - (l.top + l.bottom) / 2) <= 4, `체크 상자 중심 ${((c.top + c.bottom) / 2).toFixed(0)}, 글자 중심 ${((l.top + l.bottom) / 2).toFixed(0)}`);
+    await ctx.close();
+  } },
 ];

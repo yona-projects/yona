@@ -8899,3 +8899,70 @@ textarea.editorSeries.content {
         color: #6c757d;
     }
 }
+
+
+// 새 배포 키 화면(A-549): 입력 폭을 제한하고 안내, 명령 예, 쓰기 허용 체크를 정돈한다.
+.deploy-key-form {
+    max-width: 760px;
+
+    .deploy-key-form-title {
+        margin: 8px 0 6px;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .deploy-key-command {
+        margin: 0 0 6px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #212529;
+        color: #f8f9fa;
+        font-size: 0.8125rem;
+
+        code {
+            color: inherit;
+            white-space: pre-wrap;
+        }
+    }
+
+    .deploy-key-types {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+
+    // 쓰기 허용은 위험이 있는 선택이라 항목을 눈에 띄는 칸으로 둔다. 체크 상자는 글자와 같은 높이의 16px이다.
+    .deploy-key-writable {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: #fff;
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+
+        .form-check-label {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .form-text {
+            grid-column: 2;
+            margin: 2px 0 0;
+        }
+    }
+
+    .deploy-key-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+    }
+}

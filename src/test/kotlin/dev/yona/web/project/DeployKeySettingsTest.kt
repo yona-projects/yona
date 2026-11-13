@@ -120,6 +120,17 @@ class DeployKeySettingsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `추가 화면은 공개키를 어디서 가져오는지와 받는 키 종류를 안내하고 사이트 단추를 쓴다(A-549)`() {
+        val project = newProject(); val doc = page(project, manager(project), "/new")
+        val form = doc.selectFirst("form#deploy-key-create")!!
+        assertTrue(form.selectFirst("pre.deploy-key-command code")!!.text().startsWith("cat ~/.ssh/id_ed25519.pub"), "공개키를 꺼내는 명령 예")
+        assertNotNull(form.selectFirst("p.deploy-key-types"), "받는 키 종류 안내")
+        assertEquals("ybtn ybtn-primary", form.selectFirst("button[type=submit]")!!.className().replace(Regex("\\s+"), " ").trim().substringBefore(" deploy-key-submit"), "사이트 기본 단추")
+        assertTrue(form.selectFirst("a.cancel")!!.hasClass("ybtn"))
+        assertNotNull(form.selectFirst(".form-check.deploy-key-writable input[name=writable]"), "쓰기 허용은 정돈된 체크 항목이다")
+    }
+
+    @Test
     fun `추가 화면은 이름과 공개키와 쓰기 허용 체크와 취소 링크를 가진다`() {
         val project = newProject(); val form = page(project, manager(project), "/new").selectFirst("form#deploy-key-create")!!
         assertEquals(url(project), form.attr("action"))

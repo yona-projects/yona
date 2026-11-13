@@ -15,8 +15,9 @@
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${deployKeyError != null}" class="alert alert-danger mt10" th:text="#{${deployKeyError}}"></div>
-        <form id="deploy-key-create" method="post" class="mt10" th:action="@{${base + '/setting/deploykeys'}}">
-            <h4 th:text="#{deployKey.add}"></h4>
+        <form id="deploy-key-create" method="post" class="deploy-key-form mt10" th:action="@{${base + '/setting/deploykeys'}}">
+            <h3 class="deploy-key-form-title" th:text="#{deployKey.add}"></h3>
+            <p class="form-text" th:text="#{deployKey.description}"></p>
             <div class="mb-3">
                 <label for="deploy-key-name" class="form-label" th:text="#{deployKey.name}"></label>
                 <input id="deploy-key-name" type="text" name="name" maxlength="100" class="form-control w-100" th:value="${deployKeyName}">
@@ -24,18 +25,22 @@
             </div>
             <div class="mb-3">
                 <label for="deploy-key-public-key" class="form-label" th:text="#{deployKey.publicKey}"></label>
-                <textarea id="deploy-key-public-key" name="publicKey" rows="8" class="form-control font-monospace" spellcheck="false"
+                <textarea id="deploy-key-public-key" name="publicKey" rows="6" class="form-control font-monospace" spellcheck="false"
                           placeholder="ssh-ed25519 AAAA... deploy@example.com" th:text="${deployKeyPublicKey}"></textarea>
                 <div class="form-text" th:text="#{deployKey.publicKey.help}"></div>
+                <!--/* 공개 키를 어디서 가져오는지와 받는 키 종류(A-549) */-->
+                <p class="form-text mb-1 mt-2" th:text="#{deployKey.publicKey.howto}"></p>
+                <pre class="deploy-key-command"><code>cat ~/.ssh/id_ed25519.pub</code></pre>
+                <p class="deploy-key-types" th:text="#{deployKey.empty.types}"></p>
             </div>
-            <div class="form-check mb-3">
+            <div class="form-check deploy-key-writable mb-3">
                 <input id="deploy-key-writable" type="checkbox" name="writable" value="true" class="form-check-input" th:checked="${deployKeyWritable}">
                 <label for="deploy-key-writable" class="form-check-label" th:text="#{deployKey.writable}"></label>
                 <div class="form-text" th:text="#{deployKey.writable.help}"></div>
             </div>
-            <div>
-                <button type="submit" class="btn btn-success" th:text="#{deployKey.add.submit}"></button>
-                <a th:href="@{${base + '/setting/deploykeys'}}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            <div class="deploy-key-actions">
+                <button type="submit" class="ybtn ybtn-primary deploy-key-submit" th:text="#{deployKey.add.submit}"></button>
+                <a th:href="@{${base + '/setting/deploykeys'}}" class="ybtn cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
     
