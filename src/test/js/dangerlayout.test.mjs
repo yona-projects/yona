@@ -13,6 +13,9 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}
 <section id="danger-delete" class="danger-section"><h3 class="danger-title cu-label">프로젝트 삭제</h3><div class="cu-desc"><p><strong class="notice">프로젝트를 삭제하게되면 모든 데이터가 삭제됩니다.</strong></p>${consent('acceptDelete', '프로젝트를 삭제하는데 동의합니다.')}</div><div class="danger-actions"><a class="ybtn ybtn-danger">삭제</a></div></section>
 </div></div></div></body></html>`;
 
+const MODAL_HTML = (disabled) => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div id="alertDeletion" class="modal show" style="display:block"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h3>제목</h3></div><div class="modal-body"><p>설명</p><p class="mb-0"><label for="deleteConfirmName" class="form-label">입력 안내</label><input type="text" id="deleteConfirmName" class="form-control w-100"></p></div><div class="modal-footer"><button id="btnDeleteExec" type="button" class="ybtn ybtn-danger"${disabled ? ' disabled' : ''}>프로젝트를 삭제합니다.</button></div></div></div></div></body></html>`;
+
 async function open() {
   const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
   await page.setContent(HTML); return { page, ctx };
@@ -38,12 +41,28 @@ export const tests = [
     assert.ok(fs <= 22, `제목 글자가 ${fs}px로 크다`);
     await ctx.close();
   } },
-  { name: '확인 창의 실행 단추는 푸터 전체 너비를 쓰는 하나뿐이다(A-540)', run: async () => {
+  { name: '확인 창의 실행 단추는 입력란 바로 아래(여백 24px 이하)에 전체 너비로 붙고 푸터 구분선이 없다(A-540)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
-    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
-<div id="alertDeletion" class="modal show" style="display:block"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h3>제목</h3></div><div class="modal-body">본문</div><div class="modal-footer"><button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">프로젝트를 삭제합니다.</button></div></div></div></div></body></html>`);
-    const f = await r(page, '.modal-footer'), x = await r(page, '#btnDeleteExec');
+    await page.setContent(MODAL_HTML(false));
+    const i = await r(page, '#deleteConfirmName'), x = await r(page, '#btnDeleteExec'), f = await r(page, '.modal-footer');
+    assert.ok(x.top - i.bottom <= 24, `입력란과 단추 사이가 ${(x.top - i.bottom).toFixed(0)}px 벌어져 있다`);
     assert.ok(x.right - x.left >= (f.right - f.left) - 40, `단추 너비 ${(x.right - x.left).toFixed(0)}px, 푸터 ${(f.right - f.left).toFixed(0)}px`);
+    const bt = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.modal-footer')).borderTopWidth));
+    assert.equal(bt, 0, '푸터 위 구분선이 있다');
+    await ctx.close();
+  } },
+  { name: '비활성 단추도 글자가 읽힌다(글자와 배경의 대비가 3 이상, A-540)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(MODAL_HTML(true));
+    const ratio = await page.evaluate(() => {
+      const e = document.getElementById('btnDeleteExec'), cs = getComputedStyle(e), op = parseFloat(cs.opacity);
+      const rgb = (c) => c.match(/[\d.]+/g).slice(0, 3).map(Number);
+      const mix = (c, o) => c.map((v) => v * o + 255 * (1 - o));
+      const lum = (c) => { const [r, g, b2] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b2; };
+      const fg = mix(rgb(cs.color), op), bg = mix(rgb(cs.backgroundColor), op);
+      const [l1, l2] = [lum(fg), lum(bg)].sort((a, b2) => b2 - a); return (l1 + 0.05) / (l2 + 0.05);
+    });
+    assert.ok(ratio >= 3, `비활성 단추의 글자 대비가 ${ratio.toFixed(2)}이다`);
     await ctx.close();
   } },
 ];

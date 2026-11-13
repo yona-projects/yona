@@ -8648,13 +8648,31 @@ textarea.editorSeries.content {
     }
 
     // GitHub처럼 실행 단추 하나가 푸터 전체 너비를 쓴다(A-540). 닫기는 머리글의 ×이다.
+    // 단추는 입력란 바로 아래에 여백만 두고 붙는다. 푸터 구분선과 위쪽 안쪽 여백은 없앤다.
+    .modal-body {
+        padding-bottom: 0.75rem;
+    }
+
     .modal-footer {
         display: block;
+        border-top: 0;
+        padding-top: 0;
 
         .ybtn-danger {
             display: block;
             width: 100%;
             margin: 0;
+
+            // 비활성이어도 단추 이름이 읽혀야 한다: 붉은 바탕을 옅게만 하고 글자는 흰색으로 둔다.
+            &:disabled {
+                // 전역 `.ybtn[disabled]`가 `!important`로 회색 바탕을 고정하므로 이 확인 창에서만 같은 강도로 덮어쓴다.
+                opacity: 1;
+                color: #fff !important;
+                background-color: #c9626f !important;
+                border-color: #c9626f !important;
+                text-shadow: none;
+                cursor: not-allowed;
+            }
         }
     }
 
