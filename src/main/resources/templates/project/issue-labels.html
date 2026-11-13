@@ -45,7 +45,7 @@
             <button type="button" class="issue-label btn-preset-color" style="background-color:#ff5722"></button>
             <button type="button" class="issue-label btn-preset-color" style="background-color:#795548"></button>
             <button type="button" class="issue-label btn-preset-color" style="background-color:#9e9e9e"></button>
-                    <input type="text" name="color" class="input-small input-label-color form-control" th:placeholder="#{label.customColor}">
+                    <input type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color" th:title="#{label.customColor}" th:aria-label="#{label.customColor}">
                 </div>
             </div>
             <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{label.add}"></button>

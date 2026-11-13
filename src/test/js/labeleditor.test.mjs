@@ -21,7 +21,7 @@ const HTML = `
   <div class="label-preset-colors"><button type="button" class="btn-preset-color" style="background-color:#00ff00">g</button></div><button class="btnSubmit">저장</button></div>`;
 
 async function open(opts = {}) {
-  const page = await pageWith({ stubs: false, html: HTML, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
+  const page = await pageWith({ stubs: false, html: opts.html || HTML, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
   await page.evaluate((resp) => {
     window.__ajax = []; window.__alerts = []; window.__confirms = []; window.__modal = []; window.__pop = [];
     yona.ui = yona.ui || {}; yona.ui.Typeahead = function () {};
@@ -124,5 +124,30 @@ export const tests = [
     await page.evaluate(() => { $('div.category-wrap').append('<i data-label-name="Crash2"></i>'); $('#elab .btnSubmit').trigger('click'); });
     await page.evaluate(() => { $('div.category-wrap i').remove(); $('#elab [name=color]').val('#12'); $('#elab .btnSubmit').trigger('click'); });
     assert.deepEqual(await get(page, '__pop'), [['name', 'label.error.duplicated.in.category|Bug'], ['color', 'label.error.color|#12']]); assert.deepEqual(await get(page, '__ajax'), []); await page.close();
+  } },
+  // --- 색상 선택기(A-557): 새 라벨 폼의 색 입력은 type=color이다. 값은 항상 #rrggbb이고 "비어 있음"이 없다 ---
+  { name: '색상 선택기: 이름 입력란에 포커스를 주면 아직 고르지 않은 색을 채우고 이름 입력란을 그 색으로 물들이며 선택기에는 옛 안쪽 그림자를 입히지 않는다', run: async () => {
+    const html = HTML.replace('<input name="color" value="">', '<input name="color" type="color" value="#2196f3">');
+    const page = await open({ html });
+    await page.evaluate(() => { $('#f [name=category]').val('Bug'); $('#f [name=name]').trigger('focus'); });
+    const r = await page.evaluate(() => ({ color: $('#f [name=color]').val(), bg: $('#f [name=name]').css('background-color'), shadow: $('#f [name=color]').attr('style') || '' }));
+    assert.equal(r.color, '#0000ff', '기존 분류는 그 분류 첫 라벨의 색을 채운다'); assert.equal(r.bg, 'rgb(0, 0, 255)'); assert.ok(!/box-shadow/.test(r.shadow), `색상 선택기에 그림자가 입혀졌다: ${r.shadow}`);
+    assert.deepEqual(page.errors, []); await page.close();
+  } },
+  { name: '색상 선택기: 선택기로 고른 색은 이름 입력란 색에 바로 반영되고 이후 포커스가 덮어쓰지 않는다', run: async () => {
+    const html = HTML.replace('<input name="color" value="">', '<input name="color" type="color" value="#2196f3">');
+    const page = await open({ html });
+    await page.evaluate(() => { $('#f [name=category]').val('Bug'); const c = $('#f [name=color]'); c.val('#ff00ff').trigger('input'); });
+    assert.equal(await page.evaluate(() => $('#f [name=name]').css('background-color')), 'rgb(255, 0, 255)', '선택기를 움직이면 이름 입력란 색이 따라온다');
+    await page.evaluate(() => { $('#f [name=name]').trigger('focus'); });
+    assert.equal(await page.evaluate(() => $('#f [name=color]').val()), '#ff00ff', '고른 색을 포커스가 덮어썼다'); await page.close();
+  } },
+  { name: '색상 선택기: 견본을 누르면 선택기 값이 그 색이 되고 추가 요청에는 그 색이 실린다', run: async () => {
+    const html = HTML.replace('<input name="color" value="">', '<input name="color" type="color" value="#2196f3">');
+    const page = await open({ html, resp: { ok: 'not-object' } });
+    await page.evaluate(() => { $('#f [name=category]').val('Bug'); $('#f [name=name]').val('New'); $('#f .btn-preset-color').first().trigger('click'); });
+    assert.equal(await page.evaluate(() => $('#f [name=color]').val()), '#ff0000');
+    await submit(page); await page.waitForTimeout(60);
+    const ajax = await get(page, '__ajax'); assert.equal(ajax.length, 1); assert.equal(ajax[0][2].labelColor, '#ff0000'); await page.close();
   } },
 ];

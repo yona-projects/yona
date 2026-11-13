@@ -6684,10 +6684,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             width: 180px;
         }
 
-        // 왼쪽 25px는 선택한 색을 보이는 미리보기 칸(옛 규칙의 inset 그림자)이라 글자가 겹치지 않게 안쪽 여백을 둔다
+        // 색상 선택기(A-557): 이름 입력란과 같은 높이의 작은 상자이다. 옛 규칙의 왼쪽 25px 미리보기 그림자(텍스트 입력용)는 없앤다.
         .input-label-color {
-            width: 170px;
-            padding-left: 34px;
+            width: 48px;
+            height: 38px;
+            padding: 2px 4px;
+            cursor: pointer;
+            box-shadow: none !important;
         }
 
         // 색 견본은 항상 보인다(옛 규칙은 이름 입력란에 포커스를 줄 때만 보였다)

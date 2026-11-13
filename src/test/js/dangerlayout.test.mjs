@@ -136,12 +136,12 @@ export const tests = [
     const tbl = await r(page, '#labelsList table'), ab = await r(page, '#ab'); assert.ok(tbl.right - ab.right <= 16, `작업 단추가 오른쪽 끝에서 ${(tbl.right - ab.right).toFixed(0)}px 떨어져 있다`);
     await ctx.close();
   } },
-  { name: '새 라벨 폼의 색 직접 입력란은 왼쪽 색 미리보기 칸(25px)이 글자를 가리지 않는다(A-556)', run: async () => {
+  { name: '새 라벨 폼의 색상 선택기는 이름 입력란과 높이가 같은 작은 상자이고 옛 안쪽 그림자가 없다(A-557)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
-<div class="page-wrap-outer"><div class="project-page-wrap shell label-editor-wrap"><div class="shell-main" style="width:990px;flex:none"><form id="frmNewLabel" class="new-label-wrap"><div class="label-preset-colors"><input id="col" type="text" class="input-small input-label-color form-control" placeholder="라벨 색"></div></form></div></div></div></body></html>`);
-    const pad = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('col')).paddingLeft));
-    assert.ok(pad >= 30, `색 입력란 왼쪽 안쪽 여백이 ${pad}px라 미리보기 칸(25px)이 글자를 가린다`);
+<div class="page-wrap-outer"><div class="project-page-wrap shell label-editor-wrap"><div class="shell-main" style="width:990px;flex:none"><form id="frmNewLabel" class="new-label-wrap"><input id="nm" type="text" name="name" class="input-label form-control"><div class="label-preset-colors"><input id="col" type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color"></div></form></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const c = document.getElementById('col'), n = document.getElementById('nm'); const cs = getComputedStyle(c); return { w: c.getBoundingClientRect().width, h: c.getBoundingClientRect().height, nh: n.getBoundingClientRect().height, shadow: cs.boxShadow }; });
+    assert.ok(m.w >= 36 && m.w <= 64, `색상 선택기 너비 ${m.w}px`); assert.ok(Math.abs(m.h - m.nh) <= 2, `색상 선택기 높이 ${m.h}px, 이름 입력란 ${m.nh}px`); assert.equal(m.shadow, 'none', `옛 안쪽 그림자가 남았다: ${m.shadow}`);
     await ctx.close();
   } },
 ];

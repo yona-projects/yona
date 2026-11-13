@@ -126,7 +126,10 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertEquals(listOf("owner", "projectName"), copy.select("input[type=text]").map { it.attr("name") })
         val form = page.selectFirst("form#frmNewLabel")!!
         assertEquals("${base(project)}/issue/labels", form.attr("action"))
-        assertEquals(listOf("category", "name", "color"), form.select("input[type=text]").map { it.attr("name") })
+        assertEquals(listOf("category", "name"), form.select("input[type=text]").map { it.attr("name") })
+        // A-557: 색은 텍스트 상자 대신 색상 선택기이다
+        assertEquals("color", form.selectFirst("input[name=color]")!!.attr("type"))
+        assertTrue(form.selectFirst("input[type=color][name=color]")!!.attr("value").matches(Regex("#[0-9a-f]{6}")), "기본 색이 있다")
         assertEquals(17, form.select("button.btn-preset-color").size)
         assertEquals("Issue labels", page.selectFirst(".label-page-head h3.label-page-title")?.text())
         assertFalse(page.selectFirst(".label-page-head .label-page-desc")?.text().isNullOrBlank(), "설명 한 줄")
