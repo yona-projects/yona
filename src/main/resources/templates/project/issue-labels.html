@@ -45,7 +45,7 @@
             <button type="button" class="issue-label btn-preset-color" style="background-color:#ff5722"></button>
             <button type="button" class="issue-label btn-preset-color" style="background-color:#795548"></button>
             <button type="button" class="issue-label btn-preset-color" style="background-color:#9e9e9e"></button>
-                    <input type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color" th:title="#{label.customColor}" th:aria-label="#{label.customColor}">
+                    <label class="label-color-pick"><span class="label-color-caption" th:text="#{label.color.pick}"></span><input type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color" th:title="#{label.customColor}"></label>
                 </div>
             </div>
             <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{label.add}"></button>
@@ -141,7 +141,7 @@ await import([[@{/assets/javascripts/esm/service/issue.LabelEditor.js}]]);
         <button type="button" class="issue-label btn-preset-color" style="background-color:#ff5722"></button>
         <button type="button" class="issue-label btn-preset-color" style="background-color:#795548"></button>
         <button type="button" class="issue-label btn-preset-color" style="background-color:#9e9e9e"></button>
-        <input type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color" th:title="#{label.customColor}" th:aria-label="#{label.customColor}">
+        <label class="label-color-pick"><span class="label-color-caption" th:text="#{label.color.pick}"></span><input type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color" th:title="#{label.customColor}"></label>
       </div>
     </div>
     <div class="center-txt buttons mt20 mb20">

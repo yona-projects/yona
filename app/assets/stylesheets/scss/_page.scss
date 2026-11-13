@@ -6684,11 +6684,34 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             width: 180px;
         }
 
-        // 색상 선택기(A-557): 이름 입력란과 같은 높이의 작은 상자이다. 옛 규칙의 왼쪽 25px 미리보기 그림자(텍스트 입력용)는 없앤다.
-        .input-label-color {
-            width: 48px;
+        // 색상 선택기(A-557, A-559): "색 직접 선택" 글자가 붙은 테두리 상자 안에 둔다. 상자 높이는 이름 입력란과 같고,
+        // 옛 규칙의 왼쪽 25px 미리보기 그림자(텍스트 입력용)는 없앤다.
+        .label-color-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             height: 38px;
-            padding: 2px 4px;
+            margin: 0 0 0 6px;
+            padding: 0 8px 0 12px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            background: #fff;
+            font-size: 0.8125rem;
+            color: #495057;
+            cursor: pointer;
+
+            &:hover {
+                border-color: #f57c3a;
+            }
+        }
+
+        .input-label-color {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            background: none;
             cursor: pointer;
             box-shadow: none !important;
         }
@@ -7055,11 +7078,33 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         gap: 3px;
         margin: 0;
 
-        .input-label-color {
-            width: 48px;
+        // 색상 선택기도 새 라벨 폼과 같은 "색 직접 선택" 상자이다(A-559)
+        .label-color-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             height: 38px;
-            padding: 2px 4px;
-            margin-left: 6px;
+            margin: 0 0 0 6px;
+            padding: 0 8px 0 12px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            background: #fff;
+            font-size: 0.8125rem;
+            color: #495057;
+            cursor: pointer;
+
+            &:hover {
+                border-color: #f57c3a;
+            }
+        }
+
+        .input-label-color {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            background: none;
             cursor: pointer;
             box-shadow: none !important;
         }

@@ -136,12 +136,14 @@ export const tests = [
     const tbl = await r(page, '#labelsList table'), ab = await r(page, '#ab'); assert.ok(tbl.right - ab.right <= 16, `작업 단추가 오른쪽 끝에서 ${(tbl.right - ab.right).toFixed(0)}px 떨어져 있다`);
     await ctx.close();
   } },
-  { name: '새 라벨 폼의 색상 선택기는 이름 입력란과 높이가 같은 작은 상자이고 옛 안쪽 그림자가 없다(A-557)', run: async () => {
+  { name: '새 라벨 폼의 색상 선택기는 "색 직접 선택" 글자가 붙은 상자 안에 있고 높이가 이름 입력란과 같으며 옛 안쪽 그림자가 없다(A-557, A-559)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
-<div class="page-wrap-outer"><div class="project-page-wrap shell label-editor-wrap"><div class="shell-main" style="width:990px;flex:none"><form id="frmNewLabel" class="new-label-wrap"><input id="nm" type="text" name="name" class="input-label form-control"><div class="label-preset-colors"><input id="col" type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color"></div></form></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const c = document.getElementById('col'), n = document.getElementById('nm'); const cs = getComputedStyle(c); return { w: c.getBoundingClientRect().width, h: c.getBoundingClientRect().height, nh: n.getBoundingClientRect().height, shadow: cs.boxShadow }; });
-    assert.ok(m.w >= 36 && m.w <= 64, `색상 선택기 너비 ${m.w}px`); assert.ok(Math.abs(m.h - m.nh) <= 2, `색상 선택기 높이 ${m.h}px, 이름 입력란 ${m.nh}px`); assert.equal(m.shadow, 'none', `옛 안쪽 그림자가 남았다: ${m.shadow}`);
+<div class="page-wrap-outer"><div class="project-page-wrap shell label-editor-wrap"><div class="shell-main" style="width:990px;flex:none"><form id="frmNewLabel" class="new-label-wrap"><input id="nm" type="text" name="name" class="input-label form-control"><div class="label-preset-colors"><label class="label-color-pick" id="pick"><span class="label-color-caption" id="cap">색 직접 선택</span><input id="col" type="color" name="color" value="#2196f3" class="input-label-color form-control form-control-color"></label></div></form></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const c = document.getElementById('col'), n = document.getElementById('nm'), k = document.getElementById('pick'); const ks = getComputedStyle(k); return { ch: c.getBoundingClientRect().height, cw: c.getBoundingClientRect().width, kh: k.getBoundingClientRect().height, nh: n.getBoundingClientRect().height, border: parseFloat(ks.borderTopWidth), shadow: getComputedStyle(c).boxShadow, capFont: parseFloat(getComputedStyle(document.getElementById('cap')).fontSize) }; });
+    assert.ok(m.border >= 1, '선택기 상자에 테두리가 없어 선택기로 알아보기 어렵다'); assert.ok(Math.abs(m.kh - m.nh) <= 2, `상자 높이 ${m.kh}px, 이름 입력란 ${m.nh}px`); assert.ok(m.cw >= 20 && m.cw <= 40 && m.ch >= 20 && m.ch <= 40, `선택기 크기 ${m.cw}x${m.ch}px`);
+    assert.equal(m.shadow, 'none', `옛 안쪽 그림자가 남았다: ${m.shadow}`); assert.ok(m.capFont >= 12, `안내 글자 ${m.capFont}px`);
+    const cap = await r(page, '#cap'), col = await r(page, '#col'); assert.ok(cap.right <= col.left + 1 && Math.abs((cap.top + cap.bottom) / 2 - (col.top + col.bottom) / 2) <= 6, '글자와 선택기가 같은 줄에 있지 않다');
     await ctx.close();
   } },
   { name: '라벨 수정 모달의 입력란은 모달 폭에 맞고 견본이 모달 밖으로 넘치지 않으며 이름 옆에 색 칩이 있다(A-558)', run: async () => {
@@ -151,7 +153,7 @@ export const tests = [
 <div id="editLabel" class="modal yobiDialog show" style="display:block" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="message edit-label-form"><div class="center-txt">
 <select class="form-select" name="category.id"><option>종류</option></select>
 <div class="edit-label-name-row"><input id="nm" type="text" name="name" class="text input-label-name form-control" value="버그"><span class="edit-label-chip issue-label active" id="chip" style="background-color:#d73a4a">버그</span></div>
-<div class="label-preset-colors edit" id="sw">${sw}<input id="col" type="color" name="color" value="#d73a4a" class="input-label-color form-control form-control-color"></div>
+<div class="label-preset-colors edit" id="sw">${sw}<label class="label-color-pick"><span class="label-color-caption">색 직접 선택</span><input id="col" type="color" name="color" value="#d73a4a" class="input-label-color form-control form-control-color"></label></div>
 </div></div></div></div></div></body></html>`);
     const box = await r(page, '#editLabel .modal-content'), nm = await r(page, '#nm'), sel = await r(page, '#editLabel select'), sw2 = await r(page, '#sw'), col = await r(page, '#col'), chip = await r(page, '#chip');
     assert.ok(nm.right <= box.right + 0.5 && nm.left >= box.left, `이름 입력란이 모달 밖이다: ${nm.left.toFixed(0)}~${nm.right.toFixed(0)} / 모달 ${box.left.toFixed(0)}~${box.right.toFixed(0)}`);

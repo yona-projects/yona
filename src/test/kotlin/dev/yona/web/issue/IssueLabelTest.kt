@@ -129,6 +129,9 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertEquals(listOf("category", "name"), form.select("input[type=text]").map { it.attr("name") })
         // A-557: 색은 텍스트 상자 대신 색상 선택기이다
         assertEquals("color", form.selectFirst("input[name=color]")!!.attr("type"))
+        // A-559: 선택기는 "색 직접 선택" 글자가 붙은 상자 안에 있어 선택기로 알아볼 수 있다(글자를 눌러도 열린다)
+        assertEquals("Pick a custom color", form.selectFirst("label.label-color-pick .label-color-caption")?.text())
+        assertNotNull(form.selectFirst("label.label-color-pick input[type=color][name=color]"))
         assertTrue(form.selectFirst("input[type=color][name=color]")!!.attr("value").matches(Regex("#[0-9a-f]{6}")), "기본 색이 있다")
         assertEquals(17, form.select("button.btn-preset-color").size)
         assertEquals("Issue labels", page.selectFirst(".label-page-head h3.label-page-title")?.text())
@@ -143,6 +146,8 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertEquals("color", edit.selectFirst("input[name=color]")!!.attr("type"))
         assertEquals(form.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, edit.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, "견본은 새 라벨 폼과 같다")
         assertNotNull(edit.selectFirst(".edit-label-chip"))
+        assertEquals("Pick a custom color", edit.selectFirst("label.label-color-pick .label-color-caption")?.text())
+        assertNotNull(edit.selectFirst("label.label-color-pick input[type=color][name=color]"))
         assertTrue(page.select("script").any { "issue.LabelEditor" in it.data() && "${base(project)}/issue/labels" in it.data().replace("\\/", "/") })
     }
 
