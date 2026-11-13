@@ -87,7 +87,7 @@ export const tests = [
     assert.ok(Math.abs((c.top + c.bottom) / 2 - (l.top + l.bottom) / 2) <= 4, `체크 상자 중심 ${((c.top + c.bottom) / 2).toFixed(0)}, 글자 중심 ${((l.top + l.bottom) / 2).toFixed(0)}`);
     await ctx.close();
   } },
-  { name: '규칙 묶음 폼은 레이블이 입력란 위에 쌓이고 폭이 760px 이하이며 규칙 선택 칸의 체크 상자가 16px이다(A-550)', run: async () => {
+  { name: '규칙 묶음 폼은 레이블이 입력란 위에 쌓이고 폭이 760px 이하이며 체크 상자가 16px이고 카드 상자로 감싸지 않는다(A-550, A-552)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
 <div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px;flex:none"><form id="rulesetForm" class="ruleset-form">
@@ -95,8 +95,11 @@ export const tests = [
 <section class="ruleset-section" id="rulesetRules"><h4 class="ruleset-section-title">규칙</h4><label class="rule-option"><input id="c" type="checkbox" class="form-check-input"><span class="rule-option-text"><span class="rule-option-title">삭제 제한</span><span class="rule-option-desc">대상 브랜치를 지우지 못하게 합니다.</span></span></label></section>
 </form></div></div></div></body></html>`);
     const f = await r(page, '#rulesetForm'); assert.ok(f.right - f.left <= 760, `폼 너비 ${(f.right - f.left).toFixed(0)}px`);
-    const l = await r(page, 'label[for=n]'), i = await r(page, '#n'); assert.ok(l.bottom <= i.top + 2, `레이블(${l.bottom.toFixed(0)})이 입력란(${i.top.toFixed(0)}) 위에 있지 않다`);
+    const l = await r(page, 'label[for=n]'), i = await r(page, '#n'); assert.ok(i.right <= f.right + 0.5, `입력란 오른쪽(${i.right.toFixed(0)})이 폼 오른쪽(${f.right.toFixed(0)})보다 튀어나왔다`); assert.ok(l.bottom <= i.top + 2, `레이블(${l.bottom.toFixed(0)})이 입력란(${i.top.toFixed(0)}) 위에 있지 않다`);
     const c = await r(page, '#c'), t = await r(page, '.rule-option-title'); assert.ok(c.h >= 15 && c.h <= 18, `체크 상자 ${c.h}px`);
+    // 단일 폼이라 카드 상자로 감싸지 않는다: 구역과 규칙 줄에 테두리 상자와 배경색이 없다(D-143, A-552)
+    const box = await page.evaluate(() => ['#rulesetBasics', '#rulesetRules', '.rule-option'].map((s) => { const c = getComputedStyle(document.querySelector(s)); return { s, side: parseFloat(c.borderLeftWidth) + parseFloat(c.borderRightWidth), bg: c.backgroundColor, radius: parseFloat(c.borderTopLeftRadius) }; }));
+    box.forEach((b) => assert.ok(b.side === 0 && b.bg === 'rgba(0, 0, 0, 0)' && b.radius === 0, `${b.s}가 카드 상자 모양이다: 좌우 테두리 ${b.side}, 배경 ${b.bg}, 모서리 ${b.radius}`));
     assert.ok(Math.abs((c.top + c.bottom) / 2 - (t.top + t.bottom) / 2) <= 6, `체크 상자 중심 ${((c.top + c.bottom) / 2).toFixed(0)}, 제목 중심 ${((t.top + t.bottom) / 2).toFixed(0)}`);
     await ctx.close();
   } },

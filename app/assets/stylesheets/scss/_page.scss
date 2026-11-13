@@ -8317,7 +8317,7 @@ text-expander {
  * 규칙 묶음 폼의 입력란 너비(A-453): 옛 크기 클래스(`input-xlarge`, `input-large`, `input-mini`)의 정의가 없어져 `.form-control`의 `width: 100%`가 내용 크기로 줄어드는
  * 칸(`.cu-desc`) 안에서 풀렸다. 이름과 대상 브랜치가 같은 너비가 되도록 글 입력란을 정하고, 승인 수는 좁게 둔다.
  */
-#rulesetForm input.form-control[type="text"] { width: 100%; }
+#rulesetForm input.form-control[type="text"] { width: 100%; box-sizing: border-box; }
 #rulesetForm input.input-mini { width: 5rem; }
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
@@ -8968,16 +8968,19 @@ textarea.editorSeries.content {
 }
 
 
-// 규칙 묶음 편집 화면(A-550): 레이블 열이 있는 옛 표 모양을 구역 카드로 바꾼다. 레이블은 입력란 위, 규칙은 제목과 설명이 있는 선택 칸이다.
+// 규칙 묶음 편집 화면(A-550, A-552): 저장 단추가 하나인 단일 폼이라 카드 상자로 감싸지 않고 구역 제목과 구분선으로 묶는다(D-143).
+// 레이블은 입력란 위에 쌓고, 규칙은 제목과 설명이 있는 줄로 둔다.
 .ruleset-form {
     max-width: 760px;
 
     .ruleset-section {
-        margin-bottom: 14px;
-        padding: 16px 20px;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        background: #fff;
+        padding: 18px 0;
+        border-top: 1px solid #e5e5e5;
+
+        &:first-of-type {
+            border-top: 0;
+            padding-top: 4px;
+        }
     }
 
     .ruleset-section-title {
@@ -8992,15 +8995,8 @@ textarea.editorSeries.content {
         column-gap: 10px;
         align-items: start;
         margin: 0;
-        padding: 10px 12px;
-        border: 1px solid #e9ecef;
-        border-radius: 6px;
+        padding: 8px 0;
         cursor: pointer;
-
-        & + .rule-option,
-        & + .ruleset-pr-options {
-            margin-top: 8px;
-        }
 
         .form-check-input {
             float: none;
@@ -9025,11 +9021,6 @@ textarea.editorSeries.content {
             font-size: 0.8125rem;
             line-height: 1.5;
             color: #6c757d;
-        }
-
-        &:has(input:checked) {
-            border-color: #f57c3a;
-            background: #fffaf6;
         }
     }
 
