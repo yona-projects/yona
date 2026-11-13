@@ -109,20 +109,6 @@ export const tests = [
     assert.ok(Math.abs((c.top + c.bottom) / 2 - (t.top + t.bottom) / 2) <= 6, `체크 상자 중심 ${((c.top + c.bottom) / 2).toFixed(0)}, 제목 중심 ${((t.top + t.bottom) / 2).toFixed(0)}`);
     await ctx.close();
   } },
-  { name: '프로젝트 설정 폼의 구역 제목은 눈에 띄고 항목 레이블 열 너비가 구역마다 같으며 체크 상자는 16px이다(A-551)', run: async () => {
-    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
-    const row = (id, label, control) => `<div class="box-wrap middle"><div class="cu-label" id="${id}">${label}</div><div class="cu-desc">${control}</div></div>`;
-    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
-<div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px;flex:none"><form id="saveSetting" class="nm"><div class="bubble-wrap gray">
-<h4 class="setting-section-title" id="t1">공개와 접근</h4>${row('l1', '공개 설정', '<input type="radio" class="form-check-input"> 공개')}
-<h4 class="setting-section-title" id="t2">이슈와 메뉴</h4>${row('l2', '메뉴 설정', '<label><input id="c" type="checkbox" class="form-check-input"> 코드</label>')}
-</div></form></div></div></div></body></html>`);
-    const fs = await page.evaluate(() => { const c = getComputedStyle(document.getElementById('t1')); return { size: parseFloat(c.fontSize), weight: parseInt(c.fontWeight, 10) }; });
-    assert.ok(fs.size >= 16 && fs.weight >= 600, `구역 제목이 ${fs.size}px, 굵기 ${fs.weight}이다`);
-    const a = await r(page, '#l1'), c2 = await r(page, '#l2'); assert.equal(Math.round(a.right - a.left), Math.round(c2.right - c2.left), '레이블 열 너비가 구역마다 다르다');
-    const cb = await r(page, '#c'); assert.ok(cb.h >= 15 && cb.h <= 18, `체크 상자 ${cb.h}px`);
-    await ctx.close();
-  } },
   { name: '이슈 라벨 목록은 분류 소제목 줄이 배경으로 구분되고 라벨 칩은 둥글며 작업 단추는 오른쪽 끝이다(A-556)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
@@ -164,6 +150,29 @@ export const tests = [
     assert.ok(Math.abs(sw2.left - sel.left) <= 2, `견본 줄 왼쪽(${sw2.left.toFixed(0)})이 분류 선택 왼쪽(${sel.left.toFixed(0)})과 어긋난다`);
     assert.ok(col.right - col.left <= 64, `색상 선택기 너비 ${(col.right - col.left).toFixed(0)}px`); assert.ok(chip.h >= 14 && chip.h <= 30, `색 칩 높이 ${chip.h}px`);
     const bg = await page.evaluate(() => getComputedStyle(document.getElementById('nm')).backgroundColor); assert.ok(bg === 'rgb(255, 255, 255)' || bg === 'rgba(0, 0, 0, 0)', `이름 입력란이 칠해졌다: ${bg}`);
+    await ctx.close();
+  } },
+  { name: '프로젝트 설정 폼은 왼쪽 제목 칸과 오른쪽 내용 칸이고 가로 선택, 4열 체크 목록, 병합 표가 한 줄에 놓이며 입력란은 읽기 편하다(A-563)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    const feat = ['코드', '이슈', '코드 주고받기', '리뷰', '마일스톤', '게시판', '위키'].map((n, i) => `<label class="setting-check"><input id="f${i}" type="checkbox" class="form-check-input"> ${n}</label>`).join('');
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main" style="width:990px;flex:none"><form id="saveSetting" class="setting-form">
+<section class="setting-section" id="settingAccess"><div class="setting-section-head"><h4>공개와 접근</h4></div><div class="setting-section-body">
+ <div class="setting-field"><label class="setting-label">공개 설정</label><div class="setting-seg" id="seg"><label class="on"><input type="radio" name="p" checked>공개</label><label><input type="radio" name="p">비공개</label></div></div>
+ <div class="setting-field"><label class="setting-label" for="nm">프로젝트 이름</label><input id="nm" type="text" class="form-control w-100"></div></div></section>
+<section class="setting-section" id="settingFeatures"><div class="setting-section-head"><h4>기능</h4></div><div class="setting-section-body"><div class="setting-features" id="grid">${feat}</div></div></section>
+<section class="setting-section" id="settingCode"><div class="setting-section-head"><h4>코드와 병합</h4></div><div class="setting-section-body"><table class="setting-merge" id="mt"><thead><tr><th>방식</th><th>허용</th><th>기본</th></tr></thead><tbody><tr><td>병합 커밋</td><td><input type="checkbox"></td><td><input type="radio"></td></tr></tbody></table></div></section>
+</form></div></div></div></body></html>`);
+    const head = await r(page, '#settingAccess .setting-section-head'), body = await r(page, '#settingAccess .setting-section-body'), form = await r(page, '#saveSetting');
+    assert.ok(head.right <= body.left + 1, `제목 칸(${head.right.toFixed(0)})이 내용 칸(${body.left.toFixed(0)})보다 왼쪽이어야 한다`); assert.ok(head.right - head.left <= 200, `제목 칸 너비 ${(head.right - head.left).toFixed(0)}px`); assert.ok(form.right - form.left <= 840, `폼 너비 ${(form.right - form.left).toFixed(0)}px`);
+    const tops = await page.evaluate(() => [...document.querySelectorAll('#grid .setting-check')].map((e) => Math.round(e.getBoundingClientRect().top)));
+    assert.equal(tops.filter((t) => t === tops[0]).length, 4, `기능 체크 목록의 첫 줄에 ${tops.filter((t) => t === tops[0]).length}개가 있다(4개여야 한다): ${tops}`);
+    const seg = await page.evaluate(() => { const l = [...document.querySelectorAll('#seg label')].map((e) => e.getBoundingClientRect()); return { sameRow: Math.abs(l[0].top - l[1].top) < 2, adjacent: Math.abs(l[0].right - l[1].left) <= 2, border: parseFloat(getComputedStyle(document.getElementById('seg')).borderTopWidth), onBg: getComputedStyle(document.querySelector('#seg label.on')).backgroundColor }; });
+    assert.ok(seg.sameRow && seg.adjacent, '가로 선택의 항목이 한 줄에 붙어 있지 않다'); assert.ok(seg.border >= 1, '가로 선택에 테두리가 없다'); assert.notEqual(seg.onBg, 'rgba(0, 0, 0, 0)', '고른 항목이 구분되지 않는다');
+    const ib = await page.evaluate(() => { const e = document.getElementById('nm'), c = getComputedStyle(e); return { h: e.getBoundingClientRect().height, font: parseFloat(c.fontSize), radius: parseFloat(c.borderTopLeftRadius), pad: c.padding, lh: c.lineHeight, bs: c.boxSizing }; });
+    assert.ok(ib.h >= 34 && ib.font >= 14 && ib.radius >= 4, `입력란 ${ib.h}px, 글자 ${ib.font}px, 모서리 ${ib.radius}px`);
+    const th = await page.evaluate(() => [...document.querySelectorAll('#mt thead th')].map((e) => Math.round(e.getBoundingClientRect().top)));
+    assert.equal(new Set(th).size, 1, `병합 표 머리 칸이 한 줄에 있지 않다: ${th}`);
     await ctx.close();
   } },
 ];

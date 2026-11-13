@@ -172,27 +172,36 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `설정 폼은 항목을 구역 제목으로 묶고 스크립트가 쓰는 패널은 해당 구역 아래에 둔다(A-551)`() {
+    fun `설정 폼은 구역 네 개와 값의 종류에 맞는 컨트롤을 쓰고 스크립트가 쓰는 id를 지킨다(A-563)`() {
         val project = newProject()
         val form = settingForm(project, login(manager(project))).selectFirst("form#saveSetting")!!
-        val titles = form.select("h4.setting-section-title")
-        assertEquals(listOf("Basic information", "Visibility and access", "Code and pull requests", "Issues and menus"), titles.map { it.text() })
-        val all = form.allElements.toList()
-        fun index(selector: String) = all.indexOf(form.selectFirst(selector)!!)
-        val code = all.indexOf(titles[2]); val menus = all.indexOf(titles[3])
-        listOf("#reviewerCountSettingPanel", "#mergeMethodSettingPanel", "#defaultBranceSettingPanel").forEach {
-            assertTrue(index(it) in (code + 1) until menus, "$it 는 '코드와 풀 리퀘스트' 구역에 있어야 한다")
-        }
-        assertTrue(index("#menuSettingCode") > menus, "메뉴 체크는 '이슈와 메뉴' 구역에 있다")
-        assertTrue(index("input[name=projectScope]") in (all.indexOf(titles[1]) + 1) until code, "공개 범위는 '공개와 접근' 구역에 있다")
-        assertTrue(index("#project-name") in (all.indexOf(titles[0]) + 1) until all.indexOf(titles[1]))
+        assertEquals(listOf("settingInfo", "settingAccess", "settingFeatures", "settingCode"), form.select("section.setting-section").map { it.id() })
+        assertEquals(listOf("Project information", "Visibility and access", "Features", "Code and merge"), form.select("section.setting-section > .setting-section-head > h4").map { it.text() })
+        assertTrue(form.select(".box-wrap, .bubble-wrap, .cu-label, .cu-desc").isEmpty(), "옛 표 모양 클래스는 쓰지 않는다")
+        // 공개 설정과 코드 접근, 승인 해제는 값 이름과 전송 값이 그대로인 라디오를 가로 선택으로 보인다
+        assertEquals(listOf("public", "private"), form.select("#settingAccess .setting-seg input[name=projectScope]").map { it.id() })
+        assertEquals(listOf("true", "false"), form.select("#settingAccess .setting-seg input[name=isCodeAccessibleMemberOnly]").map { it.attr("value") })
+        assertEquals(listOf("dismissStaleEnable", "dismissStaleDisable"), form.select("#reviewerCountSettingPanel .setting-seg input[name=isDismissingStaleApprovals]").map { it.id() })
+        // 기능은 체크 목록이고 이슈 템플릿 편집은 그 목록 밖의 독립 항목이다
+        assertEquals(listOf("code", "issue", "pullRequest", "review", "milestone", "board", "wiki"), form.select("#settingFeatures .setting-features input[type=checkbox]").map { it.attr("name") })
+        assertNotNull(form.selectFirst("#settingFeatures a#issueTemplateEdit"))
+        assertNull(form.selectFirst(".setting-features #issueTemplateEdit"), "이슈 기능의 체크가 아니라 설정의 독립 항목이다")
+        // 병합 방식은 방식마다 허용(체크와 숨은 false), 기본(라디오)이 한 줄에 짝을 이루는 표이다
+        val rows = form.select("#mergeMethodSettingPanel table.setting-merge tbody tr")
+        assertEquals(listOf("allowMergeCommit", "allowSquashMerge", "allowRebaseMerge"), rows.map { it.selectFirst("input[type=checkbox]")!!.attr("name") })
+        assertEquals(listOf("merge", "squash", "rebase"), rows.map { it.selectFirst("input[name=defaultMergeMethod]")!!.attr("value") })
+        assertTrue(rows.all { r -> r.selectFirst("input[type=hidden][value=false]") != null }, "체크하지 않은 방식은 false로 보낸다")
+        assertEquals(listOf("Method", "Allowed", "Default"), form.select("#mergeMethodSettingPanel table.setting-merge thead th").map { it.text() })
+        // 스크립트와 다른 화면이 쓰는 id
+        listOf("project-name", "project-desc", "logoPath", "save", "defaultBranceSettingPanel", "reviewerCountSettingPanel", "mergeMethodSettingPanel", "menuSettingCode", "menuSettingPullRequest", "menuSettingReview", "project-default-branch")
+            .forEach { assertNotNull(form.getElementById(it), "#$it") }
     }
 
     @Test
-    fun `풀 리퀘스트와 기본 브랜치가 없는 Subversion 프로젝트에는 코드 구역이 없다(A-551)`() {
+    fun `풀 리퀘스트와 기본 브랜치가 없는 Subversion 프로젝트에는 코드와 병합 구역이 없다(A-563)`() {
         val project = newProject(vcs = "Subversion")
-        val titles = settingForm(project, login(manager(project))).select("form#saveSetting h4.setting-section-title").map { it.text() }
-        assertEquals(listOf("Basic information", "Visibility and access", "Issues and menus"), titles)
+        val titles = settingForm(project, login(manager(project))).select("form#saveSetting section.setting-section > .setting-section-head > h4").map { it.text() }
+        assertEquals(listOf("Project information", "Visibility and access", "Features"), titles)
     }
 
     @Test
