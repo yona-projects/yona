@@ -5586,13 +5586,20 @@ label.issue-item-row {
 
 // -- keymap
 .keymap-help {
-    padding:20px;
-    line-height:1.875rem;
-    white-space:nowrap;
-    text-align:left;
-    font-size:0.75rem;
-    width:640px;
-    margin-left:-320px;
+    // 폭과 안쪽 여백은 모달 겉껍질(`.modal`, 화면 전체를 덮는 BS5 모달)이 아니라 대화상자에 준다. 예전에는 겉껍질에 `width: 640px; margin-left: -320px`
+    // (BS2의 가운데 맞춤)를 줘서 BS5에서 모달이 화면 왼쪽 밖(-320px)에 반쯤 걸려 열렸다(A-531).
+    .modal-dialog {
+        max-width: 680px;
+    }
+
+    .modal-content {
+        padding:20px;
+        line-height:1.875rem;
+        white-space:nowrap;
+        text-align:left;
+        font-size:0.75rem;
+        overflow-x:auto;
+    }
 
     .ybtn {
         min-width:20px;
