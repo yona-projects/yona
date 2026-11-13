@@ -8687,13 +8687,14 @@ textarea.editorSeries.content {
     // GitHub처럼 실행 단추 하나가 푸터 전체 너비를 쓴다(A-540). 닫기는 머리글의 ×이다.
     // 단추는 입력란 바로 아래에 여백만 두고 붙는다. 푸터 구분선과 위쪽 안쪽 여백은 없앤다.
     .modal-body {
-        padding-bottom: 0.75rem;
+        padding-bottom: 0.25rem;
     }
 
     .modal-footer {
         display: block;
         border-top: 0;
         padding-top: 0;
+        padding-bottom: 1rem;
 
         .ybtn-danger {
             display: block;

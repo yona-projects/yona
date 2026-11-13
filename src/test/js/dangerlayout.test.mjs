@@ -41,11 +41,11 @@ export const tests = [
     assert.ok(fs <= 22, `제목 글자가 ${fs}px로 크다`);
     await ctx.close();
   } },
-  { name: '확인 창의 실행 단추는 입력란 바로 아래(여백 24px 이하)에 전체 너비로 붙고 푸터 구분선이 없다(A-540)', run: async () => {
+  { name: '확인 창의 실행 단추는 입력란 바로 아래(여백 14px 이하)에 전체 너비로 붙고 푸터 구분선이 없다(A-540)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(MODAL_HTML(false));
     const i = await r(page, '#deleteConfirmName'), x = await r(page, '#btnDeleteExec'), f = await r(page, '.modal-footer');
-    assert.ok(x.top - i.bottom <= 24, `입력란과 단추 사이가 ${(x.top - i.bottom).toFixed(0)}px 벌어져 있다`);
+    assert.ok(x.top - i.bottom <= 14, `입력란과 단추 사이가 ${(x.top - i.bottom).toFixed(0)}px 벌어져 있다`);
     assert.ok(x.right - x.left >= (f.right - f.left) - 40, `단추 너비 ${(x.right - x.left).toFixed(0)}px, 푸터 ${(f.right - f.left).toFixed(0)}px`);
     const bt = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.modal-footer')).borderTopWidth));
     assert.equal(bt, 0, '푸터 위 구분선이 있다');
