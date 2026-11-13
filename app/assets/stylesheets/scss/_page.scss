@@ -6630,78 +6630,173 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin-left:0px !important;
 }
 
+// 이슈 라벨 화면(A-556): 분류별로 묶인 라벨 목록과 작은 입력 폼이라 카드 없이 제목 줄, 한 줄 입력, 소제목 줄이 있는 목록으로 둔다(D-143).
 .label-editor-wrap {
-    .new-label-wrap {
-        margin:30px auto;
+    .label-page-head {
+        margin: 8px 0 12px;
 
-        .form-legend {
-            display:block;
-            margin: 8px 0 14px;
+        .label-page-title {
+            margin: 0 0 4px;
+            padding: 0;
             font-size: 1.125rem;
             font-weight: 600;
         }
-        .form-wrap {
-            position:relative;
-            display:inline-block;
-            vertical-align:top;
+
+        .label-page-desc {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
         }
+    }
+
+    // 새 라벨: 분류, 이름, 색 견본, 직접 입력, 추가 단추가 한 줄(좁으면 줄바꿈)이다.
+    #frmNewLabel.new-label-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 16px;
+        padding: 12px 0;
+        border-top: 1px solid #e5e5e5;
+        border-bottom: 1px solid #e5e5e5;
+
+        .label-form-title {
+            margin-right: 6px;
+        }
+
+        .form-wrap,
+        .form-wrap > .d-flex {
+            display: contents;
+        }
+
+        .input-label,
+        .input-label-color {
+            box-sizing: border-box;
+            height: auto;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+
         .input-label {
-            width:214px;
+            width: 180px;
         }
+
+        // 왼쪽 25px는 선택한 색을 보이는 미리보기 칸(옛 규칙의 inset 그림자)이라 글자가 겹치지 않게 안쪽 여백을 둔다
+        .input-label-color {
+            width: 170px;
+            padding-left: 34px;
+        }
+
+        // 색 견본은 항상 보인다(옛 규칙은 이름 입력란에 포커스를 줄 때만 보였다)
+        .label-preset-colors {
+            display: inline-flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 3px;
+            margin: 0;
+        }
+
         .btn-submit {
-            vertical-align: top;
-            min-width:100px;
+            min-width: 100px;
         }
     }
 
     .issue-label-list-wrap {
-        margin:0 auto;
+        margin: 0;
 
-        .list-head {
-            border:1px solid #ddd;
-            border-width:2px 0px 0px;
-            background: #fafafa;
+        .label-list-head {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
 
-            .category {
-                padding-right:18px;
-                line-height:1.875rem;
-                text-align:right;
+        .label-group-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            border-bottom: 1px solid #eee;
+            font-size: 0.875rem;
+
+            .category-name {
+                font-weight: 600;
             }
-            .name {
-                padding-left:8px;
-                line-height:1.875rem;
+
+            .category-exclusive {
+                color: #6c757d;
+            }
+
+            .label-group-meta {
+                color: #6c757d;
+                font-size: 0.8125rem;
+            }
+
+            .ybtn {
+                margin-left: auto;
             }
         }
-        .list-item {
-            .category-name {
-                margin-right:2px;
+
+        .category-wrap .table {
+            margin: 0;
+
+            .issue-label {
+                display: inline-block;
+                max-width: 100%;
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 0.8125rem;
+                line-height: 1.5;
             }
 
-            .table {
-                .issue-label {
-                    display: block;
-                    max-width: calc(90% + 12px);
-                    font-size: 0.75rem;
-                }
-                tr {
-                    border-bottom: 1px solid #ddd;
-                    &:last-of-type {
-                        border-bottom: none;
-                    }
-                }
-                td {
-                    border-top: none;
-                    &.info {
-                        width: 150px;
-                        text-align: right;
-                    }
-                    &.actions {
-                        width: calc(150px + 9px);
-                        text-align: right;
-                        padding-right: 1px;
-                    }
+            tr {
+                border-bottom: 1px solid #eee;
+            }
+
+            td {
+                padding: 8px 10px;
+                border-top: none;
+                vertical-align: middle;
+
+                &.actions {
+                    width: 1%;
+                    white-space: nowrap;
+                    text-align: right;
                 }
             }
+        }
+    }
+
+    // 다른 프로젝트에서 라벨 복사: 드물게 쓰므로 접이식이다.
+    .label-copy-box {
+        margin-top: 22px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e5e5;
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .new-label-wrap {
+            margin: 10px 0 0;
+        }
+
+        .input-label {
+            box-sizing: border-box;
+            height: auto;
+            width: 200px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
         }
     }
 }

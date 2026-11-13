@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -127,6 +128,12 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertEquals("${base(project)}/issue/labels", form.attr("action"))
         assertEquals(listOf("category", "name", "color"), form.select("input[type=text]").map { it.attr("name") })
         assertEquals(17, form.select("button.btn-preset-color").size)
+        assertEquals("Issue labels", page.selectFirst(".label-page-head h3.label-page-title")?.text())
+        assertFalse(page.selectFirst(".label-page-head .label-page-desc")?.text().isNullOrBlank(), "설명 한 줄")
+        val box = page.selectFirst("details#copyLabelBox")!!
+        assertEquals("Copy labels from another project", box.selectFirst("summary")?.text())
+        assertTrue(box.select("form#copyLabel").size == 1, "복사 폼은 접이식 안에 있다")
+        assertEquals("Add new label", form.selectFirst(".label-form-title")?.text())
         assertTrue(page.select("#editCategory, #editLabel").size == 2)
         assertTrue(page.select("script").any { "issue.LabelEditor" in it.data() && "${base(project)}/issue/labels" in it.data().replace("\\/", "/") })
     }
@@ -151,9 +158,11 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val areaBlock = page.selectFirst("#labelsList .category-wrap[data-category-name=Area]")!!
         assertEquals(listOf("api", "web"), areaBlock.select("span.issue-label").map { it.text() })
         assertTrue(areaBlock.select("i.category-exclusive").hasClass("multiple"))
-        // A-534: 분류 열은 좁게(col-lg-2), 라벨 열은 넓게(col-lg-10)
-        assertTrue(page.selectFirst("#labelsList .list-head > .category")!!.hasClass("col-lg-2"), "머리의 분류 열")
-        assertTrue(areaBlock.child(0).hasClass("col-lg-2") && areaBlock.child(1).hasClass("col-lg-10"), "분류 열과 라벨 열의 폭: ${areaBlock.children().map { it.className() }}")
+        // A-556: 분류는 소제목 줄(.label-group-head)과 표로 이루어지고 옛 두 열 구조(col-lg)는 쓰지 않는다
+        assertNull(page.selectFirst("#labelsList .list-head, #labelsList [class*=col-lg]"), "옛 두 열 구조가 남아 있다")
+        assertEquals(listOf("label-group-head", "table"), areaBlock.children().map { if (it.hasClass("label-group-head")) "label-group-head" else it.tagName() })
+        assertEquals("Area", areaBlock.selectFirst(".label-group-head .category-name")!!.text())
+        assertTrue(areaBlock.selectFirst(".label-group-head .label-group-meta")!!.text().contains("2"), "라벨 개수가 소제목 줄에 있다")
         assertTrue(page.selectFirst("#labelsList .category-wrap[data-category-name=Bug] i.category-exclusive")!!.hasClass("single"))
         val edit = areaBlock.selectFirst("button[data-label-color=#2196f3]")!!
         assertEquals("${base(project)}/issue/label/${web.id}", edit.attr("data-update-uri"))

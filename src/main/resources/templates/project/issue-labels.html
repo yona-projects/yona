@@ -15,19 +15,13 @@
         <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
 
+        <div class="label-page-head">
+            <h3 class="label-page-title" th:text="#{label.page.title}"></h3>
+            <p class="label-page-desc" th:text="#{label.page.description}"></p>
+        </div>
         <th:block th:if="${canCreate}">
-        <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">
-            <strong class="form-legend" th:text="#{label.copy.append}"></strong>
-            <div class="form-wrap d-flex flex-wrap gap-2 align-items-start">
-            <input type="text" name="owner" class="input-label form-control" th:placeholder="#{project.owner}">
-            <input type="text" name="projectName" class="input-label form-control" th:placeholder="#{project.name}">
-            <button type="submit" class="ybtn ybtn-info btn-submit" th:text="#{label.copy}"></button>
-            </div>
-            <div th:text="#{label.copy.description}"></div>
-            <div th:text="#{label.copy.description2}"></div>
-        </form>
         <form id="frmNewLabel" th:action="@{${base + '/issue/labels'}}" method="post" class="new-label-wrap">
-            <strong class="form-legend" th:text="#{label.new}"></strong>
+            <strong class="label-form-title" th:text="#{label.new}"></strong>
             <div class="form-wrap">
                 <div class="d-flex flex-wrap gap-2 align-items-start">
                     <input type="text" name="category" class="input-label form-control" maxlength="250" autocomplete="off" th:placeholder="#{label.category}">
@@ -61,6 +55,20 @@
         <div id="labelsList" class="issue-label-list-wrap">
             <th:block th:replace="~{project/partial-issue-labels-list :: labelList(${projectView}, ${groups})}"></th:block>
         </div>
+
+        <!--/* 다른 프로젝트에서 라벨 복사는 드물게 쓰므로 접이식으로 아래에 둔다(A-556) */-->
+        <details th:if="${canCreate}" id="copyLabelBox" class="label-copy-box">
+            <summary th:text="#{label.copy.title}"></summary>
+            <form id="copyLabel" th:action="@{${base + '/copyLabels'}}" method="post" class="new-label-wrap">
+                <div class="form-wrap d-flex flex-wrap gap-2 align-items-start">
+                    <input type="text" name="owner" class="input-label form-control" th:placeholder="#{project.owner}">
+                    <input type="text" name="projectName" class="input-label form-control" th:placeholder="#{project.name}">
+                    <button type="submit" class="ybtn ybtn-info btn-submit" th:text="#{label.copy}"></button>
+                </div>
+                <div class="form-text" th:text="#{label.copy.description}"></div>
+                <div class="form-text" th:text="#{label.copy.description2}"></div>
+            </form>
+        </details>
     
         <script type="module" th:inline="javascript">
 /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
