@@ -172,6 +172,19 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertTrue(page.selectFirst(".wiki-custom-footer")!!.text().contains("푸터 글"))
     }
 
+    @Test
+    fun `사이드바는 로컬 복제 영역이 맨 위에 있고 그 아래에 페이지 제목, 검색, 목록이 이어진다(A-532)`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Apple", "x")
+        val side = doc(getPage(writer, "${base(p)}/Apple")).selectFirst(".wiki-sidebar")!!
+        val kids = side.children()
+        val clone = kids.indexOfFirst { it.hasClass("wiki-clone") }
+        val title = kids.indexOfFirst { it.hasClass("wiki-sidebar-title") }
+        val filter = kids.indexOfFirst { it.hasClass("wiki-pages-filter") }
+        val list = kids.indexOfFirst { it.hasClass("wiki-pages-list") }
+        assertTrue(clone >= 0 && clone < title && title < filter && filter < list, "복제 $clone, 제목 $title, 검색 $filter, 목록 $list")
+    }
+
     // --- 만들기 화면과 오류 ---
 
     @Test
