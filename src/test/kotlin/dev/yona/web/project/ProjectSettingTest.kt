@@ -254,6 +254,26 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `멤버 화면의 멤버 줄은 본문 폭 전체를 쓴다(A-534)`() {
+        val project = newProject(); val mgr = manager(project)
+        val page = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/members").session(login(mgr))).andExpect(status().isOk).andReturn().response.contentAsString)
+        val rows = page.select("ul.members.project > li.member")
+        assertTrue(rows.isNotEmpty(), "멤버 줄이 있다")
+        assertTrue(rows.all { it.hasClass("col-12") && !it.hasClass("col-lg-6") }, "절반 폭(col-lg-6)이 아니라 전체 폭(col-12): ${rows.map { it.className() }}")
+    }
+
+    @Test
+    fun `Git LFS 화면은 통계 카드 셋과 파일 잠금 카드로 보인다(A-534)`() {
+        val project = newProject(); val mgr = manager(project)
+        val page = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/setting/lfs").session(login(mgr))).andExpect(status().isOk).andReturn().response.contentAsString)
+        val stats = page.select("#lfs-usage .lfs-stat")
+        assertEquals(3, stats.size, "객체 수, 사용량, 객체 하나의 최대 크기 카드")
+        assertTrue(stats.all { it.selectFirst(".lfs-stat-label")!!.text().isNotBlank() && it.selectFirst(".lfs-stat-value")!!.text().isNotBlank() }, stats.outerHtml())
+        assertNotNull(page.selectFirst(".lfs-locks-card"), "파일 잠금 카드")
+        assertNotNull(page.selectFirst("#lfs-locks-empty"), "잠금이 없을 때의 빈 안내는 그대로")
+    }
+
+    @Test
     fun `설정 하위 메뉴가 있고 현재 화면이 활성이다`() {
         val project = newProject()
         val page = settingForm(project, login(manager(project)))

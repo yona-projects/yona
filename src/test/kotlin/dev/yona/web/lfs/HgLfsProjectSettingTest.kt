@@ -91,7 +91,7 @@ class HgLfsProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `프로젝트 설정 탭에 LFS 탭이 있다`() {
         val p = project(); val manager = user(); join(p, manager, RoleType.MANAGER)
-        val tab = page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("ul.nav-tabs a[href\$=/setting/lfs]")
+        val tab = page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("nav.shell-sidebar a[href\$=/setting/lfs]")
         assertNotNull(tab)
         // Git 전용 이름이 아니라 그냥 "LFS"이다
         assertEquals("LFS", tab.text().trim())
@@ -127,7 +127,7 @@ class HgLfsProjectSettingTest : AbstractIntegrationTest() {
     fun `Subversion 프로젝트에는 이 화면이 없다`() {
         val p = project("Subversion"); val manager = user(); join(p, manager, RoleType.MANAGER)
         mockMvc.perform(get("/${p.owner}/${p.name}/setting/lfs").session(login(manager))).andExpect(status().isBadRequest)
-        assertNull(page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("ul.nav-tabs a[href\$=/setting/lfs]"))
+        assertNull(page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("nav.shell-sidebar a[href\$=/setting/lfs]"))
     }
 
     @Test

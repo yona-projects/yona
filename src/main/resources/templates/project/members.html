@@ -26,7 +26,7 @@
         </div>
 
         <ul class="members project row">
-            <li th:each="member : ${memberItems}" class="member col-lg-6 span-hard-wrap">
+            <li th:each="member : ${memberItems}" class="member col-12 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-start mr10">
                     <img th:src="@{${member.avatarUrl}}" width="64" height="64">
                 </a>

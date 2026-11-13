@@ -88,7 +88,7 @@ class LfsProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `프로젝트 설정 탭에 Git LFS 탭이 있다`() {
         val p = project(); val manager = user(); join(p, manager, RoleType.MANAGER)
-        val tab = page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("ul.nav-tabs a[href\$=/setting/lfs]")
+        val tab = page(login(manager), "/${p.owner}/${p.name}/settingform").selectFirst("nav.shell-sidebar a[href\$=/setting/lfs]")
         assertNotNull(tab)
     }
 

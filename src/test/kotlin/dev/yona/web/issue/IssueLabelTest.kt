@@ -151,6 +151,9 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val areaBlock = page.selectFirst("#labelsList .category-wrap[data-category-name=Area]")!!
         assertEquals(listOf("api", "web"), areaBlock.select("span.issue-label").map { it.text() })
         assertTrue(areaBlock.select("i.category-exclusive").hasClass("multiple"))
+        // A-534: 분류 열은 좁게(col-lg-2), 라벨 열은 넓게(col-lg-10)
+        assertTrue(page.selectFirst("#labelsList .list-head > .category")!!.hasClass("col-lg-2"), "머리의 분류 열")
+        assertTrue(areaBlock.child(0).hasClass("col-lg-2") && areaBlock.child(1).hasClass("col-lg-10"), "분류 열과 라벨 열의 폭: ${areaBlock.children().map { it.className() }}")
         assertTrue(page.selectFirst("#labelsList .category-wrap[data-category-name=Bug] i.category-exclusive")!!.hasClass("single"))
         val edit = areaBlock.selectFirst("button[data-label-color=#2196f3]")!!
         assertEquals("${base(project)}/issue/label/${web.id}", edit.attr("data-update-uri"))
