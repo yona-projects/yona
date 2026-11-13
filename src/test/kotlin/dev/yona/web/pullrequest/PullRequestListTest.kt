@@ -134,6 +134,8 @@ class PullRequestListTest : AbstractIntegrationTest() {
         pr(origin, from = fork, number = 1, title = "보낸 것"); pr(origin, from = fork, number = 2, title = "합쳐짐", state = State.MERGED)
         val forkDoc = page("/${fork.owner}/${fork.name}/sentPullRequests")
         assertEquals(listOf("합쳐짐", "보낸 것"), titles(forkDoc))
+        assertNotNull(forkDoc.selectFirst(".pr-tab-row > ul.pullrequeset-tab-menu"), "탭과 새 코드 보내기 단추는 한 줄 상자 안에 있다(A-569)")
+        assertNotNull(forkDoc.selectFirst(".pr-tab-row > .pr-new-wrap > a.ybtn-success"))
         val tabs = forkDoc.select("ul.pullrequeset-tab-menu li a[data-type=state]")
         assertEquals(3, tabs.size)
         assertEquals("1 / 2", tabs[2].selectFirst(".num-badge")!!.text())

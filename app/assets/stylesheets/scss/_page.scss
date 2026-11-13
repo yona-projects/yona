@@ -9631,13 +9631,31 @@ form#newProjectForm, form#importGit {
     border-radius: 0.375rem;
 }
 
-// A-568: 코드 보내기 목록의 새 코드 보내기 단추는 같은 줄의 탭과 높이를 맞춘다(탭 줄 36px).
-.pr-new-wrap .ybtn {
-    display: inline-flex;
-    align-items: center;
-    height: 36px;
-    padding-top: 0;
-    padding-bottom: 0;
+// A-569: 코드 보내기 목록의 탭 줄. 밑줄은 줄 전체(탭과 단추 아래)에 이어지고, 새 코드 보내기 단추는 그 줄 위에 여백을 두고 오른쪽 끝에 놓인다.
+.pr-tab-row {
+    display: flex;
+    align-items: flex-end;
+    border-bottom: 1px solid #dee2e6;
+
+    > .pullrequeset-tab-menu {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .pr-new-wrap {
+        flex: none;
+        margin: 0 0 5px 12px;
+
+        .ybtn {
+            display: inline-flex;
+            align-items: center;
+            height: 30px;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+    }
 }
 
 // A-568: 저장소 복사(포크) 폼은 프로젝트 만들기 폼처럼 라벨이 입력란 위에 놓인다.

@@ -213,16 +213,17 @@ export const tests = [
     assert.notEqual(m.sel, 'rgba(0, 0, 0, 0)', '선택된 하위 이슈가 구분되지 않는다');
     await ctx.close();
   } },
-  { name: '코드 주고받기 목록의 새 코드 보내기 단추는 탭 줄과 같은 높이이고, 제목 입력란은 w-100이면 폼 폭을 채운다(A-568)', run: async () => {
+  { name: '코드 주고받기 목록은 탭 줄 전체에 밑줄이 이어지고 새 코드 보내기 단추는 그 줄 위에 여백을 두고 오른쪽에 놓이며, 제목 입력란은 w-100이면 폼 폭을 채운다(A-568)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
 <div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main"><div class="row cb"><div class="col-lg-10 span-hard-wrap" style="width:800px">
-<div class="float-end pr-new-wrap"><a class="ybtn ybtn-success" id="nb">새 코드 보내기</a></div>
-<ul class="nav nav-tabs nm pullrequeset-tab-menu mb-3" id="tabs"><li class="nav-item"><a class="nav-link active">열림 1</a></li><li class="nav-item"><a class="nav-link">닫힘 0</a></li></ul></div></div>
+<div class="pr-tab-row mb-3" id="row"><ul class="nav nav-tabs nm pullrequeset-tab-menu mb-0" id="tabs"><li class="nav-item"><a class="nav-link active" id="act">열림 1</a></li><li class="nav-item"><a class="nav-link">닫힘 0</a></li></ul><div class="pr-new-wrap"><a class="ybtn ybtn-success" id="nb">새 코드 보내기</a></div></div></div></div>
 <div style="width:700px"><input id="t" type="text" class="text form-control w-100 pr-title" placeholder="제목"><input id="t2" type="text" class="text form-control" placeholder="x"></div></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { nb: r('#nb'), tabs: r('#tabs'), t: r('#t'), t2: r('#t2') }; });
-    assert.ok(Math.abs(m.nb.top - m.tabs.top) <= 1, `단추 위(${m.nb.top})와 탭 줄 위(${m.tabs.top})가 같아야 한다`);
-    assert.ok(Math.abs(m.nb.height - m.tabs.height) <= 1, `단추 높이 ${m.nb.height}px, 탭 줄 높이 ${m.tabs.height}px`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const cs = (s) => getComputedStyle(document.querySelector(s)); return { row: r('#row'), nb: r('#nb'), tabs: r('#tabs'), act: r('#act'), t: r('#t'), t2: r('#t2'), rowBorder: parseFloat(cs('#row').borderBottomWidth), ulBorder: parseFloat(cs('#tabs').borderBottomWidth), actBg: cs('#act').backgroundColor }; });
+    assert.ok(m.rowBorder >= 1, `탭 줄 전체의 밑줄(${m.rowBorder}px)이 있어야 단추 아래까지 이어진다`); assert.equal(m.ulBorder, 0, `탭 목록 자체의 밑줄(${m.ulBorder}px)은 없어야 줄이 두 겹이 되지 않는다`);
+    assert.ok(m.row.bottom - m.nb.bottom >= 3, `단추 아래와 밑줄 사이 여백 ${(m.row.bottom - m.nb.bottom).toFixed(1)}px (3px 이상)`); assert.ok(m.nb.top >= m.row.top - 1, '단추가 줄 위로 삐져나오면 안 된다');
+    assert.ok(Math.abs(m.row.right - m.nb.right) <= 1, `단추 오른쪽(${m.nb.right})이 줄 오른쪽(${m.row.right})에 닿아야 한다`); assert.ok(m.nb.left > m.tabs.left + 150, '단추는 탭 오른쪽에 있다');
+    assert.ok(m.nb.height >= 28 && m.nb.height <= 34, `단추 높이 ${m.nb.height}px`);
     assert.ok(m.t.width >= 600, `제목 입력란 폭 ${m.t.width}px`); assert.ok(m.t2.width < 300, `폭 클래스가 없는 입력란은 v1.6처럼 좁다(${m.t2.width}px)`); assert.ok(m.t.height >= 34, `제목 입력란 높이 ${m.t.height}px`);
     await ctx.close();
   } },
