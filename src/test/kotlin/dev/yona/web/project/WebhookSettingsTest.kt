@@ -45,6 +45,7 @@ import kotlin.test.assertTrue
 class WebhookSettingsTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var messageSource: org.springframework.context.MessageSource
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -124,6 +125,14 @@ class WebhookSettingsTest : AbstractIntegrationTest() {
         assertEquals("webhookSecretHelp", doc.selectFirst("input[name=secret]")!!.attr("aria-describedby"))
         assertTrue("Authorization: token" in doc.selectFirst("#webhookSecretHelp")!!.text())
         assertTrue("one-line text" in doc.selectFirst("#gitPushHelp")!!.text())
+    }
+
+    @Test
+    fun `웹후크 검증 문구는 오타 없이 자기 문구만 담는다(A-547)`() {
+        val ko = java.util.Locale.of("ko", "KR")
+        assertEquals("Payload URL은 필수 항목입니다.", messageSource.getMessage("project.webhook.payloadUrl.empty", null, ko))
+        assertEquals("Payload URL이 너무 깁니다. (최대 2000글자)", messageSource.getMessage("project.webhook.payloadUrl.tooLong", null, ko))
+        assertEquals("보안 토큰이 너무 깁니다. (최대 250글자)", messageSource.getMessage("project.webhook.secret.tooLong", null, ko))
     }
 
     @Test
