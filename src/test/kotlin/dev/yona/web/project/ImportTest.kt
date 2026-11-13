@@ -83,6 +83,13 @@ class ImportTest : AbstractIntegrationTest() {
             .param("code", "true").param("issue", "true").apply { extra.filterKeys { it != "vcs" }.forEach { (k, v) -> param(k, v) } }
 
     @Test
+    fun `주소와 이름과 인증 입력란은 전체 폭 클래스를 달아 안내 문구가 잘리지 않는다(A-566)`() {
+        val user = user()
+        val page = org.jsoup.Jsoup.parse(mockMvc.perform(get("/_import").session(login(user))).andExpect(status().isOk).andReturn().response.contentAsString)
+        listOf("#url", "#project-name", "input[name=authId]", "input[name=authPw]").forEach { assertTrue(page.selectFirst(it)!!.hasClass("w-100"), it) }
+    }
+
+    @Test
     fun `가져오기 폼은 로그인이 필요하고 소유자를 미리 고를 수 있다`() {
         mockMvc.perform(get("/_import")).andExpect(status().is3xxRedirection)
         val me = user(); val org = organizations.save(Organization(name = "imorg${++sequence}", created = Date()))

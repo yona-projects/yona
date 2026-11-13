@@ -175,4 +175,15 @@ export const tests = [
     assert.equal(new Set(th).size, 1, `병합 표 머리 칸이 한 줄에 있지 않다: ${th}`);
     await ctx.close();
   } },
+  { name: '프로젝트 만들기와 가져오기 폼의 글 입력란은 w-100이면 폼 폭을 채우고, 대시보드의 0개 라벨 개수는 흐리다(A-566)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body>
+<div class="page-wrap-outer"><div style="width:700px"><form id="newProjectForm"><input id="a" type="text" class="text form-control w-100" placeholder="영문, 한글, 숫자 및 일부 기호(_-.)만 사용할 수 있습니다"><input id="b" type="text" class="text form-control" placeholder="x"></form>
+<div class="project-overview-home"><div class="overview-label"><div class="num is-zero" id="z"><strong>0</strong></div><div class="num" id="n"><strong>3</strong></div></div></div></div></div></body></html>`);
+    const w = await page.evaluate(() => ({ a: document.getElementById('a').getBoundingClientRect().width, b: document.getElementById('b').getBoundingClientRect().width, h: document.getElementById('a').getBoundingClientRect().height, fs: parseFloat(getComputedStyle(document.getElementById('a')).fontSize) }));
+    assert.ok(w.a >= 600, `w-100 입력란 폭 ${w.a}px (폼 폭 700px를 채워야 한다)`); assert.ok(w.b < 300, `폭 클래스가 없는 입력란은 v1.6처럼 좁다(${w.b}px)`); assert.ok(w.h >= 36, `입력란 높이 ${w.h}px`);
+    const c = await page.evaluate(() => ({ z: getComputedStyle(document.querySelector('#z strong')).color, n: getComputedStyle(document.querySelector('#n strong')).color }));
+    assert.notEqual(c.z, c.n, `0개 개수(${c.z})가 다른 개수(${c.n})와 구분되지 않는다`);
+    await ctx.close();
+  } },
 ];

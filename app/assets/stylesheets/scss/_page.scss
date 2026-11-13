@@ -2879,6 +2879,9 @@ label.inline-list {
     .num {
         text-align:right;
         padding-right:15px;
+
+        // A-566: 열린 이슈가 없는 라벨의 개수는 흐리게 보여 있는 개수가 먼저 읽힌다
+        &.is-zero strong { color:#b5b5b5; font-weight:normal; }
     }
     .empty {
         text-align:center;
@@ -9482,5 +9485,29 @@ textarea.editorSeries.content {
         .setting-features {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+    }
+}
+
+// A-566: 프로젝트 만들기와 가져오기 폼의 글 입력란은 설명 입력란, 소유자 선택과 같은 폭과 높이이다.
+// v1.6의 "폭 클래스가 없는 글 입력란" 규칙(폭 206px)은 `w-100`이 있으면 적용되지 않아 안내 문구가 끝까지 보인다.
+form#newProjectForm, form#importGit {
+    input.form-control.w-100 {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        height: auto;
+        border-radius: 0.375rem;
+    }
+}
+
+// A-566: 프로젝트 목록의 제목은 사이드바 옆 내용 칸의 첫 줄에 놓인다(다른 목록 화면의 제목과 같은 크기)
+.shell-main > .title_area {
+    margin: 8px 0 14px;
+
+    h3 {
+        margin: 0;
+        padding: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
     }
 }

@@ -129,7 +129,7 @@
                                 <span class="issue-label list-label active" th:attr="data-label-id=${label.labelId}" th:text="${label.name}"></span>
                             </a>
                         </div>
-                        <div class="col-lg-2 num"><strong th:text="${label.count}"></strong></div>
+                        <div class="col-lg-2 num" th:classappend="${label.count == 0} ? 'is-zero'"><strong th:text="${label.count}"></strong></div>
                     </div>
                 </dd>
             </dl>

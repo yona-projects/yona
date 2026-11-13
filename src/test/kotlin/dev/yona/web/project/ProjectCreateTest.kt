@@ -116,6 +116,13 @@ class ProjectCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름 입력란은 전체 폭 클래스를 달아 설명 입력란과 폭이 같다(A-566)`() {
+        val page = doc(mockMvc.perform(get("/projectform").session(login(newUser()))).andExpect(status().isOk).andReturn())
+        assertTrue(page.selectFirst("#project-name")!!.hasClass("w-100"), "v1.6의 폭 206px 규칙(폭 클래스가 없는 글 입력란)에서 빠져 안내 문구가 잘리지 않는다")
+        assertTrue(page.selectFirst("textarea#description")!!.hasClass("form-control"))
+    }
+
+    @Test
     fun `폼에는 제목과 소유자 이름 설명 입력란이 있다`() {
         val user = newUser()
         val page = doc(mockMvc.perform(get("/projectform").session(login(user))).andExpect(status().isOk).andReturn())

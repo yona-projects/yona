@@ -99,6 +99,13 @@ class ProjectListTest : AbstractIntegrationTest() {
     // --- 기본 화면 ---
 
     @Test
+    fun `제목은 사이드바 옆 내용 칸 안에 있고 화면 위에 걸치는 제목 띠가 없다(A-566)`() {
+        val doc = page()
+        assertEquals("PUBLIC Project list", doc.selectFirst(".shell-main > .title_area h3")!!.text().trim())
+        assertTrue(doc.select(".site-breadcrumb-outer").isEmpty(), "내용 칸 밖에서 화면 왼쪽 끝에 붙던 제목 띠는 없다")
+    }
+
+    @Test
     fun `제목이 있고 목록 탭은 사이드바로 옮겨 갔다(D-141)`() {
         val doc = page()
         assertEquals("Project list", doc.title())
