@@ -17,8 +17,9 @@
         <div class="input-group input-group-sm">
             <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
             <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
-            <span class="wiki-clone-feedback small ms-2" role="status" th:attr="data-copied=#{wiki.clone.copied},data-failed=#{wiki.clone.copyFailed}"></span>
         </div>
+        <!--/* 복사 결과 글자는 입력 묶음 밖의 별도 줄에 둔다(묶음 안에 두면 단추가 아래 줄로 밀린다, A-533) */-->
+        <div class="wiki-clone-feedback small mt-1" role="status" th:attr="data-copied=#{wiki.clone.copied},data-failed=#{wiki.clone.copyFailed}"></div>
     </div>
     <h3 class="wiki-sidebar-title" th:text="#{wiki.pages}">Pages</h3>
     <input type="search" class="wiki-pages-filter form-control form-control-sm" th:placeholder="#{wiki.pages.filter}" autocomplete="off">

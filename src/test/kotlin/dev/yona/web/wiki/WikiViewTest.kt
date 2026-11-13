@@ -185,6 +185,28 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertTrue(clone >= 0 && clone < title && title < filter && filter < list, "복제 $clone, 제목 $title, 검색 $filter, 목록 $list")
     }
 
+    @Test
+    fun `새 페이지의 파일 첨부는 브라우저 기본 입력이 아니라 사이트의 파일 올리기 단추이다(A-533)`() {
+        val p = project(); val writer = member(p)
+        val page = doc(getPage(writer, "${base(p)}/_new"))
+        val btn = page.selectFirst(".wiki-attach .fake-file-wrap.wiki-attach-button")
+        assertNotNull(btn, "파일 올리기 단추")
+        assertTrue(btn.text().isNotBlank(), "단추에 글자가 있다")
+        val input = btn.selectFirst("input[type=file].wiki-attach-input.file")
+        assertNotNull(input, "단추 안의 투명한 파일 입력")
+        assertFalse(input.hasClass("form-control-sm"), "브라우저 기본 모양의 작은 입력이 아니다")
+        assertTrue(input.attr("data-upload-url").isNotBlank(), "업로드 주소는 그대로")
+        assertTrue(page.selectFirst(".wiki-attach > label")!!.hasClass("d-block"), "파일 첨부 글자는 블록이라 단추 위의 별도 줄이다(인라인이면 단추와 같은 줄에 붙는다)")
+    }
+
+    @Test
+    fun `복제 결과 글자는 입력 묶음 밖의 별도 줄이다(A-533)`() {
+        val p = project(); val writer = member(p)
+        val clone = doc(getPage(writer, "${base(p)}/Apple".also { create(writer, p, "Apple", "x") })).selectFirst(".wiki-clone")!!
+        assertNull(clone.selectFirst(".input-group .wiki-clone-feedback"), "피드백이 입력 묶음 안에 있다")
+        assertNotNull(clone.selectFirst("> .wiki-clone-feedback"), "묶음 밖의 별도 줄")
+    }
+
     // --- 만들기 화면과 오류 ---
 
     @Test

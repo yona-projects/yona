@@ -34,9 +34,39 @@
       font-weight: 600;
     }
 
+    // 주소 입력칸(왼쪽)과 "복사" 단추(오른쪽)는 한 줄에 붙인다. 입력칸의 전역 폭(100%)이 단추를 아래 줄로 밀어냈다(A-533).
+    .input-group {
+      flex-wrap: nowrap;
+
+      .wiki-clone-url {
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+      }
+
+      .wiki-clone-url,
+      .wiki-clone-copy {
+        height: 30px;
+      }
+
+      .wiki-clone-copy {
+        flex: none;
+        padding: 0 12px;
+        font-size: .75rem;
+        line-height: 1.75rem;
+      }
+    }
+
     .wiki-clone-url {
       font-size: .6875rem;
     }
+  }
+
+  // 새 페이지의 "파일 올리기" 단추는 한 줄 전체가 아니라 글자 폭만 차지한다(A-533).
+  .wiki-attach .wiki-attach-button {
+    display: inline-block;
+    width: auto;
+    clear: none;
   }
 
   .wiki-diff {
