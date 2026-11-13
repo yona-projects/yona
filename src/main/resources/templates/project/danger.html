@@ -128,9 +128,14 @@
             <div class="modal-body">
                 <p> <th:block th:text="#{project.delete.description}"></th:block></p>
                 <p> <th:block th:text="#{project.delete.reaccept}"></th:block> </p>
+                <!--/* 이름 재입력(A-536): 정확히 입력해야 "예"가 켜진다 */-->
+                <p class="mb-0">
+                    <label for="deleteConfirmName" class="form-label" th:utext="#{project.delete.confirmName(${'<strong>' + #strings.escapeXml(project.owner + '/' + project.name) + '</strong>'})}"></label>
+                    <input type="text" id="deleteConfirmName" class="form-control" autocomplete="off" spellcheck="false">
+                </p>
             </div>
             <div class="modal-footer">
-                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" disabled th:text="#{button.yes}"></button>
                 <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
@@ -145,7 +150,8 @@ await import([[@{/assets/javascripts/esm/service/project.ChangeVCS.js}]]);
             "sTransferURL": [[${projectBase + '/transfer'}]]
         });
         $yona.loadModule("project.Delete", {
-            "sDeleteURL": [[@{${projectBase + '/delete'}}]]
+            "sDeleteURL": [[@{${projectBase + '/delete'}}]],
+            "sProjectName": [[${project.owner + '/' + project.name}]]
         });
         /*[# th:if="${showVcs}"]*/
         $yona.loadModule("project.ChangeVCS", {

@@ -122,6 +122,18 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `삭제 확인 창은 owner와 name을 다시 입력받고 입력 전에는 예 단추가 비활성이다(A-536)`() {
+        val project = newProject()
+        val page = deleteForm(project, login(manager(project)))
+        val input = page.selectFirst("#alertDeletion input#deleteConfirmName")!!
+        assertEquals("off", input.attr("autocomplete"))
+        assertTrue(page.selectFirst("#alertDeletion label[for=deleteConfirmName]")!!.text().contains("${project.owner}/${project.name}"))
+        assertTrue(page.selectFirst("#alertDeletion #btnDeleteExec")!!.hasAttr("disabled"))
+        // JS 인라인은 슬래시를 `\/`로 내보낸다
+        assertTrue(page.select("script").any { it.data().replace("\\/", "/").contains("\"sProjectName\": \"${project.owner}/${project.name}\"") })
+    }
+
+    @Test
     fun `위험 구역은 이관, 저장소 타입 변경, 삭제 구역이 이 순서로 한 화면에 있고 구역마다 따로 동의와 단추를 가진다(A-535)`() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
