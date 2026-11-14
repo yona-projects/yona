@@ -13,9 +13,9 @@
     <div class="project-page-wrap shell shell-below-banner">
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
-        <div class="two-factor-page org-oauth">
+        <div class="two-factor-page oauth-screen">
         <p class="text-body-secondary mb-4" th:text="#{oauth.org.description}"></p>
-        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.org.apps', 'oauth.org.apps.empty', true)}"></th:block>
+        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.org.apps', 'oauth.org.apps.empty')}"></th:block>
         </div>
         </div><!--/* .shell-main */-->
     </div>

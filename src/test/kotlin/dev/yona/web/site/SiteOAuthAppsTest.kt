@@ -67,7 +67,7 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
         val admin = user(); val org = organizationService.create("so${System.nanoTime() % 1000000}", null, admin)
         clientService.createFor(dev.yona.domain.oauth2server.ClientOwner.of(org), admin, "조직 앱", "", "", "https://a.example/cb", false, setOf("read:user"))
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/oauth-apps").session(login(user(admin = true)))).andReturn().response.contentAsString)
-        val row = doc.select("table#all-apps tr.app-row").single { it.text().contains("조직 앱") }
+        val row = doc.select("ul#all-apps li.app-row").single { it.text().contains("조직 앱") }
         assertTrue(row.text().contains(org.name!!), row.text())
     }
 
@@ -85,7 +85,7 @@ class SiteOAuthAppsTest : AbstractIntegrationTest() {
         consents.save(OAuthConsent(clientRowId = a.id, userId = user().id, scopes = "read:user", createdDate = Date())); consents.save(OAuthConsent(clientRowId = a.id, userId = user().id, scopes = "read:user", createdDate = Date()))
         clients.save(OAuthClient(clientId = "https://claude.example/c.json", name = "문서 앱", redirectUris = "https://c.example/cb", confidential = false, allowedScopes = "read:user", registration = OAuthClient.CIMD, createdDate = Date()))
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/oauth-apps").session(login(user(admin = true)))).andReturn().response.contentAsString)
-        val rows = doc.select("table#all-apps tr.app-row")
+        val rows = doc.select("ul#all-apps li.app-row")
         val mine = rows.first { it.text().contains("관리자가 볼 앱") }
         assertTrue(mine.text().contains(owner.loginId!!) && mine.text().contains("2"), mine.text())
         assertTrue(rows.any { it.text().contains("다른 앱") } && rows.any { it.text().contains("문서 앱") && it.text().contains("claude.example") })

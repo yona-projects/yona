@@ -9,37 +9,26 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
 
 <!--/* 소유자가 만든 앱의 목록과 만들기 단추. 모델: apps(AppRow 목록), urls, userAppsEnabled, titleKey와 emptyKey(제목과 빈 목록 안내의 메시지 키) */-->
-<th:block th:fragment="mine(apps, urls, userAppsEnabled, titleKey, emptyKey, cards)">
+<th:block th:fragment="mine(apps, urls, userAppsEnabled, titleKey, emptyKey)">
         <section>
             <h4 th:text="#{${titleKey}}"></h4>
             <div id="my-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(apps)}" th:text="#{${emptyKey}}"></div>
-            <table id="my-apps" class="table table-striped" th:if="${!#lists.isEmpty(apps) and !cards}">
-                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.clientId}"></th><th th:text="#{oauth.form.type}"></th><th th:text="#{sshKey.createdDate}"></th><th></th></tr></thead>
-                <tbody>
-                <tr th:each="a : ${apps}" class="app-row">
-                    <td><a th:href="@{${urls.edit(a.id)}}" th:text="${a.name}"></a></td>
-                    <td><code th:text="${a.clientId}"></code></td>
-                    <td th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></td>
-                    <td th:text="${a.createdText}"></td>
-                    <td class="text-end">
+            <!--/* A-579, A-580: 앱 목록은 카드이다(앱마다 이름, 종류, 클라이언트 ID, 등록일, 삭제). 사용자 설정, 조직, 사이트가 같은 모양이다 */-->
+            <ul id="my-apps" class="oauth-cards list-unstyled" th:if="${!#lists.isEmpty(apps)}">
+                <li th:each="a : ${apps}" class="oauth-card app-row">
+                    <div class="oauth-card-head">
+                        <a class="oauth-card-name" th:href="@{${urls.edit(a.id)}}" th:text="${a.name}"></a>
+                        <span class="oauth-card-type" th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></span>
+                    </div>
+                    <dl class="oauth-card-meta">
+                        <dt th:text="#{oauth.apps.clientId}"></dt><dd><code th:text="${a.clientId}"></code></dd>
+                        <dt th:text="#{sshKey.createdDate}"></dt><dd th:text="${a.createdText}"></dd>
+                    </dl>
+                    <div class="oauth-card-actions">
                         <form method="post" th:action="@{${urls.delete(a.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.delete.confirm} + '\');'">
                             <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.delete}"></button>
                         </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <!--/* A-579: 조직의 앱 목록은 카드이다(앱마다 이름, 종류, 클라이언트 ID, 등록일, 삭제). 사용자 설정은 표 그대로이다 */-->
-            <ul id="my-apps" class="oauth-cards list-unstyled" th:if="${!#lists.isEmpty(apps) and cards}">
-                <li th:each="a : ${apps}" class="oauth-card app-row">
-                    <div class="oauth-card-main">
-                        <a class="oauth-card-name" th:href="@{${urls.edit(a.id)}}" th:text="${a.name}"></a>
-                        <span class="oauth-card-type" th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></span>
-                        <div class="oauth-card-meta"><code th:text="${a.clientId}"></code><span th:text="${a.createdText}"></span></div>
                     </div>
-                    <form method="post" th:action="@{${urls.delete(a.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.delete.confirm} + '\');'">
-                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.delete}"></button>
-                    </form>
                 </li>
             </ul>
             <div class="tf-actions">

@@ -18,7 +18,9 @@
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('audit')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{audit.description.user}"></p>
+        <div class="audit-screen">
         <th:block th:replace="~{audit/list :: auditList(false, false, false)}"></th:block>
+        </div>
     </div><!--/* .shell-main */-->
     </div>
 </div>

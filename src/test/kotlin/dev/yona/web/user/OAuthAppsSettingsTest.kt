@@ -92,13 +92,13 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
     fun `목록은 한 화면에 내가 만든 앱과 승인한 앱을 보이고 비어 있으면 안내한다`() {
         val doc = page(login(user()))
         assertNotNull(doc.selectFirst("#my-apps-empty")); assertNotNull(doc.selectFirst("#authorized-empty")); assertNotNull(doc.selectFirst("a#oauth-app-new"))
-        assertNull(doc.selectFirst("table#my-apps")); assertNull(doc.selectFirst("table#authorized-apps"))
+        assertNull(doc.selectFirst("ul#my-apps")); assertNull(doc.selectFirst("ul#authorized-apps"))
     }
 
     @Test
     fun `내가 만든 앱은 이름과 클라이언트 ID와 종류를 보이고 남의 앱은 보이지 않는다`() {
         val me = user(); val other = user(); val mine = app(me, "내 공개 앱"); app(me, "내 기밀 앱", confidential = true); app(other, "남의 앱")
-        val rows = page(login(me)).select("table#my-apps tr.app-row")
+        val rows = page(login(me)).select("ul#my-apps li.app-row")
         assertEquals(2, rows.size); assertTrue(rows.any { it.text().contains("내 공개 앱") && it.text().contains(mine.client.clientId!!) })
         assertTrue(rows.none { it.text().contains("남의 앱") })
         assertTrue(rows.any { it.selectFirst("a[href$=/user/editform/oauth-apps/${mine.client.id}]") != null })
@@ -110,7 +110,7 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
         val owner = user(); val me = user(); val c = app(owner, "승인한 앱").client
         consents.save(OAuthConsent(clientRowId = c.id, userId = me.id, scopes = "read:user,repo", createdDate = Date()))
         authorizations.save(OAuthAuthorization(id = "ui-a", clientRowId = c.id, userId = me.id, grantType = "authorization_code", attributes = "{}", accessTokenHash = TokenHasher.sha256Hex("x"), createdDate = Date()))
-        val row = page(login(me)).select("table#authorized-apps tr.authorized-row").single()
+        val row = page(login(me)).select("ul#authorized-apps li.authorized-row").single()
         assertTrue(row.text().contains("승인한 앱") && row.text().contains(owner.loginId!!) && row.text().contains("read:user") && row.text().contains("repo"))
         assertNotNull(row.selectFirst("form[action$=/revoke] button"))
     }
@@ -121,7 +121,7 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
         consents.save(OAuthConsent(clientRowId = c.id, userId = me.id, scopes = "read:user", createdDate = Date()))
         mockMvc.perform(post("/user/oauth-apps/authorized/${c.id}/revoke").session(login(other))).andExpect(status().isNotFound)
         mockMvc.perform(post("/user/oauth-apps/authorized/${c.id}/revoke").session(s)).andExpect(status().is3xxRedirection)
-        assertTrue(page(s).select("tr.authorized-row").isEmpty())
+        assertTrue(page(s).select("li.authorized-row").isEmpty())
     }
 
     @Test
@@ -196,7 +196,7 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
         assertNull(page(s).selectFirst("a#oauth-app-new")); assertNotNull(page(s).selectFirst("#user-apps-disabled"))
         mockMvc.perform(get("/user/editform/oauth-apps/new").session(s)).andExpect(status().isForbidden)
         mockMvc.perform(createParams().session(s)).andExpect(status().isForbidden)
-        assertTrue(page(s).select("tr.app-row").size == 1, "이미 만든 앱은 보인다")
+        assertTrue(page(s).select("li.app-row").size == 1, "이미 만든 앱은 보인다")
         mockMvc.perform(post("/user/oauth-apps/${own.client.id}/delete").session(s)).andExpect(status().is3xxRedirection)
     }
 
@@ -211,7 +211,7 @@ class OAuthAppsSettingsTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "아님")).andExpect(status().isBadRequest)
         mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "옮길 앱")).andExpect(status().is3xxRedirection)
         assertEquals(mine.id, clients.findById(app.client.id!!).get().ownerId)
-        assertTrue(page(s).select("tr.app-row").isEmpty())
+        assertTrue(page(s).select("li.app-row").isEmpty())
         mockMvc.perform(post("/user/oauth-apps/${app.client.id}/transfer").session(s).param("target", "org:${mine.name}").param("confirm", "옮길 앱")).andExpect(status().isNotFound)
     }
 }

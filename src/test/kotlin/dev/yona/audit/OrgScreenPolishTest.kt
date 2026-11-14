@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 /**
  * 조직(그룹) 화면 다듬기(A-577~A-579, 선생님 지시)의 화면 구조를 지키는 구조 검사이다. 템플릿 파일을 직접 읽는다.
- * 사용자 설정과 사이트 관리가 같이 쓰는 조각(`oauth/partial-apps`, `audit/list`)은 조직 화면만 바뀌도록 조직 쪽 틀(`org-oauth`, `org-audit`)로 범위를 좁힌다.
+ * 사용자 설정과 사이트 관리가 같이 쓰는 조각(`oauth/partial-apps`, `audit/list`)은 조직 화면만 바뀌도록 조직 쪽 틀(`oauth-screen`, `audit-screen`)로 범위를 좁힌다(A-580부터 사용자 설정과 사이트도 같은 틀이다).
  */
 class OrgScreenPolishTest {
 
@@ -27,7 +27,7 @@ class OrgScreenPolishTest {
 
     @Test
     fun `조직 감사 로그와 게시판 목록은 조직 쪽 틀로 범위를 좁힌다(A-577)`() {
-        assertNotNull(doc("organization/audit.html").selectFirst("div.org-audit"), "감사 목록 조각은 사용자와 사이트도 쓰므로 조직 쪽 틀 안에서만 단추 색을 바꾼다")
+        assertNotNull(doc("organization/audit.html").selectFirst("div.audit-screen"), "감사 목록 조각의 단추 색은 감사 화면 공통 틀 안에서 바꾼다")
         assertNotNull(doc("organization/board-list.html").selectFirst(".search-wrap.org-list-filter"))
     }
 
@@ -44,13 +44,20 @@ class OrgScreenPolishTest {
     }
 
     @Test
-    fun `조직의 OAuth 화면은 조직 쪽 틀 안에 있고 앱 목록은 카드이다(A-579)`() {
-        for (f in listOf("organization/oauth-apps.html", "organization/oauth-app-form.html", "organization/oauth-app-secret.html"))
-            assertNotNull(doc(f).selectFirst(".two-factor-page.org-oauth"), "$f: 조직 쪽 틀")
+    fun `OAuth 화면은 조직, 사용자 설정, 사이트가 모두 같은 틀과 카드 목록을 쓴다(A-580)`() {
+        for (f in listOf("organization/oauth-apps.html", "organization/oauth-app-form.html", "organization/oauth-app-secret.html", "organization/oauth-policy.html",
+            "user/edit-oauth-apps.html", "user/edit-oauth-app-form.html", "user/edit-oauth-app-secret.html", "site/oauth-apps.html"))
+            assertNotNull(doc(f).selectFirst(".two-factor-page.oauth-screen"), "$f: OAuth 화면 공통 틀")
         val partial = text("oauth/partial-apps.html")
-        assertTrue(partial.contains("oauth-cards") && partial.contains("mine(apps, urls, userAppsEnabled, titleKey, emptyKey, cards)"), "카드 목록은 조직만 켜는 매개변수이다")
-        assertTrue(text("user/edit-oauth-apps.html").contains("'oauth.apps.mine.empty', false)"), "사용자 설정의 목록은 표 그대로이다")
-        assertTrue(text("organization/oauth-apps.html").contains("'oauth.org.apps.empty', true)"))
+        assertTrue(partial.contains("mine(apps, urls, userAppsEnabled, titleKey, emptyKey)") && !partial.contains("<table"), "앱 목록은 표가 아니라 카드이다")
         assertTrue(partial.contains("tf-scopes-title"), "범위 제목은 들여쓰기 규칙을 맞추기 위한 전용 클래스가 있다")
+        for ((f, id) in listOf("site/oauth-apps.html" to "all-apps", "user/edit-oauth-apps.html" to "authorized-apps", "organization/oauth-policy.html" to "policy-apps"))
+            assertNotNull(doc(f).selectFirst("ul#$id.oauth-cards"), "$f: 카드 목록 #$id")
+    }
+
+    @Test
+    fun `감사 화면은 조직, 사용자 설정, 사이트가 같은 틀 안에서 단추 색을 테마색으로 쓴다(A-580)`() {
+        for (f in listOf("organization/audit.html", "user/edit-audit.html", "site/audit.html"))
+            assertNotNull(doc(f).selectFirst("div.audit-screen"), "$f: 감사 화면 공통 틀")
     }
 }

@@ -14,8 +14,8 @@
         <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{audit.description.organization}"></p>
-        <!--/* A-577: 감사 목록 조각은 사용자와 사이트도 쓰므로 조직 쪽 틀 안에서만 단추 색을 테마색으로 바꾼다 */-->
-        <div class="org-audit">
+        <!--/* A-577: 감사 목록 조각은 사용자와 사이트도 쓰므로 감사 화면 공통 틀(`.audit-screen`) 안에서 단추 색을 테마색으로 바꾼다(조직, 사용자 설정, 사이트가 같다) */-->
+        <div class="audit-screen">
         <th:block th:replace="~{audit/list :: auditList(true, false, true)}"></th:block>
         </div>
         </div><!--/* .shell-main */-->

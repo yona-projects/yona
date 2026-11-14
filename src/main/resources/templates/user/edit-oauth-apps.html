@@ -19,31 +19,30 @@
     <div class="page-wrap shell">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('oauth-apps')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
-        <div class="two-factor-page">
+        <div class="two-factor-page oauth-screen">
         <p class="text-body-secondary mb-4" th:text="#{oauth.description}"></p>
 
-        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.apps.mine', 'oauth.apps.mine.empty', false)}"></th:block>
+        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.apps.mine', 'oauth.apps.mine.empty')}"></th:block>
 
         <section class="tf-section">
             <h4 th:text="#{oauth.apps.authorized}"></h4>
             <p th:text="#{oauth.apps.authorized.description}"></p>
             <div id="authorized-empty" class="tf-empty" th:if="${#lists.isEmpty(authorized)}" th:text="#{oauth.apps.authorized.empty}"></div>
-            <table id="authorized-apps" class="table table-striped" th:if="${!#lists.isEmpty(authorized)}">
-                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.by}"></th><th th:text="#{oauth.apps.scopes}"></th><th th:text="#{oauth.apps.approvedDate}"></th><th></th></tr></thead>
-                <tbody>
-                <tr th:each="x : ${authorized}" class="authorized-row">
-                    <td th:text="${x.name}"></td>
-                    <td th:text="${x.ownerOrganization != null} ? #{oauth.apps.byOrganization(${x.ownerOrganization})} : (${x.ownerLoginId != null} ? ${x.ownerLoginId} : ${x.host})"></td>
-                    <td><code th:each="s : ${x.scopes}" th:text="${s}" class="me-1"></code></td>
-                    <td th:text="${x.approvedText}"></td>
-                    <td class="text-end">
+            <ul id="authorized-apps" class="oauth-cards list-unstyled" th:if="${!#lists.isEmpty(authorized)}">
+                <li th:each="x : ${authorized}" class="oauth-card authorized-row">
+                    <div class="oauth-card-head"><span class="oauth-card-name" th:text="${x.name}"></span></div>
+                    <dl class="oauth-card-meta">
+                        <dt th:text="#{oauth.apps.by}"></dt><dd th:text="${x.ownerOrganization != null} ? #{oauth.apps.byOrganization(${x.ownerOrganization})} : (${x.ownerLoginId != null} ? ${x.ownerLoginId} : ${x.host})"></dd>
+                        <dt th:text="#{oauth.apps.scopes}"></dt><dd><code th:each="s : ${x.scopes}" th:text="${s}" class="me-1"></code></dd>
+                        <dt th:text="#{oauth.apps.approvedDate}"></dt><dd th:text="${x.approvedText}"></dd>
+                    </dl>
+                    <div class="oauth-card-actions">
                         <form method="post" th:action="@{/user/oauth-apps/authorized/{id}/revoke(id=${x.clientRowId})}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.authorized.revoke.confirm} + '\');'">
                             <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.authorized.revoke}"></button>
                         </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </div>
+                </li>
+            </ul>
         </section>
         </div>
     </div><!--/* .shell-main */-->
