@@ -69,6 +69,25 @@
     clear: none;
   }
 
+  // A-576: 이력의 제목 줄(제목과 부제)은 다른 화면의 페이지 제목과 같은 크기이다. 위키 본문과 비교 화면의 제목은 지시 밖이라 그대로 둔다.
+  .wiki-history-header h2,
+  .wiki-history-header h2 > a.wiki-page-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  // A-576: 빈 위키는 다른 빈 화면과 같은 틀(.error-wrap)이고 첫 페이지 단추는 안내 문구에서 살짝 아래로 떨어진다.
+  // 빈 화면 틀의 아래 여백(100px)과 문구 아래 여백(30px)을 이 화면에서는 줄여, 단추가 안내 문구 바로 아래 살짝 떨어져 놓인다.
+  .wiki-empty .error-wrap {
+    padding-bottom: 0;
+
+    p { margin-bottom: 0; }
+  }
+
+  .wiki-empty .wiki-create-first {
+    margin-top: 1.25rem;
+  }
+
   .wiki-diff {
     font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     font-size: .8125rem;
@@ -82,17 +101,18 @@
       min-height: 1.25rem;
     }
 
+    // A-576: 코드 화면의 diff와 같은 색이다(추가 연두 #eeffcc, 삭제 분홍 #fdd, 범위 줄 연한 회색 바탕에 회색 글자)
     .diff-add {
-      background: rgba($theme-success, .15);
+      background: #eeffcc;
     }
 
     .diff-del {
-      background: rgba($theme-danger, .15);
+      background: #fdd;
     }
 
     .diff-hunk {
-      color: #6c757d;
-      background: rgba($theme-info, .1);
+      color: #999;
+      background: #f8f8ff;
     }
   }
 }

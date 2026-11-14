@@ -274,4 +274,26 @@ export const tests = [
     assert.ok(m.g.right - m.c3.right <= 20, `묶음 오른쪽 끝(${m.g.right})에 마지막 체크박스(${m.c3.right})가 붙어야 한다`);
     await ctx.close();
   } },
+  { name: '위키 이력의 제목은 다른 화면의 제목과 같은 크기이고, 위키 diff는 코드 diff와 같은 색이며, 빈 위키는 가운데 정렬 빈 화면 틀에 첫 페이지 단추가 아래로 떨어진다(A-576)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell wiki-wrap"><div class="shell-main"><div class="row"><div class="col-lg-9">
+<div class="wiki-page-header wiki-history-header d-flex align-items-center gap-2 mb-3"><h2 class="me-auto mb-0" id="h"><a class="wiki-page-title" id="hl">Home</a> <small id="hs">리비전</small></h2></div>
+<div class="wiki-page-header d-flex mb-3"><h2 class="wiki-page-title" id="vt">Home</h2></div>
+<div class="wiki-diff" style="width:700px"><div class="diff-line diff-hunk" id="dh">@@ -1,3 +1,4 @@</div><div class="diff-line diff-add" id="da">+추가</div><div class="diff-line diff-del" id="dd">-삭제</div></div>
+<div class="wiki-empty text-center py-5" id="we"><div class="error-wrap" id="ew"><i class="ico ico-err1"></i><p id="ep">이 위키에는 아직 페이지가 없습니다.</p></div><a class="wiki-create-first ybtn ybtn-success" id="wb">첫 페이지 만들기</a></div></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); const r = (s) => document.querySelector(s).getBoundingClientRect(); return { hl: parseFloat(g('#hl').fontSize), h: parseFloat(g('#h').fontSize), hs: parseFloat(g('#hs').fontSize), vt: parseFloat(g('#vt').fontSize), da: g('#da').backgroundColor, dd: g('#dd').backgroundColor, dh: g('#dh').backgroundColor, ew: r('#ew'), we: r('#we'), ep: r('#ep'), wb: r('#wb'), ta: g('#ew').textAlign }; });
+    assert.ok(m.hl >= 17 && m.hl <= 19 && m.h >= 17 && m.h <= 19, `이력 제목 ${m.h}px / ${m.hl}px (18px 안팎)`); assert.ok(m.hs < m.h, `부제 ${m.hs}px`); assert.equal(m.vt, 28, `위키 본문 제목은 그대로(${m.vt}px)`);
+    assert.equal(m.da, 'rgb(238, 255, 204)', `추가 줄 색 ${m.da}`); assert.equal(m.dd, 'rgb(255, 221, 221)', `삭제 줄 색 ${m.dd}`); assert.equal(m.dh, 'rgb(248, 248, 255)', `범위 줄 색 ${m.dh}`);
+    const center = (x) => x.left + x.width / 2; assert.ok(Math.abs(center(m.ep) - center(m.we)) <= 4, `안내 문구 가운데(${center(m.ep)})가 영역 가운데(${center(m.we)})와 같아야 한다`);
+    assert.ok(m.wb.top - m.ep.bottom >= 12 && m.wb.top - m.ep.bottom <= 40, `첫 페이지 단추가 안내 문구에서 ${(m.wb.top - m.ep.bottom).toFixed(0)}px 떨어짐(12~40px, 살짝만)`);
+    await ctx.close();
+  } },
+  { name: '위키 편집의 파일 올리기 상자는 게시글 등록의 파일 올리기 상자와 같은 모양이다(A-576)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    const box = (id) => `<div class="upload-wrap content-footer" id="${id}"><div class="attach-wrap"><div class="btn-wrap"><div class="nbtn medium white fake-file-wrap"><i class="yobicon-upload"></i> 파일 올리기<input type="file" class="file form-control"></div></div><span class="plain">버튼을 클릭해서 선택하세요</span></div></div>`;
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell wiki-wrap"><div class="shell-main" style="width:760px"><div class="board">${box('bd')}</div><div class="wiki-attach mb-3">${box('wk')}</div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const g = (s) => { const e = document.querySelector(s + ' .attach-wrap'); const c = getComputedStyle(e); const r = e.getBoundingClientRect(); return { bg: c.backgroundColor, rad: c.borderTopLeftRadius, h: Math.round(r.height), w: Math.round(r.width), ta: c.textAlign, pad: c.padding }; }; return { bd: g('#bd'), wk: g('#wk') }; });
+    assert.deepEqual(m.wk, m.bd, `위키 파일 올리기 상자(${JSON.stringify(m.wk)})가 게시글(${JSON.stringify(m.bd)})과 같아야 한다`);
+    await ctx.close();
+  } },
 ];

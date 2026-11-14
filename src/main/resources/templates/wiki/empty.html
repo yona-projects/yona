@@ -15,7 +15,8 @@
         <div class="row">
             <div class="col-lg-9">
                 <div class="wiki-empty text-center py-5">
-                    <h3 th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</h3>
+                    <!--/* A-576: 다른 빈 화면(코드 주고받기 목록 등)과 같은 틀: 그림 아래 안내 문구 */-->
+                    <div class="error-wrap"><i class="ico ico-err1"></i><p th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</p></div>
                     <p th:unless="${available}" class="text-body-secondary" th:text="#{wiki.error.unavailable}"></p>
                     <a th:if="${canWrite and available}" th:href="${base + '/_new?title=Home'}" class="wiki-create-first ybtn ybtn-success" th:text="#{wiki.empty.create}">Create the first page</a>
                 </div>

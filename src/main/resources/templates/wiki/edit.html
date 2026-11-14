@@ -23,11 +23,17 @@
                     <div class="mb-3">
                         <th:block th:replace="~{common/editor :: editor('content', ${contentValue}, 'tabindex=2', 'content-body', false)}"></th:block>
                     </div>
+                    <!--/* A-576: "파일 첨부" 라벨은 없애고 게시글 등록의 파일 올리기와 같은 상자(회색 바탕 안에 단추와 안내)로 둔다. 올리는 방식은 위키 전용 그대로이다(A-533) */-->
                     <div class="wiki-attach mb-3">
-                        <label class="form-label small mb-1 d-block" th:text="#{wiki.attach}">Attach a file</label>
-                        <!--/* A-533: 브라우저 기본 파일 입력(영문 Choose File, No file chosen은 브라우저 언어를 따른다) 대신 사이트의 "파일 올리기" 단추이다. 고르면 바로 올리므로 파일 이름 표시는 필요 없다. */-->
-                        <div class="nbtn medium white fake-file-wrap wiki-attach-button">
-                            <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><input type="file" class="wiki-attach-input file form-control" th:attr="data-upload-url=${uploadAction}">
+                        <div class="upload-wrap content-footer">
+                            <div class="attach-wrap">
+                                <div class="btn-wrap">
+                                    <div class="nbtn medium white fake-file-wrap wiki-attach-button">
+                                        <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><input type="file" class="wiki-attach-input file form-control" th:attr="data-upload-url=${uploadAction}">
+                                    </div>
+                                </div>
+                                <span class="plain" th:text="#{common.attach.clickbutton}"></span>
+                            </div>
                         </div>
                         <div class="form-text" th:text="#{wiki.attach.help}">The file is saved in the uploads folder of the wiki and a link is inserted.</div>
                         <div class="wiki-attach-error text-danger small d-none" th:attr="data-message=#{wiki.attach.failed}"></div>

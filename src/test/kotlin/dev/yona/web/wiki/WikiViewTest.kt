@@ -96,6 +96,7 @@ class WikiViewTest : AbstractIntegrationTest() {
         val asReader = doc(getPage(reader, base(p)).andExpect(status().isOk))
         assertNull(asReader.selectFirst("a.wiki-create-first"))
         assertTrue(asReader.select(".wiki-empty").isNotEmpty())
+        assertNotNull(asWriter.selectFirst(".wiki-empty .error-wrap i.ico-err1 + p"), "다른 빈 화면과 같은 틀(그림과 안내 문구)이다(A-576)")
     }
 
     @Test
@@ -196,7 +197,10 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertNotNull(input, "단추 안의 투명한 파일 입력")
         assertFalse(input.hasClass("form-control-sm"), "브라우저 기본 모양의 작은 입력이 아니다")
         assertTrue(input.attr("data-upload-url").isNotBlank(), "업로드 주소는 그대로")
-        assertTrue(page.selectFirst(".wiki-attach > label")!!.hasClass("d-block"), "파일 첨부 글자는 블록이라 단추 위의 별도 줄이다(인라인이면 단추와 같은 줄에 붙는다)")
+        // A-576: "파일 첨부" 라벨은 없애고 게시글 등록의 파일 올리기처럼 회색 상자 안에 단추와 안내를 둔다
+        assertTrue(page.select(".wiki-attach > label").isEmpty(), "파일 첨부 라벨은 없다")
+        assertNotNull(page.selectFirst(".wiki-attach .upload-wrap .attach-wrap .btn-wrap .fake-file-wrap.wiki-attach-button"), "게시글 등록과 같은 파일 올리기 상자")
+        assertTrue(page.selectFirst(".wiki-attach .upload-wrap .attach-wrap span.plain")!!.text().isNotBlank(), "버튼을 눌러 고르라는 안내")
     }
 
     @Test
@@ -434,6 +438,7 @@ class WikiViewTest : AbstractIntegrationTest() {
         create(writer, p, "Home", "a\n", "첫 글")
         val history = doc(getPage(outsider(), "${base(p)}/Home/_history").andExpect(status().isOk))
         assertEquals(1, history.select("tr.wiki-revision").size)
+        assertNotNull(history.selectFirst(".wiki-page-header.wiki-history-header h2"), "이력 제목 줄은 이력 전용 틀이다(A-576)")
         assertNull(history.selectFirst("form.wiki-compare-form button[type=submit]"), "비교할 수 없는데 단추가 보인다")
     }
 
