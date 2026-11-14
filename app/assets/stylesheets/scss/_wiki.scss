@@ -4,19 +4,6 @@
     font-size: 1.75rem;
   }
 
-  // A-574: 이력, 비교의 제목 줄과 빈 위키 제목은 다른 화면의 페이지 제목과 같은 크기(1.125rem, 굵게)이다.
-  // 위키 본문(페이지 보기)의 제목(`h2.wiki-page-title`)은 지시 밖이라 원래 크기를 지킨다. 부제(`small`)도 건드리지 않는다.
-  .wiki-page-header h2:not(.wiki-page-title),
-  .wiki-page-header h2 > a.wiki-page-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-
-  .wiki-empty h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-
   .wiki-sidebar {
     .wiki-sidebar-title {
       font-size: 1rem;

@@ -274,16 +274,4 @@ export const tests = [
     assert.ok(m.g.right - m.c3.right <= 20, `묶음 오른쪽 끝(${m.g.right})에 마지막 체크박스(${m.c3.right})가 붙어야 한다`);
     await ctx.close();
   } },
-  { name: '위키 화면의 페이지 제목(본문, 이력, 비교, 빈 위키)은 다른 화면의 제목과 같은 크기(1.125rem, 굵게)이다(A-574)', run: async () => {
-    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
-    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="project-page-wrap shell"><div class="shell-main wiki-wrap"><div class="row"><div class="col-lg-9">
-<div class="wiki-page-header d-flex align-items-center gap-2 mb-3"><h2 class="me-auto mb-0"><a class="wiki-page-title" id="t1">Home</a> <small id="sm">리비전</small></h2></div>
-<div class="wiki-page-header d-flex align-items-center gap-2 mb-3"><h2 class="wiki-page-title me-auto mb-0" id="t3">Home</h2></div>
-<div class="wiki-empty text-center py-5"><h3 id="t2">이 위키에는 아직 페이지가 없습니다.</h3></div></div></div></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const g = (s) => getComputedStyle(document.querySelector(s)); return { t1: parseFloat(g('#t1').fontSize), w1: parseInt(g('#t1').fontWeight, 10), t2: parseFloat(g('#t2').fontSize), w2: parseInt(g('#t2').fontWeight, 10), sm: parseFloat(g('#sm').fontSize), t3: parseFloat(g('#t3').fontSize) }; });
-    assert.ok(m.t1 >= 17 && m.t1 <= 19, `페이지 제목 ${m.t1}px (18px 안팎이어야 다른 화면과 맞다)`); assert.ok(m.w1 >= 600, `제목 굵기 ${m.w1}`);
-    assert.ok(m.t2 >= 17 && m.t2 <= 19 && m.w2 >= 600, `빈 위키 제목 ${m.t2}px, 굵기 ${m.w2}`); assert.ok(m.sm < m.t1, `"리비전" 부제(${m.sm}px)는 제목보다 작아야 한다`);
-    assert.equal(m.t3, 28, `위키 본문(페이지 보기) 제목은 지시 밖이라 원래 크기 28px 그대로이다(${m.t3}px)`);
-    await ctx.close();
-  } },
 ];
