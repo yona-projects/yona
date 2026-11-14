@@ -9904,3 +9904,109 @@ form#newProjectForm, form#importGit {
     .summary-added { color: #1a7f37; font-weight: 600; }
     .summary-deleted { color: #cf222e; font-weight: 600; }
 }
+
+// A-577~579: 조직(그룹) 화면 다듬기. 사용자 설정과 사이트 관리가 같이 쓰는 조각은 조직 쪽 틀(`.org-audit`, `.org-oauth`) 안에서만 바꾼다.
+
+// 조직 화면의 꽉 찬 단추(Bootstrap 기본 파랑 `btn-primary`와 초록 `btn-success`)를 요나 테마 주황으로 맞춘다.
+@mixin org-theme-solid-buttons {
+    .btn-primary,
+    .btn-success {
+        --bs-btn-color: #fff;
+        --bs-btn-bg: #{$yobi-btn-primary};
+        --bs-btn-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-hover-color: #fff;
+        --bs-btn-hover-bg: #{$yobi-btn-primary-hover};
+        --bs-btn-hover-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #{$yobi-btn-primary-hover};
+        --bs-btn-active-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-focus-shadow-rgb: 255, 115, 50;
+    }
+}
+
+.org-audit { @include org-theme-solid-buttons; }
+
+// 새 그룹 만들기: 입력란은 폭을 채우고 설명란은 넉넉하며 단추 줄은 위에 여백이 있다.
+.org-create {
+    dd { margin-bottom: 18px; }
+
+    textarea.form-control { min-height: 130px; }
+
+    .actions { margin-top: 28px; }
+}
+
+// 조직 게시판 목록: 프로젝트 선택 상자(38px)와 키워드 검색 상자의 높이를 맞춘다.
+.org-list-filter .search-bar {
+    height: 38px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.org-oauth {
+    @include org-theme-solid-buttons;
+
+    // 앱 목록 카드: 앱마다 이름, 종류 표시, 클라이언트 ID와 등록일, 삭제 단추
+    .oauth-cards {
+        margin: 0 0 16px;
+        padding: 0;
+    }
+
+    .oauth-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 10px;
+        padding: 14px 16px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #fff;
+
+        &:hover { background: #fafafa; }
+    }
+
+    .oauth-card-main { min-width: 0; }
+
+    .oauth-card-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .oauth-card-type {
+        margin-left: 8px;
+        padding: 1px 9px;
+        border-radius: 10px;
+        background: #f1f3f5;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .oauth-card-meta {
+        margin-top: 4px;
+        font-size: 0.8125rem;
+        color: #6c757d;
+
+        code { margin-right: 10px; }
+    }
+
+    // "이 앱이 요청할 수 있는 범위" 제목은 아래 설명 줄과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 이 제목에서만 없앤다)
+    .tf-scopes-title { margin-left: 0; }
+
+    // 비밀 값 화면: 안내 상자와 클라이언트 ID, 비밀 값 상자가 모두 같은 폭(최대 640px)이다
+    .alert-success {
+        max-width: 640px;
+    }
+
+    #client-id,
+    #client-secret {
+        display: block;
+        width: 100%;
+        max-width: 640px;
+        padding: 10px 14px;
+        border: 1px solid #e3e3e3;
+        border-radius: 6px;
+        background: #f8f9fa;
+        font-size: 0.9375rem;
+        word-break: break-all;
+    }
+}

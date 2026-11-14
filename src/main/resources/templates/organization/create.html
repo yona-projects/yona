@@ -12,7 +12,7 @@
 <th:block th:fragment="createPage">
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="form-wrap new-project">
+        <div class="form-wrap new-project org-create">
             <form th:action="@{/organizations/new}" method="post" name="new-org" class="frm-wrap">
                 <legend th:text="#{title.newOrganization}">
                 </legend>
@@ -27,14 +27,14 @@
                         <label for="name" th:text="#{organization.name.placeholder}"></label>
                     </dt>
                     <dd>
-                        <input id="name" type="text" name="name" class="text form-control" placeholder="" maxlength="250" th:value="${name}" />
+                        <input id="name" type="text" name="name" class="text form-control w-100" placeholder="" maxlength="250" th:value="${name}" />
                     </dd>
 
                     <dt>
                         <label for="descr" th:text="#{organization.description.placeholder}"></label>
                     </dt>
                     <dd>
-                        <textarea id="descr" name="descr" class="text form-control" style="resize: vertical;" th:text="${descr}"></textarea>
+                        <textarea id="descr" name="descr" rows="5" class="text form-control w-100" style="resize: vertical;" th:text="${descr}"></textarea>
                     </dd>
                 </dl>
                 <div class="actions">

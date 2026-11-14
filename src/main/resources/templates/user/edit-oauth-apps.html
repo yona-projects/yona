@@ -22,7 +22,7 @@
         <div class="two-factor-page">
         <p class="text-body-secondary mb-4" th:text="#{oauth.description}"></p>
 
-        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.apps.mine', 'oauth.apps.mine.empty')}"></th:block>
+        <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.apps.mine', 'oauth.apps.mine.empty', false)}"></th:block>
 
         <section class="tf-section">
             <h4 th:text="#{oauth.apps.authorized}"></h4>
