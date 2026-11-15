@@ -551,8 +551,6 @@ class DataService(
         }
     }
 
-    private fun timeOf(node: JsonNode): Long = if (node.isNumber) node.longValue() else 0L
-
     /** 시퀀스(다음 번호)를 복원한다. 실패해도 가져오기는 계속한다. */
     private fun restoreSequence(connection: Connection, product: String, ids: Identifiers, table: DataTable, value: Long) {
         if (value < 1) return

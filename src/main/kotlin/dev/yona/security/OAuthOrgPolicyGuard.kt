@@ -51,9 +51,6 @@ class OAuthOrgPolicyGuard(private val policy: OAuthOrgPolicyService, private val
         return masks(resource.project)
     }
 
-    /** 조직 이름으로 같은 것을 묻는다. 없는 조직이면 `false`이다. */
-    fun blocksOrganizationNamed(name: String?): Boolean = name != null && deniedOrganizationIds().isNotEmpty() && blocks(organizations.findByNameIgnoreCase(name))
-
     /** 목록에 [project]를 보여도 되면 `true`이다. 막히는 조직의 프로젝트는 공개인 것만 보인다. */
     fun visible(project: Project): Boolean = !(project.organization?.id?.let { it in deniedOrganizationIds() } == true && project.projectScope != ProjectScope.PUBLIC)
 
