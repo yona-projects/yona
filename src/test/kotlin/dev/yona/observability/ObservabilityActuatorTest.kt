@@ -16,6 +16,8 @@ import kotlin.test.assertTrue
  * 관측성의 기본 상태(로드맵 X-10 C1, C2, `decisions.md` D-64)를 검증한다. 상태 확인은 `-_-` 이름 공간(v1.6의 `/:user` 라우트와 겹치지 않게)에서
  * 인증 없이 열고 상세를 숨기며, 그 밖의 엔드포인트는 열지 않는다. 수집기 주소가 없으면 어떤 신호도 내보내지 않는다.
  */
+// 데이터 디렉터리 여유 용량 검사는 끈다. 이 시험은 상태 확인 그룹의 모양을 보는 것인데, 시험 PC의 디스크가 95%를 넘게 차면 readiness가 DOWN이 되어 실패했다(여유 용량 판정은 DataDirectoryHealthTest가 따로 본다)
+@org.springframework.test.context.TestPropertySource(properties = ["yona.observability-min-free-percent=0"])
 @AutoConfigureMockMvc
 class ObservabilityActuatorTest : AbstractIntegrationTest() {
 

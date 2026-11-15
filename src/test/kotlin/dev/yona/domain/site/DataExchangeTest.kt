@@ -76,11 +76,12 @@ class DataExchangeTest : AbstractIntegrationTest() {
     fun `행은 컬럼 순서대로 소문자 키로 쓰고 사용자 테이블은 열네 개 컬럼이다 (v1_6의 열한 개에 R-56-1의 세 개가 더해졌다)`() {
         val users = exported()["N4USER"]
         assertTrue(users.size() >= 1)
+        // 내보내기는 행 순서를 정하지 않는다(v1.6도 같다). PostgreSQL은 고친 행이 뒤로 가므로 admin 행을 이름으로 찾는다
+        val admin = users.first { it["login_id"].asString() == "admin" }
         assertEquals(
             listOf("id", "name", "login_id", "password", "password_salt", "email", "remember_me", "created_date", "state", "last_state_modified_date", "lang", "is_guest", "english_name", "token"),
-            users[0].propertyNames().toList()
+            admin.propertyNames().toList()
         )
-        assertEquals("admin", users[0]["login_id"].asString())
     }
 
     @Test

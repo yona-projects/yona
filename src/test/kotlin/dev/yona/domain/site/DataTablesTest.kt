@@ -28,7 +28,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         val known = DataTables.all.map { it.sqlName }.toSet()
         val schema = mutableSetOf<String>()
         dataSource.connection.use { c ->
-            c.metaData.getTables(c.catalog, c.schema, null, arrayOf("TABLE")).use { rs -> while (rs.next()) schema += rs.getString("TABLE_NAME").lowercase() }
+            c.metaData.getTables(c.catalog, runCatching { c.schema }.getOrNull() /* Cubrid 드라이버는 getSchema를 지원하지 않는다 */, null, arrayOf("TABLE")).use { rs -> while (rs.next()) schema += rs.getString("TABLE_NAME").lowercase() }
         }
         val missing = schema.filter { it !in known && it !in excluded && !it.startsWith("flyway") && !it.startsWith("databasechange") }
         assertEquals(emptyList(), missing.sorted(), "교환 표에 없는 테이블이 있다. 표에 더하거나 이 시험의 목록에 이유와 함께 더한다")

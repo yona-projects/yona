@@ -4,6 +4,7 @@ import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.TestDatabase
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.AfterEach
@@ -30,7 +31,8 @@ class ScopeColumnMigratorTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun addOldColumn() {
-        jdbc.execute("alter table api_token add column scopes varchar(1000)")
+        // MSSQL은 열을 더할 때 `column` 낱말을 쓰지 않는다
+        jdbc.execute(if (TestDatabase.current == TestDatabase.MSSQL) "alter table api_token add scopes varchar(1000)" else "alter table api_token add column scopes varchar(1000)")
     }
 
     @AfterEach
