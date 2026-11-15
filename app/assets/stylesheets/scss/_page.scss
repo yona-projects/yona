@@ -8587,8 +8587,13 @@ text-expander {
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
-    // 코드 입력란은 밑줄 모양(옛 로그인 폼)을 그대로 두고 글자만 가운데 정렬한다
-    input.text { @include tf-code-input; width:100%; box-sizing:border-box; }
+    // 코드 입력란은 밑줄 모양(옛 로그인 폼: 밑줄만 있고 포커스에서 주황 밑줄)을 그대로 두고 글자만 크게 가운데 정렬한다(A-604)
+    input.text {
+        @include tf-code-input;
+        width:100%; box-sizing:border-box;
+        border: 0; border-bottom: 1px solid #ccc; border-radius: 0; background: transparent; box-shadow: none;
+        &:focus { border-bottom-color: $orange; outline: none; box-shadow: none; }
+    }
     .error { @include tf-error-box; }
     .tf-remember { display:flex; align-items:center; gap:8px; margin:0 0 16px; font-size:0.8125rem; font-weight:normal; cursor:pointer; }
     .tf-remember input.form-check-input {
@@ -10429,8 +10434,8 @@ form#newProjectForm, form#importGit {
     dt { margin: 16px 0 6px; font-weight: 600; font-size: .875rem; label { margin: 0; } }
     dd { margin: 0; }
     .badge.bg-danger { margin-left: 8px; font-size: .8125rem; font-weight: 500; vertical-align: middle; }
-    input.form-control { display: block; width: 100%; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
-    input.form-control[readonly] { background: #f5f5f5; color: #555; }
+    // 입력란은 v1.6의 밑줄 모양(`.signup-form-wrap`: 밑줄만 있고 포커스에서 주황 밑줄)을 그대로 두고 폭만 폼에 맞춘다(A-604)
+    input.form-control { display: block; width: 100%; margin: 0; box-shadow: none; }
     .btns-row { margin-top: 24px; text-align: center; }
 }
 

@@ -372,8 +372,8 @@ export const tests = [
   { name: '로그인 창과 2단계 인증 화면은 같은 글자와 입력란과 오류 모양을 쓴다(A-586)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
     await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="page-wrap shell user-screen"><div class="shell-main" style="width:900px"><div id="dlg" class="loginDialog"><form class="frm-wrap login-form-wrap"><div class="two-factor-step tf-challenge"><h4 id="dt">2단계 인증</h4><p id="dh">안내</p><dl><dd><input id="dc" class="text form-control" name="code" placeholder="코드"></dd></dl></div><div class="error" id="de"><span class="error-message">코드가 맞지 않습니다.</span></div></form></div><div class="two-factor-page"><div class="alert alert-danger" id="se">코드가 맞지 않습니다.</div><input id="sc" class="form-control w-100 tf-narrow tf-code" name="code"></div></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { dta: c('#dt', 'textAlign'), dfs: parseFloat(c('#dt', 'fontSize')), dcf: c('#dc', 'fontFamily'), dcs: parseFloat(c('#dc', 'fontSize')), dcb: c('#dc', 'borderTopWidth'), dcta: c('#dc', 'textAlign'), scf: c('#sc', 'fontFamily'), scs: parseFloat(c('#sc', 'fontSize')), sch: parseFloat(c('#sc', 'height')), phs: parseFloat(getComputedStyle(document.getElementById('dc'), '::placeholder').fontSize), debg: c('#de', 'backgroundColor'), decol: c('#de', 'color'), sebg: c('#se', 'backgroundColor'), secol: c('#se', 'color') }; });
-    assert.equal(m.dta, 'center'); assert.ok(m.dfs >= 22, `로그인 창 2단계 제목 ${m.dfs}px`); assert.ok(m.dcs >= 24 && m.dcta === 'center' && parseFloat(m.dcb) >= 1, `로그인 창 코드 입력란: 글자 ${m.dcs}px, 정렬 ${m.dcta}, 테두리 ${m.dcb}`);
+    const m = await page.evaluate(() => { const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { dta: c('#dt', 'textAlign'), dfs: parseFloat(c('#dt', 'fontSize')), dcf: c('#dc', 'fontFamily'), dcs: parseFloat(c('#dc', 'fontSize')), dcb: c('#dc', 'borderBottomWidth'), dcta: c('#dc', 'textAlign'), scf: c('#sc', 'fontFamily'), scs: parseFloat(c('#sc', 'fontSize')), sch: parseFloat(c('#sc', 'height')), phs: parseFloat(getComputedStyle(document.getElementById('dc'), '::placeholder').fontSize), debg: c('#de', 'backgroundColor'), decol: c('#de', 'color'), sebg: c('#se', 'backgroundColor'), secol: c('#se', 'color') }; });
+    assert.equal(m.dta, 'center'); assert.ok(m.dfs >= 22, `로그인 창 2단계 제목 ${m.dfs}px`); assert.ok(m.dcs >= 24 && m.dcta === 'center' && parseFloat(m.dcb) >= 1, `로그인 창 코드 입력란: 글자 ${m.dcs}px, 정렬 ${m.dcta}, 밑줄 ${m.dcb}`);
     assert.ok(/mono|courier|consolas/i.test(m.dcf) && /mono|courier|consolas/i.test(m.scf), `코드 입력란은 고정폭 글꼴이다(${m.dcf} / ${m.scf})`); assert.equal(m.dcs, m.scs, '설정 화면과 로그인 창의 코드 글자 크기가 같다'); assert.ok(m.phs <= 18, `자리 표시 글자(${m.phs}px)는 입력 글자보다 작아야 한다`); assert.ok(m.sch >= 44, `설정 화면의 코드 입력란도 같은 높이(44px 이상)이다(${m.sch}px)`);
     assert.equal(m.debg, m.sebg, `오류 배경색이 같다(${m.debg} / ${m.sebg})`); assert.equal(m.decol, m.secol, `오류 글자색이 같다(${m.decol} / ${m.secol})`); await ctx.close();
   } },
@@ -431,6 +431,17 @@ export const tests = [
     assert.ok(m.er.width > 60 && m.fs >= 11, `오류 문구가 보인다(폭 ${m.er.width}px, 글자 ${m.fs}px)`);
     const fc = m.f.left + m.f.width / 2, bc = m.box.left + m.box.width / 2; assert.ok(Math.abs(fc - bc) <= 4, `폼이 안내 상자와 같은 가운데이다(${fc} / ${bc})`);
     assert.ok(m.inp.width >= 280, `입력란 폭이 충분하다(${m.inp.width}px)`); await ctx.close();
+  } },
+  { name: '밑줄 입력란: 환영 폼과 로그인의 2단계 코드 입력란은 사각형이 아니라 밑줄만 있고 포커스에서 주황 밑줄이 된다(A-604)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div style="width:500px"><div class="signup-form-wrap frm-wrap"><form class="welcome-form"><input id="w" type="text" class="text password form-control w-100"></form></div><div class="tf-challenge"><input id="o" type="text" class="text form-control" placeholder="000000"></div></div></body></html>`);
+    const read = (id) => page.evaluate((id) => { const e = document.getElementById(id); const c = getComputedStyle(e); const out = { top: c.borderTopWidth, left: c.borderLeftWidth, bottom: c.borderBottomWidth, radius: c.borderTopLeftRadius, bg: c.backgroundColor }; e.focus(); return new Promise((res) => setTimeout(() => { out.focusColor = getComputedStyle(e).borderBottomColor; out.focusShadow = getComputedStyle(e).boxShadow; res(out); }, 400)); }, id);
+    for (const id of ['w', 'o']) {
+      const m = await read(id);
+      assert.equal(m.top, '0px', `${id}: 위쪽 테두리가 없다`); assert.equal(m.left, '0px', `${id}: 왼쪽 테두리가 없다`); assert.ok(parseFloat(m.bottom) >= 1, `${id}: 밑줄이 있다(${m.bottom})`); assert.equal(m.radius, '0px', `${id}: 모서리가 둥글지 않다`);
+      const [r, g, bl] = m.focusColor.match(/\d+/g).map(Number); assert.ok(r > 200 && g > 80 && g < 170 && bl < 100, `${id}: 포커스 밑줄이 주황이다(${m.focusColor})`); assert.ok(m.focusShadow === 'none', `${id}: 포커스 빛이 없다(${m.focusShadow})`);
+    }
+    await ctx.close();
   } },
 ];
 
