@@ -27,8 +27,8 @@ class UserScreenPolishTest {
     }
 
     @Test
-    fun `토큰, GPG 키, 연결된 계정 목록은 표가 아니라 카드이다(A-581)`() {
-        for ((f, id, row) in listOf(Triple("edit-token", "token-list", "token-row"), Triple("edit-gpg", "gpg-list", "gpg-row"), Triple("edit-linked-accounts", "linked-list", "linked-row"))) {
+    fun `토큰, SSH 키, GPG 키, 연결된 계정 목록은 표가 아니라 카드이다(A-581)`() {
+        for ((f, id, row) in listOf(Triple("edit-token", "token-list", "token-row"), Triple("edit-ssh", "ssh-list", "ssh-row"), Triple("edit-gpg", "gpg-list", "gpg-row"), Triple("edit-linked-accounts", "linked-list", "linked-row"))) {
             val d = doc("user/$f.html")
             assertNotNull(d.selectFirst("ul#$id.item-cards li.item-card.$row"), "$f: 카드 목록")
             assertNull(d.selectFirst("table#$id"), "$f: 표는 없다")
@@ -45,13 +45,15 @@ class UserScreenPolishTest {
     }
 
     @Test
-    fun `새 SSH 키 화면은 키 만드는 방법을 옆에 안내한다(A-582)`() {
-        val d = doc("user/edit-ssh-new.html")
-        assertNotNull(d.selectFirst(".ssh-new-layout form#ssh-create"), "양식은 왼쪽 열이다")
-        val guide = d.selectFirst(".ssh-new-layout aside.ssh-guide")
-        assertNotNull(guide, "안내는 오른쪽 열이다")
-        assertTrue(guide!!.select("pre code").size >= 3, "생성, 복사, 확인 명령을 보인다")
-        assertTrue(guide.text().contains("ssh-keygen -t ed25519"))
+    fun `새 SSH 키와 새 GPG 키 화면은 키 만드는 방법을 옆에 안내한다(A-582)`() {
+        for ((f, form, cmd) in listOf(Triple("edit-ssh-new", "ssh-create", "ssh-keygen -t ed25519"), Triple("edit-gpg-new", "gpg-create", "gpg --full-generate-key"))) {
+            val d = doc("user/$f.html")
+            assertNotNull(d.selectFirst(".key-new-layout form#$form"), "$f: 양식은 왼쪽 열이다")
+            val guide = d.selectFirst(".key-new-layout aside.key-guide")
+            assertNotNull(guide, "$f: 안내는 오른쪽 열이다")
+            assertTrue(guide!!.select("pre code").size >= 3, "$f: 생성, 확인, 내보내기 명령을 보인다")
+            assertTrue(guide.text().contains(cmd), "$f: $cmd")
+        }
     }
 
     @Test

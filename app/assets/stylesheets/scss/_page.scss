@@ -10075,15 +10075,15 @@ form#newProjectForm, form#importGit {
         form { margin: auto 0 0; }
     }
 
-    // 새 SSH 키: 왼쪽 양식과 오른쪽 안내
-    .ssh-new-layout {
+    // 새 SSH 키와 새 GPG 키: 왼쪽 양식과 오른쪽 안내
+    .key-new-layout {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
         gap: 32px;
         align-items: start;
     }
 
-    .ssh-guide {
+    .key-guide {
         padding: 18px 20px;
         border: 1px solid #e3e3e3;
         border-radius: 8px;
@@ -10095,18 +10095,18 @@ form#newProjectForm, form#importGit {
         li { margin-bottom: 14px; }
         pre { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: #fff; border: 1px solid #e3e3e3; white-space: pre-wrap; word-break: break-all; }
         code { color: #333; }
-        .ssh-guide-note { margin: 0; color: #6c757d; }
+        .key-guide-note { margin: 0; color: #6c757d; }
     }
 
-    // 새 SSH 키 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다)
-    .ssh-new-layout .form-label { margin: 0 0 4px; }
+    // 새 키 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다)
+    .key-new-layout .form-label { margin: 0 0 4px; }
 
     // 알림 설정: 프로젝트 목록 위의 검색 상자
     #notification-project-filter { display: block; width: 100%; margin-bottom: 10px; }
 }
 
 @media (max-width: 900px) {
-    .user-screen .ssh-new-layout { grid-template-columns: minmax(0, 1fr); }
+    .user-screen .key-new-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 // 기기 인증 코드와 OAuth 앱 승인: 화면 가운데의 큰 카드(A-584)

@@ -21,26 +21,24 @@
         <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{sshKey.description}"></p>
 
-        <table id="ssh-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
-            <thead>
-            <tr>
-                <th th:text="#{sshKey.name}"></th><th th:text="#{sshKey.type}"></th><th th:text="#{sshKey.fingerprint}"></th><th th:text="#{sshKey.createdDate}"></th><th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="k : ${keys}" class="ssh-row" th:attr="data-id=${k.id}">
-                <td class="ssh-name" th:text="${k.name}"></td>
-                <td><code class="ssh-key-type" th:text="${k.keyType}"></code></td>
-                <td><code class="ssh-fingerprint" th:text="${k.fingerprint}"></code></td>
-                <td th:text="${k.createdText}"></td>
-                <td>
+        <!--/* A-581: SSH 키 목록은 카드이다 */-->
+        <ul id="ssh-list" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(keys)}">
+            <li th:each="k : ${keys}" class="item-card ssh-row" th:attr="data-id=${k.id}">
+                <div class="item-card-head">
+                    <span class="item-card-name ssh-name" th:text="${k.name}"></span>
+                    <span class="item-card-type"><code class="ssh-key-type" th:text="${k.keyType}"></code></span>
+                </div>
+                <dl class="item-card-meta">
+                    <dt th:text="#{sshKey.fingerprint}"></dt><dd><code class="ssh-fingerprint" th:text="${k.fingerprint}"></code></dd>
+                    <dt th:text="#{sshKey.createdDate}"></dt><dd th:text="${k.createdText}"></dd>
+                </dl>
+                <div class="item-card-actions">
                     <form method="post" th:action="@{/user/ssh/{id}/delete(id=${k.id})}" th:attr="onsubmit='return confirm(\'' + #{sshKey.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{sshKey.delete}"></button>
                     </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </div>
+            </li>
+        </ul>
         <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{sshKey.list.empty}"></p>
 
         <a th:href="@{/user/editform/ssh/new}" id="ssh-new" class="btn btn-success" th:text="#{sshKey.add}"></a>
