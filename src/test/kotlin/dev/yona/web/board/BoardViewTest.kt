@@ -212,6 +212,20 @@ class BoardViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `편집과 삭제 아이콘은 본문 아래 행동 줄에만 하나씩 있고 오른쪽 열에는 없다(A-591)`() {
+        val project = newProject(); val author = join(newUser(), project)
+        post(project, author)
+        val owner = doc(project, session = login(author))
+        assertEquals(1, owner.select("i.yobicon-edit-2").size, "편집 아이콘은 하나이다")
+        assertEquals(1, owner.select("i.yobicon-trash").size, "삭제 아이콘은 하나이다")
+        assertTrue(owner.select(".right-menu-icons").isEmpty(), "오른쪽 열의 아이콘 묶음은 없다")
+        assertEquals(1, owner.select(".board-actrow i.yobicon-edit-2").size, "행동 줄에 있다")
+        assertEquals("${base(project)}/postform", owner.selectFirst("a.ybtn-success[href$=/postform]")?.attr("href"), "상세에도 새 글쓰기 단추가 있다")
+        val other = doc(project, session = login(newUser()))
+        assertEquals(1, other.select("a[href$=editform] button i.yobicon-edit-2").size, "수정 권한이 없는 사용자도 원본 보기 아이콘은 하나이다")
+    }
+
+    @Test
     fun `구독 단추는 구독 여부에 따라 바뀐다`() {
         val project = newProject(); val member = join(newUser(), project)
         val p = post(project, member)
