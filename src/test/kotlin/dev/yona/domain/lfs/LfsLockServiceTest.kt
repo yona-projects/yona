@@ -95,9 +95,10 @@ class LfsLockServiceTest : AbstractIntegrationTest() {
         service.unlock(p, b, id, force = true, mayForce = true)
         val id2 = assertIs<LfsLockService.Created>(service.create(p, a, "y.bin", null)).lock.id!!
         service.unlock(p, a, id2, force = false, mayForce = false)
-        val events = logs.findAll().filter { it.projectId == p.id }.map { it.action }
+        // findAll은 순서를 정하지 않아 PostgreSQL에서는 고친 행이 뒤로 간다. 번호순으로 본다
+        val events = logs.findAll().filter { it.projectId == p.id }.sortedBy { it.id }.map { it.action }
         assertEquals(listOf("lfs.lock_created", "lfs.lock_released", "lfs.lock_created", "lfs.lock_released"), events)
-        assertTrue(logs.findAll().filter { it.projectId == p.id && it.action == "lfs.lock_released" }.first().details!!.contains("\"force\":true"))
+        assertTrue(logs.findAll().filter { it.projectId == p.id && it.action == "lfs.lock_released" }.minByOrNull { it.id ?: Long.MAX_VALUE }!!.details!!.contains("\"force\":true"))
     }
 
     @Test
