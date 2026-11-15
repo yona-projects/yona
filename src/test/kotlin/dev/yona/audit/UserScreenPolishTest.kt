@@ -169,5 +169,10 @@ class UserScreenPolishTest {
         assertNotNull(partial.selectFirst("section#oauth-secret-regenerate .danger-actions button.btn-danger"))
         assertNull(partial.selectFirst("button.btn-secondary"), "회색 단추가 없다")
     }
+
+    @Test
+    fun `OAuth 앱 수정의 제목은 클라이언트 ID 줄과 간격을 두는 전용 클래스가 있다(A-589)`() {
+        assertNotNull(Jsoup.parse(text("oauth/partial-apps.html")).selectFirst("h4.oauth-form-title"))
+    }
 }
 

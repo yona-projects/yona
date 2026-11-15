@@ -379,8 +379,9 @@ export const tests = [
   } },
   { name: 'OAuth 앱 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(A-588)', run: async () => {
     const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
-    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="page-wrap shell user-screen"><div class="shell-main" style="width:900px"><div class="two-factor-page oauth-screen"><h4 id="t">앱 수정</h4><form id="oauth-app-form"><div class="mb-3"><label class="form-label" id="l" for="n">이름</label><input id="n" class="form-control w-100"></div></form></div></div></div></div></body></html>`);
-    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { t: r('#t'), l: r('#l'), n: r('#n') }; });
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="page-wrap shell user-screen"><div class="shell-main" style="width:900px"><div class="two-factor-page oauth-screen"><h4 id="t" class="oauth-form-title">앱 수정</h4><p id="cid" class="mb-3">클라이언트 ID: <code>yona_app_x</code></p><form id="oauth-app-form"><div class="mb-3"><label class="form-label" id="l" for="n">이름</label><input id="n" class="form-control w-100"></div></form></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { t: r('#t'), c: r('#cid'), l: r('#l'), n: r('#n') }; });
+    assert.ok(m.c.top - m.t.bottom >= 6, `제목과 클라이언트 ID 줄 사이 간격이 6px 이상이어야 한다(${m.c.top - m.t.bottom}px)`);
     assert.ok(Math.abs(m.l.left - m.t.left) <= 1 && Math.abs(m.l.left - m.n.left) <= 1, `라벨(${m.l.left})이 제목(${m.t.left})과 입력란(${m.n.left})과 같은 왼쪽 끝이어야 한다`); await ctx.close();
   } },
 ];

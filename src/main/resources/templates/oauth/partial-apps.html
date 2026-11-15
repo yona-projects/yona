@@ -41,7 +41,7 @@
 <!--/* 앱 만들기와 수정 양식. 모델: client, form, formError, scopeChoices, oidcInfo, urls, transferTargets(소유자 이전 대상 목록) */-->
 <th:block th:fragment="appForm(client, form, formError, scopeChoices, oidcInfo, urls, transferTargets)">
         <div th:if="${formError != null}" class="alert alert-danger" th:text="#{${formError}}"></div>
-        <h4 th:text="${client == null} ? #{oauth.form.title.new} : #{oauth.form.title.edit}"></h4>
+        <h4 class="oauth-form-title" th:text="${client == null} ? #{oauth.form.title.new} : #{oauth.form.title.edit}"></h4>
         <p th:if="${client != null}" class="mb-3"><span th:text="#{oauth.apps.clientId}"></span>: <code id="edit-client-id" th:text="${client.clientId}"></code></p>
         <section id="oidc-info" class="tf-section mb-3" th:if="${oidcInfo != null}">
             <h5 th:text="#{oauth.oidc.title}"></h5>

@@ -10253,3 +10253,6 @@ form#newProjectForm, form#importGit {
 
 // OAuth 앱 양식의 라벨은 제목과 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다, A-588)
 .oauth-screen #oauth-app-form .form-label { margin-left: 0; margin-right: 0; }
+
+// 앱 만들기와 수정 화면의 제목은 아래 클라이언트 ID 줄과 간격을 둔다(A-589)
+.oauth-screen .oauth-form-title { margin-bottom: 10px; }
