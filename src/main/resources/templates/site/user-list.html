@@ -83,8 +83,8 @@
 
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title"><span id="userInfo"></span><span class="ms-1" th:text="#{site.user.delete}"></span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h3 class="modal-title"><span id="userInfo"></span><span class="ms-1" th:text="#{site.user.delete}"></span></h3>
         </div>
         <div class="modal-body">
             <p th:text="#{site.user.deleteConfirm}"></p>
@@ -98,8 +98,8 @@
     <!--/* A-594: 비밀번호 재설정은 확인 창, 결과 창 순서로 진행한다. 서버가 임의 비밀번호를 만들어 한 번만 보여 주는 v1.6 방식은 그대로이다 */-->
     <div id="resetPasswordConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title"><span id="resetPasswordTarget"></span><span class="ms-1" th:text="#{title.resetPassword}"></span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h3 class="modal-title"><span id="resetPasswordTarget"></span><span class="ms-1" th:text="#{title.resetPassword}"></span></h3>
         </div>
         <div class="modal-body"><p class="mb-0" th:text="#{site.user.resetPasswordConfirm}"></p></div>
         <div class="modal-footer">
@@ -109,8 +109,8 @@
     </div></div></div>
     <div id="resetPasswordResult" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title"><span id="resetPasswordResultTarget"></span><span class="ms-1" th:text="#{user.newPassword}"></span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h3 class="modal-title"><span id="resetPasswordResultTarget"></span><span class="ms-1" th:text="#{user.newPassword}"></span></h3>
         </div>
         <div class="modal-body">
             <div class="reset-password-value"><code id="resetPasswordValue"></code><button type="button" id="resetPasswordCopy" class="btn btn-outline-secondary btn-sm" th:text="#{site.user.resetPasswordCopy}"></button></div>

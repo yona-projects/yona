@@ -9048,7 +9048,7 @@ textarea.editorSeries.content {
 }
 
 // 위험 구역 확인 창의 이름 입력(A-536, A-538)
-#alertTransfer, #alertChangeVCS, #alertDeletion {
+#alertTransfer, #alertChangeVCS, #alertDeletion, #alertDeletionWrap {
     .modal-body p + p {
         margin-top: 0.5rem;
     }
@@ -10372,5 +10372,5 @@ form#newProjectForm, form#importGit {
     display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #e3e3e3; border-radius: 8px; background: #f8f9fa;
     code { flex: 1 1 auto; font-size: 1.125rem; letter-spacing: .04em; word-break: break-all; }
 }
-#alertDeletionWrap .delete-target code { display: block; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 6px; background: #f8f9fa; word-break: break-all; }
+#alertDeletionWrap .delete-target-unused code { display: block; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 6px; background: #f8f9fa; word-break: break-all; }
 

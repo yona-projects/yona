@@ -74,11 +74,14 @@ class SiteScreenPolishTest {
     @Test
     fun `비밀번호 재설정은 확인 창과 결과 창을 거치고 삭제 창 제목에는 공백이 있다`() {
         val d = doc("site/user-list.html")
+        for (id in listOf("resetPasswordConfirm", "resetPasswordResult", "alertDeletionWrap")) {
+            assertEquals("button", d.selectFirst("#$id .modal-header")!!.child(0).tagName(), "$id: 닫기 단추가 제목 앞에 있어야 공통 CSS가 오른쪽 끝으로 보낸다(A-537)")
+        }
         assertNotNull(d.selectFirst("#resetPasswordConfirm.modal #resetPasswordGo"), "먼저 확인 창")
         assertNotNull(d.selectFirst("#resetPasswordResult.modal #resetPasswordValue"), "결과 창에 새 비밀번호")
         assertNotNull(d.selectFirst("#resetPasswordResult #resetPasswordCopy"))
         assertNull(d.selectFirst("script#dismissable-alerts"), "목록 안에 끼워 넣던 알림은 없어졌다")
-        assertTrue(Regex("""id="userInfo"></span>\s*<span class="ms-1""").containsMatchIn(text("site/user-list.html")), "사용자 삭제 제목의 이름과 글 사이에 공백")
+        assertTrue(Regex("""id="userInfo"></span><span class="ms-1""").containsMatchIn(text("site/user-list.html")), "사용자 삭제 제목의 이름과 글 사이에 공백")
     }
 
     @Test
@@ -88,6 +91,9 @@ class SiteScreenPolishTest {
         assertEquals("disabled", d.selectFirst("#projectDeleteBtn")!!.attr("disabled"))
         assertNotNull(d.selectFirst("button[data-toggle=delete-project].ybtn-outline-danger, button[data-toggle=delete-project].btn-outline-danger"), "목록의 삭제 단추는 가볍게")
         assertNotNull(d.selectFirst("#alertDeletionWrap .modal-title"))
+        for (id in listOf("alertDeletionWrap")) {
+            assertEquals("button", d.selectFirst("#$id .modal-header")!!.child(0).tagName(), "닫기 단추가 제목 앞에 있어야 공통 CSS가 오른쪽 끝으로 보낸다(A-537)")
+        }
     }
 }
 

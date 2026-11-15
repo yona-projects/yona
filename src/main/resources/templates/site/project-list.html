@@ -46,18 +46,19 @@
 
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title" th:text="#{site.project.delete}"></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h3 class="modal-title" th:text="#{site.project.delete}"></h3>
         </div>
         <div class="modal-body">
             <p th:text="#{site.project.deleteConfirm}"></p>
-            <p class="text-body-secondary" th:text="#{site.project.deleteRetype}"></p>
-            <p class="delete-target"><code id="project-name"></code></p>
-            <input type="text" id="project-name-confirm" class="form-control w-100" autocomplete="off">
+            <!--/* 프로젝트 오너가 삭제할 때와 같은 이름 재입력(A-538): 이름과 일치해야 삭제 단추가 켜진다 */-->
+            <p class="mb-0">
+                <label for="project-name-confirm" class="form-label" th:utext="#{project.danger.confirmName(${'<strong id=&quot;project-name&quot;></strong>'})}"></label>
+                <input type="text" id="project-name-confirm" class="form-control w-100" autocomplete="off" spellcheck="false">
+            </p>
         </div>
         <div class="modal-footer">
-            <button type="button" id="projectDeleteBtn" class="btn btn-danger" disabled="disabled" th:text="#{site.project.delete}"></button>
-            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+            <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" disabled="disabled" th:text="#{site.project.delete}"></button>
         </div>
     </div></div></div>
 
