@@ -77,6 +77,8 @@ class SiteScreenPolishTest {
         for (id in listOf("resetPasswordConfirm", "resetPasswordResult", "alertDeletionWrap")) {
             assertEquals("button", d.selectFirst("#$id .modal-header")!!.child(0).tagName(), "$id: 닫기 단추가 제목 앞에 있어야 공통 CSS가 오른쪽 끝으로 보낸다(A-537)")
         }
+        assertEquals(1, d.select("#alertDeletionWrap .modal-footer button, #alertDeletionWrap .modal-footer a").size, "사용자 삭제 창은 프로젝트 삭제 창처럼 실행 단추 하나이다")
+        assertNotNull(d.selectFirst("#alertDeletionWrap .modal-footer button#accountToggleBtn.ybtn-danger"))
         assertNotNull(d.selectFirst("#resetPasswordConfirm.modal #resetPasswordGo"), "먼저 확인 창")
         assertNotNull(d.selectFirst("#resetPasswordResult.modal #resetPasswordValue"), "결과 창에 새 비밀번호")
         assertNotNull(d.selectFirst("#resetPasswordResult #resetPasswordCopy"))
