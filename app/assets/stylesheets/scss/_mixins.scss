@@ -280,7 +280,6 @@
         clear: both;
     }
 }
-.user-select-none { @include user-select-none; }
 // Center-align a block level element
 // ----------------------------------
 @mixin center-block() {
@@ -291,24 +290,6 @@
 
 @mixin inline-block($important: "") {
     display: unquote("inline-block #{$important}");
-}
-
-.dotum {
-    font-family: '돋움',dotum;
-}
-
-.gulim {
-    font-family: '굴림',Gulim;
-}
-
-.thoma {
-    font-family: Tahoma;
-}
-
-.helvetic-light {
-    font-family: "HelveticaNeueLight", "HelveticaNeue-Light", "Helvetica Neue Light", "HelveticaNeue", "Helvetica Neue", "Helvetica";
-    font-weight:200;
-    font-stretch:normal;
 }
 
 // user-select

@@ -881,7 +881,6 @@ $violet:  #9c27b0;
 }
 
 
-
 /* The navigation menu links */
 .sidenav {
   /* v1.6의 `row-fluid`는 바깥 여백이 없고 안의 `span5`는 폭이 상자 전체였다. BS5의 `.row`는 바깥으로 거터의 절반만큼 나가
@@ -912,7 +911,6 @@ $violet:  #9c27b0;
   }
 }
 
-.nav-subtab.unstyled,
 .nav-subtab.list-unstyled { /* 템플릿은 BS5 이름 `list-unstyled`를 쓴다 */
   color: black;
   background-color: #eee;
@@ -925,22 +923,6 @@ $violet:  #9c27b0;
 
 .nav-subtab li a {
   padding: 5px 8px;
-}
-
-/* Position and style the close button (top right corner) */
-.sidenav .closebtn {
-  position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 2.25rem;
-  margin-left: 50px;
-}
-
-.shortcut-message {
-  color: white;
-  background-color: #87c98a;
-  padding: 3px 6px;
-  border-radius: 2px;
 }
 
 

@@ -28,7 +28,6 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .btn-transparent { border: 0; padding: 0; background: transparent; }
-.d-link { color: $blue; }
 .nm { margin: 0 !important; }
 .hidden {
     display: none !important;
@@ -166,16 +165,8 @@ input[type=number]::-webkit-outer-spin-button {
 .right-txt     { text-align:right; }
 .left-txt      { text-align:left;  }
 .blue-txt      { color:$blue;}
-
-/** background **/
-.bgblack  { background:#000; }
-.bgwhite  { background:#fff; }
-.bgblue { @include bgblue; }
-.bgorange { background:$orange; }
-.bggray   { background:#f5f5f5; }
 .vmiddle  { vertical-align:middle !important; }
 .vertical-top  { vertical-align:top !important; }
-.vtop     { vertical-align:top    !important; }
 
 /** form elements **/
 .radio-btn {
@@ -210,34 +201,21 @@ input[type=number]::-webkit-outer-spin-button {
 .mr10 { margin-right:10px; }
 .mt10 { margin-top:10px; }
 .mt20 { margin-top:20px; }
-.ml20 { margin-left:20px; }
 .mb10 { margin-bottom:10px; }
 .mb20 { margin-bottom:20px; }
 .mr20 { margin-right:20px; }
 .ml4 { margin-left:4px; }
 .ml5 { margin-left:5px; }
 .ml6 { margin-left:6px; }
-.mr6 { margin-right:6px; }
 .mr5 { margin-right:5px; }
 .mt5 { margin-top:5px; }
-.mt4 { margin-top:4px; }
 .mr3 { margin-right:3px; }
-.pb4 { padding-bottom: 4px}
-.pl0 { padding-left: 0}
 
 .margin-top-20   { margin-top:20px;   }
-.margin-left-20  { margin-left: 20px; }
 .margin-left-5   { margin-left:5px; }
 .margin-right-5  { margin-right:5px;  }
-.margin-right-i2 { margin-right:-2px !important; }
 
 .font12 { font-size: 0.75rem; }
-
-.no-border{ border: none !important; }
-.reverb {
-  unicode-bidi: bidi-override;
-  direction: rtl;
-}
 
 .z{
   float:right;
@@ -249,16 +227,6 @@ input[type=number]::-webkit-outer-spin-button {
 
 .font-blue {
   color: $theme-link;
-}
-
-.notification-badge {
-    font-size:0.75rem;
-    border:2px solid #FFF;
-    line-height:1.25rem;
-    padding:0 5px;
-    background-color:$yobi-primary;
-    color:#ECF0F1;
-    @include border-radius(10px);
 }
 
 .vmiddle-inline {
@@ -290,10 +258,6 @@ input.white:-ms-input-placeholder        { color:#fff; opacity:0.8; }
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.z-index-1 {
-    z-index: 1 !important;
 }
 
 .hideFromDisplayOnly {

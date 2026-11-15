@@ -312,23 +312,6 @@ span.issue-label {
 /** input **/
 /* 검색버튼 스타일 */
 .btn-search { @include btn-search; }
-/** 화면 중앙의 프로젝트 내 검색 폼 **/
-.form-search {
-    .text {
-        width: 360px;
-        margin: 5px 0 0;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-right: 0 none;
-        @include box-shadow(none);
-        @include border-radius(2px 0 0 2px);
-        &:focus { @include box-shadow(none); }
-    }
-
-    .btn {
-        @include btn-search;
-    }
-}
 
 /** Avatar Wraps **/
 .avatar-wrap {
@@ -444,14 +427,6 @@ span.issue-label {
     }
 }
 
-.my-project-item {
-    li {
-        padding:5px 15px;
-        border-top : 1px solid #ececec;
-        font-size: 0.875rem;
-    }
-}
-
 
 /** alert **/
 .yobiDialog {
@@ -549,18 +524,6 @@ span.issue-label {
     }
 }
 
-.yobiSpinner {
-    display: none;
-    position: fixed; z-index: 99999;
-    top: 0; bottom: 0; left: 0; right: 0;
-
-    .spinContainer {
-        position:fixed;
-        width:100px; height:100px;
-        top:50%; left:50%;
-    }
-}
-
 /** etc **/
 .num-badge {
     font-weight: bold;
@@ -571,25 +534,6 @@ span.issue-label {
     margin-left: 3px;
     font-size: 0.8125rem;
     padding: 2px 4px;
-}
-
-.num-noti {
-    display: inline-block;
-    background: $primary;
-    color:#fff;
-    font-weight:bold;
-    border:1px solid #eee;
-    padding: 0px 5px;
-    margin-left: 5px;
-    vertical-align: middle;
-    font-family: $base-font-family;/*Tahoma;*/
-    text-shadow: none;
-    @include border-radius(2px);
-}
-.label-exp {
-    background:$secondary;
-    text-shadow: none;
-    i { font-size:0.625rem; }
 }
 .counter {
     left: 2px;
@@ -1072,167 +1016,6 @@ span.issue-label {
     outline:none;
     font-size:0;
     line-height:normal;
-}
-
-.numberic {
-    display:inline-block;
-    margin-left:5px;
-    font-size:0.625rem;
-    border:2px solid #FFF;
-    line-height:0.9375rem;
-    padding:0 5px;
-    background-color:$yobi-primary;
-    color:#ECF0F1;
-    @include border-radius(10px);
-}
-
-/* ============================================================
- * bootstrapSwitch v1.3 by Larentis Mattia $spiritualGuru
- * http://www.larentis.eu/switch/
- * ============================================================
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- * ============================================================ */
-/**
- * Flat UI Free
- * licensed under a CC BY 3.0 and MIT License
- *
- * http://creativecommons.org/licenses/by/3.0/
- * http://opensource.org/licenses/mit-license.html
- */
-.has-switch {
-    border-radius: 30px;
-    display: inline-block;
-    cursor: pointer;
-    line-height: 1.231;
-    overflow: hidden;
-    position: relative;
-    text-align: left;
-    width: 80px;
-    -webkit-mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
-    mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-}
-.has-switch.deactivate {
-    opacity: 0.5;
-    filter: alpha(opacity=50);
-    cursor: default !important;
-}
-.has-switch.deactivate label,
-.has-switch.deactivate span {
-    cursor: default !important;
-}
-.has-switch > div {
-    width: 162%;
-    position: relative;
-    top: 0;
-}
-.has-switch > div.switch-animate {
-    -webkit-transition: left 0.25s ease-out;
-    -moz-transition: left 0.25s ease-out;
-    -o-transition: left 0.25s ease-out;
-    transition: left 0.25s ease-out;
-    -webkit-backface-visibility: hidden;
-}
-.has-switch > div.switch-off {
-    left: -63%;
-}
-.has-switch > div.switch-off label {
-    background-color: #FFF;
-    border-color: $state-closed;
-    -webkit-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
-    -moz-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
-    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
-}
-.has-switch > div.switch-on {
-    left: 0%;
-}
-.has-switch > div.switch-on label {
-    background-color: #fff;
-}
-.has-switch input[type=checkbox] {
-    display: none;
-}
-.has-switch span {
-    cursor: pointer;
-    font-size: 0.8125rem;/*14.994px;*/
-    font-weight: 700;
-    float: left;
-    height: 29px;
-    line-height: 1.1875rem;
-    margin: 0;
-    padding-bottom: 6px;
-    padding-top: 5px;
-    position: relative;
-    text-align: center;
-    width: 50%;
-    z-index: 1;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    -webkit-transition: 0.25s ease-out;
-    -moz-transition: 0.25s ease-out;
-    -o-transition: 0.25s ease-out;
-    transition: 0.25s ease-out;
-    -webkit-backface-visibility: hidden;
-}
-.has-switch span.switch-left {
-    border-radius: 30px 0 0 30px;
-    background-color: $state-open;
-    color: #fff;
-    border-left: 1px solid transparent;
-    &:hover {
-        background-color:darken($state-open, 10%);
-    }
-}
-.has-switch span.switch-right {
-    border-radius: 0 30px 30px 0;
-    background-color: $state-closed;
-    color: #FFF;/*#ffffff;*/
-    text-indent: 5px;
-    &:hover {
-        background-color:darken($state-closed, 10%);
-    }
-}
-.has-switch label {
-    border: 4px solid $state-open;
-    border-radius: 50%;
-    float: left;
-    height: calc(21px + 8px);
-    margin: 0 -15px 0 -14px;
-    padding: 0;
-    position: relative;
-    vertical-align: middle;
-    width: calc(21px + 8px);
-    z-index: 100;
-    -webkit-transition: 0.25s ease-out;
-    -moz-transition: 0.25s ease-out;
-    -o-transition: 0.25s ease-out;
-    transition: 0.25s ease-out;
-    -webkit-backface-visibility: hidden;
-}
-.switch-square {
-    border-radius: 6px;
-    -webkit-mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
-    mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
-}
-.switch-square > div.switch-off label {
-    border-color: #7f8c9a;
-    border-radius: 6px 0 0 6px;
-}
-.switch-square span.switch-left {
-    border-radius: 6px 0 0 6px;
-}
-.switch-square span.switch-right {
-    border-radius: 0 6px 6px 0;
-}
-.switch-square label {
-    border-radius: 0 6px 6px 0;
-    border-color: $secondary;
 }
 
 .search-bar {

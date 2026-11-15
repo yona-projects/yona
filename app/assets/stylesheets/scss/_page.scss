@@ -68,10 +68,6 @@
     width: 100%;
 }
 
-.loading-gif {
-    background: #FFF url('#{$base-image-path}/loading-gif-2.gif') no-repeat center;
-}
-
 .prj {
     color:#202020;
 }
@@ -118,14 +114,6 @@
             }
         }
     }
-}
-
-.pin-move-to-right {
-    left: 270px;
-}
-
-.pin-move-to-default-position {
-    left: -2px;
 }
 
 .pin-in-sidebar {
@@ -690,14 +678,6 @@
     margin: 0 auto;
 }
 
-.project-new-posting {
-    font-size: 0.75rem;
-    line-height: 0.875rem;
-    font-family: $fixed-font-family;
-    color: $yobi-primary;
-    vertical-align: top;
-}
-
 .project-page-wrap {
     margin:20px auto 0;
 
@@ -827,15 +807,6 @@
 // v1.6의 `.checkbox.inline`(Bootstrap 2)은 위쪽 안쪽 여백 5px를 가졌다.
 .form-check-inline {
     padding-top:5px;
-}
-
-.forked-from {
-    display:inline-block;
-    vertical-align:middle;
-    padding:7px 10px;
-    font-size:0.6875rem;
-
-    i { vertical-align:text-bottom; }
 }
 
 //----------- index page.
@@ -1715,85 +1686,6 @@
         border-top:1px solid #e5e5e5;
     }
 }
-
-.bread-crumb-wrap {
-    overflow: hidden;
-    .title {
-        margin-top: 0;
-        font-weight: normal;
-        font-size: 1.625rem;
-        float: left;
-        color: $orange;
-    }
-    .bread-crumb {
-        float: right;
-    }
-}
-
-//--- projects
-.header-wrap {
-    margin-top: 30px;
-    margin-bottom: 5px;
-    padding: 0px;
-
-    .stats-wrap {
-        padding: 0px 0px 5px 0px;
-        overflow: hidden;
-        .stat {
-            background-color: #FFF;
-            padding: 10px 20px;
-            @include border-radius(5px);
-            height: 31px;
-            width: 268px;
-            margin-right: 10px;
-            float: left;
-            &:last-child {
-                margin-right: 0;
-            }
-            .desc {
-                font-size: 0.75rem;
-            }
-            .num {
-                float: right;
-                font-size: 1.75rem;
-                line-height: 1;
-
-                &.all  { color: $orange; }
-                &.open { color: #5DBBE0; /*color: #51AACC;*/ }
-                &.public { color: #5DBBE0; }
-            }
-        }
-
-        .stat-projectlist {
-            border-bottom:1px solid #c5c5c5;
-
-            &.active {
-                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none; font-weight:bold;
-
-                &.all     { color: $orange; }
-                &.public  { color: #5DBBE0; }
-                /*&.private { color: #5DBBE0; }*/
-            }
-        }
-
-        .stat-issue {
-            width:266px; /*240px;*/
-            border-bottom:1px solid #c5c5c5;
-
-            &.active {
-                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none; font-weight:bold;
-
-                .desc {
-                    &.all  { color: $orange; }
-                    &.open { color: #5DBBE0; /*color: #51AACC;*/ }
-                    &.public { color: #5DBBE0; }
-                }
-            }
-        }
-    }
-}
 .bottom-actrow {margin-top:15px;  padding: 6px 2px;}
 .issue-list-wrap { clear:both;}
 
@@ -2001,25 +1893,6 @@
     }
 }
 
-//-- project setting
-.page-title {
-    margin-top: 20px;
-    font-size: 1.25rem;
-    font-weight: normal;
-
-    a {
-        display:inline-block; max-width:300px; /* 프로젝트명 */
-        overflow:hidden; text-overflow:ellipsis;
-        cursor:pointer;
-    }
-
-    .gray {
-        @include opacity(50);
-        a { max-width:130px !important; } /* 아이디 */
-        a:hover { color:inherit !important; }
-    }
-}
-
 .bubble-wrap {
     overflow: hidden;
     margin-bottom: 20px;
@@ -2133,10 +2006,6 @@ label.inline-list {
         margin-left: 0;
     }
 }
-
-.n-alert.project-del {
-    margin-left: 125px;
-}
 .btn-project-delete {
     margin-left:10px;
 }
@@ -2231,23 +2100,6 @@ label.inline-list {
             &:last-of-type { margin:0; }
         }
         i { margin-right: 5px; }
-    }
-}
-
-//-- milestone
-.milestone-legend {
-    text-align:left;
-    color:#999;
-    i {
-       @include inline-block;
-       @include border-radius(2px);
-       width:35px; height:7px;
-       margin:0 3px;
-
-       &.open { background-color: $state-open; }
-       &.closed{ background-color : $state-closed;}
-
-       &.gray { background:#B1B1B1;   }
     }
 }
 
@@ -2494,13 +2346,6 @@ label.inline-list {
             height: inherit;
         }
     }
-}
-.badge.milestone-state {
-    margin:0; padding:2px 0px; margin-right:3px;
-    width:40px; text-align:center; font-size:0.6875rem;
-
-    &.open { background-color:$state-open; }
-    &.closed { background-color:$state-closed; }
 }
 
 //-- new milestone
@@ -2796,27 +2641,6 @@ label.inline-list {
         }
     }
 }
-.project-hometop-wrap {
-    display:block; clear:both;
-    height:30px;
-
-    .vcs-wrap {
-        @include repo-info;
-        padding:0; line-height:1.875rem;
-
-        .repo-url {
-            width:570px;
-            font-family:Consolas,Tahoma,Verdana !important;
-            background:#f5f5f5;
-        }
-    }
-
-    .issue-wrap {
-        strong.num {
-            &.open { color:$blue; }
-        }
-    }
-}
 
 .readme {
     padding: 5px;
@@ -2926,15 +2750,6 @@ label.inline-list {
             &.disabled { color:#ddd; }
         }
     }
-}
-.historyAgo {
-    font-size:0.6875rem;
-    font-weight:normal;
-    margin-left:3px;
-    color:$secondary;
-
-    &.new { color:$primary; }
-    &.old { color:#777; }
 }
 
 .write-btn-wrap {
@@ -3845,21 +3660,6 @@ div.markdown-preview {
         &.over { color:#f36c22 !important; }
     }
 }
-
-.label-editor {
-    padding-top:10px;
-    border-top:1px solid #ddd;
-
-    .colors-wrap {
-        position:relative;
-        padding-top: 32px;
-
-        .colorInput {
-            position:absolute;
-            top:0; left:0; right:0;
-        }
-    }
-}
 .content-wrap {
     textarea.content{
       height: 300px;
@@ -4336,22 +4136,6 @@ label.issue-item-row {
     }
 }
 
-.relative-issue {
-    display:none;
-
-    dt { color:#797979; }
-    ul {
-        margin-left:5px;
-
-        .issue-item {
-            padding:0;
-            border:none;
-
-            .date { font-size:0.6875rem; color:#999; }
-        }
-    }
-}
-
 .vote-wrap {
     display:inline-block;
     direction: rtl;
@@ -4476,18 +4260,6 @@ label.issue-item-row {
     }
 }
 
-//---- code browse
-.code-browse {
-    .bubble-wrap {
-        padding: 10px;
-        .inner-bubble {
-            padding: 20px; /*20px 15px 20px 20px;*/
-            margin-bottom: 15px;
-            border-bottom:1px solid #cfcfcf;
-        }
-    }
-}
-
 .repo-wrap {
     padding:0;
     background:#fff !important;
@@ -4518,10 +4290,6 @@ label.issue-item-row {
     &.tag {
         background-color: $yobi-cyan;
     }
-}
-
-.double-sp {
-    margin: 15px 0 17px;
 }
 
 .minimap-outer {
@@ -4945,82 +4713,6 @@ label.issue-item-row {
         .nbtn { margin:2px; }
     }
 }
-
-.code-view-table {
-    td {
-        vertical-align: top;
-    }
-    pre {
-        line-height: 1.5;
-        padding: 0;
-        margin: 0;
-        background-color: transparent;
-        border: 0 none;
-        @include border-radius(0);
-        font-size: 0.75rem;
-    }
-    .line-num {
-        padding: 10px 6px;
-        text-align: right;
-        background-color: #F7F7F7;
-        border-right: 1px solid #EEE;
-        width: 22px;
-        @include user-select-none;
-
-        > a {
-            color: #AAA;
-        }
-    }
-    .code-lines {
-        padding: 10px;
-        font-size: 0;
-        white-space: pre;
-        .line {
-            margin: 0;
-            padding: 0;
-            font-size: 0.75rem;
-        }
-    }
-}
-
-//-- user setting2
-.profile-frmwrap {
-    .avatar-frm {
-        display:inline-block;
-        vertical-align:top;
-        margin:30px; margin-right:50px;
-
-        .avatar-wrap {
-            position:relative;
-
-            .progress {
-                position:absolute;
-                width:130px; height:0px;
-                padding:0; margin:0; bottom:0px;
-                background:$primary; @include opacity(80);
-                -webkit-transition-duration:1s;
-                &.loading { height:130px; }
-            }
-        }
-
-        .btn-wrap {
-            margin-left:10px;
-            .nbtn i { vertical-align:top; margin-right:2px; }
-        }
-    }
-
-    dl {
-        display:inline-block;
-    }
-
-    form {
-        display:inline-block;
-        vertical-align: top;
-        margin-right:50px;
-        &:last-of-type { margin-right:0px; }
-    }
-
-}
 #avatarUploaded {
     display:none;
 
@@ -5158,38 +4850,6 @@ label.issue-item-row {
     }
 }
 
-.user-stream-wrap {
-    .inner {
-        border-bottom:1px solid #c3c3c3;
-    }
-}
-
-//commit view
-.commit-info-wrap {
-    padding-left: 10px;
-    span {
-        @include inline-block;
-        margin-right: 5px;
-        font-size: 0.6875rem;
-        &.date {
-            color: #646464;
-        }
-        &.sp {
-            color: #999;
-        }
-        &.sha-block {
-            color: #646464;
-            .num {
-                color: #51AACC;
-            }
-            .commit-id {
-                color: #646464;
-                font-weight: bold;
-            }
-        }
-    }
-}
-
 .diff-code-view-table {
     width: 100%;
     .diff-line-num {
@@ -5248,53 +4908,6 @@ label.issue-item-row {
     padding: 10px;
     font-size: 0;
 }
-.statistics-wrap {
-    @include border-radius(10px);
-    overflow: hidden;
-    @include inline-block;
-    width: 425px;
-    border-bottom: 1px solid $gray-d4;
-    background-color: $white;
-    &:nth-child(2) {
-        margin-right: 10px;
-    }
-    &.top {
-        display: block;
-        width: 860px;
-        margin-bottom: 15px;
-        .graph-wrap {
-            width: 820px;
-            margin: 10px 20px;
-            min-height: 240px;
-        }
-    }
-    .header {
-        background-color: #F8F8F8;
-        overflow: hidden;
-        padding: 0 20px;
-        font-size: 0.75rem;
-        color: #999;
-        h2 {
-            font-size: 1rem;
-            line-height: 2.3125rem;
-            color: #4C4C4C;
-            margin: 0;
-            float: left;
-        }
-        .desc {
-            float: right;
-            line-height: 2.3125rem;
-            .ico {
-                margin: 0 3px 0 5px;
-            }
-        }
-    }
-    .graph-wrap {
-        padding: 10px 20px;
-        background-color: $white;
-        min-height: 240px;
-    }
-}
 
 .error-wrap {
     padding:100px 0px;
@@ -5304,9 +4917,6 @@ label.issue-item-row {
         font-weight:bold; font-size:1rem;
         color:#898989; margin:30px 0;
     }
-}
-.code-tab, .plugin-tab {
-    margin: 15px 0 20px;
 }
 
 .actions {
@@ -5510,17 +5120,6 @@ label.issue-item-row {
     }
 }
 
-.request-summary {
-    float: right;
-    width: 100%;
-    th {
-        text-align: left;
-    }
-    td {
-        text-align: right;
-    }
-}
-
 // 일괄 수정 막대와 정렬 링크가 든 줄이 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-301).
 // 막대(`.mass-update-wrap`)는 높이가 0인 float 묶음이라 단독으로는 붙지 못하므로, 둘을 감싼 `.filter-wrap`이 붙는다.
 .filter-wrap.mass-update-sticky {
@@ -5548,49 +5147,6 @@ label.issue-item-row {
         max-height: 350px;
         overflow-y: auto;
    }
-}
-.fork-wrap {
-    .project-from {
-        display:inline-block;
-        width:300px;
-        vertical-align:middle;
-        text-align:center;
-
-        .title { color:$secondary; }
-    }
-
-    .arrow {
-        display:inline-block;
-        vertical-align:middle;
-        padding:0 40px;
-    }
-
-    .project-to {
-        display:inline-block;
-        width:550px;
-        vertical-align:middle;
-
-        .project-name-wrap {
-            display:block;
-
-            .title { color:$primary; }
-            .owner {
-                display:inline-block;
-                font-size:0.875rem;
-                padding-top:5px; margin-right:10px;
-            }
-            .project-name {
-                display:inline-block;
-                vertical-align:top;
-                input { font-size:0.875rem; }
-                .form-text { color:#999; }
-            }
-        }
-
-        .project-public {
-            line-height:1.875rem;
-        }
-    }
 }
 
 // -- keymap
@@ -5643,14 +5199,6 @@ label.issue-item-row {
   border: none;
 }
 
-.dimmedColor {
-  color: #eee;
-}
-
-.no-gradient{
-  background-image: none;
-}
-
 .btn-flat{
     .active {
         color: #fff;
@@ -5663,27 +5211,6 @@ label.issue-item-row {
         padding-top: 2px;
         padding-bottom: 2px;
     }
-}
-
-.project-category {
-  margin-top: 10px;
-  border: 2px solid #000;
-  border-radius: 5px;
-  border-top: 5px solid #000;
-  .categotry-header {
-    text-shadow: none;
-    background-color: #000;
-    color: #FFF;
-    padding-bottom: 7px;
-    font-size: 0.75rem;
-  }
-  li {
-   a {
-    font-size: 0.8125rem;
-    padding-top: 7px;
-    padding-bottom: 7px;
-   }
-  }
 }
 
 /** code comments **/
@@ -5713,13 +5240,6 @@ label.issue-item-row {
 
 /*div#mode-select { text-align:right; }*/
 .pullreq-info {clear:both; padding-bottom:10px; margin-bottom:10px; }
-
-.go-zen {
-    position: absolute;
-    right: 8px;
-    margin-top: 14px;
-    z-index:999;
-}
 
 .oneline-comment-box {
     display: flex;
@@ -5866,13 +5386,6 @@ label.issue-item-row {
             }
         }
     }
-}
-
-.conflict-files {
-    background:#fefefe; color:#d14;
-    font-family: "monospace", Consolas, Tahoma;
-    padding:10px;
-    @include border-radius(2px);
 }
 
 .beta {
@@ -6321,14 +5834,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .commit-hash { font-family: $fixed-font-family !important;}
 
-.referred-event {
-  margin: 0 2px;
-  padding: 0px 5px;
-  border: 1px solid #ddd;
-  background-color: #f8f8f8;
-  border-radius: 3px;
-}
-
 .branch-list-wrap {
     .thead {
         background-color: #f5f5f5;
@@ -6420,8 +5925,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   margin-right: 5px;
   padding: 3px;
 }
-
-.my-list-item { @include my-list-item; }
 
 .search-box-wrap {
     padding-bottom:15px;
@@ -6579,10 +6082,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .dropdown-menu>li {
   @include my-list-item;
-}
-
-.margin-right-15 {
-  margin-right: 15px;
 }
 
 .howto-resolve-conflict {
@@ -7424,18 +6923,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     display: none;
 }
 
-.show-watchers {
-    display: none;
-    margin-left: 3px;
-    &:hover {
-        cursor: pointer;
-    }
-    height: 30px;
-    button {
-        height: 30px;
-    }
-}
-
 .watcher-list {
     display: none;
     padding: 10px;
@@ -7549,34 +7036,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin-top: 10px;
 }
 
-.auth-provider-logo {
-    font-family: 'Roboto', sans-serif;
-    svg {
-        vertical-align: middle;
-    }
-    .github {
-        width: 30px;
-        display: inline-block;
-        margin-left: -4px;
-        margin-top: 3px;
-        margin-bottom: 3px;
-    }
-}
-
 .providers {
     .provider-name {
         height: 40px;
     }
-}
-
-.cache-warning {
-    color: darkviolet;
-    font-weight: bold;
-}
-
-.width16px {
-    width: 16px;
-    display: inline-block;
 }
 
 .width25px {
@@ -7710,10 +7173,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.txt-orange {
-    color: #f68c52;
-}
-
 .txt-green {
     color: $light-green;
 }
@@ -7785,23 +7244,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.two-column-icon-selected, .show-subtasks-selected {
-    background-color: #aee5ff;
-
-    .two-column-mode-text {
-        color: #0293d6;
-    }
-}
-
 .two-column-mode-text, .show-subtasks-text {
     padding: 0 4px 0 0;
     line-height: 1.25rem;
     vertical-align: text-bottom;
-}
-
-.absoluteAndLeftMargin {
-    position: absolute;
-    margin-left: 260px;
 }
 
 .page-nums {
@@ -8301,10 +7747,6 @@ text-expander {
     }
 }
 
-.video-content {
-    max-height: 50vh;
-}
-
 .index-comment {
     font-size: 0.75rem;
     padding: 2px 5px !important;
@@ -8362,20 +7804,6 @@ text-expander {
     &:hover {
         color: white;
     }
-}
-
-.gallery-image-link {
-    color: #ffd500;
-    font-size: 1.1em;
-
-    &:hover {
-        color: #ffd500;
-    }
-
-    &:hover, &:visited {
-        color: #00ddff;
-    }
-
 }
 
 .issue-state {
@@ -8520,12 +7948,6 @@ text-expander {
     color: #fff;
 }
 
-// 2단계 인증 설정 화면: 글상자와 단추의 높이를 맞춘다
-.two-factor-controls {
-    .form-control, .btn { height:40px; }
-    .btn { padding-top:0; padding-bottom:0; display:inline-flex; align-items:center; }
-}
-
 // 2단계 인증 화면(X-2, D-69)의 배치: 단추 줄, 구역, 빈 상태, QR 설정, 백업 코드, 관리자 선택지
 .two-factor-page {
     .tf-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:20px 0 8px; form { margin:0; } .btn { height:40px; display:inline-flex; align-items:center; white-space:nowrap; padding-top:0; padding-bottom:0; } }
@@ -8612,10 +8034,6 @@ text-expander {
 // OAuth 앱 폼(A-453): 같은 화면의 종류 카드와 범위 목록(tf-group, 760px)과 오른쪽 끝을 맞춘다
 .two-factor-page .tf-group-wide { max-width:760px; }
 .two-factor-page .tf-secret-value { display:inline-block; padding:8px 12px; font-size:1rem; letter-spacing:1px; word-break:break-all; }
-
-.oauth-consent p { margin-bottom:12px; }
-.oauth-consent form { margin-top:16px; }
-.oauth-consent #oauth-scopes { margin-bottom:16px; }
 
 // 선택지(종류, 범위)를 한 줄에 하나씩 보이는 카드 목록: 체크박스와 라디오가 옆으로 흘러 읽기 어렵던 것을 정리한다(X-1)
 .two-factor-page .tf-choices { display:flex; flex-direction:column; gap:8px; max-width:560px; }
@@ -10381,7 +9799,6 @@ form#newProjectForm, form#importGit {
     display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #e3e3e3; border-radius: 8px; background: #f8f9fa;
     code { flex: 1 1 auto; font-size: 1.125rem; letter-spacing: .04em; word-break: break-all; }
 }
-#alertDeletionWrap .delete-target-unused code { display: block; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 6px; background: #f8f9fa; word-break: break-all; }
 
 // 사이트 관리 목록(A-596): 로고 칸은 로고만 꽉 채워 보이고, 감사 로그 설명 아래에 간격을 둔다
 .site-setting-wrap {
