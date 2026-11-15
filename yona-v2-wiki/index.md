@@ -136,6 +136,7 @@
 - [화면 리팩터링에서 없앤 구성 요소 장부](architecture/ui-removed-elements.md): 새 셸로 화면을 옮길 때 옛 요나 화면의 요소가 새 화면에 없으면 왜 없는지(옮김, 합침, 없앰, 확인 필요)를 적는 장부. 화면을 옮길 때 같은 커밋에서 갱신한다
 - [새 셸 사이드바의 구현](architecture/ui-shell-implementation.md): `ShellNav` 순수 판정, `ShellNavs` 창구, 사이드바 조각과 래퍼 패턴(`shell`, `shell-main`), SCSS 번들, 숨기기 모듈, 시험 목록(D-138~D-141)
 - [계약 조사 재현과 v1.6 대조 요약](ui-contract/verification/index.md): 발견 사항 221건을 v2와 공식 v1.16.0에 같은 요청으로 재현한 결과(판정별 개수, 고친 것, 선택 대기). 영역별 결과 파일 7개
+- [화면 영역별 점검 현황](ui-review-status.md): 선생님과 영역별로 화면을 다듬는 작업의 완료 영역과 남은 영역
 - [화면 동작 계약(v2 UI 계약)](ui-contract/index.md): 템플릿 230개의 모든 단추, 링크, 폼, 단축키, 레이아웃, 팝업을 스크립트, 컨트롤러, 권한까지 따라가 정리한 28개 파일. 영역별 파일: [공통 틀](ui-contract/shell.md), [프로젝트](ui-contract/project.md), [이슈](ui-contract/issue.md), [코드 주고받기](ui-contract/pullrequest.md), [코드](ui-contract/code.md), [그룹](ui-contract/organization.md), [사이트 관리](ui-contract/site.md), [게시판](ui-contract/board.md), [위키](ui-contract/wiki.md), [검색](ui-contract/search.md), [사용자와 인증](ui-contract/user.md), [OAuth](ui-contract/oauth.md), [관리자 역할](ui-contract/admin-role.md)
 - [v1.6에서 그대로 유지한 결함 목록](architecture/v16-retained-defects.md): 묶여 있던 결함을 한 건씩 나누어(`R-59-3`은 R-59의 (3)번) 현재 코드로 다시 판정한 결과. 330건 중 재현 296, 해결 24, 결함 아님 5, 일부 4, 해당 없음 1. 0절 보안 점검(로그인 없이 저장소가 지워지는 `/_init` 등), 4절 몇 줄이면 고칠 수 있는 결함
 - [정상 흐름을 바꾸지 않는 결함 수정 후보](architecture/v16-safe-fix-candidates.md): 재현 결함 중 오류를 정상 처리로, 문구와 링크와 표시의 오타, 화면 스크립트 오류만 추린 104건. 권한, 데이터, 알림, 규칙이 달라지는 것은 뺌
