@@ -10417,3 +10417,20 @@ form#newProjectForm, form#importGit {
     .empty-result-hint { position: absolute; left: 0; right: 0; bottom: 28px; margin: 0; font-size: .8125rem; color: #888; }
 }
 
+// 환영 화면(비밀 안내)의 입력 폼(A-603): 안내 상자와 같은 가운데에 두고 입력란을 넓히며 오류 문구가 보이게 한다.
+// v1.6은 검색 상자용 `.secret-form`(글자 크기 0)을 이 폼에 써서 오류 문구가 보이지 않았다.
+.welcome-form {
+    max-width: 420px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 1rem;
+
+    dl { margin: 0; }
+    dt { margin: 16px 0 6px; font-weight: 600; font-size: .875rem; label { margin: 0; } }
+    dd { margin: 0; }
+    .badge.bg-danger { margin-left: 8px; font-size: .8125rem; font-weight: 500; vertical-align: middle; }
+    input.form-control { display: block; width: 100%; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
+    input.form-control[readonly] { background: #f5f5f5; color: #555; }
+    .btns-row { margin-top: 24px; text-align: center; }
+}
+

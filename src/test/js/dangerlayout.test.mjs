@@ -424,5 +424,13 @@ export const tests = [
     const m = await page.evaluate(() => { const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { fo: parseFloat(c('#f', 'opacity')), ff: parseFloat(c('#f', 'fontSize')), hw: parseInt(c('#h', 'fontWeight')), ho: parseFloat(c('#h', 'opacity')), bg: c('.siteintro', 'backgroundImage') }; });
     assert.ok(m.fo >= 0.9, `부제 불투명도(${m.fo})`); assert.ok(m.ff >= 19, `부제 글자 크기(${m.ff}px)`); assert.ok(m.hw >= 600 && m.ho === 1, `제목은 굵고 불투명하다(${m.hw}, ${m.ho})`); await ctx.close();
   } },
+  { name: '환영 화면: 오류 문구가 보이고 입력 폼은 안내 상자와 같은 가운데에 놓인다(A-603)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="container page-wrap"><div class="page"><div class="secret-wrap"><div class="alert secret-box alert-warning" id="box">안내</div><div class="signup-form-wrap frm-wrap"><form class="welcome-form" id="f"><dl><dt><label>이메일</label> <span id="er" class="badge bg-danger">이메일이 잘못되었습니다.</span></dt><dd><input id="in" type="text" class="text password form-control w-100"></dd></dl></form></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { er: r('#er'), f: r('#f'), box: r('#box'), inp: r('#in'), fs: parseFloat(getComputedStyle(document.querySelector('#er')).fontSize) }; });
+    assert.ok(m.er.width > 60 && m.fs >= 11, `오류 문구가 보인다(폭 ${m.er.width}px, 글자 ${m.fs}px)`);
+    const fc = m.f.left + m.f.width / 2, bc = m.box.left + m.box.width / 2; assert.ok(Math.abs(fc - bc) <= 4, `폼이 안내 상자와 같은 가운데이다(${fc} / ${bc})`);
+    assert.ok(m.inp.width >= 280, `입력란 폭이 충분하다(${m.inp.width}px)`); await ctx.close();
+  } },
 ];
 
