@@ -43,9 +43,14 @@
                 </div>
             </li>
         </ul>
-        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{gpgKey.list.empty}"></p>
-
-        <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+        <!--/* A-587: 키가 없으면 SSH 키처럼 가운데 정렬한 빈 상태 상자에 안내와 단추를 함께 둔다 */-->
+        <div th:if="${#lists.isEmpty(keys)}" id="gpg-empty" class="key-empty">
+            <svg class="key-empty-icon" viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 12.5l8.5-8.5M16 7l2.5 2.5M14 9l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="empty" th:text="#{gpgKey.list.empty}"></p>
+            <p class="key-empty-help" th:text="#{gpgKey.list.empty.help}"></p>
+            <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+        </div>
+        <a th:unless="${#lists.isEmpty(keys)}" th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
     </div><!--/* .shell-main */-->
     </div>
 </div>

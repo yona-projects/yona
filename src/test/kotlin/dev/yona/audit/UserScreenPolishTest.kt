@@ -153,5 +153,13 @@ class UserScreenPolishTest {
     fun `토큰 다시 만들기의 안내와 만료 사이에 여백이 있다(A-586)`() {
         assertNotNull(doc("user/edit-token-edit.html").selectFirst("#token-regenerate p.token-help.mb-3"))
     }
+
+    @Test
+    fun `빈 GPG 키 목록도 빈 상태 상자이고 새 키 단추가 상자 안에 있다(A-587)`() {
+        val d = doc("user/edit-gpg.html")
+        assertNotNull(d.selectFirst("div#gpg-empty.key-empty p.empty"))
+        assertNotNull(d.selectFirst("div#gpg-empty.key-empty a#gpg-new"), "단추가 상자 안에 있다")
+        assertEquals(2, d.select("a#gpg-new").size, "키가 있을 때의 단추는 목록 아래에 따로 있다")
+    }
 }
 
