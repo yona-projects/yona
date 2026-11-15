@@ -9949,20 +9949,18 @@ form#newProjectForm, form#importGit {
     }
 }
 
-// OAuth 화면(조직, 사용자 설정, 사이트)은 같은 모양이다(A-580)
-.oauth-screen {
-    @include org-theme-solid-buttons;
-
-    // 앱 카드: 가로 400px, 높이 대략 200px의 카드를 격자로 나란히 놓는다
-    .oauth-cards {
+// 카드 목록(앱, 토큰, GPG 키, 연결된 계정): 가로 400px, 높이 대략 200px의 카드를 격자로 나란히 놓는다(A-580, A-581)
+@mixin item-cards {
+    // 카드 목록: 가로 400px, 높이 대략 200px의 카드를 격자로 나란히 놓는다
+    .item-cards {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(0, 400px));
         gap: 16px;
-        margin: 0 0 20px;
+        margin: 16px 0 20px;
         padding: 0;
     }
 
-    .oauth-card {
+    .item-card {
         display: flex;
         flex-direction: column;
         min-height: 200px;
@@ -9974,7 +9972,7 @@ form#newProjectForm, form#importGit {
         &:hover { background: #fafafa; }
     }
 
-    .oauth-card-head {
+    .item-card-head {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
@@ -9982,13 +9980,13 @@ form#newProjectForm, form#importGit {
         margin-bottom: 10px;
     }
 
-    .oauth-card-name {
+    .item-card-name {
         font-weight: 600;
         font-size: 1.0625rem;
         word-break: break-all;
     }
 
-    .oauth-card-type {
+    .item-card-type {
         padding: 1px 9px;
         border-radius: 10px;
         background: #f1f3f5;
@@ -9997,7 +9995,7 @@ form#newProjectForm, form#importGit {
     }
 
     // 항목 이름과 값을 두 열로 맞춘다
-    .oauth-card-meta {
+    .item-card-meta {
         display: grid;
         grid-template-columns: max-content 1fr;
         gap: 4px 12px;
@@ -10009,13 +10007,20 @@ form#newProjectForm, form#importGit {
     }
 
     // 단추는 카드 아래쪽에 모은다
-    .oauth-card-actions {
+    .item-card-actions {
         display: flex;
         justify-content: flex-end;
         margin-top: auto;
 
         form { margin: 0; }
     }
+}
+
+// OAuth 화면(조직, 사용자 설정, 사이트)은 같은 모양이다(A-580)
+.oauth-screen {
+    @include org-theme-solid-buttons;
+
+    @include item-cards;
 
     // "이 앱이 요청할 수 있는 범위" 제목은 아래 설명 줄과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 이 제목에서만 없앤다)
     .tf-scopes-title { margin-left: 0; }
@@ -10038,3 +10043,121 @@ form#newProjectForm, form#importGit {
         word-break: break-all;
     }
 }
+
+// 사용자 설정 화면(A-581~A-584): 꽉 찬 단추는 테마 주황이고 목록은 카드이다
+.user-screen {
+    @include org-theme-solid-buttons;
+    @include item-cards;
+
+    // 카드 안의 만료 표시와 범위 표시
+    .item-card-meta .badge { margin: 0 3px 3px 0; }
+
+    // 2단계 인증: 방식 카드 두 장(인증 앱, 보안 키)
+    .tf-method-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(0, 400px));
+        gap: 16px;
+        margin: 20px 0;
+    }
+
+    .tf-method-card {
+        display: flex;
+        flex-direction: column;
+        padding: 18px 20px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #fff;
+
+        h4 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; }
+        .tf-method-help { margin: 0 0 14px; color: #6c757d; font-size: 0.875rem; }
+        .tf-method-status { margin: auto 0 0; color: #1a7f4b; font-weight: 600; }
+        .btn, form { margin-top: auto; align-self: flex-start; }
+        form { margin: auto 0 0; }
+    }
+
+    // 새 SSH 키: 왼쪽 양식과 오른쪽 안내
+    .ssh-new-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+        gap: 32px;
+        align-items: start;
+    }
+
+    .ssh-guide {
+        padding: 18px 20px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #f8f9fa;
+        font-size: 0.875rem;
+
+        h5 { margin: 0 0 12px; font-size: 1rem; font-weight: 600; }
+        ol { margin: 0; padding-left: 1.2rem; }
+        li { margin-bottom: 14px; }
+        pre { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: #fff; border: 1px solid #e3e3e3; white-space: pre-wrap; word-break: break-all; }
+        code { color: #333; }
+        .ssh-guide-note { margin: 0; color: #6c757d; }
+    }
+
+    // 새 SSH 키 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다)
+    .ssh-new-layout .form-label { margin: 0 0 4px; }
+
+    // 알림 설정: 프로젝트 목록 위의 검색 상자
+    #notification-project-filter { display: block; width: 100%; margin-bottom: 10px; }
+}
+
+@media (max-width: 900px) {
+    .user-screen .ssh-new-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+// 기기 인증 코드와 OAuth 앱 승인: 화면 가운데의 큰 카드(A-584)
+@mixin center-card {
+    width: min(520px, calc(100% - 32px));
+    margin: 48px auto;
+    padding: 32px 36px;
+    border: 1px solid #d8dee4;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(27, 31, 35, 0.08);
+    box-sizing: border-box;
+}
+
+.device-card {
+    @include center-card;
+    text-align: center;
+
+    .device-card-title { margin: 0 0 8px; font-size: 1.5rem; font-weight: 600; }
+    .device-card-help { margin: 0 0 24px; color: #6c757d; }
+    .device-code-input {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 0 0 20px;
+        padding: 14px 12px;
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace !important;
+        font-size: 2rem;
+        letter-spacing: 0.35em;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    .device-card-submit { width: 100%; height: 44px; margin: 0; font-size: 1rem; }
+    .device-card-scopes { margin: 18px 0; text-align: left; }
+    .device-card-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+    .device-card-actions form { display: inline; margin: 0; }
+}
+
+.consent-card {
+    @include center-card;
+
+    .consent-card-title { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; text-align: center; }
+    .consent-card-by { margin: 0 0 20px; color: #6c757d; text-align: center; }
+    #oauth-scopes { margin: 12px 0 18px; border: 1px solid #e3e3e3; border-radius: 8px; }
+    #oauth-scopes li { margin: 0 !important; padding: 10px 14px; border-top: 1px solid #eee; }
+    #oauth-scopes li:first-child { border-top: 0; }
+    .consent-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .consent-actions form { margin: 0; }
+    .consent-actions .ybtn { width: 100%; height: 44px; margin: 0; font-size: 1rem; }
+    .consent-note { margin: 16px 0 0; color: #6c757d; font-size: 0.8125rem; text-align: center; }
+}
+
+// 위험 구역 안의 라벨도 입력란과 같은 왼쪽 끝에서 시작한다(A-583)
+.danger-section .form-label { margin-left: 0; }

@@ -16,11 +16,28 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="two-factor-page">
         <p class="text-body-secondary" th:text="#{twoFactor.description}"></p>
+
+        <!--/* A-583: 두 방식을 설명하는 카드로 고른다. 인증 앱(OTP)은 Google Authenticator 같은 앱의 6자리 코드, 보안 키는 YubiKey 같은 물리 키나 기기 패스키(WebAuthn)이다 */-->
+        <div class="tf-method-cards">
+            <div id="method-totp" class="tf-method-card">
+                <h4 th:text="#{twoFactor.totp.card.title}"></h4>
+                <p class="tf-method-help" th:text="#{twoFactor.totp.card.help}"></p>
+                <form th:if="${!hasTotp}" method="post" th:action="@{/user/two-factor/begin}">
+                    <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
+                </form>
+                <p th:if="${hasTotp}" class="tf-method-status" th:text="#{twoFactor.totp.registered}"></p>
+            </div>
+            <div id="method-security-key" class="tf-method-card">
+                <h4 th:text="#{twoFactor.securityKey.card.title}"></h4>
+                <p class="tf-method-help" th:text="#{twoFactor.securityKey.card.help}"></p>
+                <a id="security-key-new" class="btn btn-success" th:href="@{/user/editform/two-factor/security-key}" th:text="#{twoFactor.securityKey.add}"></a>
+            </div>
+        </div>
 
         <div th:if="${!enabled}" id="two-factor-off" class="tf-empty" th:text="#{twoFactor.list.empty}"></div>
 
@@ -38,13 +55,6 @@
             </tr>
             </tbody>
         </table>
-
-        <div class="tf-actions">
-            <form th:if="${!hasTotp}" method="post" th:action="@{/user/two-factor/begin}">
-                <button type="submit" class="btn btn-success" th:text="#{twoFactor.add}"></button>
-            </form>
-            <a id="security-key-new" class="btn btn-success" th:href="@{/user/editform/two-factor/security-key}" th:text="#{twoFactor.securityKey.add}"></a>
-        </div>
 
         <section class="tf-section" th:if="${enabled}">
             <h4 th:text="#{twoFactor.backup.title}"></h4>
@@ -74,7 +84,7 @@
         </section>
         </div>
     <script type="text/javascript">
-    $(function () { if (!window.PublicKeyCredential) { $("#security-key-new").hide(); } });
+    $(function () { if (!window.PublicKeyCredential) { $("#method-security-key").hide(); } });
 </script>
 </div><!--/* .shell-main */-->
     </div>

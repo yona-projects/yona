@@ -52,7 +52,7 @@ class OrgScreenPolishTest {
         assertTrue(partial.contains("mine(apps, urls, userAppsEnabled, titleKey, emptyKey)") && !partial.contains("<table"), "앱 목록은 표가 아니라 카드이다")
         assertTrue(partial.contains("tf-scopes-title"), "범위 제목은 들여쓰기 규칙을 맞추기 위한 전용 클래스가 있다")
         for ((f, id) in listOf("site/oauth-apps.html" to "all-apps", "user/edit-oauth-apps.html" to "authorized-apps", "organization/oauth-policy.html" to "policy-apps"))
-            assertNotNull(doc(f).selectFirst("ul#$id.oauth-cards"), "$f: 카드 목록 #$id")
+            assertNotNull(doc(f).selectFirst("ul#$id.item-cards"), "$f: 카드 목록 #$id")
     }
 
     @Test

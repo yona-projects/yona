@@ -75,7 +75,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         assertNotNull(doc.selectFirst("form#token-create input[name=expiresDate]"))
         assertNotNull(doc.selectFirst("form#token-create .token-expires-picker"), "사용자 지정 만료일은 달력으로 고른다")
         assertTrue(doc.select("script").any { it.attr("src").contains("vanilla-calendar-pro") }, "달력 라이브러리(vanilla-calendar-pro)를 쓴다")
-        assertEquals(true, list.select("#token-list tr.token-row").isEmpty())
+        assertEquals(true, list.select("#token-list li.token-row").isEmpty())
     }
 
     @Test
@@ -99,7 +99,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         // 다시 열면 값은 없고 접두사만 있다
         val again = page(s)
         assertNull(again.selectFirst("#new-token-value"))
-        val row = again.selectFirst("#token-list tr.token-row[data-id=${saved.id}]")!!
+        val row = again.selectFirst("#token-list li.token-row[data-id=${saved.id}]")!!
         assertEquals(value.take(13), row.selectFirst(".token-prefix")!!.text())
         assertEquals(false, again.html().contains(value), "원문은 다시 보이지 않는다")
         assertEquals(listOf("repo", "user"), row.select(".token-scope").map { it.text() })
@@ -144,7 +144,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         val u = user(); val s = login(u)
         val legacy = ApiTokenSupport.grant(tokenRepository, u, "legacy-value-0123456789012345678901234567890=")
         legacy.name = ApiTokenService.LEGACY_TOKEN_NAME; tokenRepository.save(legacy)
-        val row = page(s).selectFirst("#token-list tr.token-row[data-id=${legacy.id}]")!!
+        val row = page(s).selectFirst("#token-list li.token-row[data-id=${legacy.id}]")!!
         assertNotNull(row.selectFirst(".legacy-warning"))
         assertNotNull(row.selectFirst("form[action=/user/token/${legacy.id}/delete]"))
     }
@@ -161,7 +161,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `목록의 이름은 편집 화면으로 연결되고 편집 화면에는 현재 값이 채워진다`() {
         val u = user(); val s = login(u); val t = (tokens.create(u, "내 노트북", setOf("repo", "user"), null) as TokenCreation.Created).token
-        assertEquals("/user/editform/token/${t.id}", page(s).selectFirst("tr.token-row[data-id=${t.id}] a.token-edit")!!.attr("href"))
+        assertEquals("/user/editform/token/${t.id}", page(s).selectFirst("li.token-row[data-id=${t.id}] a.token-edit")!!.attr("href"))
         val doc = page(s, "/user/editform/token/${t.id}")
         assertEquals("내 노트북", doc.selectFirst("form#token-edit input[name=name]")!!.attr("value"))
         assertEquals(setOf("repo", "user"), doc.select("form#token-edit input[name=scopes][checked]").map { it.attr("value") }.toSet())

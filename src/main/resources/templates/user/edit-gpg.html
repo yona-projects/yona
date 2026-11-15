@@ -16,37 +16,33 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap shell">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
         <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{gpgKey.description}"></p>
 
-        <table id="gpg-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
-            <thead>
-            <tr>
-                <th th:text="#{gpgKey.name}"></th><th th:text="#{gpgKey.keyId}"></th><th th:text="#{gpgKey.fingerprint}"></th>
-                <th th:text="#{gpgKey.emails}"></th><th th:text="#{gpgKey.createdDate}"></th><th th:text="#{gpgKey.expires}"></th><th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="k : ${keys}" class="gpg-row" th:attr="data-id=${k.id}">
-                <td class="gpg-name" th:text="${k.name}"></td>
-                <td><code class="gpg-key-id" th:text="${k.keyId}"></code></td>
-                <td><code class="gpg-fingerprint" th:text="${k.fingerprint}"></code></td>
-                <td class="gpg-emails" th:text="${k.emails}"></td>
-                <td th:text="${k.createdText}"></td>
-                <td>
-                    <span th:if="${k.expiresText == null}" th:text="#{gpgKey.noExpiration}"></span>
-                    <span th:if="${k.expiresText != null}"><th:block th:text="${k.expiresText}"></th:block> <em th:if="${k.expired}" th:text="'(' + #{gpgKey.expired} + ')'"></em></span>
-                </td>
-                <td>
+        <!--/* A-581: GPG 키 목록은 카드이다 */-->
+        <ul id="gpg-list" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(keys)}">
+            <li th:each="k : ${keys}" class="item-card gpg-row" th:attr="data-id=${k.id}">
+                <div class="item-card-head"><span class="item-card-name gpg-name" th:text="${k.name}"></span></div>
+                <dl class="item-card-meta">
+                    <dt th:text="#{gpgKey.keyId}"></dt><dd><code class="gpg-key-id" th:text="${k.keyId}"></code></dd>
+                    <dt th:text="#{gpgKey.fingerprint}"></dt><dd><code class="gpg-fingerprint" th:text="${k.fingerprint}"></code></dd>
+                    <dt th:text="#{gpgKey.emails}"></dt><dd class="gpg-emails" th:text="${k.emails}"></dd>
+                    <dt th:text="#{gpgKey.createdDate}"></dt><dd th:text="${k.createdText}"></dd>
+                    <dt th:text="#{gpgKey.expires}"></dt>
+                    <dd>
+                        <span th:if="${k.expiresText == null}" th:text="#{gpgKey.noExpiration}"></span>
+                        <span th:if="${k.expiresText != null}"><th:block th:text="${k.expiresText}"></th:block> <em th:if="${k.expired}" th:text="'(' + #{gpgKey.expired} + ')'"></em></span>
+                    </dd>
+                </dl>
+                <div class="item-card-actions">
                     <form method="post" th:action="@{/user/gpg/{id}/delete(id=${k.id})}" th:attr="onsubmit='return confirm(\'' + #{gpgKey.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{gpgKey.delete}"></button>
                     </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </div>
+            </li>
+        </ul>
         <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{gpgKey.list.empty}"></p>
 
         <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>

@@ -99,7 +99,7 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
         assertNotNull(page(s, x.base).selectFirst("#my-apps-empty"))
         val other = organizationService.create("oorg2$stamp${++n}", null, x.admin)
         val mine = appOf(x.org, x.admin, "이 조직 앱"); appOf(other, x.admin, "다른 조직 앱"); clientService.create(x.admin, "개인 앱", "", "", "https://a.example/cb", false, setOf("read:user"))
-        val rows = page(s, x.base).select("ul#my-apps.oauth-cards li.app-row")
+        val rows = page(s, x.base).select("ul#my-apps.item-cards li.app-row")
         assertEquals(1, rows.size); assertTrue(rows.single().text().contains("이 조직 앱") && rows.single().text().contains(mine.clientId!!))
         assertNotNull(rows.single().selectFirst("a[href\$=${x.base}/${mine.id}]")); assertNotNull(rows.single().selectFirst("form[action\$=/delete] button"))
     }

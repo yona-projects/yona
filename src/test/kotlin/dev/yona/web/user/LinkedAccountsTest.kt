@@ -78,7 +78,7 @@ class LinkedAccountsTest : AbstractIntegrationTest() {
     fun `내 연결 계정을 제공자별로 보이고 식별자는 일부만 보인다`() {
         val u = user(); link(u, "sso-oidc", "https://idp.example/realms/corp|abcdef123456"); link(u, "github", "9876543210")
         val doc = Jsoup.parse(mockMvc.perform(get("/user/editform/linked-accounts").session(login(u))).andReturn().response.contentAsString)
-        val rows = doc.select("tr.linked-row")
+        val rows = doc.select("li.linked-row")
         assertEquals(2, rows.size)
         assertEquals("sso-oidc", rows.first { it.attr("data-provider") == "sso-oidc" }.attr("data-provider"))
         assertFalse(doc.text().contains("abcdef123456")); assertFalse(doc.text().contains("9876543210"))
@@ -88,7 +88,7 @@ class LinkedAccountsTest : AbstractIntegrationTest() {
     @Test
     fun `다른 사용자의 연결은 보이지 않는다`() {
         val a = user(); val b = user(); link(b, "sso-saml2", "https://idp|subject-b-12345")
-        assertTrue(Jsoup.parse(mockMvc.perform(get("/user/editform/linked-accounts").session(login(a))).andReturn().response.contentAsString).select("tr.linked-row").isEmpty())
+        assertTrue(Jsoup.parse(mockMvc.perform(get("/user/editform/linked-accounts").session(login(a))).andReturn().response.contentAsString).select("li.linked-row").isEmpty())
     }
 
     @Test
