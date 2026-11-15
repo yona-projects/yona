@@ -10388,3 +10388,28 @@ form#newProjectForm, form#importGit {
     .import-status { margin: 8px 0 0; min-height: 1.2em; color: #6c757d; font-size: .8125rem; }
 }
 
+// 검색 화면 다듬기(A-598): 검색창은 한 줄, 프로젝트 결과의 강조는 은은하게, 결과가 없으면 그림 아래에 안내를 둔다
+.search-box-wrap {
+    .search-form {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+
+        input#searchKeyword { flex: 1 1 auto; width: auto !important; min-width: 0; height: 42px; margin: 0; padding: 0 14px; font-size: 1rem; border-radius: 6px; }
+        .ybtn { flex: 0 0 auto; height: 42px; margin: 0; padding: 0 22px; border-radius: 6px; }
+    }
+}
+.search-list-wrap li.search-list-item.project {
+    .search-project-name { color: #333; font-weight: 700; font-size: 1.0625rem; &:hover { color: $orange; } }
+    .search-meta-info .search-project-name { font-size: .8125rem; font-weight: 600; color: #555; }
+    strong.keyword { background-color: #fff1c2; color: inherit; border-radius: 2px; padding: 0 2px; }
+}
+.search-result-wrap .empty-result {
+    position: relative;
+    min-height: 280px;
+    background-position: center 30px;
+
+    .empty-result-text { position: absolute; left: 0; right: 0; bottom: 56px; margin: 0; font-size: 1.0625rem; font-weight: 600; color: #555; }
+    .empty-result-hint { position: absolute; left: 0; right: 0; bottom: 28px; margin: 0; font-size: .8125rem; color: #888; }
+}
+

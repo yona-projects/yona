@@ -400,5 +400,16 @@ export const tests = [
     assert.ok(Math.abs(m.lg.height - m.box.height) <= 1 && Math.abs(m.lg.width - m.box.width) <= 1, `로고가 칸을 채운다(${m.lg.width}x${m.lg.height} / ${m.box.width}x${m.box.height})`);
     assert.ok(m.mb >= 12, `설명 아래 간격이 12px 이상이다(${m.mb}px)`); await ctx.close();
   } },
+  { name: '검색: 검색창은 한 줄이고 프로젝트 결과 강조는 은은하며 결과 없음 안내는 그림 아래에 있다(A-598)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div style="width:900px"><div class="search-box-wrap"><form id="searchInnerForm" class="search-form"><input id="kw" type="text" class="w-100 form-control" value="demo"><button id="sb" type="submit" class="ybtn ybtn-primary">검색</button></form></div><div class="search-result-wrap"><ul class="search-list-wrap"><li class="search-list-item project"><div class="title-wrap"><a id="pn" class="title search-project-name">admin/<strong id="kwd" class="keyword">demo</strong></a></div></li></ul><div id="em" class="empty-result"><p id="et" class="empty-result-text">검색 결과가 없습니다.</p></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { kw: r('#kw'), sb: r('#sb'), sbbg: c('#sb', 'backgroundColor'), kbg: c('#kwd', 'backgroundColor'), pnbg: c('#pn', 'backgroundColor'), em: r('#em'), et: r('#et') }; });
+    assert.ok(Math.abs(m.kw.top - m.sb.top) <= 4 && m.sb.left >= m.kw.right, `검색창과 단추가 한 줄이다(${JSON.stringify([m.kw.top, m.sb.top])})`);
+    assert.ok(m.kw.width > 500, `입력란이 넓다(${m.kw.width}px)`);
+    const [r, g] = m.sbbg.match(/\d+/g).map(Number); assert.ok(r > 200 && g < 160, `검색 단추는 테마 주황이다(${m.sbbg})`);
+    const [kr, kg, kb] = m.kbg.match(/\d+/g).map(Number); assert.ok(kr > 240 && kg > 220 && kb > 150, `프로젝트 결과의 키워드 강조는 연한 바탕이다(${m.kbg})`);
+    assert.ok(m.pnbg === 'rgba(0, 0, 0, 0)', `프로젝트 이름에 보라 바탕이 없다(${m.pnbg})`);
+    assert.ok(m.et.top > m.em.top + 100, `안내 글은 그림 아래에 있다(${m.et.top - m.em.top}px)`); await ctx.close();
+  } },
 ];
 

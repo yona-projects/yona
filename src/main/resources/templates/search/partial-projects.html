@@ -13,7 +13,7 @@
             <img th:src="@{${row.logoUrl}}">
         </a>
         <div class="title-wrap">
-            <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="title project-link" th:text="${row.owner} + '/' + ${row.name}"></a>
+            <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="title search-project-name" th:text="${row.owner} + '/' + ${row.name}"></a>
         </div>
         <div th:if="${row.originalOwner != null}" class="search-meta-info nm np">
             <span>
@@ -21,7 +21,7 @@
                 <th:block th:text="#{fork.original}"></th:block>
             </span>
             <span>
-                <a th:href="@{/{o}/{n}(o=${row.originalOwner},n=${row.originalName})}" class="project-link" th:text="${row.originalOwner} + '/' + ${row.originalName}"></a>
+                <a th:href="@{/{o}/{n}(o=${row.originalOwner},n=${row.originalName})}" class="search-project-name" th:text="${row.originalOwner} + '/' + ${row.originalName}"></a>
             </span>
         </div>
         <div class="search-content np">
@@ -46,5 +46,8 @@
         });
     </script>
 </th:block>
-<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+<div th:if="${search.rows.isEmpty()}" class="empty-result">
+    <p class="empty-result-text" th:text="#{search.result.empty}"></p>
+    <p class="empty-result-hint" th:text="#{search.result.empty.hint}"></p>
+</div>
 </th:block>

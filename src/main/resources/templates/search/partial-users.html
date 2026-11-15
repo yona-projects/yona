@@ -31,5 +31,8 @@
         });
     </script>
 </th:block>
-<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+<div th:if="${search.rows.isEmpty()}" class="empty-result">
+    <p class="empty-result-text" th:text="#{search.result.empty}"></p>
+    <p class="empty-result-hint" th:text="#{search.result.empty.hint}"></p>
+</div>
 </th:block>
