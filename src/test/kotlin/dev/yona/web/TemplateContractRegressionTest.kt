@@ -95,7 +95,7 @@ class TemplateContractRegressionTest {
     @Test
     fun `LDAP와 OIDC 연결 확인 단추 옆에 저장한 설정으로 확인한다는 안내가 있다 (site-F16, 입력만 하고 눌러 저장 전 값이 확인된 줄 알았다)`() {
         val sso = template("site/sso.html")
-        assertEquals(2, Regex("#\\{site\\.sso\\.check\\.saved}").findAll(sso).count(), "LDAP와 OIDC 확인 단추 각각에 안내가 있어야 한다")
+        assertTrue("#{site.sso.ldap.check.help}" in sso && "#{site.sso.oidc.check.help}" in sso, "LDAP와 OIDC 확인 단추 각각에 저장한 설정으로 확인한다는 안내가 있어야 한다(A-594)")
     }
 
     @Test
@@ -158,7 +158,7 @@ class TemplateContractRegressionTest {
 
     @Test
     fun `사이트 데이터 가져오기의 제출 단추에는 글자가 있다 (site-F13, v1_6은 value가 없어 브라우저 기본 글자로 그려졌다)`() {
-        assertTrue(template("site/data.html").contains("<input type=\"submit\" th:value=\"#{site.data.import}\">"))
+        assertTrue(template("site/data.html").contains("<button type=\"submit\" class=\"btn btn-outline-danger\" th:text=\"#{site.data.import}\"></button>"), "A-594에서 가져오기 단추를 글자가 있는 윤곽 단추로 바꿨다")
     }
 
     @Test

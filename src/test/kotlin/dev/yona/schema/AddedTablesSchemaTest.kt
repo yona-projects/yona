@@ -88,7 +88,7 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
     @Test
     fun `토큰 테이블의 컬럼과 외래 키와 유일 해시 (X-5, D-36)`() {
         val columns = SchemaMetadata.actualColumns(dataSource)["api_token"] ?: error("api_token 테이블이 없다")
-        assertEquals(setOf("id", "user_id", "name", "token_hash", "token_prefix", "scopes", "is_legacy", "created_date", "expires_date", "last_used_date"), columns.keys)
+        assertEquals(setOf("id", "user_id", "name", "token_hash", "token_prefix", "is_legacy", "created_date", "expires_date", "last_used_date"), columns.keys)
         assertEquals(setOf("n4user"), SchemaMetadata.actualForeignKeys(dataSource)["api_token"].orEmpty().values.map { it.referencedTable }.toSet())
         assertEquals(setOf("id"), primaryKey("api_token"))
         assertEquals(setOf("id"), SchemaMetadata.actualAutoIncrement(dataSource)["api_token"])
@@ -100,7 +100,7 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
     fun `기기 인증 테이블의 컬럼과 외래 키와 유일 코드 (X-37i, D-52)`() {
         val columns = SchemaMetadata.actualColumns(dataSource)["device_authorization"] ?: error("device_authorization 테이블이 없다")
         assertEquals(
-            setOf("id", "device_code_hash", "user_code", "client_name", "scopes", "status", "user_id", "created_date", "expires_date", "interval_seconds", "last_polled_date"), columns.keys
+            setOf("id", "device_code_hash", "user_code", "client_name", "request_ip", "status", "user_id", "created_date", "expires_date", "interval_seconds", "last_polled_date"), columns.keys
         )
         assertEquals(setOf("n4user"), SchemaMetadata.actualForeignKeys(dataSource)["device_authorization"].orEmpty().values.map { it.referencedTable }.toSet())
         assertEquals(setOf("id"), primaryKey("device_authorization"))

@@ -9,6 +9,7 @@ import dev.yona.support.AbstractIntegrationTest
 import org.springframework.jdbc.core.JdbcTemplate
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 /**
  * v1.6의 `conf/initial-data.yml`(users, roles, siteAdmins)과 같은 초기 데이터가 적재되는지 확인한다.
@@ -45,8 +46,10 @@ class InitialDataLoaderTest : AbstractIntegrationTest() {
         val admin = jdbc.queryForMap("select * from n4user where id = 1")
         assertEquals("Site Admin", admin["NAME"])
         assertEquals("admin", admin["LOGIN_ID"])
-        assertEquals("5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=", admin["PASSWORD"])
-        assertEquals("[B@1032a4", admin["PASSWORD_SALT"])
+        // 같은 JVM의 다른 시험이 admin으로 로그인하면 옛 해시가 argon2id로 올라가므로(비밀번호 해시 업그레이드) 둘 다 받는다
+        val legacy = admin["PASSWORD"] == "5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=" && admin["PASSWORD_SALT"] == "[B@1032a4"
+        val upgraded = (admin["PASSWORD"] as String).startsWith("\$argon2id\$")
+        assertTrue(legacy || upgraded, "v1.6 해시이거나 로그인으로 올라간 argon2id여야 한다: ${admin["PASSWORD"]}")
         assertEquals("ACTIVE", admin["STATE"])
         assertEquals("project.yona@gmail.com", admin["EMAIL"])
         assertEquals(1, jdbc.queryForObject("select count(*) from site_admin where admin_id = 1", Int::class.java))

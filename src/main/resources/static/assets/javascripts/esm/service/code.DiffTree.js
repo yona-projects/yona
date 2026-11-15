@@ -53,7 +53,7 @@ const DiffTree = function(htOptions){
      */
     function _pathOf(welBlock){
         const sPath = welBlock.find("table.diff-container").first().attr("data-file-path");
-        return (sPath && sPath.length > 0) ? sPath : $.trim(welBlock.find(".filename").first().text());
+        return (sPath && sPath.length > 0) ? sPath : welBlock.find(".filename").first().text().trim();
     }
 
     /**
