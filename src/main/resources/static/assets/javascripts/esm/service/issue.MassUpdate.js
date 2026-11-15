@@ -83,8 +83,6 @@ const MassUpdate = function(htOptions){
      * initialize element
      */
     function _initElement(htOptions){
-        htElement.waLabels = $("a.issue-label[data-color]");
-
         htElement.welContainer  = $(".inner");
         htElement.welBtnAdvance = $(".btn-advanced");
         htElement.welPagination = $(htOptions.elPagination || "#pagination");

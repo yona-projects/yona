@@ -38,7 +38,6 @@ const Write = function(htOptions){
         htVar.sMode = htOptions.sMode || "new";
         htVar.sIssueId = htOptions.sIssueId || null;
         htVar.sIssueListURL = htOptions.sIssueListURL;
-        htVar.sIssueFormURL = htOptions.sIssueFormURL;
         htVar.sTplFileItem = htOptions.sTplFileItem || htElement.welTplFileItem.text();
         htVar.bUnloadEvent = false;
     }
@@ -52,7 +51,6 @@ const Write = function(htOptions){
         htElement.welTextarea = $(htOptions.elTextarea || "#body");
         htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
         htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
-        htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
         htElement.welTplFileItem = $('#tplAttachedFile');
         htElement.welDueDate = $(htOptions.elDueDate || "#issueDueDate");
     }
@@ -62,7 +60,6 @@ const Write = function(htOptions){
      */
     function _attachEvent(){
         $("form").submit(_onSubmitForm);
-        htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
 
         htElement.welTextarea.on({
             "focus": function(){
@@ -80,15 +77,6 @@ const Write = function(htOptions){
         if($yona.getTrim(htElement.welTextarea.val()).length > 0){
             return Messages("issue.error.beforeunload");
         }
-    }
-
-    function _onReloadMilestone() {
-        yona.http.get(htVar.sIssueFormURL, (data) =>{
-            const context = data.replace("<!DOCTYPE html>", "").trim();
-            const milestoneOptionDiv = $("#milestoneOption", context);
-            $("#milestoneOption").html(milestoneOptionDiv.html());
-            (new yona.ui.Dropdown({"elContainer":"#milestoneId"}));
-        });
     }
 
     /**

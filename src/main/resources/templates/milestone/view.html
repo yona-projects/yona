@@ -115,10 +115,7 @@
             $("li[data-value*='"+$(".textbox").val() + "']").show();
             $(".textbox").focus();
         });
-        $yona.loadModule("milestone.View", {
-            "sMilestoneId" : /*[[${#strings.toString(milestone.id)}]]*/ "",
-            "sURLLabels"   : /*[[@{${base + '/issues'}}]]*/ ""
-        });
+        $yona.loadModule("milestone.View", {});
 
         // detect links contains mention at me
         $(".user-link:contains('[(${helper.escape(currentUser.pureName)})]')").addClass("me");

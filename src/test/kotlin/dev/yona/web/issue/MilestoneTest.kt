@@ -600,6 +600,6 @@ class MilestoneTest : AbstractIntegrationTest() {
         assertTrue(doc.select("#issues .mass-update-wrap form#mass-update-form").isNotEmpty())
         assertEquals("search at current milestone", doc.selectFirst(".milestone-tabbar input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
         assertEquals("issue-item", doc.selectFirst(".milestone-tabbar input.textbox")!!.attr("data-items"))
-        assertTrue(doc.select("script").any { "milestone.View" in it.data() && "\"${m.id}\"" in it.data() })
+        assertTrue(doc.select("script").any { "milestone.View" in it.data() })
     }
 }

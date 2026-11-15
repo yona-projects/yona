@@ -56,7 +56,7 @@
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
-                                <div th:if="${!child.draft or true}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+                                <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
                                     <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
                                     <a class="twoColumeModeTarget" th:href="@{|/${child.owner}/${child.project}/issue/${child.number}|}">
                                         <span class="item-name">
@@ -147,7 +147,7 @@
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
-                                <div th:if="${!child.draft or true}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+                                <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
                                     <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
                                     <a class="twoColumeModeTarget" th:href="@{|/${child.owner}/${child.project}/issue/${child.number}|}">
                                         <span class="item-name">

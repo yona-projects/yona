@@ -34,7 +34,7 @@ async function open({ ajax = {}, timelineHtml = null, period = 60000 } = {}) {
     };
   }, { ajax, timelineHtml });
   await page.addScriptTag({ content: classicFromEsm('esm/service/issue.View.js') });
-  await page.evaluate((period) => { new yona.issue.View({ issueId: 42, nextState: 'closed', timelineUpdatePeriod: period, urls: { massUpdate: '/mass', watch: '/w', unwatch: '/uw', timeline: '/tl', nextState: '/ns' } }); }, period);
+  await page.evaluate((period) => { new yona.issue.View({ issueId: 42, nextState: 'closed', urls: { massUpdate: '/mass', watch: '/w', unwatch: '/uw', timeline: '/tl', nextState: '/ns' } }); }, period);
   return page;
 }
 const get = (page, k) => page.evaluate((k) => window[k], k);

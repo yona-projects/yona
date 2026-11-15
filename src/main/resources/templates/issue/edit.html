@@ -147,10 +147,8 @@
         $yona.loadModule("issue.Write", {
             "sMode"             : "edit",
             "sIssueId"          : /*[[${#strings.toString(issueNumber)}]]*/ "",
-            "sIssueFormURL"     : /*[[@{${base + '/issueform'}}]]*/ "",
             "sIssueListURL"     : /*[[@{${base + '/issues'}}]]*/ "",
             "elTextarea"        : 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
             "elDueDate"         : $("#issueDueDate")
         });
 
