@@ -18,7 +18,7 @@ export const tests = [
   {
     name: '프로젝트 삭제가 404나 403이면 확인창을 닫고 화면을 다시 연다. 그 밖의 실패는 알린다 (v1_6은 아무 반응이 없었다, 고쳤다 site-F5)',
     async run() {
-      const code = templateSnippet('site/project-list.html', "document.getElementById('projectDeleteBtn')", 'yona.Pagination.update');
+      const code = templateSnippet('site/project-list.html', "document.getElementById('projectDeleteBtn').addEventListener", 'yona.Pagination.update');
       const page = await open('<button id="projectDeleteBtn"></button><div id="alertDeletionWrap"></div>');
       await page.evaluate('window.__hidden = 0; bootstrap.Modal.getOrCreateInstance = function () { return { hide: function () { window.__hidden++; } }; };\nvar deleteUrl = "/sites/project/delete/9";\n' + code);
       const run = async (status) => {

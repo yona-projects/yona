@@ -10,7 +10,7 @@
 <th:block th:fragment="ssoPage">
 <span data-swap-safe hidden></span>
 <div class="two-factor-page">
-<h3 th:text="#{site.sso.title}"></h3>
+<div class="title_area"><h2 class="float-start" th:text="#{site.sso.title}"></h2></div>
 <p class="text-body-secondary" th:text="#{site.sso.description}"></p>
 
 <ul class="nav nav-tabs mb-3" id="sso-tabs" role="tablist">
@@ -47,7 +47,8 @@
         <input class="form-check-input" type="checkbox" name="enabled" id="ldap-enabled" value="true" th:checked="${ldap.enabled}">
         <span class="option-text"><strong th:text="#{site.sso.enabled}"></strong><small th:text="#{site.sso.ldap.enabled.help}"></small></span>
     </label>
-    <div class="row mt-3">
+    <h5 class="sso-section" th:text="#{site.sso.section.connect}"></h5>
+    <div class="row">
         <div class="col-lg-2 mb-3"><label for="ldap-protocol" class="form-label" th:text="#{site.sso.ldap.protocol}"></label>
             <select id="ldap-protocol" name="protocol" class="form-select"><option value="ldap" th:selected="${ldapProtocol == 'ldap'}">ldap</option><option value="ldaps" th:selected="${ldapProtocol == 'ldaps'}">ldaps</option></select></div>
         <div class="col-lg-7 mb-3"><label for="ldap-host" class="form-label" th:text="#{site.sso.ldap.host}"></label>
@@ -59,6 +60,7 @@
         <input id="ldap-base-dn" type="text" name="baseDn" class="form-control w-100" th:value="${ldap.baseDn}"><div class="form-text" th:text="#{site.sso.ldap.baseDn.help}"></div></div>
     <div class="mb-3"><label for="ldap-postfix" class="form-label" th:text="#{site.sso.ldap.postfix}"></label>
         <input id="ldap-postfix" type="text" name="distinguishedNamePostfix" class="form-control w-100" th:value="${ldap.distinguishedNamePostfix}"><div class="form-text" th:text="#{site.sso.ldap.postfix.help}"></div></div>
+    <h5 class="sso-section" th:text="#{site.sso.section.attributes}"></h5>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="ldap-login-prop" class="form-label" th:text="#{site.sso.ldap.loginProperty}"></label>
             <input id="ldap-login-prop" type="text" name="loginProperty" class="form-control w-100" th:value="${ldap.loginProperty}"></div>
@@ -71,27 +73,30 @@
         <div class="col-lg-4 mb-3"><label for="ldap-english-prop" class="form-label" th:text="#{site.sso.ldap.englishNameAttributeName}"></label>
             <input id="ldap-english-prop" type="text" name="englishNameAttributeName" class="form-control w-100" th:value="${ldap.englishNameAttributeName}"></div>
     </div>
+    <h5 class="sso-section" th:text="#{site.sso.section.bind}"></h5>
     <div class="row">
         <div class="col-lg-6 mb-3"><label for="ldap-bind-dn" class="form-label" th:text="#{site.sso.ldap.bindDn}"></label>
             <input id="ldap-bind-dn" type="text" name="bindDn" class="form-control w-100" th:value="${ldap.bindDn}" autocomplete="off"><div class="form-text" th:text="#{site.sso.ldap.bindDn.help}"></div></div>
         <div class="col-lg-6 mb-3"><label for="ldap-bind-password" class="form-label" th:text="#{site.sso.ldap.bindPassword}"></label>
             <input id="ldap-bind-password" type="password" name="bindPassword" class="form-control w-100" autocomplete="new-password" value="" th:placeholder="${ldapBindPasswordSet} ? #{site.sso.secret.keep}"><div class="form-text" th:text="#{site.sso.ldap.bindPassword.help}"></div></div>
     </div>
+    <h5 class="sso-section" th:text="#{site.sso.section.options}"></h5>
     <label class="option" for="ldap-email-login"><input class="form-check-input" type="checkbox" name="useEmailBaseLogin" id="ldap-email-login" value="true" th:checked="${ldap.useEmailBaseLogin}">
         <span class="option-text"><strong th:text="#{site.sso.ldap.useEmailBaseLogin}"></strong><small th:text="#{site.sso.ldap.useEmailBaseLogin.help}"></small></span></label>
     <label class="option" for="ldap-fallback"><input class="form-check-input" type="checkbox" name="fallbackToLocalLogin" id="ldap-fallback" value="true" th:checked="${ldap.fallbackToLocalLogin}">
         <span class="option-text"><strong th:text="#{site.sso.ldap.fallback}"></strong><small th:text="#{site.sso.ldap.fallback.help}"></small></span></label>
-    <button type="submit" class="btn btn-success mt-3" th:text="#{site.sso.save}"></button>
-</form>
-<form method="post" th:action="@{/sites/sso/ldap/check}" class="mt-2">
-    <button id="ldap-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.ldap.check}"></button>
-    <span class="form-text ms-2" th:text="#{site.sso.check.saved}"></span>
+    <div class="sso-actions">
+        <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
+        <button id="ldap-check" type="submit" class="btn btn-outline-secondary" th:formaction="@{/sites/sso/ldap/check}" formnovalidate th:text="#{site.sso.ldap.check}"></button>
+    </div>
+    <p class="sso-check-help" th:text="#{site.sso.ldap.check.help}"></p>
 </form>
 </div>
 <div class="tab-pane fade" th:classappend="${tab == 'oidc'} ? 'show active'" id="sso-pane-oidc" role="tabpanel">
 <!-- OIDC -->
-<h4 class="mt-4" th:text="#{site.sso.oidc.title}"></h4>
+<h4 th:text="#{site.sso.oidc.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.oidc.help}"></p>
+<h5 class="sso-section" th:text="#{site.sso.section.register}"></h5>
 <dl class="sso-notify">
     <dt th:text="#{site.sso.oidc.redirectUri}"></dt><dd><code id="oidc-redirect-uri" th:text="${redirectUri}"></code></dd>
     <dt th:text="#{site.sso.oidc.initiateUrl}"></dt><dd><code id="oidc-initiate-url" th:text="${initiateUrl}"></code></dd>
@@ -125,6 +130,7 @@
         <label for="oidc-scopes" class="form-label" th:text="#{site.sso.oidc.scopes}"></label>
         <input id="oidc-scopes" type="text" name="scopes" class="form-control w-100" th:value="${oidc.scopes}">
     </div>
+    <h5 class="sso-section" th:text="#{site.sso.section.claims}"></h5>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="oidc-email-claim" class="form-label" th:text="#{site.sso.claim.email}"></label>
             <input id="oidc-email-claim" type="text" name="emailClaim" class="form-control w-100" th:value="${oidc.emailClaim}"></div>
@@ -133,7 +139,7 @@
         <div class="col-lg-4 mb-3"><label for="oidc-loginid-claim" class="form-label" th:text="#{site.sso.claim.loginId}"></label>
             <input id="oidc-loginid-claim" type="text" name="loginIdClaim" class="form-control w-100" th:value="${oidc.loginIdClaim}"></div>
     </div>
-    <h5 th:text="#{site.sso.accounts.title}"></h5>
+    <h5 class="sso-section" th:text="#{site.sso.accounts.title}"></h5>
     <label class="option" for="oidc-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="oidc-auto-create" value="true" th:checked="${oidc.autoCreate}">
         <span class="option-text"><strong th:text="#{site.sso.autoCreate}"></strong><small th:text="#{site.sso.autoCreate.help}"></small></span></label>
     <label class="option" for="oidc-link-by-email"><input class="form-check-input" type="checkbox" name="linkByEmail" id="oidc-link-by-email" value="true" th:checked="${oidc.linkByEmail}">
@@ -144,17 +150,17 @@
         <span class="option-text"><strong th:text="#{site.sso.nameSync}"></strong><small th:text="#{site.sso.nameSync.help}"></small></span></label>
     <label class="option" for="oidc-initiate"><input class="form-check-input" type="checkbox" name="initiateEnabled" id="oidc-initiate" value="true" th:checked="${oidc.initiateEnabled}">
         <span class="option-text"><strong th:text="#{site.sso.initiate}"></strong><small th:text="#{site.sso.initiate.oidc.help}"></small></span></label>
-    <div class="mb-3 mt-3">
+    <h5 class="sso-section" th:text="#{site.sso.section.advanced}"></h5>
+    <div class="mb-3">
         <label for="oidc-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
         <input id="oidc-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control w-25" th:value="${oidc.clockSkewSeconds}">
         <div class="form-text" th:text="#{site.sso.clockSkew.help}"></div>
     </div>
-    <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
-</form>
-<form method="post" th:action="@{/sites/sso/oidc/check}" class="mt-2">
-    <button id="oidc-check" type="submit" class="btn btn-outline-secondary" th:text="#{site.sso.oidc.check}"></button>
-    <span class="form-text ms-2" th:text="#{site.sso.check.saved}"></span>
-    <span th:if="${oidc.discoveryCheckedDate != null}" class="text-body-secondary ms-2" th:text="#{site.sso.oidc.checkedAt(${#dates.format(oidc.discoveryCheckedDate, 'yyyy-MM-dd HH:mm')})}"></span>
+    <div class="sso-actions">
+        <button type="submit" class="btn btn-success" th:text="#{site.sso.save}"></button>
+        <button id="oidc-check" type="submit" class="btn btn-outline-secondary" th:formaction="@{/sites/sso/oidc/check}" formnovalidate th:text="#{site.sso.oidc.check}"></button>
+    </div>
+    <p class="sso-check-help"><span th:text="#{site.sso.oidc.check.help}"></span> <span th:if="${oidc.discoveryCheckedDate != null}" class="ms-1" th:text="#{site.sso.oidc.checkedAt(${#dates.format(oidc.discoveryCheckedDate, 'yyyy-MM-dd HH:mm')})}"></span></p>
 </form>
 
 </div>
@@ -162,6 +168,7 @@
 <!-- SAML 2 -->
 <h4 th:text="#{site.sso.saml2.title}"></h4>
 <p class="text-body-secondary" th:text="#{site.sso.saml2.help}"></p>
+<h5 class="sso-section" th:text="#{site.sso.section.register}"></h5>
 <dl class="sso-notify">
     <dt th:text="#{site.sso.saml2.entityId}"></dt><dd><code id="saml2-entity-id" th:text="${entityId}"></code></dd>
     <dt th:text="#{site.sso.saml2.acsUrl}"></dt><dd><code id="saml2-acs-url" th:text="${acsUrl}"></code></dd>
@@ -169,7 +176,7 @@
 </dl>
 
 <form id="sso-saml2-metadata-form" method="post" th:action="@{/sites/sso/saml2/metadata}" class="mb-3">
-    <h5 th:text="#{site.sso.saml2.metadata.title}"></h5>
+    <h5 class="sso-section" th:text="#{site.sso.saml2.metadata.title}"></h5>
     <div class="form-text mb-2" th:text="#{site.sso.saml2.metadata.help}"></div>
     <input type="url" name="metadataUrl" class="form-control mb-2" placeholder="https://idp.example.com/metadata">
     <textarea name="metadataXml" rows="4" class="form-control mb-2" th:placeholder="#{site.sso.saml2.metadata.xml}"></textarea>
@@ -209,6 +216,7 @@
             </li>
         </ul>
     </div>
+    <h5 class="sso-section" th:text="#{site.sso.section.attributes}"></h5>
     <div class="row">
         <div class="col-lg-4 mb-3"><label for="saml2-email-attr" class="form-label" th:text="#{site.sso.attr.email}"></label>
             <input id="saml2-email-attr" type="text" name="emailAttribute" class="form-control w-100" th:value="${saml2.emailAttribute}"></div>
@@ -217,6 +225,7 @@
         <div class="col-lg-4 mb-3"><label for="saml2-loginid-attr" class="form-label" th:text="#{site.sso.attr.loginId}"></label>
             <input id="saml2-loginid-attr" type="text" name="loginIdAttribute" class="form-control w-100" th:value="${saml2.loginIdAttribute}"></div>
     </div>
+    <h5 class="sso-section" th:text="#{site.sso.section.advanced}"></h5>
     <div class="mb-3">
         <label for="saml2-sp-entity" class="form-label" th:text="#{site.sso.saml2.spEntityId}"></label>
         <input id="saml2-sp-entity" type="text" name="spEntityId" class="form-control w-100" th:value="${saml2.spEntityId}" th:placeholder="${entityId}">
@@ -226,7 +235,7 @@
         <label for="saml2-nameid" class="form-label" th:text="#{site.sso.saml2.nameIdFormat}"></label>
         <input id="saml2-nameid" type="text" name="nameIdFormat" class="form-control w-100" th:value="${saml2.nameIdFormat}" placeholder="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
     </div>
-    <h5 th:text="#{site.sso.accounts.title}"></h5>
+    <h5 class="sso-section" th:text="#{site.sso.accounts.title}"></h5>
     <label class="option" for="saml2-auto-create"><input class="form-check-input" type="checkbox" name="autoCreate" id="saml2-auto-create" value="true" th:checked="${saml2.autoCreate}">
         <span class="option-text"><strong th:text="#{site.sso.autoCreate}"></strong><small th:text="#{site.sso.autoCreate.help}"></small></span></label>
     <label class="option" for="saml2-link-by-email"><input class="form-check-input" type="checkbox" name="linkByEmail" id="saml2-link-by-email" value="true" th:checked="${saml2.linkByEmail}">
@@ -237,7 +246,8 @@
         <span class="option-text"><strong th:text="#{site.sso.initiate}"></strong><small th:text="#{site.sso.initiate.saml2.help}"></small></span></label>
     <label class="option" for="saml2-sign-requests"><input class="form-check-input" type="checkbox" name="signRequests" id="saml2-sign-requests" value="true" th:checked="${saml2.signRequests}">
         <span class="option-text"><strong th:text="#{site.sso.saml2.signRequests}"></strong><small th:text="#{site.sso.saml2.signRequests.help}"></small></span></label>
-    <div class="mb-3 mt-3">
+    <h5 class="sso-section" th:text="#{site.sso.section.clock}"></h5>
+    <div class="mb-3">
         <label for="saml2-skew" class="form-label" th:text="#{site.sso.clockSkew}"></label>
         <input id="saml2-skew" type="number" min="0" max="600" name="clockSkewSeconds" class="form-control w-25" th:value="${saml2.clockSkewSeconds}">
     </div>

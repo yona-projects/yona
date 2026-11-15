@@ -79,8 +79,8 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
     fun `새 버전이 있으면 알려 주고 내려받기 링크를 준다`() {
         tags("v1.16.0", "v99.0.0")
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/update").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.select(".shell-main p").first()!!.text().contains("99.0.0"))
-        assertEquals("https://github.com/yona-projects/yona/releases/tag/v99.0.0", doc.selectFirst(".shell-main a.ybtn-success")!!.attr("href"))
+        assertTrue(doc.selectFirst("#update-version-card h3")!!.text().contains("99.0.0"))
+        assertEquals("https://github.com/yona-projects/yona/releases/tag/v99.0.0", doc.selectFirst("#update-version-card a.btn-success")!!.attr("href"))
         assertTrue(doc.select(".shell-main p").any { it.text().contains(updates.currentVersion) })
         assertEquals("/sites/update", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         assertTrue(doc.select("nav.shell-sidebar a.nav-link.active .badge").isNotEmpty())

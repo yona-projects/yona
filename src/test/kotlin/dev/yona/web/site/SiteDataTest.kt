@@ -84,15 +84,15 @@ class SiteDataTest : AbstractIntegrationTest() {
     @Test
     fun `데이터 화면에는 경고 네 줄과 내보내기 링크와 올리기 폼이 있다 (네 번째는 DB 정보만 다룬다는 안내, R-56-7)`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertEquals(4, doc.select(".cu-desc li.notice").size)
-        assertTrue(doc.select(".cu-desc li.notice").last()!!.text().contains("database information only"), "DB 정보만 다룬다는 안내가 있어야 한다")
+        assertEquals(4, doc.select(".alert-soft li").size)
+        assertTrue(doc.select(".alert-soft li").last()!!.text().contains("database information only"), "DB 정보만 다룬다는 안내가 있어야 한다")
         assertEquals("/sites/export", doc.select(".shell-main a.ybtn-primary").attr("href"))
         val form = doc.selectFirst(".shell-main form")!!
         assertEquals("/sites/import", form.attr("action"))
         assertEquals("multipart/form-data", form.attr("enctype"))
         assertEquals("post", form.attr("method"))
         assertTrue(form.select("input[type=file][name=data]").isNotEmpty())
-        assertTrue(form.select("input[type=submit]").isNotEmpty())
+        assertTrue(form.select("button[type=submit]").isNotEmpty(), "가져오기 단추는 테마 윤곽 단추이다(A-594)")
     }
 
     @Test

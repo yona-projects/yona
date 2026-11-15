@@ -83,9 +83,8 @@
 
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
+            <h5 class="modal-title"><span id="userInfo"></span><span class="ms-1" th:text="#{site.user.delete}"></span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            <span id="userInfo"></span>
-            <span th:text="#{site.user.delete}"></span>
         </div>
         <div class="modal-body">
             <p th:text="#{site.user.deleteConfirm}"></p>
@@ -96,13 +95,32 @@
         </div>
     </div></div></div>
 
+    <!--/* A-594: 비밀번호 재설정은 확인 창, 결과 창 순서로 진행한다. 서버가 임의 비밀번호를 만들어 한 번만 보여 주는 v1.6 방식은 그대로이다 */-->
+    <div id="resetPasswordConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><span id="resetPasswordTarget"></span><span class="ms-1" th:text="#{title.resetPassword}"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body"><p class="mb-0" th:text="#{site.user.resetPasswordConfirm}"></p></div>
+        <div class="modal-footer">
+            <button type="button" id="resetPasswordGo" class="btn btn-success" th:text="#{title.resetPassword}"></button>
+            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.cancel}"></button>
+        </div>
+    </div></div></div>
+    <div id="resetPasswordResult" class="modal fade"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><span id="resetPasswordResultTarget"></span><span class="ms-1" th:text="#{user.newPassword}"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="reset-password-value"><code id="resetPasswordValue"></code><button type="button" id="resetPasswordCopy" class="btn btn-outline-secondary btn-sm" th:text="#{site.user.resetPasswordCopy}"></button></div>
+            <p class="text-body-secondary mt-3 mb-0" th:text="#{site.user.resetPasswordOnce}"></p>
+        </div>
+        <div class="modal-footer"><button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.close}"></button></div>
+    </div></div></div>
+
     <script type="text/javascript" th:inline="javascript">
     $(function(){
-        function _showRequestWaitingMessage(that){
-            $(".alert").remove();
-            $yona.render(document.getElementById("dismissable-alerts-request").text, {}).appendTo(that.parent());
-        }
-
         // 계정 삭제 확인창의 "예" 단추가 보낼 주소: 삭제 단추를 누를 때마다 바뀐다
         var accountDeleteUrl = null;
 
@@ -122,37 +140,40 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
         })
         .on('click','[data-toggle="reset-password"]',function(){
-            var that = $(this);
-            _showRequestWaitingMessage(that);
-            yona.http.post(that.data("href"))
+            resetPasswordUrl = $(this).data('href');
+            $('#resetPasswordTarget').text($(this).attr('id'));
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('resetPasswordConfirm')).show();
+        });
+
+        var resetPasswordUrl = null;
+        document.getElementById('resetPasswordGo').addEventListener('click', function(){
+            var goBtn = this;
+            goBtn.disabled = true;
+            var done = function(){ goBtn.disabled = false; bootstrap.Modal.getOrCreateInstance(document.getElementById('resetPasswordConfirm')).hide(); };
+            yona.http.post(resetPasswordUrl)
                 .done(function(data){
-                    $(".alert").remove();
+                    done();
                     if(data && data.isSuccess === true){
-                        $yona.render($('#dismissable-alerts').text(), data).appendTo(that.parent());
+                        $('#resetPasswordResultTarget').text($('#resetPasswordTarget').text());
+                        $('#resetPasswordValue').text(data.newPassword);
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('resetPasswordResult')).show();
                     } else {
                         $yona.alert("password change failed: " + $yona.escapeHtml(data.reason));
                     }
                 })
                 .fail(function(data){
+                    done();
                     $yona.alert("password change failed: " + $yona.escapeHtml(JSON.parse(data.responseText).reason));
                 });
-
+        });
+        document.getElementById('resetPasswordResult').addEventListener('hidden.bs.modal', function(){ $('#resetPasswordValue').text(''); });
+        document.getElementById('resetPasswordCopy').addEventListener('click', function(){
+            var value = $('#resetPasswordValue').text();
+            if (navigator.clipboard) { navigator.clipboard.writeText(value); }
         });
 
         yona.Pagination.update($("#pagination"), [[${totalPageCount}]]);
     });
-    </script>
-    <script type="text/x-mustache" id="dismissable-alerts">
-        <div class="alert alert-success alert-dismissible">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <h4>[[#{user.newPassword}]]: {{newPassword}}</h4>
-        </div>
-    </script>
-    <script type="text/x-mustache" id="dismissable-alerts-request">
-        <div class="alert alert-fail alert-warning alert-dismissible">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <h4>sending requestHeader...</h4>
-        </div>
     </script>
 <script type="text/javascript">
     // 보호 규칙(자기 자신, 기본 관리자, 마지막 관리자)에 걸려 서버가 403으로 거부하면 안내가 다음 화면에 실려 있으므로 다시 읽어 보인다(site-F3)

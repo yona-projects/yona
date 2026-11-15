@@ -15,18 +15,20 @@
         <h2 class="float-start" th:text="#{site.sidebar.update}"></h2>
     </div>
 
-    <p th:if="${versionToUpdate != null}"><strong th:text="#{site.update.isAvailable(${versionToUpdate})}"></strong>
-      <a th:href="${releaseUrl}" class="ybtn ybtn-success" th:text="#{site.update.download}"></a></p>
-
-    <p th:if="${currentVersion != null}" th:text="#{site.update.currentVersion(${currentVersion})}"></p>
-
-    <!--/* 새 버전 알림 상태. 끄기는 알림 위의 "숨기기" 단추이고, 꺼 두면 서버를 다시 시작해도 꺼져 있으므로 여기서 다시 켠다(site-F6) */-->
-    <p id="update-notice-state" th:attr="data-state=${noticeOn} ? 'on' : 'off'" th:text="${noticeOn} ? #{site.update.notice.on} : #{site.update.notice.off}"></p>
-    <form id="update-notice-form" th:unless="${noticeOn}" th:action="@{/sites/watchUpdate}" method="post">
-      <button type="submit" class="ybtn ybtn-info" th:text="#{site.update.notice.enable}"></button>
-    </form>
-
-    <p th:if="${versionToUpdate == null and failure == null}" th:text="#{site.update.isNotNecessary(${currentVersion})}"></p>
+    <!--/* A-594: 버전 카드와 새 버전 알림 카드. 알림 끄기는 알림 위의 "숨기기" 단추이고, 꺼 두면 서버를 다시 시작해도 꺼져 있으므로 여기서 다시 켠다(site-F6) */-->
+    <div id="update-version-card" class="site-card">
+        <h3 th:if="${versionToUpdate != null}" th:text="#{site.update.isAvailable(${versionToUpdate})}"></h3>
+        <p th:if="${currentVersion != null}" th:text="#{site.update.currentVersion(${currentVersion})}"></p>
+        <a th:if="${versionToUpdate != null}" th:href="${releaseUrl}" class="btn btn-success" th:text="#{site.update.download}"></a>
+        <p th:if="${versionToUpdate == null and failure == null}" th:text="#{site.update.isNotNecessary(${currentVersion})}" class="mb-0"></p>
+    </div>
+    <div id="update-notice-card" class="site-card">
+        <h3 th:text="#{site.update.notice.title}"></h3>
+        <p id="update-notice-state" th:attr="data-state=${noticeOn} ? 'on' : 'off'" th:text="${noticeOn} ? #{site.update.notice.on} : #{site.update.notice.off}"></p>
+        <form id="update-notice-form" th:unless="${noticeOn}" th:action="@{/sites/watchUpdate}" method="post">
+            <button type="submit" class="btn btn-outline-primary" th:text="#{site.update.notice.enable}"></button>
+        </form>
+    </div>
 
     <th:block th:if="${failure != null}">
       <p th:text="#{site.update.error}"></p>

@@ -384,5 +384,14 @@ export const tests = [
     assert.ok(m.c.top - m.t.bottom >= 6, `제목과 클라이언트 ID 줄 사이 간격이 6px 이상이어야 한다(${m.c.top - m.t.bottom}px)`);
     assert.ok(Math.abs(m.l.left - m.t.left) <= 1 && Math.abs(m.l.left - m.n.left) <= 1, `라벨(${m.l.left})이 제목(${m.t.left})과 입력란(${m.n.left})과 같은 왼쪽 끝이어야 한다`); await ctx.close();
   } },
+  { name: '사이트 관리 화면: 단추는 테마색이고 SSO 구역 제목은 강조되며 구분선 위 간격이 짧고 옵션 상자는 길지 않다(A-594)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="shell"><div class="shell-main site-setting-wrap" style="width:1000px"><div class="two-factor-page"><div class="tab-content sso-form"><div class="tab-pane active show" id="p"><div class="mb-3" id="prev"><label class="form-label">라벨</label><input class="form-control" style="width:300px"></div><h5 class="sso-section" id="sec">구역 제목</h5><div class="mb-3"><label class="form-label">다음</label></div><form class="security-settings"><label class="option" id="opt"><input class="form-check-input" type="checkbox"><span class="option-text"><strong>SSO 전용 모드</strong><small>설명</small></span></label></form><div class="sso-actions"><button class="btn btn-success" id="sv">저장</button><button class="btn btn-outline-secondary" id="ck">연결 확인</button></div><p class="sso-check-help" id="hp">설명</p></div></div></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { prev: r('#prev'), sec: r('#sec'), opt: r('#opt'), sv: r('#sv'), ck: r('#ck'), fs: parseFloat(c('#sec', 'fontSize')), fw: parseInt(c('#sec', 'fontWeight')), bt: c('#sec', 'borderTopWidth'), bs: c('#sec', 'boxShadow'), bl: c('#sec', 'borderLeftWidth'), svbg: c('#sv', 'backgroundColor'), ckbc: c('#ck', 'borderTopColor'), ckcol: c('#ck', 'color') }; });
+    assert.ok(m.fs >= 16 && m.fw >= 700, `구역 제목은 강조된다(${m.fs}px, ${m.fw})`); assert.ok(parseFloat(m.bt) >= 1 || m.bs !== 'none', '구분선이 있다'); assert.ok(parseFloat(m.bl) >= 3, `구역 제목은 왼쪽 강조선이 있다(${m.bl})`);
+    assert.ok(m.sec.top - m.prev.bottom <= 26, `구분선 위 간격이 26px 이하이다(${m.sec.top - m.prev.bottom}px)`); assert.ok(m.opt.width <= 660, `옵션 상자는 660px 이하이다(${m.opt.width}px)`);
+    assert.ok(Math.abs(m.sv.top - m.ck.top) <= 2 && m.ck.left > m.sv.left, '저장과 연결 확인은 한 줄이다');
+    for (const k of [m.svbg, m.ckbc, m.ckcol]) { const [r, g] = k.match(/\d+/g).map(Number); assert.ok(r > 200 && g < 160, `단추 색 ${k}이 테마 주황이 아니다`); } await ctx.close();
+  } },
 ];
 

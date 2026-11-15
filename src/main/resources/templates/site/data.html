@@ -15,31 +15,32 @@
         <h2 class="float-start" th:text="#{site.sidebar.data}"></h2>
     </div>
 
-    <div class="cu-desc">
+    <div class="alert-soft">
         <ul>
-            <li class="notice"><strong th:text="#{site.data.warning1}"></strong></li>
-            <li class="notice"><strong th:text="#{site.data.warning2}"></strong></li>
-            <li class="notice"><strong th:text="#{site.data.warning3}"></strong></li>
-            <li class="notice"><strong th:text="#{site.data.warning4}"></strong></li>
+            <li><strong th:text="#{site.data.warning1}"></strong></li>
+            <li><strong th:text="#{site.data.warning2}"></strong></li>
+            <li><strong th:text="#{site.data.warning3}"></strong></li>
+            <li><strong th:text="#{site.data.warning4}"></strong></li>
         </ul>
     </div>
 
-    <h3 th:text="#{site.data.export}"></h3>
-    <p th:text="#{site.data.export.info}"></p>
+    <div class="site-card">
+        <h3 th:text="#{site.data.export}"></h3>
+        <p th:text="#{site.data.export.info}"></p>
+        <a th:href="@{/sites/export}" class="ybtn ybtn-primary"><strong th:text="#{site.data.export}"></strong></a>
+    </div>
 
-    <a th:href="@{/sites/export}" class="ybtn ybtn-primary">
-        <strong th:text="#{site.data.export}"></strong>
-    </a>
-
-    <h3 th:text="#{site.data.import}"></h3>
-    <p th:text="#{site.data.import.info}"></p>
-
-    <form id="importForm" th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
-        <input class="form-control" type="file" name="data">
-        <p>
-            <input type="submit" th:value="#{site.data.import}">
-        </p>
-    </form>
+    <!--/* A-594: 가져오기는 기존 데이터를 교체하므로 위험 카드로 보인다 */-->
+    <div class="site-card danger">
+        <h3 th:text="#{site.data.import}"></h3>
+        <p th:text="#{site.data.import.info}"></p>
+        <form id="importForm" th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
+            <div class="site-card-row">
+                <input class="form-control" type="file" name="data">
+                <button type="submit" class="btn btn-outline-danger" th:text="#{site.data.import}"></button>
+            </div>
+        </form>
+    </div>
     <!--/* 가져오기는 병합이 아니라 교체이므로 제출 전에 한 번 확인한다(R-56-3). v1.6은 확인이 없었다 */-->
     <script th:inline="javascript">
     $(function(){

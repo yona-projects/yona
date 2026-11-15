@@ -37,7 +37,7 @@
             <div class="col-lg-4 listitem-col" th:text="${row.overview}"></div>
             <div class="col-lg-2 listitem-col" th:text="${row.createdText}"></div>
             <div class="col-lg-1 listitem-col">
-                <button class="ybtn ybtn-danger" th:attr="data-project-name=${row.owner} + '/' + ${row.name}, data-href=@{/sites/project/delete/{id}(id=${row.id})}" data-toggle="delete-project" th:text="#{button.delete}"></button>
+                <button class="btn btn-outline-danger btn-sm" th:attr="data-project-name=${row.owner} + '/' + ${row.name}, data-href=@{/sites/project/delete/{id}(id=${row.id})}" data-toggle="delete-project" th:text="#{button.delete}"></button>
             </div>
         </li>
     </ul>
@@ -46,14 +46,17 @@
 
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
+            <h5 class="modal-title" th:text="#{site.project.delete}"></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            <span id="project-name"></span><th:block th:text="#{site.project.delete}"></th:block>
         </div>
         <div class="modal-body">
             <p th:text="#{site.project.deleteConfirm}"></p>
+            <p class="text-body-secondary" th:text="#{site.project.deleteRetype}"></p>
+            <p class="delete-target"><code id="project-name"></code></p>
+            <input type="text" id="project-name-confirm" class="form-control w-100" autocomplete="off">
         </div>
         <div class="modal-footer">
-            <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+            <button type="button" id="projectDeleteBtn" class="btn btn-danger" disabled="disabled" th:text="#{site.project.delete}"></button>
             <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
@@ -66,11 +69,18 @@
         $('.project-list-wrap').on('click','[data-toggle="delete-project"]',function(){
             deleteUrl = $(this).data('href');
 
-            $('#project-name').html($(this).data('projectName'));
+            $('#project-name').text($(this).data('projectName'));
+            $('#project-name-confirm').val('');
+            $('#projectDeleteBtn').prop('disabled', true);
 
             bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
 
             console.log($(this).data('href'));
+        });
+
+        // 프로젝트 이름을 똑같이 다시 입력해야 삭제 단추가 켜진다(A-594, 프로젝트 오너가 삭제할 때와 같은 흐름)
+        document.getElementById('project-name-confirm').addEventListener('input', function(){
+            document.getElementById('projectDeleteBtn').disabled = (this.value.trim() !== document.getElementById('project-name').textContent);
         });
 
         document.getElementById('projectDeleteBtn').addEventListener('click', function(e){
