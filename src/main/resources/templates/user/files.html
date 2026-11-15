@@ -15,6 +15,7 @@
     <div class="page-wrap shell">
         <th:block th:replace="~{shell/home-sidebar :: sidebar('myFiles')}"></th:block>
         <div class="shell-main">
+        <h3 class="shell-page-title" th:text="#{user.files}"></h3>
         <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
         <!--/* A-500: 검색과 쪽 이동은 페이지를 새로 읽지 않고 이 영역만 바꾼다(다른 목록 화면과 같은 `list-container`, D-96). 검색란은 v1.6처럼 늘 비어 있어(user-F8을 되돌렸다) 영역이 바뀌면 함께 비워진다. */-->
         <div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}'>

@@ -30,7 +30,9 @@
       </ul>
       <div id="notification-project-empty" class="text-body-secondary small" hidden th:text="#{notification.project.filter.empty}"></div>
       </div>
-      <div class="tab-content col">
+      <div class="col">
+      <h4 id="notification-project-title" class="notification-project-title" th:text="${#lists.isEmpty(notificationProjects)} ? '' : ${notificationProjects[0].owner} + ' / ' + ${notificationProjects[0].name}"></h4>
+      <div class="tab-content">
         <div th:each="project, stat : ${notificationProjects}" th:id="${project.id}" th:class="'tab-pane ' + (${stat.first} ? 'active' : '')">
           <table class="table table-striped table-bordered">
             <tr th:each="row : ${project.rows}">
@@ -44,14 +46,15 @@
           </table>
         </div>
       </div>
+      </div>
     </div>
   <script type="module" th:inline="javascript">
 /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
 await import([[@{/assets/javascripts/esm/service/user.Setting.js}]]);
-await import([[@{/assets/javascripts/esm/service/user.NotificationFilter.js}]]);
+await import([[@{/assets/javascripts/esm/service/user.NotificationProjects.js}]]);
     $(function(){
         $yona.loadModule("user.Setting");
-        $yona.loadModule("user.NotificationFilter");
+        $yona.loadModule("user.NotificationProjects");
     });
 </script>
 </div><!--/* .shell-main */-->

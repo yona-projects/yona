@@ -6602,6 +6602,32 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+// 2단계 인증 코드 입력란(로그인 화면, 로그인 창, 설정의 인증 앱 등록)은 같은 글자와 테두리를 쓴다(A-586)
+@mixin tf-code-input {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    height: auto;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+
+    // 자리 표시 글자는 입력 글자보다 작고 보통 글꼴이다
+    &::placeholder { font-family: inherit; font-size: 1rem; letter-spacing: normal; }
+}
+
+// 오류 알림은 로그인 창, 로그인 화면, 2단계 인증 화면, 설정 화면(.alert-danger)이 같은 배경과 글자색을 쓴다(A-586)
+@mixin tf-error-box {
+    padding: 10px 14px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background: #f8d7da;
+    color: #58151c;
+}
+
 .loginDialog {
     // BS5의 .modal은 화면 전체를 덮는 바깥 틀이라 폭과 음수 여백(BS2의 위치 잡기)을 틀이 아니라 .modal-dialog에 준다
     .modal-dialog { max-width:460px; }
@@ -6610,8 +6636,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .error {
         display:none;
         margin-bottom:20px;
-        color:#E74C3C;
+        @include tf-error-box;
         .yobicon-error { vertical-align: middle; margin-right:5px; font-size:0.8125rem; }
+    }
+    // 로그인 창 안의 2단계 입력(A-586): 제목과 안내는 가운데에 두고 글자 크기와 색은 2단계 인증 화면과 같다
+    .two-factor-step {
+        h4 { margin:4px 0 6px; font-size:1.5rem; font-weight:600; text-align:center; color:#333; }
+        p { margin:0 0 18px; text-align:center; color:#6c757d; font-size:0.9375rem; }
     }
     .act-row {
         input.checkbox { margin-top:4px !important; }
@@ -8497,7 +8528,7 @@ text-expander {
     .tf-section { margin-top:32px; padding-top:20px; border-top:1px solid #e5e5e5; h4 { margin-bottom:6px; } p { color:#666; margin-bottom:12px; } }
     .tf-empty { padding:24px; border:1px dashed #ccc; border-radius:6px; text-align:center; color:#666; margin:16px 0; }
     .tf-narrow { max-width:260px; height:40px; }
-    .tf-code { letter-spacing:3px; font-size:1.125rem; }
+    .tf-code { @include tf-code-input; }
     .tf-setup { display:flex; flex-wrap:wrap; gap:32px; align-items:flex-start; margin-top:12px; }
     .tf-qr { width:220px; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fff; }
     .tf-steps { flex:1; min-width:300px; }
@@ -8553,7 +8584,8 @@ text-expander {
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
     // 코드 입력란은 밑줄 모양(옛 로그인 폼)을 그대로 두고 글자만 가운데 정렬한다
-    input.text { width:100%; box-sizing:border-box; text-align:center; letter-spacing:2px; }
+    input.text { @include tf-code-input; width:100%; box-sizing:border-box; }
+    .error { @include tf-error-box; }
     .tf-remember { display:flex; align-items:center; gap:8px; margin:0 0 16px; font-size:0.8125rem; font-weight:normal; cursor:pointer; }
     .tf-remember input.form-check-input {
         appearance:none; -webkit-appearance:none; flex:none; width:18px !important; height:18px !important; margin:0; padding:0; cursor:pointer;
@@ -10161,3 +10193,60 @@ form#newProjectForm, form#importGit {
 
 // 위험 구역 안의 라벨도 입력란과 같은 왼쪽 끝에서 시작한다(A-583)
 .danger-section .form-label { margin-left: 0; }
+
+// 사용자 설정 화면 다듬기 3(A-586)
+.user-screen {
+    // 빈 SSH 키 목록: 가운데 정렬한 빈 상태 상자에 안내와 단추를 함께 둔다
+    .key-empty {
+        max-width: 720px;
+        margin: 20px 0;
+        padding: 40px 24px;
+        border: 2px dashed #d6dbe0;
+        border-radius: 10px;
+        background: #fafbfc;
+        text-align: center;
+
+        .key-empty-icon { color: #adb5bd; margin-bottom: 10px; }
+        .empty { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; color: #333; }
+        .key-empty-help { margin: 0 0 20px; color: #6c757d; }
+    }
+
+    // 보안 키 추가: 카드 안에 제목, 안내, 이름 입력란, 단추를 넉넉한 간격으로 둔다
+    .key-add-card {
+        max-width: 560px;
+        padding: 26px 28px;
+        border: 1px solid #e3e3e3;
+        border-radius: 10px;
+        background: #fff;
+
+        h4 { margin: 0 0 8px; font-size: 1.125rem; font-weight: 600; }
+        p { margin: 0 0 22px; }
+        .form-label { display: block; margin: 0 0 6px; }
+        .tf-actions { margin-top: 24px; }
+    }
+
+    // 비밀번호 변경: 입력란을 넓히고 재 설정은 눈에 띄는 카드의 테마 윤곽 단추로 둔다
+    #frmPassword .form-control { width: 100%; max-width: 440px; }
+    .pw-reset-card {
+        max-width: 640px;
+        margin: 28px 0;
+        padding: 18px 22px;
+        border: 1px solid #f0c9b3;
+        border-radius: 8px;
+        background: #fff8f3;
+
+        p { margin: 0 0 12px; font-weight: 600; }
+    }
+    .pw-reset-btn {
+        border: 1px solid $yobi-btn-primary;
+        background: #fff;
+        color: $yobi-btn-primary;
+        &:hover { background: $yobi-btn-primary; color: #fff; }
+    }
+
+    // 알림 설정: 선택한 프로젝트 이름을 표 위의 제목으로 보인다
+    .notification-project-title { margin: 0 0 12px; font-size: 1.125rem; font-weight: 600; }
+}
+
+// 화면 이름 제목(홈 사이드바 안의 화면: 내 파일 등)
+.shell-main .shell-page-title { margin: 0 0 16px; font-size: 1.5rem; font-weight: 600; }

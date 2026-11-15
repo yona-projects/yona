@@ -51,7 +51,7 @@
             <div class="token-card">
                 <div class="token-card-head" th:text="#{apiToken.regenerate}"></div>
                 <div class="token-card-body">
-                    <p class="token-help" th:text="#{apiToken.regenerate.description}"></p>
+                    <p class="token-help mb-3" th:text="#{apiToken.regenerate.description}"></p>
                     <div th:replace="~{user/partial-token-form :: expiryField(${maxDays})}"></div>
                     <div class="token-actions">
                         <button type="submit" class="ybtn" th:text="#{apiToken.regenerate}"></button>

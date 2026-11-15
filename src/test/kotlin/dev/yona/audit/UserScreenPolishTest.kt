@@ -61,7 +61,7 @@ class UserScreenPolishTest {
         val d = doc("user/edit-notifications.html")
         assertNotNull(d.selectFirst("input#notification-project-filter"))
         assertNotNull(d.selectFirst("#notification-project-empty"))
-        assertTrue(text("user/edit-notifications.html").contains("user.NotificationFilter"), "검색은 모듈이 한다")
+        assertTrue(text("user/edit-notifications.html").contains("user.NotificationProjects"), "검색은 모듈이 한다")
     }
 
     @Test
@@ -108,4 +108,50 @@ class UserScreenPolishTest {
         assertNotNull(card.selectFirst("form#consent-deny-form button#consent-deny"))
         assertNotNull(card.selectFirst("ul#oauth-scopes"))
     }
+
+    @Test
+    fun `빈 SSH 키 목록은 빈 상태 상자이고 새 키 단추가 상자 안에 있다(A-586)`() {
+        val d = doc("user/edit-ssh.html")
+        assertNotNull(d.selectFirst("div#ssh-empty.key-empty p.empty"))
+        assertNotNull(d.selectFirst("div#ssh-empty.key-empty a#ssh-new"), "단추가 상자 안에 있다")
+        assertEquals(2, d.select("a#ssh-new").size, "키가 있을 때의 단추는 목록 아래에 따로 있다")
+    }
+
+    @Test
+    fun `보안 키 추가 화면은 카드 안에 입력란이 폭을 채운다(A-586)`() {
+        val d = doc("user/edit-two-factor-key.html")
+        assertNotNull(d.selectFirst(".key-add-card input#security-key-name.w-100"))
+        assertNotNull(d.selectFirst(".key-add-card button#security-key-add"))
+    }
+
+    @Test
+    fun `알림 설정은 선택한 프로젝트 이름을 표 위에 제목으로 보인다(A-586)`() {
+        assertNotNull(doc("user/edit-notifications.html").selectFirst("h4#notification-project-title"))
+    }
+
+    @Test
+    fun `비밀번호 변경은 입력란을 넓히고 재 설정을 눈에 띄는 카드로 보인다(A-586)`() {
+        val d = doc("user/edit-password.html")
+        assertTrue(d.select("#frmPassword input[type=password]").none { it.hasClass("w-25") }, "좁은 폭 클래스를 쓰지 않는다")
+        assertEquals("@{/lostPassword}", d.selectFirst(".pw-reset-card a.pw-reset-btn")?.attr("th:href"))
+    }
+
+    @Test
+    fun `내 파일 화면은 화면 이름을 제목으로 보인다(A-586)`() {
+        assertNotNull(doc("user/files.html").selectFirst(".shell-main h3.shell-page-title"))
+    }
+
+    @Test
+    fun `오류 화면의 홈 단추와 확인된 사용자의 로그인 단추는 테마 단추이다(A-586)`() {
+        for (f in listOf("error/notfound-default.html", "error/badrequest-default.html", "error/forbidden-default.html", "error/internal-server-error-default.html"))
+            assertNotNull(doc(f).selectFirst("a.ybtn.ybtn-primary"), "$f: 홈 단추는 테마색(ybtn-primary)이다")
+        for (f in listOf("error/notfound-default.html", "error/badrequest-default.html")) assertNull(doc(f).selectFirst("a.ybtn-info"), "$f: 파란 단추가 없다")
+        assertEquals("@{/users/loginform}", doc("user/verified.html").selectFirst("a.ybtn.ybtn-primary")?.attr("th:href"), "확인된 사용자에서 로그인으로 간다")
+    }
+
+    @Test
+    fun `토큰 다시 만들기의 안내와 만료 사이에 여백이 있다(A-586)`() {
+        assertNotNull(doc("user/edit-token-edit.html").selectFirst("#token-regenerate p.token-help.mb-3"))
+    }
 }
+

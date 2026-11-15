@@ -30,7 +30,7 @@
                 <p class="tf-secret"><code id="two-factor-secret" th:text="${secret}"></code></p>
                 <form id="two-factor-confirm" method="post" th:action="@{/user/two-factor/totp}">
                     <label for="two-factor-code" class="form-label" th:text="#{twoFactor.setup.code}"></label>
-                    <input id="two-factor-code" type="text" name="code" class="form-control tf-narrow tf-code" autocomplete="one-time-code" inputmode="numeric" autofocus>
+                    <input id="two-factor-code" type="text" name="code" class="form-control w-100 tf-narrow tf-code" autocomplete="one-time-code" inputmode="numeric" autofocus>
                     <div class="tf-actions">
                         <button type="submit" class="btn btn-success" th:text="#{twoFactor.setup.submit}"></button>
                         <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>

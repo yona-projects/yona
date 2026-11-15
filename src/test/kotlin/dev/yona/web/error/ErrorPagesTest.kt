@@ -43,7 +43,7 @@ class ErrorPagesTest : AbstractIntegrationTest() {
         assertNotNull(box)
         assertNotNull(box.selectFirst("i.ico.ico-err2"))
         assertEquals("Page not found", box.selectFirst("p")?.text())
-        val home = box.selectFirst("a.ybtn.ybtn-info")
+        val home = box.selectFirst("a.ybtn.ybtn-primary")
         assertEquals("/", home?.attr("href"))
         assertEquals("Home", home?.text())
     }
@@ -97,7 +97,7 @@ class ErrorPagesTest : AbstractIntegrationTest() {
         val doc = render("/__test/err/badrequest", 400)
         assertEquals("The request cannot be fulfilled due to bad syntax", doc.selectFirst(".error-wrap p")?.text())
         assertNotNull(doc.selectFirst(".error-wrap i.ico-404"))
-        assertEquals("/", doc.selectFirst(".error-wrap a.ybtn.ybtn-info")?.attr("href"))
+        assertEquals("/", doc.selectFirst(".error-wrap a.ybtn.ybtn-primary")?.attr("href"))
     }
 
     // --- 서버 오류 ---

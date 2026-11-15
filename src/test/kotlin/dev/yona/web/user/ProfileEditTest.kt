@@ -292,7 +292,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         val form = page.selectFirst("form#frmPassword")!!
         assertEquals("/user/resetPassword", form.attr("action"))
         assertEquals(listOf("loginId", "oldPassword", "password", "retypedPassword"), form.select("input").map { it.attr("name") })
-        assertEquals("/lostPassword", page.selectFirst("a.ybtn-fail")?.attr("href"))
+        assertEquals("/lostPassword", page.selectFirst("a.pw-reset-btn")?.attr("href"))
         assertTrue(page.select("nav.shell-sidebar a.nav-link.active").single().attr("href") == "/user/editform/password")
     }
 

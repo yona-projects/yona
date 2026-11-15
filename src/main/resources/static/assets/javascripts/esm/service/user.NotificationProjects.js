@@ -1,10 +1,12 @@
 import { register } from "../namespace.js";
 
 /**
- * 알림 설정 화면의 프로젝트 검색이다. 프로젝트 목록 위의 검색 상자에 글자를 입력하면 "소유자 / 프로젝트" 표기에
+ * 알림 설정 화면의 프로젝트 목록 동작이다. 첫째, 프로젝트 목록 위의 검색 상자에 글자를 입력하면 항목을 걸러 보이고, 둘째, 프로젝트를 고르면 표 위의 제목을 선택한 프로젝트 이름으로 바꾼다.
+ *
+ * 검색: 프로젝트 목록 위의 검색 상자에 글자를 입력하면 "소유자 / 프로젝트" 표기에
  * 그 글자(대소문자 무시)가 들어 있는 항목만 남기고, 하나도 없으면 안내 문구를 보인다. 서버 요청은 하지 않는다(decisions.md A-582).
  */
-const NotificationFilter = function(){
+const NotificationProjects = function(){
 
     const htElement = {};
 
@@ -15,7 +17,11 @@ const NotificationFilter = function(){
         htElement.welInput = $("#notification-project-filter");
         htElement.welItems = $("#notification-projects > li");
         htElement.welEmpty = $("#notification-project-empty");
+        htElement.welTitle = $("#notification-project-title");
         htElement.welInput.on("input", _filter);
+        $(document).on("shown.bs.tab", "#notification-projects a", function(){
+            htElement.welTitle.text($(this).text().replace(/\s+/g, " ").trim());
+        });
     }
 
     /**
@@ -37,6 +43,6 @@ const NotificationFilter = function(){
     _init();
 };
 
-export default NotificationFilter;
+export default NotificationProjects;
 
-register("yona.user.NotificationFilter", NotificationFilter);
+register("yona.user.NotificationProjects", NotificationProjects);
