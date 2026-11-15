@@ -230,17 +230,7 @@
                             <th:block th:if="${issue.canUpdate}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${issue.projectLabels}, ${issue.selectedLabelIds}, '', null, ${projectView})}"></th:block></th:block>
                             <th:block th:unless="${issue.canUpdate}"><th:block th:replace="~{issue/partial-show-selected-label :: showSelectedLabel(${issue.labels}, ${base + '/issues?state=' + issue.state})}"></th:block></th:block>
                         </th:block>
-                        <div class="act-row right-menu-icons">
-                            <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
-                                    th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
-                            <a th:unless="${issue.canUpdate}" th:href="@{${base + '/issue/' + issue.number + '/editform'}}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
-                            <th:block th:if="${issue.deletable}">
-                                <a th:if="${issue.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
-                                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
-                            </th:block>
-                            <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='popover' data-bs-trigger="hover" data-bs-placement="top"
-                                    th:attr="data-bs-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
-                        </div>
+                        <!--/* A-592: 편집과 삭제 아이콘은 본문 아래 행동 줄에만 둔다(v1.6은 오른쪽 열에도 같은 아이콘이 있었다. 선생님 결정으로 오른쪽 열의 것을 없앴다) */-->
                     </form>
                     <div id="comments" class="board-comment-wrap">
                         <div id="timeline">

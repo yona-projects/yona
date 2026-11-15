@@ -279,6 +279,19 @@ class IssueViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `편집과 삭제 아이콘은 본문 아래 행동 줄에만 하나씩 있고 오른쪽 열에는 없다(A-592)`() {
+        val project = newProject()
+        val member = join(newUser(), project)
+        issue(project, author = member)
+        val doc = view(project, session = login(member))
+        assertEquals(1, doc.select("i.yobicon-edit-2").size, "편집 아이콘은 하나이다")
+        assertEquals(1, doc.select("i.yobicon-trash").size, "삭제 아이콘은 하나이다")
+        assertTrue(doc.select(".right-menu-icons").isEmpty(), "오른쪽 열의 아이콘 묶음은 없다")
+        val anonymous = view(project)
+        assertEquals(1, anonymous.select("a[href$=editform] button i.yobicon-edit-2").size, "수정 권한이 없는 사용자도 원본 보기 아이콘은 하나이다")
+    }
+
+    @Test
     fun `수정 권한이 있으면 공유와 가중치 단추와 수정 삭제 아이콘이 보인다`() {
         val project = newProject()
         val member = join(newUser(), project)
