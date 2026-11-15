@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.ModelAndView
@@ -44,6 +45,7 @@ import java.util.Date
 @AnonymousCheck
 class SiteDataController(
     private val data: DataService,
+    private val tus: dev.yona.domain.site.TusImportStore,
     private val users: UserRepository,
     private val userLookup: UserLookup,
     private val attachments: AttachmentRepository,
@@ -99,6 +101,46 @@ class SiteDataController(
         } catch (e: Exception) {
             log.error("Failed to import data", e)
             ErrorViews.badRequest()
+        }
+    }
+
+    /**
+     * 데이터 가져오기의 이어 올리기(TUS 규약) 요청을 받는다(X-53, D-144). 만들기(POST), 상태(HEAD), 이어 올리기(PATCH), 취소(DELETE), 설정(OPTIONS)이
+     * 모두 [dev.yona.domain.site.TusImportStore.service]로 간다. 사이트 관리자만 쓴다.
+     */
+    @RequestMapping("/sites/tus", "/sites/tus/**")
+    fun tus(request: HttpServletRequest, response: HttpServletResponse) {
+        // TUS 서버는 Content-Type이 정확히 application/offset+octet-stream이어야 받는다(아니면 406). 인코딩 필터나 프록시가 charset을 덧붙여도 받도록 뗀다
+        val normalized = object : jakarta.servlet.http.HttpServletRequestWrapper(request) {
+            override fun getHeader(name: String): String? {
+                val value = super.getHeader(name)
+                return if (name.equals("Content-Type", ignoreCase = true)) value?.substringBefore(';')?.trim() else value
+            }
+        }
+        tus.service.process(normalized, response)
+    }
+
+    /**
+     * 이어 올리기를 마친 파일로 DB를 교체한다(D-144). 끝나지 않았거나 없는 올리기는 400이다. 가져온 뒤에는 올린 조각을 지우고
+     * [import]와 같은 곳으로 이동한다.
+     */
+    @PostMapping("/sites/import/tus")
+    fun importTus(@RequestParam uploadUri: String, request: HttpServletRequest, response: HttpServletResponse): Any {
+        if (!uploadUri.startsWith(dev.yona.domain.site.TusImportStore.UPLOAD_URI + "/")) return ErrorViews.badRequest()
+        val input = tus.open(uploadUri) ?: return ErrorViews.badRequest()
+        return try {
+            val result = input.use { data.import(it) }
+            audit.record(dev.yona.domain.audit.AuditEvent("site.data_imported", targetType = "site", details = mapOf("via" to "web-tus", "imported" to result.imported, "failed" to result.failed)))
+            if (result.failed.isNotEmpty()) {
+                RedirectSupport.see(request, response, "/sites/data", linkedMapOf(RedirectSupport.WARNING to "site.data.import.failed", "failedTables" to result.failed.joinToString(", ")))
+            } else {
+                RedirectSupport.see(request, response, "/")
+            }
+        } catch (e: Exception) {
+            log.error("Failed to import uploaded data", e)
+            ErrorViews.badRequest()
+        } finally {
+            tus.delete(uploadUri)
         }
     }
 

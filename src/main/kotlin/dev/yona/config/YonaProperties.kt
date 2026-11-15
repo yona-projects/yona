@@ -22,6 +22,8 @@ import java.time.temporal.ChronoUnit
  * @property projectDefaultMenus 프로젝트 생성 화면에서 기본으로 켜는 메뉴를 쉼표로 이은 값 (`project.default.menus.when.create`)
  * @property displayPrivateRepositories 프로젝트 목록에 비공개 프로젝트도 보여 준다. 읽을 수 없으면 흐리게 표시한다 (`application.displayPrivateRepositories`)
  * @property dataDir 저장소와 첨부 파일을 둘 데이터 디렉터리. 비우면 JVM 시스템 속성 `yona.data`, 그것도 없으면 작업 디렉터리를 쓴다 (D-16)
+ * @property importUploadMaxBytes 데이터 가져오기 이어 올리기(TUS)로 받을 수 있는 파일의 최대 크기(바이트)이다. 기본은 10GB이다 (D-144)
+ * @property importUploadExpireHours 끝나지 않은 이어 올리기 조각을 지우기까지 두는 시간이다. 기본은 24시간이다 (D-144)
  * @property hostname 서버 이름. 비우면 요청의 Host 헤더를 쓴다 (`application.hostname`)
  * @property port 서버 포트. 80이면 주소에 쓰지 않는다 (`application.port`)
  * @property scheme `http` 또는 `https`. 비우면 `http`이다. v1.6은 요청이 https인지나 `X-Forwarded-Proto`를 보지 않으므로, HTTPS 뒤에서 운영하면 `https`로 설정해야
@@ -97,6 +99,10 @@ data class YonaProperties(
     val projectDefaultMenus: String = "code, issue, pullRequest, review, milestone, board, wiki",
     val displayPrivateRepositories: Boolean = false,
     val dataDir: String = "",
+    /** 데이터 가져오기 이어 올리기(TUS)로 받을 수 있는 파일의 최대 크기(바이트). 기본은 10GB이다(D-144). */
+    val importUploadMaxBytes: Long = 10L * 1024 * 1024 * 1024,
+    /** 끝나지 않은 이어 올리기 조각을 지우기까지 두는 시간(시간 단위). 기본은 24시간이다(D-144). */
+    val importUploadExpireHours: Long = 24,
     val hostname: String = "",
     val port: Int? = null,
     val scheme: String = "",

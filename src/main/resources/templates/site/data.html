@@ -39,14 +39,18 @@
                 <input class="form-control" type="file" name="data">
                 <button type="submit" class="btn btn-outline-danger" th:text="#{site.data.import}"></button>
             </div>
+            <div id="import-progress" class="import-progress" hidden><div class="import-progress-track"><div id="import-bar" class="import-progress-bar"></div></div></div>
+            <p id="import-status" class="import-status" aria-live="polite"></p>
         </form>
     </div>
-    <!--/* 가져오기는 병합이 아니라 교체이므로 제출 전에 한 번 확인한다(R-56-3). v1.6은 확인이 없었다 */-->
-    <script th:inline="javascript">
-    $(function(){
-        $("form[action$='sites/import']").on("submit", function(){
-            return confirm(/*[[#{site.data.import.confirm}]]*/ "");
-        });
+    <!--/* 가져오기는 병합이 아니라 교체이므로 올리기 전에 한 번 확인한다(R-56-3, v1.6은 확인이 없었다). 파일은 TUS로 조각 올려 끊겨도 이어 올린다(X-53, D-144) */-->
+    <script th:src="@{/assets/javascripts/lib/tus/tus.min.js}"></script>
+    <script type="module" th:inline="javascript">
+    await import([[@{/assets/javascripts/esm/service/site.DataImport.js}]]);
+    $yona.loadModule("site.DataImport", {
+        "sURLTus": [[@{/sites/tus}]],
+        "sURLImport": [[@{/sites/import/tus}]],
+        "sConfirm": [[#{site.data.import.confirm}]]
     });
     </script>
 </th:block>

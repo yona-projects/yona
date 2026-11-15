@@ -131,6 +131,8 @@ dependencies {
 	implementation("org.springframework.security:spring-security-ldap")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	// 관측성(X-10, D-64): 상태 확인(Actuator)과 OTLP로 보내는 지표, 추적, 로그(OpenTelemetry). 수집기 주소가 없으면 내보내지 않는다
+	// 데이터 가져오기의 이어 올리기(TUS 규약) 서버(X-53, decisions.md D-144)
+	implementation("me.desair.tus:tus-java-server:1.0.0-3.3")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 	// 로그를 OTLP로 내보내는 Logback 연결(appender). 수집기 주소가 있을 때만 `otlp-logs` 프로파일로 로그 설정에 붙는다(X-10 C4)

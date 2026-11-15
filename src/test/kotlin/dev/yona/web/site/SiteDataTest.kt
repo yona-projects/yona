@@ -98,9 +98,9 @@ class SiteDataTest : AbstractIntegrationTest() {
     @Test
     fun `올리기를 제출하기 전에 교체한다는 확인을 묻는다 (R-56-3, v1_6은 확인 없이 전체 데이터를 교체했다)`() {
         val html = mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString
-        val script = Jsoup.parse(html).select("script").joinToString("\n") { it.data() }
-        assertTrue(script.contains("confirm("), "제출 전에 confirm을 부르는 스크립트가 있어야 한다")
-        assertTrue(script.contains("sites/import"), "올리기 폼에 거는 스크립트여야 한다")
+        val script = Jsoup.parse(html).select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
+        assertTrue(script.contains("site.DataImport"), "올리기 폼에 거는 모듈이어야 한다(확인 창은 모듈이 띄운다, dataimport.test.mjs)")
+        assertTrue(script.contains("sites/import/tus") && script.contains("sites/tus"), "TUS 올리기와 가져오기 주소를 넘긴다")
         assertTrue(script.contains("Replace all existing data"), "교체한다는 문구가 확인 창에 들어 있어야 한다")
     }
 

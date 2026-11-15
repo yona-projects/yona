@@ -10380,3 +10380,11 @@ form#newProjectForm, form#importGit {
     > p.text-body-secondary { margin: 0 0 16px; }
 }
 
+// 데이터 가져오기의 올리기 진행률(A-597)
+.site-setting-wrap {
+    .import-progress { margin-top: 14px; }
+    .import-progress-track { height: 8px; border-radius: 4px; background: #eee; overflow: hidden; }
+    .import-progress-bar { width: 0; height: 100%; background: $orange; transition: width .2s; }
+    .import-status { margin: 8px 0 0; min-height: 1.2em; color: #6c757d; font-size: .8125rem; }
+}
+
