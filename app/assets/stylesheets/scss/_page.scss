@@ -10250,3 +10250,6 @@ form#newProjectForm, form#importGit {
 
 // 화면 이름 제목(홈 사이드바 안의 화면: 내 파일 등)
 .shell-main .shell-page-title { margin: 0 0 16px; font-size: 1.5rem; font-weight: 600; }
+
+// OAuth 앱 양식의 라벨은 제목과 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다, A-588)
+.oauth-screen #oauth-app-form .form-label { margin-left: 0; margin-right: 0; }

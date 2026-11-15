@@ -82,6 +82,7 @@ class LinkedAccountsTest : AbstractIntegrationTest() {
         assertEquals(2, rows.size)
         assertEquals("sso-oidc", rows.first { it.attr("data-provider") == "sso-oidc" }.attr("data-provider"))
         assertFalse(doc.text().contains("abcdef123456")); assertFalse(doc.text().contains("9876543210"))
+        assertTrue(doc.text().contains("abcdef•••3456"), "긴 값은 앞 6자와 끝 4자를 보인다(A-588)"); assertTrue(doc.text().contains("98•••10"), "짧은 값은 앞 2자와 끝 2자만 보인다(A-588)")
         assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link[href\$=linked-accounts]"))
     }
 

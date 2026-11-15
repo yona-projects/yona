@@ -377,5 +377,11 @@ export const tests = [
     assert.ok(/mono|courier|consolas/i.test(m.dcf) && /mono|courier|consolas/i.test(m.scf), `코드 입력란은 고정폭 글꼴이다(${m.dcf} / ${m.scf})`); assert.equal(m.dcs, m.scs, '설정 화면과 로그인 창의 코드 글자 크기가 같다'); assert.ok(m.phs <= 18, `자리 표시 글자(${m.phs}px)는 입력 글자보다 작아야 한다`); assert.ok(m.sch >= 44, `설정 화면의 코드 입력란도 같은 높이(44px 이상)이다(${m.sch}px)`);
     assert.equal(m.debg, m.sebg, `오류 배경색이 같다(${m.debg} / ${m.sebg})`); assert.equal(m.decol, m.secol, `오류 글자색이 같다(${m.decol} / ${m.secol})`); await ctx.close();
   } },
+  { name: 'OAuth 앱 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(A-588)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="page-wrap shell user-screen"><div class="shell-main" style="width:900px"><div class="two-factor-page oauth-screen"><h4 id="t">앱 수정</h4><form id="oauth-app-form"><div class="mb-3"><label class="form-label" id="l" for="n">이름</label><input id="n" class="form-control w-100"></div></form></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { t: r('#t'), l: r('#l'), n: r('#n') }; });
+    assert.ok(Math.abs(m.l.left - m.t.left) <= 1 && Math.abs(m.l.left - m.n.left) <= 1, `라벨(${m.l.left})이 제목(${m.t.left})과 입력란(${m.n.left})과 같은 왼쪽 끝이어야 한다`); await ctx.close();
+  } },
 ];
 

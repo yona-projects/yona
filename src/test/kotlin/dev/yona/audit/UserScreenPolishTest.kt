@@ -161,5 +161,13 @@ class UserScreenPolishTest {
         assertNotNull(d.selectFirst("div#gpg-empty.key-empty a#gpg-new"), "단추가 상자 안에 있다")
         assertEquals(2, d.select("a#gpg-new").size, "키가 있을 때의 단추는 목록 아래에 따로 있다")
     }
+
+    @Test
+    fun `OAuth 앱의 비밀 값 새로 만들기는 소유자 이전처럼 위험 구역이다(A-588)`() {
+        val partial = Jsoup.parse(text("oauth/partial-apps.html"))
+        assertNotNull(partial.selectFirst("section#oauth-secret-regenerate.danger-section h3.danger-title"))
+        assertNotNull(partial.selectFirst("section#oauth-secret-regenerate .danger-actions button.btn-danger"))
+        assertNull(partial.selectFirst("button.btn-secondary"), "회색 단추가 없다")
+    }
 }
 

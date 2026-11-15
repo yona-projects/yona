@@ -93,11 +93,14 @@
                 <a th:href="@{${urls.list}}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
-        <section class="tf-section" th:if="${client != null and client.confidential}">
-            <h4 th:text="#{oauth.secret.title}"></h4>
-            <p th:text="#{oauth.secret.regenerate.help}"></p>
+        <!--/* A-588: 비밀 값 새로 만들기도 소유자 이전처럼 위험 구역으로 둔다(이전 비밀 값을 쓰던 곳이 바로 멈추기 때문이다) */-->
+        <section id="oauth-secret-regenerate" class="danger-section" th:if="${client != null and client.confidential}">
+            <h3 class="danger-title cu-label" th:text="#{oauth.secret.title}"></h3>
+            <div class="cu-desc"><p th:text="#{oauth.secret.regenerate.help}"></p></div>
             <form method="post" th:action="@{${urls.secret(client.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.secret.regenerate.confirm} + '\');'">
-                <button type="submit" class="btn btn-secondary" th:text="#{oauth.secret.regenerate}"></button>
+                <div class="danger-actions">
+                    <button type="submit" class="btn btn-danger" th:text="#{oauth.secret.regenerate}"></button>
+                </div>
             </form>
         </section>
         <!--/* A-583: 소유자 이전은 프로젝트 삭제와 같은 순서이다. 이전할 곳을 고르고 단추로 확인 창을 열어 앱 이름을 정확히 입력해야 실행 단추가 켜진다 */-->

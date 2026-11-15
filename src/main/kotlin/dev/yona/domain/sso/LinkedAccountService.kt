@@ -66,9 +66,16 @@ class LinkedAccountService(
         )
     }
 
-    /** 식별자를 일부만 보이게 가린다. `발급자|subject` 형태는 subject만 쓴다. */
+    /**
+     * 식별자를 일부만 보이게 가린다. `발급자|subject` 형태는 subject만 쓴다.
+     * 어떤 계정인지 구분할 수 있도록 값이 길면(11자 이상) 앞 6자와 끝 4자를, 짧으면 앞 2자와 끝 2자를 보이고, 4자 이하는 모두 가린다(A-588).
+     */
     private fun mask(id: String): String {
         val value = id.substringAfterLast('|')
-        return if (value.length <= 6) "•••" else value.take(3) + "•••" + value.takeLast(2)
+        return when {
+            value.length <= 4 -> "•••"
+            value.length <= 10 -> value.take(2) + "•••" + value.takeLast(2)
+            else -> value.take(6) + "•••" + value.takeLast(4)
+        }
     }
 }
