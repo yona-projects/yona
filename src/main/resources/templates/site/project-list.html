@@ -30,7 +30,7 @@
         <li th:each="row : ${rows}" class="row listitem">
             <div class="col-lg-5 listitem-col">
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="avatar-wrap list-avatar">
-                    <img th:src="@{${row.logoUrl}}" th:alt="${row.name}"/> <th:block th:text="${row.owner} + '/' + ${row.name}"></th:block>
+                    <img th:src="@{${row.logoUrl}}" th:alt="${row.name}"/>
                 </a>
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="project-name" th:text="${row.owner} + '/' + ${row.name}"></a>
             </div>

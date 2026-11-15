@@ -97,5 +97,20 @@ class SiteScreenPolishTest {
             assertEquals("button", d.selectFirst("#$id .modal-header")!!.child(0).tagName(), "닫기 단추가 제목 앞에 있어야 공통 CSS가 오른쪽 끝으로 보낸다(A-537)")
         }
     }
+
+    @Test
+    fun `프로젝트 목록의 로고 칸에는 로고만 있고 글자가 없다`() {
+        val a = doc("site/project-list.html").selectFirst("a.list-avatar")!!
+        assertEquals("", a.ownText().trim(), "로고 링크 안에 owner/name 글자가 없어야 한다")
+        assertTrue(a.children().all { it.tagName() == "img" })
+    }
+
+    @Test
+    fun `감사 로그 표에는 상세 열이 없다`() {
+        val d = doc("audit/list.html")
+        assertEquals(6, d.select("table.audit-table thead th").size)
+        assertNull(d.selectFirst(".audit-details"))
+        assertEquals("6", d.selectFirst("tr.audit-empty td")!!.attr("colspan"))
+    }
 }
 

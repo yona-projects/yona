@@ -393,5 +393,12 @@ export const tests = [
     assert.ok(Math.abs(m.sv.top - m.ck.top) <= 2 && m.ck.left > m.sv.left, '저장과 연결 확인은 한 줄이다');
     for (const k of [m.svbg, m.ckbc, m.ckcol]) { const [r, g] = k.match(/\d+/g).map(Number); assert.ok(r > 200 && g < 160, `단추 색 ${k}이 테마 주황이 아니다`); } await ctx.close();
   } },
+  { name: '사이트 관리 목록의 로고는 칸을 꽉 채우고 감사 로그 설명 아래에 간격이 있다(A-596)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="page-wrap-outer"><div class="shell"><div class="shell-main site-setting-wrap"><div class="project-list-wrap"><div class="listitem" style="background:#f7f7f7"><a class="avatar-wrap list-avatar"><img id="lg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1024' height='768'><rect width='1024' height='768' fill='white'/></svg>"></a></div></div><div class="audit-screen" id="au"><form class="audit-filter" id="fl"></form></div><p class="text-body-secondary" id="ds">설명</p><div class="audit-screen2"></div></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { lg: r('#lg'), box: r('.list-avatar'), mb: parseFloat(getComputedStyle(document.querySelector('#ds')).marginBottom) }; });
+    assert.ok(Math.abs(m.lg.height - m.box.height) <= 1 && Math.abs(m.lg.width - m.box.width) <= 1, `로고가 칸을 채운다(${m.lg.width}x${m.lg.height} / ${m.box.width}x${m.box.height})`);
+    assert.ok(m.mb >= 12, `설명 아래 간격이 12px 이상이다(${m.mb}px)`); await ctx.close();
+  } },
 ];
 

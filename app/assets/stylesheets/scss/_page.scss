@@ -10374,3 +10374,9 @@ form#newProjectForm, form#importGit {
 }
 #alertDeletionWrap .delete-target-unused code { display: block; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 6px; background: #f8f9fa; word-break: break-all; }
 
+// 사이트 관리 목록(A-596): 로고 칸은 로고만 꽉 채워 보이고, 감사 로그 설명 아래에 간격을 둔다
+.site-setting-wrap {
+    .list-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    > p.text-body-secondary { margin: 0 0 16px; }
+}
+
