@@ -411,5 +411,18 @@ export const tests = [
     assert.ok(m.pnbg === 'rgba(0, 0, 0, 0)', `프로젝트 이름에 보라 바탕이 없다(${m.pnbg})`);
     assert.ok(m.et.top > m.em.top + 100, `안내 글은 그림 아래에 있다(${m.et.top - m.em.top}px)`); await ctx.close();
   } },
+  { name: '첫 화면 알림: "Edit" 표시가 칸에 잘리지 않고 아이콘 칸 폭이다(A-602)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="content-container"><div class="main-stream"><ul class="activity-streams notification-wrap"><li class="notification-stream"><div id="ed" class="stream-type updated">Edit</div></li><li class="notification-stream"><div id="ic" class="stream-type closed"><i class="yobicon-closed"></i></div></li></ul></div></div></body></html>`);
+    const m = await page.evaluate(() => { const e = document.getElementById('ed'); const i = document.getElementById('ic'); return { sw: e.scrollWidth, cw: e.clientWidth, ew: e.getBoundingClientRect().width, iw: i.getBoundingClientRect().width }; });
+    assert.ok(m.sw <= m.cw, `Edit 글자가 칸에 들어간다(scroll ${m.sw} / client ${m.cw})`);
+    assert.ok(m.ew >= 30 && m.ew <= 36, `Edit 칸은 아이콘 칸(약 32px)과 같은 폭이다(${m.ew}px)`); await ctx.close();
+  } },
+  { name: '로그인 전 첫 화면: 부제는 읽을 수 있는 불투명도와 크기이고 제목은 굵다(A-602)', run: async () => {
+    const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage();
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${CSS_ALL}</style></head><body><div class="siteintro"><div class="siteintro-cover"><div class="siteintro-wrap"><h1 id="h" class="site-heading">제목</h1><ul class="site-features"><li id="f">부제</li></ul></div></div></div></body></html>`);
+    const m = await page.evaluate(() => { const c = (s, k) => getComputedStyle(document.querySelector(s))[k]; return { fo: parseFloat(c('#f', 'opacity')), ff: parseFloat(c('#f', 'fontSize')), hw: parseInt(c('#h', 'fontWeight')), ho: parseFloat(c('#h', 'opacity')), bg: c('.siteintro', 'backgroundImage') }; });
+    assert.ok(m.fo >= 0.9, `부제 불투명도(${m.fo})`); assert.ok(m.ff >= 19, `부제 글자 크기(${m.ff}px)`); assert.ok(m.hw >= 600 && m.ho === 1, `제목은 굵고 불투명하다(${m.hw}, ${m.ho})`); await ctx.close();
+  } },
 ];
 

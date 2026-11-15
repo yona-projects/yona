@@ -60,7 +60,7 @@ export const tests = [
     assert.equal(out.afterText, false, '본문을 누르면 토글되어야 한다');
   } },
   { name: '홈의 안내(버튼 영역)는 처음에 접혀 있고, 펼친 상태를 기억해 다음에도 펼친다 (A-493)', async run() {
-    const snippet = templateSnippet('index/notifications.html', '$("#toggleIntro").click', "$('.notification-wrap').on('click','[data-toggle=\"learnmore\"]'");
+    const snippet = templateSnippet('index/notifications.html', '// 접기 단추의 힌트(title)', "$('.notification-wrap').on('click','[data-toggle=\"learnmore\"]'");
     const html = '<div class="site-guide-outer hide">안내</div><div class="guide-toggle"><button id="toggleIntro"></button></div>';
     const run = async (stored, click) => {
       const page = await pageWith({ html });
