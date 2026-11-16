@@ -169,6 +169,16 @@ class HgSshServerTest {
     private fun serverLog() = HgTestSupport.hg(serverDir(), "log", "--template", "{desc|firstline}\\n")
 
     @Test
+    fun `Mercurial은 hg 사용자 이름으로도 접속하고 다른 이름은 거부한다`() {
+        val key = register(member)
+        val dir = File(work, "clone-hg-user")
+        val ok = hg(work, key, "clone", url(user = "hg"), dir.path)
+        assertEquals(0, ok.first, ok.second)
+        val denied = hg(work, key, "clone", url(user = "someone"), File(work, "clone-denied").path)
+        assertNotEquals(0, denied.first)
+    }
+
+    @Test
     fun `등록한 키로 복제하고 가져오고 푸시한다`() {
         val key = register(member)
         val (dir, cloned) = clone(project, key)

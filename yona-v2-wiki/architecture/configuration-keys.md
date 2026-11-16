@@ -58,6 +58,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.ssh.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |
 | (v2 신규) | `yona.ssh.host-key-path` | 빈 문자열 | 사용 중(X-3). 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이고 처음 시작할 때 만든다 |
 | (v2 신규) | `yona.ssh.user` | `git` | 사용 중(X-3). 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다 |
+| (v2 신규) | `yona.ssh.hg-user` | `hg` | 사용 중(A-618). Mercurial 복제 주소의 사용자 이름이고 내장 SSH 서버는 `user`와 이 이름을 모두 받는다. 비우면 `user`와 같다. 시스템 sshd 중계에서는 OS 계정 이름이다 |
 | (v2 신규) | `yona.ssh.public-port` | `0` | 사용 중(X-3). 복제 주소에 보일 포트. 0이면 실제 포트. 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
 | (v2 신규) | `yona.ssh.relay.enabled` | `false` | 사용 중(X-3b). 시스템 OpenSSH sshd 연동(내부 인증 주소와 유닉스 소켓 중계)을 켠다. 끄면 소켓과 내부 주소가 없다 |
 | (v2 신규) | `yona.ssh.relay.socket-path` | 빈 문자열 | 사용 중(X-3b). 중계 소켓 파일. 비우면 `<데이터>/ssh/relay.sock`. 경로 길이 제한(108바이트쯤)이 있다. 훅의 `YONA_SSH_RELAY_SOCKET`과 같아야 한다 |

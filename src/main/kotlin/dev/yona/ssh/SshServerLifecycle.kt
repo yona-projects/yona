@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * 내장 SSH 서버(Apache MINA SSHD)의 시작과 종료이다(추가 개발 항목 X-3, `decisions.md` D-66). `yona.ssh.enabled=true`일 때만 만들어지고, 꺼져 있으면 포트를 열지 않는다.
  *
- * 인증은 공개키뿐이다(비밀번호, 키보드 입력, 호스트 기반 인증은 열지 않는다). 접속 사용자 이름은 모두 `yona.ssh.user`(기본 `git`)이고, 키의 지문으로 사용자나 배포 키를 알아낸다([SshAccess]).
+ * 인증은 공개키뿐이다(비밀번호, 키보드 입력, 호스트 기반 인증은 열지 않는다). 접속 사용자 이름은 `yona.ssh.user`(기본 `git`)와 Mercurial용 `yona.ssh.hg-user`(기본 `hg`)이고, 키의 지문으로 사용자나 배포 키를 알아낸다([SshAccess]).
  * 셸, SFTP, 포트 전달은 열지 않으며 저장소 명령(`git-upload-pack`, `git-receive-pack`)만 [SshVcsHandler]가 처리한다. 호스트 키는 데이터 디렉터리의
  * `ssh/ssh_host_ed25519_key`에 처음 시작할 때 만들어 두고 계속 쓴다(재시작해도 같아야 클라이언트가 호스트 키 변경 경고를 내지 않는다).
  */
@@ -73,7 +73,7 @@ class SshServerLifecycle(
             if (ssh.bindAddress.isNotBlank()) host = ssh.bindAddress
             keyPairProvider = provider
             userAuthFactories = listOf(UserAuthPublicKeyFactory.INSTANCE)
-            publickeyAuthenticator = PublickeyAuthenticator { username, key, session -> authenticate(ssh.user, username, key, session) }
+            publickeyAuthenticator = PublickeyAuthenticator { username, key, session -> authenticate(ssh.acceptedUsers, username, key, session) }
             commandFactory = CommandFactory { channel, line -> RepositoryCommand(line, channel) }
             forwardingFilter = RejectAllForwardingFilter.INSTANCE
             addSessionListener(object : SessionListener {
@@ -111,15 +111,15 @@ class SshServerLifecycle(
      * 공개키 인증이다. 같은 주소가 인증에 연달아 실패해 막혀 있으면 거부한다([dev.yona.security.TokenFailureLimiter], HTTP 토큰 인증과 같은 한도). 접속 하나에서 키를 여러 개 시도해도
      * 실패는 한 번만 센다. 접속이 인증 없이 끝나면 인증 실패로 기록한다([reportFailedAuthentication]).
      */
-    private fun authenticate(expectedUser: String, username: String, key: java.security.PublicKey, session: ServerSession): Boolean {
+    private fun authenticate(acceptedUsers: Set<String>, username: String, key: java.security.PublicKey, session: ServerSession): Boolean {
         val address = addressOf(session)
         if (failures.isBlocked(address)) {
             if (session.setAttribute(BLOCK_LOGGED, true) == null) remoteContext(session, null) { boundary.blocked(address, CHANNEL) }
             return false
         }
-        val principal = if (username == expectedUser) access.authenticate(KeyUtils.getFingerPrint(key)) else null
+        val principal = if (username in acceptedUsers) access.authenticate(KeyUtils.getFingerPrint(key)) else null
         if (principal == null) {
-            session.setAttribute(FAILURE_REASON, if (username == expectedUser) "unknown_key" else "invalid_user")
+            session.setAttribute(FAILURE_REASON, if (username in acceptedUsers) "unknown_key" else "invalid_user")
             session.setAttribute(FAILURE_USER, username.take(255))
             if (session.setAttribute(FAILURE_COUNTED, true) == null) failures.recordFailure(address)
             return false

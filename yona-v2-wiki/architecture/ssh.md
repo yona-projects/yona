@@ -58,6 +58,7 @@ sshd 쪽 도우미는 셸 훅 대신 **Go 실행 파일 `yona-ssh`**(`tools/ssh-
 | `yona.ssh.bind-address` | 빈 문자열 | 묶는 주소. 비우면 모든 주소 |
 | `yona.ssh.host-key-path` | 빈 문자열 | 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며 처음 시작할 때 만든다 |
 | `yona.ssh.user` | `git` | 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다(GitHub 방식) |
+| `yona.ssh.hg-user` | `hg` | Mercurial의 복제 주소에 쓰는 사용자 이름이고 내장 서버는 `user`와 이 이름을 모두 받는다(Bitbucket의 관례, A-618). 비우면 `user`와 같다. 사용자는 이름이 아니라 키로 정해진다. 시스템 sshd 중계에서는 이 이름이 서버 OS 계정이라 운영자가 `hg` 계정을 따로 설정해야 한다 |
 | `yona.ssh.public-port` | `0` | 복제 주소에 보일 포트. 0이면 실제 포트(시스템 sshd 방식만 켰으면 22). 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
 | `yona.ssh.relay.enabled` | `false` | 시스템 sshd 연동을 켠다 |
 | `yona.ssh.relay.socket-path` | 빈 문자열 | 중계 소켓. 비우면 `<데이터>/ssh/relay.sock` |
@@ -78,7 +79,7 @@ OpenSSH 공개키 한 줄(`~/.ssh/id_*.pub`)을 MINA의 `PublicKeyEntry`로 읽�
 
 ## 접속과 인가 (`SshAccess`)
 
-1. **인증**: 사용자 이름이 `yona.ssh.user`가 아니면 거부. 접속한 공개키의 지문으로 `ssh_key`, 그다음 `deploy_key`를 찾는다. 잠기거나(`LOCKED`) 삭제된(`DELETED`) 사용자의 키는 인증하지 못한다.
+1. **인증**: 사용자 이름이 `yona.ssh.user`나 `yona.ssh.hg-user`가 아니면 거부(이름은 저장소 종류와 무관하게 둘 다 받는다). 접속한 공개키의 지문으로 `ssh_key`, 그다음 `deploy_key`를 찾는다. 잠기거나(`LOCKED`) 삭제된(`DELETED`) 사용자의 키는 인증하지 못한다.
 2. **명령 읽기**: 인증한 접속의 명령 줄을 처리기들이 차례로 읽는다. 알 수 없는 명령과 셸 요청은 `ERROR: Invalid command.`로 거부한다. git 경로는 `'/소유자/저장소.git'`, `'소유자/저장소'` 같은 모양을 받고 두 단계가 아니거나 `..`, 공백, 셸 메타 문자가 있으면 거부한다.
 3. **인가**(명령마다 다시 읽으므로 접속한 뒤 사용자가 잠기거나 키가 지워져도 그 뒤 명령은 막힌다): 읽을 수 없는 저장소는 있는지 없는지 알리지 않으려고 `ERROR: Repository not found.`이다. 읽을 수 있는데 쓸 수 없으면 `ERROR: Permission to 소유자/저장소 denied to 로그인ID.`이고, 읽기 전용 배포 키의 푸시는 `ERROR: The deploy key for 소유자/저장소 is read-only.`이다.
    - 사용자 키: 읽기는 읽기 권한, 쓰기는 수정 권한이며 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다([GitHttpController](../../src/main/kotlin/dev/yona/web/git/GitHttpController.kt)와 같은 판정).

@@ -75,6 +75,17 @@ class RepositoryUrlsSshTest {
     }
 
     @Test
+    fun `Mercurial 프로젝트의 SSH 주소는 hg 사용자 이름이고 Git과 Subversion은 git이다`() {
+        val hg = Project(owner = "owner", name = "repo", vcs = "Mercurial")
+        val on = urls(YonaProperties.Ssh(enabled = true))
+        assertEquals("ssh://hg@yona.example.com:2222/owner/repo", on.sshUrlFor(hg, request(), 2222))
+        assertEquals("ssh://hg@yona.example.com/owner/repo", on.sshUrlFor(hg, request(), 22))
+        assertEquals("ssh://git@yona.example.com:2222/owner/repo.git", on.sshUrlFor(git, request(), 2222))
+        assertEquals("ssh://deploy@yona.example.com:2222/owner/repo", urls(YonaProperties.Ssh(enabled = true, hgUser = "deploy")).sshUrlFor(hg, request(), 2222))
+        assertEquals("ssh://git@yona.example.com:2222/owner/repo", urls(YonaProperties.Ssh(enabled = true, hgUser = "")).sshUrlFor(hg, request(), 2222), "비우면 git과 같은 이름이다")
+    }
+
+    @Test
     fun `알 수 없는 저장소 종류에는 SSH 주소가 없다`() {
         assertNull(urls(YonaProperties.Ssh(enabled = true)).sshUrlFor(Project(owner = "o", name = "n", vcs = "CVS"), request(), 2222))
     }

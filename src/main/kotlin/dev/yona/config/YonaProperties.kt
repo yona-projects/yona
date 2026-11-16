@@ -245,6 +245,8 @@ data class YonaProperties(
      * @property bindAddress SSH 서버가 묶이는 주소. 비우면 모든 주소이다
      * @property hostKeyPath 호스트 키 파일 경로. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며, 없으면 처음 시작할 때 만든다
      * @property user 접속에 쓰는 사용자 이름(기본 `git`). 키로 사용자를 알아내므로 이름은 모두 같다(GitHub 방식)
+     * @property hgUser Mercurial 프로젝트의 복제 주소에 쓰는 사용자 이름(기본 `hg`, Bitbucket의 관례). 내장 SSH 서버는 `user`와 이 이름을 모두 받는다. 비우면 `user`와 같은 이름을 쓴다.
+     *   시스템 sshd 중계에서는 이 이름이 서버 OS 계정이므로 운영자가 `hg` 계정을 따로 설정해야 한다(`architecture/ssh.md`)
      * @property publicPort 복제 주소에 보여 줄 포트(`yona.ssh.public-port`). 0이면 서버가 실제로 받는 포트이다. 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다
      */
     data class Ssh(
@@ -254,8 +256,12 @@ data class YonaProperties(
         val hostKeyPath: String = "",
         val user: String = "git",
         val publicPort: Int = 0,
-        val relay: Relay = Relay()
+        val relay: Relay = Relay(),
+        val hgUser: String = "hg"
     ) {
+
+        /** 내장 SSH 서버가 받는 접속 사용자 이름이다: [user]와 비어 있지 않은 [hgUser]. */
+        val acceptedUsers: Set<String> get() = setOfNotNull(user, hgUser.takeIf { it.isNotBlank() })
 
         /**
          * 시스템 sshd 연동(`AuthorizedKeysCommand`와 유닉스 소켓 중계) 설정이다(추가 개발 항목 X-3b, `decisions.md` D-67). 꺼져 있으면 소켓을 열지 않고 내부 인증 주소도 없다.
