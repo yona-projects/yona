@@ -2483,12 +2483,28 @@ label.inline-list {
         /* 내장 SSH 서버를 켠 사이트의 HTTP와 SSH 선택(X-3, D-66). 입력란(너비 175px)과 복사 단추(86px)가 모두 절대 위치라서 이것도 입력란 왼쪽에 절대 위치로 둔다 */
         .clone-protocol {
             position:absolute;
-            right:272px;
+            right:265px;
             top:5px;
         }
 
-        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 하고, 단추는 입력란 바로 왼쪽에 붙는다(180px + 복사 단추 86px + 틈 6px) */
+        /* 선택 단추도 입력란, 복사 단추와 같은 높이(30px)로 맞춘다. 단추 모양은 아래 `.clone-protocol .btn` 규칙이 정하고 여기서는 크기만 고른다 */
+        .clone-protocol .btn {
+            height:30px;
+            padding-top:0;
+            padding-bottom:0;
+            line-height:28px;
+        }
+        /* 선택 단추, 입력란, 복사 단추가 한 줄로 이어지도록 맞닿는 모서리의 둥근 부분을 없앤다 */
+        .clone-protocol .btn:last-child {
+            @include border-radius(0);
+        }
+
+        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 하고, 단추는 입력란 바로 왼쪽에 붙는다(180px + 복사 단추 86px). 선택 단추는 입력란과 경계선 1px을 같이 쓴다(오른쪽 265px).
+           입력란은 안쪽 여백과 테두리를 포함해 180px로 고정한다(border-box). content-box이면 실제로 193px이 되어 선택 단추와 7px 겹쳤다 */
         &.clone-with-protocol .project-clone-url {
+            box-sizing:border-box;
+            height:30px;
+            @include border-radius(0);
             width:180px !important;
             max-width:180px !important;
         }
