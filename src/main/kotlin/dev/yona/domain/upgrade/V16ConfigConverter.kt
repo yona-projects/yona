@@ -315,6 +315,11 @@ object V16ConfigConverter {
                 value = value.replaceFirst("jdbc:mysql:", "jdbc:mariadb:")
                 notes += "db.default.url의 jdbc:mysql 주소를 jdbc:mariadb로 바꿨습니다(v2는 MariaDB 드라이버를 씁니다)"
             }
+            if (key == "db.default.url" && value.startsWith("jdbc:h2:file:")) {
+                notes += "db.default.url이 H2 파일 데이터베이스입니다. v1.6의 H2 파일(yona.h2.db, H2 1.3)은 v2의 H2 2.x가 읽지 못하고 MVCC, MV_STORE 같은 옛 옵션도 거부합니다. " +
+                    "바꿔치기하면 옆에 빈 데이터베이스가 새로 만들어집니다. v1.6을 켠 채 /sites/export로 내보내 v2의 /sites/import로 가져오거나(옛 사용자 토큰은 옮겨지지 않습니다), " +
+                    "v1.6을 MariaDB로 옮긴 뒤 이관하세요"
+            }
             out[target] = value
             ALSO[key]?.let { out[it] = value }
         }

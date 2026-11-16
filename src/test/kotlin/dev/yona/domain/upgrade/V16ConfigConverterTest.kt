@@ -184,6 +184,16 @@ class V16ConfigConverterTest {
     }
 
     @Test
+    fun `v1_6의 H2 파일 데이터베이스는 v2가 읽지 못한다고 알린다`() {
+        val out = convert("db.default.url=\"jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;AUTO_SERVER=TRUE\"")
+        val note = out.notes.firstOrNull { "H2" in it }
+        assertTrue(note != null, "H2 파일 데이터베이스는 v2(H2 2.x)가 읽지 못하므로 알려야 한다: ${out.notes}")
+        assertTrue("/sites/export" in note, "대안(v1.6의 내보내기)을 알려야 한다: $note")
+        assertTrue(out.notes.none { "H2" in it } || convert("db.default.url=\"jdbc:mariadb://db/yona\"").notes.none { "H2" in it }, "MariaDB 주소에는 알리지 않는다")
+        assertTrue(convert("db.default.url=\"jdbc:mysql://db/yona\"").notes.none { "H2" in it })
+    }
+
+    @Test
     fun `LDAP을 켰는데 키가 없으면 v1_6의 기본값을 적는다`() {
         val out = convert("application.use.ldap.login.supoort = true\nldap.host = \"ldap.corp\"")
         assertEquals("ldap.corp", out.properties["yona.ldap.host"])
