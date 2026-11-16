@@ -1,5 +1,5 @@
-// yona-ssh는 Yona의 시스템 sshd 연동(추가 개발 항목 X-3b, decisions.md D-67, D-73)을 돕는 작은 실행 파일이다. 셸 훅(tools/ssh/yona-ssh-auth.sh)과 `bash`, `curl`, `socat`을 대신해
-// 같은 일을 셸 없이 한다. 하위 명령은 둘이다.
+// yona-ssh는 Yona의 시스템 sshd 연동(추가 개발 항목 X-3b, decisions.md D-67, D-73)을 돕는 작은 실행 파일이다. `bash`, `curl`, `socat` 같은 외부 도구 없이 셸을 거치지 않고
+// 일한다(이전의 셸 훅은 없앴다, decisions.md A-623). 하위 명령은 둘이다.
 //
 //	yona-ssh auth <키 종류> <키 본문>
 //	    sshd의 AuthorizedKeysCommand로 등록한다(`AuthorizedKeysCommand /usr/local/bin/yona-ssh auth %t %k`). Yona의 내부 인증 주소에 키를 묻고,

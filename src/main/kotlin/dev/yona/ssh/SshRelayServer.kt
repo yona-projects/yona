@@ -24,8 +24,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 시스템 sshd 연동의 중계 소켓 서버이다(추가 개발 항목 X-3b, `decisions.md` D-67). 시스템 OpenSSH sshd가 훅([yona-ssh-auth.sh](../../../../../tools/ssh/yona-ssh-auth.sh))이 만든 강제 명령으로
- * 세션을 열면, 그 명령이 `socat`으로 이 유닉스 도메인 소켓에 연결해 클라이언트의 입출력을 그대로 이어 붙인다. 그러면 저장소 접근, 인가, 푸시 훅은 모두 이미 떠 있는 이 서버
+ * 시스템 sshd 연동의 중계 소켓 서버이다(추가 개발 항목 X-3b, `decisions.md` D-67). 시스템 OpenSSH sshd가 도우미(`yona-ssh auth`, [tools/ssh-helper](../../../../../tools/ssh-helper))가 만든 강제 명령으로
+ * 세션을 열면, 그 명령(`yona-ssh relay`)이 이 유닉스 도메인 소켓에 연결해 클라이언트의 입출력을 그대로 이어 붙인다. 그러면 저장소 접근, 인가, 푸시 훅은 모두 이미 떠 있는 이 서버
  * 안에서 처리되어 내장 SSH 서버([SshServerLifecycle])와 HTTP와 똑같이 적용된다. sshd를 실행하는 계정은 저장소 파일을 읽고 쓸 필요가 없다.
  *
  * **핸드셰이크**: 연결하면 클라이언트가 개행으로 끝나는 세 줄을 먼저 보낸다. 1) 훅이 받아 둔 인증 표([SshRelayTokens]), 2) 클라이언트 주소(`SSH_CLIENT`의 첫 값, 감사 기록용, 비어 있을 수 있다),

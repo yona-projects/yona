@@ -9,31 +9,13 @@ Yona는 Git SSH 접근을 두 방식으로 제공한다. 둘 중 필요한 것�
 
 두 방식 모두 사용자와 배포 키는 Yona의 **SSH 키** 설정(내 정보, 프로젝트 설정의 배포 키)에서 등록한 공개키를 쓴다. 접근 권한 판정, 브랜치 보호 규칙, 서명 커밋 필수 규칙, 감사 기록은 HTTP와 똑같이 적용된다.
 
-## 두 가지 도우미: Go 실행 파일(권장)과 셸 훅
+## sshd 쪽 도우미: Go 실행 파일 `yona-ssh`
 
-sshd 쪽에서 쓰는 도우미는 두 가지이고 서버 쪽 소켓 프로토콜은 같다. 하나만 고르면 된다.
+sshd 쪽에서 쓰는 도우미는 `tools/ssh-helper`의 Go 실행 파일 `yona-ssh` 하나이다. `bash`, `curl`, `socat` 같은 외부 도구가 필요 없다. 이전의 셸 훅(`yona-ssh-auth.sh`)은 없앴다(A-623).
 
-| | Go 실행 파일 `yona-ssh`(권장) | 셸 훅 `yona-ssh-auth.sh` |
-|---|---|---|
-| 필요한 것 | 빌드한 파일 하나 | `bash`, `curl`, `socat` |
-| 강제 명령 | 셸 없이 `yona-ssh relay ...` | 셸 한 줄(FIFO, `socat`) |
-| 빌드 | `cd tools/ssh-helper && go build -o yona-ssh .`(Go 1.22 이상) | 없음 |
-| 운영체제 | Linux, macOS, Windows에서 빌드된다. 단 **Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.** Windows 서버는 내장 SSH 서버(`yona.ssh.enabled`)를 쓴다 | Linux, macOS |
-
-이 문서의 단계는 같다. **Go 실행 파일을 쓰려면** 3절의 훅 설치와 4절의 sshd 설정만 아래처럼 바뀐다.
-
-```bash
-cd tools/ssh-helper && go build -o yona-ssh .
-sudo install -o root -g root -m 755 yona-ssh /usr/local/bin/yona-ssh
-```
-
-```
-Match User git
-    AuthorizedKeysCommand /usr/local/bin/yona-ssh auth %t %k
-    AuthorizedKeysCommandUser yona-ssh-hook
-```
-
-설정 파일(`/etc/yona/ssh-auth.conf`)과 공유 비밀 값 파일은 셸 훅과 같다. 실행 파일은 `git` 계정과 훅 계정이 모두 실행할 수 있어야 하고(`755`), 비밀 값 파일은 훅 계정만 읽는다(`relay`는 비밀 값을 읽지 않는다).
+- `yona-ssh auth <종류> <본문>`: sshd의 `AuthorizedKeysCommand`로 실행된다. 공개키를 Yona의 내부 인증 주소에 묻고, 등록된 키이면 강제 명령이 든 `authorized_keys` 한 줄을 인쇄한다.
+- `yona-ssh relay --socket <경로> <표>`: 그 강제 명령이다. 클라이언트의 입출력을 Yona의 중계 소켓에 이어 붙인다(셸 없이 실행된다).
+- 빌드는 Go 1.22 이상이 필요하다. Linux, macOS, Windows에서 빌드되지만 **Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.** Windows 서버는 내장 SSH 서버(`yona.ssh.enabled`)를 쓴다.
 
 ## 동작 방식
 
@@ -41,13 +23,13 @@ Match User git
 클라이언트 ssh/git ──①공개키로 접속──▶ 시스템 sshd (22번 포트)
                                          │ ②AuthorizedKeysCommand로 훅 실행(%t %k)
                                          ▼
-                                  yona-ssh-auth.sh ──③POST /internal/ssh/authenticate──▶ Yona 서버 (127.0.0.1)
+                                  yona-ssh auth ──③POST /internal/ssh/authenticate──▶ Yona 서버 (127.0.0.1)
                                          ▲                                              (루프백 + 공유 비밀 값)
                                          │ ④"등록된 키입니다": 서명된 인증 표를 받아
                                          │   authorized_keys 형식 한 줄을 인쇄(강제 명령에 표를 심는다)
                                          ▼
                                   sshd가 인증을 끝내고 세션을 강제 명령으로 실행
-                                         │ ⑤socat(또는 yona-ssh relay)이 입출력을 유닉스 소켓에 이어 붙임
+                                         │ ⑤yona-ssh relay가 입출력을 유닉스 소켓에 이어 붙임
                                          ▼
                                   Yona의 중계 소켓 ── 인증 표 확인 → 인가 → git 프로토콜과 푸시 훅 실행
 ```
@@ -58,7 +40,7 @@ Match User git
 
 ## 설치
 
-이 절차는 AlmaLinux 8 컨테이너의 OpenSSH 8.0 sshd로 셸 훅과 Go 실행 파일 두 가지 모두 실제로 확인했다. 아래 예시는 Yona가 `yona` 계정으로 같은 호스트에서 돌고 HTTP 포트가 9000이라고 가정한다.
+이 절차는 AlmaLinux 8 컨테이너의 OpenSSH 8.0 sshd로 실제로 확인했다. 아래 예시는 Yona가 `yona` 계정으로 같은 호스트에서 돌고 HTTP 포트가 9000이라고 가정한다.
 
 ### 1. Yona 설정
 
@@ -91,24 +73,25 @@ sudo usermod -aG yona git
 
 **셸을 `/usr/sbin/nologin`으로 하면 안 된다.** sshd는 강제 명령을 `셸 -c "<명령>"`으로 실행하는데 `nologin`은 인자를 무시하고 "계정을 쓸 수 없다"는 문구만 찍고 끝나, 강제 명령이 실행되지 않는다. 비밀번호가 잠겨 있고 강제 명령이 항상 걸려 있으므로 `/bin/bash`여도 안전하다.
 
-### 3. 공유 비밀 값과 훅 스크립트
+### 3. 공유 비밀 값과 `yona-ssh` 설치
 
-훅은 sshd가 `AuthorizedKeysCommandUser`(root도 접속 계정도 아닌 저권한 전용 계정)로 실행한다.
+`auth`는 sshd가 `AuthorizedKeysCommandUser`(root도 접속 계정도 아닌 저권한 전용 계정)로 실행한다.
 
 ```bash
 sudo groupadd --system yona-ssh-hook
 sudo useradd --system --no-create-home --shell /sbin/nologin --gid yona-ssh-hook yona-ssh-hook
 
 # 공유 비밀 값(Yona의 yona.ssh.relay.internal-secret과 같은 값. echo -n으로 끝에 개행이 붙지 않게 한다)
-sudo mkdir -p /etc/yona /usr/local/lib/yona
+sudo mkdir -p /etc/yona
 echo -n '<위와 같은 값>' | sudo tee /etc/yona/ssh-internal-secret >/dev/null
 sudo chown root:yona-ssh-hook /etc/yona/ssh-internal-secret && sudo chmod 640 /etc/yona/ssh-internal-secret
 
-# 훅 스크립트(이 저장소의 tools/ssh/yona-ssh-auth.sh). 필요한 도구: bash, curl, socat
-sudo install -o root -g yona-ssh-hook -m 750 tools/ssh/yona-ssh-auth.sh /usr/local/lib/yona/yona-ssh-auth.sh
+# 도우미 빌드와 설치(Go 1.22 이상). git 계정과 훅 계정이 모두 실행할 수 있어야 한다(755)
+cd tools/ssh-helper && go build -o yona-ssh .
+sudo install -o root -g root -m 755 yona-ssh /usr/local/bin/yona-ssh
 ```
 
-sshd는 훅을 최소한의 환경으로 실행해 환경 변수를 줄 수 없으므로 **설정은 파일**에 둔다(`/etc/yona/ssh-auth.conf`, 생략하면 기본값):
+sshd는 `auth`를 최소한의 환경으로 실행해 환경 변수를 줄 수 없으므로 **설정은 파일**에 둔다(`/etc/yona/ssh-auth.conf`, 생략하면 기본값):
 
 ```bash
 sudo tee /etc/yona/ssh-auth.conf >/dev/null <<'CONF'
@@ -120,7 +103,7 @@ CONF
 | 항목 | 기본값 | 설명 |
 |---|---|---|
 | `YONA_INTERNAL_URL` | `http://127.0.0.1:9000` | Yona 서버의 주소. **같은 호스트**여야 한다(내부 인증 주소는 루프백 요청만 받는다) |
-| `YONA_SSH_SECRET_FILE` | `/etc/yona/ssh-internal-secret` | 공유 비밀 값 파일 |
+| `YONA_SSH_SECRET_FILE` | `/etc/yona/ssh-internal-secret` | 공유 비밀 값 파일. 훅 계정만 읽는다(`relay`는 비밀 값을 읽지 않는다) |
 | `YONA_SSH_RELAY_SOCKET` | `/var/lib/yona/ssh/relay.sock` | Yona의 `yona.ssh.relay.socket-path`와 같은 경로 |
 
 ### 4. sshd 설정
@@ -129,7 +112,7 @@ CONF
 
 ```
 Match User git
-    AuthorizedKeysCommand /usr/local/lib/yona/yona-ssh-auth.sh %t %k
+    AuthorizedKeysCommand /usr/local/bin/yona-ssh auth %t %k
     AuthorizedKeysCommandUser yona-ssh-hook
 ```
 
@@ -159,11 +142,11 @@ sudo systemctl reload sshd
 
 - **`Permission denied (publickey)`만 나온다**: 훅이 아무것도 인쇄하지 않은 것이다. 훅 계정으로 직접 실행해 본다.
   ```bash
-  sudo runuser -u yona-ssh-hook -- bash -x /usr/local/lib/yona/yona-ssh-auth.sh ssh-ed25519 AAAA...(공개키 본문)
+  sudo runuser -u yona-ssh-hook -- /usr/local/bin/yona-ssh auth ssh-ed25519 AAAA...(공개키 본문)
   ```
   원인은 보통 (a) `YONA_INTERNAL_URL`이 틀렸거나 Yona가 다른 호스트에 있다, (b) 공유 비밀 값이 서로 다르다(끝의 개행, 공백), (c) 키가 등록되지 않았거나 사용자가 잠겼다, (d) 응답이 JSON이 아니라 HTML이다(Yona 버전에 연동 기능이 없거나 `yona.ssh.relay.enabled`가 꺼져 있다)이다. sshd를 `LogLevel VERBOSE`로 두면 `Accepted key ... found at ...yona-ssh-auth.sh` 줄이 보여 훅이 키를 받아들였는지 알 수 있다.
 - **403이 온다**: 공유 비밀 값이 다르거나 요청이 루프백이 아니다.
-- **`socat: E connect(...): Permission denied`**: `git` 계정이 중계 소켓에 연결할 권한이 없다. `ls -l`로 소켓의 소유 그룹과 `git` 계정의 그룹 소속을 확인한다. **`No such file or directory`** 는 Yona가 안 떠 있거나 `yona.ssh.relay.enabled`가 꺼져 있거나 소켓 경로가 훅 설정과 다른 것이다.
+- **`yona-ssh: cannot connect to the relay socket ...: permission denied`**: `git` 계정이 중계 소켓에 연결할 권한이 없다. `ls -l`로 소켓의 소유 그룹과 `git` 계정의 그룹 소속을 확인한다. **`no such file or directory`** 는 Yona가 안 떠 있거나 `yona.ssh.relay.enabled`가 꺼져 있거나 `YONA_SSH_RELAY_SOCKET`의 경로가 Yona의 `socket-path`와 다르다.
 - **Yona를 컨테이너로 띄웠다**: 훅은 같은 호스트(같은 네트워크)의 루프백으로 Yona에 접속해야 한다. `network_mode: host`를 쓰거나 sshd와 같은 컨테이너에서 훅을 실행한다. 소켓 파일은 sshd가 볼 수 있는 폴더에 두고 마운트한다.
 - **읽을 수 없는 저장소의 메시지**가 `fatal: remote error: ...`로 보이는 것은 정상이다(git의 정식 오류 줄이다). 원본 명령이 git이 아닌 접속(`ssh git@호스트 ls`)은 `ERR Invalid command.` 줄을 받는다.
 - 이 연동은 Yona 감사 기록에 접속 종류 `ssh`와 클라이언트 주소(`SSH_CLIENT`)를 남긴다. sshd 쪽의 접속 시도 제한(`MaxAuthTries`, fail2ban)은 sshd에서 따로 설정한다. 내부 인증 주소는 키를 하나씩 물으므로 주소 단위 실패 한도(내장 서버와 HTTP의 인증 실패 차단)를 적용하지 않는다.

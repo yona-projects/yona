@@ -445,3 +445,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | GitHub Dependabot 경보 6건(build-tools/js-bundle의 vite) 처리: vite 8.3.0 -> 8.3.8, npm audit 0건, 번들 시험 8건 통과, 번들 산출물 변화 없음
 
 ## [2026-11-17] build | GitHub CI가 연속 실패한 원인 두 가지를 찾아 고침: (1) 844b96a0의 컴파일 오류, Guava 33.7.2가 checker-qual을 끌고 오지 않아 전체 컴파일(CI)에서만 실패(로컬 증분 컴파일은 통과), checker-qual을 컴파일에만 명시. (2) 06ea924e 이후의 SshRelayServerTest 11건, CI에 socat이 없어(`socat: command not found`) ci.yml의 설치 목록에 추가
+
+## [2026-11-17] build | 셸 훅(yona-ssh-auth.sh)과 socat 의존 제거(A-623): CI의 socat 설치 대신 셸 훅과 그 시험을 없애고 SshRelayServerTest가 Go 도우미로 17건을 돌림, 운영 문서와 위키를 Go 도우미 기준으로 정리
