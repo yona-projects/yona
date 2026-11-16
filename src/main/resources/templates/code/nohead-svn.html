@@ -29,6 +29,9 @@ cd <th:block th:text="${project.name}"></th:block>/
 echo "# <th:block th:text="${project.name}"></th:block>" &gt; README.md
 svn add README.md
 svn commit -m "first commit"</code></pre>
+                <!--/* 인증 방법 안내(X-55). HTTP는 비밀번호 칸에 개인용 액세스 토큰(D-70), SSH는 등록한 SSH 키이다. SSH 설명은 SSH를 켠 사이트에서만 보인다 */-->
+                <p class="nohead-auth-http"><span th:text="#{code.nohead.svn.auth.http}"></span> <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}"></a></p>
+                <p th:if="${sshCloneUrl != null}" class="nohead-auth-ssh"><span th:text="#{code.nohead.svn.auth.ssh}"></span> <a th:href="@{/user/editform/ssh}" th:text="#{userinfo.ssh}"></a><br><code th:text="${sshCloneUrl}"></code></p>
                 </th:block>
             </div>
         </div>

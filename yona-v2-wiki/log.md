@@ -429,3 +429,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | SVNKit을 Jakarta용 포장판(sonia.svnkit 1.10.10-scm2-jakarta)으로 교체: javax 변환 프록시와 war 풀기 제거, DavServletAdapter로 대체, A-148 패치는 jar 입력으로 유지. svndiff2(LZ4) 압축 추가. SVN 관련 54개 클래스 780건 통과(A-617)
 
 ## [2026-11-16] build | Mercurial SSH 주소의 사용자 이름을 hg로 표시하고 내장 서버가 git과 hg를 모두 받음(yona.ssh.hg-user, A-618)
+
+## [2026-11-16] build | Subversion 빈 저장소 안내에 인증 방법 안내 추가(HTTP는 토큰, SSH는 SSH 키), 시험 2건

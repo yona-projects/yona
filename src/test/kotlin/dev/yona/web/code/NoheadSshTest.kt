@@ -93,4 +93,14 @@ class NoheadSshTest : AbstractIntegrationTest() {
         assertTrue(command.text().startsWith("svn co http"), command.text())
         assertEquals(buttons[0].attr("data-clone-url"), command.select(".clone-url").single().text())
     }
+
+    @Test
+    fun `Subversion 안내에는 HTTP는 토큰, SSH는 SSH 키로 인증한다는 설명이 있다`() {
+        val (p, session) = manager("Subversion"); val doc = page(p, session)
+        val http = doc.selectFirst(".nohead-auth-http")!!
+        assertTrue(http.select("a").any { it.attr("href").endsWith("/user/editform/token") }, "토큰을 만드는 화면으로 가는 링크가 있어야 한다")
+        val ssh = doc.selectFirst(".nohead-auth-ssh")!!
+        assertTrue(ssh.select("a").any { it.attr("href").endsWith("/user/editform/ssh") }, "SSH 키를 등록하는 화면으로 가는 링크가 있어야 한다")
+        assertTrue(ssh.text().contains("git"), "접속 사용자 이름이 git임을 알려야 한다: ${ssh.text()}")
+    }
 }
