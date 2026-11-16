@@ -128,7 +128,7 @@ application.send.yona.usage = true
 Contribution
 ---
 - 코드 기여의 기준이 되는 브랜치는 `main`입니다.
-- 저장소를 fork 한 다음 `main` 브랜치를 기준으로 작업하신다음 `master` 브랜치로 pull request를 보내주세요.
+- 저장소를 fork 한 다음 `main` 브랜치를 기준으로 작업하신다음 `main` 브랜치로 pull request를 보내주세요.
   - `next`브랜치는 내부 개발용입니다. 어떠한 기능들이 추가되고 있는지 현장을 보고 싶으시면 `next`브랜치를 참고해주세요.
 - 코드리뷰 후 merge 되면 Yona Author로 파일에 기록됩니다. 
 
@@ -166,11 +166,11 @@ Distribution
 ---
 Currently, There are two distribution types.
 
-#### MariaDB version
-- Recommended version
+#### MariaDB/PostgreSQL/Cubrid/SQL Server
+- Recommended Database
 - It takes a little effort to install DB, but it guarantees stable operation
 
-#### Embedded H2 DB version
+#### Embedded H2 DB
 - Portable version that can be downloaded and run immediately. 
   - Setting a DB is not required.
   - Also, can run the software directly from a USB device
@@ -220,8 +220,8 @@ application.send.yona.usage = true
 
 Contribution
 ---
-- The branch for contributions is `master`.
-- At first, fork the repository, then work on the `master` branch. And send a pull request to the`master` branch.
+- The branch for contributions is `main`.
+- At first, fork the repository, then work on the `main` branch. And send a pull request to the `main` branch.
    - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
 
 
