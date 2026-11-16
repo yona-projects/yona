@@ -94,6 +94,21 @@ class RaSvnWireTest {
         assertThrowsProtocol { read(")") }
     }
 
+    @Test
+    fun `터무니없이 긴 문자열은 내용을 읽기 전에 너무 길다고 거절한다`() {
+        // 길이만 보내고 내용을 보내지 않는 입력이다. 선언한 길이만큼 미리 메모리를 잡으면 인증된 사용자 한 명이 서버를 죽일 수 있다
+        for (length in listOf("2000000000", "100000000000", "18446744073709551615", "70000000")) {
+            val error = runCatching { read("$length:abc") }.exceptionOrNull()
+            assertTrue(error is RaSvnProtocolException && "너무 길다" in error.message.orEmpty(), "$length 는 너무 길다고 거절해야 한다: $error")
+        }
+    }
+
+    @Test
+    fun `한도 안의 문자열은 선언한 길이보다 내용이 짧으면 오류이다`() {
+        val error = runCatching { read("60000000:abc") }.exceptionOrNull()
+        assertTrue(error is RaSvnProtocolException && "너무 길다" !in error.message.orEmpty(), "한도 안이면 길이 때문에 거절하지 않고 입력이 끊겼다고 해야 한다: $error")
+    }
+
     private fun assertThrowsProtocol(block: () -> Unit) {
         val error = runCatching(block).exceptionOrNull()
         assertTrue(error is RaSvnProtocolException, "프로토콜 오류여야 한다: $error")

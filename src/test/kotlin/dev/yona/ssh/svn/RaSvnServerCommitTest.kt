@@ -110,6 +110,19 @@ class RaSvnServerCommitTest {
     }
 
     @Test
+    fun `메모리 한도를 넘는 큰 파일도 커밋하고 그대로 읽는다`() {
+        val wc = checkoutViaRa()
+        val big = ByteArray(6 * 1024 * 1024 + 123) { ((it * 31) xor (it shr 7)).toByte() }
+        File(wc, "trunk/huge.bin").writeBytes(big); local("add", "-q", "${wc.path}/trunk/huge.bin")
+        assertEquals(0, commitViaRa(wc, "아주 큰 파일").exit)
+        val viaRa = File(work, "huge-ra.bin"); val viaFile = File(work, "huge-file.bin")
+        assertEquals(0, server.svn("export", "-q", server.url("/demo/trunk/huge.bin"), viaRa.path).exit)
+        local("export", "-q", "$fileUrl/trunk/huge.bin", viaFile.path)
+        assertTrue(viaFile.readBytes().contentEquals(big), "커밋한 내용이 저장소에 그대로 있어야 한다")
+        assertTrue(viaRa.readBytes().contentEquals(big), "svn+ra로 받은 내용이 그대로여야 한다")
+    }
+
+    @Test
     fun `오래된 리비전에서 같은 파일을 고치면 충돌로 거절된다`() {
         val first = checkoutViaRa("wc1"); val second = checkoutViaRa("wc2")
         File(first, "trunk/a.txt").writeText("첫째\n"); assertEquals(0, commitViaRa(first, "첫째").exit)

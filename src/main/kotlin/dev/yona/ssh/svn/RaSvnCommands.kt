@@ -163,20 +163,23 @@ class RaSvnCommands(private val server: RaSvnServer) {
             SVNNodeKind.NONE -> throw notFound(path, rev)
             else -> throw SVNException(SVNErrorMessage.create(SVNErrorCode.FS_NOT_FILE, "Path '/$path' is not a file in revision $rev"))
         }
-        val properties = SVNProperties(); val content = ByteArrayOutputStream()
-        repository.getFile(path, rev, properties, content)
-        val bytes = content.toByteArray()
-        val md5 = MessageDigest.getInstance("MD5").digest(bytes).joinToString("") { "%02x".format(it) }
-        val props = if (wantProps) entryProperties(path, rev, properties) else raList()
-        server.send(RaSvnServer.success(raList(raList(RaString(md5)), RaNumber(rev), props)))
-        if (wantContents) {
-            var offset = 0
-            while (offset < bytes.size) {
-                val end = minOf(bytes.size, offset + CHUNK)
-                server.send(RaString(bytes.copyOfRange(offset, end))); offset = end
+        val properties = SVNProperties()
+        RaSvnFileSpool().use { spool ->
+            repository.getFile(path, rev, properties, spool)
+            val props = if (wantProps) entryProperties(path, rev, properties) else raList()
+            server.send(RaSvnServer.success(raList(raList(RaString(spool.md5())), RaNumber(rev), props)))
+            if (wantContents) {
+                spool.open().use { input ->
+                    val buffer = ByteArray(CHUNK)
+                    while (true) {
+                        val n = input.read(buffer)
+                        if (n < 0) break
+                        server.send(RaString(buffer.copyOf(n)))
+                    }
+                }
+                server.send(RaString(""))
+                server.send(RaSvnServer.success(raList()))
             }
-            server.send(RaString(""))
-            server.send(RaSvnServer.success(raList()))
         }
     }
 

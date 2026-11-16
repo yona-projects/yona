@@ -102,15 +102,18 @@ class RaSvnReader(private val input: InputStream) {
 
     private fun string(length: ULong): RaString {
         if (length > MAX_STRING) throw RaSvnProtocolException("문자열이 너무 길다: $length")
-        val bytes = ByteArray(length.toInt())
-        var read = 0
-        while (read < bytes.size) {
-            val n = input.read(bytes, read, bytes.size - read)
+        val total = length.toInt()
+        // 선언한 길이만큼 미리 잡지 않는다. 실제로 받은 만큼만 늘려 가므로, 길이만 크게 보내고 멈추는 입력이 메모리를 차지하지 못한다
+        val out = ByteArrayOutputStream(minOf(total, FIRST_BLOCK))
+        val buffer = ByteArray(minOf(total, BLOCK).coerceAtLeast(1))
+        var remaining = total
+        while (remaining > 0) {
+            val n = input.read(buffer, 0, minOf(buffer.size, remaining))
             if (n < 0) throw RaSvnProtocolException("문자열이 끝나기 전에 입력이 끊겼다")
-            read += n
+            out.write(buffer, 0, n); remaining -= n
         }
         consumeTrailingWhitespace()
-        return RaString(bytes)
+        return RaString(out.toByteArray())
     }
 
     private fun word(first: Int): RaWord {
@@ -149,8 +152,16 @@ class RaSvnReader(private val input: InputStream) {
     private companion object {
         const val NONE = -2
 
-        /** 문자열 하나의 상한이다(2GB 미만). 잘못된 길이로 메모리를 다 쓰지 못하게 한다. */
-        val MAX_STRING = Int.MAX_VALUE.toULong() - 8u
+        /**
+         * 문자열 하나의 상한이다(64MB). 클라이언트가 보내는 문자열은 경로, 로그 메시지, 속성, svndiff 조각(보통 100KB 안팎)이라 이보다 훨씬 작다. 상한이 없으면 인증된
+         * 사용자 한 명이 큰 길이를 선언해 서버의 메모리를 쓸 수 있다.
+         */
+        val MAX_STRING = 64UL * 1024UL * 1024UL
+
+        /** 처음 잡는 버퍼와 한 번에 읽는 크기이다. */
+        const val FIRST_BLOCK = 8 * 1024
+
+        const val BLOCK = 64 * 1024
     }
 }
 
