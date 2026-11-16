@@ -23,8 +23,8 @@ class RepositoryUrls(private val properties: YonaProperties) {
     var sshServer: dev.yona.ssh.SshServerLifecycle? = null
 
     /**
-     * SSH 복제 주소를 돌려준다(추가 개발 항목 X-3, `decisions.md` D-66). 내장 SSH 서버와 시스템 sshd 연동을 모두 켜지 않았거나 Git과 Mercurial 프로젝트가 아니면 `null`이다. Git은 포트가 22이면
-     * `git@호스트:소유자/이름.git`(scp 형식), 그 밖이면 `ssh://git@호스트:포트/소유자/이름.git`이다. Mercurial에는 scp 형식이 없어 늘 `ssh://git@호스트[:포트]/소유자/이름`이다(X-7, 포트 22는 생략). 호스트는 설정한 호스트 이름(`yona.hostname`, 포트는 뗀다)이고 없으면 요청의 호스트 이름이다.
+     * SSH 복제 주소를 돌려준다(추가 개발 항목 X-3, `decisions.md` D-66). 내장 SSH 서버와 시스템 sshd 연동을 모두 켜지 않았거나 Git, Mercurial, Subversion 프로젝트가 아니면 `null`이다. Git은 포트가 22이면
+     * `git@호스트:소유자/이름.git`(scp 형식), 그 밖이면 `ssh://git@호스트:포트/소유자/이름.git`이다. Mercurial에는 scp 형식이 없어 늘 `ssh://git@호스트[:포트]/소유자/이름`이다(X-7, 포트 22는 생략). Subversion은 `svn+ssh://git@호스트[:포트]/소유자/이름`이다(X-55, `svn`에는 scp 형식이 없다). 호스트는 설정한 호스트 이름(`yona.hostname`, 포트는 뗀다)이고 없으면 요청의 호스트 이름이다.
      *
      * @param port 주소에 쓸 포트. 기본은 `yona.ssh.public-port`, 그것이 0이면 서버가 실제로 받는 포트이다
      */
@@ -32,6 +32,7 @@ class RepositoryUrls(private val properties: YonaProperties) {
         return when (project.vcs) {
             "GIT" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}.git")
             "Mercurial" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}", scpForm = false)
+            "Subversion" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}", scpForm = false)?.replaceFirst("ssh://", "svn+ssh://")
             else -> null
         }
     }

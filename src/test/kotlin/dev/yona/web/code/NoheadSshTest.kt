@@ -49,11 +49,11 @@ class NoheadSshTest : AbstractIntegrationTest() {
 
     private var sequence = 0
 
-    private fun manager(): Pair<Project, MockHttpSession> {
+    private fun manager(vcs: String = "GIT"): Pair<Project, MockHttpSession> {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
         val user = users.save(User(loginId = "nh$n", name = "nh$n", email = "nh$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
-        val p = projects.save(Project(owner = "nho$n", name = "nhp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        val p = projects.save(Project(owner = "nho$n", name = "nhp$n", vcs = vcs, projectScope = ProjectScope.PUBLIC))
         menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         projectUsers.save(ProjectUser(user = user, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
         repositories.createRepository(p)
@@ -81,5 +81,16 @@ class NoheadSshTest : AbstractIntegrationTest() {
         val first = doc.select("pre code").first()!!.text()
         assertTrue(first.startsWith("git clone http://"), first)
         assertTrue(first.contains("cd ${p.name}/") && first.contains("echo \"# ${p.name}\" > README.md") && first.contains("git push origin master"), first)
+    }
+
+    @Test
+    fun `Subversion 프로젝트의 안내에도 HTTP와 SSH 단추가 있고 SSH 주소는 svn+ssh이다`() {
+        val (p, session) = manager("Subversion"); val doc = page(p, session)
+        val buttons = doc.select(".clone-protocol button")
+        assertEquals(listOf("HTTP", "SSH"), buttons.map { it.text() })
+        assertEquals("svn+ssh://git@code.example.org:2222/${p.owner}/${p.name}", buttons[1].attr("data-clone-url"))
+        val command = doc.select("pre code").first()!!
+        assertTrue(command.text().startsWith("svn co http"), command.text())
+        assertEquals(buttons[0].attr("data-clone-url"), command.select(".clone-url").single().text())
     }
 }

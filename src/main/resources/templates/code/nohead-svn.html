@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/nohead_svn.scala.html
-  모델: title(제목 메시지 키), projectView, cloneUrl(저장소 주소), loginId(현재 사용자), canUpdate
+  모델: title(제목 메시지 키), projectView, cloneUrl(저장소 주소), sshCloneUrl(svn+ssh 주소. 내장 SSH 서버나 시스템 sshd 연동을 켰을 때만, X-55), loginId(현재 사용자), canUpdate
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::noheadPage})}">
@@ -18,12 +18,17 @@
             <div class="col-lg-12">
                 <th:block th:utext="#{code.nohead}"></th:block>
                 <th:block th:if="${canUpdate}">
+                <!--/* SSH를 켠 사이트에서만 보인다(X-55). 켜지 않으면 v1.6과 같은 안내이다. svn+ssh는 사용자가 SSH 키로 정해지므로 --username은 무시된다 */-->
+                <div th:if="${sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol mb-2" role="group">
+                    <button type="button" class="btn btn-outline-secondary selected" th:attr="data-clone-url=${cloneUrl}">HTTP</button>
+                    <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${sshCloneUrl}">SSH</button>
+                </div>
                 <h5 th:text="#{code.nohead.svn.clone(${siteName})}"></h5>
-                <pre><code th:text="'svn co ' + ${cloneUrl} + ' --username ' + ${loginId} + '
-cd ' + ${project.name} + '/
-echo &quot;# ' + ${project.name} + '&quot; > README.md
+                <pre><code>svn co <span class="clone-url" th:text="${cloneUrl}"></span> --username <th:block th:text="${loginId}"></th:block>
+cd <th:block th:text="${project.name}"></th:block>/
+echo "# <th:block th:text="${project.name}"></th:block>" &gt; README.md
 svn add README.md
-svn commit -m &quot;first commit&quot;'"></code></pre>
+svn commit -m "first commit"</code></pre>
                 </th:block>
             </div>
         </div>
@@ -31,6 +36,18 @@ svn commit -m &quot;first commit&quot;'"></code></pre>
         </div><!--/* .shell-main */-->
     </div>
 </div>
+<script th:if="${sshCloneUrl != null}">
+    (function(){
+        var box = document.querySelector(".clone-protocol");
+        if (!box) { return; }
+        box.addEventListener("click", function(event){
+            var button = event.target.closest("button");
+            if (!button) { return; }
+            Array.prototype.forEach.call(box.querySelectorAll("button"), function(b){ b.classList.toggle("selected", b === button); });
+            Array.prototype.forEach.call(document.querySelectorAll(".clone-url"), function(span){ span.textContent = button.getAttribute("data-clone-url"); });
+        });
+    })();
+</script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.Nohead.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){

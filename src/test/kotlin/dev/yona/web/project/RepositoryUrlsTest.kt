@@ -37,9 +37,8 @@ class RepositoryUrlsTest {
     }
 
     @Test
-    fun `SSH를 켜지 않았거나 Subversion이면 SSH 복제 주소가 없다`() {
+    fun `SSH를 켜지 않았거나 Mercurial이어도 SSH를 꺼 두면 SSH 복제 주소가 없다`() {
         assertNull(urls.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Mercurial"), request(), 2222))
-        val ssh = RepositoryUrls(YonaProperties(ssh = YonaProperties.Ssh(enabled = true)))
-        assertNull(ssh.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Subversion"), request(), 2222))
+        assertNull(urls.sshUrlFor(Project(owner = "owner", name = "repo", vcs = "Subversion"), request(), 2222))
     }
 }

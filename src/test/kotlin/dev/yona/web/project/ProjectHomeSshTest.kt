@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * 내장 SSH 서버를 켠 사이트의 프로젝트 홈 복제 상자(X-3 6단계, `decisions.md` D-66)를 검증한다. HTTP와 SSH 주소를 고르는 단추가 생기고, 주소 입력란의 기본은 HTTP 주소 그대로이다.
@@ -63,9 +64,10 @@ class ProjectHomeSshTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Subversion 프로젝트에는 SSH 단추가 없다`() {
+    fun `Subversion 프로젝트에도 SSH 단추가 있고 주소는 svn+ssh이다`() {
         val page = home(project("Subversion"))
-        assertNull(page.selectFirst(".clone-protocol"))
         assertNotNull(page.selectFirst("#cloneURL"))
+        val ssh = page.select(".clone-protocol button")[1].attr("data-clone-url")
+        assertTrue(ssh.startsWith("svn+ssh://git@"), ssh)
     }
 }

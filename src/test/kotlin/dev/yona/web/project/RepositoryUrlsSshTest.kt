@@ -66,7 +66,16 @@ class RepositoryUrlsSshTest {
     }
 
     @Test
-    fun `Git이 아닌 프로젝트에는 SSH 주소가 없다`() {
-        assertNull(urls(YonaProperties.Ssh(enabled = true)).sshUrlFor(Project(owner = "o", name = "n", vcs = "Subversion"), request(), 2222))
+    fun `Subversion 프로젝트의 SSH 주소는 svn+ssh 스킴이고 22번 포트는 생략한다`() {
+        val svn = Project(owner = "owner", name = "repo", vcs = "Subversion")
+        val on = urls(YonaProperties.Ssh(enabled = true))
+        assertEquals("svn+ssh://git@yona.example.com:2222/owner/repo", on.sshUrlFor(svn, request(), 2222))
+        assertEquals("svn+ssh://git@yona.example.com/owner/repo", on.sshUrlFor(svn, request(), 22))
+        assertNull(urls(YonaProperties.Ssh()).sshUrlFor(svn, request(), 2222), "SSH를 켜지 않았으면 주소가 없다")
+    }
+
+    @Test
+    fun `알 수 없는 저장소 종류에는 SSH 주소가 없다`() {
+        assertNull(urls(YonaProperties.Ssh(enabled = true)).sshUrlFor(Project(owner = "o", name = "n", vcs = "CVS"), request(), 2222))
     }
 }
