@@ -2461,9 +2461,11 @@ label.inline-list {
             width:auto;
         }
 
+        /* 주소가 더 보이도록 SSH 사용 여부와 상관없이 180px이다. 반응형 규칙(`@media all`의 100px)보다 앞서도록 !important를 쓴다. 클릭하면 전체가 보이게 넓어진다 */
         .project-clone-url {
             flex:0 0 auto;
-            width:175px;
+            width:180px !important;
+            max-width:180px !important;
             height:30px;
             box-sizing:border-box;
             margin-bottom:0;
@@ -2475,7 +2477,8 @@ label.inline-list {
             @include transition(width .15s);
 
             &:focus {
-                width:450px;
+                width:450px !important;
+                max-width:450px !important;
             }
         }
 
@@ -2499,10 +2502,8 @@ label.inline-list {
             @include border-radius(0);
         }
 
-        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 한다. 단추 오른쪽에 붙으므로 왼쪽 모서리는 직각이다 */
+        /* 선택 단추 오른쪽에 붙는 입력란은 왼쪽 모서리를 직각으로 둔다 */
         .clone-protocol + .project-clone-url {
-            width:180px !important;
-            max-width:180px !important;
             @include border-radius(0);
         }
         .project-clone-group > .project-clone-url:not(:last-child):not(:first-child) {
