@@ -10,10 +10,9 @@ v1.6(Play 2.3, MariaDB)이 만든 데이터베이스를 그대로 두고 v2 서�
 | 순서 | 할 일 | 자동 여부 |
 |---|---|---|
 | 1 | v1.6 서버를 끄고 DB를 백업한다 | 수동 |
-| 2 | 설정을 옮긴다(`application.secret` -> `yona.secret`, DB 접속, 저장소 디렉터리) | 수동 |
-| 3 | v2를 처음 시작한다: 스키마가 자동으로 더해진다 | 자동(`ddl-auto: update`) |
-| 4 | v2를 끄고 이관 스크립트를 돌린다 | 수동(한 번, 다시 돌려도 안전) |
-| 5 | v2를 시작해 확인한다 | 수동 |
+| 2 | 이관 스크립트를 `--v16-conf=<v1.6의 application.conf>`로 돌린다: 설정 변환, 스키마 추가, 데이터 이관이 한 번에 일어난다 | 수동(한 번, 다시 돌려도 안전) |
+| 3 | 변환된 설정 파일의 보고를 읽고 확인할 키를 손본다 | 수동 |
+| 4 | v2를 시작해 확인한다 | 수동 |
 
 ## 1. 준비
 
@@ -22,11 +21,35 @@ v1.6(Play 2.3, MariaDB)이 만든 데이터베이스를 그대로 두고 v2 서�
 - v1.6 저장소 디렉터리(`repo/git`, `repo/hg` 등)를 v2의 `yona.data-dir`이 가리키게 한다. 이관 3번이 저장소의 브랜치를 읽는다.
   저장소를 읽지 못하면 경고만 남기고 기본 브랜치 이름 하나로 규칙을 만든다(실패하지는 않지만 브랜치별 규칙이 하나로 줄어든다).
 
-## 2. 설정 옮기기
+## 2. 설정 옮기기 (이관 스크립트가 변환)
 
-- `application.secret`(v1.6의 `conf/application.conf`)을 `yona.secret`으로 옮긴다. 비어 있거나 기본값이면 v2는 처음 기동한 것으로 보고 **모든 요청에 기본 관리자 계정을 정하는 화면**만 보인다.
-- DB 접속은 `spring.datasource.url`, `username`, `password`로 지정한다(MariaDB는 `jdbc:mariadb://...`).
-- 그 밖의 대응은 [설정 키 대응표](configuration-keys.md)를 따른다.
+`scripts/migrate-v16.sh`에 v1.6의 `conf/application.conf`를 주면 v2 속성 파일(기본 `./yona-v16.properties`)로 바꾸고, 그 파일을 설정으로 써서 이관까지 이어서 한다.
+DB 접속, 비밀 키(`application.secret` -> `yona.secret`), SMTP, 알림, 프로젝트 기본값 등 대응표([configuration-keys.md](configuration-keys.md))에 있는 키를 옮긴다.
+
+```bash
+# 설정만 먼저 변환해 내용을 확인하고 싶을 때
+scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar --v16-conf=/opt/yona-1.6/conf/application.conf --v16-conf-only
+# 변환과 이관을 한 번에
+scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar --v16-conf=/opt/yona-1.6/conf/application.conf --yona.data-dir=/var/yona
+```
+
+| 옵션 | 뜻 |
+|---|---|
+| `--v16-conf=FILE` | 변환할 v1.6 설정 파일 |
+| `--v16-conf-out=FILE` | 출력 위치(기본 `./yona-v16.properties`). 비밀번호가 들어 있어 소유자만 읽도록(`rw-------`) 만든다 |
+| `--v16-conf-force` | 출력 파일이 이미 있어도 덮어쓴다(없으면 중단한다) |
+| `--v16-conf-only` | 변환만 하고 끝낸다 |
+
+변환의 규칙과 한계:
+
+- 읽는 문법은 v1.6 설정이 실제로 쓰는 HOCON의 부분집합이다(한 줄 키, 중괄호로 묶은 키, `#`와 `//` 주석, `include`). `%prod.` 키는 기본 키를 덮어쓰고 다른 모드는 건너뛴다. `%prod.http.port`는 `server.port`가 된다.
+- `db.default.url`의 `jdbc:mysql:`은 `jdbc:mariadb:`로 바꾼다(v2는 MariaDB 드라이버를 쓴다).
+- 기간 값(`60s`, `6h`)은 그대로 둔다(v2도 같은 형식을 받는다).
+- 변환 뒤 보고가 나온다: **대응하는 v2 키를 모르는 키**(직접 확인), **v2에서 없어진 기능의 키**(소셜 로그인 등, 옮기지 않음), 비밀이 든 키.
+  Play, Akka, Ebean의 내부 설정은 뜻이 없어 조용히 버린다. `include`한 파일(`social-login.conf`)은 읽지 않는다.
+- LDAP 값은 옮기지만 v2에서는 사이트 관리 화면에도 설정이 있으니 이관 뒤 화면에서 확인한다.
+- 사용자가 직접 준 `--spring.config.additional-location`이 있으면 변환한 파일보다 우선한다.
+- 스크립트에는 `--server.port`를 주지 않는다. 스크립트가 `--server.port=0`을 붙인다.
 
 ## 3. 스키마 변화 (서버를 처음 시작할 때 자동)
 
@@ -53,15 +76,10 @@ v1.6(Play 2.3, MariaDB)이 만든 데이터베이스를 그대로 두고 v2 서�
 
 ## 4. 데이터 이관
 
-서버를 끈 상태에서 실행한다. 서버와 같은 설정(DB 접속, `yona.data-dir`, 비밀 키)을 줘야 한다.
+서버를 끈 상태에서 실행한다. 서버와 같은 설정(DB 접속, `yona.data-dir`, 비밀 키)이 필요하다. 2번의 `--v16-conf`를 쓰면 변환한 파일이 이 설정을 채운다.
+이미 v2 설정이 있다면 `--spring.config.additional-location=file:/etc/yona/` 같은 서버 옵션을 그대로 준다. v2를 한 번도 시작하지 않은 v1.6 DB에서도 이 스크립트 하나로 스키마 추가(3번)와 데이터 이관이 이어서 일어난다.
 
-```bash
-scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar \
-  --spring.datasource.url=jdbc:mariadb://HOST:3306/yona --spring.datasource.username=... --spring.datasource.password=... \
-  --yona.data-dir=/var/yona --yona.secret=...
-```
-
-- 스크립트가 `--server.port=0`을 붙이므로 **`--server.port`를 옵션에 주지 않는다**(`Invalid value '0,19700'`으로 시작하지 못한다).
+- **`--server.port`를 옵션에 주지 않는다**(스크립트가 `--server.port=0`을 붙여 `Invalid value '0,19700'`으로 시작하지 못한다).
 - 하나가 실패하면 전부 되돌린다. 몇 번을 돌려도 결과가 같다. 종료 코드 0이 성공이다.
 - 이관하지 않고 서버를 시작하면 `v1.6 data has not been migrated: ...` 경고가 남지만 시작은 된다.
 
@@ -98,6 +116,12 @@ scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar \
 | 이관 뒤 시작 | 경고 없음 |
 | 로그인 | 틀린 비밀번호 거부, v1.6 해시로 로그인 성공, 해시가 argon2id로 바뀜, 이후 로그인 성공, 미로그인 사용자의 해시는 그대로 |
 | 옛 토큰 | `Authorization: token`과 `Yona-Token` 모두 200, 틀린 토큰과 헤더 없음은 401 |
+
+### 설정 변환까지 포함한 재리허설 (같은 날)
+
+v1.6 기본 설정 파일에서 DB 주소(`jdbc:mysql:`), 사용자, 비밀번호, 비밀 키만 바꾼 설정을 `--v16-conf`로 주어, **v2를 한 번도 시작하지 않은 v1.6 DB**에 스크립트 한 번을 돌렸다.
+63개 키가 변환됐고(`jdbc:mysql`을 `jdbc:mariadb`로 바꿨다는 참고, 알 수 없는 키 `smtp.archive.size`, `smtp.mock`, 없어진 기능 키 3개 보고), 스키마가 90개 테이블로 만들어지고 데이터 이관 건수는 첫 리허설과 같았다.
+이어 `--spring.config.additional-location=file:<변환 파일>`만으로 서버를 시작해 첫 기동 화면이 아니라 로그인 화면이 나오고(비밀 키 반영), 사이트 이름이 설정대로이며, v1.6 비밀번호 로그인(argon2id로 승급)과 옛 토큰이 동작했다.
 
 리허설에서 만난 함정은 위 가이드의 "준비"와 "설정 옮기기"에 반영했다: Java 21, `yona.secret`, 옵션의 `--server.port`, 저장소 디렉터리.
 

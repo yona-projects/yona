@@ -340,5 +340,7 @@ tasks.named<ProcessResources>("processResources") {
 
 // 실행 중인 버전을 알 수 있게 빌드 정보(`META-INF/build-info.properties`)를 만든다. 업데이트 확인이 현재 버전으로 쓴다.
 springBoot {
+	// 이관용 진입점(`V16ConfigMain`)도 `main`을 갖고 있어 시작 클래스를 명시한다. 이관 스크립트가 PropertiesLauncher로 그쪽을 따로 부른다.
+	mainClass.set("dev.yona.YonaApplicationKt")
 	buildInfo()
 }

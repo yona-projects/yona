@@ -65,6 +65,8 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.ssh.relay.internal-secret-path` | 빈 문자열 | 사용 중(X-3b). 공유 비밀 값 파일. 비우면 `<데이터>/ssh/internal-secret` |
 | (v2 신규) | `yona.git-default-branch` | `main` | 사용 중(X-22). 새 Git 저장소의 `HEAD` 브랜치이다. v1.6은 `master`였다 |
 
+이 표의 v1.6 키는 `scripts/migrate-v16.sh --v16-conf=<application.conf>`가 v2 키로 자동 변환한다([v16-migration-guide.md](v16-migration-guide.md)). 변환 규칙은 `V16ConfigConverter`에 있고, 이 표에 키를 더하면 변환기도 함께 고친다(시험이 변환 결과의 모든 `yona.*` 키가 `YonaProperties`에 있는지 본다).
+
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.
 
 `application.langs`는 설정 `yona.langs`(쉼표 목록, 기본 `en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)로 읽는다. `Accept-Language`에 가장 알맞은 언어를 고르고 맞는 것이 없으면 첫 번째를 쓰며, 요청 밖의 문구(알림 등)도 첫 번째 언어이다. 처음에는 이 목록을 코드에 고정했으나 v1.6 시험(`PasswordResetAppTest`)이 목록을 `ko-KR` 하나로 줄여 한국어 응답을 기대하는 운영 방식이 있어 2026-10-27에 설정으로 되돌렸다(A-134).
