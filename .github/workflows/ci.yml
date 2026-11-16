@@ -46,6 +46,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      # 시스템 sshd 연동의 중계 시험(SshRelayServerTest)이 Go 도우미(tools/ssh-helper)를 빌드한다. 러너 이미지에 Go가 있다고 가정하면 빠졌을 때 그 시험이 조용히 건너뛰어지므로 명시한다
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: tools/ssh-helper/go.mod
+          cache: false
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/next' && github.ref != 'refs/heads/next2' }}
@@ -88,6 +93,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      # 시스템 sshd 연동의 중계 시험(SshRelayServerTest)이 Go 도우미(tools/ssh-helper)를 빌드한다. 러너 이미지에 Go가 있다고 가정하면 빠졌을 때 그 시험이 조용히 건너뛰어지므로 명시한다
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: tools/ssh-helper/go.mod
+          cache: false
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/next' && github.ref != 'refs/heads/next2' }}
