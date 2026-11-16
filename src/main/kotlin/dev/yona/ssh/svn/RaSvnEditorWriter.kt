@@ -11,9 +11,9 @@ import java.io.ByteArrayOutputStream
  * 변경을 흘려보내는 방식이다(`( open-root ( ( 기준리비전 ) 토큰 ) )` 같은 명령의 연속). 형식은 실제 `svnserve -t`가 보낸 것을 녹화해 맞췄다.
  *
  * 디렉터리 토큰은 `d<번호>`, 파일 토큰은 `c<번호>`이고 번호는 하나의 순번을 같이 쓴다(`svnserve`와 같다). 텍스트 델타는 압축하지 않은 svndiff0으로 보낸다
- * (서버가 `svndiff1`을 내놓지 않기 때문이다).
+ * (서버가 `svndiff1`을 내놓지 않기 때문이다). [forReplay]이면 재생용이라 `close-edit`을 보내지 않는다.
  */
-class RaSvnEditorWriter(private val server: RaSvnServer) : ISVNEditor {
+class RaSvnEditorWriter(private val server: RaSvnServer, private val forReplay: Boolean = false) : ISVNEditor {
 
     private var counter = 0
     private val directories = ArrayDeque<String>()
@@ -95,7 +95,8 @@ class RaSvnEditorWriter(private val server: RaSvnServer) : ISVNEditor {
     override fun textDeltaEnd(path: String) { send("textdelta-end", RaString(token(path))) }
 
     override fun closeEdit(): SVNCommitInfo? {
-        send("close-edit")
+        // 재생(`replay`, `replay-range`)은 close-edit 대신 호출한 쪽이 보내는 `finish-replay`로 끝난다(시스템 svnserve와 같다)
+        if (!forReplay) send("close-edit")
         return null
     }
 

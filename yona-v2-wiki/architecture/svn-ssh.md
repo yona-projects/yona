@@ -63,20 +63,26 @@ Git SSH와 같은 규칙이다(`SshAccess`, HTTP와 같은 `AccessControl`).
 
 | 영역 | 명령 |
 |---|---|
-| 읽기 | `get-latest-rev`, `check-path`, `stat`, `list`, `get-dir`, `get-file`, `log`, `get-iprops`, `get-locations`, `get-location-segments`, `get-file-revs`(blame), `get-mergeinfo`, `rev-proplist`, `rev-prop`, `reparent` |
-| 작업 복사본 | `update`(체크아웃, export 포함), `status`(`-u`), `diff`, `switch` |
-| 쓰기 | `commit`(추가, 수정, 삭제, 디렉터리, 복사, 이동, 속성, 큰 파일, 잠금 토큰) |
+| 읽기 | `get-latest-rev`, `check-path`, `stat`, `list`, `get-dir`, `get-file`, `log`, `get-iprops`, `get-locations`, `get-location-segments`, `get-file-revs`(blame), `get-mergeinfo`, `get-deleted-rev`, `rev-proplist`, `rev-prop`, `reparent` |
+| 작업 복사본 | `update`(체크아웃, export 포함), `status`(`-u`), `diff`, `switch`. 깊이(`--depth`, `--set-depth`, 희소 체크아웃)를 지원한다 |
+| 쓰기 | `commit`(추가, 수정, 삭제, 디렉터리, 복사, 이동, 속성, 큰 파일, 잠금 토큰), `change-rev-prop`, `change-rev-prop2`(리비전 속성 변경, 아래 규칙) |
 | 잠금 | `lock`, `unlock`, `lock-many`, `unlock-many`, `get-lock`, `get-locks` |
+| 미러링 | `replay`, `replay-range`(`svnsync`, 하위 디렉터리만 미러링하는 `partial-replay` 포함) |
 
-**지원하지 않는 명령**: `replay`, `replay-range`(svnsync), `change-rev-prop`, `change-rev-prop2`(리비전 속성 바꾸기), `get-deleted-rev`. 호출하면 인증 확인 뒤 "지원하지 않는 기능"(코드 200007)으로 답한다. 인사에서 `svndiff1`과 `accepts-svndiff2`를 내놓지 않아 클라이언트가 압축하지 않은 svndiff0을 쓴다(구현이 단순하고 호환성이 가장 넓다). `depth`(희소 체크아웃의 깊이 협상)는 내놓지 않았다.
+시스템 `svnserve`가 처리하는 명령은 모두 처리한다. 인사에서 `svndiff1`과 `accepts-svndiff2`는 내놓지 않아 클라이언트가 압축하지 않은 svndiff0을 쓴다(구현이 단순하고 호환성이 가장 넓다). 서버가 내놓는 기능은 `edit-pipeline`, `absent-entries`, `commit-revprops`, `depth`, `log-revprops`, `atomic-revprops`, `partial-replay`, `inherited-props`, `list`이다.
+
+**리비전 속성 변경의 권한(A-616)**: 시스템 `svnserve`는 저장소의 `pre-revprop-change` 훅이 허용해야 리비전 속성(커밋 로그 등)을 바꾼다. Yona의 저장소에는 그 훅이 없어서 훅 검사를 건너뛰고 Yona가 판정한다. 쓸 수 있는 접속(구성원, 쓰기 배포 키)만 바꿀 수 있고, `svn:author`와 `svn:date`는 바꾸지 못한다(`Authorization failed`). `post-revprop-change` 훅은 저장소에 있으면 실행한다. 읽기 전용 접속은 `svnsync` 같은 읽기 쪽 명령(`replay`)은 할 수 있다.
+
+**미러링 대상 저장소**: `svnsync`의 대상 저장소는 보통 `svnadmin`으로 만든 별도 저장소이며 `pre-revprop-change` 훅이 필요하다(대상은 Yona가 아니라 `svnsync`를 실행하는 쪽이다).
 
 ## 어떻게 확인했는가
 
 프로토콜의 바이트 하나가 틀려도 `svn`이 멈추므로 기억이나 문서가 아니라 **실제 대화**를 기준으로 삼았다.
 
 1. 진짜 `svnserve -t`와 `svn` 클라이언트 사이에 기록용 터널(파이썬)을 끼워 명령마다 요청과 응답의 바이트를 녹화했다. 이 형식으로 부호기의 시험 기대값(`RaSvnWireTest`)과 각 명령의 응답을 맞췄다.
-2. 명령마다 같은 저장소를 `file://`로 실행한 결과와 `svn+ra://`로 실행한 결과가 같아야 한다는 시험을 썼다(`info`, `ls`, `log -v`, `diff`, `blame`, 체크아웃한 작업 복사본의 파일과 속성과 상태까지). 서버 시험은 TCP 터널로, 접근 규칙 시험(`SvnSshServerTest`)은 실제 `ssh`와 내장 SSH 서버로 한다.
-3. 시험 도구가 서버의 멈춤을 가려내도록 `svn` 호출에 60초 제한을 두고, 실패하면 클라이언트와 서버의 대화를 오류에 붙인다(`RaSvnTestServer.dialogue`).
+2. `svn`이 보내지 않는 명령(`change-rev-prop`, `get-deleted-rev`)은 진짜 `svnserve`에 직접 보내서 응답을 얻었다(오류 코드 160049, 150003 포함). 이 응답을 시험의 기대값으로 썼다. 가짜 서버가 아니라 `RaSvnTestServer.RawSession`으로 같은 형식을 확인한다.
+3. 명령마다 같은 저장소를 `file://`로 실행한 결과와 `svn+ra://`로 실행한 결과가 같아야 한다는 시험을 썼다(`info`, `ls`, `log -v`, `diff`, `blame`, 체크아웃한 작업 복사본의 파일과 속성과 상태까지). 서버 시험은 TCP 터널로, 접근 규칙 시험(`SvnSshServerTest`)은 실제 `ssh`와 내장 SSH 서버로 한다.
+4. 시험 도구가 서버의 멈춤을 가려내도록 `svn` 호출에 60초 제한을 두고, 실패하면 클라이언트와 서버의 대화를 오류에 붙인다(`RaSvnTestServer.dialogue`).
 
 ## 알려진 한계와 주의
 
@@ -84,4 +90,3 @@ Git SSH와 같은 규칙이다(`SshAccess`, HTTP와 같은 `AccessControl`).
 - **커밋 뒤 후속 처리가 없다.** WebDAV 커밋에도 알림, 웹훅, 감사 같은 후속 처리가 없어서(`SvnDavFilter`, `SvnDavService` 확인) 같게 두었다.
 - 한 커밋의 파일 내용은 임시 파일에 쌓은 뒤 저장소에 재생하므로 커밋 하나가 끝날 때까지 서버의 임시 디렉터리에 그만한 공간이 필요하다. 클라이언트가 디렉터리를 닫은 뒤 파일 내용을 보내서(녹화로 확인) 도착 순서대로 흘려보낼 수 없기 때문이다.
 - 프로젝트 홈의 복제 주소 상자와 빈 저장소 안내에 HTTP와 SSH를 고르는 단추가 있다(Git, Mercurial과 같다). SVN의 SSH 주소는 `svn+ssh://git@호스트[:포트]/소유자/이름`이다(`svn`에는 scp 형식이 없다). 빈 저장소 안내의 `--username`은 svn+ssh에서 무시된다(사용자는 SSH 키로 정해진다).
-- 서버 쪽 `svn+ssh`로 `svnsync`는 못 쓴다(`replay` 미지원).

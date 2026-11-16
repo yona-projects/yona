@@ -421,3 +421,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | Subversion SSH 접근(svn+ssh): `ra-svn` 브랜치에서 `ra_svn` 프로토콜을 직접 구현(부호기, 서버, 읽기, 체크아웃과 갱신, 커밋, diff, status, switch, blame, merge 정보, 잠금), 내장 SSH 서버에 연결하고 Git SSH와 같은 사용자별 권한 적용. 시험 53건, 진짜 svnserve 대화 녹화로 형식 확인(X-55, A-615)
 
 ## [2026-11-16] build | svn+ssh를 시스템 sshd 중계로도 제공(시험 4건)하고 SVN 프로젝트의 SSH 복제 주소를 홈과 빈 저장소 안내에 표시(X-55)
+
+## [2026-11-16] build | svn+ssh에 깊이(희소 체크아웃), 리비전 속성 변경, svnsync(replay, partial-replay), get-deleted-rev 추가. 진짜 svnserve 녹화로 형식 확인, 시험 13건 추가, Subversion 66건과 중계 17건 통과(A-616)

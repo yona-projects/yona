@@ -62,7 +62,11 @@ class RaSvnCommands(private val server: RaSvnServer) {
             "get-location-segments" -> getLocationSegments(args)
             "get-file-revs" -> getFileRevs(args)
             "get-mergeinfo" -> getMergeInfo(args)
-            "replay", "replay-range", "change-rev-prop", "change-rev-prop2", "get-deleted-rev" -> unsupported(name)
+            "change-rev-prop" -> changeRevisionProperty(args)
+            "change-rev-prop2" -> changeRevisionProperty(args)
+            "get-deleted-rev" -> getDeletedRevision(args)
+            "replay" -> replay(args)
+            "replay-range" -> replayRange(args)
             else -> return false
         }
         return true
@@ -625,6 +629,105 @@ class RaSvnCommands(private val server: RaSvnServer) {
             raList(RaString("/" + path.trimStart('/')), RaString(org.tmatesoft.svn.core.internal.util.SVNMergeInfoUtil.formatMergeInfoToString(info.mergeSourcesToMergeLists, null)))
         }
         server.send(RaSvnServer.success(raList(RaList(entries))))
+    }
+
+    // ---- 리비전 속성 변경 ----
+
+    /**
+     * `change-rev-prop`와 `change-rev-prop2`: 리비전 속성(커밋 로그 등)을 바꾸거나 지운다. 인자는 `( 리비전 이름 ( 값 ) ( ( 상관없음 ) ( 기존값 ) ) )`이고 뒤의 두 항목은
+     * `change-rev-prop2`만 보낸다. 기존값을 확인하라고 했는데 저장소의 값이 다르면 `FS_PROP_BASEVALUE_MISMATCH`(160049)이다.
+     *
+     * 시스템 `svnserve`는 저장소의 `pre-revprop-change` 훅이 허용해야 바꾼다. Yona의 저장소에는 그 훅이 없으므로 훅 검사를 건너뛰고 Yona가 판정한다: 쓸 수 있는
+     * 접속만 바꾸고, 작성자(`svn:author`)와 날짜(`svn:date`)는 바꾸지 못하게 한다(쓰기 권한자가 다른 사람 이름으로 커밋을 위조하지 못하게 한다, A-616).
+     * `post-revprop-change` 훅은 있으면 실행한다.
+     */
+    private fun changeRevisionProperty(args: List<RaItem>) {
+        if (!requireWritable()) return
+        val name = text(args.getOrNull(1))
+        if (name == SVNRevisionProperty.AUTHOR || name == SVNRevisionProperty.DATE) {
+            server.sendFailure(SVNErrorCode.RA_NOT_AUTHORIZED, "Authorization failed")
+            return
+        }
+        val revision = (args.getOrNull(0) as? RaNumber)?.value ?: throw IllegalArgumentException("리비전이 와야 한다")
+        val newValue = (args.getOrNull(2) as? RaList)?.items?.firstOrNull() as? RaString
+        val dontCare = bool(((args.getOrNull(3) as? RaList)?.items?.firstOrNull()))
+        val oldValue = (args.getOrNull(4) as? RaList)?.items?.firstOrNull() as? RaString
+        server.sendAuthOk()
+        val current = repository.getRevisionPropertyValue(revision, name)
+        if (args.size >= 4 && !dontCare) {
+            val matches = if (oldValue == null) current == null else current != null && current.toRaBytes().contentEquals(oldValue.bytes)
+            if (!matches) {
+                server.sendFailure(160049, "revision property '$name' has unexpected value in filesystem")
+                return
+            }
+        }
+        val value = newValue?.let { SVNPropertyValue.create(name, it.bytes) }
+        (repository as org.tmatesoft.svn.core.internal.io.fs.FSRepository).setRevisionPropertyValue(revision, name, value, true, false)
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    // ---- 삭제 조회와 재생(미러링) ----
+
+    /**
+     * `get-deleted-rev`: 경로가 `피그 리비전`과 `끝 리비전` 사이에서 삭제된 리비전을 알려 준다. 삭제된 적이 없으면 시스템 `svnserve`와 같은 오류(150003)로 답한다.
+     * 인자는 `( 경로 피그리비전 끝리비전 )`이다.
+     */
+    private fun getDeletedRevision(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        val peg = (args.getOrNull(1) as? RaNumber)?.value ?: -1L
+        val end = (args.getOrNull(2) as? RaNumber)?.value ?: -1L
+        server.sendAuthOk()
+        val deleted = repository.getDeletedRevision(path, peg, end)
+        if (deleted < 0) {
+            server.sendFailure(150003, "svn protocol command 'get-deleted-rev': path '/$path' was not deleted in r$peg-$end; NOTE: newer clients handle this case and do not report it as an error")
+            return
+        }
+        server.send(RaSvnServer.success(raList(RaNumber(deleted))))
+    }
+
+    /** `replay`: 리비전 하나의 변경을 편집기 명령으로 다시 보낸다. 인자는 `( 리비전 낮은기준 델타보냄 )`이다. 끝에 `finish-replay`가 붙고 마지막 응답이 온다. */
+    private fun replay(args: List<RaItem>) {
+        val revision = (args.getOrNull(0) as? RaNumber)?.value ?: throw IllegalArgumentException("리비전이 와야 한다")
+        val low = (args.getOrNull(1) as? RaNumber)?.value ?: 0L
+        val sendDeltas = bool(args.getOrNull(2))
+        server.sendAuthOk()
+        val located = locatedRepository()
+        try {
+            located.replay(revision, low, sendDeltas, RaSvnEditorWriter(server, forReplay = true))
+        } finally {
+            located.closeSession()
+        }
+        server.send(raList(RaWord("finish-replay"), raList()))
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /**
+     * `replay-range`: 리비전 범위를 하나씩 `( revprops ... )`, 편집기 명령, `( finish-replay )` 순서로 보내고 마지막 응답을 보낸다(`svnsync`가 쓴다).
+     * 인자는 `( 시작 끝 낮은기준 델타보냄 )`이다.
+     */
+    private fun replayRange(args: List<RaItem>) {
+        val start = (args.getOrNull(0) as? RaNumber)?.value ?: throw IllegalArgumentException("시작 리비전이 와야 한다")
+        val end = (args.getOrNull(1) as? RaNumber)?.value ?: throw IllegalArgumentException("끝 리비전이 와야 한다")
+        val low = (args.getOrNull(2) as? RaNumber)?.value ?: 0L
+        val sendDeltas = bool(args.getOrNull(3))
+        server.sendAuthOk()
+        val located = locatedRepository()
+        try {
+            located.replayRange(start, end, low, sendDeltas, object : org.tmatesoft.svn.core.io.ISVNReplayHandler {
+                override fun handleStartRevision(revision: Long, revisionProperties: org.tmatesoft.svn.core.SVNProperties): org.tmatesoft.svn.core.io.ISVNEditor {
+                    val pairs = revisionProperties.nameSet().map { name -> raList(RaString(name), RaString(revisionProperties.getSVNPropertyValue(name).toRaBytes())) }
+                    server.send(raList(RaWord("revprops"), RaList(pairs)))
+                    return RaSvnEditorWriter(server, forReplay = true)
+                }
+
+                override fun handleEndRevision(revision: Long, revisionProperties: org.tmatesoft.svn.core.SVNProperties, editor: org.tmatesoft.svn.core.io.ISVNEditor) {
+                    server.send(raList(RaWord("finish-replay"), raList()))
+                }
+            })
+        } finally {
+            located.closeSession()
+        }
+        server.send(RaSvnServer.success(raList()))
     }
 
     /** 아직 지원하지 않는 명령이다. 인증 확인 뒤에 "지원하지 않는 기능"으로 답한다(클라이언트가 읽을 수 있는 오류이다). */

@@ -171,6 +171,9 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
 
     fun sendFailure(code: SVNErrorCode, message: String) = send(failure(SVNErrorMessage.create(code, message)))
 
+    /** SVNKit의 오류 코드 상수에 없는 번호(`svnserve`가 쓰는 번호 그대로)로 실패를 보낸다. */
+    fun sendFailure(code: Int, message: String) = send(raList(RaWord("failure"), raList(raList(RaNumber(code.toLong()), RaString(message), RaString(""), RaNumber(0)))))
+
     /** 인사 중에 실패를 알리고 `false`를 돌려준다(접속을 끝낸다). */
     private fun fail(code: SVNErrorCode, message: String): Boolean { sendFailure(code, message); writer.flush(); return false }
 
@@ -181,9 +184,9 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
     companion object {
         /**
          * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`과 `accepts-svndiff2`는 내놓지 않아
-         * 클라이언트가 압축하지 않은 svndiff0을 쓰게 한다(구현이 단순하다). `depth`와 `mergeinfo`는 아직 구현하지 않았다.
+         * 클라이언트가 압축하지 않은 svndiff0을 쓰게 한다(구현이 단순하다). `depth`는 희소 체크아웃과 깊이 변경, `atomic-revprops`는 기존 값을 확인하는 리비전 속성 변경(`change-rev-prop2`)이다.
          */
-        val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "log-revprops", "inherited-props", "list")
+        val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "depth", "log-revprops", "atomic-revprops", "partial-replay", "inherited-props", "list")
 
         /** 저장소 정보 응답의 기능 목록이다. */
         val REPOSITORY_CAPABILITIES = listOf("mergeinfo")

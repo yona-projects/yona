@@ -69,6 +69,48 @@ class RaSvnTestServer(private val work: File, private val resolver: RaSvnResolve
         return Result(process.exitValue(), out.readText())
     }
 
+    /** `svnsync`를 실행한다. 같은 터널 설정(`svn+ra://`)을 쓴다. */
+    fun svnsync(vararg args: String, dir: File = work): Result {
+        val out = File(work, "svnsync-out-${System.nanoTime()}.txt")
+        val process = ProcessBuilder(listOf("svnsync") + args + listOf("--config-dir", configDir.path, "--non-interactive")).directory(dir).redirectErrorStream(true).redirectOutput(out).also { it.environment()["LC_ALL"] = "C.UTF-8" }.start()
+        if (!process.waitFor(120, TimeUnit.SECONDS)) {
+            process.destroyForcibly()
+            error("시간 초과: svnsync ${args.toList()}\n대화:\n${dialogue()}")
+        }
+        return Result(process.exitValue(), out.readText())
+    }
+
+    /**
+     * 클라이언트 프로그램 없이 프로토콜 항목을 직접 주고받는 접속이다. 인사와 인증(`EXTERNAL`)을 마친 상태로 시작하므로 [send]로 명령을 보내고 [receive]로 응답 항목을 읽는다.
+     * 실제 `svn`이 보내지 않는 명령(예전 클라이언트의 `change-rev-prop`, `get-deleted-rev`)의 응답을 진짜 `svnserve`의 녹화와 비교할 때 쓴다.
+     */
+    inner class RawSession(path: String) : AutoCloseable {
+        private val connection = Socket(java.net.InetAddress.getLoopbackAddress(), socket.localPort)
+        private val reader = RaSvnReader(connection.getInputStream())
+        private val writer = RaSvnWriter(connection.getOutputStream())
+
+        init {
+            connection.soTimeout = 30_000
+            reader.read() // 인사
+            // 클라이언트의 인사: ( 2 ( 기능... ) 주소 클라이언트이름 ( ) )
+            send(raList(RaNumber(2), raList(RaWord("edit-pipeline"), RaWord("depth"), RaWord("mergeinfo"), RaWord("log-revprops")), RaString("svn+ra://localhost$path"), RaString("raw/1"), raList()))
+            reader.read() // 인증 방식 목록
+            send(raList(RaWord("EXTERNAL"), raList(RaString(""))))
+            reader.read(); reader.read() // 인증 성공, 저장소 정보
+        }
+
+        fun send(item: RaItem) { writer.write(item); writer.flush() }
+
+        /** 명령 하나를 보낸다(`( 이름 ( 인자... ) )`). */
+        fun command(name: String, vararg params: RaItem) = send(raList(RaWord(name), RaList(params.toList())))
+
+        fun receive(): RaItem? = reader.read()
+
+        override fun close() { connection.close() }
+    }
+
+    fun raw(path: String): RawSession = RawSession(path)
+
     /** 중계기가 기록한 클라이언트와 서버의 대화이다(실패 원인을 볼 때 쓴다). */
     fun dialogue(): String = File(work, "ra-dialogue.log").takeIf { it.exists() }?.readText(Charsets.UTF_8)?.takeLast(6000).orEmpty()
 
