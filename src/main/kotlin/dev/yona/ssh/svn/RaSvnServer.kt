@@ -76,7 +76,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
 
     private fun handshake(): Boolean {
         send(success(raList(RaNumber(2), RaNumber(2), raList(), caps(SERVER_CAPABILITIES))))
-        val response = reader.read() as? RaList ?: return false
+        val response = receive() as? RaList ?: return false
         val version = (response.items.getOrNull(0) as? RaNumber)?.value
         val url = (response.items.getOrNull(2) as? RaString)?.text
         if (version != 2L || url == null) return fail(SVNErrorCode.RA_SVN_MALFORMED_DATA, "Malformed network data")
@@ -92,7 +92,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
         session = Session(repository, rootUrl, found.writable, rest)
         // 터널에서 이미 인증했으므로 EXTERNAL만 내놓는다. 클라이언트가 ANONYMOUS를 고르면 사용자가 없는 접속이 되므로 내놓지 않는다
         send(success(raList(raList(RaWord("EXTERNAL")), RaString(uuid))))
-        val auth = reader.read() as? RaList ?: return false
+        val auth = receive() as? RaList ?: return false
         if ((auth.items.firstOrNull() as? RaWord)?.value != "EXTERNAL") return fail(SVNErrorCode.RA_NOT_AUTHORIZED, "Unsupported authentication mechanism")
         send(success(raList()))
         send(success(raList(RaString(uuid), RaString(rootUrl), caps(REPOSITORY_CAPABILITIES))))
@@ -135,7 +135,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
     private fun commandLoop() {
         val commands = RaSvnCommands(this)
         while (true) {
-            val message = reader.read() as? RaList ?: return
+            val message = receive() as? RaList ?: return
             val name = (message.items.getOrNull(0) as? RaWord)?.value ?: throw RaSvnProtocolException("명령 이름이 없다")
             val args = (message.items.getOrNull(1) as? RaList)?.items.orEmpty()
             try {
@@ -154,12 +154,15 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
 
     fun send(item: RaItem) { writer.write(item) }
 
+    /**
+     * 클라이언트의 다음 항목을 읽는다. 기다리기 전에 보낼 것을 먼저 비운다. SSH 채널은 내보내기를 비워야 나가므로, 인사말처럼 응답을 기다리는 메시지가
+     * 갇히면 양쪽이 서로를 기다리며 멈춘다.
+     */
+    fun receive(): RaItem? { writer.flush(); return reader.read() }
+
     fun flush() = writer.flush()
 
     fun current(): Session = checkNotNull(session) { "세션이 없다" }
-
-    /** [RaSvnCommands]가 편집기 명령처럼 입력을 직접 읽어야 할 때 쓴다. */
-    fun input(): RaSvnReader = reader
 
     fun sendFailure(e: SVNException) = send(failure(e.errorMessage))
 

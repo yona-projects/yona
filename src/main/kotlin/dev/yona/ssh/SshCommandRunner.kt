@@ -23,6 +23,10 @@ class SshCommandRunner(
     private val deployKeys: DeployKeyService
 ) {
 
+    /** 저장소가 기록하는 사용자 이름이다. 사용자 키이면 로그인 아이디, 배포 키이면 `deploy-key-<번호>`이다. */
+    fun loginOf(principal: SshPrincipal): String =
+        principal.userId?.let { users.findById(it).orElse(null)?.loginId } ?: "deploy-key-${principal.deployKeyId}"
+
     /** 인증한 접속의 감사 행위자이다. 사용자 키이면 사용자, 배포 키이면 배포 키(번호와 이름)이다. */
     fun actorOf(principal: SshPrincipal): AuditActor {
         principal.userId?.let { id -> return AuditActor(AuditActorType.USER, id, users.findById(id).orElse(null)?.loginId) }
@@ -51,6 +55,14 @@ class SshCommandRunner(
         var exit = 1
         val vcs = request.vcs.lowercase()
         metrics.request(vcs, request.service, "code") { measured ->
+            if (request.deferred) {
+                // 저장소가 명령 줄에 없으면(svnserve -t) 처리기가 프로토콜의 첫 메시지에서 알아낸 뒤 이 인가로 판정한다. 사용자를 잠그거나 키를 지운 것도 그때 반영된다
+                measured.target = "code"
+                val context = SshDeferredContext(loginOf(principal)) { owner, name -> access.authorize(principal, request.copy(owner = owner, name = name, deferred = false)) }
+                exit = handler.executeDeferred(context, request, line, SshStreams(metrics.countedInput(vcs, "code", streams.input), metrics.countedOutput(vcs, "code", streams.output), streams.error))
+                if (exit != 0) measured.result = "error"
+                return@request
+            }
             exit = when (val result = access.authorize(principal, request)) {
                 SshAuthorization.NotFound -> { measured.result = "not_found"; fail(handler, request, streams, reject, "ERROR: Repository not found.") }
                 is SshAuthorization.Denied -> { measured.result = "denied"; fail(handler, request, streams, reject, result.message) }
