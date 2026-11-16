@@ -16,7 +16,7 @@ updated: 2026-11-02
 | 키 등록 | 사용자 설정의 "SSH 키" 탭과 프로젝트 설정의 "배포 키" 화면. 둘 다 **목록 화면**(삭제 버튼 하나)과 **추가 화면** 두 개로 나눈다(D-65 8번을 따른다). 배포 키 추가 화면에는 "쓰기 허용" 체크가 하나 더 있다 |
 | 저장 | 새 테이블 `ssh_key`(사용자), `deploy_key`(프로젝트). 지문(`SHA256:...`)은 두 테이블을 합쳐 사이트 전체에서 유일하다 |
 | 서버 | Apache MINA SSHD 2.15. `yona.ssh.enabled=true`일 때만 앱 안에서 뜬다. 공개키 인증만 받고 셸, SFTP, 포트 전달은 열지 않는다 |
-| 명령 | 저장소 종류별 처리기(`SshVcsHandler`). 지금은 git(`git-upload-pack`, `git-receive-pack`)뿐이고 Mercurial(`hg -R <저장소> serve --stdio`)은 X-7이 같은 자리에 더한다(D-66 6번) |
+| 명령 | 저장소 종류별 처리기(`SshVcsHandler`). git(`git-upload-pack`, `git-receive-pack`), Mercurial(`hg -R <저장소> serve --stdio`, X-7), Subversion(`svnserve -t`, X-55: 저장소를 프로토콜의 첫 메시지로 알게 되는 요청, [svn-ssh.md](svn-ssh.md)) |
 | 인가 | HTTP와 같은 접근 규칙(`AccessControl`). 배포 키는 자기 저장소만 접근하고 읽기 전용이면 쓰지 못한다 |
 | 푸시 | HTTP와 같은 JGit과 같은 푸시 훅(`GitHooks`)이라 브랜치 보호 규칙, 서명 커밋 필수 규칙, 풀 리퀘스트와 웹훅 처리가 똑같이 적용된다 |
 | REST | `/user/ssh_keys`, `/users/{user}/ssh_keys`, `/owners/{owner}/projects/{project}/deploy_keys` |

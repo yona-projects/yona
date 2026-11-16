@@ -417,3 +417,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] verify | 공식 v1.6 설치(H2 1.3 파일)에 v2 jar를 바꿔치기하는 실험: H2 옵션 거부, 옛 파일 읽기 불가(빈 DB가 새로 생김), SQL 덤프는 문법 변환 필요. MariaDB 설치는 가능. 변환기가 H2 파일 주소에서 안내(A-613)
 
 ## [2026-11-16] merge | Mercurial 스쿼시: hg4j 세션 확인(setSquash는 공개 API로 대체 불가), yona의 createMerge 불린 분기를 createMerge와 createSquash로 분리, 병합 방식 문서에 hg4j 쓰임 기록(A-614)
+
+## [2026-11-16] build | Subversion SSH 접근(svn+ssh): `ra-svn` 브랜치에서 `ra_svn` 프로토콜을 직접 구현(부호기, 서버, 읽기, 체크아웃과 갱신, 커밋, diff, status, switch, blame, merge 정보, 잠금), 내장 SSH 서버에 연결하고 Git SSH와 같은 사용자별 권한 적용. 시험 59건, 진짜 svnserve 대화 녹화로 형식 확인(X-55, A-615)

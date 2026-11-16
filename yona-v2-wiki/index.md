@@ -8,6 +8,7 @@
 ## 아키텍처 (`architecture/`)
 
 - [설정 키 대응표](architecture/configuration-keys.md): `application.*` -> `yona.*`
+- [Subversion SSH 접근(svn+ssh)](architecture/svn-ssh.md): `ra_svn` 프로토콜을 직접 구현해 내장 SSH 서버로 SVN 체크아웃과 커밋, 사용자별 권한, 지원 명령, 확인 방법
 - [v1.6 DB 이관 가이드](architecture/v16-migration-guide.md): v1.6 데이터베이스를 이어받아 v2로 올릴 때의 스키마 변화, 이관 스크립트, 리허설 결과
 - [v1.6 설정 키별 설명](architecture/v16-config-key-reference.md): 이관되는 설정 키의 목적, 기본값, v2에서 읽는 곳, v1.6과 달라진 점, 비밀 키의 용도
 - [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유 추가 개발 항목의 의도된 차이 장부 포함(D-32)
