@@ -73,7 +73,7 @@ scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar --v16-conf=/opt/yona-1
 | 기간 설정(`60s`, `6h` 등) | `getMilliseconds`가 문자열과 숫자(밀리초)를 받는다 | v2의 `Duration` 바인딩이 같은 형식을 받는다 | 값 그대로 옮긴다 |
 | `application.secret` | 세션 서명 | 2단계 인증, SSO, LDAP 조회 계정의 암호화 키 | 값 그대로 옮긴다(위 "비밀 키") |
 
-위 표에 없는 키는 이름과 값의 형식이 같다는 것을 v1.6 소스의 읽는 방식과 v2 `YonaProperties`의 설명으로 확인했다. 확인 범위와 방법은 `V16ConfigConverterTest`가 지킨다: v2 설정 주석에 v1.6 키로 적힌 이름은 모두 변환기가 알아야 하고, 변환 결과의 모든 `yona.*` 키는 `YonaProperties`에 있어야 한다.
+각 키의 목적, 기본값, v2에서 읽는 곳은 [v16-config-key-reference.md](v16-config-key-reference.md)에 키별로 정리했다. 위 표에 없는 키는 이름과 값의 형식이 같다는 것을 v1.6 소스의 읽는 방식과 v2 `YonaProperties`의 설명으로 확인했다. 확인 범위와 방법은 `V16ConfigConverterTest`가 지킨다: v2 설정 주석에 v1.6 키로 적힌 이름은 모두 변환기가 알아야 하고, 변환 결과의 모든 `yona.*` 키는 `YonaProperties`에 있어야 한다.
 v2 쪽 사용 여부도 코드에서 확인했다: 변환기가 만드는 `yona.*` 키는 모두 소스에서 읽힌다(`yona.signup.*`는 `Signup.required()`로, `yona.ldap.*`는 `LdapSettingsService.effective()`로, `yona.imap.*`는 `MailboxService`로).
 
 ## 3. 스키마 변화 (서버를 처음 시작할 때 자동)
