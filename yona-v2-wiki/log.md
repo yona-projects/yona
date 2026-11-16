@@ -418,4 +418,4 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 
 ## [2026-11-16] merge | Mercurial 스쿼시: hg4j 세션 확인(setSquash는 공개 API로 대체 불가), yona의 createMerge 불린 분기를 createMerge와 createSquash로 분리, 병합 방식 문서에 hg4j 쓰임 기록(A-614)
 
-## [2026-11-16] build | Subversion SSH 접근(svn+ssh): `ra-svn` 브랜치에서 `ra_svn` 프로토콜을 직접 구현(부호기, 서버, 읽기, 체크아웃과 갱신, 커밋, diff, status, switch, blame, merge 정보, 잠금), 내장 SSH 서버에 연결하고 Git SSH와 같은 사용자별 권한 적용. 시험 59건, 진짜 svnserve 대화 녹화로 형식 확인(X-55, A-615)
+## [2026-11-16] build | Subversion SSH 접근(svn+ssh): `ra-svn` 브랜치에서 `ra_svn` 프로토콜을 직접 구현(부호기, 서버, 읽기, 체크아웃과 갱신, 커밋, diff, status, switch, blame, merge 정보, 잠금), 내장 SSH 서버에 연결하고 Git SSH와 같은 사용자별 권한 적용. 시험 53건, 진짜 svnserve 대화 녹화로 형식 확인(X-55, A-615)
