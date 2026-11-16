@@ -145,7 +145,7 @@ class SvnSshServerTest {
             "ssh", "-F", "/dev/null", "-p", server.boundPort.toString(), "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "LogLevel=ERROR", key?.let { "-i ${it.file.path}" }
         ).joinToString(" ")
         val builder = ProcessBuilder(listOf("svn", "--non-interactive", "--config-dir", File(work, "svn-config").path) + args).directory(work).redirectErrorStream(true)
-        builder.environment().putAll(mapOf("SVN_SSH" to ssh, "LC_ALL" to "C"))
+        builder.environment().putAll(mapOf("SVN_SSH" to ssh, "LC_ALL" to "C.UTF-8"))
         val process = builder.start()
         val output = process.inputStream.readBytes().toString(Charsets.UTF_8)
         check(process.waitFor(60, TimeUnit.SECONDS)) { "시간 초과: ${args.toList()}" }
@@ -213,6 +213,47 @@ class SvnSshServerTest {
         val result = svn("cat", url(secret, "/trunk/a.txt"), key = deploy(secret, writable = false))
         assertEquals(0, result.exit, result.output)
         assertEquals("hello\n", result.output)
+    }
+
+
+    /** 작업 복사본을 SSH로 받아 파일을 고치고 커밋한다. */
+    private fun commitVia(p: Project, key: Key, message: String = "ssh 커밋", user: String = "git"): Pair<Result, File> {
+        val wc = File(work, "wc-${counter.incrementAndGet()}")
+        val checkout = svn("checkout", "-q", url(p, "/trunk", user), wc.path, key = key)
+        check(checkout.exit == 0) { "체크아웃 실패: ${checkout.output}" }
+        File(wc, "new-${counter.get()}.txt").writeText("ssh로 커밋\n")
+        File(wc, "a.txt").appendText("추가\n")
+        check(svn("add", "-q", "--force", wc.path, key = key).exit == 0)
+        return svn("commit", "-q", "-m", message, wc.path, key = key) to wc
+    }
+
+    @Test
+    fun `쓸 수 있는 사용자는 커밋하고 작성자가 로그인 아이디로 기록된다`() {
+        val (result, _) = commitVia(project, register(member))
+        assertEquals(0, result.exit, result.output)
+        val log = svn("log", "-l", "1", url(), key = register(member))
+        assertTrue(log.output.contains(member.loginId!!) && log.output.contains("ssh 커밋"), log.output)
+        assertEquals("hello\n추가\n", svn("cat", url(path = "/trunk/a.txt"), key = register(outsider)).output)
+    }
+
+    @Test
+    fun `읽기만 되는 사용자는 커밋이 거절되고 저장소는 그대로이다`() {
+        val (result, _) = commitVia(project, register(outsider))
+        assertNotEquals(0, result.exit)
+        assertTrue(result.output.contains("Authorization failed"), result.output)
+        assertEquals("hello\n", svn("cat", url(path = "/trunk/a.txt"), key = register(member)).output)
+    }
+
+    @Test
+    fun `읽기 전용 배포 키는 커밋하지 못하고 쓰기 배포 키는 커밋한다`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val (denied, _) = commitVia(secret, deploy(secret, writable = false))
+        assertNotEquals(0, denied.exit)
+        assertTrue(denied.output.contains("Authorization failed"), denied.output)
+        val (allowed, _) = commitVia(secret, deploy(secret, writable = true))
+        assertEquals(0, allowed.exit, allowed.output)
+        val log = svn("log", "-l", "1", url(secret), key = register(member))
+        assertTrue(log.output.contains("deploy-key-"), "배포 키의 커밋은 deploy-key-<번호>로 기록된다: ${log.output}")
     }
 
     @Test
