@@ -38,7 +38,7 @@ OSV가 17개 아티팩트에서 48건을 알려 줬다. 심각도 숫자보다 *
 | 3 | eddsa 0.3.0 (SVNKit 경유) | 1(보통) | 없음 | SSH 클라이언트 서명 검증의 문제이다. Yona의 SVN SSH는 서버이고 이 경로를 쓰지 않는다 |
 | 고침 | lz4-java 1.4.1 (SVNKit 경유) | 7(높음) | 유지되는 포크 1.14.1 | **고쳤다(A-620)**. 아래 참조 |
 
-**GitHub Dependabot의 6건**은 모두 `build-tools/js-bundle/package-lock.json`의 `vite`와 `launch-editor`이다. JS 번들을 만드는 개발 도구라 서버에 실리지 않는다.
+**GitHub Dependabot의 6건**은 모두 `build-tools/js-bundle/package-lock.json`의 `vite`(`launch-editor` 포함)이다. JS 번들을 만드는 개발 도구라 서버에 실리지 않는다. **`vite`를 8.3.0에서 8.3.8로 올려 처리했다**(같은 8.3 계열의 수정판): `npm audit` 0건, 번들 시험 8건 통과, 번들을 다시 만들어도 산출물이 같다(바뀐 파일은 `package.json`과 잠금 파일뿐).
 
 **번들 JS 18개**(marked 4.3.0, jQuery 3.7.1, jQuery UI 1.14.2, htmx 2.0.11, mustache 4.2.0, highlight.js 11.12.0, ace 1.45.2, select2 4.1.0, video.js 7.21.2, vue 3.5.45, popper 2.11.8, viewerjs 1.15.2, cropperjs 2.3.1, tus 3.7.7, nprogress 0.2.0, vanilla-calendar-pro 3.4.0, autosize, tippy)는 알려진 취약점이 없었다.
 

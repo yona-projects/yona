@@ -441,3 +441,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | 보안 점검: 서버 의존성 297개와 번들 JS 18개를 OSV에 조회(48건), 코드 패턴 점검. ra_svn 읽기 한도와 lz4-java 포크 치환을 바로 고침(A-620). 보고서는 architecture/security-review-2026-11.md
 
 ## [2026-11-17] test | 정화 정책 강화와 의존성 일괄 상향 뒤 전체 시험(H2): OpenTelemetry API만 1.67로 올린 첫 실행은 13분 26초에 1,666건 실패(계측 모듈과 버전 어긋남, 보류), 1.62로 고정한 두 번째 실행은 20분 2초에 5,491건 중 1건 실패(변경 이력의 history-made-by class, 허용 목록에 더해 고침). 고친 뒤 관련 31개 클래스 582건 통과(A-621, A-622)
+
+## [2026-11-17] build | GitHub Dependabot 경보 6건(build-tools/js-bundle의 vite) 처리: vite 8.3.0 -> 8.3.8, npm audit 0건, 번들 시험 8건 통과, 번들 산출물 변화 없음
