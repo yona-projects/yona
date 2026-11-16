@@ -147,6 +147,10 @@ dependencies {
 	constraints {
 		implementation("com.google.guava:guava:33.7.2-jre") { because("CVE-2026-102554") }
 	}
+	// Guava 33.0.0은 `checker-qual`을 끌고 왔지만 33.7.2는 `jspecify`로 바꿔 끌고 오지 않는다. Hibernate가 추론하는 타입에 붙은 타입 어노테이션
+	// (`UnknownKeyFor`, `NonNull`, `Initialized`)을 코틀린 컴파일러가 찾아야 하므로 컴파일에만 명시한다. 증분 컴파일에서는 드러나지 않고 전체 컴파일(CI)에서만 실패한다.
+	compileOnly("org.checkerframework:checker-qual:3.49.5")
+	testCompileOnly("org.checkerframework:checker-qual:3.49.5")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
