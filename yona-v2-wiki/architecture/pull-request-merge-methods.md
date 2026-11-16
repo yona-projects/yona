@@ -34,6 +34,15 @@ DB 기본값이 기존 행을 v1.6 동작(병합 커밋만)으로 채우므로 �
 
 리베이스는 `V16ResolveMerger`(기준 트리를 직접 정하는 세 방향 병합)로 커밋마다 원래 부모 트리를 기준으로 병합한다. 한 커밋에서라도 충돌하거나 병합 커밋이 섞여 있으면 아무것도 바꾸지 않고 실패한다. 병합 커밋과 스쿼시는 제목(`commitTitle`)과 본문(`commitMessage`)을 직접 줄 수 있고, 리베이스는 무시한다.
 
+### Mercurial 저장소의 스쿼시와 리베이스 (hg4j)
+
+위 표의 결과는 Git과 Mercurial이 같다. 구현은 `HgPullRequestBackend`에 있고 hg4j의 쓰임이 다르다(2026-11-16, hg4j 쪽 세션이 코드와 문서로 확인한 내용).
+
+- **병합 커밋과 스쿼시**: 둘 다 hg4j `MergeCommitCommand`로 쓴다. 병합 결과 트리의 계산은 저장소를 쓰지 않는 `TreeMergeCommand`이다. 스쿼시만 `setSquash(true)`를 더해 부모를 받는 쪽 머리 하나로 쓴다(`hg merge`, `hg debugsetparents P1`, `hg commit`과 같다). yona는 병합 커밋은 `createMerge`, 스쿼시는 `createSquash`로 따로 호출한다.
+- **스쿼시를 hg4j의 기존 공개 API로 조합할 수는 없다.** 작업 파일이 없는 서버 저장소에서 파일 리비전, manifest, changelog를 쓰는 클래스가 hg4j 안에서만 보이기 때문이다. `GraftInMemory`는 리비전마다 체인지셋 하나를 만드는 그래프트라 한 체인지셋으로 합치는 스쿼시가 아니다. 작업 디렉터리를 쓰는 조합(`UpdateCommand`, `MergeCommand`, dirstate의 `setParents`, `CommitCommand`)은 같은 체인지셋이 나오는지 검증된 적이 없어 쓰지 않는다. `setSquash`는 hg4j의 문서에 있는 공개 옵션이고 실제 hg와 노드를 비교하는 시험이 있다. 앞으로도 유지할지는 hg4j 소유자의 결정이다.
+- **리베이스**: `GraftInMemory`(작업 파일 없이 리비전마다 그래프트)이다. 병합 체인지셋이 섞이거나 한 체인지셋이라도 충돌하면 아무것도 바꾸지 않는다.
+- 주의: 충돌은 예외가 아니라 결과로 돌려주고 그때는 아무것도 쓰지 않는다. 이미 조상인 병합은 `setAllowAncestorMerge(true)`를 주어야 하고(yona는 준다), 병합 결과가 받는 쪽과 같으면 hg4j가 거절한다. 스쿼시는 보내는 쪽 머리를 부모로 남기지 않으므로 그 머리는 그대로 살아 있다.
+
 ## 3. 가능 여부 (병합 전에 보여 주기)
 
 - 병합 커밋과 스쿼시는 기존 충돌 판정(`pull_request.is_conflict`)을 그대로 쓴다.

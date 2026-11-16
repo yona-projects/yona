@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock
  *   수정과 파일 단위 병합 도구가 필요한 병합은 충돌로 본다(`mercurial-plan.md` 4.2절).
  * - **병합 커밋**: hg4j `MergeCommitCommand`로 부모가 둘인 체인지셋을 만든다(p1은 받는 쪽 머리, p2는 보내는 쪽 머리, Git의 `--no-ff`처럼 한쪽이
  *   다른 쪽의 조상이어도 만든다). 요청이 있는 동안에는 secret이고 예약 이름표 `…/merged`가 가리키며, 받아들이면 공개 단계로 올리고 받는 이름표를 옮긴다.
- * - **스쿼시**는 hg4j `MergeCommitCommand.setSquash`(부모가 받는 머리 하나뿐), **리베이스**는 `GraftInMemory`(작업 파일 없이 그래프트)로 한다.
+ * - **스쿼시**([createSquash])는 hg4j `MergeCommitCommand.setSquash`(부모가 받는 머리 하나뿐, 공개 API를 조합해서는 할 수 없다), **리베이스**는 `GraftInMemory`(작업 파일 없이 그래프트)로 한다.
  *
  * 가져오기와 참조 갱신은 받는 프로젝트 단위로 한 번에 하나씩만 실행한다.
  */
@@ -67,7 +67,7 @@ class HgPullRequestBackend(
         val node = when (method) {
             MergeMethod.MERGE -> createMerge(pullRequest, merged, user(sender), mergeMessage(pullRequest, merged, commitTitle, commitMessage, MergeMethod.MERGE))
             // 스쿼시: 같은 병합 결과 트리에 부모가 받는 머리 하나뿐인 커밋이다. 작성자는 풀 리퀘스트 작성자이다(Mercurial에는 커미터가 따로 없다)
-            MergeMethod.SQUASH -> createMerge(pullRequest, merged, contributorUser(pullRequest, sender), mergeMessage(pullRequest, merged, commitTitle, commitMessage, MergeMethod.SQUASH), squash = true)
+            MergeMethod.SQUASH -> createSquash(pullRequest, merged, contributorUser(pullRequest, sender), mergeMessage(pullRequest, merged, commitTitle, commitMessage, MergeMethod.SQUASH))
             MergeMethod.REBASE -> rebase(pullRequest, merged) ?: return@locked null
         }
         // 새 커밋과 가져온 체인지셋을 공개로 올려 `clone`, `pull`에 보이게 하고 받는 이름표를 옮긴다
@@ -147,11 +147,28 @@ class HgPullRequestBackend(
         return Merged(conflict, commits.range(to, toNode, fromNode), toNode, fromNode)
     }
 
-    /** 병합 체인지셋을 만든다. 부모는 (받는 쪽 머리, 보내는 쪽 머리)이고, [squash]이면 받는 쪽 머리 하나뿐이다(hg4j `setSquash`). */
-    private fun createMerge(pullRequest: PullRequest, merged: Merged, user: String, message: String = MergeMessages.message(pullRequest, merged.commits), squash: Boolean = false): String {
+    /** 병합 체인지셋을 만든다. 부모는 (받는 쪽 머리, 보내는 쪽 머리) 둘이다. */
+    private fun createMerge(pullRequest: PullRequest, merged: Merged, user: String, message: String = MergeMessages.message(pullRequest, merged.commits)): String =
+        writeMergeCommit(pullRequest, merged, user, message)
+
+    /**
+     * 스쿼시 체인지셋을 만든다. 병합 결과 트리를 부모가 받는 쪽 머리 하나뿐인 체인지셋 하나로 쓴다(`hg merge`, `hg debugsetparents P1`, `hg commit`과 같다).
+     * 보내는 쪽 머리는 부모로 남지 않아 그대로 살아 있다.
+     *
+     * 이 일은 hg4j의 공개 API를 조합해서는 할 수 없다. 작업 파일이 없는 서버 저장소에 파일 리비전, manifest, changelog를 쓰는 클래스가 hg4j 안에서만 보이기
+     * 때문이며, hg4j가 `MergeCommitCommand.setSquash`를 문서화된 공개 옵션으로 제공한다(hg4j 참조 문서 maintenance, 실제 hg와 노드를 비교하는 시험 있음).
+     * 작업 디렉터리를 쓰는 조합(`UpdateCommand`, `MergeCommand`, dirstate, `CommitCommand`)은 같은 체인지셋이 나오는지 검증된 적이 없어 쓰지 않는다.
+     */
+    private fun createSquash(pullRequest: PullRequest, merged: Merged, user: String, message: String): String =
+        writeMergeCommit(pullRequest, merged, user, message) { setSquash(true) }
+
+    /** [createMerge]와 [createSquash]가 함께 쓰는 쓰기이다. [configure]로 병합 방식에 따른 옵션만 더한다. */
+    private fun writeMergeCommit(pullRequest: PullRequest, merged: Merged, user: String, message: String, configure: MergeCommitCommand.() -> Unit = {}): String {
         val to = requireNotNull(pullRequest.toProject)
         return repositories.open(owner(to), name(to)).use { hg ->
-            val result = MergeCommitCommand(hg.repository).setP1(merged.left).setP2(merged.right).setUser(user).setMessage(message).setAllowAncestorMerge(true).setSquash(squash).call()
+            val command = MergeCommitCommand(hg.repository).setP1(merged.left).setP2(merged.right).setUser(user).setMessage(message).setAllowAncestorMerge(true)
+            command.configure()
+            val result = command.call()
             check(!result.isConflicted) { "병합 시험은 충돌이 아니었는데 병합 커밋에서 충돌했다: ${result.conflicts}" }
             requireNotNull(result.nodeHex)
         }
