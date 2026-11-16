@@ -19,7 +19,7 @@ class GitTextReader(private val git: GitRepositories) : TextReader {
 
     override val type: VcsType get() = VcsType.GIT
 
-    private fun open(project: Project) = git.open(requireNotNull(project.owner), requireNotNull(project.name))
+    private fun open(project: Project) = git.openForRead(requireNotNull(project.owner), requireNotNull(project.name))
 
     override fun readText(project: Project, path: String): String? = open(project).use { repository ->
         val head = repository.resolve(Constants.HEAD) ?: return null

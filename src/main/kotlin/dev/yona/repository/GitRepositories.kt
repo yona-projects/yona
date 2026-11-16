@@ -53,6 +53,14 @@ class GitRepositories @Autowired constructor(private val dataDirectory: DataDire
         RepositoryBuilder().setGitDir(directoryOf(owner, name)).setMustExist(true).build()
 
     /**
+     * 화면에서 읽으려고 저장소를 연다. 호출한 쪽이 닫아야 한다. 디렉터리가 없어도 예외 없이 **빈 저장소처럼** 열리고 디렉터리를 만들지도 않는다.
+     * v1.6의 읽기 경로는 저장소를 열 때 존재를 요구하지 않아(`GitRepository.buildGitRepository`, `setMustExist` 없음) 이관으로 저장소를 옮기지 않았거나
+     * 이슈 트래커로만 쓰는 프로젝트도 코드 화면은 "저장소가 비어 있다"는 안내로, 커밋과 태그는 404로 보여 준다. 쓰기 경로는 [open]을 쓴다.
+     */
+    fun openForRead(owner: String, name: String): Repository =
+        RepositoryBuilder().setGitDir(directoryOf(owner, name)).build()
+
+    /**
      * Git 스마트 HTTP용으로 저장소를 연다. 디렉터리가 없어도 예외 없이 저장소를 돌려주고 디렉터리를 만들지도 않는다.
      * v1.6 `GitRepository.buildGitRepository`가 `setMustExist`를 쓰지 않아, 프로젝트 행만 있고 디렉터리가 없을 때도 `info/refs`가
      * 빈 저장소와 같은 광고를 200으로 돌려주기 때문이다.
@@ -122,12 +130,16 @@ class GitRepositories @Autowired constructor(private val dataDirectory: DataDire
     }
 
     /** 저장소의 브랜치, 태그, 원격 참조 이름을 이름순으로 돌려준다 (v1.6 `GitRepository.getRefNames`). */
-    fun refNames(owner: String, name: String): List<String> = open(owner, name).use { repository ->
+    fun refNames(owner: String, name: String): List<String> = openForRead(owner, name).use { repository ->
         repository.refDatabase.refs.map { it.name }.filter { ref -> WELL_KNOWN_PREFIXES.any { ref.startsWith(it) } }.sorted()
     }
 
-    /** 저장소의 기본 브랜치(`HEAD`가 가리키는 참조) 이름이다. 예: `refs/heads/master`. */
-    fun defaultBranch(owner: String, name: String): String = open(owner, name).use { it.findRef(Constants.HEAD).target.name }
+    /**
+     * 저장소의 기본 브랜치(`HEAD`가 가리키는 참조) 이름이다. 예: `refs/heads/master`. 저장소 디렉터리가 없으면 빈 저장소를 만들 때 `HEAD`가 가리킬
+     * 브랜치(`yona.git-default-branch`)를 돌려준다([openForRead]).
+     */
+    fun defaultBranch(owner: String, name: String): String =
+        openForRead(owner, name).use { it.findRef(Constants.HEAD)?.target?.name ?: (Constants.R_HEADS + properties.gitDefaultBranch) }
 
     /** 저장소의 기본 브랜치를 [target]으로 바꾼다. 바꾸지 못하면 [java.io.IOException]이다. */
     fun setDefaultBranch(owner: String, name: String, target: String) {

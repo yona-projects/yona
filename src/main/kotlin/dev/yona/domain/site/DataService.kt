@@ -524,6 +524,10 @@ class DataService(
                 return@forEachIndexed
             }
             val found = row.get(column.key) ?: column.legacyKey?.let { row.get(it) }
+            if (found == null && column.absentTrueWhenState != null && row.get("state")?.takeIf { it.isNumber }?.intValue() == column.absentTrueWhenState) {
+                if (smallintBooleans) ps.setShort(position, 1) else ps.setBoolean(position, true)
+                return@forEachIndexed
+            }
             if (found == null && column.absentBoolean != null) { if (smallintBooleans) ps.setShort(position, if (column.absentBoolean) 1 else 0) else ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
             if (found == null && column.absentInt != null) { if (smallintBooleans) ps.setShort(position, column.absentInt.toShort()) else ps.setInt(position, column.absentInt); return@forEachIndexed }
             if (found == null && column.absentNull) {

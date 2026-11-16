@@ -288,6 +288,18 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `v1_6 파일에 is_draft가 없어도 초안 상태의 이슈는 초안으로 가져온다 (v1_6 파일은 초안 표시를 내보내지 않았다)`() {
+        TestDatabase.assumeOrphanRowsSurviveImport()
+        fun issue(id: Long, state: Int, extra: String = "") = """{"id": $id, "title": "t$id", "body": "b", "created_date": 1700000000000, "num_of_comments": 0, "milestone_id": null, "author_id": 1, "author_login_id": "a", "author_name": "A",
+            "state": $state, "project_id": 880002, "assignee_id": null, "number": $id, "updated_date": 1700000000000, "due_date": null$extra}"""
+        // 7은 State.DRAFT이다. v1.6은 초안을 만들 때 isDraft와 state를 함께 정한다(IssueApp.java:614)
+        import("""{"ISSUE": [${issue(880051, 7)}, ${issue(880052, 1)}, ${issue(880053, 7, ""","is_draft": false """)}]}""")
+        assertEquals(true, jdbc.queryForObject("select is_draft from issue where id = 880051", Boolean::class.java), "초안 상태이고 키가 없으면 초안이다. 아니면 남의 초안이 공개된다")
+        assertEquals(false, jdbc.queryForObject("select is_draft from issue where id = 880052", Boolean::class.java), "초안 상태가 아니면 초안이 아니다")
+        assertEquals(false, jdbc.queryForObject("select is_draft from issue where id = 880053", Boolean::class.java), "키가 있으면 파일의 값을 그대로 따른다")
+    }
+
+    @Test
     fun `즐겨찾기, 웹훅, 감사 같은 사용자 데이터 테이블도 내보내고 가져온다 (R-56-2)`() {
         TestDatabase.assumeOrphanRowsSurviveImport()
         val json = """{

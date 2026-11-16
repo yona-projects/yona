@@ -38,7 +38,7 @@ class GitCodeReader(
 
     override val type: dev.yona.domain.vcs.VcsType get() = dev.yona.domain.vcs.VcsType.GIT
 
-    private fun open(project: Project): Repository = git.open(requireNotNull(project.owner), requireNotNull(project.name))
+    private fun open(project: Project): Repository = git.openForRead(requireNotNull(project.owner), requireNotNull(project.name))
 
     /** 저장소에 브랜치, 태그, 원격 참조가 하나도 없으면 `true`이다 (v1.6 `GitRepository.isEmpty`). */
     override fun isEmpty(project: Project): Boolean = git.refNames(requireNotNull(project.owner), requireNotNull(project.name)).isEmpty()

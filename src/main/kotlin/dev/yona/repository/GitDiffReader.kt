@@ -38,7 +38,7 @@ class GitDiffReader(private val git: GitRepositories) : DiffReader {
 
     override val type: VcsType get() = VcsType.GIT
 
-    private fun open(project: Project): Repository = git.open(requireNotNull(project.owner), requireNotNull(project.name))
+    private fun open(project: Project): Repository = git.openForRead(requireNotNull(project.owner), requireNotNull(project.name))
 
     override fun commitDiff(project: Project, revision: String): DiffSource? {
         val repository = open(project)

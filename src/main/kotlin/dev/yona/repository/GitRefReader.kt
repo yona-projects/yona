@@ -19,7 +19,7 @@ class GitRefReader(private val git: GitRepositories) : RefReader {
 
     override val type: VcsType get() = VcsType.GIT
 
-    private fun open(project: Project) = git.open(requireNotNull(project.owner), requireNotNull(project.name))
+    private fun open(project: Project) = git.openForRead(requireNotNull(project.owner), requireNotNull(project.name))
 
     /**
      * `refs/heads/` 아래의 브랜치만 머리 커밋이 최근인 순서로 모은다.

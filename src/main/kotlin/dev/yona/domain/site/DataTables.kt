@@ -57,9 +57,10 @@ data class DerivedColumn(val table: String, val column: String, val via: String)
  * @property absentString 가져오는 파일에 이 키가 없을 때 쓰는 문자열 값이다(`absentBoolean`의 문자열 판이다).
  * @property derivedFrom 이 컬럼은 내보내지 않고, 가져올 때 [DerivedColumn]이 가리키는 테이블에서 채운다. 파일에 이 키가 있어도 쓰지 않는다
  * @property absentInt 가져오는 파일에 이 키가 없을 때 쓰는 정수 값이다.
+ * @property absentTrueWhenState 가져오는 파일에 이 키가 없고 같은 행의 `state` 값이 이 숫자이면 `true`로 가져온다(`absentBoolean`보다 먼저 본다). v1.6 파일에 없는 `is_draft`를 초안 상태(`State.DRAFT`)의 이슈에서 복원하는 데 쓴다.
  * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false, val derivedFrom: DerivedColumn? = null, val legacyKey: String? = null, val absentInt: Int? = null)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false, val derivedFrom: DerivedColumn? = null, val legacyKey: String? = null, val absentInt: Int? = null, val absentTrueWhenState: Int? = null)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -392,7 +393,7 @@ object DataTables {
             DataColumn("updated_date", TIMESTAMP),
             DataColumn("due_date", TIMESTAMP),
             // v1.6 교환기가 다루지 않던 컬럼이다(R-56-1). v1.6 파일에는 없으므로 없으면 기본값으로 채운다
-            DataColumn("is_draft", BOOLEAN, absentBoolean = false),
+            DataColumn("is_draft", BOOLEAN, absentBoolean = false, absentTrueWhenState = 7),
             DataColumn("weight", INT, absentInt = 0),
             DataColumn("parent_id", LONG, nullableLong = true, absentNull = true),
             DataColumn("updated_by_author_id", LONG, nullableLong = true, absentNull = true),
