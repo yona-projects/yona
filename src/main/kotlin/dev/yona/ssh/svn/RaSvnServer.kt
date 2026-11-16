@@ -56,7 +56,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
     private var session: Session? = null
 
     /** 한 접속이 쓰는 저장소의 정보이다. [path]는 세션 주소의 저장소 안 경로(앞 슬래시 없음)로, `reparent`가 바꾼다. */
-    class Session(val repository: SVNRepository, val rootUrl: String, val writable: Boolean, var path: String)
+    class Session(val repository: SVNRepository, val directory: File, val rootUrl: String, val writable: Boolean, var path: String)
 
     /** 인사부터 마지막까지 처리한다. 접속을 닫으면 돌아온다. */
     fun serve() {
@@ -89,7 +89,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
             return fail(SVNErrorCode.RA_SVN_REPOS_NOT_FOUND, "No repository found in '$url'")
         }
         val uuid = try { repository.getRepositoryUUID(true) } catch (e: SVNException) { return fail(e) }
-        session = Session(repository, rootUrl, found.writable, rest)
+        session = Session(repository, found.directory, rootUrl, found.writable, rest)
         // 터널에서 이미 인증했으므로 EXTERNAL만 내놓는다. 클라이언트가 ANONYMOUS를 고르면 사용자가 없는 접속이 되므로 내놓지 않는다
         send(success(raList(raList(RaWord("EXTERNAL")), RaString(uuid))))
         val auth = receive() as? RaList ?: return false
@@ -180,7 +180,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, private 
          * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`과 `accepts-svndiff2`는 내놓지 않아
          * 클라이언트가 압축하지 않은 svndiff0을 쓰게 한다(구현이 단순하다). `depth`와 `mergeinfo`는 아직 구현하지 않았다.
          */
-        val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "log-revprops", "list")
+        val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "log-revprops", "inherited-props", "list")
 
         /** 저장소 정보 응답의 기능 목록이다. 병합 정보는 아직 지원하지 않는다. */
         val REPOSITORY_CAPABILITIES = emptyList<String>()

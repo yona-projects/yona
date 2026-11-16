@@ -36,6 +36,16 @@ data class RaList(val items: List<RaItem>) : RaItem
 /** 목록을 만드는 도우미이다. */
 fun raList(vararg items: RaItem): RaList = RaList(items.toList())
 
+/**
+ * SVNKit 속성 값의 바이트이다. 값이 문자열로 저장된 속성은 [org.tmatesoft.svn.core.SVNPropertyValue.getBytes]가 비어 있으므로 문자열을 UTF-8로 바꾸고,
+ * 바이트로 저장된 속성(이진 값)은 그대로 쓴다. 값이 없으면 빈 바이트이다.
+ */
+fun org.tmatesoft.svn.core.SVNPropertyValue?.toRaBytes(): ByteArray = when {
+    this == null -> ByteArray(0)
+    isString -> string.toByteArray(Charsets.UTF_8)
+    else -> bytes ?: ByteArray(0)
+}
+
 /** 프로토콜 규칙을 어긴 입력이다(끊김, 모르는 모양). 연결을 닫아야 한다. */
 class RaSvnProtocolException(message: String) : IOException(message)
 

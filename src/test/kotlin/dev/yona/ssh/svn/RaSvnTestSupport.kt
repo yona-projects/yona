@@ -33,10 +33,12 @@ class RaSvnTestServer(private val work: File, private val resolver: RaSvnResolve
             #!/usr/bin/env python3
             import socket, os, threading
             s = socket.create_connection(("127.0.0.1", ${socket.localPort}))
+            log = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ra-dialogue.log"), "ab", buffering=0)
             def up():
                 while True:
                     d = os.read(0, 65536)
                     if not d: break
+                    log.write(b"C>S " + d + b"\n")
                     s.sendall(d)
                 try: s.shutdown(socket.SHUT_WR)
                 except OSError: pass
@@ -44,6 +46,7 @@ class RaSvnTestServer(private val work: File, private val resolver: RaSvnResolve
             while True:
                 d = s.recv(65536)
                 if not d: break
+                log.write(b"S>C " + d + b"\n")
                 os.write(1, d)
             """.trimIndent()
         )
@@ -57,11 +60,17 @@ class RaSvnTestServer(private val work: File, private val resolver: RaSvnResolve
     class Result(val exit: Int, val output: String)
 
     fun svn(vararg args: String, dir: File = work): Result {
-        val process = ProcessBuilder(listOf("svn", "--config-dir", configDir.path, "--non-interactive") + args).directory(dir).redirectErrorStream(true).also { it.environment()["LC_ALL"] = "C" }.start()
-        val output = process.inputStream.readBytes().toString(Charsets.UTF_8)
-        check(process.waitFor(60, TimeUnit.SECONDS)) { "시간 초과: ${args.toList()}" }
-        return Result(process.exitValue(), output)
+        val out = File(work, "svn-out-${System.nanoTime()}.txt")
+        val process = ProcessBuilder(listOf("svn", "--config-dir", configDir.path, "--non-interactive") + args).directory(dir).redirectErrorStream(true).redirectOutput(out).also { it.environment()["LC_ALL"] = "C.UTF-8" }.start()
+        if (!process.waitFor(60, TimeUnit.SECONDS)) {
+            process.destroyForcibly()
+            error("시간 초과: ${args.toList()}\n대화:\n${dialogue()}")
+        }
+        return Result(process.exitValue(), out.readText())
     }
+
+    /** 중계기가 기록한 클라이언트와 서버의 대화이다(실패 원인을 볼 때 쓴다). */
+    fun dialogue(): String = File(work, "ra-dialogue.log").takeIf { it.exists() }?.readText(Charsets.UTF_8)?.takeLast(6000).orEmpty()
 
     override fun close() {
         socket.close(); connections.forEach { runCatching { it.close() } }

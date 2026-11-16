@@ -3,6 +3,7 @@ package dev.yona.ssh.svn
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNDirEntry
 import org.tmatesoft.svn.core.SVNErrorCode
+import org.tmatesoft.svn.core.SVNDepth
 import org.tmatesoft.svn.core.SVNErrorMessage
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNLogEntry
@@ -12,7 +13,11 @@ import org.tmatesoft.svn.core.SVNProperties
 import org.tmatesoft.svn.core.SVNProperty
 import org.tmatesoft.svn.core.SVNPropertyValue
 import org.tmatesoft.svn.core.SVNRevisionProperty
+import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.internal.util.SVNDate
+import org.tmatesoft.svn.core.io.ISVNReporter
+import org.tmatesoft.svn.core.io.ISVNReporterBaton
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.net.URLDecoder
@@ -42,6 +47,9 @@ class RaSvnCommands(private val server: RaSvnServer) {
             "get-locations" -> getLocations(args)
             "rev-proplist" -> revProplist(args)
             "rev-prop" -> revProp(args)
+            "update" -> update(args)
+            "get-iprops" -> getInheritedProps(args)
+            "get-dir" -> getDir(args)
             else -> return false
         }
         return true
@@ -239,6 +247,119 @@ class RaSvnCommands(private val server: RaSvnServer) {
     /** 경로가 없을 때의 오류이다. 코드(160013)와 문구는 `svnserve`와 같다. */
     private fun notFound(path: String, rev: Long) = SVNException(SVNErrorMessage.create(SVNErrorCode.FS_NOT_FOUND, "File not found: revision $rev, path '/$path'"))
 
+
+
+    /**
+     * `get-iprops`: 경로의 윗 디렉터리들이 가진 속성이다(저장소 루트부터 부모까지, 속성이 있는 것만). 클라이언트는 `svn:auto-props`처럼 상속하는 속성을 쓰려고 묻는다.
+     * 형식은 `( success ( ( ( 경로 ( ( 이름 값 ) ... ) ) ... ) ) )`이고 없으면 `( success ( ( ) ) )`이다.
+     */
+    private fun getInheritedProps(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        val rev = latest(revision(args.getOrNull(1)))
+        server.sendAuthOk()
+        val ancestors = path.split('/').filter { it.isNotEmpty() }.let { parts -> (0 until parts.size).map { parts.take(it).joinToString("/") } }
+        val inherited = ancestors.mapNotNull { ancestor ->
+            val properties = SVNProperties()
+            repository.getDir(ancestor, rev, properties, null as org.tmatesoft.svn.core.ISVNDirEntryHandler?)
+            val regular = properties.nameSet().filter { !it.startsWith("svn:entry:") && !it.startsWith("svn:wc:") }.sorted()
+            if (regular.isEmpty()) null else raList(RaString("/$ancestor"), RaList(regular.map { raList(RaString(it), RaString(propertyBytes(properties.getSVNPropertyValue(it)))) }))
+        }
+        server.send(RaSvnServer.success(raList(RaList(inherited))))
+    }
+
+    /** `get-dir`: 디렉터리의 속성과 항목이다(`list`가 없던 옛 클라이언트와 일부 작업이 쓴다). 항목은 이름, 종류, 크기, 속성 유무, 만든 리비전, 날짜, 작성자이다. */
+    private fun getDir(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        val rev = latest(revision(args.getOrNull(1)))
+        val wantProps = bool(args.getOrNull(2)); val wantContents = bool(args.getOrNull(3))
+        server.sendAuthOk()
+        if (repository.checkPath(path, rev) != SVNNodeKind.DIR) throw notFound(path, rev)
+        val properties = SVNProperties()
+        val entries = if (wantContents) repository.getDir(path, rev, properties, SVNDirEntry.DIRENT_ALL, ArrayList<SVNDirEntry>()).sortedBy { it.name } else {
+            repository.getDir(path, rev, properties, null as org.tmatesoft.svn.core.ISVNDirEntryHandler?); emptyList()
+        }
+        val props = if (wantProps) entryProperties(path, rev, properties) else raList()
+        val items = entries.map { raList(RaString(it.name), RaWord(kindWord(it.kind)), size(it), bool(it.hasProperties()), RaNumber(it.revision), optional(dateString(it.date)), optional(it.author)) }
+        server.send(RaSvnServer.success(raList(RaNumber(rev), props, RaList(items))))
+    }
+
+    // ---- 갱신 ----
+
+    /** 클라이언트가 보고한 한 줄이다(`set-path`, `link-path`, `delete-path`). */
+    private sealed interface Report {
+        data class SetPath(val path: String, val revision: Long, val startEmpty: Boolean, val depth: SVNDepth) : Report
+        data class LinkPath(val path: String, val url: SVNURL, val revision: Long, val startEmpty: Boolean, val depth: SVNDepth) : Report
+        data class DeletePath(val path: String) : Report
+    }
+
+    /**
+     * `update`: 클라이언트가 가진 리비전을 보고([Report])받은 뒤, 그 상태에서 목표 리비전까지의 변경을 편집기 명령으로 보낸다([RaSvnEditorWriter]). 보고가 끝나면
+     * 응답 앞의 인증 확인을 한 번 더 보내고, 편집기를 다 보낸 뒤에는 클라이언트의 확인(`( success ( ) )`)을 읽고 마지막 응답을 보낸다.
+     */
+    private fun update(args: List<RaItem>) {
+        val targetRevision = revision(args.getOrNull(0))
+        val target = text(args.getOrNull(1)).trim('/')
+        val recurse = bool(args.getOrNull(2))
+        val depth = depth((args.getOrNull(3) as? RaWord)?.value, recurse)
+        val sendCopyFrom = bool(args.getOrNull(4))
+        server.sendAuthOk()
+        val reports = readReport() ?: return
+        server.sendAuthOk()
+        val located = locatedRepository()
+        try {
+            located.update(targetRevision, target, depth, sendCopyFrom, ISVNReporterBaton { reporter -> replay(reporter, reports) }, RaSvnEditorWriter(server))
+        } finally {
+            located.closeSession()
+        }
+        // 클라이언트는 편집기를 다 받으면 확인을 보내고, 서버는 그에 마지막 응답을 한다
+        server.receive()
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /** `finish-report`까지 보고를 읽는다. 클라이언트가 `abort-report`를 보내면 `null`이다(그때는 마지막 응답만 보낸다). */
+    private fun readReport(): List<Report>? {
+        val reports = mutableListOf<Report>()
+        while (true) {
+            val message = server.receive() as? RaList ?: throw RaSvnProtocolException("보고가 끝나기 전에 입력이 끊겼다")
+            val name = (message.items.getOrNull(0) as? RaWord)?.value
+            val params = (message.items.getOrNull(1) as? RaList)?.items.orEmpty()
+            when (name) {
+                "set-path" -> reports += Report.SetPath(text(params.getOrNull(0)), (params.getOrNull(1) as? RaNumber)?.value ?: 0, bool(params.getOrNull(2)), depth((params.getOrNull(4) as? RaWord)?.value, true))
+                "link-path" -> reports += Report.LinkPath(text(params.getOrNull(0)), fileUrl(text(params.getOrNull(1))), (params.getOrNull(2) as? RaNumber)?.value ?: 0, bool(params.getOrNull(3)), depth((params.getOrNull(5) as? RaWord)?.value, true))
+                "delete-path" -> reports += Report.DeletePath(text(params.getOrNull(0)))
+                "finish-report" -> return reports
+                "abort-report" -> { server.send(RaSvnServer.success(raList())); return null }
+                else -> throw RaSvnProtocolException("보고에 올 수 없는 명령: $name")
+            }
+        }
+    }
+
+    private fun replay(reporter: ISVNReporter, reports: List<Report>) {
+        for (report in reports) when (report) {
+            is Report.SetPath -> reporter.setPath(report.path, null, report.revision, report.depth, report.startEmpty)
+            is Report.LinkPath -> reporter.linkPath(report.url, report.path, null, report.revision, report.depth, report.startEmpty)
+            is Report.DeletePath -> reporter.deletePath(report.path)
+        }
+        reporter.finishReport()
+    }
+
+    /** 세션 주소가 저장소 위치인 SVNKit 저장소이다. 편집기가 내는 경로는 이 위치(세션 주소) 기준이 된다. */
+    private fun locatedRepository() = SVNRepositoryFactory.create(fileUrl("${server.current().rootUrl}/${server.current().path}"))
+
+    /** 클라이언트가 보낸 주소를 저장소 디렉터리의 파일 주소로 바꾼다(저장소 루트 주소 아래만 허용한다). */
+    private fun fileUrl(url: String): SVNURL {
+        val session = server.current()
+        val root = decode(URI(session.rootUrl).rawPath.orEmpty()).trimEnd('/')
+        val path = decode(URI(url.trimEnd('/')).rawPath.orEmpty()).trimEnd('/')
+        if (path != root && !path.startsWith("$root/")) throw SVNException(SVNErrorMessage.create(SVNErrorCode.RA_ILLEGAL_URL, "'$url' is not a child of the session's repository root URL"))
+        return SVNURL.fromFile(session.directory).appendPath(path.removePrefix(root).trim('/'), false)
+    }
+
+    private fun depth(word: String?, recurse: Boolean): SVNDepth {
+        val parsed = word?.let { SVNDepth.fromString(it) } ?: SVNDepth.UNKNOWN
+        return if (parsed != SVNDepth.UNKNOWN) parsed else if (recurse) SVNDepth.INFINITY else SVNDepth.FILES
+    }
+
     // ---- 값 만들기 ----
 
     private fun kindWord(kind: SVNNodeKind?): String = when (kind) { SVNNodeKind.DIR -> "dir"; SVNNodeKind.FILE -> "file"; SVNNodeKind.NONE -> "none"; else -> "unknown" }
@@ -252,7 +373,7 @@ class RaSvnCommands(private val server: RaSvnServer) {
 
     private fun dateString(date: Date?): String? = date?.let { SVNDate.formatDate(it) }
 
-    private fun propertyBytes(value: SVNPropertyValue?): ByteArray = value?.bytes ?: ByteArray(0)
+    private fun propertyBytes(value: SVNPropertyValue?): ByteArray = value.toRaBytes()
 
     private fun decode(path: String): String = URLDecoder.decode(path.replace("+", "%2B"), Charsets.UTF_8)
 
