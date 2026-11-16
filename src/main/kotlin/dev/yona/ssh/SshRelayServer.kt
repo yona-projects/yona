@@ -108,7 +108,7 @@ class SshRelayServer(
                 val address = readLine(input)
                 val command = readLine(input)
                 if (address == null || command == null) return reject(output, "Invalid handshake.")
-                val principal = tokens.verify(tokenLine) ?: return reject(output, "Invalid credentials.")
+                val principal = tokens.verify(tokenLine) ?: return reject(output, "Invalid credentials.", svn = isSvn(command))
                 runner.run(principal, command, SshStreams(input, output, OutputStream.nullOutputStream()), address.takeIf { it.isNotBlank() }) { reject(output, it.removePrefix("ERROR: "), plain = command.startsWith("git-lfs-authenticate")) }
                 output.flush()
             } catch (e: Exception) {
@@ -122,8 +122,13 @@ class SshRelayServer(
      * git의 오류 줄(`ERR <사유>`)을 pkt-line으로 쓴다. 프로토콜이 시작되기 전에만 쓴다. [plain]이 참이면(`git-lfs-authenticate`) 사유를 그냥 한 줄 글로 쓴다:
      * 그 명령의 클라이언트(git-lfs)는 JSON을 기다리므로 pkt-line 접두어 없이 읽을 수 있는 글이 오류 메시지에 그대로 보이는 편이 낫다(X-8).
      */
-    private fun reject(output: OutputStream, message: String, plain: Boolean = false) {
+    private fun reject(output: OutputStream, message: String, plain: Boolean = false, svn: Boolean = false) {
         if (plain) { output.write("$message\n".toByteArray()); output.flush(); return }
+        if (svn) {
+            // Subversion 클라이언트는 인사를 기다린다. git의 오류 줄은 읽지 못하므로 ra_svn의 실패 응답(`( failure ( ( 170001 사유 0: 0 ) ) )`)으로 알린다
+            dev.yona.ssh.svn.RaSvnWriter(output).apply { write(dev.yona.ssh.svn.raList(dev.yona.ssh.svn.RaWord("failure"), dev.yona.ssh.svn.raList(dev.yona.ssh.svn.raList(dev.yona.ssh.svn.RaNumber(170001), dev.yona.ssh.svn.RaString(message), dev.yona.ssh.svn.RaString(""), dev.yona.ssh.svn.RaNumber(0))))); flush() }
+            return
+        }
         val body = "ERR $message".toByteArray()
         output.write("%04x".format(body.size + 4).toByteArray())
         output.write(body)
@@ -144,6 +149,9 @@ class SshRelayServer(
             buffer.write(b)
         }
     }
+
+    /** Subversion 클라이언트의 명령(`svnserve -t`)이면 `true`이다. */
+    private fun isSvn(command: String?): Boolean = command?.trim() == "svnserve -t"
 
     private class NamedThreads(private val prefix: String) : java.util.concurrent.ThreadFactory {
         private val index = AtomicInteger()

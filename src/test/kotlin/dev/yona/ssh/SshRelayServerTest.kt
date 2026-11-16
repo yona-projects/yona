@@ -20,6 +20,7 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.TestDatabase
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -77,6 +78,7 @@ open class SshRelayServerTest {
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var svnRepositories: dev.yona.repository.svn.SvnRepositories
     @Autowired private lateinit var deletion: ProjectDeletionService
     @Autowired private lateinit var sshKeys: SshKeyService
     @Autowired private lateinit var sshKeyRepository: SshKeyRepository
@@ -159,16 +161,35 @@ open class SshRelayServerTest {
         it.setExecutable(true)
     }
 
+    /**
+     * Subversion 클라이언트용 가짜 `ssh`이다. `svn`은 `ssh <호스트> svnserve -t`처럼 명령을 여러 인자로 넘기므로 호스트 뒤의 인자를 하나의 명령으로 합친다.
+     * 그 밖에는 [fakeSsh]와 같다(훅을 불러 강제 명령을 얻고 셸로 실행한다).
+     */
+    private fun fakeSvnSsh(): File = File(work, "fake-svn-ssh").also {
+        it.writeText(
+            """
+            #!/usr/bin/env bash
+            command_line="${'$'}{*:2}"
+            line="${'$'}(${hook()} "${'$'}FAKE_KEY_TYPE" "${'$'}FAKE_KEY_BLOB")" || exit 255
+            if [ -z "${'$'}line" ]; then echo "git@host: Permission denied (publickey)." >&2; exit 255; fi
+            value="${'$'}(printf '%s' "${'$'}line" | sed -E 's/^command="(.*)",no-port-forwarding.*${'$'}/\1/' | sed 's/\\"/"/g')"
+            export SSH_ORIGINAL_COMMAND="${'$'}command_line" SSH_CLIENT="127.0.0.1 50000 22"
+            exec bash -c "${'$'}value"
+            """.trimIndent() + "\n"
+        )
+        it.setExecutable(true)
+    }
+
     private class Result(val exit: Int, val output: String)
 
-    private fun run(vararg command: String, key: Key? = null, dir: File = work): Result {
+    private fun run(vararg command: String, key: Key? = null, dir: File = work, env: Map<String, String> = emptyMap()): Result {
         val builder = ProcessBuilder(*command).directory(dir).redirectErrorStream(true)
         builder.environment().putAll(
             mapOf(
                 "GIT_TERMINAL_PROMPT" to "0", "GIT_SSH" to fakeSsh().path, "GIT_SSH_VARIANT" to "simple",
                 "YONA_INTERNAL_URL" to "http://127.0.0.1:$port", "YONA_SSH_SECRET_FILE" to secretFile().path, "YONA_SSH_RELAY_SOCKET" to relay.socketPath,
                 "FAKE_KEY_TYPE" to (key?.type ?: "ssh-ed25519"), "FAKE_KEY_BLOB" to (key?.blob ?: "AAAA")
-            )
+            ) + env
         )
         // 출력을 파일로 받아 시간 초과를 정확히 센다(고아가 된 자식이 출력 파이프를 쥐고 있어도 읽기가 멈추지 않는다)
         val log = File(work, "out-${counter.incrementAndGet()}.log")
@@ -198,6 +219,77 @@ open class SshRelayServerTest {
         val dir = File(work, "clone-${counter.incrementAndGet()}")
         return git("clone", "-q", url(p), dir.path, key = key) to dir
     }
+
+    // --- Subversion(svn+ssh)을 중계로 쓰는 시험 ---
+
+    /** Subversion 프로젝트를 만들고 `/trunk/a.txt`를 커밋해 둔다(파일 접근이라 서버를 거치지 않는다). */
+    private fun svnProject(scope: ProjectScope): Project {
+        val n = counter.incrementAndGet()
+        val p = projects.save(Project(owner = member.loginId, name = "relsvn$n", vcs = "Subversion", projectScope = scope))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        projectUsers.save(ProjectUser(user = member, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
+        repositories.createRepository(p)
+        val wc = File(work, "svn-seed-${counter.incrementAndGet()}")
+        fun local(vararg a: String) = check(ProcessBuilder("svn", *a).redirectErrorStream(true).start().also { it.inputStream.readBytes() }.waitFor() == 0) { a.toList().toString() }
+        local("checkout", "-q", "file://${svnRepositories.directoryOf(p.owner!!, p.name!!).absolutePath}", wc.path)
+        File(wc, "trunk").mkdirs(); File(wc, "trunk/a.txt").writeText("hello\n")
+        local("add", "-q", "${wc.path}/trunk"); local("commit", "-q", "-m", "seed", wc.path)
+        return p
+    }
+
+    private fun svn(vararg args: String, key: Key?): Result =
+        run("svn", "--non-interactive", "--config-dir", File(work, "svn-config").path, *args, key = key, env = mapOf("SVN_SSH" to fakeSvnSsh().path, "LC_ALL" to "C.UTF-8"))
+
+    private fun svnUrl(p: Project, path: String = "") = "svn+ssh://git@host/${p.owner}/${p.name}$path"
+
+    @Test
+    fun `중계로도 Subversion 목록과 내용을 읽는다`() {
+        Assumptions.assumeTrue(subversionInstalled(), "svn이 필요하다")
+        val svnProject = svnProject(ProjectScope.PUBLIC); val key = register(member)
+        val listed = svn("ls", svnUrl(svnProject, "/trunk"), key = key)
+        assertEquals(0, listed.exit, listed.output)
+        assertEquals("a.txt\n", listed.output)
+        assertEquals("hello\n", svn("cat", svnUrl(svnProject, "/trunk/a.txt"), key = register(outsider)).output)
+    }
+
+    @Test
+    fun `중계로도 Subversion 커밋은 쓸 수 있는 사용자만 한다`() {
+        Assumptions.assumeTrue(subversionInstalled(), "svn이 필요하다")
+        val svnProject = svnProject(ProjectScope.PUBLIC)
+        fun commit(key: Key, name: String): Result {
+            val wc = File(work, "relay-wc-${counter.incrementAndGet()}")
+            check(svn("checkout", "-q", svnUrl(svnProject, "/trunk"), wc.path, key = key).exit == 0)
+            File(wc, name).writeText("x\n"); check(svn("add", "-q", "${wc.path}/$name", key = key).exit == 0)
+            return svn("commit", "-q", "-m", "relay", wc.path, key = key)
+        }
+        val ok = commit(register(member), "member.txt")
+        assertEquals(0, ok.exit, ok.output)
+        val denied = commit(register(outsider), "outsider.txt")
+        assertNotEquals(0, denied.exit)
+        assertTrue(denied.output.contains("Authorization failed"), denied.output)
+        assertEquals("a.txt\nmember.txt\n", svn("ls", svnUrl(svnProject, "/trunk"), key = register(member)).output)
+    }
+
+    @Test
+    fun `중계로도 비공개 Subversion 저장소는 비구성원에게 없는 것처럼 거부한다`() {
+        Assumptions.assumeTrue(subversionInstalled(), "svn이 필요하다")
+        val secret = svnProject(ProjectScope.PRIVATE)
+        val result = svn("ls", svnUrl(secret, "/trunk"), key = register(outsider))
+        assertNotEquals(0, result.exit)
+        assertTrue(result.output.contains("Repository not found"), result.output)
+        assertEquals("a.txt\n", svn("ls", svnUrl(secret, "/trunk"), key = deploy(secret, writable = false)).output)
+    }
+
+    @Test
+    fun `중계에서 인증 표가 유효하지 않으면 Subversion 클라이언트가 읽을 수 있는 오류로 거부한다`() {
+        Assumptions.assumeTrue(subversionInstalled(), "svn이 필요하다")
+        // 훅을 거치지 않고 소켓에 잘못된 표와 svnserve 명령을 보낸다. 거절은 git의 오류 줄이 아니라 ra_svn의 실패 응답이어야 svn이 읽는다
+        val reply = talk("not-a-valid-ticket", "127.0.0.1", "svnserve -t")
+        assertTrue(reply.startsWith("( failure ( ( 170001 "), "ra_svn 실패 응답이어야 한다: $reply")
+        assertTrue(reply.contains("Invalid credentials."), reply)
+    }
+
+    private fun subversionInstalled(): Boolean = runCatching { ProcessBuilder("svn", "--version", "--quiet").redirectErrorStream(true).start().also { it.inputStream.readBytes() }.waitFor() == 0 }.getOrDefault(false)
 
     // --- 중계 소켓을 직접 쓰는 시험 ---
 
