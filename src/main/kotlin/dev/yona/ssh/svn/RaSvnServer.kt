@@ -9,6 +9,7 @@ import org.tmatesoft.svn.core.SVNLogEntry
 import org.tmatesoft.svn.core.SVNNodeKind
 import org.tmatesoft.svn.core.SVNProperties
 import org.tmatesoft.svn.core.SVNURL
+import org.tmatesoft.svn.core.auth.BasicAuthenticationManager
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory
 import org.tmatesoft.svn.core.internal.util.SVNDate
 import org.tmatesoft.svn.core.io.SVNRepository
@@ -88,6 +89,8 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
         } catch (e: SVNException) {
             return fail(SVNErrorCode.RA_SVN_REPOS_NOT_FOUND, "No repository found in '$url'")
         }
+        // 잠금과 커밋은 저장소가 사용자 이름을 알아야 한다(터널에서 이미 인증한 사용자)
+        repository.authenticationManager = BasicAuthenticationManager.newInstance(user, null)
         val uuid = try { repository.getRepositoryUUID(true) } catch (e: SVNException) { return fail(e) }
         session = Session(repository, found.directory, rootUrl, found.writable, rest)
         // 터널에서 이미 인증했으므로 EXTERNAL만 내놓는다. 클라이언트가 ANONYMOUS를 고르면 사용자가 없는 접속이 되므로 내놓지 않는다
@@ -182,8 +185,11 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
          */
         val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "log-revprops", "inherited-props", "list")
 
-        /** 저장소 정보 응답의 기능 목록이다. 병합 정보는 아직 지원하지 않는다. */
-        val REPOSITORY_CAPABILITIES = emptyList<String>()
+        /** 저장소 정보 응답의 기능 목록이다. */
+        val REPOSITORY_CAPABILITIES = listOf("mergeinfo")
+
+        /** SVNKit의 [SVNErrorMessage.getMessage]는 `svn: E160013: ` 접두어를 포함한다. 클라이언트가 접두어를 직접 붙이므로 본문만 보낸다. */
+        fun plainMessage(message: SVNErrorMessage): String = message.message.orEmpty().replaceFirst(Regex("^svn: [EW]\\d+: "), "")
 
         fun success(vararg params: RaItem): RaList = raList(RaWord("success"), RaList(params.toList()))
 
@@ -193,7 +199,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
         fun failure(message: SVNErrorMessage): RaList {
             val chain = generateSequence(message) { it.childErrorMessage }.toList()
             return raList(RaWord("failure"), RaList(chain.map {
-                raList(RaNumber(it.errorCode.code.toLong()), RaString(it.message.orEmpty()), RaString(""), RaNumber(0))
+                raList(RaNumber(it.errorCode.code.toLong()), RaString(plainMessage(it)), RaString(""), RaNumber(0))
             }))
         }
     }

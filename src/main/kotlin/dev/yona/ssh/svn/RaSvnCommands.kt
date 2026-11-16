@@ -43,8 +43,12 @@ class RaSvnCommands(private val server: RaSvnServer) {
             "get-file" -> getFile(args)
             "log" -> log(args)
             "reparent" -> reparent(args)
-            "get-lock" -> { server.sendAuthOk(); server.send(RaSvnServer.success(raList(raList()))) }
-            "get-locks" -> { server.sendAuthOk(); server.send(RaSvnServer.success(raList(raList()))) }
+            "get-lock" -> getLock(args)
+            "get-locks" -> getLocks(args)
+            "lock-many" -> lock(args)
+            "unlock-many" -> unlock(args)
+            "lock" -> lock(listOf(args.getOrNull(1) ?: raList(), args.getOrNull(2) ?: RaWord("false"), raList(raList(args.getOrNull(0) ?: RaString(""), args.getOrNull(3) ?: raList()))), single = true)
+            "unlock" -> unlock(listOf(args.getOrNull(1) ?: RaWord("false"), raList(raList(args.getOrNull(0) ?: RaString(""), args.getOrNull(2) ?: raList()))), single = true)
             "get-locations" -> getLocations(args)
             "rev-proplist" -> revProplist(args)
             "rev-prop" -> revProp(args)
@@ -52,6 +56,13 @@ class RaSvnCommands(private val server: RaSvnServer) {
             "get-iprops" -> getInheritedProps(args)
             "get-dir" -> getDir(args)
             "commit" -> commit(args)
+            "status" -> status(args)
+            "diff" -> diff(args)
+            "switch" -> switch(args)
+            "get-location-segments" -> getLocationSegments(args)
+            "get-file-revs" -> getFileRevs(args)
+            "get-mergeinfo" -> getMergeInfo(args)
+            "replay", "replay-range", "change-rev-prop", "change-rev-prop2", "get-deleted-rev" -> unsupported(name)
             else -> return false
         }
         return true
@@ -304,6 +315,12 @@ class RaSvnCommands(private val server: RaSvnServer) {
             // 로그 메시지는 따로 넘기고, 클라이언트의 임시(`svn:txn-*`) 속성은 리비전에 남기지 않는다
             if (name != SVNRevisionProperty.LOG && !name.startsWith("svn:txn-")) revisionProperties.put(name, (pair.getOrNull(1) as? RaString)?.text.orEmpty())
         }
+        val lockTokens = LinkedHashMap<String, String>()
+        ((args.getOrNull(1) as? RaList)?.items.orEmpty()).forEach { item ->
+            val pair = (item as? RaList)?.items.orEmpty()
+            val path = (pair.getOrNull(0) as? RaString)?.text; val token = (pair.getOrNull(1) as? RaString)?.text
+            if (path != null && token != null) lockTokens["/" + repositoryPath(path)] = token
+        }
         server.sendAuthOk()
         server.send(RaSvnServer.success(raList()))
         RaSvnEditorReader(copySource = { repositoryPathOfUrl(it) }).use { reader ->
@@ -314,7 +331,7 @@ class RaSvnCommands(private val server: RaSvnServer) {
             if (reader.isAborted) { server.send(RaSvnServer.success(raList())); return }
             val located = locatedRepository()
             located.authenticationManager = BasicAuthenticationManager.newInstance(server.user, null)
-            val editor = located.getCommitEditor(message, null, keepLocks, revisionProperties, null)
+            val editor = located.getCommitEditor(message, lockTokens, keepLocks, revisionProperties, null)
             val info = try {
                 reader.replay(editor)
             } catch (e: SVNException) {
@@ -338,26 +355,57 @@ class RaSvnCommands(private val server: RaSvnServer) {
         data class DeletePath(val path: String) : Report
     }
 
-    /**
-     * `update`: 클라이언트가 가진 리비전을 보고([Report])받은 뒤, 그 상태에서 목표 리비전까지의 변경을 편집기 명령으로 보낸다([RaSvnEditorWriter]). 보고가 끝나면
-     * 응답 앞의 인증 확인을 한 번 더 보내고, 편집기를 다 보낸 뒤에는 클라이언트의 확인(`( success ( ) )`)을 읽고 마지막 응답을 보낸다.
-     */
+    /** `update`: 클라이언트가 가진 리비전에서 목표 리비전까지의 변경을 편집기 명령으로 보낸다. 인자는 `( ( 리비전 ) 대상 재귀 깊이 복사원본보냄 조상무시 )`이다. */
     private fun update(args: List<RaItem>) {
         val targetRevision = revision(args.getOrNull(0))
         val target = text(args.getOrNull(1)).trim('/')
-        val recurse = bool(args.getOrNull(2))
-        val depth = depth((args.getOrNull(3) as? RaWord)?.value, recurse)
+        val depth = depth((args.getOrNull(3) as? RaWord)?.value, bool(args.getOrNull(2)))
         val sendCopyFrom = bool(args.getOrNull(4))
+        driveReport { located, baton, editor -> located.update(targetRevision, target, depth, sendCopyFrom, baton, editor) }
+    }
+
+    /** `status`: 서버에서 바뀐 것을 알린다(`svn status -u`). 인자는 `( 대상 재귀 ( 리비전 ) 깊이 )`이다. */
+    private fun status(args: List<RaItem>) {
+        val target = text(args.getOrNull(0)).trim('/')
+        val depth = depth((args.getOrNull(3) as? RaWord)?.value, bool(args.getOrNull(1)))
+        val rev = revision(args.getOrNull(2))
+        driveReport { located, baton, editor -> located.status(rev, target, depth, baton, editor) }
+    }
+
+    /** `diff`: 클라이언트가 보고한 상태와 `url`의 리비전 사이의 차이를 편집기 명령으로 보낸다. 인자는 `( ( 리비전 ) 대상 재귀 조상무시 주소 본문변경보냄 깊이 )`이다. */
+    private fun diff(args: List<RaItem>) {
+        val rev = revision(args.getOrNull(0))
+        val target = text(args.getOrNull(1)).trim('/')
+        val ignoreAncestry = bool(args.getOrNull(3))
+        val url = fileUrl(text(args.getOrNull(4)))
+        val textDeltas = bool(args.getOrNull(5))
+        val depth = depth((args.getOrNull(6) as? RaWord)?.value, bool(args.getOrNull(2)))
+        driveReport { located, baton, editor -> located.diff(url, rev, rev, target, ignoreAncestry, depth, textDeltas, baton, editor) }
+    }
+
+    /** `switch`: 작업 복사본을 다른 주소로 옮기는 변경을 보낸다. 인자는 `( ( 리비전 ) 대상 재귀 주소 깊이 복사원본보냄 조상무시 )`이다. */
+    private fun switch(args: List<RaItem>) {
+        val rev = revision(args.getOrNull(0))
+        val target = text(args.getOrNull(1)).trim('/')
+        val url = fileUrl(text(args.getOrNull(3)))
+        val depth = depth((args.getOrNull(4) as? RaWord)?.value, bool(args.getOrNull(2)))
+        driveReport { located, baton, editor -> located.update(url, rev, target, depth, baton, editor) }
+    }
+
+    /**
+     * 보고서로 시작하는 작업(`update`, `status`, `diff`, `switch`)의 공통 흐름이다. 클라이언트의 보고를 `finish-report`까지 읽고, 세션 주소가 위치인 저장소에서
+     * [operation]을 실행해 편집기 명령을 보낸 뒤, 클라이언트의 확인을 읽고 마지막 응답을 보낸다.
+     */
+    private fun driveReport(operation: (org.tmatesoft.svn.core.io.SVNRepository, ISVNReporterBaton, org.tmatesoft.svn.core.io.ISVNEditor) -> Unit) {
         server.sendAuthOk()
         val reports = readReport() ?: return
         server.sendAuthOk()
         val located = locatedRepository()
         try {
-            located.update(targetRevision, target, depth, sendCopyFrom, ISVNReporterBaton { reporter -> replay(reporter, reports) }, RaSvnEditorWriter(server))
+            operation(located, ISVNReporterBaton { reporter -> replay(reporter, reports) }, RaSvnEditorWriter(server))
         } finally {
             located.closeSession()
         }
-        // 클라이언트는 편집기를 다 받으면 확인을 보내고, 서버는 그에 마지막 응답을 한다
         server.receive()
         server.send(RaSvnServer.success(raList()))
     }
@@ -413,6 +461,173 @@ class RaSvnCommands(private val server: RaSvnServer) {
     private fun depth(word: String?, recurse: Boolean): SVNDepth {
         val parsed = word?.let { SVNDepth.fromString(it) } ?: SVNDepth.UNKNOWN
         return if (parsed != SVNDepth.UNKNOWN) parsed else if (recurse) SVNDepth.INFINITY else SVNDepth.FILES
+    }
+
+
+
+    // ---- 잠금 ----
+
+    /** 잠금 하나를 프로토콜 모양으로 바꾼다: `( 경로 토큰 소유자 ( 설명 ) 만든시각 ( 만료시각 ) )`. */
+    private fun lockItem(lock: org.tmatesoft.svn.core.SVNLock): RaList = raList(
+        RaString("/" + lock.path.trimStart('/')), RaString(lock.id), RaString(lock.owner.orEmpty()), optional(lock.comment), RaString(dateString(lock.creationDate).orEmpty()), optional(dateString(lock.expirationDate))
+    )
+
+    private fun requireWritable(): Boolean {
+        if (server.current().writable) return true
+        server.sendFailure(SVNErrorCode.RA_NOT_AUTHORIZED, "Authorization failed")
+        return false
+    }
+
+    /**
+     * `lock`와 `lock-many`: 경로마다 잠그고 결과를 하나씩(`( success ( 잠금 ) )` 또는 실패) 보낸 뒤 `done`과 마지막 응답을 보낸다. 읽기 전용 접속은 인증 확인 없이
+     * 거절한다. 인자는 `( ( 설명 ) 훔침 ( ( 경로 ( 리비전 ) ) ... ) )`이다. [single]이면 하나뿐인 `lock` 명령(옛 클라이언트)이라 결과를 `( success ( 잠금 ) )` 하나로 보낸다.
+     */
+    private fun lock(args: List<RaItem>, single: Boolean = false) {
+        if (!requireWritable()) return
+        val comment = ((args.getOrNull(0) as? RaList)?.items?.firstOrNull() as? RaString)?.text
+        val steal = bool(args.getOrNull(1))
+        val targets = LinkedHashMap<String, Long>()
+        ((args.getOrNull(2) as? RaList)?.items.orEmpty()).forEach { item ->
+            val pair = (item as? RaList)?.items.orEmpty()
+            targets["/" + repositoryPath(text(pair.getOrNull(0)))] = revision(pair.getOrNull(1))
+        }
+        server.sendAuthOk()
+        val results = ArrayList<RaItem>()
+        repository.lock(targets, comment, steal, object : org.tmatesoft.svn.core.io.ISVNLockHandler {
+            override fun handleLock(path: String?, lock: org.tmatesoft.svn.core.SVNLock?, error: SVNErrorMessage?) {
+                results += if (error != null) RaSvnServer.failure(error) else RaSvnServer.success(lockItem(requireNotNull(lock)))
+            }
+
+            override fun handleUnlock(path: String?, lock: org.tmatesoft.svn.core.SVNLock?, error: SVNErrorMessage?) = Unit
+        })
+        if (single) { server.send(results.firstOrNull() ?: RaSvnServer.success(raList())); return }
+        results.forEach { server.send(it) }
+        server.send(RaWord("done"))
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /** `unlock`와 `unlock-many`: 경로마다 풀고 결과(`( success ( 경로 ) )` 또는 실패)를 하나씩 보낸다. 인자는 `( 강제 ( ( 경로 ( 토큰 ) ) ... ) )`이다. */
+    private fun unlock(args: List<RaItem>, single: Boolean = false) {
+        if (!requireWritable()) return
+        val force = bool(args.getOrNull(0))
+        val targets = LinkedHashMap<String, String?>()
+        ((args.getOrNull(1) as? RaList)?.items.orEmpty()).forEach { item ->
+            val pair = (item as? RaList)?.items.orEmpty()
+            targets["/" + repositoryPath(text(pair.getOrNull(0)))] = ((pair.getOrNull(1) as? RaList)?.items?.firstOrNull() as? RaString)?.text
+        }
+        server.sendAuthOk()
+        val results = ArrayList<RaItem>()
+        repository.unlock(targets, force, object : org.tmatesoft.svn.core.io.ISVNLockHandler {
+            override fun handleLock(path: String?, lock: org.tmatesoft.svn.core.SVNLock?, error: SVNErrorMessage?) = Unit
+
+            override fun handleUnlock(path: String?, lock: org.tmatesoft.svn.core.SVNLock?, error: SVNErrorMessage?) {
+                results += if (error != null) RaSvnServer.failure(error) else RaSvnServer.success(raList(RaString(targets.keys.firstOrNull { it == path || it.trimStart('/') == path?.trimStart('/') }?.removePrefix("/")?.let { relativeToSession(it) } ?: path.orEmpty())))
+            }
+        })
+        if (single) { server.send(results.firstOrNull() ?: RaSvnServer.success(raList())); return }
+        results.forEach { server.send(it) }
+        server.send(RaWord("done"))
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /** 저장소 기준 경로를 클라이언트가 보낸 세션 기준 경로로 되돌린다(`unlock-many`의 결과가 보낸 경로를 그대로 되돌려 주기 때문이다). */
+    private fun relativeToSession(repositoryPath: String): String = repositoryPath.removePrefix(server.current().path).trimStart('/')
+
+    /** `get-lock`: 경로의 잠금이다. 없으면 빈 목록이다. */
+    private fun getLock(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        server.sendAuthOk()
+        val lock = repository.getLock(path)
+        server.send(RaSvnServer.success(raList(if (lock == null) raList() else raList(lockItem(lock)))))
+    }
+
+    /** `get-locks`: 경로 아래의 모든 잠금이다. */
+    private fun getLocks(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        server.sendAuthOk()
+        val locks = repository.getLocks(path) ?: emptyArray()
+        server.send(RaSvnServer.success(raList(RaList(locks.sortedBy { it.path }.map { lockItem(it) }))))
+    }
+
+    // ---- 이력 조회 ----
+
+    /** `get-location-segments`: 경로가 시간에 따라 어디에 있었는지(이름 바꿈과 복사를 따라간다)를 구간으로 보낸다. 구간의 경로에는 앞 슬래시가 없다. */
+    private fun getLocationSegments(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        val peg = revision(args.getOrNull(1)); val start = revision(args.getOrNull(2)); val end = revision(args.getOrNull(3))
+        server.sendAuthOk()
+        repository.getLocationSegments(path, peg, start, end) { segment ->
+            server.send(raList(RaNumber(segment.startRevision), RaNumber(segment.endRevision), if (segment.path == null) raList() else raList(RaString(segment.path.trimStart('/')))))
+        }
+        server.send(RaWord("done"))
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /**
+     * `get-file-revs`: 파일이 바뀐 리비전마다 리비전 속성과 속성 변화와 내용의 변화를 보낸다(`svn blame`). 내용은 svndiff 조각 문자열이고 빈 문자열로 끝난다.
+     * 내용이 바뀌지 않은 리비전도 빈 문자열은 보낸다.
+     */
+    private fun getFileRevs(args: List<RaItem>) {
+        val path = repositoryPath(text(args.getOrNull(0)))
+        val start = revision(args.getOrNull(1)); val end = revision(args.getOrNull(2))
+        val includeMerged = bool(args.getOrNull(3))
+        server.sendAuthOk()
+        repository.getFileRevisions(path, start, end, includeMerged, object : org.tmatesoft.svn.core.io.ISVNFileRevisionHandler {
+            private var headerWritten = false
+            private var deltaEnded = false
+
+            override fun openRevision(fileRevision: org.tmatesoft.svn.core.io.SVNFileRevision) {
+                headerWritten = false; deltaEnded = false
+                val revprops = fileRevision.revisionProperties ?: SVNProperties()
+                val delta = fileRevision.propertiesDelta ?: SVNProperties()
+                server.send(raList(
+                    RaString("/" + fileRevision.path.trimStart('/')), RaNumber(fileRevision.revision),
+                    RaList(revprops.nameSet().sorted().map { raList(RaString(it), RaString(propertyBytes(revprops.getSVNPropertyValue(it)))) }),
+                    RaList(delta.nameSet().sorted().map { name -> delta.getSVNPropertyValue(name).let { raList(RaString(name), if (it == null) raList() else raList(RaString(propertyBytes(it)))) } }),
+                    bool(fileRevision.isResultOfMerge)
+                ))
+            }
+
+            override fun applyTextDelta(path: String?, baseChecksum: String?) { headerWritten = false }
+
+            override fun textDeltaChunk(path: String?, window: org.tmatesoft.svn.core.io.diff.SVNDiffWindow): java.io.OutputStream {
+                val bytes = ByteArrayOutputStream()
+                window.writeTo(bytes, !headerWritten, false)
+                headerWritten = true
+                server.send(RaString(bytes.toByteArray()))
+                return java.io.OutputStream.nullOutputStream()
+            }
+
+            override fun textDeltaEnd(path: String?) { server.send(RaString("")); deltaEnded = true }
+
+            override fun closeRevision(token: String?) { if (!deltaEnded) server.send(RaString("")) }
+        })
+        server.send(RaWord("done"))
+        server.send(RaSvnServer.success(raList()))
+    }
+
+    /** `get-mergeinfo`: 경로의 병합 정보(`svn:mergeinfo`)를 `( 경로 병합정보 )` 목록으로 보낸다. 없으면 빈 목록이다. */
+    private fun getMergeInfo(args: List<RaItem>) {
+        val paths = ((args.getOrNull(0) as? RaList)?.items.orEmpty()).map { repositoryPath(text(it)) }.toTypedArray()
+        val rev = latest(revision(args.getOrNull(1)))
+        val inheritance = when ((args.getOrNull(2) as? RaWord)?.value) {
+            "explicit" -> org.tmatesoft.svn.core.SVNMergeInfoInheritance.EXPLICIT
+            "nearest-ancestor" -> org.tmatesoft.svn.core.SVNMergeInfoInheritance.NEAREST_ANCESTOR
+            else -> org.tmatesoft.svn.core.SVNMergeInfoInheritance.INHERITED
+        }
+        val includeDescendants = bool(args.getOrNull(3))
+        server.sendAuthOk()
+        val result = repository.getMergeInfo(paths, rev, inheritance, includeDescendants).orEmpty()
+        val entries = result.entries.sortedBy { it.key }.map { (path, info) ->
+            raList(RaString("/" + path.trimStart('/')), RaString(org.tmatesoft.svn.core.internal.util.SVNMergeInfoUtil.formatMergeInfoToString(info.mergeSourcesToMergeLists, null)))
+        }
+        server.send(RaSvnServer.success(raList(RaList(entries))))
+    }
+
+    /** 아직 지원하지 않는 명령이다. 인증 확인 뒤에 "지원하지 않는 기능"으로 답한다(클라이언트가 읽을 수 있는 오류이다). */
+    private fun unsupported(name: String) {
+        server.sendAuthOk()
+        server.sendFailure(SVNErrorCode.UNSUPPORTED_FEATURE, "The '$name' command is not supported by this server")
     }
 
     // ---- 값 만들기 ----
