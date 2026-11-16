@@ -110,11 +110,22 @@ val svnDavClasses by tasks.registering(Jar::class) {
 	}
 }
 
+// 보안 점검(A-620, A-621)에서 알려진 취약점이 나온 라이브러리를 고쳐진 버전으로 올린다. 스프링 부트가 관리하는 버전은 속성을 재정의한다.
+// Tomcat(인증과 HTTP/2 우회 등 치명 4건), Jackson 2와 3(이차 시간 파싱과 정규식 지연 DoS 7건), MariaDB 커넥터(4건).
+// OpenTelemetry(`tracestate` 파싱 CPU 소모, 보통)는 스프링 부트가 정한 1.62.0에 고정한다. API만 올리면 1.62 기준의 계측 모듈과 어긋나(`ConfigUtil` 없음) 시험이 깨진다.
+// 후속 작업: 계열 전체(API와 SDK 1.67.0, `api-incubator` 1.67.0-alpha, 계측 모듈 2.33.1)를 함께 올리면 된다(`architecture/security-review-2026-11.md`).
+extra["tomcat.version"] = "11.0.25"
+extra["jackson-bom.version"] = "3.1.7"
+extra["jackson-2-bom.version"] = "2.21.7"
+extra["mariadb.version"] = "3.5.11"
+
 // `lz4-java`(SVNKit의 svndiff2 압축이 쓴다)는 원 프로젝트가 더 이상 고쳐지지 않아 취약점 7건(CVE-2025-12183, CVE-2025-66566 등)이 열려 있다. 같은 패키지(`net.jpountz.lz4`)를 쓰는
 // 유지되는 포크(`at.yawk.lz4:lz4-java`)로 바꾼다. 클라이언트가 보낸 압축 데이터를 풀기 때문에 SSH와 DAV의 커밋 경로에 닿는다(A-620).
 configurations.all {
 	resolutionStrategy.dependencySubstitution {
 		substitute(module("org.lz4:lz4-java")).using(module("at.yawk.lz4:lz4-java:1.14.1")).because("원 프로젝트의 취약점 7건, 유지되는 포크에서 고쳐졌다")
+		// 엑셀 내보내기 라이브러리(jxl)가 끌고 오는 log4j 1.2.14(치명 6건, 1.x는 수명이 끝났다)를 같은 API의 보안 수정 포크로 바꾼다
+		substitute(module("log4j:log4j")).using(module("ch.qos.reload4j:reload4j:1.2.26")).because("log4j 1.x의 치명 취약점 6건, 드롭인 포크에서 고쳐졌다")
 	}
 }
 
@@ -132,6 +143,10 @@ dependencyManagement {
 }
 
 dependencies {
+	// OpenSAML이 끌고 오는 Guava 33.0.0의 알려진 취약점(역직렬화 DoS)을 고친 버전으로 올린다
+	constraints {
+		implementation("com.google.guava:guava:33.7.2-jre") { because("CVE-2026-102554") }
+	}
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -163,10 +178,10 @@ dependencies {
 	implementation("io.github.search5.hg4j:hg4j:1.1.3")
 
 	// GPG 서명 검증(X-4, D-65). 사용자가 등록한 공개키로 검증하므로 서버 로컬 키링을 읽는 JGit의 gpg.bc 모듈은 쓰지 않고 BouncyCastle을 직접 쓴다
-	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
-	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+	implementation("org.bouncycastle:bcpg-jdk18on:1.85")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.85")
 	// SAML SP 키쌍의 자체 서명 인증서를 만든다(X-16, D-80 19번)
-	implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
+	implementation("org.bouncycastle:bcpkix-jdk18on:1.85")
 	// X-3: 내장 SSH 서버(`yona.ssh.enabled`)와 공개키 형식 읽기. 시스템 sshd와는 무관하다(D-66).
 	implementation("org.apache.sshd:sshd-core:2.20.1")
 	// 2단계 인증(X-2, D-69)의 QR 코드를 만든다. 화면에는 인라인 SVG로 내보내므로 핵심 라이브러리만 쓴다
@@ -186,7 +201,7 @@ dependencies {
 	implementation("org.openjdk.nashorn:nashorn-core:15.4")
 	// v1.6이 변환 실패 때 원문을 감싸는 데 쓴 `StringEscapeUtils.escapeHtml`(commons-lang 2.x)
 	implementation("commons-lang:commons-lang:2.6")
-	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20190610.1")
+	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261110.1")
 	implementation("org.jsoup:jsoup:1.23.2")
 	// Subversion 저장소 처리(D-13)와 WebDAV(D-26). SCM-Manager가 Jakarta 서블릿용으로 다시 포장한 SVNKit 1.10.10이다(A-617).
 	// Maven Central의 svnkit-dav는 javax 서블릿용 war로만 있어 변환 층과 바이트코드 패치가 필요했다.
@@ -205,7 +220,7 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 	// Cubrid 11.4와 MSSQL 지원(X-46, D-85). Cubrid 방언은 커뮤니티 방언 모듈에 있다. 공개된 최신 Cubrid 드라이버는 11.3.x이다.
-	runtimeOnly("com.microsoft.sqlserver:mssql-jdbc:12.10.0.jre11")
+	runtimeOnly("com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11")
 	runtimeOnly("org.cubrid:cubrid-jdbc:11.3.2.0053")
 	implementation("org.hibernate.orm:hibernate-community-dialects")
 

@@ -1,5 +1,6 @@
 package dev.yona.markdown
 
+import java.util.regex.Pattern
 import org.owasp.html.HtmlPolicyBuilder
 import org.owasp.html.PolicyFactory
 import org.owasp.html.Sanitizers
@@ -50,7 +51,18 @@ class MarkdownRenderer(private val cache: RenderedMarkdownCache, private val mar
     fun sanitize(source: String): String = POLICY.sanitize(source)
 
     private companion object {
-        /** v1.6 `Markdown.sanitizerPolicy`와 같은 허용 목록이다. */
+        /** 제목 `id`의 이름 공간이다. 마크다운 확장(`marked-yona.js`)이 제목마다 `yb-header-`를 붙인다. 이것만 허용해 화면 요소의 id를 덮어쓰지 못하게 한다. */
+        private val HEADING_ID = Pattern.compile("^yb-header-[^\\s\"'<>]{1,200}$")
+
+        /** 마크다운 변환기(marked와 `marked-yona.js`)가 내는 class 이름이다: 제목 앵커, 작업 목록, 코드 블록 언어, 그리고 앱이 만드는 변경 이력의 `history-made-by`(`IssueHistory`, 이슈와 게시글의 변경 이력이 같은 정화기를 거친다). 이 밖의 class는 화면 스타일을 흉내 내므로 허용하지 않는다. */
+        private val MARKDOWN_CLASS = Pattern.compile("^(head-anchor|task-list-item|task-list-item-checkbox|history-made-by|language-[A-Za-z0-9_+#.-]{1,40})$")
+
+        /**
+         * v1.6 `Markdown.sanitizerPolicy`의 허용 목록에서 위험한 것을 줄였다(A-621, 선생님 결정). `file` 주소만 v1.6 그대로 두고 나머지는 막는다.
+         * - `iframe`을 허용하지 않는다: 외부 페이지를 끼워 넣는 피싱과 클릭 가로채기를 막는다.
+         * - `input`은 작업 목록의 체크박스(`type=checkbox`)만 남긴다: 댓글 안의 가짜 비밀번호 입력란을 막는다.
+         * - `id`는 제목의 `yb-header-` 이름 공간만, `class`는 변환기가 내는 이름만 남긴다: 화면 요소의 id를 덮어쓰거나 모달, 알림 모양을 흉내 내는 것을 막는다.
+         */
         val POLICY: PolicyFactory = Sanitizers.FORMATTING
             .and(Sanitizers.IMAGES)
             .and(Sanitizers.STYLES)
@@ -59,17 +71,19 @@ class MarkdownRenderer(private val cache: RenderedMarkdownCache, private val mar
             .and(
                 HtmlPolicyBuilder()
                     .allowUrlProtocols("http", "https", "mailto", "file", "zpl")
-                    .allowElements("video", "source", "a", "input", "pre", "br", "hr", "iframe", "ol", "span")
+                    .allowElements("video", "source", "a", "input", "pre", "br", "hr", "ol", "span")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .allowAttributes("src", "type", "target").onElements("source")
                     .allowAttributes(
                         "data-setup", "controls", "preload", "type", "autoplay", "responsive",
                         "height", "width", "fluid", "liveui", "src"
                     ).onElements("video")
-                    .allowAttributes("type", "disabled", "checked").onElements("input")
+                    .allowAttributes("type").matching(Pattern.compile("^checkbox$")).onElements("input")
+                    .allowAttributes("disabled", "checked").onElements("input")
                     .allowAttributes("start").onElements("ol")
-                    .allowAttributes("width", "height", "src", "frameborder", "allow", "allowfullscreen").onElements("iframe")
-                    .allowAttributes("class", "id", "style", "width", "height").globally()
+                    .allowAttributes("id").matching(HEADING_ID).globally()
+                    .allowAttributes("class").matching(MARKDOWN_CLASS).globally()
+                    .allowAttributes("style", "width", "height").globally()
                     .toFactory()
             )
     }

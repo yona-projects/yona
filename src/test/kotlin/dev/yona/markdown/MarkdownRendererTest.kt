@@ -32,9 +32,53 @@ class MarkdownRendererTest {
     }
 
     @Test
-    fun `비디오와 아이프레임은 허용 목록에 따라 유지한다`() {
+    fun `비디오는 허용 목록에 따라 유지한다`() {
         val html = renderer.render("<video controls src=\"http://a/b.mp4\"></video>")
         assertTrue(html.contains("<video"), html)
+    }
+
+    // ---- 정화 정책 강화(A-621, 선생님 결정): file 주소만 v1.6 그대로 두고 나머지 위험 요소를 막는다 ----
+
+    @Test
+    fun `iframe은 주소와 상관없이 제거한다 (외부 페이지를 끼워 넣는 피싱과 클릭 가로채기 방지)`() {
+        for (src in listOf("https://evil.example/login", "http://intranet/wiki", "file:///etc/passwd")) {
+            val html = renderer.sanitize("<iframe src=\"$src\" width=\"100%\" height=\"600\"></iframe>")
+            assertFalse(html.contains("iframe"), html)
+        }
+    }
+
+    @Test
+    fun `file 주소의 링크는 v1_6처럼 유지한다`() {
+        val html = renderer.sanitize("<a href=\"file:///share/doc.txt\">문서</a>")
+        assertTrue(html.contains("href=\"file:///share/doc.txt\""), html)
+    }
+
+    @Test
+    fun `입력란은 작업 목록의 체크박스만 남긴다 (가짜 로그인 틀 방지)`() {
+        val html = renderer.sanitize("<input type=\"password\" name=\"pw\"><input type=\"text\"><input type=\"checkbox\" disabled checked>")
+        assertFalse(html.contains("password") || html.contains("type=\"text\""), html)
+        assertTrue(html.contains("type=\"checkbox\""), html)
+        val tasks = renderer.render("- [x] 끝\n- [ ] 할 일")
+        assertTrue(tasks.contains("type=\"checkbox\""), tasks)
+    }
+
+    @Test
+    fun `id는 제목의 yb-header 이름 공간만 남긴다 (화면 요소와 id가 겹치는 DOM 덮어쓰기 방지)`() {
+        val html = renderer.sanitize("<div id=\"cloneURL\">a</div><h1 id=\"yb-header-제목\">b</h1>")
+        assertFalse(html.contains("cloneURL"), html)
+        assertTrue(html.contains("id=\"yb-header-제목\""), html)
+        assertTrue(renderer.render("# 제목").contains("id=\"yb-header-제목\""))
+    }
+
+    @Test
+    fun `class는 마크다운 변환기가 쓰는 이름만 남긴다 (화면의 모달이나 알림 모양을 흉내 내는 것을 방지)`() {
+        val html = renderer.sanitize("<span class=\"modal-backdrop\">a</span><code class=\"language-kotlin\">b</code><a class=\"head-anchor\" href=\"#x\">c</a>")
+        assertFalse(html.contains("modal-backdrop"), html)
+        assertTrue(html.contains("class=\"language-kotlin\"") && html.contains("class=\"head-anchor\""), html)
+        // 앱이 만드는 변경 이력의 class는 같은 정화기를 거쳐도 남는다
+        assertTrue(renderer.sanitize("<div class='history-made-by'>x</div>").contains("history-made-by"))
+        val rendered = renderer.render("```kotlin\nval a = 1\n```")
+        assertTrue(rendered.contains("language-kotlin"), rendered)
     }
 
     @Test
