@@ -437,3 +437,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | 프로젝트 홈의 복제 주소 상자를 BS5 input-group으로 교체(A-619), 절대 위치 제거. SSH 사용/미사용 두 상태를 Playwright로 좌표 측정
 
 ## [2026-11-16] test | next(ra-svn 병합, Jakarta SVNKit, hg 사용자, 복제 주소 상자 변경 포함) 전체 시험: H2 19분 37초 통과(614개 클래스 5482건, 실패 0, 건너뜀 11). 직전의 선별 실행에서 놓친 2건(MessageParityTest의 새 키 목록, RelativeUnitsTest의 px 줄 높이)을 고친 뒤의 결과이다
+
+## [2026-11-17] build | 보안 점검: 서버 의존성 297개와 번들 JS 18개를 OSV에 조회(48건), 코드 패턴 점검. ra_svn 읽기 한도와 lz4-java 포크 치환을 바로 고침(A-620). 보고서는 architecture/security-review-2026-11.md

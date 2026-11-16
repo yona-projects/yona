@@ -110,6 +110,14 @@ val svnDavClasses by tasks.registering(Jar::class) {
 	}
 }
 
+// `lz4-java`(SVNKit의 svndiff2 압축이 쓴다)는 원 프로젝트가 더 이상 고쳐지지 않아 취약점 7건(CVE-2025-12183, CVE-2025-66566 등)이 열려 있다. 같은 패키지(`net.jpountz.lz4`)를 쓰는
+// 유지되는 포크(`at.yawk.lz4:lz4-java`)로 바꾼다. 클라이언트가 보낸 압축 데이터를 풀기 때문에 SSH와 DAV의 커밋 경로에 닿는다(A-620).
+configurations.all {
+	resolutionStrategy.dependencySubstitution {
+		substitute(module("org.lz4:lz4-java")).using(module("at.yawk.lz4:lz4-java:1.14.1")).because("원 프로젝트의 취약점 7건, 유지되는 포크에서 고쳐졌다")
+	}
+}
+
 // Spring AI의 버전은 Spring Boot BOM이 관리하지 않으므로 그 BOM을 명시적으로 import한다(X-6, D-72).
 dependencyManagement {
 	imports {

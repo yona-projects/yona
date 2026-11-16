@@ -57,17 +57,31 @@ class RaSvnReader(private val input: InputStream) {
 
     private var pushed = NONE
 
-    /** 다음 항목이다. 항목이 시작하기 전에 입력이 끝났으면 `null`이다. 항목 도중에 끝나면 [RaSvnProtocolException]이다. */
+    /** 지금 읽는 메시지의 목록 중첩 깊이, 지금까지 만든 항목 수, 남은 문자열 바이트이다. 메시지(최상위 항목) 하나를 시작할 때마다 되돌린다. */
+    private var depth = 0
+    private var nodes = 0
+    private var bytesLeft = MAX_MESSAGE_BYTES
+
+    /**
+     * 다음 항목이다. 항목이 시작하기 전에 입력이 끊겼으면 `null`이다. 항목 도중에 끊기거나 한도(중첩 [MAX_DEPTH], 항목 [MAX_NODES]개, 문자열 합계 64MB)를
+     * 넘으면 [RaSvnProtocolException]이다. 인증한 사용자도 서버의 스택과 힙을 쓰지 못하게 하려는 한도이다.
+     */
     fun read(): RaItem? {
         val first = skipWhitespace()
         if (first < 0) return null
+        depth = 0; nodes = 0; bytesLeft = MAX_MESSAGE_BYTES
         return item(first)
     }
 
     /** 다음 항목이 단어일 때만 읽는다. 아니면 [RaSvnProtocolException]이다. */
     fun readWord(): String = (read() as? RaWord)?.value ?: throw RaSvnProtocolException("단어가 와야 한다")
 
-    private fun item(first: Int): RaItem = when {
+    private fun item(first: Int): RaItem {
+        if (++nodes > MAX_NODES) throw RaSvnProtocolException("메시지의 항목이 너무 많다")
+        return parse(first)
+    }
+
+    private fun parse(first: Int): RaItem = when {
         first == '('.code -> list()
         first == ')'.code -> throw RaSvnProtocolException("짝이 없는 닫는 괄호")
         first in '0'.code..'9'.code -> numberOrString(first)
@@ -76,12 +90,13 @@ class RaSvnReader(private val input: InputStream) {
     }
 
     private fun list(): RaList {
+        if (++depth > MAX_DEPTH) throw RaSvnProtocolException("목록의 중첩이 너무 깊다")
         // 여는 괄호 뒤에는 공백이 하나 온다
         val items = mutableListOf<RaItem>()
         while (true) {
             val next = skipWhitespace()
             if (next < 0) throw RaSvnProtocolException("목록이 끝나기 전에 입력이 끊겼다")
-            if (next == ')'.code) { consumeTrailingWhitespace(); return RaList(items) }
+            if (next == ')'.code) { depth--; consumeTrailingWhitespace(); return RaList(items) }
             items += item(next)
         }
     }
@@ -103,6 +118,9 @@ class RaSvnReader(private val input: InputStream) {
     private fun string(length: ULong): RaString {
         if (length > MAX_STRING) throw RaSvnProtocolException("문자열이 너무 길다: $length")
         val total = length.toInt()
+        // 한 메시지에 여러 문자열을 담아 한도를 우회하지 못하도록 합계도 센다
+        bytesLeft -= total
+        if (bytesLeft < 0) throw RaSvnProtocolException("메시지가 너무 크다")
         // 선언한 길이만큼 미리 잡지 않는다. 실제로 받은 만큼만 늘려 가므로, 길이만 크게 보내고 멈추는 입력이 메모리를 차지하지 못한다
         val out = ByteArrayOutputStream(minOf(total, FIRST_BLOCK))
         val buffer = ByteArray(minOf(total, BLOCK).coerceAtLeast(1))
@@ -157,6 +175,15 @@ class RaSvnReader(private val input: InputStream) {
          * 사용자 한 명이 큰 길이를 선언해 서버의 메모리를 쓸 수 있다.
          */
         val MAX_STRING = 64UL * 1024UL * 1024UL
+
+        /** 한 메시지에 담긴 문자열 바이트의 합계 상한이다(64MB). 문자열 하나의 상한과 같게 두어, 여러 문자열로 서버의 힙을 쓰는 것을 막는다. */
+        const val MAX_MESSAGE_BYTES = 64 * 1024 * 1024
+
+        /** 목록 중첩의 상한이다. 실제 프로토콜의 중첩은 대여섯 겹이다. 재귀로 읽으므로 스택을 지키려는 한도이다. */
+        const val MAX_DEPTH = 64
+
+        /** 한 메시지의 항목(숫자, 단어, 문자열, 목록) 수 상한이다. 한 번에 잠글 수 있는 경로 수 같은 정상 사용을 넉넉히 넘는다. */
+        const val MAX_NODES = 1_000_000
 
         /** 처음 잡는 버퍼와 한 번에 읽는 크기이다. */
         const val FIRST_BLOCK = 8 * 1024

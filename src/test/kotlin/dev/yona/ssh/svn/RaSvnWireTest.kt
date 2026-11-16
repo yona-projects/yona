@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -112,5 +113,34 @@ class RaSvnWireTest {
     private fun assertThrowsProtocol(block: () -> Unit) {
         val error = runCatching(block).exceptionOrNull()
         assertTrue(error is RaSvnProtocolException, "프로토콜 오류여야 한다: $error")
+    }
+
+    @Test
+    fun `너무 깊게 중첩된 목록은 스택을 넘기지 않고 프로토콜 오류로 거절한다`() {
+        val input = "( ".repeat(200_000).toByteArray()
+        assertFailsWith<RaSvnProtocolException> { RaSvnReader(input.inputStream()).read() }
+    }
+
+    @Test
+    fun `한 메시지의 항목 수가 한도를 넘으면 거절한다`() {
+        val input = ("( " + "1 ".repeat(1_100_000) + ") ").toByteArray()
+        assertFailsWith<RaSvnProtocolException> { RaSvnReader(input.inputStream()).read() }
+    }
+
+    @Test
+    fun `한 메시지에 담긴 문자열의 합계가 한도를 넘으면 거절한다`() {
+        // 문자열 하나는 한도 안이어도 여러 개를 한 목록에 담아 서버의 메모리를 쓰지 못하게 한다
+        val chunk = "x".repeat(40 * 1024 * 1024)
+        val input = ("( 41943040:$chunk 41943040:$chunk ) ").toByteArray()
+        assertFailsWith<RaSvnProtocolException> { RaSvnReader(input.inputStream()).read() }
+    }
+
+    @Test
+    fun `정상적인 크기의 중첩 목록과 큰 문자열 하나는 읽는다`() {
+        val nested = "( ( ( ( 1 ) ) ) ) ".toByteArray()
+        val expected = raList(raList(raList(raList(RaNumber(1)))))
+        assertEquals(expected, RaSvnReader(nested.inputStream()).read())
+        val big = "x".repeat(30 * 1024 * 1024)
+        assertEquals(30 * 1024 * 1024, (RaSvnReader("31457280:$big ".toByteArray().inputStream()).read() as RaString).bytes.size)
     }
 }
