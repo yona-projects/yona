@@ -14,6 +14,7 @@ import org.tmatesoft.svn.core.SVNProperty
 import org.tmatesoft.svn.core.SVNPropertyValue
 import org.tmatesoft.svn.core.SVNRevisionProperty
 import org.tmatesoft.svn.core.SVNURL
+import org.tmatesoft.svn.core.auth.BasicAuthenticationManager
 import org.tmatesoft.svn.core.internal.util.SVNDate
 import org.tmatesoft.svn.core.io.ISVNReporter
 import org.tmatesoft.svn.core.io.ISVNReporterBaton
@@ -50,6 +51,7 @@ class RaSvnCommands(private val server: RaSvnServer) {
             "update" -> update(args)
             "get-iprops" -> getInheritedProps(args)
             "get-dir" -> getDir(args)
+            "commit" -> commit(args)
             else -> return false
         }
         return true
@@ -283,6 +285,50 @@ class RaSvnCommands(private val server: RaSvnServer) {
         server.send(RaSvnServer.success(raList(RaNumber(rev), props, RaList(items))))
     }
 
+
+    // ---- 커밋 ----
+
+    /**
+     * `commit`: 로그 메시지와 리비전 속성을 받고, 클라이언트가 보내는 편집기 명령을 `close-edit`까지 읽은 뒤 SVNKit 커밋 편집기에 재생한다([RaSvnEditorReader]).
+     * 읽기 전용 접속은 `svnserve --read-only`처럼 인증 확인도 없이 바로 `Authorization failed`로 거절한다. 커밋하는 사용자는 터널의 사용자이다
+     * (`svn:author`). 응답은 편집 수락(`success`), 인증 확인, 커밋 정보(`( 리비전 ( 날짜 ) ( 작성자 ) ( ) )`) 순서이고 커밋 정보에는 `success`가 붙지 않는다.
+     */
+    private fun commit(args: List<RaItem>) {
+        if (!server.current().writable) { server.sendFailure(SVNErrorCode.RA_NOT_AUTHORIZED, "Authorization failed"); return }
+        val message = text(args.getOrNull(0))
+        val keepLocks = bool(args.getOrNull(2))
+        val revisionProperties = SVNProperties()
+        ((args.getOrNull(3) as? RaList)?.items.orEmpty()).forEach { item ->
+            val pair = (item as? RaList)?.items.orEmpty()
+            val name = (pair.getOrNull(0) as? RaString)?.text ?: return@forEach
+            // 로그 메시지는 따로 넘기고, 클라이언트의 임시(`svn:txn-*`) 속성은 리비전에 남기지 않는다
+            if (name != SVNRevisionProperty.LOG && !name.startsWith("svn:txn-")) revisionProperties.put(name, (pair.getOrNull(1) as? RaString)?.text.orEmpty())
+        }
+        server.sendAuthOk()
+        server.send(RaSvnServer.success(raList()))
+        RaSvnEditorReader(copySource = { repositoryPathOfUrl(it) }).use { reader ->
+            while (!reader.isDone) {
+                val command = server.receive() as? RaList ?: throw RaSvnProtocolException("편집이 끝나기 전에 입력이 끊겼다")
+                reader.accept((command.items.getOrNull(0) as? RaWord)?.value.orEmpty(), (command.items.getOrNull(1) as? RaList)?.items.orEmpty())
+            }
+            if (reader.isAborted) { server.send(RaSvnServer.success(raList())); return }
+            val located = locatedRepository()
+            located.authenticationManager = BasicAuthenticationManager.newInstance(server.user, null)
+            val editor = located.getCommitEditor(message, null, keepLocks, revisionProperties, null)
+            val info = try {
+                reader.replay(editor)
+            } catch (e: SVNException) {
+                runCatching { editor.abortEdit() }
+                located.closeSession()
+                throw e
+            }
+            located.closeSession()
+            server.send(RaSvnServer.success(raList()))
+            server.sendAuthOk()
+            server.send(raList(RaNumber(info?.newRevision ?: -1), optional(dateString(info?.date)), optional(info?.author), raList()))
+        }
+    }
+
     // ---- 갱신 ----
 
     /** 클라이언트가 보고한 한 줄이다(`set-path`, `link-path`, `delete-path`). */
@@ -353,6 +399,15 @@ class RaSvnCommands(private val server: RaSvnServer) {
         val path = decode(URI(url.trimEnd('/')).rawPath.orEmpty()).trimEnd('/')
         if (path != root && !path.startsWith("$root/")) throw SVNException(SVNErrorMessage.create(SVNErrorCode.RA_ILLEGAL_URL, "'$url' is not a child of the session's repository root URL"))
         return SVNURL.fromFile(session.directory).appendPath(path.removePrefix(root).trim('/'), false)
+    }
+
+    /** 클라이언트가 보낸 주소를 저장소 기준 절대 경로(`/trunk/a.txt`)로 바꾼다. 주소가 아니라 이미 경로이면 그대로 둔다. */
+    private fun repositoryPathOfUrl(url: String): String {
+        if (!url.contains("://")) return url
+        val root = decode(URI(server.current().rootUrl).rawPath.orEmpty()).trimEnd('/')
+        val path = decode(URI(url).rawPath.orEmpty()).trimEnd('/')
+        if (path != root && !path.startsWith("$root/")) throw SVNException(SVNErrorMessage.create(SVNErrorCode.RA_ILLEGAL_URL, "'$url' is not a child of the session's repository root URL"))
+        return "/" + path.removePrefix(root).trim('/')
     }
 
     private fun depth(word: String?, recurse: Boolean): SVNDepth {

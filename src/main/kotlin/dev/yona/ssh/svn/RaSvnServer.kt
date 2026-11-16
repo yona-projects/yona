@@ -46,7 +46,7 @@ sealed interface RaSvnResolution {
  *
  * 구현한 명령은 [RaSvnCommands]에 있다. 프로토콜의 형식은 실제 `svnserve -t`(1.14.5)와 `svn` 클라이언트의 대화를 녹화해 맞췄다.
  */
-class RaSvnServer(input: InputStream, private val output: OutputStream, private val user: String, private val resolver: RaSvnResolver) {
+class RaSvnServer(input: InputStream, private val output: OutputStream, val user: String, private val resolver: RaSvnResolver) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val reader = RaSvnReader(input)
