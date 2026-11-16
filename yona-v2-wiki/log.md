@@ -397,3 +397,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] test | 전체 시험 재실행: PostgreSQL 19분 49초(1건 실패 LFS 감사 행 순서, 고침), MSSQL 24분 30초(통과), Cubrid 41분 17초(6건), 38분 1초(2건), 44분 8초(3건). Cubrid의 남은 실패는 모두 스키마 조회(`getSchemaInfo`)의 "Has been interrupted"이며 단독 실행에서는 통과한다(A-607)
 
 ## [2026-11-16] test | A-607 적용 뒤 전체 시험: Cubrid 39분 4초 통과, PostgreSQL 20분 3초 통과. 직전 Cubrid 실행은 디스크 100%로 무효였다(`build/tmp/it-*` 약 10GB와 내 로그 3GB를 지워 확보)
+
+## [2026-11-16] test | next(ui-improvements와 트리 동일) 전체 시험: Cubrid 34분 13초 통과, PostgreSQL 18분 57초 통과. Cubrid는 A-607 이후 연속 2회 통과
