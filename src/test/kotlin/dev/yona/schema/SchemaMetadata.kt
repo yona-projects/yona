@@ -182,9 +182,69 @@ object SchemaMetadata {
         throw last!!
     }
 
+    // --- Cubrid: 드라이버의 카탈로그 조회(테이블마다 모든 사용자를 훑는다) 대신 시스템 뷰와 SHOW CREATE TABLE로 읽는다(A-607) ---
+
+    private fun <T> Connection.queryRows(sql: String, read: (java.sql.ResultSet) -> T): List<T> =
+        prepareStatement(sql).use { ps ->
+            ps.setString(1, metaData.userName)
+            ps.executeQuery().use { rs -> buildList { while (rs.next()) add(read(rs)) } }
+        }
+
+    /** Cubrid의 자료형 이름을 [ColumnType]으로 바꾼다. 이름 없는 `STRING`의 길이는 10억이라 큰 문자열로 본다. */
+    private fun cubridType(dataType: String, precision: Int): ColumnType = when (dataType.uppercase()) {
+        "BIGINT" -> ColumnType.BigInt
+        "INTEGER" -> ColumnType.Integer
+        "SHORT" -> ColumnType.SmallInt
+        "CLOB" -> ColumnType.Text
+        "STRING", "VARCHAR" -> if (precision >= LONG_TEXT_THRESHOLD) ColumnType.Text else ColumnType.Varchar(precision)
+        "DATETIME", "TIMESTAMP" -> ColumnType.Timestamp
+        "DATE" -> ColumnType.Date
+        else -> ColumnType.Other(Types.OTHER, dataType)
+    }
+
+    private fun cubridColumns(c: Connection): Map<String, Map<String, ColumnInfo>> =
+        c.queryRows("select class_name, attr_name, data_type, prec, is_nullable from db_attribute where owner_name = upper(?) and attr_type = 'INSTANCE'") {
+            Triple(it.getString(1).lowercase(), it.getString(2).lowercase(), ColumnInfo(it.getString(5) != "NO", cubridType(it.getString(3), it.getInt(4))))
+        }.groupBy({ it.first }, { it.second to it.third }).mapValues { it.value.toMap() }
+
+    private fun cubridIndexes(c: Connection): Map<String, Map<String, IndexInfo>> {
+        val unique = c.queryRows("select class_name, index_name, is_unique from db_index where owner_name = upper(?) and is_foreign_key = 'NO'") {
+            Triple(it.getString(1).lowercase(), it.getString(2).lowercase(), it.getString(3) == "YES")
+        }
+        val keys = c.queryRows("select class_name, index_name, key_attr_name, key_order, asc_desc from db_index_key where owner_name = upper(?)") {
+            listOf(it.getString(1).lowercase(), it.getString(2).lowercase(), it.getString(3).lowercase(), it.getInt(4).toString(), it.getString(5))
+        }.groupBy { it[0] to it[1] }
+        val primaryKeys = c.queryRows("select class_name, index_name from db_index where owner_name = upper(?) and is_primary_key = 'YES'") { it.getString(1).lowercase() to it.getString(2).lowercase() }.toSet()
+        val result = HashMap<String, MutableMap<String, IndexInfo>>()
+        c.queryRows("select class_name from db_class where owner_name = upper(?) and class_type = 'CLASS'") { it.getString(1).lowercase() }.forEach { result[it] = HashMap() }
+        for ((table, name, isUnique) in unique) {
+            val parts = keys[table to name]?.sortedBy { it[3].toInt() } ?: continue
+            val columns = parts.map { it[2] }
+            if ((table to name) in primaryKeys) continue
+            result.getOrPut(table) { HashMap() }[name] = IndexInfo(isUnique, columns, parts.filter { it[4] == "DESC" }.map { it[2] }.toSet())
+        }
+        return result
+    }
+
+    private val CUBRID_FOREIGN_KEY = Regex("""FOREIGN KEY\s+\(([^)]*)\)\s+REFERENCES\s+\[(?:\w+\.)?(\w+)]\s+\(([^)]*)\)\s+ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION)""")
+
+    private fun cubridForeignKeys(c: Connection): Map<String, Map<String, ForeignKeyInfo>> {
+        val tables = c.queryRows("select class_name from db_class where owner_name = upper(?) and class_type = 'CLASS'") { it.getString(1) }
+        return tables.associate { table ->
+            val ddl = c.createStatement().use { st -> st.executeQuery("show create table [${c.metaData.userName.lowercase()}].[$table]").use { rs -> rs.next(); rs.getString(2) } }
+            table.lowercase() to buildMap {
+                CUBRID_FOREIGN_KEY.findAll(ddl).forEach { m ->
+                    val rule = when (m.groupValues[4]) { "CASCADE" -> "CASCADE"; "SET NULL" -> "SET NULL"; else -> "RESTRICT" }
+                    m.groupValues[1].split(',').map { it.trim().trim('[', ']').lowercase() }.forEach { put(it, ForeignKeyInfo(m.groupValues[2].lowercase(), rule)) }
+                }
+            }
+        }
+    }
+
     /** 실제 DB의 컬럼 구조를 읽는다. */
     fun actualColumns(dataSource: DataSource): Map<String, Map<String, ColumnInfo>> =
         dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridColumns(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -205,6 +265,7 @@ object SchemaMetadata {
     /** 실제 DB의 PK를 제외한 인덱스를 읽는다. */
     fun actualIndexes(dataSource: DataSource): Map<String, Map<String, IndexInfo>> =
         dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridIndexes(c)
             c.tables { table ->
                 val primaryKey = buildList {
                     c.metaData.getPrimaryKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
@@ -233,6 +294,7 @@ object SchemaMetadata {
     /** 실제 DB의 외래 키를 읽는다. */
     fun actualForeignKeys(dataSource: DataSource): Map<String, Map<String, ForeignKeyInfo>> =
         dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridForeignKeys(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
