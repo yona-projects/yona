@@ -73,7 +73,7 @@ Git SSH와 같은 규칙이다(`SshAccess`, HTTP와 같은 `AccessControl`).
 
 **리비전 속성 변경의 권한(A-616)**: 시스템 `svnserve`는 저장소의 `pre-revprop-change` 훅이 허용해야 리비전 속성(커밋 로그 등)을 바꾼다. Yona의 저장소에는 그 훅이 없어서 훅 검사를 건너뛰고 Yona가 판정한다. 쓸 수 있는 접속(구성원, 쓰기 배포 키)만 바꿀 수 있고, `svn:author`와 `svn:date`는 바꾸지 못한다(`Authorization failed`). `post-revprop-change` 훅은 저장소에 있으면 실행한다. 읽기 전용 접속은 `svnsync` 같은 읽기 쪽 명령(`replay`)은 할 수 있다.
 
-**미러링 대상 저장소**: `svnsync`의 대상은 `svnadmin`으로 만든 별도 저장소이고 그 저장소에 `pre-revprop-change` 훅(항상 `exit 0`)을 만드는 것은 `svnsync`를 실행하는 사람(미러를 운영하는 사람)이다. Yona 저장소는 대상이 되지 못한다: `svnsync`가 원본의 작성자와 날짜를 대상에 복사하려 하는데 Yona는 그 변경을 거절하기 때문이다(시험으로 확인했고 `Authorization failed`가 난다). Yona를 미러 대상으로 쓰려면 이 거절을 풀어야 하며 그것은 결정 사항이다.
+**미러링 대상 저장소**: `svnsync`의 대상은 `svnadmin`으로 만든 별도 저장소이고 그 저장소에 `pre-revprop-change` 훅(항상 `exit 0`)을 만드는 것은 `svnsync`를 실행하는 사람(미러를 운영하는 사람)이다. Yona 저장소는 대상이 되지 못한다: `svnsync`가 원본의 작성자와 날짜를 대상에 복사하려 하는데 Yona는 그 변경을 거절하기 때문이다(시험으로 확인했고 `Authorization failed`가 난다). Yona를 미러 대상으로 쓰려면 이 거절을 풀어야 하는데, 선생님이 현행 유지(거절 유지)로 확정하셨다(A-616).
 
 ## 어떻게 확인했는가
 
