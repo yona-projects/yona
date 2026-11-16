@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream
  * SVNKit의 편집기 호출([ISVNEditor])을 `ra_svn`의 편집기 명령으로 바꿔 클라이언트에 보낸다. `update`, `switch`, `diff`, `status`가 서버에서 클라이언트로
  * 변경을 흘려보내는 방식이다(`( open-root ( ( 기준리비전 ) 토큰 ) )` 같은 명령의 연속). 형식은 실제 `svnserve -t`가 보낸 것을 녹화해 맞췄다.
  *
- * 디렉터리 토큰은 `d<번호>`, 파일 토큰은 `c<번호>`이고 번호는 하나의 순번을 같이 쓴다(`svnserve`와 같다). 텍스트 델타는 클라이언트가 `svndiff1`을 받을 수 있으면 압축해서(svndiff1), 아니면 압축하지 않고(svndiff0) 보낸다. [forReplay]이면 재생용이라 `close-edit`을 보내지 않는다.
+ * 디렉터리 토큰은 `d<번호>`, 파일 토큰은 `c<번호>`이고 번호는 하나의 순번을 같이 쓴다(`svnserve`와 같다). 텍스트 델타는 클라이언트가 받을 수 있는 가장 좋은 방식으로 보낸다: LZ4(svndiff2), zlib(svndiff1), 압축 없음(svndiff0) 순이다. [forReplay]이면 재생용이라 `close-edit`을 보내지 않는다.
  */
 class RaSvnEditorWriter(private val server: RaSvnServer, private val forReplay: Boolean = false) : ISVNEditor {
 
@@ -85,7 +85,7 @@ class RaSvnEditorWriter(private val server: RaSvnServer, private val forReplay: 
 
     override fun textDeltaChunk(path: String, window: SVNDiffWindow): java.io.OutputStream {
         val bytes = ByteArrayOutputStream()
-        window.writeTo(bytes, !headerWritten, server.acceptsCompressedDeltas)
+        window.writeTo(bytes, !headerWritten, server.deltaCompression)
         headerWritten = true
         send("textdelta-chunk", RaString(token(path)), RaString(bytes.toByteArray()))
         return java.io.OutputStream.nullOutputStream()

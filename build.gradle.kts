@@ -2,7 +2,7 @@ import java.util.zip.ZipFile
 
 buildscript {
 	repositories { mavenCentral() }
-	// svnkit-dav의 클래스 한 곳을 빌드 때 고치는 데 쓴다(아래 patchedDavPathUtil)
+	// svnkit-dav의 클래스 세 곳을 빌드 때 고치는 데 쓴다(아래 patchedDavClasses)
 	dependencies { classpath("org.ow2.asm:asm:9.7") }
 }
 
@@ -25,6 +25,11 @@ java {
 
 repositories {
 	mavenCentral()
+	// Subversion(A-617): Jakarta 서블릿용 SVNKit은 SCM-Manager의 공개 저장소에만 있다. 다른 그룹이 섞여 오지 않도록 이 그룹으로만 한정한다.
+	maven {
+		url = uri("https://packages.scm-manager.org/repository/public/")
+		content { includeGroup("sonia.svnkit") }
+	}
 	// 엔터프라이즈 SSO(X-16, D-80 2번): SAML 2를 처리하는 OpenSAML은 Maven Central에 없고 Shibboleth 프로젝트의 저장소에만 있다.
 	// 다른 의존성이 이 저장소에서 섞여 오지 않도록 OpenSAML과 Shibboleth 그룹으로만 한정한다.
 	maven {
@@ -37,14 +42,15 @@ repositories {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Subversion WebDAV(D-26): SVNKit의 DAV 서블릿(`DAVServlet`)은 Maven Central에 war로만 배포된다(v1.6은 SCM-Manager가 jar로 다시
-// 포장한 `sonia.svnkit:svnkit-dav`를 썼다). war의 `WEB-INF/classes`만 꺼내 jar로 묶어 클래스패스에 올린다.
+// Subversion WebDAV(D-26, A-617): SVNKit의 DAV 서블릿(`DAVServlet`)은 v1.6과 같이 SCM-Manager가 포장한 `sonia.svnkit:svnkit-dav`를 쓰고, Jakarta
+// 서블릿용 빌드(`-jakarta`)라서 변환 층이 필요 없다. 아래 패치한 클래스 세 개만 바꿔 넣은 jar를 클래스패스에 올린다.
 // ---------------------------------------------------------------------------------------------
 
-val svnDavWar by configurations.creating
+// 패치할 원본 jar이다. 이행 의존성(SVNKit 코어 등)은 아래 implementation으로 따로 받으므로 이 jar만 받는다
+val svnDavOriginal by configurations.creating
 
 /**
- * 한글이나 공백이 든 프로젝트 이름의 저장소에서 커밋이 늘 실패하는 svnkit-dav 1.10.11의 불일치를 고친다(A-148).
+ * 한글이나 공백이 든 프로젝트 이름의 저장소에서 커밋이 늘 실패하는 svnkit-dav 1.10(SCM-Manager 포장판 1.10.10 포함)의 불일치를 고친다(A-148).
  * 요청 본문이나 `Destination` 헤더의 주소를 `java.net.URI.getPath()`로 디코딩한 뒤, 퍼센트 인코딩한 저장소 컨텍스트
  * (`DAVResourceURI.getContext()`, `DAVRepositoryManager.getResourceContext()`)와 비교하는 곳이 세 군데 있다.
  * ASCII 이름에서는 같지만 `한글 프로젝트`는 `%ED%95%9C...`와 `한글 프로젝트`가 달라 `Unusable URI`나 `wrong context`로 거부된다.
@@ -59,12 +65,12 @@ val davContextPatches = listOf(
 
 val patchedDavClasses by tasks.registering {
 	val outputDir = layout.buildDirectory.dir("svn-dav/patched")
-	inputs.files(svnDavWar)
+	inputs.files(svnDavOriginal)
 	outputs.dir(outputDir)
 	doLast {
-		ZipFile(svnDavWar.singleFile).use { zip ->
+		ZipFile(svnDavOriginal.singleFile).use { zip ->
 			for ((className, methodName, ownerSuffix, callName) in davContextPatches) {
-				val reader = org.objectweb.asm.ClassReader(zip.getInputStream(zip.getEntry("WEB-INF/classes/$className.class")).readBytes())
+				val reader = org.objectweb.asm.ClassReader(zip.getInputStream(zip.getEntry("$className.class")).readBytes())
 				val writer = org.objectweb.asm.ClassWriter(reader, 0)
 				var patched = 0
 				reader.accept(object : org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9, writer) {
@@ -93,15 +99,13 @@ val patchedDavClasses by tasks.registering {
 }
 
 val svnDavClasses by tasks.registering(Jar::class) {
-	description = "svnkit-dav war의 WEB-INF/classes를 jar로 묶는다. 컨텍스트 비교를 고친 클래스 세 개를 대신 넣는다."
+	description = "svnkit-dav jar에서 컨텍스트 비교를 고친 클래스 세 개를 바꿔 넣은 jar를 만든다."
 	archiveFileName = "svn-dav-classes.jar".replace("svn-dav", "svnkit-dav")
 	destinationDirectory = layout.buildDirectory.dir("svn-dav")
 	dependsOn(patchedDavClasses)
 	from(layout.buildDirectory.dir("svn-dav/patched"))
-	from(zipTree(svnDavWar.elements.map { it.single().asFile })) {
-		include("WEB-INF/classes/**")
-		davContextPatches.forEach { exclude("${it[0].removePrefix("org/tmatesoft/svn/core/internal/server/dav/")}.class".let { n -> "**/internal/server/dav/$n" }) }
-		eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(2).toTypedArray()) }
+	from(zipTree(svnDavOriginal.elements.map { it.single().asFile })) {
+		davContextPatches.forEach { exclude("${it[0]}.class") }
 		includeEmptyDirs = false
 	}
 }
@@ -176,12 +180,11 @@ dependencies {
 	implementation("commons-lang:commons-lang:2.6")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20190610.1")
 	implementation("org.jsoup:jsoup:1.23.2")
-	// Subversion WebDAV(D-26): DAV 서블릿은 javax 서블릿 API를 쓰므로 Jakarta 서블릿 위에 변환 어댑터를 둔다.
-	svnDavWar("org.tmatesoft.svnkit:svnkit-dav:1.10.11@war")
+	// Subversion 저장소 처리(D-13)와 WebDAV(D-26). SCM-Manager가 Jakarta 서블릿용으로 다시 포장한 SVNKit 1.10.10이다(A-617).
+	// Maven Central의 svnkit-dav는 javax 서블릿용 war로만 있어 변환 층과 바이트코드 패치가 필요했다.
+	svnDavOriginal("sonia.svnkit:svnkit-dav:1.10.10-scm2-jakarta@jar")
 	implementation(files(svnDavClasses))
-	implementation("javax.servlet:javax.servlet-api:3.1.0")
-	// Subversion 저장소 처리(D-13). v1.6의 1.9.3을 현재 배포판인 1.10.11로 올렸다.
-	implementation("org.tmatesoft.svnkit:svnkit:1.10.11")
+	implementation("sonia.svnkit:svnkit:1.10.10-scm2-jakarta")
 	// 받은 HTML 메일의 본문 정리(v1.6 `CreationViaEmail.postprocessForHTML`이 쓰던 라이브러리)
 	implementation("com.googlecode.htmlcompressor:htmlcompressor:1.5.2")
 	implementation("org.apache.tika:tika-core:3.3.3")

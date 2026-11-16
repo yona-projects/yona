@@ -425,3 +425,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | svn+ssh에 깊이(희소 체크아웃), 리비전 속성 변경, svnsync(replay, partial-replay), get-deleted-rev 추가. 진짜 svnserve 녹화로 형식 확인, 시험 13건 추가, Subversion 66건과 중계 17건 통과(A-616)
 
 ## [2026-11-16] build | svn+ssh 압축 전송(svndiff1) 추가, Yona 저장소가 svnsync 대상이 되지 못함을 시험으로 확인(A-616)
+
+## [2026-11-16] build | SVNKit을 Jakarta용 포장판(sonia.svnkit 1.10.10-scm2-jakarta)으로 교체: javax 변환 프록시와 war 풀기 제거, DavServletAdapter로 대체, A-148 패치는 jar 입력으로 유지. svndiff2(LZ4) 압축 추가. SVN 관련 54개 클래스 780건 통과(A-617)

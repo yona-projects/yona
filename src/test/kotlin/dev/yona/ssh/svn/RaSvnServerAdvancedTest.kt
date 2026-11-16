@@ -264,6 +264,18 @@ class RaSvnServerAdvancedTest {
         assertTrue(checkoutBytes < size / 10, "체크아웃이 압축되지 않았다: $checkoutBytes 바이트")
         assertEquals(size.toLong(), File(fresh, "zeros.bin").length())
         assertTrue(File(fresh, "zeros.bin").readBytes().all { it == 0.toByte() })
+        // 클라이언트가 svndiff2(LZ4)를 받을 수 있다고 알리면 그 방식을 쓴다: 텍스트 델타의 머리글이 `SVN` 뒤 버전 2이다
+        val dialogue = File(work, "ra-dialogue.log").readBytes()
+        val version2 = "SVN".toByteArray() + byteArrayOf(2)
+        assertTrue(indexOf(dialogue, version2) >= 0, "svndiff2 머리글이 대화에 있어야 한다")
+    }
+
+    private fun indexOf(haystack: ByteArray, needle: ByteArray): Int {
+        outer@ for (i in 0..haystack.size - needle.size) {
+            for (j in needle.indices) if (haystack[i + j] != needle[j]) continue@outer
+            return i
+        }
+        return -1
     }
 
     @Test

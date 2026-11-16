@@ -22,9 +22,9 @@ updated: 2026-10-25
 - 커밋 코멘트: `POST commit/{리비전}/comments`(내용 필수 `400`, 쓸 권한 `403`, 없는 리비전 `404`)는 `CommitCommentService`가 만들고 작성자의 임시 첨부를 옮기며 알림(`NEW_COMMENT`, 수신자: 커밋 작성자, 이전 코멘트 작성자, 프로젝트와 커밋 구독자, 멘션된 사용자)을 낸다. `DELETE commit/{리비전}/comments/{번호}/delete`는 지울 권한이 있어야 하고 커밋 보기로 돌아간다. 프로젝트 구성원은 남의 코멘트도 지울 수 있다.
 - 멘션 후보(`mentionListAtCommitDiff`)는 코멘트 작성자와 커밋 작성자를 모아 뒤집은 순서(최근 코멘트 작성자, 커밋 작성자), 구성원 순이다(v1.6 `addCodeCommenters`의 `reverse`).
 
-## HTTP(WebDAV) 접근 (`web/svn/SvnDavService`, `SvnDavFilter`, `JavaxServletBridge`)
+## HTTP(WebDAV) 접근 (`web/svn/SvnDavService`, `SvnDavFilter`, `DavServletAdapter`)
 `/svn/소유자/프로젝트/…`로 `svn checkout`, `svn commit` 같은 클라이언트가 접근한다.
-- 구성: Maven Central의 `svnkit-dav:1.10.11`은 war이므로 빌드 때 `WEB-INF/classes`를 꺼내 jar(`svnDavClasses` 작업)로 묶어 쓴다. DAV 서블릿은 `javax.servlet`을 쓰므로 `JavaxServletBridge`가 Jakarta 요청과 응답을 javax API의 동적 프록시로 바꿔 준다(DAV 서블릿이 호출하는 메서드만 연결).
+- 구성(A-617, D-26 갱신): SCM-Manager가 Jakarta 서블릿용으로 포장한 `sonia.svnkit:svnkit-dav:1.10.10-scm2-jakarta`(와 같은 버전의 `svnkit`)를 쓴다. `DAVServlet`이 `jakarta.servlet.http.HttpServlet`을 직접 상속하므로 javax 변환 층이 필요 없고, `DavServletAdapter`가 요청과 응답의 래퍼(`HttpServletRequestWrapper`, `HttpServletResponseWrapper`)에서 DAV 서블릿이 쓰는 값만 v1.6과 같게 바꿔 준다. 한글과 공백이 든 저장소 이름의 컨텍스트 비교 불일치(A-148)는 이 포장판에도 있어 빌드 때 jar의 클래스 세 개를 ASM으로 고쳐 바꿔 넣는다(`svnDavClasses` 작업).
 - 가로채기: 디스패처 서블릿은 WebDAV 메서드를 `501`로 거부하므로 필터가 `/svn/` 아래 모든 요청을 처리한다. 보안 방화벽은 WebDAV 메서드를 허용하도록 설정했다.
 - 순서: Basic 자격 해석(형식 오류 `400`) → 주소를 `svn`, 소유자, 나머지로 가름(짧으면 `403`) → 프로젝트 찾기(없거나 Subversion이 아니면 `404`) → 사용자 확인(Basic 자격, 없으면 세션과 토큰) → 권한(`OPTIONS`, `PROPFIND`, `GET`, `REPORT`은 읽기, 그 밖에는 수정) → 권한이 없으면 익명은 `401`(`WWW-Authenticate: Basic realm="Yobi"`, 본문 `Invalid username or password`), 인증한 사용자는 `403`(`You have no permission to access this repository.`) → `DAVServlet`이 `<저장소 디렉터리>/<소유자>/`를 부모 경로로 처리 → 인증한 사용자의 최근 방문에 기록.
 - 검증: 실제 SVNKit HTTP 클라이언트로 읽기(익명), 커밋(구성원), 거부(익명, 비구성원, 틀린 비밀번호), 비공개 프로젝트, 주소 오류를 확인한다(`SvnDavTest`).

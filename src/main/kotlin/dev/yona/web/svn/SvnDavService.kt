@@ -83,7 +83,7 @@ class SvnDavService(
             return text(response, 403, "You have no permission to access this repository.")
         }
 
-        val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
+        val servlet = DAVServlet().apply { init(DavServletAdapter.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
         // PROPFIND는 응답의 href를 인코딩하는 래퍼를 거친다(A-137). 나머지는 서블릿이 바로 쓴다.
         // REPORT는 위치 구간(`get-location-segments-report`)의 경로에서 앞 슬래시를 뗀다(A-171)
         val target = when (request.method) {
@@ -93,7 +93,7 @@ class SvnDavService(
         }
         // SVNKit의 WebDAV 처리 전체(커밋, 체크아웃, 보고서)이다. 요청 하나의 대부분의 시간이다
         metrics.span("vcs.dav", "vcs" to "svn", "service" to dev.yona.observability.VcsMetrics.svnServiceOf(request.method)) {
-            servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(target))
+            servlet.service(DavServletAdapter.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), DavServletAdapter.response(target))
         }
         (target as? HrefEncodingResponse)?.finish()
         (target as? LocationSegmentResponse)?.finish()

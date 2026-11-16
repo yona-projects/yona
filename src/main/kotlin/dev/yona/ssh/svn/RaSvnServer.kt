@@ -57,8 +57,13 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
     var clientCapabilities: Set<String> = emptySet()
         private set
 
-    /** 클라이언트가 압축한 텍스트 델타(svndiff1)를 받을 수 있으면 `true`이다. */
-    val acceptsCompressedDeltas: Boolean get() = "svndiff1" in clientCapabilities
+    /** 클라이언트에 보내는 텍스트 델타의 압축 방식이다. 클라이언트가 LZ4(svndiff2)를 받으면 그것, zlib(svndiff1)을 받으면 그것, 아니면 압축하지 않는다(svndiff0). */
+    val deltaCompression: org.tmatesoft.svn.core.internal.delta.SVNDeltaCompression
+        get() = when {
+            "accepts-svndiff2" in clientCapabilities -> org.tmatesoft.svn.core.internal.delta.SVNDeltaCompression.LZ4
+            "svndiff1" in clientCapabilities -> org.tmatesoft.svn.core.internal.delta.SVNDeltaCompression.Zlib
+            else -> org.tmatesoft.svn.core.internal.delta.SVNDeltaCompression.None
+        }
 
     /** 지금 세션의 저장소이다. 인증을 마치면 정해진다. */
     private var session: Session? = null
@@ -191,9 +196,9 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
 
     companion object {
         /**
-         * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`(zlib 압축)을 내놓아 클라이언트가 압축해서 보내게 한다. `accepts-svndiff2`(lz4)는 SVNKit이 지원하지 않아 내놓지 않는다. `depth`는 희소 체크아웃과 깊이 변경, `atomic-revprops`는 기존 값을 확인하는 리비전 속성 변경(`change-rev-prop2`)이다.
+         * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`(zlib 압축)과 `accepts-svndiff2`(LZ4 압축)를 내놓아 클라이언트가 압축해서 보내게 한다. `depth`는 희소 체크아웃과 깊이 변경, `atomic-revprops`는 기존 값을 확인하는 리비전 속성 변경(`change-rev-prop2`)이다.
          */
-        val SERVER_CAPABILITIES = listOf("edit-pipeline", "svndiff1", "absent-entries", "commit-revprops", "depth", "log-revprops", "atomic-revprops", "partial-replay", "inherited-props", "list")
+        val SERVER_CAPABILITIES = listOf("edit-pipeline", "svndiff1", "accepts-svndiff2", "absent-entries", "commit-revprops", "depth", "log-revprops", "atomic-revprops", "partial-replay", "inherited-props", "list")
 
         /** 저장소 정보 응답의 기능 목록이다. */
         val REPOSITORY_CAPABILITIES = listOf("mergeinfo")
