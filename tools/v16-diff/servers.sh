@@ -83,7 +83,7 @@ start_v2() {
     --yona.social.login-support=github,google --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
     --yona.social.google.client-id=id --yona.social.google.client-secret=secret \
     --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --spring.mail.username=yona.mail --spring.mail.password=pw --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
-    --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 ${V2_EXTRA:-} $(cat "$WORK/cfg.v2" 2>/dev/null)" | dedupe_args)
+    --yona.csrf-protection=false --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 ${V2_EXTRA:-} $(cat "$WORK/cfg.v2" 2>/dev/null)" | dedupe_args)
   JAVA_TOOL_OPTIONS="$(cat "$WORK/cfg.jvm" 2>/dev/null)" nohup $J21/bin/java -jar "$JAR" $V2_ARGS > "$V2D/boot.log" 2>&1 &
   echo $! > "$V2D/v2.pid"
   wait_http http://127.0.0.1:19300/ v2
@@ -92,6 +92,12 @@ start_v2() {
 state_items_v16() { echo "yona.h2.db conf/application.conf repo uploads"; }
 state_items_v2() { echo "db data"; }
 
+# 치워 둔 이전 상태(`<이름>.discard.<시각>`)는 되돌릴 일이 생길 때를 위해 가장 최근 것 하나만 남기고 지운다.
+# 실제 상태는 `$SNAP`의 tgz에 있으므로 오래된 잔해를 쌓아 둘 까닭이 없다(쌓여서 1.6GB가 된 적이 있다).
+prune_discards() { # 경로(접두어)
+  ls -d "$1".discard.* 2>/dev/null | sort | head -n -1 | while read -r old; do rm -rf "$old"; done
+}
+
 save_state() { # 이름
   mkdir -p "$SNAP/$1"
   (cd "$V16" && tar -czf "$SNAP/$1/v16.tgz" $(for i in $(state_items_v16); do [ -e "$i" ] && echo "$i"; done))
@@ -99,10 +105,10 @@ save_state() { # 이름
 }
 restore_state() { # 이름
   local stamp; stamp=$(date +%s)
-  for i in $(state_items_v16); do [ -e "$V16/$i" ] && mv "$V16/$i" "$V16/$i.discard.$stamp"; done
+  for i in $(state_items_v16); do [ -e "$V16/$i" ] && mv "$V16/$i" "$V16/$i.discard.$stamp"; prune_discards "$V16/$i"; done
   rm -f "$V16/yona.lock.db" "$V16/yona.trace.db"
   tar -xzf "$SNAP/$1/v16.tgz" -C "$V16"
-  for i in $(state_items_v2); do [ -e "$V2D/$i" ] && mv "$V2D/$i" "$V2D/$i.discard.$stamp"; done
+  for i in $(state_items_v2); do [ -e "$V2D/$i" ] && mv "$V2D/$i" "$V2D/$i.discard.$stamp"; prune_discards "$V2D/$i"; done
   tar -xzf "$SNAP/$1/v2.tgz" -C "$V2D"
 }
 
