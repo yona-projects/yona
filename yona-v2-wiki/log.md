@@ -435,3 +435,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | 프로젝트 홈의 HTTP/SSH 선택 단추가 주소 입력란과 7px 겹치고 높이가 어긋나던 것을 고침: 입력란을 border-box 180px, 높이 30px로 고정하고 선택 단추도 30px, 입력란과 경계선 1px을 공유(Playwright로 상자 좌표 측정)
 
 ## [2026-11-16] build | 프로젝트 홈의 복제 주소 상자를 BS5 input-group으로 교체(A-619), 절대 위치 제거. SSH 사용/미사용 두 상태를 Playwright로 좌표 측정
+
+## [2026-11-16] test | next(ra-svn 병합, Jakarta SVNKit, hg 사용자, 복제 주소 상자 변경 포함) 전체 시험: H2 19분 37초 통과(614개 클래스 5482건, 실패 0, 건너뜀 11). 직전의 선별 실행에서 놓친 2건(MessageParityTest의 새 키 목록, RelativeUnitsTest의 px 줄 높이)을 고친 뒤의 결과이다
