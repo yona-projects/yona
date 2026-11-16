@@ -2461,11 +2461,11 @@ label.inline-list {
             width:auto;
         }
 
-        /* 주소가 더 보이도록 SSH 사용 여부와 상관없이 180px이다. 반응형 규칙(`@media all`의 100px)보다 앞서도록 !important를 쓴다. 클릭하면 전체가 보이게 넓어진다 */
+        /* 주소가 더 보이도록 SSH 사용 여부와 상관없이 안쪽 폭 200px(여백과 테두리를 더한 바깥 폭 214px)이다. 반응형 규칙(`@media all`의 100px)보다 앞서도록 !important를 쓴다. 클릭하면 전체가 보이게 넓어진다 */
         .project-clone-url {
             flex:0 0 auto;
-            width:180px !important;
-            max-width:180px !important;
+            width:200px !important;
+            max-width:200px !important;
             height:30px;
             box-sizing:border-box;
             margin-bottom:0;
