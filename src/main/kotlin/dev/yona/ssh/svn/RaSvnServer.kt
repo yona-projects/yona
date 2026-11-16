@@ -53,6 +53,13 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
     private val reader = RaSvnReader(input)
     private val writer = RaSvnWriter(output)
 
+    /** 클라이언트가 인사에서 알린 기능이다(`svndiff1` 등). 클라이언트가 받을 수 있는 방식으로만 보낸다. */
+    var clientCapabilities: Set<String> = emptySet()
+        private set
+
+    /** 클라이언트가 압축한 텍스트 델타(svndiff1)를 받을 수 있으면 `true`이다. */
+    val acceptsCompressedDeltas: Boolean get() = "svndiff1" in clientCapabilities
+
     /** 지금 세션의 저장소이다. 인증을 마치면 정해진다. */
     private var session: Session? = null
 
@@ -80,6 +87,7 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
         val response = receive() as? RaList ?: return false
         val version = (response.items.getOrNull(0) as? RaNumber)?.value
         val url = (response.items.getOrNull(2) as? RaString)?.text
+        clientCapabilities = ((response.items.getOrNull(1) as? RaList)?.items.orEmpty()).mapNotNull { (it as? RaWord)?.value }.toSet()
         if (version != 2L || url == null) return fail(SVNErrorCode.RA_SVN_MALFORMED_DATA, "Malformed network data")
         val resolution = resolve(url) ?: return false
         val (found, rest, rootUrl) = resolution
@@ -183,10 +191,9 @@ class RaSvnServer(input: InputStream, private val output: OutputStream, val user
 
     companion object {
         /**
-         * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`과 `accepts-svndiff2`는 내놓지 않아
-         * 클라이언트가 압축하지 않은 svndiff0을 쓰게 한다(구현이 단순하다). `depth`는 희소 체크아웃과 깊이 변경, `atomic-revprops`는 기존 값을 확인하는 리비전 속성 변경(`change-rev-prop2`)이다.
+         * 서버가 내놓는 기능이다. `edit-pipeline`은 커밋의 편집기 명령을 응답을 기다리지 않고 이어 보내게 한다. `svndiff1`(zlib 압축)을 내놓아 클라이언트가 압축해서 보내게 한다. `accepts-svndiff2`(lz4)는 SVNKit이 지원하지 않아 내놓지 않는다. `depth`는 희소 체크아웃과 깊이 변경, `atomic-revprops`는 기존 값을 확인하는 리비전 속성 변경(`change-rev-prop2`)이다.
          */
-        val SERVER_CAPABILITIES = listOf("edit-pipeline", "absent-entries", "commit-revprops", "depth", "log-revprops", "atomic-revprops", "partial-replay", "inherited-props", "list")
+        val SERVER_CAPABILITIES = listOf("edit-pipeline", "svndiff1", "absent-entries", "commit-revprops", "depth", "log-revprops", "atomic-revprops", "partial-replay", "inherited-props", "list")
 
         /** 저장소 정보 응답의 기능 목록이다. */
         val REPOSITORY_CAPABILITIES = listOf("mergeinfo")

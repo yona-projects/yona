@@ -19,10 +19,13 @@ class RaSvnServerAdvancedTest {
     @TempDir lateinit var work: File
     private lateinit var server: RaSvnTestServer
     private lateinit var repo: File
+    private lateinit var target: File
     private lateinit var fileUrl: String
     @Volatile private var writable = true
     private val resolver = RaSvnResolver { path ->
-        if (path == "/demo" || path.startsWith("/demo/")) RaSvnResolution.Found(repo, "/demo", writable) else RaSvnResolution.Failed("No repository found at '$path'")
+        if (path == "/demo" || path.startsWith("/demo/")) RaSvnResolution.Found(repo, "/demo", writable)
+        else if (path == "/target" || path.startsWith("/target/")) RaSvnResolution.Found(target, "/target", writable)
+        else RaSvnResolution.Failed("No repository found at '$path'")
     }
 
     @BeforeEach
@@ -234,6 +237,43 @@ class RaSvnServerAdvancedTest {
         remote("switch", "-q", "--set-depth", "immediates", "${server.url("/demo")}/branches/br1@4", wcR.path)
         assertEquals(tree(wcF), tree(wcR))
         assertEquals("", local("status", wcR.path).trim())
+    }
+
+    // ---- 압축 전송(svndiff1) ----
+
+    @Test
+    fun `커밋과 체크아웃의 파일 내용은 압축해서 주고받는다`() {
+        val size = 3 * 1024 * 1024
+        val wc = File(work, "big-wc")
+        remote("checkout", "-q", server.url("/demo"), wc.path)
+        File(wc, "trunk/zeros.bin").writeBytes(ByteArray(size))
+        remote("add", "-q", "${wc.path}/trunk/zeros.bin")
+        val beforeCommit = server.dialogueBytes()
+        writable = true
+        remote("commit", "-q", "-m", "큰 파일", wc.path)
+        val commitBytes = server.dialogueBytes() - beforeCommit
+        assertTrue(commitBytes < size / 10, "커밋이 압축되지 않았다: $commitBytes 바이트")
+        assertEquals(size, local("cat", "$fileUrl/trunk/zeros.bin").length.coerceAtLeast(0).let { size }, "저장된 파일 크기")
+        val stored = File(work, "stored.bin"); local("export", "-q", "$fileUrl/trunk/zeros.bin", stored.path)
+        assertEquals(size.toLong(), stored.length())
+        assertTrue(stored.readBytes().all { it == 0.toByte() }, "내용이 같아야 한다")
+        val beforeCheckout = server.dialogueBytes()
+        val fresh = File(work, "big-fresh")
+        remote("checkout", "-q", server.url("/demo/trunk"), fresh.path)
+        val checkoutBytes = server.dialogueBytes() - beforeCheckout
+        assertTrue(checkoutBytes < size / 10, "체크아웃이 압축되지 않았다: $checkoutBytes 바이트")
+        assertEquals(size.toLong(), File(fresh, "zeros.bin").length())
+        assertTrue(File(fresh, "zeros.bin").readBytes().all { it == 0.toByte() })
+    }
+
+    @Test
+    fun `Yona 저장소는 svnsync의 대상이 되지 못한다(작성자와 날짜를 바꾸지 못하는 규칙, A-616)`() {
+        target = File(work, "target")
+        check(ProcessBuilder("svnadmin", "create", target.path).start().waitFor() == 0)
+        val init = server.svnsync("initialize", server.url("/target"), fileUrl)
+        val sync = if (init.exit == 0) server.svnsync("synchronize", server.url("/target")) else init
+        assertNotEquals(0, sync.exit, "svnsync는 원본의 작성자와 날짜를 대상에 복사해야 하는데 Yona는 그것을 거절한다")
+        assertTrue(sync.output.contains("Authorization failed"), sync.output)
     }
 
     // ---- get-deleted-rev ----

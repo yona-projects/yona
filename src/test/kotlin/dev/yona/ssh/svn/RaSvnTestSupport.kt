@@ -111,6 +111,9 @@ class RaSvnTestServer(private val work: File, private val resolver: RaSvnResolve
 
     fun raw(path: String): RawSession = RawSession(path)
 
+    /** 중계기가 지금까지 기록한 대화의 바이트 수이다(양방향 합계). 전송량을 비교할 때 쓴다. */
+    fun dialogueBytes(): Long = File(work, "ra-dialogue.log").takeIf { it.exists() }?.length() ?: 0L
+
     /** 중계기가 기록한 클라이언트와 서버의 대화이다(실패 원인을 볼 때 쓴다). */
     fun dialogue(): String = File(work, "ra-dialogue.log").takeIf { it.exists() }?.readText(Charsets.UTF_8)?.takeLast(6000).orEmpty()
 
