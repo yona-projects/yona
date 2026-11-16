@@ -70,4 +70,11 @@ class ProjectHomeSshTest : AbstractIntegrationTest() {
         val ssh = page.select(".clone-protocol button")[1].attr("data-clone-url")
         assertTrue(ssh.startsWith("svn+ssh://git@"), ssh)
     }
+
+    @Test
+    fun `복제 상자는 BS5 input-group 한 줄에 선택 단추, 주소 입력란, 복사 단추 순서이다`() {
+        val group = home(project("GIT")).selectFirst(".project-clone-wrap > .input-group.project-clone-group")
+        assertNotNull(group, "상자는 input-group이어야 한다(절대 위치로 놓지 않는다)")
+        assertEquals(listOf("btn-group clone-protocol", "project-clone-url form-control", "ybtn project-clone-button"), group.children().map { it.className() })
+    }
 }

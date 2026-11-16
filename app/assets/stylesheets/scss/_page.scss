@@ -2443,27 +2443,36 @@ label.inline-list {
         }
     }
 
+    /*
+     * 복제 주소 상자: [HTTP/SSH 선택 단추] [주소 입력란] [복사 단추]를 BS5 `input-group` 한 줄로 이어 붙인다(A-619). 예전에는 셋이 모두 절대 위치라 폭이나
+     * 여백이 바뀔 때마다 어긋났다. 상자는 열의 오른쪽 끝에 붙고 선택 단추가 있어 열보다 넓어지면 왼쪽으로 넘친다(v1.6과 같은 자리).
+     * BS5 `.row`는 거터의 절반(10px)만큼 바깥으로 나가므로 그만큼 되돌린다.
+     */
     .project-clone-wrap {
-        position: relative;
-        /* 입력란과 복사 단추는 이 상자의 오른쪽 끝을 기준으로 절대 위치에 놓인다. BS5의 `.row`는 거터의 절반(10px)만큼 바깥으로 나가므로 그만큼 되돌린다 */
+        display:flex;
+        justify-content:flex-end;
+        position:relative;
         right:10px;
         padding:5px 0;
-        @include border-radius(6px);
+
+        .project-clone-group {
+            flex:0 0 auto;
+            flex-wrap:nowrap;
+            width:auto;
+        }
 
         .project-clone-url {
-            text-align: right;
-            float:left;
+            flex:0 0 auto;
+            width:175px;
+            height:30px;
+            box-sizing:border-box;
             margin-bottom:0;
+            text-align:right;
             background-color:#FFF;
-            width: 175px;
             border:1px solid #DDD;
-            border-right:none;
-            outline: 0;
-            cursor: pointer;
-            @include border-radius(3px 0 0 3px);
+            outline:0;
+            cursor:pointer;
             @include transition(width .15s);
-            position:absolute;
-            right:86px;
 
             &:focus {
                 width:450px;
@@ -2471,42 +2480,36 @@ label.inline-list {
         }
 
         .project-clone-button {
-            margin-left:0;
-            position:absolute;
-            right:0;
+            flex:0 0 auto;
             width:86px;
-            padding:4px 0 !important;
+            height:30px;
+            padding:0 !important;
+            margin-left:-1px;
             @include border-radius(0 3px 3px 0);
-            float:left;
         }
 
-        /* 내장 SSH 서버를 켠 사이트의 HTTP와 SSH 선택(X-3, D-66). 입력란(너비 175px)과 복사 단추(86px)가 모두 절대 위치라서 이것도 입력란 왼쪽에 절대 위치로 둔다 */
-        .clone-protocol {
-            position:absolute;
-            right:265px;
-            top:5px;
-        }
-
-        /* 선택 단추도 입력란, 복사 단추와 같은 높이(30px)로 맞춘다. 단추 모양은 아래 `.clone-protocol .btn` 규칙이 정하고 여기서는 크기만 고른다 */
+        /* HTTP와 SSH 선택(X-3, D-66). 단추 모양은 아래 `.clone-protocol .btn` 규칙이 정하고 여기서는 크기만 입력란, 복사 단추와 같은 30px로 맞춘다 */
         .clone-protocol .btn {
             height:30px;
             padding-top:0;
             padding-bottom:0;
             line-height:28px;
         }
-        /* 선택 단추, 입력란, 복사 단추가 한 줄로 이어지도록 맞닿는 모서리의 둥근 부분을 없앤다 */
         .clone-protocol .btn:last-child {
             @include border-radius(0);
         }
 
-        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 하고, 단추는 입력란 바로 왼쪽에 붙는다(180px + 복사 단추 86px). 선택 단추는 입력란과 경계선 1px을 같이 쓴다(오른쪽 265px).
-           입력란은 안쪽 여백과 테두리를 포함해 180px로 고정한다(border-box). content-box이면 실제로 193px이 되어 선택 단추와 7px 겹쳤다 */
-        &.clone-with-protocol .project-clone-url {
-            box-sizing:border-box;
-            height:30px;
-            @include border-radius(0);
+        /* 선택 단추가 있으면 입력란을 반응형 규칙의 100px보다 넓혀 주소가 더 보이게 한다. 단추 오른쪽에 붙으므로 왼쪽 모서리는 직각이다 */
+        .clone-protocol + .project-clone-url {
             width:180px !important;
             max-width:180px !important;
+            @include border-radius(0);
+        }
+        .project-clone-group > .project-clone-url:not(:last-child):not(:first-child) {
+            @include border-radius(0);
+        }
+        .project-clone-group > .project-clone-url:first-child {
+            @include border-radius(3px 0 0 3px);
         }
     }
 }

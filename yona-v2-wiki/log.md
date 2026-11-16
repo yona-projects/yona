@@ -433,3 +433,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] build | Subversion 빈 저장소 안내에 인증 방법 안내 추가(HTTP는 토큰, SSH는 SSH 키), 시험 2건
 
 ## [2026-11-16] build | 프로젝트 홈의 HTTP/SSH 선택 단추가 주소 입력란과 7px 겹치고 높이가 어긋나던 것을 고침: 입력란을 border-box 180px, 높이 30px로 고정하고 선택 단추도 30px, 입력란과 경계선 1px을 공유(Playwright로 상자 좌표 측정)
+
+## [2026-11-16] build | 프로젝트 홈의 복제 주소 상자를 BS5 input-group으로 교체(A-619), 절대 위치 제거. SSH 사용/미사용 두 상태를 Playwright로 좌표 측정
