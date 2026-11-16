@@ -26,6 +26,7 @@ updated: 2026-10-25
 `/svn/소유자/프로젝트/…`로 `svn checkout`, `svn commit` 같은 클라이언트가 접근한다.
 - 구성(A-617, D-26 갱신): SCM-Manager가 Jakarta 서블릿용으로 포장한 `sonia.svnkit:svnkit-dav:1.10.10-scm2-jakarta`(와 같은 버전의 `svnkit`)를 쓴다. `DAVServlet`이 `jakarta.servlet.http.HttpServlet`을 직접 상속하므로 javax 변환 층이 필요 없고, `DavServletAdapter`가 요청과 응답의 래퍼(`HttpServletRequestWrapper`, `HttpServletResponseWrapper`)에서 DAV 서블릿이 쓰는 값만 v1.6과 같게 바꿔 준다. 한글과 공백이 든 저장소 이름의 컨텍스트 비교 불일치(A-148)는 이 포장판에도 있어 빌드 때 jar의 클래스 세 개를 ASM으로 고쳐 바꿔 넣는다(`svnDavClasses` 작업).
 - 가로채기: 디스패처 서블릿은 WebDAV 메서드를 `501`로 거부하므로 필터가 `/svn/` 아래 모든 요청을 처리한다. 보안 방화벽은 WebDAV 메서드를 허용하도록 설정했다.
+- 인증: Basic 인증의 사용자 이름은 Yona 로그인 아이디이고 **비밀번호 칸에는 개인용 액세스 토큰만 받는다**(로그인 비밀번호는 401, X-5, D-36, D-70). 토큰의 범위(`repo`, `public_repo`, `read:repo`)는 사용자 권한과 별개로 한 번 더 적용된다. SSH(`svn+ssh`)는 키로 인증한다. 두 방식의 비교는 [architecture/svn-ssh.md](../architecture/svn-ssh.md)의 "인증 방법"에 있다.
 - 순서: Basic 자격 해석(형식 오류 `400`) → 주소를 `svn`, 소유자, 나머지로 가름(짧으면 `403`) → 프로젝트 찾기(없거나 Subversion이 아니면 `404`) → 사용자 확인(Basic 자격, 없으면 세션과 토큰) → 권한(`OPTIONS`, `PROPFIND`, `GET`, `REPORT`은 읽기, 그 밖에는 수정) → 권한이 없으면 익명은 `401`(`WWW-Authenticate: Basic realm="Yobi"`, 본문 `Invalid username or password`), 인증한 사용자는 `403`(`You have no permission to access this repository.`) → `DAVServlet`이 `<저장소 디렉터리>/<소유자>/`를 부모 경로로 처리 → 인증한 사용자의 최근 방문에 기록.
 - 검증: 실제 SVNKit HTTP 클라이언트로 읽기(익명), 커밋(구성원), 거부(익명, 비구성원, 틀린 비밀번호), 비공개 프로젝트, 주소 오류를 확인한다(`SvnDavTest`).
 
