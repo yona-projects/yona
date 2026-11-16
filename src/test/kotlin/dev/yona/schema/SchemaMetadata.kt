@@ -163,9 +163,28 @@ object SchemaMetadata {
         return names.filterNot { SYSTEM_TABLES.matches(it.lowercase()) }.associate { it.lowercase() to read(it) }
     }
 
+    /**
+     * 연결을 열어 스키마를 읽는다. 전체 시험을 Cubrid로 돌리면 조회 도중 드라이버가 "Has been interrupted"를 던지고 그 연결이 계속 쓸 수 없게 되는 일이
+     * 간헐적으로 있다(원인은 확인하지 못했다, A-607). 단독 실행에서는 나오지 않는다. 그 오류에 한해 새 연결로 세 번까지 다시 읽는다.
+     */
+    private fun <T> DataSource.readSchema(block: (Connection) -> T): T {
+        var last: Exception? = null
+        repeat(3) { attempt ->
+            try {
+                return connection.use(block)
+            } catch (e: Exception) {
+                val interrupted = generateSequence<Throwable>(e) { it.cause }.any { it.message?.contains("Has been interrupted") == true }
+                if (!interrupted) throw e
+                last = e
+                Thread.sleep(500L * (attempt + 1))
+            }
+        }
+        throw last!!
+    }
+
     /** 실제 DB의 컬럼 구조를 읽는다. */
     fun actualColumns(dataSource: DataSource): Map<String, Map<String, ColumnInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -185,7 +204,7 @@ object SchemaMetadata {
 
     /** 실제 DB의 PK를 제외한 인덱스를 읽는다. */
     fun actualIndexes(dataSource: DataSource): Map<String, Map<String, IndexInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
             c.tables { table ->
                 val primaryKey = buildList {
                     c.metaData.getPrimaryKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
@@ -213,7 +232,7 @@ object SchemaMetadata {
 
     /** 실제 DB의 외래 키를 읽는다. */
     fun actualForeignKeys(dataSource: DataSource): Map<String, Map<String, ForeignKeyInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
             c.tables { table ->
                 buildMap {
                     c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
@@ -265,8 +284,8 @@ object SchemaMetadata {
 
     /** 실제 DB 컬럼의 기본값(자동 증가 컬럼 제외)을 읽는다. */
     fun actualDefaults(dataSource: DataSource): Map<String, Map<String, String?>> =
-        dataSource.connection.use { c ->
-            if (c.isCubrid()) return@use cubridDefaults(c)
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridDefaults(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -306,8 +325,8 @@ object SchemaMetadata {
 
     /** 실제 DB의 자동 증가 컬럼을 읽는다. */
     fun actualAutoIncrement(dataSource: DataSource): Map<String, Set<String>> =
-        dataSource.connection.use { c ->
-            if (c.isCubrid()) return@use cubridAutoIncrement(c)
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridAutoIncrement(c)
             c.tables { table ->
                 buildSet {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -322,7 +341,7 @@ object SchemaMetadata {
      * `RESTRICT`로 합친다.
      */
     fun actualUpdateRules(dataSource: DataSource): Map<String, Map<String, String>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
             c.tables { table ->
                 buildMap {
                     c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
