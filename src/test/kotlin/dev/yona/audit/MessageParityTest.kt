@@ -66,6 +66,9 @@ class MessageParityTest {
      * v1.6 번들에 빠져 있어 화면에 키 이름이 그대로 나오던 키를 고치려고 더한 키이다(`architecture/v16-safe-fix-candidates.md`).
      * `common.comment.created`는 한국어 번들에만 v1.6에 있었으므로 그 번들에서는 더한 키로 세지 않는다.
      */
+    /** X-55 Subversion SSH: 빈 저장소 안내의 인증 방법 설명(HTTP는 토큰, SSH는 SSH 키). 영어 이외 번들(일본어, 러시아어, 우즈베크어)은 영어와 같다. */
+    private val svnSshKeys = setOf("code.nohead.svn.auth.http", "code.nohead.svn.auth.ssh")
+
     /** X-7 Mercurial(D-86): 프로젝트 만들기의 종류, 빈 저장소 안내, 종류 변경 선택 상자의 글. 영어 이외 번들(일본어, 러시아어, 우즈베크어)은 영어와 같다. */
     private val mercurialKeys = setOf("site.lfs.mercurialNote", "project.new.vcsType.mercurial", "code.nohead.hg.clone", "code.nohead.hg.init", "code.nohead.hg.pull.push", "project.changeVCS.target",
         // X-7 7b: 가져오기 화면의 Mercurial 문구
@@ -125,7 +128,7 @@ class MessageParityTest {
             val v16 = snapshot(tag); val v2 = bundleKeys(file)
             assertEquals(emptySet(), v16 - v2 - deadKeysRemoved, "$file: v1.6에 있고 v2에 없는 키(죽은 코드 정리로 지운 키는 제외)")
             assertEquals(emptySet(), v2 intersect deadKeysRemoved, "$file: 죽은 코드 정리로 지운 키가 다시 들어왔다")
-            assertEquals(addedKeys + (defectFixKeys - v16) + mercurialKeys + (if (file == "messages_ja_JP.properties") japaneseOnlyFixKeys - v16 else emptySet()), v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
+            assertEquals(addedKeys + (defectFixKeys - v16) + mercurialKeys + svnSshKeys + (if (file == "messages_ja_JP.properties") japaneseOnlyFixKeys - v16 else emptySet()), v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
         }
     }
 
