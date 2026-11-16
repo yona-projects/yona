@@ -80,6 +80,18 @@ object V16ConfigConverter {
         "application.update.notification.interval" to "yona.update.interval",
         "application.update.repositoryUrl" to "yona.update.repository-url",
         "application.update.releaseUrlFormat" to "yona.update.release-url-format",
+        "application.update.notification.initdelay" to "yona.update.init-delay",
+        "application.use.email.verification" to "yona.use-email-verification",
+        "application.allowed.sending.mail.domains" to "yona.allowed-sending-mail-domains",
+        "application.temporaryfiles.keep-up.time" to "yona.temporary-files-keep-up-time",
+        "application.mailbox.polling.interval" to "yona.mailbox-polling-interval",
+        "application.issue-event.draft-time" to "yona.issue-event-draft-time",
+        "application.extras.translation.api" to "yona.translation-api",
+        "application.extras.translation.headerKey" to "yona.translation-header-key",
+        "application.extras.translation.headerValue" to "yona.translation-header-value",
+        "signup.require.confirm" to "yona.signup.require-confirm",
+        "data.batch.size" to "yona.data-batch-size",
+        "parsers.text.maxLength" to "yona.parsers-text-max-length",
         "play-easymail.from.email" to "yona.easymail.from-email",
         "play-easymail.from.name" to "yona.easymail.from-name",
         "github.allow.migration" to "yona.github.allow-migration",
@@ -88,7 +100,6 @@ object V16ConfigConverter {
         "application.use.ldap.login.supoort" to "yona.ldap.enabled",
         "ldap.host" to "yona.ldap.host",
         "ldap.port" to "yona.ldap.port",
-        "ldap.protocol" to "yona.ldap.protocol",
         "ldap.baseDN" to "yona.ldap.base-dn",
         "ldap.distinguishedNamePostfix" to "yona.ldap.distinguished-name-postfix",
         "ldap.loginProperty" to "yona.ldap.login-property",
@@ -110,6 +121,8 @@ object V16ConfigConverter {
         "imap.ssl" to "yona.imap.ssl",
         "imap.folder" to "yona.imap.folder",
         "http.port" to "server.port",
+        // v1.6의 LDAP 프로토콜은 `ldap.protocol`이 아니라 최상위 `protocol`에서 읽었다(`app/utils/LdapService.java:27`)
+        "protocol" to "yona.protocol",
         "db.default.url" to "spring.datasource.url",
         "db.default.user" to "spring.datasource.username",
         "db.default.password" to "spring.datasource.password",
@@ -126,14 +139,58 @@ object V16ConfigConverter {
     private val SENSITIVE = setOf("yona.secret", "spring.datasource.password", "spring.mail.password", "yona.imap.password", "yona.github.client-secret", "yona.ldap.bind-password")
 
     /** v1.6에서는 있었지만 v2에서 기능을 없앤 키이다(`decisions.md` D-127: 소셜 로그인을 없앴다). */
-    private val REMOVED = setOf("application.use.social.login.only", "application.use.social.login.name.sync", "application.social.login.support")
+    private val REMOVED = setOf("application.use.social.login.only", "application.use.social.login.name.sync", "application.social.login.support", "application.social.login.github.name")
 
     /** Play, Akka, Ebean의 내부 설정이라 v2에서 뜻이 없어 조용히 버리는 키의 접두어와 정확한 키이다. */
     private val IGNORED_PREFIXES = listOf("play.", "akka.", "ebean", "applyEvolutions.", "logger.", "application.log", "application.mode")
-    private val IGNORED_KEYS = setOf("application.global", "db.default.driver", "db.default.jndiName")
+    private val IGNORED_KEYS = setOf("application.global", "db.default.driver", "db.default.jndiName", "smtp.archive.size")
+
+    /**
+     * v1.6의 모의 발송기 설정이다(`smtp.mock`, 기본 설정 파일에 `true`로 들어 있다. 시험용 모의 발송기는 메일을 실제로 보내지 않는다). v2에는 모의 발송기가 없고 메일 서버
+     * 접속 정보(`spring.mail.host`)가 있으면 실제로 보낸다. 그래서 모의 발송을 켠 사이트는 접속 정보를 옮기지 않는다. v2는 접속 정보가 없으면 메일을 보내지 않고 경고만 남긴다.
+     */
+    private const val SMTP_MOCK = "smtp.mock"
+
+    /** 모의 발송을 켜면 옮기지 않는 메일 서버 접속 정보의 v1.6 키이다. 보내는 주소(`smtp.user`, `smtp.domain`)는 모의 발송과 상관없이 옮긴다. */
+    private val SMTP_CONNECTION = setOf("smtp.host", "smtp.port", "smtp.ssl", "smtp.password")
 
     /** `slack.<이벤트>` 키의 접두어이다. 값이 비어 있으면 옮기지 않는다. */
     private const val SLACK = "slack."
+
+    /** v1.6 설정 파일에 적혀 있어도 v1.6 코드가 읽지 않던 키이다. 옮기면 v1.6에서 무시되던 값이 v2에서 효력을 가지므로 옮기지 않는다. */
+    private const val INERT_LDAP_PROTOCOL = "ldap.protocol"
+
+    /**
+     * v1.6 코드의 기본값이 v2의 기본값과 달라서, 설정 파일에 키가 없을 때 v1.6의 동작을 지키려고 적는 값이다(v2 키 -> v1.6 기본값).
+     * v2의 기본값은 v1.6 **기본 설정 파일**의 값을 따르지만(`configuration-keys.md`), 기본 파일에 없는 오래된 설정 파일을 쓰던 사이트는 코드의 기본값으로 동작했다.
+     * 업데이트 확인 저장소(`application.update.repositoryUrl`)는 v1.6 코드의 기본 저장소가 더 이상 쓰이지 않아 v2 기본값을 그대로 둔다.
+     */
+    val V16_DEFAULTS: Map<String, String> = mapOf(
+        "yona.noreferrer" to "false",
+        "yona.notification-mail-recipient-limit" to "0",
+        "yona.update.interval" to "1h"
+    )
+
+    /** LDAP을 켰는데 키가 없을 때 v1.6이 쓰던 기본값이다(`app/utils/LdapService.java:23-38`). v2의 기본값은 예시 서버라서 그대로 두면 다른 곳에 접속한다. */
+    private val V16_LDAP_DEFAULTS: Map<String, String> = mapOf(
+        "yona.ldap.host" to "127.0.0.1",
+        "yona.ldap.port" to "389",
+        "yona.ldap.base-dn" to "",
+        "yona.ldap.distinguished-name-postfix" to "",
+        "yona.ldap.login-property" to "sAMAccountName",
+        "yona.ldap.display-name-property" to "displayName",
+        "yona.ldap.user-name-property" to "CN",
+        "yona.ldap.email-property" to "mail",
+        "yona.ldap.use-email-base-login" to "false",
+        "yona.ldap.fallback-to-local-login" to "false",
+        "yona.ldap.english-name-attribute-name" to ""
+    )
+
+    /** 변환기가 아는 v1.6 키 전부이다(옮기는 키, 없어진 기능의 키, 읽지 않던 키, 조용히 버리는 정확한 키). 시험이 `YonaProperties` 주석의 v1.6 키와 대조한다. */
+    val knownKeys: Set<String> get() = RENAMES.keys + REMOVED + IGNORED_KEYS + INERT_LDAP_PROTOCOL + SMTP_MOCK
+
+    /** v1.6 설정 키의 첫 마디 가운데 이 변환기가 다루는 것이다(시험이 주석에서 v1.6 키만 가려낼 때 쓴다). */
+    val v16Roots: Set<String> = setOf("signup", "project", "notification", "play-easymail", "github", "ldap", "smtp", "imap", "data", "parsers", "slack", "db", "http")
 
     /** 설정 파일 본문을 읽는다. */
     fun parse(text: String): Parsed {
@@ -233,12 +290,24 @@ object V16ConfigConverter {
         val unmapped = mutableListOf<String>()
         val removed = mutableListOf<String>()
 
+        val mocked = parsed.values[SMTP_MOCK]?.trim().equals("true", ignoreCase = true)
+        if (mocked) {
+            notes += "smtp.mock=true라서 메일 서버 접속 정보(smtp.host 등)는 옮기지 않았습니다. v1.6은 모의 발송기라 메일을 실제로 보내지 않았고, v2에는 모의 발송기가 없어 " +
+                "접속 정보가 있으면 실제로 보냅니다. 메일을 보내려면 spring.mail.host 등을 직접 설정하세요"
+        }
         for ((key, rawValue) in parsed.values) {
             var value = rawValue
+            if (mocked && key in SMTP_CONNECTION) continue
             when {
+                key == SMTP_MOCK -> continue
                 key in REMOVED -> { removed += key; continue }
                 key in IGNORED_KEYS || IGNORED_PREFIXES.any { key.startsWith(it) } -> continue
                 key.startsWith(SLACK) -> { if (value.isNotBlank()) out["yona.slack.${key.removePrefix(SLACK)}"] = value; continue }
+                key == INERT_LDAP_PROTOCOL -> {
+                    notes += "ldap.protocol은 v1.6이 읽지 않던 키라 옮기지 않았습니다(v1.6은 최상위 protocol 키를 읽었습니다). " +
+                        "LDAPS를 쓰려면 이관 뒤 사이트 관리 > SSO > LDAP에서 프로토콜을 지정하세요"
+                    continue
+                }
             }
             val target = RENAMES[key]
             if (target == null) { unmapped += key; continue }
@@ -251,7 +320,13 @@ object V16ConfigConverter {
         }
         if (parsed.skippedModes.isNotEmpty()) notes += "prod가 아닌 모드의 키는 적용하지 않았습니다: ${parsed.skippedModes.joinToString()}"
         if (parsed.includes.isNotEmpty()) notes += "포함 파일은 읽지 않았습니다(소셜 로그인은 v2에서 없어졌습니다): ${parsed.includes.joinToString()}"
+        val pinned = V16_DEFAULTS.filterKeys { it !in out }
+        out.putAll(pinned)
+        if (pinned.isNotEmpty()) notes += "설정 파일에 없던 키를 v1.6 코드의 기본값으로 고정했습니다(v2 기본값과 달라 그대로 두면 동작이 바뀝니다): " + pinned.entries.joinToString { "${it.key}=${it.value}" }
         if (out["yona.ldap.enabled"] == "true") {
+            val filled = V16_LDAP_DEFAULTS.filterKeys { it !in out }
+            out.putAll(filled)
+            if (filled.isNotEmpty()) notes += "LDAP 설정 파일에 없던 키를 v1.6의 기본값으로 채웠습니다(v2의 기본값은 예시 서버입니다): ${filled.keys.joinToString()}"
             notes += "LDAP이 켜져 있습니다. 이관 단계가 이 값을 사이트 설정(DB, 사이트 관리 > SSO > LDAP)으로 옮기며, 그 뒤에는 화면의 값이 설정 파일보다 우선합니다"
         }
         return Converted(out, notes, unmapped.sorted(), removed, SENSITIVE.filter { it in out }.toSet())

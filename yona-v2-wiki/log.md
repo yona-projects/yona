@@ -405,3 +405,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] migration | v1.6 application.conf 변환을 `scripts/migrate-v16.sh --v16-conf=`에 추가(`V16ConfigConverter`, `V16ConfigMain`, 시험 15건). 재리허설로 v2를 시작하지 않은 v1.6 DB에서 스크립트 한 번으로 변환, 스키마 90개 테이블, 이관, 로그인, 옛 토큰을 확인했다(A-608)
 
 ## [2026-11-16] migration | LDAP 설정 파일 값을 사이트 설정(DB)으로 옮기는 이관 5단계 추가(`LdapSettingsMigration`, 시험 4건). 가이드에 LDAP과 비밀 키 설명 추가(A-609)
+
+## [2026-11-16] migration | 설정 변환 보강: v1.6이 읽는 키 71개를 대조해 누락 12개 추가, 값의 의미가 다른 설정(`smtp.mock`, 최상위 `protocol`, LDAP 기본값, 키가 없을 때의 기본값 3개) 처리, include 문서화, 가이드와 대응표 갱신(A-610). 변환기 시험 20건

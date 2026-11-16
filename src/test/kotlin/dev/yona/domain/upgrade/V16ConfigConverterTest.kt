@@ -149,9 +149,69 @@ class V16ConfigConverterTest {
             my.custom.key = 1
             """.trimIndent()
         )
-        assertEquals(setOf("my.custom.key", "smtp.mock"), out.unmapped.toSet(), "알 수 없는 키만 알린다")
+        assertEquals(setOf("my.custom.key"), out.unmapped.toSet(), "알 수 없는 키만 알린다(smtp.mock은 따로 다룬다)")
         assertEquals(listOf("application.use.social.login.only"), out.removed, "v2에서 없앤 기능은 따로 알린다")
-        assertTrue(out.properties.isEmpty())
+        assertEquals(V16ConfigConverter.V16_DEFAULTS.keys, out.properties.keys, "조용히 버린 키가 설정으로 새어 나오면 안 된다. 남는 것은 v1.6 기본값 고정뿐이다")
+    }
+
+    @Test
+    fun `LDAP 프로토콜은 v1_6이 읽던 최상위 protocol 키를 옮기고 읽지 않던 ldap_protocol은 옮기지 않는다`() {
+        val out = convert("protocol = \"ldaps\"\nldap.protocol = \"ldaps\"")
+        assertEquals("ldaps", out.properties["yona.protocol"])
+        assertNull(out.properties["yona.ldap.protocol"], "v1.6이 무시하던 값을 v2에서 효력이 생기게 하면 로그인이 끊길 수 있다")
+        assertTrue(out.notes.any { "ldap.protocol" in it }, "옮기지 않은 이유를 알려야 한다")
+    }
+
+    @Test
+    fun `모의 발송을 켠 v1_6 사이트는 메일 서버 접속 정보를 옮기지 않아 이관 뒤에도 메일을 보내지 않는다`() {
+        val out = convert(
+            "smtp.host = smtp.gmail.com\nsmtp.port = 465\nsmtp.ssl = true\nsmtp.user = bot\nsmtp.password = \"pw\"\nsmtp.domain = example.com\nsmtp.mock = true\nsmtp.archive.size = 5"
+        )
+        assertNull(out.properties["spring.mail.host"], "v1.6은 모의 발송이라 아무것도 보내지 않았다. v2에는 모의 발송이 없어 접속 정보가 있으면 실제로 보낸다")
+        assertNull(out.properties["spring.mail.password"])
+        assertEquals("bot", out.properties["yona.smtp.user"], "보내는 주소 설정은 옮긴다")
+        assertEquals("example.com", out.properties["yona.smtp.domain"])
+        assertTrue(out.notes.any { "smtp.mock" in it }, "옮기지 않은 이유를 알려야 한다")
+        assertTrue(out.unmapped.isEmpty(), "smtp.mock과 archive.size는 아는 키이다: ${out.unmapped}")
+    }
+
+    @Test
+    fun `모의 발송을 끄면 메일 서버 접속 정보를 옮긴다`() {
+        val out = convert("smtp.host = smtp.example.com\nsmtp.port = 25\nsmtp.mock = false")
+        assertEquals("smtp.example.com", out.properties["spring.mail.host"])
+        assertEquals("25", out.properties["spring.mail.port"])
+        assertTrue(out.notes.none { "smtp.mock" in it })
+    }
+
+    @Test
+    fun `LDAP을 켰는데 키가 없으면 v1_6의 기본값을 적는다`() {
+        val out = convert("application.use.ldap.login.supoort = true\nldap.host = \"ldap.corp\"")
+        assertEquals("ldap.corp", out.properties["yona.ldap.host"])
+        assertEquals("389", out.properties["yona.ldap.port"], "v1.6 기본 포트")
+        assertEquals("", out.properties["yona.ldap.base-dn"], "v1.6 기본 기준 DN은 빈 문자열이다(v2의 예시 값이 아니다)")
+        assertEquals("", out.properties["yona.ldap.distinguished-name-postfix"])
+        assertEquals("sAMAccountName", out.properties["yona.ldap.login-property"])
+        assertEquals("CN", out.properties["yona.ldap.user-name-property"])
+        assertEquals("", out.properties["yona.ldap.english-name-attribute-name"])
+        assertEquals("127.0.0.1", convert("application.use.ldap.login.supoort = true").properties["yona.ldap.host"], "v1.6 기본 서버 주소")
+    }
+
+    @Test
+    fun `LDAP이 꺼져 있으면 기본값을 적지 않는다`() {
+        assertNull(convert("application.use.ldap.login.supoort = false").properties["yona.ldap.host"])
+        assertNull(convert("").properties["yona.ldap.port"])
+    }
+
+    @Test
+    fun `v1_6 코드의 기본값이 v2 기본값과 다른 설정은 키가 없을 때 v1_6 값으로 고정한다`() {
+        val out = convert("")
+        assertEquals("false", out.properties["yona.noreferrer"])
+        assertEquals("0", out.properties["yona.notification-mail-recipient-limit"])
+        assertEquals("1h", out.properties["yona.update.interval"])
+        assertTrue(out.notes.any { "yona.noreferrer" in it }, "고정한 키를 알려야 한다")
+        val given = convert("application.noreferrer = true\napplication.notification.bymail.recipientLimit = 100")
+        assertEquals("true", given.properties["yona.noreferrer"], "설정 파일에 있으면 그 값이 이긴다")
+        assertEquals("100", given.properties["yona.notification-mail-recipient-limit"])
     }
 
     @Test
@@ -166,6 +226,50 @@ class V16ConfigConverterTest {
         assertEquals("issue, milestone, board", out.properties["yona.project-default-menus"])
         assertTrue(out.removed.contains("application.use.social.login.only"))
         assertEquals(listOf("social-login.conf"), V16ConfigConverter.parse(text).includes)
+    }
+
+    @Test
+    fun `v1_6이 읽던 나머지 키도 옮긴다`() {
+        val out = convert(
+            """
+            application.use.email.verification = true
+            application.allowed.sending.mail.domains = "a.com, b.com"
+            application.temporaryfiles.keep-up.time = 12h
+            application.mailbox.polling.interval = 10m
+            application.issue-event.draft-time = 20s
+            application.update.notification.initdelay = 7s
+            application.extras.translation.api = "https://t.example/api"
+            application.extras.translation.headerKey = "X-Key"
+            application.extras.translation.headerValue = "v"
+            signup.require.confirm = true
+            data.batch.size = 500
+            parsers.text.maxLength = 204800
+            """.trimIndent()
+        )
+        assertEquals("true", out.properties["yona.use-email-verification"])
+        assertEquals("a.com, b.com", out.properties["yona.allowed-sending-mail-domains"])
+        assertEquals("12h", out.properties["yona.temporary-files-keep-up-time"])
+        assertEquals("10m", out.properties["yona.mailbox-polling-interval"])
+        assertEquals("20s", out.properties["yona.issue-event-draft-time"])
+        assertEquals("7s", out.properties["yona.update.init-delay"])
+        assertEquals("https://t.example/api", out.properties["yona.translation-api"])
+        assertEquals("X-Key", out.properties["yona.translation-header-key"])
+        assertEquals("v", out.properties["yona.translation-header-value"])
+        assertEquals("true", out.properties["yona.signup.require-confirm"])
+        assertEquals("500", out.properties["yona.data-batch-size"])
+        assertEquals("204800", out.properties["yona.parsers-text-max-length"])
+        assertTrue(out.unmapped.isEmpty(), "모두 옮겨야 한다: ${out.unmapped}")
+    }
+
+    @Test
+    fun `YonaProperties 주석에 적힌 v1_6 키는 모두 변환기가 알고 있다`() {
+        val source = java.io.File("src/main/kotlin/dev/yona/config/YonaProperties.kt").readText()
+        val documented = Regex("`([A-Za-z][A-Za-z0-9_.-]*\\.[A-Za-z0-9_.-]+)`").findAll(source).map { it.groupValues[1] }
+            .filter { !it.startsWith("yona.") && !it.startsWith("spring.") && !it.endsWith(".kt") && !it.endsWith(".md") }
+            .filter { key -> source.lines().any { line -> "`$key`" in line && ("application." in key || key.substringBefore('.') in V16ConfigConverter.v16Roots) } }
+            .toSet()
+        val unknown = documented.filter { it !in V16ConfigConverter.knownKeys }
+        assertEquals(emptyList(), unknown.sorted(), "v2 설정 주석에 v1.6 키로 적혀 있는데 변환기가 모르는 키가 있다. 변환기에 더하거나 이 시험의 예외에 이유와 함께 적는다")
     }
 
     @Test

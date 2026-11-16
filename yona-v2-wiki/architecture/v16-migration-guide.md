@@ -46,11 +46,35 @@ scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar --v16-conf=/opt/yona-1
 - `db.default.url`의 `jdbc:mysql:`은 `jdbc:mariadb:`로 바꾼다(v2는 MariaDB 드라이버를 쓴다).
 - 기간 값(`60s`, `6h`)은 그대로 둔다(v2도 같은 형식을 받는다).
 - 변환 뒤 보고가 나온다: **대응하는 v2 키를 모르는 키**(직접 확인), **v2에서 없어진 기능의 키**(소셜 로그인 등, 옮기지 않음), 비밀이 든 키.
-  Play, Akka, Ebean의 내부 설정은 뜻이 없어 조용히 버린다. `include`한 파일(`social-login.conf`)은 읽지 않는다.
+  Play, Akka, Ebean의 내부 설정은 뜻이 없어 조용히 버린다.
+- **`include`**: 변환기는 `include "파일"` 줄을 읽지 않고 파일 이름만 보고서의 "참고"에 알린다. v1.6 기본 설정 파일은 끝에 `include "social-login.conf"`를 두며, 이 파일은 소셜 로그인(GitHub, Google 등)의 클라이언트 ID와 비밀을 담는다. v2는 소셜 로그인 기능을 없앴으므로(D-127) 옮길 것이 없다. 이 밖의 파일을 `include`한 설치라면 그 파일의 키는 변환되지 않으니 다음 순서로 직접 처리한다.
+  1. 보고서에 나온 포함 파일을 열어 키를 확인한다.
+  2. 필요한 키를 `application.conf` 본문으로 옮겨 적은 임시 파일을 만든다(포함 파일 내용을 그대로 붙여 넣으면 된다).
+  3. 그 임시 파일을 `--v16-conf`로 다시 준다. 같은 키가 본문과 포함 파일에 둘 다 있으면 Play처럼 나중에 적힌 값이 이기도록 뒤에 붙인다.
+  포함 파일을 자동으로 따라가지 않는 까닭은 경로 해석(상대 경로, 클래스패스 자원)과 순환 포함을 신경 써야 하는데 v1.6 기본 설치에는 필요한 경우가 없기 때문이다(A-610).
 - **LDAP**: v1.6은 설정 파일로만 정했고 v2는 사이트 설정(DB)이 설정 파일보다 우선한다(D-82). 변환기는 `ldap.*`를 `yona.ldap.*`로 옮기고, 이어지는 데이터 이관 5단계가 켜진 LDAP을 `ldap_settings` 행으로 옮긴다. 이관 뒤에는 사이트 관리 화면에서 고치고, 설정 파일의 LDAP 값은 지워도 된다.
 - **비밀 키**: `application.secret`은 `yona.secret`이 된다. v2에서는 2단계 인증 비밀 값, 백업 코드, LDAP 조회 계정 비밀번호와 SSO 비밀 값의 암호화 키를 이 값에서 만든다(v1.6은 세션 서명에 썼다). 값이 기본 문자열이거나 비어 있으면 첫 기동 화면이 나온다. 운영 중에 바꾸면 이미 저장한 암호화 값을 읽지 못하므로 v1.6의 값을 그대로 옮기고 이후로는 바꾸지 않는다.
 - 사용자가 직접 준 `--spring.config.additional-location`이 있으면 변환한 파일보다 우선한다.
 - 스크립트에는 `--server.port`를 주지 않는다. 스크립트가 `--server.port=0`을 붙인다.
+
+### 이름은 같아도 값의 의미가 달라지는 설정 (변환기가 처리한 것)
+
+키 이름만 옮기면 동작이 바뀌는 설정을 v1.6 소스와 대조해 찾아 처리했다(A-610).
+
+| v1.6 설정 | v1.6 동작 | v2에서 그대로 옮기면 | 변환기의 처리 |
+|---|---|---|---|
+| `smtp.mock = true` (기본 설정 파일에 들어 있다) | 모의 발송기라 메일을 **실제로 보내지 않는다** | v2에는 모의 발송기가 없어 접속 정보가 있으면 실제로 보낸다 | 메일 서버 접속 정보(`smtp.host`, `port`, `ssl`, `password`)를 옮기지 않고 알린다. v2는 `spring.mail.host`가 없으면 메일을 보내지 않고 경고만 남긴다. 보내려면 `smtp.mock=false`로 바꿔 다시 변환하거나 `spring.mail.*`를 직접 정한다 |
+| `ldap.protocol` | **읽지 않는다**(v1.6은 최상위 `protocol`을 읽는다, `LdapService.java:27`) | v1.6에서 무시되던 `ldaps`가 갑자기 적용되어 로그인이 끊길 수 있다 | `ldap.protocol`은 옮기지 않고 알린다. 최상위 `protocol`은 `yona.protocol`로 옮긴다 |
+| LDAP을 켰는데 `ldap.*` 키가 없음 | v1.6 기본값(`127.0.0.1`, 포트 389, 기준 DN 빈 값 등) | v2 기본값은 예시 서버(`ldap.forumsys.com`)라 엉뚱한 곳에 접속한다 | LDAP이 켜져 있으면 없는 키를 v1.6 기본값으로 채운다 |
+| `application.noreferrer` 없음 | 꺼짐(`false`) | v2 기본값은 켬(`true`) | 키가 없으면 `false`로 고정하고 알린다 |
+| `application.notification.bymail.recipientLimit` 없음 | 제한 없음(`0`) | v2 기본값은 `100` | 키가 없으면 `0`으로 고정하고 알린다 |
+| `application.update.notification.interval` 없음 | 1시간 | v2 기본값은 6시간 | 키가 없으면 `1h`로 고정하고 알린다 |
+| `application.context` | 라우터와 링크의 접두어(`/`나 빈 값) | v2는 앞뒤 슬래시를 떼고 링크 접두어와 서블릿 컨텍스트 경로로 쓴다 | 값은 그대로 옮긴다(앞뒤 슬래시 차이는 v2가 정리한다, `SiteUrls`) |
+| 기간 설정(`60s`, `6h` 등) | `getMilliseconds`가 문자열과 숫자(밀리초)를 받는다 | v2의 `Duration` 바인딩이 같은 형식을 받는다 | 값 그대로 옮긴다 |
+| `application.secret` | 세션 서명 | 2단계 인증, SSO, LDAP 조회 계정의 암호화 키 | 값 그대로 옮긴다(위 "비밀 키") |
+
+위 표에 없는 키는 이름과 값의 형식이 같다는 것을 v1.6 소스의 읽는 방식과 v2 `YonaProperties`의 설명으로 확인했다. 확인 범위와 방법은 `V16ConfigConverterTest`가 지킨다: v2 설정 주석에 v1.6 키로 적힌 이름은 모두 변환기가 알아야 하고, 변환 결과의 모든 `yona.*` 키는 `YonaProperties`에 있어야 한다.
+v2 쪽 사용 여부도 코드에서 확인했다: 변환기가 만드는 `yona.*` 키는 모두 소스에서 읽힌다(`yona.signup.*`는 `Signup.required()`로, `yona.ldap.*`는 `LdapSettingsService.effective()`로, `yona.imap.*`는 `MailboxService`로).
 
 ## 3. 스키마 변화 (서버를 처음 시작할 때 자동)
 

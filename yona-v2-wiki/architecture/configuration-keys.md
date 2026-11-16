@@ -64,6 +64,18 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.ssh.relay.internal-secret` | 빈 문자열 | 사용 중(X-3b). 훅이 내부 인증 주소를 부를 때 보내는 공유 비밀 값. 비우면 `internal-secret-path` 파일의 값을 쓰고 없으면 만든다 |
 | (v2 신규) | `yona.ssh.relay.internal-secret-path` | 빈 문자열 | 사용 중(X-3b). 공유 비밀 값 파일. 비우면 `<데이터>/ssh/internal-secret` |
 | (v2 신규) | `yona.git-default-branch` | `main` | 사용 중(X-22). 새 Git 저장소의 `HEAD` 브랜치이다. v1.6은 `master`였다 |
+| `application.use.email.verification` | `yona.use-email-verification` | `false` | 사용 중(가입 이메일 인증, `SignupService`) |
+| `application.allowed.sending.mail.domains` | `yona.allowed-sending-mail-domains` | 빈 문자열 | 사용 중(보내는 메일 도메인 제한, `SystemMails`, `NotificationMailSender`) |
+| `application.temporaryfiles.keep-up.time` | `yona.temporary-files-keep-up-time` | 1일 | 사용 중(임시 첨부 정리 주기) |
+| `application.mailbox.polling.interval` | `yona.mailbox-polling-interval` | 5분 | 사용 중(메일함 확인 주기, `MailboxService`) |
+| `application.issue-event.draft-time` | `yona.issue-event-draft-time` | 30초 | 사용 중(같은 이슈 변경 합치기) |
+| `application.update.notification.initdelay` | `yona.update.init-delay` | 5초 | 사용 중(업데이트 확인 첫 지연) |
+| `application.extras.translation.api` / `.headerKey` / `.headerValue` | `yona.translation-api` / `-header-key` / `-header-value` | 빈 문자열 | 사용 중(번역 API) |
+| `signup.require.confirm` | `yona.signup.require-confirm` | `false` | 사용 중(v1.1 호환 옛 키, `signup.require-admin-confirm`이 없을 때만) |
+| `data.batch.size` | `yona.data-batch-size` | `100` | 사용 중(데이터 가져오기 묶음 크기, v1.6의 숨은 설정) |
+| `parsers.text.maxLength` | `yona.parsers-text-max-length` | `102400` | 사용 중(본문 크기 제한 필터) |
+| `protocol` (최상위) | `yona.protocol` | `ldap` | 사용 중(LDAP 프로토콜. **v1.6은 `ldap.protocol`이 아니라 이 키를 읽었다**) |
+| `smtp.mock` | (없음) | - | v2에는 모의 발송기가 없다. `true`이면 이관 변환기가 메일 서버 접속 정보를 옮기지 않는다([v16-migration-guide.md](v16-migration-guide.md)) |
 
 이 표의 v1.6 키는 `scripts/migrate-v16.sh --v16-conf=<application.conf>`가 v2 키로 자동 변환한다([v16-migration-guide.md](v16-migration-guide.md)). 변환 규칙은 `V16ConfigConverter`에 있고, 이 표에 키를 더하면 변환기도 함께 고친다(시험이 변환 결과의 모든 `yona.*` 키가 `YonaProperties`에 있는지 본다).
 
