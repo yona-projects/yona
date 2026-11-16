@@ -393,3 +393,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-16] chore | 죽은 코드 정리: 메시지 키 26, Kotlin 함수 8, CSS 규칙 106, A-463 죽은 코드 (A-605)
 
 ## [2026-11-16] test | 전체 통합 시험 5개 DB 순회: H2 18분 51초(10건 실패, 고친 뒤 18분 42초 통과), PostgreSQL 20분 3초(1건 실패), MariaDB 27분 30초(통과), MSSQL 24분 42초(5건 실패), Cubrid 38분 49초(30건 실패). 각 5,364건. 고친 뒤 실패했던 시험 묶음을 H2, PostgreSQL, MSSQL, Cubrid에서 다시 돌려 통과를 확인했다(A-606)
+
+## [2026-11-16] test | 전체 시험 재실행: PostgreSQL 19분 49초(1건 실패 LFS 감사 행 순서, 고침), MSSQL 24분 30초(통과), Cubrid 41분 17초(6건), 38분 1초(2건), 44분 8초(3건). Cubrid의 남은 실패는 모두 스키마 조회(`getSchemaInfo`)의 "Has been interrupted"이며 단독 실행에서는 통과한다(A-607)
