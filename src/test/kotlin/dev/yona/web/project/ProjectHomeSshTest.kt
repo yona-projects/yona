@@ -77,4 +77,13 @@ class ProjectHomeSshTest : AbstractIntegrationTest() {
         assertNotNull(group, "상자는 input-group이어야 한다(절대 위치로 놓지 않는다)")
         assertEquals(listOf("btn-group clone-protocol", "project-clone-url form-control", "ybtn project-clone-button"), group.children().map { it.className() })
     }
+
+    @Test
+    fun `주소 복사 단추는 글자 대신 겹친 문서 아이콘이고 이름은 접근성 속성에 둔다`() {
+        val button = home(project("GIT")).selectFirst("#cloneURLBtn")
+        assertNotNull(button)
+        assertNotNull(button.selectFirst("i.yobicon-copy"), "겹친 문서 아이콘이 있어야 한다")
+        assertEquals("", button.text().trim(), "보이는 글자가 없어야 한다")
+        assertTrue(button.attr("title").isNotBlank() && button.attr("aria-label") == button.attr("title"), "title과 aria-label에 같은 이름이 있어야 한다")
+    }
 }

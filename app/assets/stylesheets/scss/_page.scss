@@ -2482,9 +2482,10 @@ label.inline-list {
             }
         }
 
+        /* 글자 대신 겹친 문서 아이콘만 있으므로 입력란 높이와 같은 정사각형에 가깝게 둔다(이름은 title과 aria-label에 있다) */
         .project-clone-button {
             flex:0 0 auto;
-            width:86px;
+            width:36px;
             height:30px;
             padding:0 !important;
             margin-left:-1px;

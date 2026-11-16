@@ -192,7 +192,8 @@ class ProjectHomeTest : AbstractIntegrationTest() {
         val project = newProject()
         val page = home(project)
         assertTrue(page.selectFirst("#cloneURL")?.attr("value")!!.endsWith("/${project.owner}/${project.name}"))
-        assertEquals("Copy URL", page.selectFirst("#cloneURLBtn")?.text())
+        // 주소 복사 단추는 글자 대신 아이콘이고 이름은 title에 있다(A-619)
+        assertEquals("Copy URL", page.selectFirst("#cloneURLBtn")?.attr("title"))
     }
 
     @Test

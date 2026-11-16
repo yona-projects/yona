@@ -45,7 +45,7 @@
                         <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${projectView.sshCloneUrl}">SSH</button>
                     </div>
                     <input type="text" class="project-clone-url form-control" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
-                    <button class="ybtn project-clone-button" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
+                    <button type="button" class="ybtn project-clone-button" id="cloneURLBtn" th:title="#{code.copyUrl}" th:aria-label="#{code.copyUrl}"><i class="yobicon-copy"></i></button>
                 </div>
                 <script th:if="${projectView.sshCloneUrl != null}">
                     (function(){
