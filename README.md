@@ -10,7 +10,7 @@
 
 - DEMO: [http://repo.yona.io](http://repo.yona.io)
 (데모 서버는 2023년 6월 30일 종료합니다. [관련 안내](https://github.com/yona-projects/yona/issues/785))
-- Official Site: [http://yona.io](http://yona.io)
+- Official Site: [http://yona.dev](http://yona.dev)
 
 Yona?
 --
@@ -26,7 +26,7 @@ Yona?
    - 본문 변경이력 보기
    - 이슈 템플릿 기능
 - 자체 내장된 코드 저장소
-   - Git/SVN 선택 가능
+   - Git/SVN/Mercurial 선택 가능
    - 온라인 수정 및 커밋 지원
    - 프로젝트 멤버만 코드에 접근 가능 기능 등
 - 블럭기반 코드리뷰 
@@ -37,7 +37,7 @@ Yona?
    - 그룹 프로젝트, 그룹 멤버
 - 한글 기반
    - 프로젝트 이름 및 그룹 이름에 한글을 사용가능
-- LDAP 지원
+- LDAP을 비롯한 SAML, OIDC 지원
    - LDAP 장애시에도 사용가능한 기능 제공
 - 다른 제품이나 서비스로의 마이그레이션 기능 제공
    - Github/Github Enterprise, 또 다른 Yona 인스턴스, Redmine 등
@@ -64,15 +64,12 @@ Yona 배포판
 ---
 현재 Yona는 버전별로 두 개의 배포판을 [릴리즈 메뉴](https://github.com/yona-projects/yona/releases)를 통해 제공하고 있습니다.
 
-- MariaDB 버전
-  - 기본 권장 버전
-  - `yona-v1.11.0-bin.zip` 같은 형식으로 파일로 배포
+- 데이터베이스 공통 버전
+  - 설정 유형에 따라 MariaDB, PostgreSQL, Cubrid 11.4, SQL Server를 지원합니다.
+  - `yona-v2.0.0-bin.zip` 같은 형식으로 파일로 배포
   - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
-- H2 DB 내장형
-  - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - `yona-h2-v1.11.0-bin.zip` 같은 형식으로 파일로 배포
-  - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
-  - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+  - H2 방식으로 사용할 경우 USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
+  - H2 방식은 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
 Yona 설치
 ---
@@ -130,10 +127,10 @@ application.send.yona.usage = true
 
 Contribution
 ---
-- 코드 기여의 기준이 되는 브랜치는 `master`입니다.
-- 저장소를 fork 한 다음 `master` 브랜치를 기준으로 작업하신다음 `master` 브랜치로 pull request를 보내주세요.
+- 코드 기여의 기준이 되는 브랜치는 `main`입니다.
+- 저장소를 fork 한 다음 `main` 브랜치를 기준으로 작업하신다음 `main` 브랜치로 pull request를 보내주세요.
   - `next`브랜치는 내부 개발용입니다. 어떠한 기능들이 추가되고 있는지 현장을 보고 싶으시면 `next`브랜치를 참고해주세요.
-- 코드리뷰 후 merge 되면 Yona Author로 파일에 기록되며 작은 기념품을 보내드립니다. 
+- 코드리뷰 후 merge 되면 Yona Author로 파일에 기록됩니다. 
 
 <br/>
 
@@ -152,27 +149,28 @@ Yona is designed to increase the speed and efficiency of team work and team deve
    - Issues can be transferred to other projects
    - Issues' change histories can be viewed
 - Bulletin board
-- Embedded Git/SVN respository features 
+- Embedded Git/SVN/Mercurial respository features 
 - Pull requests & Block-based code review
 - Online Commits
 - LDAP support
+- SAML, OIDC Support
 - Migration to/from other services or Yona instances
      - Github/Github Enterprise, Redmine, Yona
 
 Requirements
 ---
-- Java 8+
+- Java 21+
 - System Memory 2Gb+ (Recommendation: 4Gb+)
 
 Distribution
 ---
 Currently, There are two distribution types.
 
-#### MariaDB version
-- Recommended version
+#### MariaDB/PostgreSQL/Cubrid/SQL Server
+- Recommended Database
 - It takes a little effort to install DB, but it guarantees stable operation
 
-#### Embedded H2 DB version
+#### Embedded H2 DB
 - Portable version that can be downloaded and run immediately. 
   - Setting a DB is not required.
   - Also, can run the software directly from a USB device
@@ -222,8 +220,8 @@ application.send.yona.usage = true
 
 Contribution
 ---
-- The branch for contributions is `master`.
-- At first, fork the repository, then work on the `master` branch. And send a pull request to the`master` branch.
+- The branch for contributions is `main`.
+- At first, fork the repository, then work on the `main` branch. And send a pull request to the `main` branch.
    - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
 
 
