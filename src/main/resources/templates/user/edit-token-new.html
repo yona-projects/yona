@@ -11,14 +11,15 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
 <th:block th:fragment="tokenPage">
 <style th:replace="~{user/partial-token-form :: tokenStyle}"></style>
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{apiToken.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
         <form id="token-create" data-submit-once method="post" th:action="@{/user/token}">
             <div class="token-card">
@@ -34,6 +35,7 @@
                 </div>
             </div>
         </form>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{user/partial-token-form :: tokenScripts}"></th:block>

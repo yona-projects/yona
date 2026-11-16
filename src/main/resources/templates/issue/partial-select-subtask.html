@@ -12,7 +12,8 @@
   <div class="row align-items-start">
     <div class="col-lg-3">
         <select class="form-select" id="targetProjectId" name="targetProjectId" data-format="projects" th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-width="100%" th:disabled="${!showOption}">
-            <option th:value="${project.id}" th:attr="data-avatar-url=${logoUrl}" th:text="${project.name}"></option>
+            <!--/* 현재 프로젝트도 다른 선택지처럼 "소유자 / 프로젝트"로 보이도록 소유자와 로고를 넘긴다(A-567) */-->
+            <option th:value="${project.id}" th:attr="data-owner=${project.owner} + ' /', data-avatar-url=${projectView.logoUrl}" th:text="${project.name}"></option>
             <th:block th:each="movable : ${movableProjects}">
                 <option th:if="${movable.id != project.id}" th:value="${movable.id}" th:attr="data-owner=${movable.owner} + ' /', data-avatar-url=${movable.logoUrl}" th:text="${movable.name}"></option>
             </th:block>

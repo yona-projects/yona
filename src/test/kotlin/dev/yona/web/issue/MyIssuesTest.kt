@@ -130,7 +130,7 @@ class MyIssuesTest : AbstractIntegrationTest() {
         val me = newUser(); val other = newUser(); val a = project(other, "a")
         issue(a, "열림1", other, assignee = me); issue(a, "열림2", other, assignee = me); issue(a, "닫힘", other, assignee = me, state = State.CLOSED)
         val doc = page(login(me))
-        assertEquals("/user/issues", doc.selectFirst(".page-wrap > ul.nav-tabs a.nav-link.active")!!.attr("href"))
+        assertEquals("/user/issues", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         assertEquals(listOf("2", "1"), doc.select("#span10 > ul.nav-tabs li .num-badge").map { it.text() })
         assertEquals("open", doc.selectFirst("#span10 > ul.nav-tabs a.nav-link.active")!!.attr("state"))
     }

@@ -5,45 +5,21 @@
   https://yona.io
 
   이식 원본: app/views/project/webhooks.scala.html, partial_webhooks_list.scala.html
-  모델: title, projectView, creatable, action, webhooks(WebhookRow 목록)
+  목록과 등록 폼은 따로 화면이다(A-545): 이 화면은 목록과 삭제, 등록은 webhook-new.html
+  모델: title, projectView, creatable, newUrl, webhooks(WebhookRow 목록)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::webhooksPage})}">
 <th:block th:fragment="webhooksPage" th:with="project=${projectView.project}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap webhook-editor-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${projectBase + '/webhooks'})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner webhook-editor-wrap">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
-        <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
-            <strong class="form-legend" th:text="#{project.webhook.new}"></strong>
-            <div class="form-wrap">
-                <div class="d-flex flex-wrap gap-2 align-items-start">
-                    <input type="text" name="payloadUrl" class="input-webhook-payload form-control" maxlength="2000" autocomplete="off" th:placeholder="#{project.webhook.payloadUrl}">
-                    <input type="text" name="secret" class="input-webhook-secret form-control" maxlength="250" autocomplete="off" th:placeholder="#{project.webhook.secret}">
-                    <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
-                </div>
-                <div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="SIMPLE" checked class="form-check-input"> Messenger (Only text)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="DETAIL_SLACK" class="form-check-input"> Slack (Meta)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT" class="form-check-input"> Google Chat (Thread)
-                    </label></div>
-                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
-                        <input type="radio" name="webhookType" value="JSON" class="form-check-input"> Continuous Integration tool (Only push event)
-                    </label></div>
-                    <div class="form-check form-check-inline"><label class="form-check-label"> | </label></div><div class="form-check form-check-inline"><label class="form-check-label"></label></div>
-                    <div class="form-check form-check-inline"><label for="gitPush" class="form-check-label">
-                        <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input"> <th:block th:text="#{project.webhook.includeGitPush}"></th:block>
-                    </label></div>
-                </div>
-            </div>
-            <div th:utext="#{project.webhook.help}"></div>
-        </form>
+        <div class="webhook-list-top">
+            <h3 class="webhook-list-title" th:text="#{project.webhook}"></h3>
+            <a th:if="${creatable}" id="webhook-new" th:href="${newUrl}" class="ybtn ybtn-primary" th:text="#{project.webhook.add}"></a>
+        </div>
         <div id="webhooksList" class="webhook-list-wrap">
             <div th:if="${#lists.isEmpty(webhooks)}" class="error-wrap">
                 <i class="ico ico-err1"></i>
@@ -68,27 +44,10 @@
                 </div>
             </th:block>
         </div>
+
+</div><!--/* .shell-main */-->
     </div>
 </div>
 
-<script type="module" th:src="@{/assets/javascripts/esm/service/project.Webhook.js}"></script>
-<script type="text/javascript">
-    $(function(){
-        $yona.loadModule("project.Webhook", {
-            "form": "#formNewWebhook",
-            "list": "#webhooksList"
-        });
-        $('input[type=radio][name=webhookType]').change(function() {
-            if (this.value == 'JSON') {
-                // v1.6은 속성(attribute)으로 바꾸어, 체크를 한 번이라도 눌러 본 뒤 JSON을 고르면 체크가 꺼진 채 잠겼다(project-F20). 상태 값(prop)으로 바꾼다.
-                $("input:checkbox[name=gitPush]").prop('checked', true);
-                $("input:checkbox[name=gitPush]").attr('onclick', 'return false;');
-            } else {
-                $("input:checkbox[name=gitPush]").attr('onclick', '');
-                $("input:checkbox[name=gitPush]").prop('checked', false);
-            }
-        });
-    });
-</script>
 </th:block>
 </html>

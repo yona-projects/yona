@@ -10,17 +10,16 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'BOARD', ~{::editPage})}">
 <th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-  <div class="project-page-wrap">
+  <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'BOARD')}"></th:block>
+        <div class="shell-main">
     <form th:action="@{${base + '/post/' + number + '/edit'}}" method="post" enctype="multipart/form-data" class="nm">
       <div class="content-wrap frm-wrap">
         <dl>
-          <dt>
-            <label for="title" th:text="#{title}"></label>
-          </dt>
+          <!--/* A-573: 제목 라벨은 없앴다. 이름은 aria-label로 남겨 화면 읽기 도구가 읽는다 */-->
           <dd>
-            <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" autocomplete="off"/>
+            <input type="text" id="title" name="title" th:attr="aria-label=#{title}" th:value="${titleValue}" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" autocomplete="off"/>
             <div th:if="${errors['title'] != null}" class="message">
               <div th:each="error : ${errors['title']}" th:text="#{${error}(255)}"></div>
             </div>
@@ -46,21 +45,25 @@
             <input type="checkbox" id="readme" name="readme" th:checked="${readme}" class="form-check-input">
             <th:block th:text="#{post.readmefy}"></th:block>
           </label></div>
-        </div>
 
-        <div class="actions">
+          <!--/* A-573: 수정 알림 메일 발송은 저장 단추 옆이 아니라 공지, README 체크와 같은 줄 묶음에 둔다 */-->
           <span th:if="${authoredByViewer and !readme}" class="send-notification-check">
-            <div class="form-check form-check-inline"><label class="form-check-label">
+            <div class="form-check"><label class="form-check-label">
               <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked class="form-check-input">
               <strong th:text="#{notification.send.mail}"></strong>
             </label></div>
           </span>
-          <button th:if="${canUpdate}" class="ybtn ybtn-info" tabindex="3" th:text="#{button.save}"></button><!--
+        </div>
+
+        <div class="actions">
+          <button th:if="${canUpdate}" class="ybtn ybtn-success" tabindex="3" th:text="#{button.save}"></button><!--
          --><a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}"></a>
         </div>
       </div>
     </form>
-  </div>
+  
+        </div><!--/* .shell-main */-->
+    </div>
 </div>
 
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

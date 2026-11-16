@@ -93,7 +93,7 @@ class BranchController(
             name = b.name, shortName = b.shortName, head = isHead, codeUrl = "$base/code/$segment", historyUrl = "$base/commits/$segment/", commitId = b.headCommitId,
             commitShortId = b.headCommitShortId, date = helper.agoOrDateString(b.committerDate), dateTitle = helper.dateString(b.committerDate),
             pullRequestUrl = pr?.let { siteUrls.path("${UrlPaths.projectPath(it.toProject?.owner, it.toProject?.name)}/pullRequest/${it.number}") },
-            pullRequestLabel = pr?.let { "pullRequest-${it.number}" }, pullRequestState = pr?.state?.name?.lowercase(),
+            pullRequestLabel = pr?.let { it.title.orEmpty().ifBlank { "#${it.number}" } }, pullRequestState = pr?.state?.name?.lowercase(),
             setDefaultUrl = if (canUpdate && b.name != defaultName) "$base/code/$segment/setAsDefault" else null,
             deleteUrl = if (canDelete && !isHead && deletable(project, b.name)) "$base/code/$segment/" else null
         )

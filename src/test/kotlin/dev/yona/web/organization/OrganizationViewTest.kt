@@ -126,7 +126,8 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         assertEquals(org.name, page.selectFirst(".project-breadcrumb .project-author a")?.text())
         assertEquals("/organizations/${org.name}", page.selectFirst(".project-breadcrumb .project-author a")?.attr("href"))
         assertEquals("group", page.selectFirst(".group-title-head")?.text())
-        assertTrue(page.selectFirst(".project-header-outer")!!.attr("style").contains("/assets/images/group_default.png"))
+        page.selectFirst(".project-header-outer")!!.let { assertTrue(it.hasClass("has-banner") && it.attr("style").contains("/assets/images/group_default.png"), "조직 머리는 로고를 배경으로 깐다(A-514): ${it.className()} ${it.attr("style")}") }
+        assertTrue(page.selectFirst(".project-header-avatar img")!!.attr("src").contains("/assets/images/group_default.png"))
         assertEquals("조직 설명", page.selectFirst("#project-description")?.text())
     }
 
@@ -141,18 +142,18 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     @Test
     fun `메뉴는 홈 이슈 게시판 풀 리퀘스트이고 홈이 활성이다`() {
         val org = newOrg()
-        val items = page("/organizations/${org.name}").select(".project-menu-gruop li")
+        val items = page("/organizations/${org.name}").select("nav.shell-sidebar li.nav-item")
         assertEquals(listOf("Group Home", "Issue", "Board", "Pull request"), items.map { it.text().trim() })
         assertEquals(listOf("/organizations/${org.name}", "/organizations/${org.name}/issues", "/organizations/${org.name}/boards", "/organizations/${org.name}/pullrequests"), items.map { it.selectFirst("a")!!.attr("href") })
-        assertTrue(items[0].hasClass("active"))
+        assertTrue(items[0].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test
     fun `주소의 대소문자가 달라도 활성 탭이 표시된다 (v1_6은 빈 값이었다, 고쳤다 organization-F9)`() {
         val org = newOrg()
         val upper = org.name!!.uppercase()
-        assertTrue(page("/organizations/$upper").select(".project-menu-gruop li")[0].hasClass("active"))
-        assertTrue(page("/organizations/$upper/issues").select(".project-menu-gruop li")[1].hasClass("active"))
+        assertTrue(page("/organizations/$upper").select("nav.shell-sidebar li.nav-item")[0].selectFirst("a")!!.hasClass("active"))
+        assertTrue(page("/organizations/$upper/issues").select("nav.shell-sidebar li.nav-item")[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test
@@ -161,10 +162,10 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
         val siteAdmin = newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }
-        assertEquals("/organizations/${org.name}/settingform", page("/organizations/${org.name}", login(admin)).selectFirst(".project-setting a")?.attr("href"))
-        assertNotNull(page("/organizations/${org.name}", login(siteAdmin)).selectFirst(".project-setting a"))
-        assertNull(page("/organizations/${org.name}", login(member)).selectFirst(".project-setting a"))
-        assertNull(page("/organizations/${org.name}").selectFirst(".project-setting a"))
+        assertEquals("/organizations/${org.name}/settingform", page("/organizations/${org.name}", login(admin)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]")?.attr("href"))
+        assertNotNull(page("/organizations/${org.name}", login(siteAdmin)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
+        assertNull(page("/organizations/${org.name}", login(member)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
+        assertNull(page("/organizations/${org.name}").selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
     }
 
     @Test
@@ -207,6 +208,20 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         orgProject(org, ProjectScope.PRIVATE, name = "secret")
         val names = page("/organizations/${org.name}").select("ul.all-projects li.project .header > a.black").map { it.text() }
         assertEquals(listOf("alpha", "zeta"), names)
+    }
+
+    @Test
+    fun `홈의 프로젝트는 올린 로고가 있으면 그 이미지를, 없으면 기본 로고를 이름 앞에 보여 준다(A-494)`() {
+        val org = newOrg()
+        val withLogo = orgProject(org, name = "logo-yes")
+        orgProject(org, name = "logo-no")
+        val png = File.createTempFile("plogo", ".png").apply { writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1)) }
+        val file = attachments.store(png, "logo.png", ResourceType.PROJECT, withLogo.id!!, "x").attachment
+        val items = page("/organizations/${org.name}").select("ul.all-projects li.project")
+        val yes = items.first { it.selectFirst(".header > a.black")!!.text() == "logo-yes" }
+        val no = items.first { it.selectFirst(".header > a.black")!!.text() == "logo-no" }
+        assertEquals("/files/${file.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
+        assertEquals("/assets/images/project_default_logo.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"))
     }
 
     @Test
@@ -309,10 +324,23 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val second = newOrg("둘째")
         val page = page("/orgs", login(newUser()))
         assertEquals("Project list", page.title())
-        assertEquals(listOf("PUBLIC Project list", "Group List"), page.select(".site-breadcrumb-inner li").map { it.text().trim() })
-        assertTrue(page.selectFirst(".site-breadcrumb-inner a.nav-link.active")!!.attr("href") == "/orgs")
+        assertEquals("Group List", page.selectFirst(".site-breadcrumb-inner h3")!!.text().trim())
+        assertEquals("/orgs", page.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         assertEquals(listOf(second.name, first.name), page.select("ul.all-projects li.project .header a.black").map { it.text() })
         assertEquals("둘째", page.selectFirst("ul.all-projects li.project .desc")?.text())
+    }
+
+    @Test
+    fun `목록의 그룹은 올린 로고가 있으면 그 이미지를, 없으면 기본 로고를 이름 앞에 보여 준다(A-497)`() {
+        val withLogo = newOrg("logo-yes-org")
+        val without = newOrg("logo-no-org")
+        val png = File.createTempFile("ologo", ".png").apply { writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1)) }
+        val logo = attachments.store(png, "logo.png", ResourceType.ORGANIZATION, withLogo.id!!, "x").attachment
+        val items = page("/orgs", login(newUser())).select("ul.all-projects li.project")
+        val yes = items.first { it.selectFirst(".header a.black")!!.text() == withLogo.name }
+        val no = items.first { it.selectFirst(".header a.black")!!.text() == without.name }
+        assertEquals("/files/${logo.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
+        assertEquals("/assets/images/group_default.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"), "올리지 않았을 때만 기본 그림이다")
     }
 
     @Test

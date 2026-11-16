@@ -17,8 +17,8 @@ import java.sql.SQLException
  * - **긴 문자열을 `string`으로 저장한다.** 아래 [columnType]을 보라.
  * - **시각을 시간대 기능 없이 바인딩한다.** 기본 방언은 `Instant`를 `datetimetz`와 `OffsetDateTime` 바인딩으로 다루는데 Cubrid 드라이버의 `setObject`가 이를 거부한다.
  * - **제약 위반을 오류 코드로 분류한다.** 아래 [buildSQLExceptionConversionDelegate]를 보라.
- * - **예약어 `size`를 따옴표로 감싼다.** `attachment.size` 열이 Cubrid 예약어와 겹친다. 이 방언의 예약어 목록에 더해 두면
- *   `hibernate.auto_quote_keyword`가 켜진 때 열 이름을 따옴표로 감싼다.
+ * - **예약어 `size`와 `position`을 따옴표로 감싼다.** `attachment.size` 열과 범위 행(`device_authorization_scope.position`)의 순서 열이 Cubrid 예약어와
+ *   겹친다. 이 방언의 예약어 목록에 더해 두면 `hibernate.auto_quote_keyword`가 켜진 때 열 이름을 따옴표로 감싼다.
  */
 class YonaCubridDialect : CUBRIDDialect {
 
@@ -40,6 +40,7 @@ class YonaCubridDialect : CUBRIDDialect {
     override fun registerDefaultKeywords() {
         super.registerDefaultKeywords()
         registerKeyword("SIZE")
+        registerKeyword("POSITION")
     }
 
     override fun getTimeZoneSupport(): TimeZoneSupport = TimeZoneSupport.NONE

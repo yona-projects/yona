@@ -117,11 +117,11 @@ class ProfileEditTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `탭 메뉴는 여덟 개이고 현재 탭이 활성이다`() {
+    fun `내 설정 사이드바는 열한 항목이고 현재 항목이 활성이다(탭 줄을 사이드바로 바꿨고 순서를 계정, 알림, 보안 순으로 정리했다, D-141)`() {
         val page = page("/user/editform", login(newUser()))
-        val tabs = page.select(".page-wrap > ul.nav-tabs li")
-        assertEquals(listOf("Edit profile", "Change password", "Notification settings", "Email settings", "User Token", "GPG keys", "SSH keys", "Two-step verification", "OAuth apps", "Linked accounts", "Security log"), tabs.map { it.text().trim() })
-        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token", "/user/editform/gpg", "/user/editform/ssh", "/user/editform/two-factor", "/user/editform/oauth-apps", "/user/editform/linked-accounts", "/user/editform/audit"), tabs.map { it.selectFirst("a")!!.attr("href") })
+        val tabs = page.select("nav.shell-sidebar li.nav-item")
+        assertEquals(listOf("Edit profile", "Change password", "Email settings", "Linked accounts", "Notification settings", "User Token", "SSH keys", "GPG keys", "Two-step verification", "Security log", "OAuth apps"), tabs.map { it.text().trim() })
+        assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/emails", "/user/editform/linked-accounts", "/user/editform/notifications", "/user/editform/token", "/user/editform/ssh", "/user/editform/gpg", "/user/editform/two-factor", "/user/editform/audit", "/user/editform/oauth-apps"), tabs.map { it.selectFirst("a")!!.attr("href") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 
@@ -292,8 +292,8 @@ class ProfileEditTest : AbstractIntegrationTest() {
         val form = page.selectFirst("form#frmPassword")!!
         assertEquals("/user/resetPassword", form.attr("action"))
         assertEquals(listOf("loginId", "oldPassword", "password", "retypedPassword"), form.select("input").map { it.attr("name") })
-        assertEquals("/lostPassword", page.selectFirst("a.ybtn-fail")?.attr("href"))
-        assertTrue(page.select(".page-wrap > ul.nav-tabs li")[1].selectFirst("a")!!.hasClass("active"))
+        assertEquals("/lostPassword", page.selectFirst("a.pw-reset-btn")?.attr("href"))
+        assertTrue(page.select("nav.shell-sidebar a.nav-link.active").single().attr("href") == "/user/editform/password")
     }
 
     @Test

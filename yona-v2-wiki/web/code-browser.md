@@ -31,7 +31,7 @@ updated: 2026-10-23
 
 ## 화면
 
-- 탭(Files, Commit, Branches), 브랜치 선택 상자(`#branches`, 값은 같은 경로의 다른 브랜치 주소), 이동 경로(`#breadcrumbs`), 내려받기, 로그인하면 새 파일(`postform?path=&branch=`) 단추.
+- 탭(Files, Commit, Branches), 브랜치 선택 상자(`#branches`, 값은 같은 경로의 다른 브랜치 주소. 바꾸면 `event.target.value`로 이동한다. select2 4.x의 `change`에는 `val`이 없어 한때 이동하지 못했다, A-457), 이동 경로(`#breadcrumbs`), 내려받기, 로그인하면 새 파일(`postform?path=&branch=`) 단추.
 - 폴더 목록은 폴더가 앞, 파일이 뒤이다. 아이콘 클래스는 폴더 `dynatree-ico-cf`, 파일 `dynatree-ico-c`.
 - 파일 보기: 작성자, 시각, 리비전(7자), 커밋 메시지, 줄바꿈 종류, Raw와 Edit(로그인), 브라우저로 열기, 변경 이력. 본문은 이미지, 이진 파일 안내, 너무 큰 파일 안내, 마크다운 렌더링(`.md` 등), 코드(`#codeVal` 숨김 + `pre#showCode`, ace가 색을 입힌다)이다.
 - 브랜치와 리비전을 주소에 넣을 때는 v1.6처럼 두 번 인코딩한다(`feature/x` → `feature%252Fx`). 서버는 한 번 디코딩해 받은 값을 `decodePathSegment`로 한 번 더 디코딩한다. 그래서 `SecurityConfig`가 방화벽의 `%25`, `%2F` 거부를 푼다([decisions.md] A-69).

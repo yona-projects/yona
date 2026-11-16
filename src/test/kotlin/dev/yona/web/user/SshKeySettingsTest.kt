@@ -64,9 +64,9 @@ class SshKeySettingsTest : AbstractIntegrationTest() {
     fun `설정 탭에 SSH 키 탭이 있고 목록 화면에서 활성이다`() {
         val s = login(user())
         val list = page(s)
-        val tab = list.select("ul.nav-tabs a[href$=/user/editform/ssh]").single()
+        val tab = list.select("nav.shell-sidebar a.nav-link[href$=/user/editform/ssh]").single()
         assertTrue(tab.hasClass("active"))
-        assertNotNull(page(s, "/user/editform").select("ul.nav-tabs a[href$=/user/editform/ssh]").singleOrNull(), "다른 탭에도 SSH 키 탭이 보인다")
+        assertNotNull(page(s, "/user/editform").select("nav.shell-sidebar a.nav-link[href$=/user/editform/ssh]").singleOrNull(), "다른 탭에도 SSH 키 탭이 보인다")
     }
 
     @Test
@@ -94,7 +94,7 @@ class SshKeySettingsTest : AbstractIntegrationTest() {
         val u = user(); val s = login(u)
         val source = TestSshKey.generate("alice@laptop")
         mockMvc.perform(add(s, "내 노트북", source.publicLine)).andExpect(status().is3xxRedirection)
-        val row = page(s).select("table#ssh-list tbody tr.ssh-row").single()
+        val row = page(s).select("ul#ssh-list li.ssh-row").single()
         assertEquals("내 노트북", row.selectFirst(".ssh-name")!!.text())
         assertEquals(source.fingerprint, row.selectFirst(".ssh-fingerprint")!!.text())
         assertEquals("ssh-ed25519", row.selectFirst(".ssh-key-type")!!.text())
@@ -104,7 +104,7 @@ class SshKeySettingsTest : AbstractIntegrationTest() {
     fun `목록의 행 동작은 삭제 버튼 하나뿐이다`() {
         val u = user(); val s = login(u)
         mockMvc.perform(add(s, "a", TestSshKey.generate().publicLine))
-        val row = page(s).select("tr.ssh-row").single()
+        val row = page(s).select("li.ssh-row").single()
         assertEquals(1, row.select("button, input[type=submit]").size)
         assertEquals(0, row.select("a").size, "편집이나 상세로 가는 링크가 없다")
         val form = row.selectFirst("form")!!

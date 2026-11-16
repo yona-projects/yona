@@ -43,7 +43,7 @@ class ErrorPagesTest : AbstractIntegrationTest() {
         assertNotNull(box)
         assertNotNull(box.selectFirst("i.ico.ico-err2"))
         assertEquals("Page not found", box.selectFirst("p")?.text())
-        val home = box.selectFirst("a.ybtn.ybtn-info")
+        val home = box.selectFirst("a.ybtn.ybtn-primary")
         assertEquals("/", home?.attr("href"))
         assertEquals("Home", home?.text())
     }
@@ -93,11 +93,11 @@ class ErrorPagesTest : AbstractIntegrationTest() {
     // --- 잘못된 요청 ---
 
     @Test
-    fun `400 화면은 사이트 레이아웃 안에서 404 아이콘으로 안내한다`() {
+    fun `400 화면은 사이트 레이아웃 안에서 안내한다`() {
         val doc = render("/__test/err/badrequest", 400)
         assertEquals("The request cannot be fulfilled due to bad syntax", doc.selectFirst(".error-wrap p")?.text())
-        assertNotNull(doc.selectFirst(".error-wrap i.ico-404"))
-        assertEquals("/", doc.selectFirst(".error-wrap a.ybtn.ybtn-info")?.attr("href"))
+        assertNotNull(doc.selectFirst(".error-wrap i.ico.ico-err2"), "400, 500 화면도 404, 403과 같은 그림을 쓴다(A-600, v1.6은 정의되지 않은 ico-404 클래스라 그림이 없었다)")
+        assertEquals("/", doc.selectFirst(".error-wrap a.ybtn.ybtn-primary")?.attr("href"))
     }
 
     // --- 서버 오류 ---
@@ -112,7 +112,7 @@ class ErrorPagesTest : AbstractIntegrationTest() {
     fun `처리하지 못한 예외는 500 화면으로 보여 준다`() {
         val doc = render("/__test/err/boom", 500)
         assertEquals("Server error occurred; service is not available", doc.selectFirst(".error-wrap p")?.text())
-        assertNotNull(doc.selectFirst(".error-wrap i.ico-404"))
+        assertNotNull(doc.selectFirst(".error-wrap i.ico.ico-err2"), "400, 500 화면도 404, 403과 같은 그림을 쓴다(A-600, v1.6은 정의되지 않은 ico-404 클래스라 그림이 없었다)")
         assertEquals("/", doc.selectFirst(".error-wrap a.ybtn.ybtn-primary")?.attr("href"))
     }
 

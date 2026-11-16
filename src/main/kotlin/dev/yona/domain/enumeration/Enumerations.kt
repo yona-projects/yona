@@ -125,11 +125,6 @@ enum class PropertyName { MAILBOX_LAST_SEEN_UID, MAILBOX_LAST_UID_VALIDITY, UPDA
 enum class Operation(val value: String) {
     READ("read"), UPDATE("edit"), DELETE("delete"), ACCEPT("accept"), REOPEN("reopen"),
     CLOSE("close"), WATCH("watch"), LEAVE("leave"), ASSIGN_ISSUE("assign_issue");
-
-    companion object {
-        /** 이름으로 연산을 찾는다. 알 수 없는 이름은 [READ]이다 (v1.6 `Operation.getValue`). */
-        fun fromValue(value: String?): Operation = entries.firstOrNull { it.value == value } ?: READ
-    }
 }
 
 /**

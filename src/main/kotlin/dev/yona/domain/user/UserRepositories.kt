@@ -20,9 +20,6 @@ interface UserVerificationRepository : JpaRepository<UserVerification, Long> {
 
     /** 로그인 ID와 인증 코드가 모두 맞는 인증 정보를 조회한다 (v1.6 `UserVerification.findbyLoginIdAndVerificationCode`). */
     fun findFirstByLoginIdAndVerificationCode(loginId: String, verificationCode: String): UserVerification?
-
-    /** 사용자의 인증 정보를 조회한다 (v1.6 `UserVerification.findbyUser`). */
-    fun findFirstByUserId(userId: Long): UserVerification?
 }
 
 /** 소셜 로그인 자격 증명 저장소이다. */

@@ -59,4 +59,26 @@ export const tests = [
     assert.equal(out.afterLink, true, '링크를 눌렀는데 더 보기가 토글되었다');
     assert.equal(out.afterText, false, '본문을 누르면 토글되어야 한다');
   } },
+  { name: '홈의 안내(버튼 영역)는 처음에 접혀 있고, 펼친 상태를 기억해 다음에도 펼친다 (A-493)', async run() {
+    const snippet = templateSnippet('index/notifications.html', '// 접기 단추의 힌트(title)', "$('.notification-wrap').on('click','[data-toggle=\"learnmore\"]'");
+    const html = '<div class="site-guide-outer hide">안내</div><div class="guide-toggle"><button id="toggleIntro"></button></div>';
+    const run = async (stored, click) => {
+      const page = await pageWith({ html });
+      const out = await page.evaluate(([code, st, doClick]) => {
+        const m = new Map(st === null ? [] : [['yobi-intro', st]]);
+        Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) } });
+        new Function(code)();
+        if (doClick) document.getElementById('toggleIntro').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        return { hidden: document.querySelector('.site-guide-outer').classList.contains('hide'), stored: m.get('yobi-intro') };
+      }, [snippet, stored, click]);
+      await page.close();
+      return out;
+    };
+    assert.equal((await run(null, false)).hidden, true, '기억한 값이 없으면 접힌 채로 시작한다');
+    assert.equal((await run('false', false)).hidden, true, '접어 둔 상태는 접힌 채로');
+    assert.equal((await run('true', false)).hidden, false, '펼쳐 둔 상태는 펼친 채로');
+    const opened = await run(null, true);
+    assert.equal(opened.hidden, false, '단추를 누르면 펼쳐진다');
+    assert.equal(opened.stored, 'true', '펼침을 기억한다');
+  } },
 ];

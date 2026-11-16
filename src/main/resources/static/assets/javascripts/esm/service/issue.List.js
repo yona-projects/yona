@@ -207,7 +207,8 @@ const List = function(htOptions){
      * @private
      */
     function _initHtmx(){
-        $(document).on("htmx:afterSwap", (weEvt) =>{
+        // 이름 공간을 붙이고 먼저 풀어, 본문 교체로 모듈이 다시 시작해도 처리기가 쌓이지 않게 한다(D-136)
+        $(document).off("htmx:afterSwap.issueList").on("htmx:afterSwap.issueList", (weEvt) =>{
             if($(weEvt.target).is("[list-container]")){
                 _onLoadIssueList();
             }

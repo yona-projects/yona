@@ -9,14 +9,15 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::oauthPage})}">
 <th:block th:fragment="oauthPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
-        <div class="two-factor-page">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="two-factor-page oauth-screen">
         <p class="text-body-secondary mb-4" th:text="#{oauth.org.description}"></p>
         <th:block th:replace="~{oauth/partial-apps :: mine(${apps}, ${urls}, ${userAppsEnabled}, 'oauth.org.apps', 'oauth.org.apps.empty')}"></th:block>
         </div>
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

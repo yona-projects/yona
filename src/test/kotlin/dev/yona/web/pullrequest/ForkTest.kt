@@ -100,6 +100,11 @@ class ForkTest : AbstractIntegrationTest() {
         assertEquals(p.name, doc.selectFirst("input#inputName")!!.attr("value"))
         assertEquals(listOf(me.loginId), doc.select("select#project-owner option").map { it.attr("value") })
         assertEquals("/${p.owner}/${p.name}/fork", doc.selectFirst("form.form-horizontal")!!.attr("action"))
+        // A-568: 프로젝트 만들기 폼처럼 라벨이 입력란 위에 있고 입력란은 전체 폭이며 제출 단추는 테마색이다
+        assertNotNull(doc.selectFirst("dl > dt > label[for=project-owner]")); assertNotNull(doc.selectFirst("dl > dt > label[for=inputName]"))
+        assertTrue(doc.selectFirst("select#project-owner")!!.hasClass("w-100") && doc.selectFirst("input#inputName")!!.hasClass("w-100"))
+        assertTrue(doc.selectFirst("form.form-horizontal button[type=submit]")!!.hasClass("ybtn-success"))
+        assertEquals(listOf("public", "private"), doc.select("ul.project-scopes input[name=projectScope]").map { it.id() })
         assertNotNull(doc.selectFirst("p.lead"))
         assertTrue(doc.select("input[name=projectScope]").map { it.attr("value") } == listOf("PUBLIC", "PRIVATE"))
     }

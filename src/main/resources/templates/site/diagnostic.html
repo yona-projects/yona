@@ -10,16 +10,26 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::diagnosticPage})}">
 <th:block th:fragment="diagnosticPage">
+<span data-swap-safe hidden></span>
     <div class="title_area">
         <h2 class="float-start" th:text="#{site.sidebar.diagnostics}"></h2>
     </div>
 
-    <p th:if="${errors.isEmpty()}" th:text="#{site.diagnostic.errorNotFound}"></p>
-    <th:block th:unless="${errors.isEmpty()}">
-        <p th:text="#{site.diagnostic.errorFound(${errors.size()})}"></p>
-        <ul>
-            <li th:each="error : ${errors}"><pre th:text="${error}"></pre></li>
+    <!--/* A-594: 무엇을 점검하는지와 결과를 카드로 보인다. 점검은 v1.6과 같은 두 가지(구성, 속성)이다 */-->
+    <div class="site-card">
+        <h3 th:text="${errors.isEmpty()} ? #{site.diagnostic.errorNotFound} : #{site.diagnostic.errorFound(${errors.size()})}"></h3>
+        <p th:text="#{site.diagnostic.checks.intro}"></p>
+        <ul class="diag-checks">
+            <li><strong class="diag-state" th:text="#{site.diagnostic.checks.configLabel}"></strong> <span th:text="#{site.diagnostic.checks.config}"></span></li>
+            <li><strong class="diag-state" th:text="#{site.diagnostic.checks.propertyLabel}"></strong> <span th:text="#{site.diagnostic.checks.property}"></span></li>
         </ul>
-    </th:block>
+    </div>
+    <div class="site-card danger" th:unless="${errors.isEmpty()}">
+        <div class="alert-soft mb-0">
+            <ul>
+                <li th:each="error : ${errors}"><pre th:text="${error}"></pre></li>
+            </ul>
+        </div>
+    </div>
 </th:block>
 </html>

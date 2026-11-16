@@ -13,22 +13,24 @@
         <section>
             <h4 th:text="#{${titleKey}}"></h4>
             <div id="my-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(apps)}" th:text="#{${emptyKey}}"></div>
-            <table id="my-apps" class="table table-striped" th:if="${!#lists.isEmpty(apps)}">
-                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{oauth.apps.clientId}"></th><th th:text="#{oauth.form.type}"></th><th th:text="#{sshKey.createdDate}"></th><th></th></tr></thead>
-                <tbody>
-                <tr th:each="a : ${apps}" class="app-row">
-                    <td><a th:href="@{${urls.edit(a.id)}}" th:text="${a.name}"></a></td>
-                    <td><code th:text="${a.clientId}"></code></td>
-                    <td th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></td>
-                    <td th:text="${a.createdText}"></td>
-                    <td class="text-end">
+            <!--/* A-579, A-580: 앱 목록은 카드이다(앱마다 이름, 종류, 클라이언트 ID, 등록일, 삭제). 사용자 설정, 조직, 사이트가 같은 모양이다 */-->
+            <ul id="my-apps" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(apps)}">
+                <li th:each="a : ${apps}" class="item-card app-row">
+                    <div class="item-card-head">
+                        <a class="item-card-name" th:href="@{${urls.edit(a.id)}}" th:text="${a.name}"></a>
+                        <span class="item-card-type" th:text="${a.confidential} ? #{oauth.type.confidential} : #{oauth.type.public}"></span>
+                    </div>
+                    <dl class="item-card-meta">
+                        <dt th:text="#{oauth.apps.clientId}"></dt><dd><code th:text="${a.clientId}"></code></dd>
+                        <dt th:text="#{sshKey.createdDate}"></dt><dd th:text="${a.createdText}"></dd>
+                    </dl>
+                    <div class="item-card-actions">
                         <form method="post" th:action="@{${urls.delete(a.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.apps.delete.confirm} + '\');'">
                             <button type="submit" class="btn btn-danger btn-sm" th:text="#{oauth.apps.delete}"></button>
                         </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </div>
+                </li>
+            </ul>
             <div class="tf-actions">
                 <a id="oauth-app-new" class="btn btn-success" th:if="${userAppsEnabled}" th:href="@{${urls.new}}" th:text="#{oauth.apps.new}"></a>
                 <span id="user-apps-disabled" class="text-body-secondary" th:unless="${userAppsEnabled}" th:text="#{oauth.apps.disabled}"></span>
@@ -39,7 +41,7 @@
 <!--/* 앱 만들기와 수정 양식. 모델: client, form, formError, scopeChoices, oidcInfo, urls, transferTargets(소유자 이전 대상 목록) */-->
 <th:block th:fragment="appForm(client, form, formError, scopeChoices, oidcInfo, urls, transferTargets)">
         <div th:if="${formError != null}" class="alert alert-danger" th:text="#{${formError}}"></div>
-        <h4 th:text="${client == null} ? #{oauth.form.title.new} : #{oauth.form.title.edit}"></h4>
+        <h4 class="oauth-form-title" th:text="${client == null} ? #{oauth.form.title.new} : #{oauth.form.title.edit}"></h4>
         <p th:if="${client != null}" class="mb-3"><span th:text="#{oauth.apps.clientId}"></span>: <code id="edit-client-id" th:text="${client.clientId}"></code></p>
         <section id="oidc-info" class="tf-section mb-3" th:if="${oidcInfo != null}">
             <h5 th:text="#{oauth.oidc.title}"></h5>
@@ -77,7 +79,7 @@
                 </div>
             </div>
             <div class="mb-4">
-                <span class="form-label d-block" th:text="#{oauth.form.scopes}"></span>
+                <span class="form-label d-block tf-scopes-title" th:text="#{oauth.form.scopes}"></span>
                 <div class="form-text mb-2" th:text="#{oauth.form.scopes.help}"></div>
                 <div class="tf-choices tf-group tf-scopes">
                     <label class="tf-choice" th:each="s : ${scopeChoices}" th:for="'oauth-scope-' + ${s}">
@@ -91,30 +93,56 @@
                 <a th:href="@{${urls.list}}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
-        <section class="tf-section" th:if="${client != null and client.confidential}">
-            <h4 th:text="#{oauth.secret.title}"></h4>
-            <p th:text="#{oauth.secret.regenerate.help}"></p>
+        <!--/* A-588: 비밀 값 새로 만들기도 소유자 이전처럼 위험 구역으로 둔다(이전 비밀 값을 쓰던 곳이 바로 멈추기 때문이다) */-->
+        <section id="oauth-secret-regenerate" class="danger-section" th:if="${client != null and client.confidential}">
+            <h3 class="danger-title cu-label" th:text="#{oauth.secret.title}"></h3>
+            <div class="cu-desc"><p th:text="#{oauth.secret.regenerate.help}"></p></div>
             <form method="post" th:action="@{${urls.secret(client.id)}}" th:attr="onsubmit='return confirm(\'' + #{oauth.secret.regenerate.confirm} + '\');'">
-                <button type="submit" class="btn btn-secondary" th:text="#{oauth.secret.regenerate}"></button>
+                <div class="danger-actions">
+                    <button type="submit" class="btn btn-danger" th:text="#{oauth.secret.regenerate}"></button>
+                </div>
             </form>
         </section>
-        <section id="oauth-transfer" class="tf-section" th:if="${client != null and !#lists.isEmpty(transferTargets)}">
-            <h4 th:text="#{oauth.transfer.title}"></h4>
-            <p th:text="#{oauth.transfer.help}"></p>
+        <!--/* A-583: 소유자 이전은 프로젝트 삭제와 같은 순서이다. 이전할 곳을 고르고 단추로 확인 창을 열어 앱 이름을 정확히 입력해야 실행 단추가 켜진다 */-->
+        <section id="oauth-transfer" class="danger-section" th:if="${client != null and !#lists.isEmpty(transferTargets)}">
+            <h3 class="danger-title cu-label" th:text="#{oauth.transfer.title}"></h3>
+            <div class="cu-desc"><p th:text="#{oauth.transfer.help}"></p></div>
             <form id="oauth-transfer-form" method="post" th:action="@{${urls.transfer(client.id)}}">
+                <input type="hidden" name="confirm" value="">
                 <div class="mb-3">
                     <label for="oauth-transfer-target" class="form-label" th:text="#{oauth.transfer.target}"></label>
                     <select id="oauth-transfer-target" name="target" class="form-select tf-wide">
                         <option th:each="t : ${transferTargets}" th:value="${t.value}" th:text="${t.organization} ? #{oauth.apps.byOrganization(${t.name})} : #{oauth.transfer.myAccount(${t.name})}"></option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label for="oauth-transfer-confirm" class="form-label" th:text="#{oauth.transfer.confirm}"></label>
-                    <input id="oauth-transfer-confirm" type="text" name="confirm" autocomplete="off" class="form-control tf-group-wide w-100">
+                <div class="danger-actions">
+                    <a id="btnTransfer" href="#alertTransfer" class="btn btn-danger" data-bs-toggle="modal" th:text="#{oauth.transfer.submit}"></a>
                 </div>
-                <button type="submit" class="btn btn-danger" th:text="#{oauth.transfer.submit}"></button>
             </form>
         </section>
+        <div id="alertTransfer" class="modal" th:if="${client != null and !#lists.isEmpty(transferTargets)}"><div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3 th:text="#{oauth.transfer.modal.title}"></h3>
+            </div>
+            <div class="modal-body">
+                <p th:text="#{oauth.transfer.modal.body}"></p>
+                <p class="mb-0">
+                    <label for="transferConfirmName" class="form-label" th:utext="#{oauth.transfer.modal.confirmName(${'<strong>' + #strings.escapeXml(client.name) + '</strong>'})}"></label>
+                    <input type="text" id="transferConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnTransferExec" type="button" class="btn btn-danger" disabled th:text="#{oauth.transfer.submit}"></button>
+            </div>
+        </div></div></div>
+        <script type="module" th:inline="javascript" th:if="${client != null and !#lists.isEmpty(transferTargets)}">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/oauth.Transfer.js}]]);
+    $(function(){
+        $yona.loadModule("oauth.Transfer", {"sAppName": [[${client.name}]]});
+    });
+</script>
 </th:block>
 
 <!--/* 기밀 앱의 비밀 값 화면. 모델: clientName, clientId, secret, noticeKey, appId, urls */-->

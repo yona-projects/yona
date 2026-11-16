@@ -180,7 +180,8 @@ class AuditViewTest : AbstractIntegrationTest() {
         val actors = doc.select("tr.audit-row .audit-actor").map { it.text() }
         assertTrue(actors.isNotEmpty() && actors.all { it == me.loginId }, actors.toString())
         assertFalse(doc.select("tr.audit-row .audit-action").any { it.text() == "project.created" })
-        assertNotNull(doc.selectFirst(".nav-tabs a[href=/user/editform/audit]"))
+        assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link[href\$=/user/editform/audit]"), "사이드바에 보안 기록 항목이 있다")
+        assertNotNull(doc.selectFirst("form.audit-filter"), "검색 양식이 보인다(A-582)")
     }
 
     @Test

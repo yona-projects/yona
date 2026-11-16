@@ -5,72 +5,76 @@
 
   이식 원본: app/views/search/partial_search.scala.html
   모델: search(SearchView)
+  매개변수: sidebar(맥락 사이드바 조각 또는 null). D-141: 프로젝트와 그룹 안의 검색 결과는 그 맥락의 사이드바를 보이고, 전역 검색은 null이다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search"
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search(sidebar)"
           th:with="counts=${search.counts}, current=${search.searchType.type}">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" th:unless="${sidebar != null}">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{title.search}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap" th:classappend="${sidebar != null} ? 'shell shell-below-banner'">
+        <th:block th:if="${sidebar != null}"><th:block th:replace="${sidebar}"></th:block></th:block>
+        <div th:class="${sidebar != null} ? 'shell-main'">
+        <h3 class="mb-3" th:if="${sidebar != null}" th:text="#{title.search}"></h3><!--/* 맥락 안에서는 위쪽 제목 띠가 배너 로고에 가려져 제목을 본문 안에 둔다 */-->
         <div class="project-page-wrap">
             <div class="row">
                 <div class="col-lg-2">
                     <ul class="lst-stacked list-unstyled search-category-wrap">
                         <li th:class="${current == 'issue' ? 'active' : ''} + ' ' + ${counts.issues == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="issue"><th:block th:text="#{search.menu.issues}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.issues}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.issues, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'user' ? 'active' : ''} + ' ' + ${counts.users == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="user"><th:block th:text="#{search.menu.users}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.users}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.users, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:unless="${search.projectScoped}" th:class="${current == 'project' ? 'active' : ''} + ' ' + ${counts.projects == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="project"><th:block th:text="#{search.menu.projects}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.projects}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.projects, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'post' ? 'active' : ''} + ' ' + ${counts.posts == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="post"><th:block th:text="#{search.menu.boards}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.posts}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.posts, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'milestone' ? 'active' : ''} + ' ' + ${counts.milestones == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="milestone"><th:block th:text="#{search.menu.milestones}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.milestones}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.milestones, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'issue_comment' ? 'active' : ''} + ' ' + ${counts.issueComments == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="issue_comment"><th:block th:text="#{search.menu.issue.comments}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.issueComments}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.issueComments, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'post_comment' ? 'active' : ''} + ' ' + ${counts.postComments == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="post_comment"><th:block th:text="#{search.menu.board.comments}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.postComments}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.postComments, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'review' ? 'active' : ''} + ' ' + ${counts.reviews == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="review"><th:block th:text="#{search.menu.reviews}"></th:block>
-                                <span class="num-badge float-end" th:text="${counts.reviews}"></span>
+                                <span class="num-badge float-end" th:text="${#numbers.formatInteger(counts.reviews, 1, 'COMMA')}"></span>
                             </a>
                         </li>
                     </ul>
                 </div>
                 <div class="col-lg-10">
                     <div class="search-box-wrap">
-                        <form class="d-flex flex-wrap align-items-start" id="searchInnerForm" method="get" th:action="@{${search.action}}">
+                        <form class="search-form" id="searchInnerForm" method="get" th:action="@{${search.action}}">
                             <input type="hidden" name="searchType" th:value="${current}">
                             <input type="text" id="searchKeyword" name="keyword" class="w-100 form-control" th:value="${search.keyword}">
-                            <button type="submit" class="ybtn" th:text="#{title.search}"></button>
+                            <button type="submit" class="ybtn ybtn-primary" th:text="#{title.search}"></button>
                         </form>
 
                         <h3 class="search-result-title">
-                            <th:block th:utext="#{search.result.title(${search.currentCount}, #{${
+                            <th:block th:utext="#{search.result.title(${#numbers.formatInteger(search.currentCount, 1, 'COMMA')}, #{${
                                 current == 'issue' ? 'search.menu.issues' : current == 'user' ? 'search.menu.users' : current == 'project' ? 'search.menu.projects'
                                 : current == 'post' ? 'search.menu.boards' : current == 'milestone' ? 'search.menu.milestones' : current == 'issue_comment' ? 'search.menu.issue.comments'
                                 : current == 'post_comment' ? 'search.menu.board.comments' : 'search.menu.reviews'}})}"></th:block>
@@ -99,6 +103,7 @@
             </div>
         </div>
     </div>
+        </div><!--/* .shell-main */-->
 </div>
 
 <script th:inline="javascript">

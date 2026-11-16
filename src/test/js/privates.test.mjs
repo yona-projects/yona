@@ -14,21 +14,23 @@ export const tests = [
     await page.close();
     assert.equal(out, 'ok', out);
   } },
-  { name: '붙일 라벨이 하나도 보이지 않으면 라벨 붙이기 단추를 끈다 (C011)', async run() {
+  { name: '붙일 라벨이 목록 전체에서 하나도 남지 않으면 라벨 붙이기 단추를 끄고, 하나라도 남으면 켠다 (C011, A-522)', async run() {
     const code = sourceSnippet('esm/service/issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');
     const page = await pageWith({ html: '<ul id="attach"><li data-value="7"></li></ul><button id="btn"></button>' });
-    const run = (labels, visible) => page.evaluate(([src, labels, visible]) => {
+    // 고른 이슈 [nLength]개가 모두 가진 라벨은 목록에서 숨겨진다. 숨겨지지 않은 라벨이 남았는지로 단추를 정한다
+    const run = (labels, nLength) => page.evaluate(([src, labels, nLength]) => {
+      $('#attach li').show();
       var htVar = {}, htElement = { welAttachLabels: $('#attach'), welBtnAttachingLabel: $('#btn') };
-      function _getLabelCategoryVisibility() { return visible; }
-      new Function('htVar', 'htElement', '_getLabelCategoryVisibility', src.replace(/\/\*\*[^]*$/, '') + '; _setAttachLabelList(' + JSON.stringify(labels) + ', 2);')(htVar, htElement, _getLabelCategoryVisibility);
+      function _getLabelCategoryVisibility() { return true; }
+      new Function('htVar', 'htElement', '_getLabelCategoryVisibility', src.replace(/\/\*\*[^]*$/, '') + '; _setAttachLabelList(' + JSON.stringify(labels) + ', ' + nLength + ');')(htVar, htElement, _getLabelCategoryVisibility);
       return $('#btn').prop('disabled');
-    }, [code, labels, visible]);
+    }, [code, labels, nLength]);
     const allAttached = { bug: { 7: { issues: [1, 2], exclusive: false, categoryId: 1 } } };
-    const disabledWhenNoneVisible = await run(allAttached, false);
-    const disabledWhenSomeVisible = await run(allAttached, true);
+    const disabledWhenAllAttached = await run(allAttached, 2);
+    const disabledWhenSomeLeft = await run(allAttached, 3);
     await page.close();
-    assert.equal(disabledWhenNoneVisible, true, '붙일 라벨이 없는데 단추가 켜져 있다');
-    assert.equal(disabledWhenSomeVisible, false);
+    assert.equal(disabledWhenAllAttached, true, '붙일 라벨이 없는데 단추가 켜져 있다');
+    assert.equal(disabledWhenSomeLeft, false, '붙일 라벨이 남았는데 단추가 꺼져 있다');
   } },
   { name: '라벨 목록을 만들 때 htLabel이 전역 변수로 새지 않는다 (C113-2)', async run() {
     const code = sourceSnippet('esm/service/issue.MassUpdate.js', 'function _setAttachLabelList(htLabels, nLength){', 'Hide category itself');

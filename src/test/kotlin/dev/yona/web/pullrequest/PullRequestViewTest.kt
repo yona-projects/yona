@@ -134,7 +134,7 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     fun `머리 영역의 탭과 받아들이기 단추는 권한에 따라 나온다`() {
         val s = withCommit(setup()); val pr = open(s)
         val manager = page(url(s, pr), login(s.manager))
-        assertEquals(listOf("Overview", "Changes"), manager.select(".project-page-wrap > ul.nav-tabs li").map { it.text() })
+        assertEquals(listOf("Overview", "Changes"), manager.select(".project-page-wrap .shell-main ul.nav-tabs li").map { it.text() })
         assertEquals(url(s, pr, "/accept"), manager.selectFirst("#btnAccept")!!.attr("data-url"))
         assertNull(page(url(s, pr), login(s.contributor)).selectFirst("#btnAccept"))
         assertNull(page(url(s, pr)).selectFirst("#btnAccept"))
@@ -151,6 +151,11 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertEquals("There are conflicts.", manager.selectFirst("button.ybtn-disabled")!!.attr("title"))
         assertNull(manager.selectFirst(".howto-resolve-conflict"))
         val help = page(url(s, pr), login(s.contributor)).selectFirst(".howto-resolve-conflict")!!
+        // A-568: 해결 절차는 기본으로 접혀 있고 단추로 펼친다
+        val panel = help.selectFirst(".collapse")!!
+        assertTrue(!panel.hasClass("show"), "처음에는 접혀 있다")
+        val toggle = help.selectFirst("[data-bs-toggle=collapse]")!!
+        assertEquals("#" + panel.id(), toggle.attr("data-bs-target")); assertEquals("false", toggle.attr("aria-expanded"))
         assertEquals("git checkout master", help.select("code")[0].text())
         assertTrue(help.select("code")[1].text().startsWith("git remote add upstream http"))
         assertEquals("git push -f origin master", help.select("code").last()!!.text())
@@ -214,6 +219,13 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertTrue(json.startsWith("""{"id":1,"isOpen":true,"isClosed":false,"isMerged":false,"isMerging":false,"isConflict":false,"canDeleteBranch":false,"canRestoreBranch":false,"html":"""), json)
         assertTrue(json.contains("alert-success"))
         assertNotNull(page(url(s, pr, "/state"), login(s.manager)).selectFirst(".alert-success"))
+    }
+
+    @Test
+    fun `변경 화면도 변경 파일 트리 모듈을 부른다(A-571)`() {
+        val s = withCommit(setup()); val pr = open(s)
+        val script = page(url(s, pr, "/changes"), login(s.manager)).select("script").joinToString("\n") { it.data() }
+        assertTrue(script.contains("loadModule(\"code.DiffTree\"") && script.indexOf("code.Diff\"") < script.indexOf("code.DiffTree"))
     }
 
     @Test

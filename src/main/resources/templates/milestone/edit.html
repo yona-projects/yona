@@ -11,10 +11,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::editPage})}">
 <th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
             <form th:action="@{${base + '/milestone/' + milestone.id + '/edit'}}" method="post" id="milestone-form">
                 <div class="row">
@@ -42,7 +43,7 @@
                             </th:block>
 
                             <div class=" actrow right-txt">
-                                <button type="submit" class="ybtn ybtn-info" th:text="#{button.save}"></button><!--
+                                <button type="submit" class="ybtn ybtn-success" th:text="#{button.save}"></button><!--
                             --><a th:href="@{${base + '/milestones'}}" class="ybtn" th:text="#{button.cancel}"></a>
                             </div>
                         </div>
@@ -72,6 +73,8 @@
                 </div>
             </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>

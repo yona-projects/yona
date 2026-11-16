@@ -78,6 +78,8 @@ class BoardWriteController(
         var prepared = ""
         // v1.6 projectHasReadme는 README.md/readme.md만 확인하고, 읽을 때는 네 가지 이름 중 처음 찾은 파일을 읽는다
         if (request.getParameter("readme") != null && readmeService.fileName(project) != null) prepared = readmeService.readFirstFound(project).orEmpty()
+        // 이슈 템플릿은 프로젝트 프로젝트 관리자와 사이트 관리자만 편집한다(A-565, R-167)
+        if (request.getParameter("issueTemplate") != null && !accessControl.canChangeIssueTemplate(viewer, project)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         if (request.getParameter("issueTemplate") != null) prepared = fileReader.readText(project, "ISSUE_TEMPLATE.md")?.ifBlank { null }.orEmpty()
         if (request.getParameter("path") != null) {
             if (!accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT)) return ErrorViews.forbidden("error.forbidden", views.of(project))
@@ -98,6 +100,7 @@ class BoardWriteController(
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
         val title = request.getParameter("title")
         val form = PostForm(title, body, checked(request, "notice") && allowedToNotice(viewer, project), checked(request, "readme"))
+        if (request.getParameter("issueTemplate") == "true" && !accessControl.canChangeIssueTemplate(viewer, project)) return ErrorViews.forbidden("error.forbidden", views.of(project))
 
         if (form.readme) {
             val existing = postings.findFirstByProjectIdAndReadmeTrue(requireNotNull(project.id))

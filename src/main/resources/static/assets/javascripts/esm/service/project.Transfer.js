@@ -37,22 +37,32 @@ const Transfer = function(htOptions){
      * initialize element variables
      */
     function _initElement(htOptions){
-        htElement.welChkAccept      = $("#accept");
-        htElement.welBtnTransferPop = $("#btnTransfer");
         htElement.welBtnTransferPrj = $("#btnTransferExec");
+        htElement.welConfirmName    = $("#transferConfirmName");
+        htElement.welModal          = $("#alertTransfer");
     }
+
+    /**
+     * 확인 창의 "예" 단추는 `owner/name`을 정확히(대소문자 포함) 입력했을 때만 켠다(A-538, GitHub 방식).
+     * 서버 요청 계약은 그대로이고 화면에서만 한 번 더 확인한다.
+     */
+    function _syncExecButton(){
+        htElement.welBtnTransferPrj.prop("disabled", htElement.welConfirmName.val() !== htOptions.sProjectName);
+    }
+
 
     /**
      * attach event handlers
      */
     function _attachEvent(htOptions){
-        htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
-
+        htElement.welConfirmName.on("input", _syncExecButton);
+        // 확인 창을 열 때마다 입력을 비우고 "예"를 끈다
+        htElement.welModal.on("show.bs.modal", () => { htElement.welConfirmName.val(""); _syncExecButton(); });
         // v1.6은 `.one("click")`이라 한 번 실패하면 같은 화면에서 다시 "예"를 눌러도 아무 반응이 없었다(project-F19).
         // 요청 중에만 중복 전송을 막고, 실패하면 다시 보낼 수 있게 푼다.
         let bSending = false;
         htElement.welBtnTransferPrj.on("click", () =>{
-            if(bSending){
+            if(bSending || htElement.welConfirmName.val() !== htOptions.sProjectName){
                 return;
             }
             bSending = true;
@@ -78,14 +88,6 @@ const Transfer = function(htOptions){
         });
     }
     
-    function _onClickBtnTransferPop(){
-        if(htElement.welChkAccept.is(":checked") === false){
-            $yona.alert(Messages("project.transfer.alert"));
-            return false;
-        }
-        return true;
-    }
-
     _init(htOptions || {});
 };
 

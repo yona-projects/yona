@@ -28,7 +28,7 @@ class DataTablesTest : AbstractIntegrationTest() {
         val known = DataTables.all.map { it.sqlName }.toSet()
         val schema = mutableSetOf<String>()
         dataSource.connection.use { c ->
-            c.metaData.getTables(c.catalog, c.schema, null, arrayOf("TABLE")).use { rs -> while (rs.next()) schema += rs.getString("TABLE_NAME").lowercase() }
+            c.metaData.getTables(c.catalog, with(dev.yona.schema.SchemaMetadata) { c.schemaOrNull() } /* Cubrid 드라이버는 getSchema를 지원하지 않아 접속 사용자 이름을 쓴다 */, null, arrayOf("TABLE")).use { rs -> while (rs.next()) schema += rs.getString("TABLE_NAME").lowercase() }
         }
         val missing = schema.filter { it !in known && it !in excluded && !it.startsWith("flyway") && !it.startsWith("databasechange") }
         assertEquals(emptyList(), missing.sorted(), "교환 표에 없는 테이블이 있다. 표에 더하거나 이 시험의 목록에 이유와 함께 더한다")
@@ -62,18 +62,12 @@ class DataTablesTest : AbstractIntegrationTest() {
 
     @Test
     fun `모든 테이블과 컬럼이 실제 스키마에 있다`() {
-        dataSource.connection.use { connection ->
-            val metadata = connection.metaData
-            // Cubrid는 스키마를 지정하지 않으면 다른 컨텍스트 사용자의 테이블까지 모두 훑다가 드라이버 예외가 난다. 현재 스키마로 좁힌다.
-            val schema = connection.schemaOrNull()
-            for (table in DataTables.all) {
-                val columns = HashSet<String>()
-                metadata.getColumns(connection.catalog, schema, null, null).use { rs ->
-                    while (rs.next()) if (rs.getString("TABLE_NAME").equals(table.sqlName, ignoreCase = true)) columns += rs.getString("COLUMN_NAME").lowercase()
-                }
-                assertTrue(columns.isNotEmpty(), "테이블이 없다: ${table.name}")
-                for (column in table.columns) assertTrue(column.name in columns, "컬럼이 없다: ${table.name}.${column.name}")
-            }
+        // 테이블마다 드라이버의 메타데이터를 다시 훑지 않고 한 번에 읽는다(Cubrid는 이 반복이 느리고 서버가 조회를 중단시키기도 했다, A-607)
+        val actual = dev.yona.schema.SchemaMetadata.actualColumns(dataSource)
+        for (table in DataTables.all) {
+            val columns = actual[table.sqlName.lowercase()]?.keys.orEmpty()
+            assertTrue(columns.isNotEmpty(), "테이블이 없다: ${table.name}")
+            for (column in table.columns) assertTrue(column.name.lowercase() in columns, "컬럼이 없다: ${table.name}.${column.name}")
         }
     }
 }

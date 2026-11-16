@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -125,9 +126,28 @@ class IssueLabelTest : AbstractIntegrationTest() {
         assertEquals(listOf("owner", "projectName"), copy.select("input[type=text]").map { it.attr("name") })
         val form = page.selectFirst("form#frmNewLabel")!!
         assertEquals("${base(project)}/issue/labels", form.attr("action"))
-        assertEquals(listOf("category", "name", "color"), form.select("input[type=text]").map { it.attr("name") })
+        assertEquals(listOf("category", "name"), form.select("input[type=text]").map { it.attr("name") })
+        // A-557: 색은 텍스트 상자 대신 색상 선택기이다
+        assertEquals("color", form.selectFirst("input[name=color]")!!.attr("type"))
+        // A-559: 선택기는 "색 직접 선택" 글자가 붙은 상자 안에 있어 선택기로 알아볼 수 있다(글자를 눌러도 열린다)
+        assertEquals("Pick a custom color", form.selectFirst("label.label-color-pick .label-color-caption")?.text())
+        assertNotNull(form.selectFirst("label.label-color-pick input[type=color][name=color]"))
+        assertTrue(form.selectFirst("input[type=color][name=color]")!!.attr("value").matches(Regex("#[0-9a-f]{6}")), "기본 색이 있다")
         assertEquals(17, form.select("button.btn-preset-color").size)
+        assertEquals("Issue labels", page.selectFirst(".label-page-head h3.label-page-title")?.text())
+        assertFalse(page.selectFirst(".label-page-head .label-page-desc")?.text().isNullOrBlank(), "설명 한 줄")
+        val box = page.selectFirst("details#copyLabelBox")!!
+        assertEquals("Copy labels from another project", box.selectFirst("summary")?.text())
+        assertTrue(box.select("form#copyLabel").size == 1, "복사 폼은 접이식 안에 있다")
+        assertEquals("Add new label", form.selectFirst(".label-form-title")?.text())
         assertTrue(page.select("#editCategory, #editLabel").size == 2)
+        // A-558: 수정 모달도 색상 선택기와 새 라벨 폼과 같은 17색 견본, 현재 색 칩을 쓴다
+        val edit = page.selectFirst("#editLabel")!!
+        assertEquals("color", edit.selectFirst("input[name=color]")!!.attr("type"))
+        assertEquals(form.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, edit.select("button.btn-preset-color").map { it.attr("style").replace(Regex("\\s|;"), "").lowercase() }, "견본은 새 라벨 폼과 같다")
+        assertNotNull(edit.selectFirst(".edit-label-chip"))
+        assertEquals("Pick a custom color", edit.selectFirst("label.label-color-pick .label-color-caption")?.text())
+        assertNotNull(edit.selectFirst("label.label-color-pick input[type=color][name=color]"))
         assertTrue(page.select("script").any { "issue.LabelEditor" in it.data() && "${base(project)}/issue/labels" in it.data().replace("\\/", "/") })
     }
 
@@ -151,6 +171,11 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val areaBlock = page.selectFirst("#labelsList .category-wrap[data-category-name=Area]")!!
         assertEquals(listOf("api", "web"), areaBlock.select("span.issue-label").map { it.text() })
         assertTrue(areaBlock.select("i.category-exclusive").hasClass("multiple"))
+        // A-556: 분류는 소제목 줄(.label-group-head)과 표로 이루어지고 옛 두 열 구조(col-lg)는 쓰지 않는다
+        assertNull(page.selectFirst("#labelsList .list-head, #labelsList [class*=col-lg]"), "옛 두 열 구조가 남아 있다")
+        assertEquals(listOf("label-group-head", "table"), areaBlock.children().map { if (it.hasClass("label-group-head")) "label-group-head" else it.tagName() })
+        assertEquals("Area", areaBlock.selectFirst(".label-group-head .category-name")!!.text())
+        assertTrue(areaBlock.selectFirst(".label-group-head .label-group-meta")!!.text().contains("2"), "라벨 개수가 소제목 줄에 있다")
         assertTrue(page.selectFirst("#labelsList .category-wrap[data-category-name=Bug] i.category-exclusive")!!.hasClass("single"))
         val edit = areaBlock.selectFirst("button[data-label-color=#2196f3]")!!
         assertEquals("${base(project)}/issue/label/${web.id}", edit.attr("data-update-uri"))

@@ -39,39 +39,48 @@ const ChangeVCS = function(options){
      * initialize element variables
      */
     function _initElement(optinos){
-        elements.acceptChangeVCS = $("#acceptChangeVCS");
-        elements.btnChangeVCS = $("#btnChangeVCS");
         elements.btnChangeVCSExec = $("#btnChangeVCSExec");
-        elements.targetVCS = $("#targetVcs");
+        elements.confirmName = $("#vcsConfirmName");
+        elements.modal = $("#alertChangeVCS");
+        elements.targetVCS = $("input[name=targetVcs]");
     }
 
     /**
      * attach event handlers
      */
     function _attachEvent(options){
-        elements.btnChangeVCS.on('click', showConfirmPopup);
-        elements.btnChangeVCSExec.on("click", changeVCS);
+        elements.confirmName.on("input", syncExecButton);
+        // 확인 창을 열 때마다 입력을 비우고 "예"를 끈다
+        elements.modal.on("show.bs.modal", () => { elements.confirmName.val(""); syncExecButton(); });
+        elements.btnChangeVCSExec.on("click", () => {
+            if(elements.confirmName.val() === options.sProjectName){ changeVCS(); }
+        });
         elements.targetVCS.on("change", () =>{ showTexts(options.oTexts || {}); });
     }
 
     /**
      * 선택한 종류에 맞게 안내와 확인 문구를 갈아 끼운다
      */
+    /** 선택한 종류이다. 라디오가 없는 화면이면 비어 있다 */
+    function selectedTarget(){
+        return elements.targetVCS.filter(":checked").val();
+    }
+
     function showTexts(texts){
-        const target = elements.targetVCS.val();
+        const target = selectedTarget();
         const text = texts[target];
         if(!text){ return; }
-        $(".next-vcs").text(target);
         $(".vcs-description").text(text.description);
         $(".vcs-requestion").text(text.requestion);
     }
     
-    function showConfirmPopup() {
-        if(elements.acceptChangeVCS.is(":checked") === false){
-            $yona.alert(Messages("project.changeVCS.alert"));
-            return false;
-        }
-        return true;
+
+    /**
+     * 확인 창의 "예" 단추는 `owner/name`을 정확히(대소문자 포함) 입력했을 때만 켠다(A-538, GitHub 방식).
+     * 서버 요청 계약은 그대로이고 화면에서만 한 번 더 확인한다.
+     */
+    function syncExecButton(){
+        elements.btnChangeVCSExec.prop("disabled", elements.confirmName.val() !== options.sProjectName);
     }
 
     function changeVCS() {
@@ -94,7 +103,7 @@ const ChangeVCS = function(options){
         };
         // 바꿀 종류를 고르게 한 화면이면 고른 종류를 보낸다. 없으면 v1.6처럼 번갈아 바꾼다
         if(elements.targetVCS.length){
-            ajaxOptions.data = {"targetVcs": elements.targetVCS.val()};
+            ajaxOptions.data = {"targetVcs": selectedTarget()};
         }
         yona.http.ajax(options.sTransferURL, ajaxOptions);
     }

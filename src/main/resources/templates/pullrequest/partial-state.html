@@ -16,7 +16,9 @@
     <span th:text="#{pullRequest.is.not.safe}"></span>
 
     <div th:if="${state.conflictHelp != null}" class="howto-resolve-conflict">
-        <h6 th:text="#{pullRequest.resolve.conflict}"></h6>
+        <!--/* A-568: 해결 절차 열 단계는 길어서 기본으로 접어 두고 단추로 펼친다 */-->
+        <button type="button" class="ybtn ybtn-small" data-bs-toggle="collapse" data-bs-target="#conflictHelp" aria-expanded="false" aria-controls="conflictHelp"><span th:text="#{pullRequest.resolve.conflict}"></span> <i class="yobicon-arrow-down"></i></button>
+        <div id="conflictHelp" class="collapse mt-2">
         <div class="help">
             <ol>
                 <li><th:block th:text="#{pullRequest.resolver.step1}"></th:block> <code th:text="'git checkout ' + ${state.conflictHelp.fromBranch}"></code></li>
@@ -30,6 +32,7 @@
                 <li><th:block th:text="#{pullRequest.resolver.step9}"></th:block> <code th:text="'git push -f origin ' + ${state.conflictHelp.fromBranch}"></code></li>
                 <li><th:block th:text="#{pullRequest.resolver.step10}"></th:block> <a th:href="${state.conflictHelp.refreshUrl}" class="ybtn ybtn-mini ybtn-primary" th:text="#{button.page.refresh}"></a><th:block th:text="#{pullRequest.resolver.step11}"></th:block></li>
             </ol>
+        </div>
         </div>
     </div>
 </div>

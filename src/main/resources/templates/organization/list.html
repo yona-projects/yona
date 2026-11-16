@@ -13,15 +13,14 @@
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
         <div class="title_area">
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item"><a th:href="@{/projects}" class="nav-link"><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></a></li>
-                <li class="nav-item"><a th:href="@{/orgs}" th:text="#{title.organization.list}" class="nav-link active"></a></li>
-            </ul>
+            <h3 th:text="#{title.organization.list}"></h3><!--/* D-141: 두 탭(프로젝트 목록, 그룹 목록)은 사이드바 항목과 중복이라 제목으로 바꿨다 */-->
         </div>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('organizations')}"></th:block>
+        <div class="shell-main">
     	<div class="search-wrap">
     		<div id="search" class="float-start">
     			<form th:action="@{/orgs}" method="get">
@@ -43,7 +42,7 @@
                 <div class="info-wrap">
                     <div class="owner-avatar-wrap">
                         <a th:href="@{/organizations/{name}(name=${org.name})}">
-                            <img th:if="${org.hasLogo}" th:src="@{${org.logoUrl}}" th:alt="${org.name}"/>
+                            <img th:src="@{${org.logoUrl}}" th:alt="${org.name}"/>
                         </a>
                     </div>
                     <div style="float:left">
@@ -74,6 +73,8 @@
     	<!-- pagination.js will fill here. -->
     	<div id="pagination"></div>
         </th:block>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="text/javascript" th:inline="javascript">

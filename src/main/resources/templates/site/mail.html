@@ -10,6 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::mailPage})}">
 <th:block th:fragment="mailPage">
+<span data-swap-safe hidden></span>
 <div class="title_area">
     <h2 class="float-start" th:text="#{__${title}__}"></h2>
 </div>

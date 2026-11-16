@@ -98,10 +98,6 @@ class PullRequestChangesService(
         }
     }
 
-    /** 스레드가 [pullRequest]의 현재 커밋 목록에 있는 커밋에 달린 것이면 `true`이다. */
-    fun currentCommitIds(pullRequest: PullRequest): List<String> =
-        commits.findByPullRequestIdAndStateOrderByCreatedDesc(requireNotNull(pullRequest.id), PullRequestCommitState.CURRENT).mapNotNull { it.commitId }
-
     /** 비교할 커밋이 받는 프로젝트의 저장소에 없다. */
     private class MissingCommitException(rev: String?) : RuntimeException("commit not found: $rev")
 

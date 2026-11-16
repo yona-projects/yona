@@ -10,45 +10,48 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::gpgPage})}">
 <th:block th:fragment="gpgPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{gpgKey.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{gpgKey.description}"></p>
 
-        <table id="gpg-list" class="table table-striped" th:if="${!#lists.isEmpty(keys)}">
-            <thead>
-            <tr>
-                <th th:text="#{gpgKey.name}"></th><th th:text="#{gpgKey.keyId}"></th><th th:text="#{gpgKey.fingerprint}"></th>
-                <th th:text="#{gpgKey.emails}"></th><th th:text="#{gpgKey.createdDate}"></th><th th:text="#{gpgKey.expires}"></th><th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="k : ${keys}" class="gpg-row" th:attr="data-id=${k.id}">
-                <td class="gpg-name" th:text="${k.name}"></td>
-                <td><code class="gpg-key-id" th:text="${k.keyId}"></code></td>
-                <td><code class="gpg-fingerprint" th:text="${k.fingerprint}"></code></td>
-                <td class="gpg-emails" th:text="${k.emails}"></td>
-                <td th:text="${k.createdText}"></td>
-                <td>
-                    <span th:if="${k.expiresText == null}" th:text="#{gpgKey.noExpiration}"></span>
-                    <span th:if="${k.expiresText != null}"><th:block th:text="${k.expiresText}"></th:block> <em th:if="${k.expired}" th:text="'(' + #{gpgKey.expired} + ')'"></em></span>
-                </td>
-                <td>
+        <!--/* A-581: GPG 키 목록은 카드이다 */-->
+        <ul id="gpg-list" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(keys)}">
+            <li th:each="k : ${keys}" class="item-card gpg-row" th:attr="data-id=${k.id}">
+                <div class="item-card-head"><span class="item-card-name gpg-name" th:text="${k.name}"></span></div>
+                <dl class="item-card-meta">
+                    <dt th:text="#{gpgKey.keyId}"></dt><dd><code class="gpg-key-id" th:text="${k.keyId}"></code></dd>
+                    <dt th:text="#{gpgKey.fingerprint}"></dt><dd><code class="gpg-fingerprint" th:text="${k.fingerprint}"></code></dd>
+                    <dt th:text="#{gpgKey.emails}"></dt><dd class="gpg-emails" th:text="${k.emails}"></dd>
+                    <dt th:text="#{gpgKey.createdDate}"></dt><dd th:text="${k.createdText}"></dd>
+                    <dt th:text="#{gpgKey.expires}"></dt>
+                    <dd>
+                        <span th:if="${k.expiresText == null}" th:text="#{gpgKey.noExpiration}"></span>
+                        <span th:if="${k.expiresText != null}"><th:block th:text="${k.expiresText}"></th:block> <em th:if="${k.expired}" th:text="'(' + #{gpgKey.expired} + ')'"></em></span>
+                    </dd>
+                </dl>
+                <div class="item-card-actions">
                     <form method="post" th:action="@{/user/gpg/{id}/delete(id=${k.id})}" th:attr="onsubmit='return confirm(\'' + #{gpgKey.delete.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{gpgKey.delete}"></button>
                     </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <p th:if="${#lists.isEmpty(keys)}" class="empty" th:text="#{gpgKey.list.empty}"></p>
-
-        <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+                </div>
+            </li>
+        </ul>
+        <!--/* A-587: 키가 없으면 SSH 키처럼 가운데 정렬한 빈 상태 상자에 안내와 단추를 함께 둔다 */-->
+        <div th:if="${#lists.isEmpty(keys)}" id="gpg-empty" class="key-empty">
+            <svg class="key-empty-icon" viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 12.5l8.5-8.5M16 7l2.5 2.5M14 9l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="empty" th:text="#{gpgKey.list.empty}"></p>
+            <p class="key-empty-help" th:text="#{gpgKey.list.empty.help}"></p>
+            <a th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+        </div>
+        <a th:unless="${#lists.isEmpty(keys)}" th:href="@{/user/editform/gpg/new}" id="gpg-new" class="btn btn-success" th:text="#{gpgKey.add}"></a>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

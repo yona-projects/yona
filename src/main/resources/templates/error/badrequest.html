@@ -6,13 +6,16 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(#{${messageKey}}, ${projectView}, ${menuType}, ~{::badRequestPage})}">
 <th:block th:fragment="badRequestPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, ${menuType})}"></th:block>
+        <div class="shell-main">
     	<div class="error-wrap">
     		<i class="ico ico-err2"></i>
     		<p th:text="${#messages.msgOrNull(messageKey) ?: messageKey}"></p>
     	</div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

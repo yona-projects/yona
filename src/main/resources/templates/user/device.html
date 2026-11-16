@@ -23,54 +23,45 @@
     <div class="page-wrap">
         <div th:if="${deviceError != null}" class="alert alert-danger" th:text="#{${deviceError}}"></div>
 
+        <!--/* A-584: 기기 인증은 화면 가운데의 큰 카드에서 한다(코드 입력, 승인 확인, 결과) */-->
         <form th:if="${mode == 'form'}" id="device-code-form" method="get" th:action="@{/users/device}">
-            <div class="token-card">
-                <div class="token-card-head" th:text="#{deviceAuth.title}"></div>
-                <div class="token-card-body">
-                    <div class="token-field">
-                        <label class="token-label" for="device-user-code" th:text="#{deviceAuth.code.label}"></label>
-                        <div class="token-help" th:text="#{deviceAuth.code.help}"></div>
-                        <input type="text" id="device-user-code" name="user_code" maxlength="9" class="text token-text form-control w-100" autocomplete="off" autofocus>
-                    </div>
-                    <div class="token-actions">
-                        <button type="submit" class="ybtn ybtn-success" th:text="#{deviceAuth.code.submit}"></button>
-                    </div>
-                </div>
+            <div class="device-card">
+                <h3 class="device-card-title" th:text="#{deviceAuth.title}"></h3>
+                <p class="device-card-help" th:text="#{deviceAuth.code.help}"></p>
+                <input type="text" id="device-user-code" name="user_code" maxlength="9" class="text form-control w-100 device-code-input" autocomplete="off" autofocus
+                       th:attr="aria-label=#{deviceAuth.code.label}" placeholder="XXXX-XXXX">
+                <button type="submit" class="ybtn ybtn-success device-card-submit" th:text="#{deviceAuth.code.submit}"></button>
             </div>
         </form>
 
-        <div th:if="${mode == 'consent'}" id="device-consent" class="token-card">
-            <div class="token-card-head" th:text="#{deviceAuth.consent.title(${request.clientName})}"></div>
-            <div class="token-card-body">
-                <p class="token-meta" th:text="#{deviceAuth.consent.description(${account})}"></p>
-                <p class="token-meta">
-                    <span th:text="#{deviceAuth.consent.requestedAt}"></span>: <span id="device-request-time" th:text="${#dates.format(request.requestedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                    <th:block th:if="${request.requestIp != null}"> · <span th:text="#{deviceAuth.consent.requestIp}"></span>: <span id="device-request-ip" th:text="${request.requestIp}"></span></th:block>
-                </p>
-                <div class="token-scopes">
-                    <ul id="device-scopes" style="list-style: none; margin: 0; padding: 0;">
-                        <li th:each="s : ${request.scopes}" class="token-scope-row">
-                            <code th:text="${s}"></code><span class="token-scope-desc" th:text="#{'apiToken.scope.' + ${s}}"></span>
-                        </li>
-                    </ul>
-                </div>
-                <p class="token-help" style="margin-top: 12px;" th:text="#{deviceAuth.consent.warning(${request.userCode})}"></p>
-                <div class="token-actions">
-                    <form id="device-approve" method="post" th:action="@{/users/device/approve}" style="display: inline;">
-                        <input type="hidden" name="user_code" th:value="${request.userCode}">
-                        <button type="submit" class="ybtn ybtn-success" th:text="#{deviceAuth.approve}"></button>
-                    </form>
-                    <form id="device-deny" method="post" th:action="@{/users/device/deny}" style="display: inline;">
-                        <input type="hidden" name="user_code" th:value="${request.userCode}">
-                        <button type="submit" class="ybtn" th:text="#{deviceAuth.deny}"></button>
-                    </form>
-                </div>
+        <div th:if="${mode == 'consent'}" id="device-consent" class="device-card">
+            <h3 class="device-card-title" th:text="#{deviceAuth.consent.title(${request.clientName})}"></h3>
+            <p class="device-card-help" th:text="#{deviceAuth.consent.description(${account})}"></p>
+            <p class="device-card-help">
+                <span th:text="#{deviceAuth.consent.requestedAt}"></span>: <span id="device-request-time" th:text="${#dates.format(request.requestedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                <th:block th:if="${request.requestIp != null}"> · <span th:text="#{deviceAuth.consent.requestIp}"></span>: <span id="device-request-ip" th:text="${request.requestIp}"></span></th:block>
+            </p>
+            <div class="token-scopes device-card-scopes">
+                <ul id="device-scopes" style="list-style: none; margin: 0; padding: 0;">
+                    <li th:each="s : ${request.scopes}" class="token-scope-row">
+                        <code th:text="${s}"></code><span class="token-scope-desc" th:text="#{'apiToken.scope.' + ${s}}"></span>
+                    </li>
+                </ul>
+            </div>
+            <p class="device-card-help" th:text="#{deviceAuth.consent.warning(${request.userCode})}"></p>
+            <div class="device-card-actions">
+                <form id="device-approve" method="post" th:action="@{/users/device/approve}">
+                    <input type="hidden" name="user_code" th:value="${request.userCode}">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{deviceAuth.approve}"></button>
+                </form>
+                <form id="device-deny" method="post" th:action="@{/users/device/deny}">
+                    <input type="hidden" name="user_code" th:value="${request.userCode}">
+                    <button type="submit" class="ybtn" th:text="#{deviceAuth.deny}"></button>
+                </form>
             </div>
         </div>
 
-        <div th:if="${mode == 'done'}" id="device-done" class="token-card">
-            <div class="token-card-body" th:text="#{${doneMessage}}"></div>
-        </div>
+        <div th:if="${mode == 'done'}" id="device-done" class="device-card" th:text="#{${doneMessage}}"></div>
     </div>
 </div>
 </th:block>

@@ -8,13 +8,15 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'WIKI', ~{::wikiPage})}">
 <th:block th:fragment="wikiPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'WIKI', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap wiki-wrap">
+    <div class="project-page-wrap shell shell-below-banner wiki-wrap">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'WIKI')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="row">
             <div class="col-lg-9">
                 <div class="wiki-empty text-center py-5">
-                    <h3 th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</h3>
+                    <!--/* A-576: 다른 빈 화면(코드 주고받기 목록 등)과 같은 틀: 그림 아래 안내 문구 */-->
+                    <div class="error-wrap"><i class="ico ico-err1"></i><p th:text="#{wiki.empty.title}">This wiki does not have any pages yet.</p></div>
                     <p th:unless="${available}" class="text-body-secondary" th:text="#{wiki.error.unavailable}"></p>
                     <a th:if="${canWrite and available}" th:href="${base + '/_new?title=Home'}" class="wiki-create-first ybtn ybtn-success" th:text="#{wiki.empty.create}">Create the first page</a>
                 </div>
@@ -23,6 +25,8 @@
                 <th:block th:replace="~{wiki/shell :: sidebar}"></th:block>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

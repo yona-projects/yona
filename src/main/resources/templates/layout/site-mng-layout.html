@@ -5,7 +5,7 @@
 
   이식 원본: app/views/site/siteMngLayout.scala.html
   사용법: <html th:replace="~{layout/site-mng-layout :: siteMngLayout(제목, 본문프래그먼트)}">
-  왼쪽 사이드바의 활성 항목은 현재 요청 경로(`requestPath`)와 링크가 같은 항목이다.
+  왼쪽 사이드바는 새 셸의 사이드바(shell/sidebar, D-141)이고 항목은 ShellNav.siteAdmin이 정한다. 활성 항목은 현재 요청 경로에서 판정하므로 상세 화면에서도 켜진다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="siteMngLayout(title, content)"
           th:replace="~{layout/site-layout :: siteLayout(${title}, 'SITE_SETTING', ~{layout/site-mng-layout :: siteMngBody(${content})})}">
@@ -18,32 +18,10 @@
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="site-setting-wrap">
-        <div class="row">
-            <div class="col-lg-2">
-                <ul class="site-setting-nav">
-                    <li th:class="${requestPath == '/sites/userList'} ? 'active'"><a th:href="@{/sites/userList}" th:text="#{site.sidebar.userList}"></a></li>
-                    <li th:class="${requestPath == '/sites/postList'} ? 'active'"><a th:href="@{/sites/postList}" th:text="#{site.sidebar.postList}"></a></li>
-                    <li th:class="${requestPath == '/sites/issueList'} ? 'active'"><a th:href="@{/sites/issueList}" th:text="#{site.sidebar.issueList}"></a></li>
-                    <li th:class="${requestPath == '/sites/projectList'} ? 'active'"><a th:href="@{/sites/projectList}" th:text="#{site.sidebar.projectList}"></a></li>
-                    <li th:class="${requestPath == '/sites/mail'} ? 'active'"><a th:href="@{/sites/mail}" th:text="#{site.sidebar.mailSend}"></a></li>
-                    <li th:class="${requestPath == '/sites/massmail'} ? 'active'"><a th:href="@{/sites/massmail}" th:text="#{site.sidebar.massMail}"></a></li>
-                    <li th:class="${requestPath == '/sites/update'} ? 'active'">
-                        <a th:href="@{/sites/update}"><th:block th:text="#{site.sidebar.update}"></th:block>
-                            <span th:if="${versionToUpdate != null}" class="notification-badge">1</span>
-                        </a>
-                    </li>
-                    <li th:class="${requestPath == '/sites/diagnostic'} ? 'active'"><a th:href="@{/sites/diagnostic}" th:text="#{site.sidebar.diagnostics}"></a></li>
-                    <li th:class="${requestPath == '/sites/audit'} ? 'active'"><a th:href="@{/sites/audit}" th:text="#{site.sidebar.audit}"></a></li>
-                    <li th:class="${requestPath == '/sites/security'} ? 'active'"><a th:href="@{/sites/security}" th:text="#{site.sidebar.security}"></a></li>
-                    <li th:class="${requestPath == '/sites/oauth-apps'} ? 'active'"><a th:href="@{/sites/oauth-apps}" th:text="#{site.sidebar.oauthApps}"></a></li>
-                    <li th:class="${requestPath == '/sites/lfs'} ? 'active'"><a th:href="@{/sites/lfs}" th:text="#{site.sidebar.lfs}"></a></li>
-                    <li th:class="${requestPath == '/sites/sso'} ? 'active'"><a th:href="@{/sites/sso}" th:text="#{site.sidebar.sso}"></a></li>
-                </ul>
-            </div>
-            <div class="col-lg-10">
-                <th:block th:replace="${content}"></th:block>
-            </div>
+    <div class="shell" th:with="shellMenu=${@shellNavs.siteAdmin(versionToUpdate != null)}">
+        <th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{site.sidebar}, 'shellSidebar', null)}"></th:block>
+        <div class="shell-main site-setting-wrap"><!--/* 옛 본문 스타일(title_area, listhead 등)이 .site-setting-wrap 아래에 묶여 있어 클래스를 유지한다(P4에서 풀어낸다) */-->
+            <th:block th:replace="${content}"></th:block>
         </div>
     </div>
 </div>

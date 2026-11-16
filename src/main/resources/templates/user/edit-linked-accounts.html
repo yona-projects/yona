@@ -8,36 +8,38 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::linkedPage})}">
 <th:block th:fragment="linkedPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{linked.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('linked-accounts')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="two-factor-page">
         <p class="text-body-secondary" th:text="#{linked.description}"></p>
         <div th:if="${#lists.isEmpty(rows)}" id="linked-empty" class="tf-empty" th:text="#{linked.empty}"></div>
-        <table id="linked-list" class="table table-striped" th:unless="${#lists.isEmpty(rows)}">
-            <thead><tr><th th:text="#{linked.provider}"></th><th th:text="#{linked.identifier}"></th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="row : ${rows}" class="linked-row" th:attr="data-provider=${row.providerKey}">
-                <td th:switch="${row.providerKey}">
-                    <span th:case="'sso-oidc'" th:text="#{linked.provider.oidc}"></span>
-                    <span th:case="'sso-saml2'" th:text="#{linked.provider.saml2}"></span>
-                    <span th:case="*" th:text="${row.providerKey}"></span>
-                </td>
-                <td><code th:text="${row.subject}"></code></td>
-                <td class="text-end">
+        <!--/* A-581: 연결된 계정은 카드이다(제공자 이름, 계정, 연결 해제) */-->
+        <ul id="linked-list" class="item-cards list-unstyled" th:unless="${#lists.isEmpty(rows)}">
+            <li th:each="row : ${rows}" class="item-card linked-row" th:attr="data-provider=${row.providerKey}">
+                <div class="item-card-head" th:switch="${row.providerKey}">
+                    <span th:case="'sso-oidc'" class="item-card-name" th:text="#{linked.provider.oidc}"></span>
+                    <span th:case="'sso-saml2'" class="item-card-name" th:text="#{linked.provider.saml2}"></span>
+                    <span th:case="*" class="item-card-name" th:text="${row.providerKey}"></span>
+                </div>
+                <dl class="item-card-meta">
+                    <dt th:text="#{linked.identifier}"></dt><dd><code th:text="${row.subject}"></code></dd>
+                </dl>
+                <div class="item-card-actions">
                     <form method="post" th:action="@{/user/linked-accounts/{id}/unlink(id=${row.id})}" th:attr="onsubmit='return confirm(\'' + #{linked.unlink.confirm} + '\');'">
                         <button type="submit" class="btn btn-danger btn-sm" th:text="#{linked.unlink}"></button>
                     </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </div>
+            </li>
+        </ul>
         </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

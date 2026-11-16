@@ -52,7 +52,7 @@ object SchemaMetadata {
      * - X-39 조직의 OAuth 앱 정책(D-78): `organization_oauth_policy`, `organization_oauth_approval`
      * - X-2 2단계 인증(D-69): `two_factor_credential`, `two_factor_backup_code`, `known_device`
      */
-    val INTENDED_ADDITIONS: Set<String> = setOf("pull_request_assignee", "pull_request_issue_label", "pull_request_review", "organization_oauth_policy", "organization_oauth_approval", "lfs_lock", "oidc_sso_settings", "saml2_sso_settings", "ldap_settings", "api_token", "pull_request_review_request", "ruleset", "device_authorization", "audit_log", "audit_chain_head", "audit_stream_cursor", "gpg_key", "ssh_key", "deploy_key", "two_factor_credential", "two_factor_backup_code", "known_device", "site_setting", "oauth_client", "oauth_authorization", "oauth_consent")
+    val INTENDED_ADDITIONS: Set<String> = setOf("pull_request_assignee", "pull_request_issue_label", "pull_request_review", "organization_oauth_policy", "organization_oauth_approval", "lfs_lock", "oidc_sso_settings", "saml2_sso_settings", "ldap_settings", "api_token", "pull_request_review_request", "ruleset", "device_authorization", "audit_log", "audit_chain_head", "audit_stream_cursor", "gpg_key", "ssh_key", "deploy_key", "two_factor_credential", "two_factor_backup_code", "known_device", "site_setting", "oauth_client", "oauth_authorization", "oauth_consent", "api_token_scope", "device_authorization_scope", "attempt_record")
 
     /**
      * v1.6 최종 스키마의 기존 테이블에 추가 개발 항목이 일부러 더한 컬럼이다(테이블 이름 -> 컬럼 이름들). 더할 때는 `decisions.md`에 근거를 적고 여기에 올린다.
@@ -163,9 +163,88 @@ object SchemaMetadata {
         return names.filterNot { SYSTEM_TABLES.matches(it.lowercase()) }.associate { it.lowercase() to read(it) }
     }
 
+    /**
+     * 연결을 열어 스키마를 읽는다. 전체 시험을 Cubrid로 돌리면 조회 도중 드라이버가 "Has been interrupted"를 던지고 그 연결이 계속 쓸 수 없게 되는 일이
+     * 간헐적으로 있다(원인은 확인하지 못했다, A-607). 단독 실행에서는 나오지 않는다. 그 오류에 한해 새 연결로 세 번까지 다시 읽는다.
+     */
+    private fun <T> DataSource.readSchema(block: (Connection) -> T): T {
+        var last: Exception? = null
+        repeat(3) { attempt ->
+            try {
+                return connection.use(block)
+            } catch (e: Exception) {
+                val interrupted = generateSequence<Throwable>(e) { it.cause }.any { it.message?.contains("Has been interrupted") == true }
+                if (!interrupted) throw e
+                last = e
+                Thread.sleep(500L * (attempt + 1))
+            }
+        }
+        throw last!!
+    }
+
+    // --- Cubrid: 드라이버의 카탈로그 조회(테이블마다 모든 사용자를 훑는다) 대신 시스템 뷰와 SHOW CREATE TABLE로 읽는다(A-607) ---
+
+    private fun <T> Connection.queryRows(sql: String, read: (java.sql.ResultSet) -> T): List<T> =
+        prepareStatement(sql).use { ps ->
+            ps.setString(1, metaData.userName)
+            ps.executeQuery().use { rs -> buildList { while (rs.next()) add(read(rs)) } }
+        }
+
+    /** Cubrid의 자료형 이름을 [ColumnType]으로 바꾼다. 이름 없는 `STRING`의 길이는 10억이라 큰 문자열로 본다. */
+    private fun cubridType(dataType: String, precision: Int): ColumnType = when (dataType.uppercase()) {
+        "BIGINT" -> ColumnType.BigInt
+        "INTEGER" -> ColumnType.Integer
+        "SHORT" -> ColumnType.SmallInt
+        "CLOB" -> ColumnType.Text
+        "STRING", "VARCHAR" -> if (precision >= LONG_TEXT_THRESHOLD) ColumnType.Text else ColumnType.Varchar(precision)
+        "DATETIME", "TIMESTAMP" -> ColumnType.Timestamp
+        "DATE" -> ColumnType.Date
+        else -> ColumnType.Other(Types.OTHER, dataType)
+    }
+
+    private fun cubridColumns(c: Connection): Map<String, Map<String, ColumnInfo>> =
+        c.queryRows("select class_name, attr_name, data_type, prec, is_nullable from db_attribute where owner_name = upper(?) and attr_type = 'INSTANCE'") {
+            Triple(it.getString(1).lowercase(), it.getString(2).lowercase(), ColumnInfo(it.getString(5) != "NO", cubridType(it.getString(3), it.getInt(4))))
+        }.groupBy({ it.first }, { it.second to it.third }).mapValues { it.value.toMap() }
+
+    private fun cubridIndexes(c: Connection): Map<String, Map<String, IndexInfo>> {
+        val unique = c.queryRows("select class_name, index_name, is_unique from db_index where owner_name = upper(?) and is_foreign_key = 'NO'") {
+            Triple(it.getString(1).lowercase(), it.getString(2).lowercase(), it.getString(3) == "YES")
+        }
+        val keys = c.queryRows("select class_name, index_name, key_attr_name, key_order, asc_desc from db_index_key where owner_name = upper(?)") {
+            listOf(it.getString(1).lowercase(), it.getString(2).lowercase(), it.getString(3).lowercase(), it.getInt(4).toString(), it.getString(5))
+        }.groupBy { it[0] to it[1] }
+        val primaryKeys = c.queryRows("select class_name, index_name from db_index where owner_name = upper(?) and is_primary_key = 'YES'") { it.getString(1).lowercase() to it.getString(2).lowercase() }.toSet()
+        val result = HashMap<String, MutableMap<String, IndexInfo>>()
+        c.queryRows("select class_name from db_class where owner_name = upper(?) and class_type = 'CLASS'") { it.getString(1).lowercase() }.forEach { result[it] = HashMap() }
+        for ((table, name, isUnique) in unique) {
+            val parts = keys[table to name]?.sortedBy { it[3].toInt() } ?: continue
+            val columns = parts.map { it[2] }
+            if ((table to name) in primaryKeys) continue
+            result.getOrPut(table) { HashMap() }[name] = IndexInfo(isUnique, columns, parts.filter { it[4] == "DESC" }.map { it[2] }.toSet())
+        }
+        return result
+    }
+
+    private val CUBRID_FOREIGN_KEY = Regex("""FOREIGN KEY\s+\(([^)]*)\)\s+REFERENCES\s+\[(?:\w+\.)?(\w+)]\s+\(([^)]*)\)\s+ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION)""")
+
+    private fun cubridForeignKeys(c: Connection): Map<String, Map<String, ForeignKeyInfo>> {
+        val tables = c.queryRows("select class_name from db_class where owner_name = upper(?) and class_type = 'CLASS'") { it.getString(1) }
+        return tables.associate { table ->
+            val ddl = c.createStatement().use { st -> st.executeQuery("show create table [${c.metaData.userName.lowercase()}].[$table]").use { rs -> rs.next(); rs.getString(2) } }
+            table.lowercase() to buildMap {
+                CUBRID_FOREIGN_KEY.findAll(ddl).forEach { m ->
+                    val rule = when (m.groupValues[4]) { "CASCADE" -> "CASCADE"; "SET NULL" -> "SET NULL"; else -> "RESTRICT" }
+                    m.groupValues[1].split(',').map { it.trim().trim('[', ']').lowercase() }.forEach { put(it, ForeignKeyInfo(m.groupValues[2].lowercase(), rule)) }
+                }
+            }
+        }
+    }
+
     /** 실제 DB의 컬럼 구조를 읽는다. */
     fun actualColumns(dataSource: DataSource): Map<String, Map<String, ColumnInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridColumns(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -185,7 +264,8 @@ object SchemaMetadata {
 
     /** 실제 DB의 PK를 제외한 인덱스를 읽는다. */
     fun actualIndexes(dataSource: DataSource): Map<String, Map<String, IndexInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridIndexes(c)
             c.tables { table ->
                 val primaryKey = buildList {
                     c.metaData.getPrimaryKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
@@ -213,7 +293,8 @@ object SchemaMetadata {
 
     /** 실제 DB의 외래 키를 읽는다. */
     fun actualForeignKeys(dataSource: DataSource): Map<String, Map<String, ForeignKeyInfo>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridForeignKeys(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->
@@ -265,8 +346,8 @@ object SchemaMetadata {
 
     /** 실제 DB 컬럼의 기본값(자동 증가 컬럼 제외)을 읽는다. */
     fun actualDefaults(dataSource: DataSource): Map<String, Map<String, String?>> =
-        dataSource.connection.use { c ->
-            if (c.isCubrid()) return@use cubridDefaults(c)
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridDefaults(c)
             c.tables { table ->
                 buildMap {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -306,8 +387,8 @@ object SchemaMetadata {
 
     /** 실제 DB의 자동 증가 컬럼을 읽는다. */
     fun actualAutoIncrement(dataSource: DataSource): Map<String, Set<String>> =
-        dataSource.connection.use { c ->
-            if (c.isCubrid()) return@use cubridAutoIncrement(c)
+        dataSource.readSchema { c ->
+            if (c.isCubrid()) return@readSchema cubridAutoIncrement(c)
             c.tables { table ->
                 buildSet {
                     c.metaData.getColumns(c.catalog, c.schemaOrNull(), table, "%").use { rs ->
@@ -322,7 +403,7 @@ object SchemaMetadata {
      * `RESTRICT`로 합친다.
      */
     fun actualUpdateRules(dataSource: DataSource): Map<String, Map<String, String>> =
-        dataSource.connection.use { c ->
+        dataSource.readSchema { c ->
             c.tables { table ->
                 buildMap {
                     c.metaData.getImportedKeys(c.catalog, c.schemaOrNull(), table).use { rs ->

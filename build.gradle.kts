@@ -131,6 +131,8 @@ dependencies {
 	implementation("org.springframework.security:spring-security-ldap")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	// 관측성(X-10, D-64): 상태 확인(Actuator)과 OTLP로 보내는 지표, 추적, 로그(OpenTelemetry). 수집기 주소가 없으면 내보내지 않는다
+	// 데이터 가져오기의 이어 올리기(TUS 규약) 서버(X-53, decisions.md D-144)
+	implementation("me.desair.tus:tus-java-server:1.0.0-3.3")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 	// 로그를 OTLP로 내보내는 Logback 연결(appender). 수집기 주소가 있을 때만 `otlp-logs` 프로파일로 로그 설정에 붙는다(X-10 C4)
@@ -305,8 +307,35 @@ val compileSass by tasks.registering {
 	}
 }
 
+// 새 UI 스크립트는 TypeScript로 쓴다(D-139). 원본은 `static/` 밖(`src/main/frontend/ts`)에 두고 산출물만 `/assets/javascripts/esm/` 아래로 싣는다.
+// 산출물은 커밋하지 않고 빌드 때 만든다. Node는 이미 Sass 때문에 필요하다.
+val tsToolDir = layout.projectDirectory.dir("build-tools/ts")
+val tsSourceDir = layout.projectDirectory.dir("src/main/frontend/ts")
+val tsOutputDir = layout.buildDirectory.dir("generated/ts")
+
+val installTs by tasks.registering(Exec::class) {
+	description = "TypeScript 컴파일러(npm typescript)를 설치한다."
+	workingDir = tsToolDir.asFile
+	commandLine("npm", "ci", "--no-audit", "--no-fund")
+	inputs.files(tsToolDir.file("package.json"), tsToolDir.file("package-lock.json"))
+	outputs.dir(tsToolDir.dir("node_modules"))
+}
+
+val compileTs by tasks.registering(Exec::class) {
+	description = "src/main/frontend/ts의 TypeScript를 형 검사하고 /assets/javascripts/esm/ 아래의 JS로 컴파일한다."
+	dependsOn(installTs)
+	workingDir = tsToolDir.asFile
+	commandLine(tsToolDir.file("node_modules/.bin/tsc").asFile.absolutePath, "-p", "tsconfig.json")
+	inputs.dir(tsSourceDir)
+	inputs.file(tsToolDir.file("tsconfig.json"))
+	outputs.dir(tsOutputDir)
+	// 지운 모듈의 옛 산출물이 남지 않도록 매번 비우고 다시 만든다.
+	doFirst { delete(tsOutputDir) }
+}
+
 tasks.named<ProcessResources>("processResources") {
 	from(compileSass)
+	from(compileTs)
 }
 
 // 실행 중인 버전을 알 수 있게 빌드 정보(`META-INF/build-info.properties`)를 만든다. 업데이트 확인이 현재 버전으로 쓴다.

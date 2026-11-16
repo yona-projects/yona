@@ -87,6 +87,28 @@
     }
 }
 
+// 게시판 도구줄의 라벨 선택(A-531): 옆의 검색 칸(높이 32px, 글자 13px)과 같은 크기로 맞춘다. select2 BS5 테마의 기본(높이 38px, 글자 16px)이 그대로면
+// 선택 영역이 컨테이너 밖으로 넘치고 글자만 커서 어긋나 보인다. 이슈 목록 왼쪽 열의 라벨 선택은 다른 입력칸과 크기를 맞추므로 건드리지 않는다.
+.board-labels .select2-container.issue-labels.bordered {
+    .select2-selection--multiple {
+        min-height: 32px;
+        padding: 2px 6px;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+
+    .select2-search__field,
+    .select2-search--inline .select2-search__field {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        margin-top: 0;
+    }
+
+    .select2-selection__rendered {
+        line-height: 1.5;
+    }
+}
+
 // 라벨 목록(드롭다운)
 .select2-dropdown.issue-labels {
     min-width: 220px;
@@ -171,40 +193,6 @@ input:-webkit-autofill {
             font-weight: normal;
         }
     }
-}
-
-.myissues {
-    .user-ul {
-        .favored {
-            border-bottom: 1px solid #eee;
-        }
-    }
-
-    .site-logo {
-        display: none;
-    }
-    .star-project {
-        display: none;
-    }
-  .project-item {
-      padding: 0 10px;
-      .project-name {
-          max-width: 150px;
-          width: 100%;
-      }
-      .project-owner{
-          padding-right: 0;
-          max-width: 150px;
-          width: 100%;
-          text-align: right;
-      }
-      .flex-item {
-          flex-direction: column;
-      }
-  }
-  .no-result {
-      display: none;
-  }
 }
 
 .video-js {

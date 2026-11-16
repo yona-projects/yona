@@ -223,7 +223,7 @@ class ReviewListTest : AbstractIntegrationTest() {
         val p = project()
         val doc = page(url(p), login(user()))
         assertEquals("No review has been added.", doc.selectFirst(".error-wrap p")!!.text())
-        assertEquals("/${p.owner}/${p.name}/reviews", doc.selectFirst(".project-menu-nav li.active a")!!.attr("href"))
+        assertEquals("/${p.owner}/${p.name}/reviews", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     @Test

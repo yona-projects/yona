@@ -15,8 +15,10 @@
     </th:block>
     <th:block th:unless="${currentUser.anonymous}">
     <div class="page-wrap-outer">
-        <div class="page-wrap">
-            <div class="site-guide-outer hide">
+        <div class="page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('notifications')}"></th:block>
+        <div class="shell-main">
+            <div id="site-guide" class="site-guide-outer hide">
                 <h3>
                     <span th:text="#{app.welcome(${site.siteName})} + ' - ' + #{app.description}"></span>
                 </h3>
@@ -45,12 +47,12 @@
                 </table>
             </div>
             <div class="guide-toggle">
-                <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+                <button class="btn-transparent" id="toggleIntro" type="button" th:title="#{index.intro.toggle.show}" th:aria-label="#{index.intro.toggle.show}" aria-expanded="false" aria-controls="site-guide" th:attr="data-title-show=#{index.intro.toggle.show},data-title-hide=#{index.intro.toggle.hide}"><i class="yobicon-resizev"></i></button>
             </div>
             <div class="page on-fold-intro">
                 <div class="row content-container">
                     <div class="col-lg-8 main-stream">
-                        <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
+                        <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
                         <ul class="activity-streams notification-wrap list-unstyled">
                             <th:block th:replace="~{index/partial-notifications :: list(${notifications}, 0, 20)}"></th:block>
                         </ul>
@@ -59,20 +61,33 @@
         	       </div>
                 </div>
             </div>
-        </div>
+        
+        </div><!--/* .shell-main */-->
+    </div>
     </div>
     </th:block>
     <script type="text/javascript" th:inline="javascript">
         $(document).ready(function(){
+            // 접기 단추의 힌트(title)와 상태(aria-expanded)를 안내 영역의 펼침 여부에 맞춘다(A-601)
+            function syncToggleHint() {
+                var $toggle = $("#toggleIntro");
+                var expanded = !$(".site-guide-outer").hasClass("hide");
+                var hint = $toggle.data(expanded ? "titleHide" : "titleShow");
+                $toggle.attr({ "title": hint, "aria-label": hint, "aria-expanded": expanded });
+            }
+
             $("#toggleIntro").click(function(){
                 var $outerGuide = $(".site-guide-outer");
                 $outerGuide.toggleClass("hide");
                 localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+                syncToggleHint();
             });
 
-            if(localStorage.getItem("yobi-intro") != "false"){
+            // A-493: 안내(버튼 영역)는 처음에 접혀 있고, 펼쳐 둔 사용자만 다음에도 펼친다(v1.6은 처음에 펼쳐져 있었다)
+            if(localStorage.getItem("yobi-intro") == "true"){
                 $(".site-guide-outer").removeClass("hide");
             }
+            syncToggleHint();
 
             $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
                 var $this = $(this);

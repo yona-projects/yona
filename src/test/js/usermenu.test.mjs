@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import { pageWith, classicFromEsm } from './harness.mjs';
 
 const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
-<nav class="gnb-usermenu-dropdown"><button id="sidebar-open-btn" type="button">열기</button></nav>
-<div id="mySidenav" style="width:0"><div id="usermenu-tab-content-list"></div>
+<nav class="gnb-usermenu-dropdown"><button data-shell-switcher type="button">열기</button></nav>
+<div id="mySidenav" style="width:0"><ul class="nav-tabs"><li class="myOrganizationList"><a class="nav-link active" href="#myOrganizationList">f</a></li><li class="myProjectList"><a class="nav-link" href="#myProjectList">p</a></li><li class="myRecentIssueList"><a class="nav-link" href="#myRecentIssueList">r</a></li><li><i class="refresh-button"></i></li></ul><div class="sidebar-bottom">made</div><div id="usermenu-tab-content-list"></div>
   <input class="search-input" type="text">
   <ul class="user-ul"><li class="user-li" data-location="/a/one">Alpha proj</li><li class="user-li" data-location="/a/two">Beta proj</li></ul>
   <ul class="org-ul"><li class="org-li"><span class="sub-project-counter"></span><span class="all-orgs">조직</span><ul class="project-ul"><li class="user-li">x</li><li class="user-li">y</li></ul>Gamma org</li></ul>
@@ -14,7 +14,7 @@ const HTML = `<div id="main"><div class="main-stream col-lg-12"></div></div>
   <span class="favorite-issue" data-issue-id="5"><i></i></span>
 </div>`;
 
-async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
+async function open({ html = HTML, responses = {}, width = 1000, storage = {} } = {}) {
   const page = await pageWith({ stubs: false, html, scripts: [{ content: 'window.Messages = function (k) { return k + (arguments.length > 1 ? "|" + [].slice.call(arguments, 1).join(",") : ""); };' }, 'common/yona.Common.js'] });
   await page.setViewportSize({ width, height: 700 });
   await page.evaluate((resp) => {
@@ -26,6 +26,8 @@ async function open({ html = HTML, responses = {}, width = 1000 } = {}) {
     window.yona = window.yona || {}; yona.http = { get: fake('GET'), post: fake('POST') };
     $yona.alert = (m) => window.__alerts.push(m); $yona.notify = (m) => window.__notes.push(m);
   }, responses);
+  // setContent 문서는 origin이 없어 localStorage를 쓸 수 없으므로 메모리 저장소로 바꿔 끼운다
+  await page.evaluate((st) => { const m = new Map(Object.entries(st)); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) } }); }, storage);
   await page.addScriptTag({ content: classicFromEsm('esm/Usermenu.js') });
   await page.waitForTimeout(150);
   return page;
@@ -46,32 +48,32 @@ export const tests = [
   } },
   { name: '사용자 메뉴: 목록을 읽지 못해도(서버 오류) 아바타 단추로 사이드바를 열고 닫는다 (shell-F7, v1_6은 단추 처리기가 하나도 걸리지 않았다, 고쳤다)', run: async () => {
     const page = await open({ responses: { '/um': { ok: false, raw: 'server error' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '360px', '목록을 못 읽으면 열기 단추가 아무 일도 하지 않는다');
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); await page.close();
   } },
-  { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 col-lg-8이 되며 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
+  { name: '사이드바: 열기 단추를 누르면 360px로 열리고 .main-stream은 그대로이며(덮어 쓰기, A-490) 즐겨찾기 목록을 읽는다. 다시 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [7] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
-    assert.equal(await width(page), '360px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-8'); assert.ok((await calls(page)).includes('GET /fl'));
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
+    assert.equal(await width(page), '360px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-12'); assert.ok((await calls(page)).includes('GET /fl'));
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.star-project i')].map((i) => i.classList.contains('starred'))), [true, false]);
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     assert.equal(await width(page), '0px'); assert.equal(await page.evaluate(() => document.querySelector('.main-stream').className), 'main-stream col-lg-12'); await page.close();
   } },
   { name: '사이드바: 작은 화면(720px 이하)에서는 100vw로 열린다', run: async () => {
     const page = await open({ width: 600, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100); assert.equal(await width(page), '100vw'); await page.close();
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100); assert.equal(await width(page), '100vw'); await page.close();
   } },
   { name: '사이드바: 본문(#main)을 누르면 닫히고, 사이드바 안을 누르면 닫히지 않는다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100);
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
     await page.evaluate(() => document.querySelector('.user-ul').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await page.waitForTimeout(50); assert.equal(await width(page), '360px');
     await page.evaluate(() => document.querySelector('.main-stream').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await page.waitForTimeout(50); assert.equal(await width(page), '0px'); await page.close();
   } },
   { name: '사이드바: 검색 입력에서 Esc를 누르면 닫힌다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
-    await page.click('#sidebar-open-btn'); await page.waitForTimeout(100); await page.focus('.search-input'); await page.keyboard.press('Escape'); await page.waitForTimeout(100); assert.equal(await width(page), '0px'); await page.close();
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100); await page.focus('.search-input'); await page.keyboard.press('Escape'); await page.waitForTimeout(100); assert.equal(await width(page), '0px'); await page.close();
   } },
   { name: '검색 필터: 입력한 글자가 든 프로젝트와 조직만 보이고, 비운 뒤 Backspace면 모두 보인다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' } } });
@@ -118,5 +120,54 @@ export const tests = [
   } },
   { name: '조직 목록: 하위 프로젝트 개수를 .sub-project-counter에 쓴다', run: async () => {
     const page = await open({ responses: { '/um': { ok: true, data: '' } } }); assert.equal(await page.locator('.sub-project-counter').textContent(), '2'); await page.close();
+  } },
+  { name: '사이드바: 열고 닫은 상태를 shallWeOpenLeftNavigation에 기억하고 다음 화면을 열 때 이어서 연다 (A-491, v1.6)', run: async () => {
+    let page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => localStorage.getItem('shallWeOpenLeftNavigation')), 'true');
+    await page.click('[data-shell-switcher]'); await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => localStorage.getItem('shallWeOpenLeftNavigation')), 'false'); await page.close();
+    page = await open({ storage: { shallWeOpenLeftNavigation: 'true' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await width(page), '360px', '기억한 상태로 처음부터 열려 있다');
+    await page.close();
+    page = await open({ storage: { shallWeOpenLeftNavigation: 'false' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await width(page), '0px'); await page.close();
+  } },
+  { name: '사이드바: 마지막에 고른 탭(sidebarActiveMenu)을 기억하고 다시 열면 그 탭이 활성이다 (A-491, v1.6)', run: async () => {
+    let page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.click('.myProjectList > a'); await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => localStorage.getItem('sidebarActiveMenu')), 'myProjectList'); await page.close();
+    page = await open({ storage: { sidebarActiveMenu: 'myRecentIssueList' }, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll('.nav-tabs a.active')].map((a) => a.getAttribute('href')).join()), '#myRecentIssueList'); await page.close();
+  } },
+  { name: '사이드바: 새로고침 아이콘을 누르면 화면을 다시 읽는다 (A-491, v1.6)', run: async () => {
+    const page = await open({ responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.evaluate(() => { window.__marker = 1; }); // 화면을 다시 읽으면 이 표시가 사라진다
+    await page.evaluate(() => document.querySelector('.refresh-button').dispatchEvent(new MouseEvent('click', { bubbles: true }))); // 패널이 닫혀 있어도 처리기는 걸려 있다
+    const reloaded = await page.waitForFunction(() => !window.__marker, null, { timeout: 3000 }).then(() => true, () => false);
+    assert.equal(reloaded, true); await page.close();
+  } },
+  { name: '이슈 번호(data-issue-id)가 없는 "즐겨 찾는 이슈" 필터 라벨을 눌러도 즐겨찾기 요청을 보내지 않고, 눌림이 바깥 링크로 이어져 필터가 걸린다 (R-150 수정, A-498)', run: async () => {
+    const html = HTML.replace('<span class="favorite-issue" data-issue-id="5"><i></i></span>', '<span class="favorite-issue" data-issue-id="5"><i></i></span><a id="flt" href="#"><span id="flabel" class="favorite-issue"><i></i> 즐겨 찾는 이슈</span></a>');
+    const page = await open({ html, responses: { '/um': { ok: true, data: '' }, '/fl': { ok: true, data: { projectIds: [] } } } });
+    await page.evaluate(() => { window.__filter = 0; document.getElementById('flt').addEventListener('click', (e) => { e.preventDefault(); window.__filter++; }); });
+    await page.dispatchEvent('#flabel', 'click'); await page.waitForTimeout(150);
+    const calls = await page.evaluate(() => window.__calls.slice());
+    assert.deepEqual(calls.filter((c) => c.startsWith('POST')), [], '이슈 번호가 없으면 즐겨찾기 요청을 보내지 않는다(예전에는 POST /user/favoriteIssues/undefined가 400이었다)');
+    assert.equal(await page.evaluate(() => window.__filter), 1, '눌림이 바깥 링크까지 이어져 필터가 걸린다');
+    // 이슈 번호가 있는 별은 그대로 즐겨찾기를 보낸다
+    await page.dispatchEvent('[data-issue-id="5"]', 'click'); await page.waitForTimeout(150);
+    assert.ok((await page.evaluate(() => window.__calls.slice())).some((c) => c.startsWith('POST') && c.endsWith('5')), '번호가 있는 별은 요청을 보낸다');
+    await page.close();
+  } },
+  { name: '기억한 탭을 복원해도 안쪽 하위 탭(예: 프로젝트의 "최근 방문")의 active는 지워지지 않아 목록 줄이 보인다 (A-491 결함 수정)', run: async () => {
+    const page = await open({ storage: { sidebarActiveMenu: 'myProjectList' }, responses: { '/um': { ok: true, data: '<div class="tab-pane user-project-list active" id="myOrganizationList"><ul class="tab-pane user-ul active" id="organizations"><li class="org-li">조직</li></ul></div><div class="tab-pane user-project-list" id="myProjectList"><ul class="nav-subtab"><li class="active"><a href="#recentlyVisited">최근</a></li></ul><ul class="tab-pane user-ul active" id="recentlyVisited"><li class="user-li">p1</li></ul><ul class="tab-pane user-ul" id="watching"><li class="user-li">w1</li></ul></div>' }, '/fl': { ok: true, data: { projectIds: [] } } } }); await page.waitForTimeout(250);
+    const r = await page.evaluate(() => ({
+      outer: [...document.querySelectorAll('#usermenu-tab-content-list > .tab-pane')].map((e) => e.id + ':' + e.classList.contains('active')),
+      inner: ['organizations', 'recentlyVisited', 'watching'].map((id) => id + ':' + document.getElementById(id).classList.contains('active')),
+    }));
+    assert.deepEqual(r.outer, ['myOrganizationList:false', 'myProjectList:true']);
+    assert.deepEqual(r.inner, ['organizations:true', 'recentlyVisited:true', 'watching:false'], '하위 탭의 active는 그대로이다');
+    await page.close();
   } },
 ];

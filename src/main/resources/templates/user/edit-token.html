@@ -12,14 +12,15 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
 <th:block th:fragment="tokenPage">
 <style th:replace="~{user/partial-token-form :: tokenStyle}"></style>
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{apiToken.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="token-meta" th:text="#{apiToken.description}"></p>
 
         <!--/* 방금 만든 토큰은 이 응답에서 한 번만 보이고 다시 볼 수 없다 */-->
@@ -30,47 +31,46 @@
             <span class="hide" th:text="${newToken}"></span>
         </div>
 
-        <table id="token-list" class="table table-striped" th:if="${!#lists.isEmpty(tokens)}">
-            <thead>
-            <tr>
-                <th th:text="#{apiToken.name}"></th><th th:text="#{apiToken.prefix}"></th><th th:text="#{apiToken.scopes}"></th>
-                <th th:text="#{apiToken.createdDate}"></th><th th:text="#{apiToken.lastUsed}"></th><th th:text="#{apiToken.expires}"></th><th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="t : ${tokens}" class="token-row" th:attr="data-id=${t.id}">
-                <td>
-                    <a class="token-edit" th:href="@{/user/editform/token/{id}(id=${t.id})}" th:text="${t.name}"></a>
-                    <div th:if="${t.legacy}" class="legacy-warning alert alert-warning" style="margin-top:5px;">
-                        <strong th:text="#{apiToken.legacy}"></strong> <span th:text="#{apiToken.legacy.warning}"></span>
-                    </div>
-                </td>
-                <td><code class="token-prefix" th:text="${t.prefix}"></code></td>
-                <td><span th:if="${t.unrestricted}" class="token-scope badge text-bg-warning" th:text="#{apiToken.scopes.unrestricted}"></span><span th:each="s : ${t.scopes}" class="token-scope badge bg-secondary" style="margin-right:3px;" th:text="${s}" th:title="#{'apiToken.scope.' + ${s}}"></span></td>
-                <td th:text="${t.createdText}"></td>
-                <td th:text="${t.lastUsedText != null} ? ${t.lastUsedText} : #{apiToken.neverUsed}"></td>
-                <td>
-                    <span th:if="${t.expiresText == null}" th:text="#{apiToken.noExpiration}"></span>
-                    <span th:if="${t.expiresText != null}"><th:block th:text="${t.expiresText}"></th:block> <em th:if="${t.expired}" th:text="'(' + #{apiToken.expired} + ')'"></em></span>
-                </td>
-                <td>
+        <!--/* A-581: 토큰 목록은 카드이다(토큰마다 이름, 앞부분, 범위, 만든 날, 마지막 사용, 만료, 삭제) */-->
+        <ul id="token-list" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(tokens)}">
+            <li th:each="t : ${tokens}" class="item-card token-row" th:attr="data-id=${t.id}">
+                <div class="item-card-head">
+                    <a class="item-card-name token-edit" th:href="@{/user/editform/token/{id}(id=${t.id})}" th:text="${t.name}"></a>
+                </div>
+                <div th:if="${t.legacy}" class="legacy-warning alert alert-warning">
+                    <strong th:text="#{apiToken.legacy}"></strong> <span th:text="#{apiToken.legacy.warning}"></span>
+                </div>
+                <dl class="item-card-meta">
+                    <dt th:text="#{apiToken.prefix}"></dt><dd><code class="token-prefix" th:text="${t.prefix}"></code></dd>
+                    <dt th:text="#{apiToken.scopes}"></dt>
+                    <dd><span th:if="${t.unrestricted}" class="token-scope badge text-bg-warning" th:text="#{apiToken.scopes.unrestricted}"></span><span th:each="s : ${t.scopes}" class="token-scope badge bg-secondary" th:text="${s}" th:title="#{'apiToken.scope.' + ${s}}"></span></dd>
+                    <dt th:text="#{apiToken.createdDate}"></dt><dd th:text="${t.createdText}"></dd>
+                    <dt th:text="#{apiToken.lastUsed}"></dt><dd th:text="${t.lastUsedText != null} ? ${t.lastUsedText} : #{apiToken.neverUsed}"></dd>
+                    <dt th:text="#{apiToken.expires}"></dt>
+                    <dd>
+                        <span th:if="${t.expiresText == null}" th:text="#{apiToken.noExpiration}"></span>
+                        <span th:if="${t.expiresText != null}"><th:block th:text="${t.expiresText}"></th:block> <em th:if="${t.expired}" th:text="'(' + #{apiToken.expired} + ')'"></em></span>
+                    </dd>
+                </dl>
+                <div class="item-card-actions">
                     <form method="post" th:action="@{/user/token/{id}/delete(id=${t.id})}" th:attr="onsubmit='return confirm(\'' + #{apiToken.delete.confirm} + '\');'">
-                        <button type="submit" class="ybtn ybtn-danger ybtn-small" th:text="#{apiToken.delete}"></button>
+                        <button type="submit" class="btn btn-danger btn-sm" th:text="#{apiToken.delete}"></button>
                     </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </div>
+            </li>
+        </ul>
         <p th:if="${#lists.isEmpty(tokens)}" class="empty" th:text="#{apiToken.list.empty}"></p>
 
         <a th:href="@{/user/editform/token/new}" id="token-new" class="ybtn ybtn-success" th:text="#{apiToken.create}"></a>
-    </div>
-</div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/user.Setting.js}"></script>
-<script type="text/javascript">
+    <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/user.Setting.js}]]);
     $(function(){
         $yona.loadModule("user.Setting");
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
 </th:block>
 </html>

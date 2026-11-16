@@ -10,15 +10,17 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::gpgPage})}">
 <th:block th:fragment="gpgPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{gpgKey.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('gpg')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${gpgError != null}" class="alert alert-danger" th:text="#{${gpgError}}"></div>
+        <div class="key-new-layout">
         <form id="gpg-create" method="post" th:action="@{/user/gpg}">
             <h4 th:text="#{gpgKey.add}"></h4>
             <div class="mb-3">
@@ -37,6 +39,19 @@
                 <a th:href="@{/user/editform/gpg}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
+        <!--/* A-582: 키를 아직 만들지 않았거나 내보내는 방법을 모르는 사용자를 위한 안내(생성, 확인, 내보내기) */-->
+        <aside class="key-guide">
+            <h5 th:text="#{gpgKey.guide.title}"></h5>
+            <ol>
+                <li><span th:text="#{gpgKey.guide.step1}"></span><pre><code>gpg --full-generate-key</code></pre></li>
+                <li><span th:text="#{gpgKey.guide.step2}"></span><pre><code>gpg --list-secret-keys --keyid-format=long</code></pre></li>
+                <li><span th:text="#{gpgKey.guide.step3}"></span><pre><code>gpg --armor --export &lt;KEY_ID&gt;</code></pre></li>
+                <li><span th:text="#{gpgKey.guide.step4}"></span></li>
+            </ol>
+            <p class="key-guide-note" th:text="#{gpgKey.guide.note}"></p>
+        </aside>
+        </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

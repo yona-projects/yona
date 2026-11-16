@@ -150,7 +150,7 @@ class OrganizationOAuthAppsController(
         .addObject("orgView", orgViews.of(organization)).addObject("urls", OAuthAppUrls.organization(basePath(organization)))
 
     private fun formView(organization: Organization, client: OAuthClient?, errorKey: String?, form: OAuthAppsSettingsController.Form): ModelAndView = base(organization, "organization/oauth-app-form")
-        .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
+        .addObject("client", client?.let { mapOf("id" to it.id, "name" to it.name.orEmpty(), "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
         .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", support.oidcInfo(client))
         .addObject("transferTargets", client?.let { support.transferTargets(actor(), ClientOwner.of(organization)) } ?: emptyList<OAuthAppViewSupport.TransferTarget>())
 

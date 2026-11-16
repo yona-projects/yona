@@ -92,41 +92,89 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     private fun manager(project: Project): User = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
 
     private fun deleteForm(project: Project, session: MockHttpSession): Document =
-        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/deleteform").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
 
     @Test
     fun `삭제 화면은 관리자만 볼 수 있다`() {
         val project = newProject()
         val member = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
-        mockMvc.perform(get("/${project.owner}/${project.name}/deleteform").session(login(member))).andExpect(status().isForbidden)
-        mockMvc.perform(get("/${project.owner}/${project.name}/deleteform")).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(login(member))).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger")).andExpect(status().isForbidden)
     }
 
     @Test
     fun `삭제 화면의 구성`() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
-        assertEquals("Delete project - ${project.owner}/${project.name}", page.title())
-        assertEquals("Delete project", page.selectFirst(".cu-label")?.text())
-        assertTrue(page.selectFirst(".cu-desc .notice")!!.text().startsWith("Once you delete the project"))
-        assertNotNull(page.selectFirst("input#accept[type=checkbox]"))
-        assertEquals("I agree to delete this project.", page.selectFirst("label[for=accept]")?.text())
+        assertEquals("Danger Zone - ${project.owner}/${project.name}", page.title())
+        assertEquals("Delete project", page.selectFirst("#danger-delete .cu-label")?.text())
+        assertTrue(page.selectFirst("#danger-delete .cu-desc .notice")!!.text().startsWith("Once you delete the project"))
         val button = page.selectFirst("a#btnDelete")!!
         assertEquals("#alertDeletion", button.attr("href"))
-        assertEquals("modal", button.attr("data-bs-toggle"))
+        assertEquals("modal", button.attr("data-bs-toggle"), "확인 창이 곧 확인 절차라 단추가 바로 연다(체크박스 없음, A-537)")
         assertEquals("Delete this project", button.text().trim())
         val dialog = page.selectFirst("#alertDeletion")!!
         assertEquals("Do you want to delete this project?", dialog.selectFirst(".modal-header h3")?.text())
-        assertEquals("Are you sure you want to delete this project?", dialog.select(".modal-body p")[1].text())
-        assertEquals("Yes", dialog.selectFirst("#btnDeleteExec")?.text())
+        assertEquals(1, dialog.select(".modal-body p").count { !it.hasClass("mb-0") }, "설명 문단 하나와 입력 안내만 둔다")
+        assertEquals("Delete this project", dialog.selectFirst("#btnDeleteExec")?.text())
+    }
+
+    @Test
+    fun `위험 구역의 세 확인 창은 모두 owner와 name을 다시 입력받고 입력 전에는 예 단추가 비활성이다(A-536, A-538)`() {
+        val project = newProject()
+        val page = deleteForm(project, login(manager(project)))
+        val full = "${project.owner}/${project.name}"
+        // GitHub처럼 실행 단추 하나만 둔다(아니요 단추 없음, 닫기는 ×, A-540)
+        listOf("alertTransfer", "alertChangeVCS", "alertDeletion").forEach { assertEquals(1, page.select("#$it .modal-footer button").size, "$it 푸터 단추 수") }
+        // 입력이 곧 확인이라 "정말로 ...하시겠습니까?" 같은 재확인 문구는 없다(A-539)
+        listOf("alertTransfer", "alertChangeVCS", "alertDeletion").forEach { assertFalse(page.selectFirst("#$it .modal-body")!!.text().contains("Are you sure"), it) }
+        listOf(Triple("alertTransfer", "transferConfirmName", "btnTransferExec"), Triple("alertChangeVCS", "vcsConfirmName", "btnChangeVCSExec"), Triple("alertDeletion", "deleteConfirmName", "btnDeleteExec")).forEach { (modal, input, exec) ->
+            val box = page.selectFirst("#$modal input#$input")!!
+            assertEquals("off", box.attr("autocomplete"), modal)
+            assertTrue(page.selectFirst("#$modal label[for=$input]")!!.text().contains(full), "$modal 안내에 $full")
+            assertTrue(page.selectFirst("#$modal #$exec")!!.hasAttr("disabled"), "$modal 예 단추")
+        }
+        // JS 인라인은 슬래시를 `\/`로 내보낸다
+        val scripts = page.select("script").joinToString("\n") { it.data().replace("\\/", "/") }
+        assertEquals(3, Regex("\"sProjectName\": \"${Regex.escape(full)}\"").findAll(scripts).count(), "세 모듈에 프로젝트 이름을 넘긴다")
+    }
+
+    @Test
+    fun `위험 구역은 이관, 저장소 타입 변경, 삭제 구역이 이 순서로 한 화면에 있고 구역마다 따로 동의와 단추를 가진다(A-535)`() {
+        val project = newProject()
+        val page = deleteForm(project, login(manager(project)))
+        assertEquals(listOf("danger-transfer", "danger-vcs", "danger-delete"), page.select("section.danger-section").map { it.id() })
+        assertTrue(page.select("section.danger-section input[type=checkbox]").isEmpty(), "동의 체크박스는 없다(A-537)")
+        assertEquals(listOf("modal", "modal", "modal"), page.select("section.danger-section a.ybtn-danger").map { it.attr("data-bs-toggle") })
+        assertEquals(listOf("btnTransfer", "btnChangeVCS", "btnDelete"), page.select("section.danger-section a.ybtn-danger").map { it.id() })
+        assertEquals(3, page.select("section.danger-section").map { it.id() }.toSet().size)
+    }
+
+    @Test
+    fun `위험 구역 맨 위 안내는 동의가 아니라 프로젝트 이름 입력을 말한다(A-542)`() {
+        val project = newProject()
+        val page = deleteForm(project, login(manager(project)))
+        assertEquals("These actions are hard to undo. To run one, you must type the project name.", page.selectFirst(".shell-main > p.form-text")?.text())
+    }
+
+    @Test
+    fun `옛 이관, 삭제, 타입 변경 주소는 위험 구역으로 이동시키고 구성원은 막는다(A-535)`() {
+        val project = newProject(); val session = login(manager(project)); val base = "/${project.owner}/${project.name}"
+        listOf("/transfer", "/deleteform", "/changeVCS").forEach { old ->
+            val r = mockMvc.perform(get(base + old).session(session)).andReturn().response
+            assertTrue(r.status in 301..303, "$old 상태 ${r.status}")
+            assertTrue(r.getHeader("Location")!!.endsWith("$base/setting/danger"), "$old 이동 주소 ${r.getHeader("Location")}")
+        }
+        val member = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
+        listOf("/transfer", "/deleteform", "/changeVCS").forEach { old -> mockMvc.perform(get(base + old).session(login(member))).andExpect(status().isForbidden) }
     }
 
     @Test
     fun `삭제 화면은 설정 하위 메뉴에서 삭제를 활성으로 보여 준다`() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
-        assertTrue(page.selectFirst("#subMenuProjectDelete")!!.selectFirst("a")!!.hasClass("active"))
-        assertFalse(page.selectFirst("#subMenuProjectSetting")!!.selectFirst("a")!!.hasClass("active"))
+        assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/danger]")!!.hasClass("active"))
+        assertFalse(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]")!!.hasClass("active"))
     }
 
     @Test

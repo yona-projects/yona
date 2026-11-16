@@ -62,10 +62,10 @@ class FormModernizationTest {
     fun `짧은 한 줄 입력창이 지나치게 넓어진 화면은 BS5 폭 클래스를 단다`() {
         fun doc(path: String) = Jsoup.parse(File("src/main/resources/templates/$path").readText())
         listOf("oldPassword", "password", "retypedPassword").forEach { id ->
-            assertTrue(doc("user/edit-password.html").getElementById(id)!!.hasClass("w-25"), "비밀번호 입력창 #$id 는 w-25 여야 한다")
+            assertTrue(doc("user/edit-password.html").getElementById(id)!!.hasClass("w-25").not(), "비밀번호 입력창 #$id 는 w-25로 좁히지 않고 사용자 설정 틀의 폭(최대 440px)을 쓴다(A-586)")
         }
         listOf("project-owner", "inputName").forEach { id ->
-            assertTrue(doc("pullrequest/fork.html").getElementById(id)!!.hasClass("w-50"), "포크 입력창 #$id 는 w-50 여야 한다")
+            assertTrue(doc("pullrequest/fork.html").getElementById(id)!!.hasClass("w-100"), "포크 입력창 #$id 는 프로젝트 만들기 폼처럼 w-100이다(A-568)")
         }
     }
 }

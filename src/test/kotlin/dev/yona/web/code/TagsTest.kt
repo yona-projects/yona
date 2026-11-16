@@ -104,6 +104,7 @@ class TagsTest : AbstractIntegrationTest() {
         val annotated = byName.getValue("v1.0")
         assertNotNull(annotated.selectFirst(".tag-type.annotated"))
         assertEquals("첫 릴리스", annotated.selectFirst(".tag-message")!!.text())
+        assertNotNull(annotated.selectFirst("td.tagName .tag-title .tag-name")); assertNotNull(annotated.selectFirst("td.tagName .tag-meta .tag-message")); assertNotNull(annotated.selectFirst("td.tagName .tag-meta .tagger"))
         assertTrue(annotated.selectFirst(".tag-message")!!.attr("title").contains("자세한 설명입니다"))
         assertTrue(annotated.selectFirst(".tagger")!!.text().contains("릴리서"))
         val light = byName.getValue("light-0.1")
@@ -130,7 +131,7 @@ class TagsTest : AbstractIntegrationTest() {
     fun `탭은 파일, 커밋, 브랜치, 태그이고 태그가 활성이다`() {
         val p = tagged()
         val tabs = page("/${p.owner}/${p.name}/tags").select(".code-browse-wrap ul.nav-tabs li")
-        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), tabs.map { it.text() }); assertTrue(tabs[3].selectFirst("a")!!.hasClass("active"))
+        assertEquals(listOf("Files", "Branches", "Tags"), tabs.map { it.text() }); assertTrue(tabs[2].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

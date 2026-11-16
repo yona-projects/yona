@@ -10,6 +10,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::projectListPage})}">
 <th:block th:fragment="projectListPage">
+<span data-swap-safe hidden></span>
     <div class="title_area">
         <h2 class="float-start" th:text="#{site.sidebar.projectList}"></h2>
         <form class="float-end" th:action="@{/sites/projectList}">
@@ -29,14 +30,14 @@
         <li th:each="row : ${rows}" class="row listitem">
             <div class="col-lg-5 listitem-col">
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="avatar-wrap list-avatar">
-                    <img th:src="@{${row.logoUrl}}" th:alt="${row.name}"/> <th:block th:text="${row.owner} + '/' + ${row.name}"></th:block>
+                    <img th:src="@{${row.logoUrl}}" th:alt="${row.name}"/>
                 </a>
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="project-name" th:text="${row.owner} + '/' + ${row.name}"></a>
             </div>
             <div class="col-lg-4 listitem-col" th:text="${row.overview}"></div>
             <div class="col-lg-2 listitem-col" th:text="${row.createdText}"></div>
             <div class="col-lg-1 listitem-col">
-                <button class="ybtn ybtn-danger" th:attr="data-project-name=${row.owner} + '/' + ${row.name}, data-href=@{/sites/project/delete/{id}(id=${row.id})}" data-toggle="delete-project" th:text="#{button.delete}"></button>
+                <button class="btn btn-outline-danger btn-sm" th:attr="data-project-name=${row.owner} + '/' + ${row.name}, data-href=@{/sites/project/delete/{id}(id=${row.id})}" data-toggle="delete-project" th:text="#{button.delete}"></button>
             </div>
         </li>
     </ul>
@@ -46,14 +47,18 @@
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            <span id="project-name"></span><th:block th:text="#{site.project.delete}"></th:block>
+            <h3 class="modal-title" th:text="#{site.project.delete}"></h3>
         </div>
         <div class="modal-body">
             <p th:text="#{site.project.deleteConfirm}"></p>
+            <!--/* 프로젝트 오너가 삭제할 때와 같은 이름 재입력(A-538): 이름과 일치해야 삭제 단추가 켜진다 */-->
+            <p class="mb-0">
+                <label for="project-name-confirm" class="form-label" th:utext="#{project.danger.confirmName(${'<strong id=&quot;project-name&quot;></strong>'})}"></label>
+                <input type="text" id="project-name-confirm" class="form-control w-100" autocomplete="off" spellcheck="false">
+            </p>
         </div>
         <div class="modal-footer">
-            <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
-            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+            <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" disabled="disabled" th:text="#{site.project.delete}"></button>
         </div>
     </div></div></div>
 
@@ -65,11 +70,18 @@
         $('.project-list-wrap').on('click','[data-toggle="delete-project"]',function(){
             deleteUrl = $(this).data('href');
 
-            $('#project-name').html($(this).data('projectName'));
+            $('#project-name').text($(this).data('projectName'));
+            $('#project-name-confirm').val('');
+            $('#projectDeleteBtn').prop('disabled', true);
 
             bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
 
             console.log($(this).data('href'));
+        });
+
+        // 프로젝트 이름을 똑같이 다시 입력해야 삭제 단추가 켜진다(A-594, 프로젝트 오너가 삭제할 때와 같은 흐름)
+        document.getElementById('project-name-confirm').addEventListener('input', function(){
+            document.getElementById('projectDeleteBtn').disabled = (this.value.trim() !== document.getElementById('project-name').textContent);
         });
 
         document.getElementById('projectDeleteBtn').addEventListener('click', function(e){

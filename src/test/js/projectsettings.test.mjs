@@ -49,6 +49,21 @@ export const tests = [
     assert.deepEqual((await state()).slice(0, 3), [true, false, true]); await page.close();
   } },
 
+  { name: '프로젝트 설정: 코드 메뉴를 껐다 다시 켜면 끄기 전의 풀 리퀘스트와 리뷰 선택, 리뷰 설정과 기본 브랜치 패널이 돌아온다(A-564)', run: async () => {
+    const page = await base(SETTING, 'esm/service/project.Setting.js', 'yona.project.Setting');
+    const state = () => page.evaluate(() => ['menuSettingCode', 'menuSettingPullRequest', 'menuSettingReview'].map((id) => document.getElementById(id).checked).concat([$('#reviewerCountSettingPanel').css('display'), $('#defaultBranceSettingPanel').css('display')]));
+    await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [false, false, false, 'none', 'none']);
+    await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [true, true, true, 'block', 'block'], '끄기 전에 켜 두었던 풀 리퀘스트와 리뷰, 두 패널이 돌아온다');
+    // 풀 리퀘스트만 켜 둔 채 껐다 켜면 리뷰는 꺼진 채로 돌아온다
+    await page.click('#menuSettingReview'); await page.click('#menuSettingCode'); await page.click('#menuSettingCode');
+    assert.deepEqual(await state(), [true, true, false, 'block', 'block']);
+    // 끈 상태에서 풀 리퀘스트를 켜면 코드가 켜지고, 그 뒤 코드를 끄면 다시 모두 꺼진다
+    await page.click('#menuSettingCode'); await page.click('#menuSettingPullRequest');
+    assert.deepEqual((await state()).slice(0, 3), [true, true, false]); await page.close();
+  } },
+
   { name: '프로젝트 전역: 관심 단추는 href로 POST하고 기본 동작을 막는다. 실패하면 "Server Error"를 알린다', run: async () => {
     const page = await base(`<a class="watchBtn" href="/watch/1">w</a><a id="enrollBtn" href="/enroll/1">e</a>`, 'esm/service/project.Global.js', 'yona.project.Global');
     assert.equal(await clickResult(page, '.watchBtn'), true);
@@ -66,35 +81,40 @@ export const tests = [
     page = await base('', 'esm/service/project.Global.js', 'yona.project.Global', {}); assert.deepEqual(await get(page, '__km'), []); await page.close();
   } },
 
-  { name: 'VCS 변경: 동의 체크가 없으면 확인 창 대신 알림을 띄워 막는다. 실행하면 대상 VCS를 data로 POST한다', run: async () => {
-    const page = await base(`<input type="checkbox" id="acceptChangeVCS"><button id="btnChangeVCS"></button><button id="btnChangeVCSExec"></button><select id="targetVcs"><option value="GIT">g</option></select><span class="next-vcs"></span><span class="vcs-description"></span><span class="vcs-requestion"></span><div id="alertChangeVCS"></div>`, 'esm/service/project.ChangeVCS.js', 'yona.project.ChangeVCS', { sTransferURL: '/vcs', oTexts: { GIT: { description: '설명', requestion: '요청' } } });
-    assert.equal(await clickResult(page, '#btnChangeVCS'), true); // 처리기가 false를 돌려주면 기본 동작이 막힌다
-    assert.deepEqual(await get(page, '__alerts'), ['project.changeVCS.alert']);
+  { name: 'VCS 변경: 이름을 입력하기 전에는 요청하지 않고, 입력하면 선택한 종류를 data로 POST한다. 선택을 바꾸면 안내와 확인 문구를 갈아 끼우고 실패하면 모달을 닫고 알린다', run: async () => {
+    const page = await base(`<input type="radio" name="targetVcs" value="GIT" checked><input type="radio" name="targetVcs" value="Mercurial"><input type="radio" name="targetVcs" value="Subversion" disabled><input type="text" id="vcsConfirmName"><button id="btnChangeVCSExec" disabled></button><span class="vcs-description"></span><span class="vcs-requestion"></span><div id="alertChangeVCS"></div>`, 'esm/service/project.ChangeVCS.js', 'yona.project.ChangeVCS', { sTransferURL: '/vcs', sProjectName: 'o/p', oTexts: { GIT: { description: '설명', requestion: '요청' }, Mercurial: { description: '설명M', requestion: '요청M' } } });
+    await page.evaluate(() => { $('#btnChangeVCSExec').prop('disabled', false).trigger('click'); });
+    assert.deepEqual(await get(page, '__ajax'), [], '이름을 입력하지 않았는데 요청이 갔다');
+    await page.evaluate(() => { $('#vcsConfirmName').val('o/p').trigger('input'); });
+    assert.equal(await page.evaluate(() => $('#btnChangeVCSExec').prop('disabled')), false);
     await page.evaluate(() => { $('#btnChangeVCSExec').trigger('click'); const [url, o] = window.__ajax[0]; window.__a = [url, o.method, o.data]; });
     assert.deepEqual(await get(page, '__a'), ['/vcs', 'post', { targetVcs: 'GIT' }]);
-    await page.evaluate(() => { $('#targetVcs').trigger('change'); }); assert.deepEqual(await page.evaluate(() => [$('.next-vcs').text(), $('.vcs-description').text(), $('.vcs-requestion').text()]), ['GIT', '설명', '요청']);
+    await page.evaluate(() => { $('input[name=targetVcs][value=Mercurial]').prop('checked', true).trigger('change'); });
+    assert.deepEqual(await page.evaluate(() => [$('.vcs-description').text(), $('.vcs-requestion').text()]), ['설명M', '요청M']);
+    await page.evaluate(() => { $('#btnChangeVCSExec').trigger('click'); window.__b = window.__ajax[1][1].data; });
+    assert.deepEqual(await get(page, '__b'), { targetVcs: 'Mercurial' });
     await page.evaluate(() => { window.__ajax[0][1].error(); }); assert.deepEqual(await get(page, '__hidden'), ['alertChangeVCS']); assert.deepEqual((await get(page, '__alerts')).slice(-1), ['project.changeVCS.error']); await page.close();
   } },
-  { name: '프로젝트 이전: 동의 체크가 없으면 알림을 띄워 막고, 실행은 owner를 쿼리로 PUT하며 한 번만 보낸다. 실패하면 모달을 닫고 알린다', run: async () => {
-    const page = await base(`<input type="checkbox" id="accept"><button id="btnTransfer"></button><button id="btnTransferExec"></button><input id="owner" value="newowner"><div id="alertTransfer"></div>`, 'esm/service/project.Transfer.js', 'yona.project.Transfer', { sTransferURL: '/transfer' });
-    assert.equal(await clickResult(page, '#btnTransfer'), true); // 처리기가 false를 돌려주면 기본 동작이 막힌다
-    assert.deepEqual(await get(page, '__alerts'), ['project.transfer.alert']);
-    await page.evaluate(() => { $('#btnTransferExec').trigger('click').trigger('click'); });
+  { name: '프로젝트 이전: 이름을 입력해야 owner를 쿼리로 PUT하며 한 번만 보낸다. 실패하면 모달을 닫고 알린다', run: async () => {
+    const page = await base(`<button id="btnTransferExec" disabled></button><input id="transferConfirmName"><input id="owner" value="newowner"><div id="alertTransfer"></div>`, 'esm/service/project.Transfer.js', 'yona.project.Transfer', { sTransferURL: '/transfer', sProjectName: 'o/p' });
+    await page.evaluate(() => { $('#btnTransferExec').trigger('click'); });
+    assert.deepEqual(await get(page, '__ajax'), [], '이름을 입력하지 않았는데 요청이 갔다');
+    await page.evaluate(() => { $('#transferConfirmName').val('o/p').trigger('input'); $('#btnTransferExec').trigger('click').trigger('click'); });
     const ajax = await get(page, '__ajax'); assert.equal(ajax.length, 1); assert.deepEqual([ajax[0][0], ajax[0][1].method], ['/transfer?owner=newowner', 'put']);
     await page.evaluate(() => { window.__ajax[0][1].error(); }); assert.deepEqual(await get(page, '__hidden'), ['alertTransfer']); assert.deepEqual((await get(page, '__alerts')).slice(-1), ['project.transfer.error']); await page.close();
   } },
   { name: '프로젝트 이전: 실패한 뒤 다시 "예"를 누르면 다시 요청한다 (v1_6은 .one이라 한 번 실패하면 아무 반응이 없었다, 고쳤다, project-F19)', run: async () => {
-    const page = await base(`<input type="checkbox" id="accept"><button id="btnTransfer"></button><button id="btnTransferExec"></button><input id="owner" value="newowner"><div id="alertTransfer"></div>`, 'esm/service/project.Transfer.js', 'yona.project.Transfer', { sTransferURL: '/transfer' });
+    const page = await base(`<button id="btnTransferExec"></button><input id="transferConfirmName" value="o/p"><input id="owner" value="newowner"><div id="alertTransfer"></div>`, 'esm/service/project.Transfer.js', 'yona.project.Transfer', { sTransferURL: '/transfer', sProjectName: 'o/p' });
     await page.evaluate(() => { $('#btnTransferExec').trigger('click'); });
     await page.evaluate(() => { window.__ajax[0][1].error(); });
     await page.evaluate(() => { $('#btnTransferExec').trigger('click'); });
     assert.equal((await get(page, '__ajax')).length, 2); await page.close();
   } },
-  { name: '프로젝트 삭제: 동의 체크가 없으면 알림으로 막고, 실행은 DELETE 요청을 보내며 실패(ok=false)면 모달을 닫고 알린다', run: async () => {
-    const page = await base(`<input type="checkbox" id="accept"><button id="btnDelete"></button><button id="btnDeleteExec"></button><div id="alertDeletion"></div>`, 'esm/service/project.Delete.js', 'yona.project.Delete', { sDeleteURL: '/delete' });
-    assert.equal(await clickResult(page, '#btnDelete'), true); // 처리기가 false를 돌려주면 기본 동작이 막힌다
-    assert.deepEqual(await get(page, '__alerts'), ['project.delete.alert']);
-    await page.evaluate(() => { window.__reqOk = false; $('#btnDeleteExec').trigger('click'); }); await page.waitForTimeout(40);
+  { name: '프로젝트 삭제: 이름을 입력해야 DELETE 요청을 보내며 실패(ok=false)면 모달을 닫고 알린다', run: async () => {
+    const page = await base(`<button id="btnDeleteExec" disabled></button><input id="deleteConfirmName"><div id="alertDeletion"></div>`, 'esm/service/project.Delete.js', 'yona.project.Delete', { sDeleteURL: '/delete', sProjectName: 'o/p' });
+    await page.evaluate(() => { $('#btnDeleteExec').trigger('click'); }); await page.waitForTimeout(40);
+    assert.deepEqual(await get(page, '__req'), [], '이름을 입력하지 않았는데 요청이 갔다');
+    await page.evaluate(() => { window.__reqOk = false; $('#deleteConfirmName').val('o/p').trigger('input'); $('#btnDeleteExec').trigger('click'); }); await page.waitForTimeout(40);
     assert.deepEqual(await get(page, '__req'), [['delete', '/delete']]); assert.deepEqual(await get(page, '__hidden'), ['alertDeletion']); assert.deepEqual((await get(page, '__alerts')).slice(-1), ['project.delete.error']); await page.close();
   } },
   { name: '프로젝트 포크: 소유자 선택을 바꾸면 선택한 항목의 data-url로 이동한다', run: async () => {

@@ -68,16 +68,8 @@
     width: 100%;
 }
 
-.loading-gif {
-    background: #FFF url('#{$base-image-path}/loading-gif-2.gif') no-repeat center;
-}
-
 .prj {
     color:#202020;
-}
-
-.short-menu {
-    display: none;
 }
 
 .unsupported {
@@ -110,11 +102,8 @@
     height:40px;
     background-color: #1b1b1b;
 
+    // 프로젝트와 조직 화면의 상단 바이다. 배너가 없어졌으므로(A-483) 그 위에 반투명으로 겹치지 않고 다른 화면처럼 불투명한 단색으로 흐름 안에 놓인다.
     &.project-header {
-        background-color: rgba(0, 0, 0, 0.35);
-        position: absolute;
-        width: 100%;
-        z-index: 1000;
         padding: 0;
 
         .gnb-inner {
@@ -125,14 +114,6 @@
             }
         }
     }
-}
-
-.pin-move-to-right {
-    left: 270px;
-}
-
-.pin-move-to-default-position {
-    left: -2px;
 }
 
 .pin-in-sidebar {
@@ -475,99 +456,105 @@
 
 }
 
+// 프로젝트와 조직의 머리이다(A-483). GitHub, GitLab처럼 배경 이미지 없는 흰 바탕의 얇은 한 줄이다: 작은 아바타, 이름, 별과 배지, 오른쪽의 동작 단추.
+// 예전에는 120px 배너 위에 로고가 튀어나오고 상단 바가 그 위에 반투명으로 겹쳤다(v1.6). 올린 이미지는 프로젝트 홈의 머리 줄 배경으로 보인다(.has-banner).
 .project-header-outer {
-    background-color: #565656;
-    height:120px;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    background-size: cover;
+    background-color: #fff;
+    // 아래 테두리는 두지 않는다(A-513): 머리 줄이 사이드바에 바로 붙으므로 사이에 회색 선이 보이면 안 된다.
 
     .project-header-inner {
-        height:inherit;
-        background-clip: padding-box;
-        background: linear-gradient(to bottom, rgba(0,0,0, 0.5), rgba(0,0,0, 0.3), rgba(0,0,0, 0.1));
-
         .project-header-wrap {
-            height:inherit;
-            margin:0 auto;
-            width: 97%;
-            position: relative;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin: 0 10px;
+            padding: 10px 4px;
 
             .project-header-avatar {
-                bottom:-30px;
-                left:0px;
-                position:absolute;
-                width: calc(80px + 10px);
-                height: calc(80px + 10px);
-                border:5px solid #f9f9f9;
-                border-radius: 3px !important;
+                position: static;
+                flex: none;
+                width: 40px;
+                height: 40px;
+                border: 1px solid var(--bs-border-color, #dee2e6);
+                border-radius: 6px !important;
                 background: #fff;
+                overflow: hidden;
 
                 img {
+                    display: block;
                     width: 100%;
                     height: 100%;
-                    vertical-align: top;
+                    object-fit: cover;
                 }
             }
 
             .project-breadcrumb-wrap {
-                position: absolute;
-                bottom:18px;
-                left:90px;
-                padding:2px 10px;
-                background-color: rgba(0,0,0,0.55);
-                display:inline-block;
+                position: static;
+                flex: 1 1 200px;
+                min-width: 0;
+                padding: 0;
+                background: none;
+                display: block;
                 font-weight: bold;
 
-                @include border-radius(0 3px 3px 0);
-
-                &.fork {
-                    bottom: 5px;
-                }
-
                 .project-breadcrumb {
-                    line-height: 1.875rem;
-                    font-size: 1.5em;
+                    line-height: 1.5;
+                    font-size: 1.125rem;
+                    overflow-wrap: anywhere;
 
                     .project-author {
                         a {
-                            color:#FFF;
+                            color: #6c757d;
 
                             &:hover {
-                                color:#FFF;
+                                text-decoration: underline;
+                            }
+                        }
+
+                        // 조직 머리의 "그룹" 표지이다.
+                        .group-title-head {
+                            border: 1px solid #b6e8f8;
+                            border-radius: 10px;
+                            padding: 0 7px;
+                        }
+                    }
+
+                    .project-separator {
+                        color: #6c757d;
+                        padding: 0 4px;
+                    }
+
+                    .project-name {
+                        color: #212529;
+
+                        a {
+                            color: #212529;
+
+                            &:hover {
+                                color: $orange;
                                 text-decoration: underline;
                             }
                         }
                     }
 
-                    .project-separator {
-                        color:#FFF;
-                        padding:0 5px;
-                    }
-
-                    .project-name {
-                        color:#fc491e;
-                        a:hover {
-                          color:#fc491e;
-                          text-decoration: underline;
-                        }
-                    }
-
                     .project-private {
-                        color:#788ba7;
+                        color: #6c757d;
                         font-size: 0.875rem;
-                        margin-left:5px;
+                        margin-left: 5px;
                     }
 
                     .user-project-list {
                         .star {
-                            font-size: 1.5rem;
-                            color: rgba(255, 255, 255, 0.22);
+                            font-size: 1.25rem;
+                            color: rgba(0, 0, 0, 0.22);
+
                             &:hover {
                                 color: #e91e63;
                                 cursor: pointer;
                             }
                         }
+
                         .starred {
                             color: #e91e63 !important;
                         }
@@ -577,35 +564,103 @@
                 .project-origin {
                     font-size: 0.75rem;
                     line-height: 1.25rem;
-                    margin-top:-7px;
+                    margin-top: 0;
 
                     .project-origin-title {
-                        color:#788ba7;
+                        color: #6c757d;
                     }
 
                     .project-origin-name {
-                        margin-left:5px;
-                        color:#5dbbe0;
+                        margin-left: 5px;
+                        color: #0d6efd;
                     }
                 }
             }
 
             .project-util-wrap {
-                position: absolute;
-                bottom:20px;
-                right:0;
+                position: static;
+                margin-left: auto;
 
                 .project-util {
                     list-style: none;
-                    margin:0;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
 
                     li {
-                        float:left;
-                        margin-left:15px;
                         position: relative;
+
                         .icons-ul {
                             margin: 10px 0 10px 25px;
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 프로젝트 하위 모든 화면과 조직 화면의 머리(A-511, A-514, 선생님 지시 2026-11-12): 원래 있던 얇은 줄의 높이는 키우지 않고 그 위에 프로젝트 이미지(올린 이미지 또는 기본 벽돌 배경)를 깐다.
+// 이미지는 잘려도 그대로 둔다(가운데를 보인다). 밝은 바탕을 전제로 한 글자색은 어두운 그라데이션 위에서 읽히도록 흰색 계열로 바꾼다.
+// 다른 화면의 머리는 위의 얇은 흰 줄 그대로이다.
+.project-header-outer.has-banner {
+    background-color: #565656;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-bottom: 0;
+
+    .project-header-inner {
+        // 글자 그림자(BS2식, 감사 시험이 금지)를 쓰지 않으므로 그라데이션으로 글자 대비를 확보한다.
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.48));
+
+        .project-header-wrap {
+            .project-header-avatar {
+                border-color: rgba(255, 255, 255, 0.85);
+            }
+
+            .project-breadcrumb-wrap {
+                .project-breadcrumb {
+
+                    .project-author a,
+                    .project-name a {
+                        color: #fff;
+                    }
+
+                    // 조직 머리의 "그룹" 표지(A-514)
+                    .project-author .group-title-head {
+                        color: #fff;
+                        border-color: rgba(255, 255, 255, 0.75);
+                    }
+
+                    .project-name a:hover {
+                        color: #fff;
+                    }
+
+                    .project-separator,
+                    .project-private {
+                        color: rgba(255, 255, 255, 0.85);
+                    }
+
+                    .user-project-list .star {
+                        color: rgba(255, 255, 255, 0.7);
+                    }
+
+                    .user-project-list .starred {
+                        color: #ff6fa3 !important;
+                    }
+                }
+
+                .project-origin {
+
+                    .project-origin-title {
+                        color: rgba(255, 255, 255, 0.85);
+                    }
+
+                    .project-origin-name {
+                        color: #cfe2ff;
                     }
                 }
             }
@@ -621,106 +676,6 @@
 .page-wrap {
     background-color: $white;
     margin: 0 auto;
-}
-
-.project-menu-outer {
-    background-color:#ececec;
-    height:calc(39px + 1px);
-    border-bottom: 1px solid #ddd;
-
-    .project-menu-inner {
-        height:39px;
-        margin:0 auto;
-
-        .project-menu-nav {
-            list-style: none;
-            margin:0;
-            height:39px;
-
-            &.project-menu-gruop {
-                float:left;
-                margin-left:110px;
-            }
-
-            li {
-                float:left;
-                font-size: 0.875rem;
-                font-weight: bold;
-                position: relative;
-
-                a {
-                    display: inline-block;
-                    line-height: 1.875rem;
-                    padding:5px 20px 4px;
-
-                    &:hover {
-                        text-decoration: none;
-                        color:#fc491e;
-                        background-color: #dadada;
-                    }
-                }
-
-                &.active {
-                    color : #fc491e;
-                    font-weight: bold;
-
-                    &:before {
-                        content:" ";
-                        position: absolute;
-                        bottom: 0;
-                        left: 50%;
-                        width: 0;
-                        height: 0;
-                        overflow: hidden;
-                        border: 8px solid transparent;
-                        border-style: outset outset solid outset;
-                        border-bottom-color: #ddd;
-                        margin-left: -8px;
-                    }
-
-                    &:after {
-                        content:" ";
-                        position: absolute;
-                        bottom: -1px;
-                        left: 50%;
-                        width: 0;
-                        height: 0;
-                        overflow: hidden;
-                        border: 8px solid transparent;
-                        border-style: outset outset solid outset;
-                        border-bottom-color: #FFF;
-                        margin-left: -8px;
-                    }
-                }
-            }
-        }
-
-        .project-setting {
-            float: right;
-        }
-    }
-}
-
-.project-menu-count {
-    display: inline-block;
-    font-size: 0.625rem;
-    line-height: 1.125rem;
-    font-weight: normal;
-    min-width: calc(8px + 12px);
-    padding: 0 6px;
-    background-color: $yobi-primary;
-    color: #ECF0F1;
-    text-align: center;
-    vertical-align: top;
-    @include border-radius(9px);
-}
-
-.project-new-posting {
-    font-size: 0.75rem;
-    line-height: 0.875rem;
-    font-family: $fixed-font-family;
-    color: $yobi-primary;
-    vertical-align: top;
 }
 
 .project-page-wrap {
@@ -854,15 +809,6 @@
     padding-top:5px;
 }
 
-.forked-from {
-    display:inline-block;
-    vertical-align:middle;
-    padding:7px 10px;
-    font-size:0.6875rem;
-
-    i { vertical-align:text-bottom; }
-}
-
 //----------- index page.
 .center-wrap {
     text-align: center;
@@ -925,7 +871,7 @@
 .siteintro {
     border-bottom:1px solid #e8e8e8;
 
-    background-image:linear-gradient(rgba(0, 0, 0, 0.5), rgba(0,0,0, 0.3)), url('../images/bg-samples/photo-svetacreative.jpg');
+    background-image:linear-gradient(rgba(0, 0, 0, 0.58), rgba(0,0,0, 0.42)), url('../images/bg-samples/photo-svetacreative.jpg');
     background-size:     cover;
     background-repeat:   no-repeat;
     background-position: center center;
@@ -947,14 +893,16 @@
     .siteintro-wrap {
         margin:0 auto;
         text-align:center;
+        // 로그인 전 첫 화면(A-602): 제목은 굵게, 부제는 사진 위에서 읽히도록 불투명도와 크기를 올리고 배경을 더 어둡게 한다(글자 그림자는 BS2 잔재 규칙 때문에 쓰지 않는다)
         .site-heading {
             margin:0 ;
             padding:0;
             font-size:2.125rem;
-            font-weight:normal;
+            font-weight:600;
+            letter-spacing: -0.01em;
             color: #FAFAFA;
             font-family: sans-serif;
-            opacity: 0.9;
+            opacity: 1;
         }
 
         .site-features {
@@ -968,14 +916,14 @@
             li {
                 color:#FFF;
                 display:inline-block;
-                font-size:1rem;
+                font-size:1.25rem;
                 margin-left:5px;
                 font-weight:normal;
-                letter-spacing:1.1px;
+                letter-spacing:0.02em;
                 &:first-child {
                     margin-left:0;
                 }
-                opacity: 0.5;
+                opacity: 0.92;
             }
         }
     }
@@ -1269,9 +1217,11 @@
                         color: white;
                         border: 1px solid;
                         border-radius: 3px;
-                        padding: 0 2px;
+                        padding: 0;
                         background-color: #FF9800;
-                        width: 26px;
+                        width: 32px;
+                        box-sizing: border-box;
+                        white-space: nowrap;
                     }
 
                     &.closed {color:$state-closed;}
@@ -1736,85 +1686,6 @@
         border-top:1px solid #e5e5e5;
     }
 }
-
-.bread-crumb-wrap {
-    overflow: hidden;
-    .title {
-        margin-top: 0;
-        font-weight: normal;
-        font-size: 1.625rem;
-        float: left;
-        color: $orange;
-    }
-    .bread-crumb {
-        float: right;
-    }
-}
-
-//--- projects
-.header-wrap {
-    margin-top: 30px;
-    margin-bottom: 5px;
-    padding: 0px;
-
-    .stats-wrap {
-        padding: 0px 0px 5px 0px;
-        overflow: hidden;
-        .stat {
-            background-color: #FFF;
-            padding: 10px 20px;
-            @include border-radius(5px);
-            height: 31px;
-            width: 268px;
-            margin-right: 10px;
-            float: left;
-            &:last-child {
-                margin-right: 0;
-            }
-            .desc {
-                font-size: 0.75rem;
-            }
-            .num {
-                float: right;
-                font-size: 1.75rem;
-                line-height: 1;
-
-                &.all  { color: $orange; }
-                &.open { color: #5DBBE0; /*color: #51AACC;*/ }
-                &.public { color: #5DBBE0; }
-            }
-        }
-
-        .stat-projectlist {
-            border-bottom:1px solid #c5c5c5;
-
-            &.active {
-                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none; font-weight:bold;
-
-                &.all     { color: $orange; }
-                &.public  { color: #5DBBE0; }
-                /*&.private { color: #5DBBE0; }*/
-            }
-        }
-
-        .stat-issue {
-            width:266px; /*240px;*/
-            border-bottom:1px solid #c5c5c5;
-
-            &.active {
-                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none; font-weight:bold;
-
-                .desc {
-                    &.all  { color: $orange; }
-                    &.open { color: #5DBBE0; /*color: #51AACC;*/ }
-                    &.public { color: #5DBBE0; }
-                }
-            }
-        }
-    }
-}
 .bottom-actrow {margin-top:15px;  padding: 6px 2px;}
 .issue-list-wrap { clear:both;}
 
@@ -1849,6 +1720,8 @@
                 width: 50px;
                 height: 50px;
                 margin-right: 10px;
+                box-sizing: content-box; /* 이미지는 v1.6의 50px 그대로 두고 테두리 2px가 바깥에 더해진다 */
+                border: 1px solid #d5d5d5; /* A-495: 기본 로고는 흰 바탕의 이미지라 흰 화면에서는 영역이 보이지 않았다 */
                 border-radius: 3px !important;
                 position: relative;
                 img {
@@ -2020,25 +1893,6 @@
     }
 }
 
-//-- project setting
-.page-title {
-    margin-top: 20px;
-    font-size: 1.25rem;
-    font-weight: normal;
-
-    a {
-        display:inline-block; max-width:300px; /* 프로젝트명 */
-        overflow:hidden; text-overflow:ellipsis;
-        cursor:pointer;
-    }
-
-    .gray {
-        @include opacity(50);
-        a { max-width:130px !important; } /* 아이디 */
-        a:hover { color:inherit !important; }
-    }
-}
-
 .bubble-wrap {
     overflow: hidden;
     margin-bottom: 20px;
@@ -2152,10 +2006,6 @@ label.inline-list {
         margin-left: 0;
     }
 }
-
-.n-alert.project-del {
-    margin-left: 125px;
-}
 .btn-project-delete {
     margin-left:10px;
 }
@@ -2183,6 +2033,8 @@ label.inline-list {
 .members.project {
     margin: 0;
     list-style: none;
+    // 본문 폭 전체(약 990px)는 이름과 역할이 너무 멀어 읽기 어렵다. 읽기 좋은 폭까지만 쓴다(A-535).
+    max-width: 760px;
 
     .member {
         border-bottom:1px solid #DDD;
@@ -2248,23 +2100,6 @@ label.inline-list {
             &:last-of-type { margin:0; }
         }
         i { margin-right: 5px; }
-    }
-}
-
-//-- milestone
-.milestone-legend {
-    text-align:left;
-    color:#999;
-    i {
-       @include inline-block;
-       @include border-radius(2px);
-       width:35px; height:7px;
-       margin:0 3px;
-
-       &.open { background-color: $state-open; }
-       &.closed{ background-color : $state-closed;}
-
-       &.gray { background:#B1B1B1;   }
     }
 }
 
@@ -2427,6 +2262,83 @@ label.inline-list {
 }
 
 .milesion-wrap {
+    // 마일스톤 머리(A-521): 이슈 목록 위, 왼쪽 본문 맨 위에 제목, 진행률, 검색바를 쌓는다. 서로 붙지 않게 간격을 둔다.
+    .milestone-head {
+        h4 {
+            padding: 0 0 10px;
+            margin: 0;
+        }
+
+        .progress {
+            margin-bottom: 14px;
+        }
+
+    }
+
+    // 이슈 탭 줄(A-528): 탭은 왼쪽, 검색바(약 220px)는 같은 줄 오른쪽 끝에 둔다. 폭이 모자라면 검색바가 아래 줄로 내려간다.
+    // 밑줄은 탭 목록이 아니라 줄 전체에 그어 검색바 아래까지 이어지게 한다.
+    .milestone-tabbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 6px 12px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+
+        .nav-tabs {
+            border-bottom: 0;
+        }
+
+        .milestone-search {
+            float: none;
+            display: block;
+            flex: 0 1 220px;
+            width: 220px;
+            max-width: 100%;
+            margin: 0 0 6px;
+
+            // 입력칸의 기본 폭(350px)이 상자(220px) 밖까지 뻗어 상자 가장자리에서 오른쪽 테두리와 포커스 표시가 잘렸다(A-529).
+            // 상자 폭에 맞추고 오른쪽에는 돋보기 단추 자리를 남긴다.
+            input.textbox {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                padding-right: 28px;
+            }
+        }
+    }
+
+    // 설명과 단추 열(A-520, A-521): 오른쪽의 좁은 열이다.
+    .milestone-info {
+        // "← 목록": 단추가 아니라 설명 위의 글자 링크이다(A-530).
+        .milestone-back {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 0.8125rem;
+        }
+
+        // 동작 단추: 열 폭을 채우는 세로 묶음. 위험한 삭제는 맨 아래에서 조금 띄운다.
+        .milestone-actions {
+            padding: 4px 0 0;
+
+            .ybtn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                margin: 0;
+            }
+
+            .ybtn-danger {
+                margin-top: 8px;
+            }
+        }
+
+        .milestone-desc {
+            margin: 0 0 10px;
+        }
+    }
+
     .progress {
         // 바탕은 BS5 진행 막대의 기본 색이다. v1.6은 BS2의 회색 그라데이션 배경이 이 지정 색을 가려 회색으로 보였다.
         .progress-bar {
@@ -2434,13 +2346,6 @@ label.inline-list {
             height: inherit;
         }
     }
-}
-.badge.milestone-state {
-    margin:0; padding:2px 0px; margin-right:3px;
-    width:40px; text-align:center; font-size:0.6875rem;
-
-    &.open { background-color:$state-open; }
-    &.closed { background-color:$state-closed; }
 }
 
 //-- new milestone
@@ -2499,7 +2404,7 @@ label.inline-list {
                 @include border-radius(5px);
 
                 .due-date    { width: 236px; margin-bottom:0; }
-                [data-vc="calendar"] { width:232px; min-width:0; }
+                [data-vc="calendar"] { width:100%; max-width:232px; min-width:0; }
                 .date-picker { margin-top:5px; }
 
                 label { color:#777; }
@@ -2736,27 +2641,6 @@ label.inline-list {
         }
     }
 }
-.project-hometop-wrap {
-    display:block; clear:both;
-    height:30px;
-
-    .vcs-wrap {
-        @include repo-info;
-        padding:0; line-height:1.875rem;
-
-        .repo-url {
-            width:570px;
-            font-family:Consolas,Tahoma,Verdana !important;
-            background:#f5f5f5;
-        }
-    }
-
-    .issue-wrap {
-        strong.num {
-            &.open { color:$blue; }
-        }
-    }
-}
 
 .readme {
     padding: 5px;
@@ -2809,10 +2693,23 @@ label.inline-list {
         width:35px;
         display:inline-block;
     }
+    // A-501: 막대는 v1.6처럼 100px 고정이다. 칸 폭은 아래 `.overview-assignee, .overview-milestone`에서 v1.6(Bootstrap 2 row-fluid)의 비율로 맞춘다.
     .progress { margin-top:7px; width:100px; height:7px; }
+
+    // v1.6(Bootstrap 2 `row-fluid`)의 세 칸 줄: 이름 6칸(48.936%), 개수 3칸과 막대 3칸(각 23.404%), 칸 사이 2.1277%, 칸 안쪽 여백 없음.
+    // BS5의 `.row`는 칸 안쪽 여백(24px)과 음수 바깥 여백이 있어 막대 칸이 74px로 좁아졌다(v1.6 실측: 같은 열 폭에서 86px). 실행 중인 v1.6의 실제 CSS로 잰 비율이다.
+    .overview-assignee, .overview-milestone {
+        > .row { --bs-gutter-x: 0; }
+        > .row > .col-lg-6 { flex:0 0 auto; width:48.936170213%; }
+        > .row > .col-lg-3 { flex:0 0 auto; width:23.404255319%; }
+        > .row > :nth-child(n+2) { margin-left:2.127659574%; }
+    }
     .num {
         text-align:right;
         padding-right:15px;
+
+        // A-566: 열린 이슈가 없는 라벨의 개수는 흐리게 보여 있는 개수가 먼저 읽힌다
+        &.is-zero strong { color:#b5b5b5; font-weight:normal; }
     }
     .empty {
         text-align:center;
@@ -2823,7 +2720,9 @@ label.inline-list {
         border-bottom:1px solid #eee;
         padding:5px 0;
 
-        dt { width:120px; line-height:1.875rem; }
+        // A-501: v1.6(Bootstrap 2)의 `.dl-horizontal dt`는 분류 이름을 왼쪽에 띄우고(float) 오른쪽으로 정렬해 첫 배지와 같은 줄, 배지 바로 앞에 놓았다("Area [ui]").
+        // Bootstrap 5에는 이 규칙이 없어 이름이 배지 위 별도 줄에 왼쪽 끝으로 떨어져 있었다(선생님 지적: 배지가 가운데에 떠 보인다). v1.6의 규칙을 대시보드 범위에 되살린다.
+        dt { float:left; clear:left; width:120px; line-height:1.875rem; overflow:hidden; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
         dd { margin-left:140px; line-height:1.875rem; }
 
         &:first-of-type { padding-top:0; }
@@ -2851,15 +2750,6 @@ label.inline-list {
             &.disabled { color:#ddd; }
         }
     }
-}
-.historyAgo {
-    font-size:0.6875rem;
-    font-weight:normal;
-    margin-left:3px;
-    color:$secondary;
-
-    &.new { color:$primary; }
-    &.old { color:#777; }
 }
 
 .write-btn-wrap {
@@ -2946,26 +2836,6 @@ label.inline-list {
     }
     textarea.content {
         padding:6px;
-    }
-    .right-menu-icons {
-        button.icon {
-            line-height: 1.875rem;
-            font-size: 1.375rem;
-            color: lightgray;
-            .yobicon-lang {
-                font-size: 1.25rem;
-            }
-            &.disabled {
-                color: #eee !important;
-            }
-            &:hover {
-                color: #51aacc;
-                opacity: 1;
-            }
-        }
-        .pt5px {
-            padding-top: 5px;
-        }
     }
 
     .count {
@@ -3770,21 +3640,6 @@ div.markdown-preview {
         &.over { color:#f36c22 !important; }
     }
 }
-
-.label-editor {
-    padding-top:10px;
-    border-top:1px solid #ddd;
-
-    .colors-wrap {
-        position:relative;
-        padding-top: 32px;
-
-        .colorInput {
-            position:absolute;
-            top:0; left:0; right:0;
-        }
-    }
-}
 .content-wrap {
     textarea.content{
       height: 300px;
@@ -4261,22 +4116,6 @@ label.issue-item-row {
     }
 }
 
-.relative-issue {
-    display:none;
-
-    dt { color:#797979; }
-    ul {
-        margin-left:5px;
-
-        .issue-item {
-            padding:0;
-            border:none;
-
-            .date { font-size:0.6875rem; color:#999; }
-        }
-    }
-}
-
 .vote-wrap {
     display:inline-block;
     direction: rtl;
@@ -4401,18 +4240,6 @@ label.issue-item-row {
     }
 }
 
-//---- code browse
-.code-browse {
-    .bubble-wrap {
-        padding: 10px;
-        .inner-bubble {
-            padding: 20px; /*20px 15px 20px 20px;*/
-            margin-bottom: 15px;
-            border-bottom:1px solid #cfcfcf;
-        }
-    }
-}
-
 .repo-wrap {
     padding:0;
     background:#fff !important;
@@ -4443,10 +4270,6 @@ label.issue-item-row {
     &.tag {
         background-color: $yobi-cyan;
     }
-}
-
-.double-sp {
-    margin: 15px 0 17px;
 }
 
 .minimap-outer {
@@ -4488,6 +4311,11 @@ label.issue-item-row {
     position:relative;
 
     .code-browse-header {
+        // 도구 줄의 오른쪽 단추들(새 파일, 커밋 이력, 압축 파일로 내려받기)은 맞붙지 않게 6px 띄운다(A-516).
+        > .float-end + .float-end {
+            margin-right: 6px;
+        }
+
       margin-top:10px;
       margin-bottom:10px;
       display:block; height:34px;
@@ -4865,82 +4693,6 @@ label.issue-item-row {
         .nbtn { margin:2px; }
     }
 }
-
-.code-view-table {
-    td {
-        vertical-align: top;
-    }
-    pre {
-        line-height: 1.5;
-        padding: 0;
-        margin: 0;
-        background-color: transparent;
-        border: 0 none;
-        @include border-radius(0);
-        font-size: 0.75rem;
-    }
-    .line-num {
-        padding: 10px 6px;
-        text-align: right;
-        background-color: #F7F7F7;
-        border-right: 1px solid #EEE;
-        width: 22px;
-        @include user-select-none;
-
-        > a {
-            color: #AAA;
-        }
-    }
-    .code-lines {
-        padding: 10px;
-        font-size: 0;
-        white-space: pre;
-        .line {
-            margin: 0;
-            padding: 0;
-            font-size: 0.75rem;
-        }
-    }
-}
-
-//-- user setting2
-.profile-frmwrap {
-    .avatar-frm {
-        display:inline-block;
-        vertical-align:top;
-        margin:30px; margin-right:50px;
-
-        .avatar-wrap {
-            position:relative;
-
-            .progress {
-                position:absolute;
-                width:130px; height:0px;
-                padding:0; margin:0; bottom:0px;
-                background:$primary; @include opacity(80);
-                -webkit-transition-duration:1s;
-                &.loading { height:130px; }
-            }
-        }
-
-        .btn-wrap {
-            margin-left:10px;
-            .nbtn i { vertical-align:top; margin-right:2px; }
-        }
-    }
-
-    dl {
-        display:inline-block;
-    }
-
-    form {
-        display:inline-block;
-        vertical-align: top;
-        margin-right:50px;
-        &:last-of-type { margin-right:0px; }
-    }
-
-}
 #avatarUploaded {
     display:none;
 
@@ -5078,38 +4830,6 @@ label.issue-item-row {
     }
 }
 
-.user-stream-wrap {
-    .inner {
-        border-bottom:1px solid #c3c3c3;
-    }
-}
-
-//commit view
-.commit-info-wrap {
-    padding-left: 10px;
-    span {
-        @include inline-block;
-        margin-right: 5px;
-        font-size: 0.6875rem;
-        &.date {
-            color: #646464;
-        }
-        &.sp {
-            color: #999;
-        }
-        &.sha-block {
-            color: #646464;
-            .num {
-                color: #51AACC;
-            }
-            .commit-id {
-                color: #646464;
-                font-weight: bold;
-            }
-        }
-    }
-}
-
 .diff-code-view-table {
     width: 100%;
     .diff-line-num {
@@ -5168,53 +4888,6 @@ label.issue-item-row {
     padding: 10px;
     font-size: 0;
 }
-.statistics-wrap {
-    @include border-radius(10px);
-    overflow: hidden;
-    @include inline-block;
-    width: 425px;
-    border-bottom: 1px solid $gray-d4;
-    background-color: $white;
-    &:nth-child(2) {
-        margin-right: 10px;
-    }
-    &.top {
-        display: block;
-        width: 860px;
-        margin-bottom: 15px;
-        .graph-wrap {
-            width: 820px;
-            margin: 10px 20px;
-            min-height: 240px;
-        }
-    }
-    .header {
-        background-color: #F8F8F8;
-        overflow: hidden;
-        padding: 0 20px;
-        font-size: 0.75rem;
-        color: #999;
-        h2 {
-            font-size: 1rem;
-            line-height: 2.3125rem;
-            color: #4C4C4C;
-            margin: 0;
-            float: left;
-        }
-        .desc {
-            float: right;
-            line-height: 2.3125rem;
-            .ico {
-                margin: 0 3px 0 5px;
-            }
-        }
-    }
-    .graph-wrap {
-        padding: 10px 20px;
-        background-color: $white;
-        min-height: 240px;
-    }
-}
 
 .error-wrap {
     padding:100px 0px;
@@ -5225,9 +4898,6 @@ label.issue-item-row {
         color:#898989; margin:30px 0;
     }
 }
-.code-tab, .plugin-tab {
-    margin: 15px 0 20px;
-}
 
 .actions {
     &:last-child { margin-right:0; }
@@ -5236,42 +4906,6 @@ label.issue-item-row {
 // -- site admin
 .site-setting-wrap {
     margin:0 auto;
-
-    .site-setting-nav {
-        list-style: none;
-
-        li {
-            border-left: 4px solid #EEE;
-            line-height: 1.875rem;
-            margin-top:3px;
-            font-size:0.875rem;
-
-            a {
-                display:block;
-                padding:5px 10px;
-
-                &:hover {
-                    background-color:#EEE;
-                    text-decoration: none;
-                }
-            }
-
-            &:first-child {
-                margin-top:0;
-            }
-
-            &.active {
-                border-left:4px solid $primary;
-                font-weight: bold;
-
-                a:hover {
-                    background: none;
-                }
-            }
-
-
-        }
-    }
 
     .title_area {
       overflow:hidden;
@@ -5466,17 +5100,6 @@ label.issue-item-row {
     }
 }
 
-.request-summary {
-    float: right;
-    width: 100%;
-    th {
-        text-align: left;
-    }
-    td {
-        text-align: right;
-    }
-}
-
 // 일괄 수정 막대와 정렬 링크가 든 줄이 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-301).
 // 막대(`.mass-update-wrap`)는 높이가 0인 float 묶음이라 단독으로는 붙지 못하므로, 둘을 감싼 `.filter-wrap`이 붙는다.
 .filter-wrap.mass-update-sticky {
@@ -5505,59 +5128,23 @@ label.issue-item-row {
         overflow-y: auto;
    }
 }
-.fork-wrap {
-    .project-from {
-        display:inline-block;
-        width:300px;
-        vertical-align:middle;
-        text-align:center;
-
-        .title { color:$secondary; }
-    }
-
-    .arrow {
-        display:inline-block;
-        vertical-align:middle;
-        padding:0 40px;
-    }
-
-    .project-to {
-        display:inline-block;
-        width:550px;
-        vertical-align:middle;
-
-        .project-name-wrap {
-            display:block;
-
-            .title { color:$primary; }
-            .owner {
-                display:inline-block;
-                font-size:0.875rem;
-                padding-top:5px; margin-right:10px;
-            }
-            .project-name {
-                display:inline-block;
-                vertical-align:top;
-                input { font-size:0.875rem; }
-                .form-text { color:#999; }
-            }
-        }
-
-        .project-public {
-            line-height:1.875rem;
-        }
-    }
-}
 
 // -- keymap
 .keymap-help {
-    padding:20px;
-    line-height:1.875rem;
-    white-space:nowrap;
-    text-align:left;
-    font-size:0.75rem;
-    width:640px;
-    margin-left:-320px;
+    // 폭과 안쪽 여백은 모달 겉껍질(`.modal`, 화면 전체를 덮는 BS5 모달)이 아니라 대화상자에 준다. 예전에는 겉껍질에 `width: 640px; margin-left: -320px`
+    // (BS2의 가운데 맞춤)를 줘서 BS5에서 모달이 화면 왼쪽 밖(-320px)에 반쯤 걸려 열렸다(A-531).
+    .modal-dialog {
+        max-width: 680px;
+    }
+
+    .modal-content {
+        padding:20px;
+        line-height:1.875rem;
+        white-space:nowrap;
+        text-align:left;
+        font-size:0.75rem;
+        overflow-x:auto;
+    }
 
     .ybtn {
         min-width:20px;
@@ -5592,14 +5179,6 @@ label.issue-item-row {
   border: none;
 }
 
-.dimmedColor {
-  color: #eee;
-}
-
-.no-gradient{
-  background-image: none;
-}
-
 .btn-flat{
     .active {
         color: #fff;
@@ -5612,27 +5191,6 @@ label.issue-item-row {
         padding-top: 2px;
         padding-bottom: 2px;
     }
-}
-
-.project-category {
-  margin-top: 10px;
-  border: 2px solid #000;
-  border-radius: 5px;
-  border-top: 5px solid #000;
-  .categotry-header {
-    text-shadow: none;
-    background-color: #000;
-    color: #FFF;
-    padding-bottom: 7px;
-    font-size: 0.75rem;
-  }
-  li {
-   a {
-    font-size: 0.8125rem;
-    padding-top: 7px;
-    padding-bottom: 7px;
-   }
-  }
 }
 
 /** code comments **/
@@ -5662,13 +5220,6 @@ label.issue-item-row {
 
 /*div#mode-select { text-align:right; }*/
 .pullreq-info {clear:both; padding-bottom:10px; margin-bottom:10px; }
-
-.go-zen {
-    position: absolute;
-    right: 8px;
-    margin-top: 14px;
-    z-index:999;
-}
 
 .oneline-comment-box {
     display: flex;
@@ -5815,13 +5366,6 @@ label.issue-item-row {
             }
         }
     }
-}
-
-.conflict-files {
-    background:#fefefe; color:#d14;
-    font-family: "monospace", Consolas, Tahoma;
-    padding:10px;
-    @include border-radius(2px);
 }
 
 .beta {
@@ -6270,14 +5814,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .commit-hash { font-family: $fixed-font-family !important;}
 
-.referred-event {
-  margin: 0 2px;
-  padding: 0px 5px;
-  border: 1px solid #ddd;
-  background-color: #f8f8f8;
-  border-radius: 3px;
-}
-
 .branch-list-wrap {
     .thead {
         background-color: #f5f5f5;
@@ -6302,13 +5838,17 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
         a { color:$blue;font-family:$fixed-font-family; }
 
+        // A-570: 누를 수 있는 단추처럼 보이던 테두리 상자를 연한 바탕의 칩으로 바꿨다
         .headBranch {
-            color: $theme-link;
-            background-color: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            padding:3px 5px;
-            @include inline-block;
-            @include border-radius(3px);
+            display: inline-block;
+            padding: 1px 10px;
+            border: 0;
+            border-radius: 10px;
+            background-color: #e7f1ff;
+            color: #0d6efd;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.4;
         }
     }
 
@@ -6365,8 +5905,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   margin-right: 5px;
   padding: 3px;
 }
-
-.my-list-item { @include my-list-item; }
 
 .search-box-wrap {
     padding-bottom:15px;
@@ -6526,10 +6064,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   @include my-list-item;
 }
 
-.margin-right-15 {
-  margin-right: 15px;
-}
-
 .howto-resolve-conflict {
     .help {
         padding:10px;
@@ -6551,6 +6085,32 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+// 2단계 인증 코드 입력란(로그인 화면, 로그인 창, 설정의 인증 앱 등록)은 같은 글자와 테두리를 쓴다(A-586)
+@mixin tf-code-input {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    height: auto;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+
+    // 자리 표시 글자는 입력 글자보다 작고 보통 글꼴이다
+    &::placeholder { font-family: inherit; font-size: 1rem; letter-spacing: normal; }
+}
+
+// 오류 알림은 로그인 창, 로그인 화면, 2단계 인증 화면, 설정 화면(.alert-danger)이 같은 배경과 글자색을 쓴다(A-586)
+@mixin tf-error-box {
+    padding: 10px 14px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background: #f8d7da;
+    color: #58151c;
+}
+
 .loginDialog {
     // BS5의 .modal은 화면 전체를 덮는 바깥 틀이라 폭과 음수 여백(BS2의 위치 잡기)을 틀이 아니라 .modal-dialog에 준다
     .modal-dialog { max-width:460px; }
@@ -6559,8 +6119,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .error {
         display:none;
         margin-bottom:20px;
-        color:#E74C3C;
+        @include tf-error-box;
         .yobicon-error { vertical-align: middle; margin-right:5px; font-size:0.8125rem; }
+    }
+    // 로그인 창 안의 2단계 입력(A-586): 제목과 안내는 가운데에 두고 글자 크기와 색은 2단계 인증 화면과 같다
+    .two-factor-step {
+        h4 { margin:4px 0 6px; font-size:1.5rem; font-weight:600; text-align:center; color:#333; }
+        p { margin:0 0 18px; text-align:center; color:#6c757d; font-size:0.9375rem; }
     }
     .act-row {
         input.checkbox { margin-top:4px !important; }
@@ -6586,81 +6151,226 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin-left:0px !important;
 }
 
+// 이슈 라벨 화면(A-556): 분류별로 묶인 라벨 목록과 작은 입력 폼이라 카드 없이 제목 줄, 한 줄 입력, 소제목 줄이 있는 목록으로 둔다(D-143).
 .label-editor-wrap {
-    .new-label-wrap {
-        margin:30px auto;
+    .label-page-head {
+        margin: 8px 0 12px;
 
-        .form-legend {
-            display:block;
-            margin-bottom:10px;
+        .label-page-title {
+            margin: 0 0 4px;
+            padding: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
         }
-        .form-wrap {
-            position:relative;
-            display:inline-block;
-            vertical-align:top;
+
+        .label-page-desc {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
         }
+    }
+
+    // 새 라벨: 분류, 이름, 색 견본, 직접 입력, 추가 단추가 한 줄(좁으면 줄바꿈)이다.
+    #frmNewLabel.new-label-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 16px;
+        padding: 12px 0;
+        border-top: 1px solid #e5e5e5;
+        border-bottom: 1px solid #e5e5e5;
+
+        .label-form-title {
+            margin-right: 6px;
+        }
+
+        .form-wrap,
+        .form-wrap > .d-flex {
+            display: contents;
+        }
+
+        .input-label,
+        .input-label-color {
+            box-sizing: border-box;
+            height: auto;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+
         .input-label {
-            width:214px;
+            width: 180px;
         }
+
+        // 색상 선택기(A-557, A-559): "색 직접 선택" 글자가 붙은 테두리 상자 안에 둔다. 상자 높이는 이름 입력란과 같고,
+        // 옛 규칙의 왼쪽 25px 미리보기 그림자(텍스트 입력용)는 없앤다.
+        .label-color-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+            margin: 0 0 0 6px;
+            padding: 0 8px 0 12px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            background: #fff;
+            font-size: 0.8125rem;
+            color: #495057;
+            cursor: pointer;
+
+            &:hover {
+                border-color: #f57c3a;
+            }
+        }
+
+        .input-label-color {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            background: none;
+            cursor: pointer;
+            box-shadow: none !important;
+        }
+
+        // 색 견본은 항상 보인다(옛 규칙은 이름 입력란에 포커스를 줄 때만 보였다)
+        .label-preset-colors {
+            display: inline-flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 3px;
+            margin: 0;
+        }
+
         .btn-submit {
-            vertical-align: top;
-            min-width:100px;
+            min-width: 100px;
         }
     }
 
     .issue-label-list-wrap {
-        margin:0 auto;
+        margin: 0;
 
-        .list-head {
-            border:1px solid #ddd;
-            border-width:2px 0px 0px;
-            background: #fafafa;
+        .label-list-head {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
 
-            .category {
-                padding-right:18px;
-                line-height:1.875rem;
-                text-align:right;
+        .label-group-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            border-bottom: 1px solid #eee;
+            font-size: 0.875rem;
+
+            .category-name {
+                font-weight: 600;
             }
-            .name {
-                padding-left:8px;
-                line-height:1.875rem;
+
+            .category-exclusive {
+                color: #6c757d;
+            }
+
+            .label-group-meta {
+                color: #6c757d;
+                font-size: 0.8125rem;
+            }
+
+            .ybtn {
+                margin-left: auto;
             }
         }
-        .list-item {
-            .category-name {
-                margin-right:2px;
+
+        .category-wrap .table {
+            margin: 0;
+
+            .issue-label {
+                display: inline-block;
+                max-width: 100%;
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 0.8125rem;
+                line-height: 1.5;
             }
 
-            .table {
-                .issue-label {
-                    display: block;
-                    max-width: calc(90% + 12px);
-                    font-size: 0.75rem;
-                }
-                tr {
-                    border-bottom: 1px solid #ddd;
-                    &:last-of-type {
-                        border-bottom: none;
-                    }
-                }
-                td {
-                    border-top: none;
-                    &.info {
-                        width: 150px;
-                        text-align: right;
-                    }
-                    &.actions {
-                        width: calc(150px + 9px);
-                        text-align: right;
-                        padding-right: 1px;
-                    }
+            tr {
+                border-bottom: 1px solid #eee;
+            }
+
+            td {
+                padding: 8px 10px;
+                border-top: none;
+                vertical-align: middle;
+
+                &.actions {
+                    width: 1%;
+                    white-space: nowrap;
+                    text-align: right;
                 }
             }
+        }
+    }
+
+    // 다른 프로젝트에서 라벨 복사: 드물게 쓰므로 접이식이다.
+    .label-copy-box {
+        margin-top: 22px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e5e5;
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .new-label-wrap {
+            margin: 10px 0 0;
+        }
+
+        .input-label {
+            box-sizing: border-box;
+            height: auto;
+            width: 200px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
         }
     }
 }
 
 .webhook-editor-wrap {
+    // 목록 화면 위쪽: 제목은 왼쪽, 추가 단추는 오른쪽 끝(A-545)
+    .webhook-list-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 8px 0 14px;
+
+        .webhook-list-title {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+    }
+
+    // 등록 화면 아래쪽 단추: 추가와 취소를 한 줄에 둔다
+    .webhook-new-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+    }
+
     .new-webhook-wrap {
         margin:30px auto;
 
@@ -6694,6 +6404,89 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         .btn-submit {
             vertical-align: top;
             min-width:100px;
+        }
+
+        // 옵션 설명(A-544): 입력란마다 도움말을 아래에 붙이고, 보내는 형식은 설명이 있는 선택 칸 네 개로 보인다.
+        .form-wrap {
+            display: block;
+            max-width: 780px;
+        }
+
+        .webhook-field {
+            .form-text {
+                margin: 4px 0 0;
+                font-size: 0.75rem;
+                line-height: 1.4;
+            }
+        }
+
+        .webhook-field-url {
+            width: 367px; // 입력란 355px + 안쪽 여백와 테두리
+        }
+
+        .webhook-field-secret {
+            width: 226px;
+        }
+
+        .webhook-type-legend {
+            margin: 16px 0 6px;
+            font-weight: 600;
+        }
+
+        .webhook-types {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .webhook-type-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+
+            .form-check-input {
+                flex: none;
+                float: none;
+                margin: 3px 0 0;
+            }
+
+            &:has(input:checked) {
+                border-color: #f57c3a;
+                box-shadow: 0 0 0 1px #f57c3a inset;
+            }
+        }
+
+        .webhook-type-text {
+            display: block;
+            min-width: 0;
+        }
+
+        .webhook-type-name {
+            display: block;
+            font-weight: 600;
+        }
+
+        .webhook-type-desc {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            color: #6c757d;
+        }
+
+        .webhook-git-push {
+            margin-top: 18px;
+
+            .form-text {
+                margin: 2px 0 0;
+                font-size: 0.75rem;
+            }
         }
     }
 
@@ -6755,11 +6548,88 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     &.multiple { color:$yobi-yello-dark; }
 }
 
+// 라벨 수정 모달(A-558): 분류 선택, 이름과 현재 색 칩, 색 견본과 색상 선택기를 모달 폭에 맞춰 위에서 아래로 쌓는다.
 .edit-label-form {
     margin-top:20px;
 
-    .input-label-name  { margin-left:20px; margin-bottom:0; }
-    .select2-container { text-align:left; }
+    .edit-label-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .select2-container { width: 100% !important; text-align:left; }
+    .form-select { width: 100%; }
+
+    .edit-label-name-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .input-label-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0;
+            box-sizing: border-box;
+            height: auto;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+
+        .edit-label-chip {
+            flex: none;
+            max-width: 45%;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .label-preset-colors.edit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 3px;
+        margin: 0;
+
+        // 색상 선택기도 새 라벨 폼과 같은 "색 직접 선택" 상자이다(A-559)
+        .label-color-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+            margin: 0 0 0 6px;
+            padding: 0 8px 0 12px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            background: #fff;
+            font-size: 0.8125rem;
+            color: #495057;
+            cursor: pointer;
+
+            &:hover {
+                border-color: #f57c3a;
+            }
+        }
+
+        .input-label-color {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            background: none;
+            cursor: pointer;
+            box-shadow: none !important;
+        }
+    }
 }
 
 .label-preset-colors {
@@ -7033,18 +6903,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     display: none;
 }
 
-.show-watchers {
-    display: none;
-    margin-left: 3px;
-    &:hover {
-        cursor: pointer;
-    }
-    height: 30px;
-    button {
-        height: 30px;
-    }
-}
-
 .watcher-list {
     display: none;
     padding: 10px;
@@ -7062,13 +6920,14 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .attachment-files {
     color: gray;
     .attachment-files-header {
-        font-size: 1rem;
-        font-weight: bold;
+        // A-499: 머리글은 작은 글자와 얇은 줄이다(선생님 지적: 표 머리글이 크다).
+        font-size: 0.75rem;
+        font-weight: 600;
         text-align: center;
-        padding: 10px 5px;
+        padding: 4px 5px;
         background-color: #f1f1f1;
         border-radius: 5px;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
         .header-file-name {
             text-align: center;
         }
@@ -7078,6 +6937,20 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         .header-location {
             text-align: center;
         }
+        .header-download {
+            text-align: center;
+        }
+    }
+
+    // A-499: 큰 화면에서는 열 폭을 내용에 맞춘다. 내려받기와 크기, 날짜 열은 고정 폭, 파일 이름은 남는 폭을 모두 쓰고, 올린 위치는 비율 폭이다.
+    // 예전의 12칸 비율(`col-lg-*`)에서는 파일 이름이 `.p`와 `ng`로 끊기고 날짜가 두 줄이 되었다. 좁은 화면(992px 미만)은 열이 한 줄씩 쌓이는 기본 동작이다.
+    @media (min-width: 992px) {
+        .row > .header-preview, .row > .file-preview { flex: 0 0 56px; width: 56px; max-width: 56px; }
+        .row > .header-file-name, .row > .file-name { flex: 1 1 0; width: auto; max-width: none; min-width: 0; }
+        .row > .header-size, .row > .file-size { flex: 0 0 72px; width: 72px; max-width: 72px; }
+        .row > .header-download, .row > .file-download { flex: 0 0 52px; width: 52px; max-width: 52px; padding-left: 0; padding-right: 0; }
+        .row > .file-date { flex: 0 0 130px; width: 130px; max-width: 130px; white-space: nowrap; }
+        .row > .header-location, .row > .file-location { flex: 0 0 22%; width: 22%; max-width: 22%; }
     }
     .attachment-file-detail {
         padding: 5px;
@@ -7094,6 +6967,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             }
         }
         .file-name {
+            overflow-wrap: anywhere; // 아주 긴 이름도 칸 밖으로 넘치지 않고 줄을 바꾼다(글자 중간이 아니라 칸이 모자랄 때만).
             font-size: 0.875rem;
             .icon:before {
                 padding-right: 5px;
@@ -7142,34 +7016,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin-top: 10px;
 }
 
-.auth-provider-logo {
-    font-family: 'Roboto', sans-serif;
-    svg {
-        vertical-align: middle;
-    }
-    .github {
-        width: 30px;
-        display: inline-block;
-        margin-left: -4px;
-        margin-top: 3px;
-        margin-bottom: 3px;
-    }
-}
-
 .providers {
     .provider-name {
         height: 40px;
     }
-}
-
-.cache-warning {
-    color: darkviolet;
-    font-weight: bold;
-}
-
-.width16px {
-    width: 16px;
-    display: inline-block;
 }
 
 .width25px {
@@ -7244,10 +7094,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .subtask-message {
     font-size: 0.75rem;
-    color: #9E9E9E;
+    // A-567: 비활성처럼 보이던 회색을 처음부터 테마색으로 둔다. 펼치면 바탕색이 더해져 켜진 상태가 구분된다
+    color: $primary;
     line-height: 0.9375rem;
     padding: 7px 0 5px 0;
-    border: 1px solid #ddd;
+    border: 1px solid $primary;
     text-align: center;
     max-width: 80px;
     overflow: hidden;
@@ -7262,6 +7113,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     &.option-on {
         border: 1px solid $primary;
         color: $primary;
+        background: #fff3ec;
+        font-weight: 600;
     }
 }
 
@@ -7300,10 +7153,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.txt-orange {
-    color: #f68c52;
-}
-
 .txt-green {
     color: $light-green;
 }
@@ -7327,8 +7176,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+// 도구 줄 단추 사이의 간격은 `.code-browse-header > .float-end + .float-end`가 정한다. 이 링크만 자체 여백을 두면 간격이 달라진다(A-516).
 #new-file-link {
-    margin: 0 5px;
+    margin: 0;
 }
 
 .show-subtasks-li {
@@ -7374,23 +7224,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.two-column-icon-selected, .show-subtasks-selected {
-    background-color: #aee5ff;
-
-    .two-column-mode-text {
-        color: #0293d6;
-    }
-}
-
 .two-column-mode-text, .show-subtasks-text {
     padding: 0 4px 0 0;
     line-height: 1.25rem;
     vertical-align: text-bottom;
-}
-
-.absoluteAndLeftMargin {
-    position: absolute;
-    margin-left: 260px;
 }
 
 .page-nums {
@@ -7890,10 +7727,6 @@ text-expander {
     }
 }
 
-.video-content {
-    max-height: 50vh;
-}
-
 .index-comment {
     font-size: 0.75rem;
     padding: 2px 5px !important;
@@ -7951,20 +7784,6 @@ text-expander {
     &:hover {
         color: white;
     }
-}
-
-.gallery-image-link {
-    color: #ffd500;
-    font-size: 1.1em;
-
-    &:hover {
-        color: #ffd500;
-    }
-
-    &:hover, &:visited {
-        color: #00ddff;
-    }
-
 }
 
 .issue-state {
@@ -8109,19 +7928,13 @@ text-expander {
     color: #fff;
 }
 
-// 2단계 인증 설정 화면: 글상자와 단추의 높이를 맞춘다
-.two-factor-controls {
-    .form-control, .btn { height:40px; }
-    .btn { padding-top:0; padding-bottom:0; display:inline-flex; align-items:center; }
-}
-
 // 2단계 인증 화면(X-2, D-69)의 배치: 단추 줄, 구역, 빈 상태, QR 설정, 백업 코드, 관리자 선택지
 .two-factor-page {
     .tf-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:20px 0 8px; form { margin:0; } .btn { height:40px; display:inline-flex; align-items:center; white-space:nowrap; padding-top:0; padding-bottom:0; } }
     .tf-section { margin-top:32px; padding-top:20px; border-top:1px solid #e5e5e5; h4 { margin-bottom:6px; } p { color:#666; margin-bottom:12px; } }
     .tf-empty { padding:24px; border:1px dashed #ccc; border-radius:6px; text-align:center; color:#666; margin:16px 0; }
     .tf-narrow { max-width:260px; height:40px; }
-    .tf-code { letter-spacing:3px; font-size:1.125rem; }
+    .tf-code { @include tf-code-input; }
     .tf-setup { display:flex; flex-wrap:wrap; gap:32px; align-items:flex-start; margin-top:12px; }
     .tf-qr { width:220px; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fff; }
     .tf-steps { flex:1; min-width:300px; }
@@ -8149,13 +7962,41 @@ text-expander {
  * 규칙 묶음 폼의 입력란 너비(A-453): 옛 크기 클래스(`input-xlarge`, `input-large`, `input-mini`)의 정의가 없어져 `.form-control`의 `width: 100%`가 내용 크기로 줄어드는
  * 칸(`.cu-desc`) 안에서 풀렸다. 이름과 대상 브랜치가 같은 너비가 되도록 글 입력란을 정하고, 승인 수는 좁게 둔다.
  */
-#rulesetForm input.form-control[type="text"] { width: 420px; max-width: 100%; }
+#rulesetForm input.form-control[type="text"] { width: 100%; }
 #rulesetForm input.input-mini { width: 5rem; }
+
+/*
+ * 규칙 묶음 폼의 텍스트 박스(A-552): 사이트 기본 입력란은 v1.6 모양(높이 20px, 글자 12px, 모서리 2px, 포커스 표시 없음)이라 읽고 누르기 불편하다.
+ * 이 폼에서는 높이 약 38px, 글자 14px, 모서리 6px로 하고 포커스를 주황 테두리와 고리로 보인다. `box-sizing`을 border-box로 두어 폭 100%가 폼 밖으로 나가지 않는다.
+ */
+#rulesetForm input.form-control[type="text"],
+#rulesetForm input.form-control[type="number"] {
+    box-sizing: border-box;
+    height: auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+
+    &:focus {
+        outline: 0;
+        border-color: #f57c3a;
+        box-shadow: 0 0 0 0.2rem rgba(245, 124, 58, 0.2);
+    }
+}
 
 // 로그인의 2단계 화면과 팝업(X-2, D-69): 옛 로그인 폼 규칙(밑줄만 있는 글상자, 고정 폭)과 섞이지 않게 전용 영역 `.tf-challenge` 안에서만 그린다
 .tf-challenge {
-    // 코드 입력란은 밑줄 모양(옛 로그인 폼)을 그대로 두고 글자만 가운데 정렬한다
-    input.text { width:100%; box-sizing:border-box; text-align:center; letter-spacing:2px; }
+    // 코드 입력란은 밑줄 모양(옛 로그인 폼: 밑줄만 있고 포커스에서 주황 밑줄)을 그대로 두고 글자만 크게 가운데 정렬한다(A-604)
+    input.text {
+        @include tf-code-input;
+        width:100%; box-sizing:border-box;
+        border: 0; border-bottom: 1px solid #ccc; border-radius: 0; background: transparent; box-shadow: none;
+        &:focus { border-bottom-color: $orange; outline: none; box-shadow: none; }
+    }
+    .error { @include tf-error-box; }
     .tf-remember { display:flex; align-items:center; gap:8px; margin:0 0 16px; font-size:0.8125rem; font-weight:normal; cursor:pointer; }
     .tf-remember input.form-check-input {
         appearance:none; -webkit-appearance:none; flex:none; width:18px !important; height:18px !important; margin:0; padding:0; cursor:pointer;
@@ -8173,10 +8014,6 @@ text-expander {
 // OAuth 앱 폼(A-453): 같은 화면의 종류 카드와 범위 목록(tf-group, 760px)과 오른쪽 끝을 맞춘다
 .two-factor-page .tf-group-wide { max-width:760px; }
 .two-factor-page .tf-secret-value { display:inline-block; padding:8px 12px; font-size:1rem; letter-spacing:1px; word-break:break-all; }
-
-.oauth-consent p { margin-bottom:12px; }
-.oauth-consent form { margin-top:16px; }
-.oauth-consent #oauth-scopes { margin-bottom:16px; }
 
 // 선택지(종류, 범위)를 한 줄에 하나씩 보이는 카드 목록: 체크박스와 라디오가 옆으로 흘러 읽기 어렵던 것을 정리한다(X-1)
 .two-factor-page .tf-choices { display:flex; flex-direction:column; gap:8px; max-width:560px; }
@@ -8297,7 +8134,9 @@ text-expander {
 /* 항상 보이는 달력(마일스톤, API 토큰): Pikaday는 폭 258에 1px 테두리의 상자였다. 라이브러리는 부모 폭을 다 채우고 테두리가 없다. */
 /* 라이브러리는 담는 요소의 class 를 `vc`로 바꾸므로 `.date-picker`로 고를 수 없다. 팝업이 아닌(`data-vc-input`이 없는) 달력이 항상 보이는 달력이다. */
 [data-vc="calendar"]:not([data-vc-input]) {
-  width: 258px;
+  // 폭은 담는 열을 채우되 v1.6의 258px를 넘지 않는다. 사이드바를 편 상태에서는 열이 232px라 고정 258px면 26px 넘쳐 요일과 화살표가 잘렸다(A-518).
+  width: 100%;
+  max-width: 258px;
   min-width: 0;
   border: 1px solid #ccc;
   border-radius: 0;
@@ -8389,3 +8228,1611 @@ textarea.editorSeries.content {
   line-height: 1.25rem;
   text-align: left;
 }
+
+
+// 이슈 일괄 변경 도구줄(A-523): 이슈를 하나도 고르지 않으면 단추들을 숨기고(비활성 단추 줄이 늘 보이던 것을 없앴다),
+// 고르면 같은 자리에 "N개 선택됨", 상태 단추, 담당자, 마일스톤, 라벨 단추, 선택 해제가 나타난다(`issue.MassUpdate.js`가 `has-selection`을 붙인다).
+// 필터 줄은 고정 높이 30px이었으나 도구줄이 두 줄이 되면 아래 이슈와 겹치므로 늘어날 수 있게 한다(최소 30px).
+.filter-wrap.mass-update-sticky {
+    height: auto;
+    min-height: 30px;
+    // 선택 전에는 정렬 필터만 오른쪽 끝에 남고, 선택하면 도구줄이 왼쪽에서 시작한다(A-524, A-526).
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    > .mass-update-wrap {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    > .filters.float-end {
+        float: none !important;
+        flex: none;
+        margin-left: auto; // 도구줄 상자가 없을 때도 오른쪽 끝에 둔다
+    }
+
+    // 정렬도 도구줄도 보이지 않으면(정렬이 없는 마일스톤 상세의 선택 전) 내용 없는 줄이 자리를 차지하지 않게 한다(A-527).
+    &:not(:has(.mass-update-wrap.has-selection)):not(:has(> .filters)) {
+        display: none;
+    }
+
+    // 이슈를 고르는 동안에는 정렬을 숨겨 도구줄이 한 줄에 들어가게 한다(GitHub처럼 선택 도구줄이 머리를 대신한다).
+    &:has(.mass-update-wrap.has-selection) > .filters {
+        display: none;
+    }
+}
+
+.mass-update-wrap {
+    // 전체 선택 체크박스와 도구줄을 한 줄에 놓고, 좁으면 아래로 접는다.
+    .mass-update-form {
+        float: none !important;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .mass-actions {
+        display: none;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    &.has-selection .mass-actions {
+        display: inline-flex;
+    }
+
+    // 상태 단추(닫기, 다시 열기)는 옆의 드롭다운 단추와 같은 크기(높이 30px, 글자 12px)로 맞춘다.
+    .mass-actions > .btn[data-mass-state] {
+        height: 30px;
+        padding: 0 12px;
+        font-size: 0.75rem;
+        line-height: 1.75rem;
+    }
+
+    // 선택 전에는 도구줄 상자 자체를 보이지 않는다(전체 선택 체크박스를 없앴으므로 빈 줄이 남지 않게 한다, A-526).
+    &:not(.has-selection) {
+        display: none;
+    }
+
+    .mass-select-all-link {
+        font-size: 0.8125rem;
+        white-space: nowrap;
+        margin-right: 6px;
+    }
+
+    .mass-selected {
+        font-weight: 600;
+        margin-right: 6px;
+        white-space: nowrap;
+
+        .mass-count {
+            margin-right: 2px;
+        }
+    }
+
+    .mass-clear {
+        margin-left: 6px;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
+}
+
+
+// Git LFS 설정 화면(A-534): 통계 카드 셋과 파일 잠금 카드.
+.lfs-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.lfs-stat {
+    height: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    background: #fff;
+
+    .lfs-stat-label {
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+
+    .lfs-stat-value {
+        margin-top: 4px;
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.75rem;
+        color: #212529;
+    }
+
+    .lfs-stat-note {
+        margin-top: 4px;
+        font-size: 0.75rem;
+    }
+}
+
+.lfs-locks-card {
+    padding: 16px 18px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    background: #fff;
+
+    .empty {
+        padding: 18px 0 6px;
+        text-align: center;
+        color: #8a8a8a;
+    }
+}
+
+
+// 위험 구역(A-535): 이관, 저장소 종류 변경, 삭제를 한 화면에 구역으로 보인다. 구역마다 붉은 테두리 카드이다.
+.danger-section {
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background: #fff;
+
+    .danger-title {
+        margin: 0 0 10px;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: #b02a37;
+    }
+
+    // 삭제 구역의 제목은 옛 화면의 `cu-label`(옆으로 나란히 놓는 항목 이름)을 같이 달고 있다. 구역에서는 다른 구역처럼 제목을 위에 둔다.
+    .cu-label {
+        display: block;
+        width: auto;
+        padding: 0;
+    }
+
+    .cu-desc {
+        display: block;
+        margin: 0;
+    }
+
+    .danger-actions {
+        margin-top: 12px;
+    }
+
+    // 저장소 종류 선택(Git, Subversion, Mercurial): 종류마다 한 칸이고 지금 종류는 흐리게 "현재"로 막는다.
+    .vcs-types {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 12px;
+    }
+
+    .vcs-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+
+        .form-check-input {
+            float: none;
+            margin: 0;
+        }
+
+        &.is-current {
+            background: #f1f3f5;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .vcs-current {
+            font-size: 0.75rem;
+            font-style: normal;
+            color: #6c757d;
+        }
+    }
+}
+
+
+// 모달 머리글(A-537): v1.6(BS2) 마크업은 × 닫기 단추를 제목 앞에 두어 BS5에서 × 가 제목 왼쪽에 붙고 제목(h3)이 크게 나왔다.
+// 마크업 순서는 그대로 두고 단추를 오른쪽 끝으로 보내며 제목을 BS5 모달 제목 크기로 맞춘다. 15개 화면의 모달이 같은 마크업이다.
+.modal-header {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+
+    h3, h4, h5 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+}
+
+// 위험 구역 확인 창의 이름 입력(A-536, A-538)
+#alertTransfer, #alertChangeVCS, #alertDeletion, #alertDeletionWrap {
+    .modal-body p + p {
+        margin-top: 0.5rem;
+    }
+
+    // GitHub처럼 실행 단추 하나가 푸터 전체 너비를 쓴다(A-540). 닫기는 머리글의 ×이다.
+    // 단추는 입력란 바로 아래에 여백만 두고 붙는다. 푸터 구분선과 위쪽 안쪽 여백은 없앤다.
+    .modal-body {
+        padding-bottom: 0.25rem;
+    }
+
+    .modal-footer {
+        display: block;
+        border-top: 0;
+        padding-top: 0;
+        padding-bottom: 1rem;
+
+        .ybtn-danger {
+            display: block;
+            width: 100%;
+            margin: 0;
+
+            // 비활성이어도 단추 이름이 읽혀야 한다: 붉은 바탕을 옅게만 하고 글자는 흰색으로 둔다.
+            &:disabled {
+                // 전역 `.ybtn[disabled]`가 `!important`로 회색 바탕을 고정하므로 이 확인 창에서만 같은 강도로 덮어쓴다.
+                opacity: 1;
+                color: #fff !important;
+                background-color: #c9626f !important;
+                border-color: #c9626f !important;
+                text-shadow: none;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    label.form-label {
+        display: block;
+        margin: 0.75rem 0 0.375rem;
+    }
+}
+
+
+// 빈 상태 카드(A-548): 규칙 묶음과 배포 키 목록이 비었을 때 무엇이고 어떻게 시작하는지 알려 준다.
+.empty-state {
+    max-width: 720px;
+    margin: 18px 0 24px;
+    padding: 24px 28px;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    background: #f8f9fa;
+
+    .empty-state-icon {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.75rem;
+        color: #6c757d;
+    }
+
+    .empty-state-title {
+        margin: 0 0 8px;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .empty-state-lead {
+        margin: 0 0 12px;
+        color: #495057;
+        line-height: 1.55;
+    }
+
+    .empty-state-list {
+        margin: 0 0 12px;
+        padding-left: 1.25rem;
+        line-height: 1.7;
+    }
+
+    .empty-state-example {
+        margin: 0 0 16px;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+
+    .deploy-key-steps {
+        margin: 0 0 12px;
+        padding-left: 1.25rem;
+        line-height: 1.7;
+
+        li + li {
+            margin-top: 4px;
+        }
+    }
+
+    .deploy-key-command {
+        margin: 6px 0 4px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #212529;
+        color: #f8f9fa;
+        font-size: 0.8125rem;
+
+        code {
+            color: inherit;
+            white-space: pre-wrap;
+        }
+    }
+
+    .deploy-key-types,
+    .deploy-key-write-note {
+        margin: 0 0 10px;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+}
+
+
+// 새 배포 키 화면(A-549): 입력 폭을 제한하고 안내, 명령 예, 쓰기 허용 체크를 정돈한다.
+.deploy-key-form {
+    max-width: 760px;
+
+    .deploy-key-form-title {
+        margin: 8px 0 6px;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .deploy-key-command {
+        margin: 0 0 6px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #212529;
+        color: #f8f9fa;
+        font-size: 0.8125rem;
+
+        code {
+            color: inherit;
+            white-space: pre-wrap;
+        }
+    }
+
+    .deploy-key-types {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+
+    // 쓰기 허용은 위험이 있는 선택이라 항목을 눈에 띄는 칸으로 둔다. 체크 상자는 글자와 같은 높이의 16px이다.
+    .deploy-key-writable {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: #fff;
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+
+        .form-check-label {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .form-text {
+            grid-column: 2;
+            margin: 2px 0 0;
+        }
+    }
+
+    .deploy-key-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+    }
+}
+
+
+// 규칙 묶음 편집 화면(A-550, A-552): 저장 단추가 하나인 단일 폼이라 카드 상자로 감싸지 않고 구역 제목과 구분선으로 묶는다(D-143).
+// 레이블은 입력란 위에 쌓고, 규칙은 제목과 설명이 있는 줄로 둔다.
+.ruleset-form {
+    max-width: 760px;
+
+    .ruleset-section {
+        padding: 18px 0;
+        border-top: 1px solid #e5e5e5;
+
+        &:first-of-type {
+            border-top: 0;
+            padding-top: 4px;
+        }
+    }
+
+    // 전역 `h4` 규칙이 제목 박스에 위아래 여분을 더해 제목과 내용 사이가 벌어졌다(A-554). 이 폼에서는 여분을 없앤다.
+    .ruleset-section-title {
+        margin: 0 0 8px;
+        padding: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    // 제목 바로 아래 첫 규칙 줄은 위쪽 여백을 두지 않는다
+    .ruleset-section-title + .rule-option {
+        padding-top: 0;
+    }
+
+    .rule-option {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 10px;
+        align-items: start;
+        margin: 0;
+        padding: 8px 0;
+        cursor: pointer;
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 3px 0 0;
+        }
+
+        .rule-option-text {
+            display: block;
+            min-width: 0;
+        }
+
+        .rule-option-title {
+            display: block;
+            font-weight: 600;
+        }
+
+        .rule-option-desc {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            color: #6c757d;
+        }
+    }
+
+    // 풀 리퀘스트 필요를 켰을 때 펼치는 하위 항목
+    .ruleset-pr-options {
+        margin: 0 0 8px 28px;
+        padding: 10px 14px;
+        border-left: 3px solid #f57c3a;
+        background: #f8f9fa;
+        font-size: 0.875rem;
+
+        .form-check {
+            margin: 6px 0 0;
+        }
+    }
+
+    .ruleset-actions {
+        display: flex;
+        gap: 8px;
+        margin: 18px 0;
+    }
+}
+
+
+// 프로젝트 설정(A-563): 저장 단추가 하나인 단일 폼이라 카드로 나누지 않고 왼쪽 제목, 오른쪽 내용의 구역으로 묶는다(D-143).
+// 컨트롤은 값의 종류에 맞춘다: 가로 선택(라디오 그대로), 체크 목록, 허용과 기본이 짝인 표.
+.setting-page-title {
+    margin: 8px 0 14px;
+    padding: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.setting-form {
+    max-width: 820px;
+    font-size: 0.875rem;
+
+    .setting-section {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr);
+        gap: 8px 32px;
+        padding: 22px 0;
+        border-top: 1px solid #e5e5e5;
+
+        &:first-of-type {
+            border-top: 0;
+            padding-top: 4px;
+        }
+    }
+
+    .setting-section-head h4 {
+        margin: 0;
+        padding: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .setting-field {
+        margin-bottom: 16px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .setting-label {
+        display: block;
+        margin: 0 0 4px;
+        font-weight: 600;
+    }
+
+    .setting-help {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: #6c757d;
+    }
+
+    // 텍스트 박스는 읽기 편한 크기와 모양이고 포커스가 보인다(규칙 묶음 폼과 같다)
+    input.form-control[type="text"],
+    textarea.form-control {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 440px;
+        height: auto;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        background-color: #fff;
+
+        &:focus {
+            outline: 0;
+            border-color: #f57c3a;
+            box-shadow: 0 0 0 0.2rem rgba(245, 124, 58, 0.2);
+        }
+    }
+
+    textarea.form-control {
+        max-width: 520px;
+        min-height: 76px;
+    }
+
+    .setting-logo .fake-file-wrap {
+        display: inline-block;
+        width: auto;
+        height: auto;
+        padding: 6px 14px;
+        line-height: 1.5;
+    }
+
+    .setting-field .select2-container,
+    .setting-field select.form-select {
+        max-width: 440px;
+    }
+
+    .setting-logo {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+
+        .logo-wrap {
+            flex: none;
+            width: 84px;
+            height: 84px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background-color: #fff;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+    }
+
+    // 켜고 끄는 값 하나(예/아니요, 사용/사용 안 함)와 공개 범위는 라디오를 가로로 붙인 선택으로 보인다. 전송 값은 라디오 그대로이다.
+    .setting-seg {
+        display: inline-flex;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        overflow: hidden;
+
+        label {
+            position: relative;
+            margin: 0;
+            padding: 0.45rem 1.1rem;
+            border-left: 1px solid #ced4da;
+            background: #fff;
+            cursor: pointer;
+
+            &:first-child {
+                border-left: 0;
+            }
+
+            &:has(input:checked) {
+                background: #fff3ec;
+                color: #c2410c;
+                font-weight: 600;
+                box-shadow: inset 0 0 0 1px #f57c3a;
+            }
+
+            &:has(input:focus-visible) {
+                outline: 2px solid #f57c3a;
+                outline-offset: -2px;
+            }
+        }
+
+        input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+    }
+
+    // 기능: 독립적인 짧은 켜고 끄기라 열을 나눈 체크 목록이다
+    .setting-features {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px 16px;
+        max-width: 560px;
+        margin-bottom: 14px;
+    }
+
+    .setting-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        cursor: pointer;
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+    }
+
+    // 병합 방식: 방식마다 허용(체크)과 기본(라디오)이 짝을 이루는 표
+    .setting-merge {
+        border-collapse: collapse;
+
+        th,
+        td {
+            padding: 7px 18px 7px 0;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+
+        .form-check-input {
+            float: none;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+    }
+
+    .setting-actions {
+        padding: 16px 0 24px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    @media (max-width: 700px) {
+        .setting-section {
+            grid-template-columns: 1fr;
+        }
+
+        .setting-features {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+}
+
+// A-566: 프로젝트 만들기와 가져오기 폼의 글 입력란은 설명 입력란, 소유자 선택과 같은 폭과 높이이다.
+// v1.6의 "폭 클래스가 없는 글 입력란" 규칙(폭 206px)은 `w-100`이 있으면 적용되지 않아 안내 문구가 끝까지 보인다.
+form#newProjectForm, form#importGit {
+    input.form-control.w-100 {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        height: auto;
+        border-radius: 0.375rem;
+    }
+}
+
+// A-566: 프로젝트 목록의 제목은 사이드바 옆 내용 칸의 첫 줄에 놓인다(다른 목록 화면의 제목과 같은 크기)
+.shell-main > .title_area {
+    margin: 8px 0 14px;
+
+    h3 {
+        margin: 0;
+        padding: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+}
+
+// A-567: 라벨 선택 입력 칸은 `textarea`라 모노스페이스 글꼴로 그려져 안내 문구의 공백이 넓어 보였다. 본문 글꼴을 따른다.
+// 전역 `textarea` 규칙이 `!important`라서 이 칸도 `!important`로 이긴다.
+.select2-container .select2-search--inline .select2-search__field {
+    font-family: inherit !important;
+}
+
+// A-567: 이슈 상세의 부모 이슈 줄과 하위 이슈 목록. 점선으로 나뉘던 두 덩어리를 하나의 상자로 묶고 줄마다 한 줄로 정돈한다.
+.subtasks > .child-issues {
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+
+    .parent-issue {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: #f8f9fa;
+        font-size: 0.9375rem;
+
+        > a {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .upload-progress {
+            flex: none;
+            width: 120px;
+            height: 8px;
+            margin: 0;
+            border: 0;
+            border-radius: 4px;
+            background: #e4e6e8;
+
+            .bar { border-radius: 4px; }
+            .bar.red { background: $primary; }
+        }
+
+        > span:not(.parent-issue-state) {
+            flex: none;
+            font-size: 0.8125rem;
+            color: #6c757d;
+        }
+
+        .parent-issue-state {
+            flex: none;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            line-height: 1.25rem;
+            vertical-align: baseline;
+        }
+    }
+
+    .parent-issue-delimeter {
+        display: none;
+    }
+
+    .child-issues {
+        .child-issue {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-top: 1px solid #eee;
+            font-size: 0.875rem;
+
+            &:hover { background: #fafafa; }
+
+            .item-name {
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+            }
+
+            > a:not(.badge) {
+                flex: 1 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .child-issue-date {
+                display: inline-block;
+                flex: none;
+                margin-left: auto;
+                font-size: 0.75rem;
+                color: #aaa;
+                white-space: nowrap;
+            }
+        }
+
+        .selected-child {
+            border: 0;
+            border-top: 1px solid #eee;
+            border-radius: 0;
+            box-shadow: inset 3px 0 0 $primary;
+            background: #fff3ec;
+        }
+    }
+}
+
+// A-568: 코드 보내기 만들기와 수정의 제목 입력란은 편집기와 같은 폭이고 읽기 편한 크기이다. `w-100`이 v1.6의 폭 206px 규칙에서 뺀다.
+.pr-title {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    height: auto;
+    border-radius: 0.375rem;
+}
+
+// A-569: 코드 보내기 목록의 탭 줄. 밑줄은 줄 전체(탭과 단추 아래)에 이어지고, 새 코드 보내기 단추는 그 줄 위에 여백을 두고 오른쪽 끝에 놓인다.
+.pr-tab-row {
+    display: flex;
+    align-items: flex-end;
+    border-bottom: 1px solid #dee2e6;
+
+    > .pullrequeset-tab-menu {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-bottom: 0;
+        border-bottom: 0;
+    }
+
+    // 2단 보기 상자도 단추처럼 마지막 탭에서 떨어지고 밑줄 위에 놓인다(A-569)
+    > .pullrequeset-tab-menu > li:has(> .two-column-icon) {
+        display: flex;
+        align-items: flex-end;
+
+        > .two-column-icon {
+            margin: 0 0 5px 20px;
+        }
+    }
+
+    .pr-new-wrap {
+        flex: none;
+        margin: 0 0 5px 12px;
+
+        .ybtn {
+            display: inline-flex;
+            align-items: center;
+            height: 30px;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+    }
+}
+
+// A-568: 저장소 복사(포크) 폼은 프로젝트 만들기 폼처럼 라벨이 입력란 위에 놓인다.
+.fork-fields {
+    max-width: 560px;
+    margin: 20px 0;
+
+    dt {
+        margin: 14px 0 4px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    dd { margin: 0; }
+
+    .note {
+        color: #777;
+        font-size: 0.8125rem;
+    }
+
+    .project-scopes {
+        margin: 0;
+
+        label { display: block; }
+        .note { display: block; margin-left: 22px; font-size: 0.75rem; }
+    }
+}
+
+.fork-actions {
+    margin: 20px 0 30px;
+}
+
+// A-570: 비교 화면의 범위 표시. 긴 해시 한 줄 대신 비교하는 두 쪽을 이름과 짧은 번호로 보인다.
+.compare-range {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin: 4px 0 14px;
+    font-size: 0.9375rem;
+
+    .compare-name { font-weight: 600; }
+    .compare-id {
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: #f1f3f5;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .compare-arrow { color: #adb5bd; }
+}
+
+// A-570: Subversion 커밋 화면 맨 위. 되돌아가기 링크는 왼쪽, 브랜치 선택은 오른쪽 한 줄이다.
+.code-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+// A-570: 태그 행. 이름과 종류 표시는 윗줄, 메시지와 태그를 단 사람은 아랫줄이며 행 높이는 같고 칸은 세로 가운데에 놓인다.
+.tag-list-wrap {
+    > tbody > tr {
+        height: 64px;
+
+        > td { vertical-align: middle; }
+    }
+
+    .tag-title { line-height: 1.5; }
+
+    .tag-meta {
+        margin-top: 2px;
+        font-size: 0.8125rem;
+        line-height: 1.4;
+
+        .tagger::before { content: "·"; margin: 0 6px; }
+        .tag-message:empty + .tagger::before { content: none; }
+    }
+}
+
+// A-570: 빈 저장소 안내. 제목은 본문 왼쪽 끝에 맞고, 안내 문장은 굵은 글씨 대신 왼쪽 주황 막대로 명령 상자와 구분한다.
+.nohead-wrap {
+    .alert-block {
+        margin: 6px 0 22px;
+        padding: 0;
+        background: none;
+        border: 0;
+
+        h4 {
+            margin: 0;
+            padding: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+    }
+
+    h5 {
+        margin: 26px 0 8px;
+        padding: 2px 0 2px 10px;
+        border-left: 3px solid $primary;
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.6;
+        color: #343a40;
+    }
+
+    pre { margin-bottom: 0; }
+}
+
+// A-571: 변경된 내용을 보여 주는 화면의 변경 파일 트리(code.DiffTree.js, v1.6에 없는 추가 기능). diff 왼쪽 240px 칸이고, 긴 diff를 읽는 동안 따라온다.
+.diff-tree-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    > .diff-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+.diff-tree {
+    position: sticky;
+    top: 12px;
+    flex: 0 0 240px;
+    width: 240px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.8125rem;
+
+    .diff-tree-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
+        background: #f8f9fa;
+
+        .diff-tree-title { font-weight: 600; }
+
+        .diff-tree-all {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: $primary;
+            font-size: 0.75rem;
+            cursor: pointer;
+
+            &.active { color: #adb5bd; cursor: default; }
+        }
+    }
+
+    .diff-tree-list {
+        margin: 0;
+        padding: 4px 0;
+        list-style: none;
+
+        .diff-tree-list { padding: 0 0 0 14px; }
+    }
+
+    // 폴더 이름도 누를 수 있다: 누르면 그 폴더 아래 변경된 파일의 diff를 모두 보인다(하위 폴더 포함)
+    li.folder > .name {
+        display: block;
+        padding: 3px 10px;
+        color: #6c757d;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover { background: #f5f5f5; }
+    }
+
+    li.folder.active > .name {
+        background: #fff3ec;
+        box-shadow: inset 3px 0 0 $primary;
+        color: #212529;
+    }
+
+    li.file {
+        padding: 0;
+        cursor: pointer;
+
+        > a {
+            display: block;
+            padding: 3px 10px;
+            overflow: hidden;
+            color: #212529;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        &:hover { background: #f5f5f5; }
+
+        &.active {
+            background: #fff3ec;
+            box-shadow: inset 3px 0 0 $primary;
+
+            > a { font-weight: 600; }
+        }
+    }
+}
+
+.diff-body .diff-partial-outer.diff-tree-hidden {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .diff-tree-layout { flex-direction: column; }
+    .diff-tree { position: static; flex: none; width: 100%; max-height: 240px; }
+}
+
+// A-572: 비교 화면의 되돌아가는 링크와 변경 요약 줄(파일 수, 추가와 삭제 줄).
+.compare-back { margin-bottom: 8px; }
+
+.compare-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 18px;
+    margin: 0 0 14px;
+    padding: 9px 14px;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    background: #f8f9fa;
+    font-size: 0.875rem;
+
+    .summary-files { font-weight: 600; }
+    .summary-added { color: #1a7f37; font-weight: 600; }
+    .summary-deleted { color: #cf222e; font-weight: 600; }
+}
+
+// A-577~579: 조직(그룹) 화면 다듬기. 사용자 설정과 사이트 관리가 같이 쓰는 조각은 조직 쪽 틀(`.org-audit`, `.org-oauth`) 안에서만 바꾼다.
+
+// 조직 화면의 꽉 찬 단추(Bootstrap 기본 파랑 `btn-primary`와 초록 `btn-success`)를 요나 테마 주황으로 맞춘다.
+@mixin org-theme-solid-buttons {
+    .btn-primary,
+    .btn-success {
+        --bs-btn-color: #fff;
+        --bs-btn-bg: #{$yobi-btn-primary};
+        --bs-btn-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-hover-color: #fff;
+        --bs-btn-hover-bg: #{$yobi-btn-primary-hover};
+        --bs-btn-hover-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #{$yobi-btn-primary-hover};
+        --bs-btn-active-border-color: #{$yobi-btn-primary-hover};
+        --bs-btn-focus-shadow-rgb: 255, 115, 50;
+    }
+}
+
+// 감사 화면(조직, 사용자 설정, 사이트)의 "적용" 단추는 같은 테마색이다(A-580)
+.audit-screen { @include org-theme-solid-buttons; }
+
+// 새 그룹 만들기: 입력란은 폭을 채우고 설명란은 넉넉하며 단추 줄은 위에 여백이 있다.
+.org-create {
+    dd { margin-bottom: 18px; }
+
+    textarea.form-control { min-height: 130px; }
+
+    .actions { margin-top: 28px; }
+}
+
+// 조직 게시판 목록: 프로젝트 선택 상자(38px)와 키워드 검색 상자의 높이를 맞춘다.
+.org-list-filter .search-bar {
+    height: 38px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+
+    // 돋보기 단추는 검색 상자의 세로 가운데에 놓는다(공용 규칙은 위에서 5px 고정이라 상자가 높아지면 위로 치우친다)
+    .search-btn {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
+// 카드 목록(앱, 토큰, GPG 키, 연결된 계정): 가로 400px, 높이 대략 200px의 카드를 격자로 나란히 놓는다(A-580, A-581)
+@mixin item-cards {
+    // 카드 목록: 가로 400px, 높이 대략 200px의 카드를 격자로 나란히 놓는다
+    .item-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(0, 400px));
+        gap: 16px;
+        margin: 16px 0 20px;
+        padding: 0;
+    }
+
+    .item-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 200px;
+        padding: 16px 18px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #fff;
+
+        &:hover { background: #fafafa; }
+    }
+
+    .item-card-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .item-card-name {
+        font-weight: 600;
+        font-size: 1.0625rem;
+        word-break: break-all;
+    }
+
+    .item-card-type {
+        padding: 1px 9px;
+        border-radius: 10px;
+        background: #f1f3f5;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    // 항목 이름과 값을 두 열로 맞춘다
+    .item-card-meta {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 4px 12px;
+        margin: 0 0 12px;
+        font-size: 0.8125rem;
+
+        dt { color: #6c757d; font-weight: normal; }
+        dd { margin: 0; min-width: 0; word-break: break-all; }
+    }
+
+    // 단추는 카드 아래쪽에 모은다
+    .item-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: auto;
+
+        form { margin: 0; }
+    }
+}
+
+// OAuth 화면(조직, 사용자 설정, 사이트)은 같은 모양이다(A-580)
+.oauth-screen {
+    @include org-theme-solid-buttons;
+
+    @include item-cards;
+
+    // "이 앱이 요청할 수 있는 범위" 제목은 아래 설명 줄과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 이 제목에서만 없앤다)
+    .tf-scopes-title { margin-left: 0; }
+
+    // 비밀 값 화면: 안내 상자와 클라이언트 ID, 비밀 값 상자가 모두 같은 폭(최대 640px)이다
+    .alert-success {
+        max-width: 640px;
+    }
+
+    #client-id,
+    #client-secret {
+        display: block;
+        width: 100%;
+        max-width: 640px;
+        padding: 10px 14px;
+        border: 1px solid #e3e3e3;
+        border-radius: 6px;
+        background: #f8f9fa;
+        font-size: 0.9375rem;
+        word-break: break-all;
+    }
+}
+
+// 사용자 설정 화면(A-581~A-584): 꽉 찬 단추는 테마 주황이고 목록은 카드이다
+.user-screen {
+    @include org-theme-solid-buttons;
+    @include item-cards;
+
+    // 카드 안의 만료 표시와 범위 표시
+    .item-card-meta .badge { margin: 0 3px 3px 0; }
+
+    // 2단계 인증: 방식 카드 두 장(인증 앱, 보안 키)
+    .tf-method-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(0, 400px));
+        gap: 16px;
+        margin: 20px 0;
+    }
+
+    .tf-method-card {
+        display: flex;
+        flex-direction: column;
+        padding: 18px 20px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #fff;
+
+        h4 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; }
+        .tf-method-help { margin: 0 0 14px; color: #6c757d; font-size: 0.875rem; }
+        .tf-method-status { margin: auto 0 0; color: #1a7f4b; font-weight: 600; }
+        .btn, form { margin-top: auto; align-self: flex-start; }
+        form { margin: auto 0 0; }
+    }
+
+    // 새 SSH 키와 새 GPG 키: 왼쪽 양식과 오른쪽 안내
+    .key-new-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+        gap: 32px;
+        align-items: start;
+    }
+
+    .key-guide {
+        padding: 18px 20px;
+        border: 1px solid #e3e3e3;
+        border-radius: 8px;
+        background: #f8f9fa;
+        font-size: 0.875rem;
+
+        h5 { margin: 0 0 12px; font-size: 1rem; font-weight: 600; }
+        ol { margin: 0; padding-left: 1.2rem; }
+        li { margin-bottom: 14px; }
+        pre { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: #fff; border: 1px solid #e3e3e3; white-space: pre-wrap; word-break: break-all; }
+        code { color: #333; }
+        .key-guide-note { margin: 0; color: #6c757d; }
+    }
+
+    // 새 키 양식의 라벨은 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다)
+    .key-new-layout .form-label { margin: 0 0 4px; }
+
+    // 알림 설정: 프로젝트 목록 위의 검색 상자
+    #notification-project-filter { display: block; width: 100%; margin-bottom: 10px; }
+}
+
+@media (max-width: 900px) {
+    .user-screen .key-new-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+// 기기 인증 코드와 OAuth 앱 승인: 화면 가운데의 큰 카드(A-584)
+@mixin center-card {
+    width: min(520px, calc(100% - 32px));
+    margin: 48px auto;
+    padding: 32px 36px;
+    border: 1px solid #d8dee4;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(27, 31, 35, 0.08);
+    box-sizing: border-box;
+}
+
+.device-card {
+    @include center-card;
+    text-align: center;
+
+    .device-card-title { margin: 0 0 8px; font-size: 1.5rem; font-weight: 600; }
+    .device-card-help { margin: 0 0 24px; color: #6c757d; }
+    .device-code-input {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 0 0 20px;
+        padding: 14px 12px;
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace !important;
+        font-size: 2rem;
+        letter-spacing: 0.35em;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    .device-card-submit { width: 100%; height: 44px; margin: 0; font-size: 1rem; }
+    .device-card-scopes { margin: 18px 0; text-align: left; }
+    .device-card-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+    .device-card-actions form { display: inline; margin: 0; }
+}
+
+.consent-card {
+    @include center-card;
+
+    .consent-card-title { margin: 0 0 6px; font-size: 1.5rem; font-weight: 600; text-align: center; }
+    .consent-card-by { margin: 0 0 20px; color: #6c757d; text-align: center; }
+    #oauth-scopes { margin: 12px 0 18px; border: 1px solid #e3e3e3; border-radius: 8px; }
+    #oauth-scopes li { margin: 0 !important; padding: 10px 14px; border-top: 1px solid #eee; }
+    #oauth-scopes li:first-child { border-top: 0; }
+    .consent-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .consent-actions form { margin: 0; }
+    .consent-actions .ybtn { width: 100%; height: 44px; margin: 0; font-size: 1rem; }
+    .consent-note { margin: 16px 0 0; color: #6c757d; font-size: 0.8125rem; text-align: center; }
+}
+
+// 위험 구역 안의 라벨도 입력란과 같은 왼쪽 끝에서 시작한다(A-583)
+.danger-section .form-label { margin-left: 0; }
+
+// 사용자 설정 화면 다듬기 3(A-586)
+.user-screen {
+    // 빈 SSH 키 목록: 가운데 정렬한 빈 상태 상자에 안내와 단추를 함께 둔다
+    .key-empty {
+        max-width: 720px;
+        margin: 20px 0;
+        padding: 40px 24px;
+        border: 2px dashed #d6dbe0;
+        border-radius: 10px;
+        background: #fafbfc;
+        text-align: center;
+
+        .key-empty-icon { color: #adb5bd; margin-bottom: 10px; }
+        .empty { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; color: #333; }
+        .key-empty-help { margin: 0 0 20px; color: #6c757d; }
+    }
+
+    // 보안 키 추가: 카드 안에 제목, 안내, 이름 입력란, 단추를 넉넉한 간격으로 둔다
+    .key-add-card {
+        max-width: 560px;
+        padding: 26px 28px;
+        border: 1px solid #e3e3e3;
+        border-radius: 10px;
+        background: #fff;
+
+        h4 { margin: 0 0 8px; font-size: 1.125rem; font-weight: 600; }
+        p { margin: 0 0 22px; }
+        .form-label { display: block; margin: 0 0 6px; }
+        .tf-actions { margin-top: 24px; }
+    }
+
+    // 비밀번호 변경: 입력란을 넓히고 재 설정은 눈에 띄는 카드의 테마 윤곽 단추로 둔다
+    #frmPassword .form-control { width: 100%; max-width: 440px; }
+    .pw-reset-card {
+        max-width: 640px;
+        margin: 28px 0;
+        padding: 18px 22px;
+        border: 1px solid #f0c9b3;
+        border-radius: 8px;
+        background: #fff8f3;
+
+        p { margin: 0 0 12px; font-weight: 600; }
+    }
+    .pw-reset-btn {
+        border: 1px solid $yobi-btn-primary;
+        background: #fff;
+        color: $yobi-btn-primary;
+        &:hover { background: $yobi-btn-primary; color: #fff; }
+    }
+
+    // 알림 설정: 선택한 프로젝트 이름을 표 위의 제목으로 보인다
+    .notification-project-title { margin: 0 0 12px; font-size: 1.125rem; font-weight: 600; }
+}
+
+// 화면 이름 제목(홈 사이드바 안의 화면: 내 파일 등)
+.shell-main .shell-page-title { margin: 0 0 16px; font-size: 1.5rem; font-weight: 600; }
+
+// OAuth 앱 양식의 라벨은 제목과 입력란과 같은 왼쪽 끝에서 시작한다(공용 `.form-label`의 좌우 바깥 여백 5px을 없앤다, A-588)
+.oauth-screen #oauth-app-form .form-label { margin-left: 0; margin-right: 0; }
+
+// 앱 만들기와 수정 화면의 제목은 아래 클라이언트 ID 줄과 간격을 둔다(A-589)
+.oauth-screen .oauth-form-title { margin-bottom: 10px; }
+
+// 사이트 관리 화면 다듬기(A-594, 선생님 시안 수용): 단추는 테마 주황, 구역은 카드와 제목으로 나눈다
+.site-setting-wrap {
+    @include org-theme-solid-buttons;
+
+    .btn-outline-secondary,
+    .btn-outline-primary {
+        border: 1px solid $yobi-btn-primary;
+        background: #fff;
+        color: $yobi-btn-primary;
+
+        &:hover, &:focus { background: $yobi-btn-primary; color: #fff; }
+    }
+
+    .title_area { margin-bottom: 18px; }
+
+    .two-factor-page > p.text-body-secondary,
+    .security-settings > p.text-body-secondary { margin: 0 0 16px; line-height: 1.6; }
+
+    // 카드: 데이터, 시스템 진단, 업데이트
+    .site-card {
+        max-width: 760px;
+        margin: 0 0 18px;
+        padding: 20px 24px;
+        border: 1px solid #e3e3e3;
+        border-radius: 10px;
+        background: #fff;
+
+        h3 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; }
+        p { margin: 0 0 14px; color: #6c757d; }
+        &.danger { border-color: #f1aeb5; background: #fffafa; h3 { color: #b02a37; } }
+        .site-card-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; input[type=file] { max-width: 420px; } }
+    }
+
+    .alert-soft {
+        max-width: 760px;
+        margin: 0 0 22px;
+        padding: 14px 18px;
+        border: 1px solid #f1aeb5;
+        border-radius: 8px;
+        background: #fff4f4;
+        color: #842029;
+
+        ul { margin: 0; padding-left: 18px; }
+        li { margin: 3px 0; }
+        pre { margin: 0; white-space: pre-wrap; color: inherit; }
+    }
+
+    .diag-checks {
+        margin: 0; padding: 0; list-style: none;
+        li { padding: 8px 0; border-top: 1px solid #eee; }
+        .diag-state { margin-right: 8px; color: #1a7f4b; }
+    }
+
+    // 보안, LFS: 구역 제목과 간격
+    .security-settings h4 { margin: 30px 0 6px; font-size: 1.0625rem; font-weight: 600; color: #333; }
+    .security-settings .option { margin-bottom: 12px; }
+    .security-settings .tf-actions { margin: 18px 0 8px; display: flex; align-items: center; gap: 14px; }
+    #lfs-settings-form { margin-top: 18px;
+        .mb-3 { margin-bottom: 22px !important; }
+        .form-label { display: block; margin: 0 0 5px; font-weight: 600; font-size: .8125rem; }
+    }
+    h4.mt-4 { margin: 34px 0 8px !important; padding-top: 20px; border-top: 1px solid #e5e5e5; font-size: 1.0625rem; font-weight: 600; }
+
+    // SSO
+    #sso-tabs { margin-bottom: 18px; }
+    .sso-form {
+        .tab-pane > h4:first-child { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; color: #333; }
+        p { margin: 0 0 14px; line-height: 1.6; }
+        .mb-3 { margin-bottom: 14px !important; }
+        .row > [class*="col"] { margin-bottom: 12px !important; }
+        .form-label { display: block; margin: 0 0 5px; font-weight: 600; font-size: .8125rem; color: #444; }
+        .form-text { margin-top: 5px; }
+        .option, .security-settings .option { max-width: 640px; margin-bottom: 12px; }
+        code { display: block; margin: 4px 0 16px; padding: 8px 12px; border: 1px solid #e3e3e3; border-radius: 6px; background: #f8f9fa; word-break: break-all; }
+        dl dt { margin-top: 12px; }
+    }
+    // 구역 제목: 왼쪽 강조선과 위 구분선
+    .sso-section {
+        margin: 8px 0 14px;
+        padding: 14px 0 2px 10px;
+        border-left: 4px solid $orange;
+        box-shadow: 0 -1px 0 #e5e5e5;
+        font-size: 1.0625rem;
+        font-weight: 700;
+        line-height: 1.5;
+        color: #333;
+    }
+    .sso-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 22px 0 8px; .btn { margin: 0 !important; } }
+    .sso-check-help { margin: 0 0 4px; color: #6c757d; font-size: .8125rem; }
+    .sso-summary {
+        margin: 12px 0 18px; padding: 0; list-style: none;
+        li { display: flex; align-items: center; gap: 10px; max-width: 560px; margin-bottom: 8px; padding: 11px 16px; border: 1px solid #e3e3e3; border-radius: 8px; background: #fff; }
+        li strong { min-width: 140px; }
+        li span { color: #6c757d; }
+        li[data-state="on"] { border-color: $orange; background: #fff8f3; span { color: #d4521a; font-weight: 700; } }
+    }
+}
+
+// 사이트 관리: 대량 메일, 사용자 비밀번호 재설정, 프로젝트 삭제 창(A-594)
+.site-setting-wrap {
+    .mail-type-options { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+    .mail-type-option {
+        display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff;
+        &:has(input:checked) { border-color: $orange; background: #fff8f3; }
+    }
+    .project-picker { display: flex; gap: 8px; max-width: 520px; .form-control { flex: 1 1 auto; } }
+    #selected-projects { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; min-height: 8px; }
+    .project-chip { margin: 0 !important; padding: 6px 10px; font-weight: 500; border-radius: 14px; a { margin-left: 6px; color: inherit; text-decoration: none; } }
+    .mail-help { margin: 8px 0 0; color: #6c757d; font-size: .8125rem; }
+    .mess-mail-wrap .site-card { margin-bottom: 18px; }
+}
+#resetPasswordResult .reset-password-value {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #e3e3e3; border-radius: 8px; background: #f8f9fa;
+    code { flex: 1 1 auto; font-size: 1.125rem; letter-spacing: .04em; word-break: break-all; }
+}
+
+// 사이트 관리 목록(A-596): 로고 칸은 로고만 꽉 채워 보이고, 감사 로그 설명 아래에 간격을 둔다
+.site-setting-wrap {
+    .list-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    > p.text-body-secondary { margin: 0 0 16px; }
+}
+
+// 데이터 가져오기의 올리기 진행률(A-597)
+.site-setting-wrap {
+    .import-progress { margin-top: 14px; }
+    .import-progress-track { height: 8px; border-radius: 4px; background: #eee; overflow: hidden; }
+    .import-progress-bar { width: 0; height: 100%; background: $orange; transition: width .2s; }
+    .import-status { margin: 8px 0 0; min-height: 1.2em; color: #6c757d; font-size: .8125rem; }
+}
+
+// 검색 화면 다듬기(A-598): 검색창은 한 줄, 프로젝트 결과의 강조는 은은하게, 결과가 없으면 그림 아래에 안내를 둔다
+.search-box-wrap {
+    .search-form {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+
+        input#searchKeyword { flex: 1 1 auto; width: auto !important; min-width: 0; height: 42px; margin: 0; padding: 0 14px; font-size: 1rem; border-radius: 6px; }
+        .ybtn { flex: 0 0 auto; height: 42px; margin: 0; padding: 0 22px; border-radius: 6px; }
+    }
+}
+.search-list-wrap li.search-list-item.project {
+    .search-project-name { color: #333; font-weight: 700; font-size: 1.0625rem; &:hover { color: $orange; } }
+    .search-meta-info .search-project-name { font-size: .8125rem; font-weight: 600; color: #555; }
+    strong.keyword { background-color: #fff1c2; color: inherit; border-radius: 2px; padding: 0 2px; }
+}
+.search-result-wrap .empty-result {
+    position: relative;
+    min-height: 280px;
+    background-position: center 30px;
+
+    .empty-result-text { position: absolute; left: 0; right: 0; bottom: 56px; margin: 0; font-size: 1.0625rem; font-weight: 600; color: #555; }
+    .empty-result-hint { position: absolute; left: 0; right: 0; bottom: 28px; margin: 0; font-size: .8125rem; color: #888; }
+}
+
+// 환영 화면(비밀 안내)의 입력 폼(A-603): 안내 상자와 같은 가운데에 두고 입력란을 넓히며 오류 문구가 보이게 한다.
+// v1.6은 검색 상자용 `.secret-form`(글자 크기 0)을 이 폼에 써서 오류 문구가 보이지 않았다.
+.welcome-form {
+    max-width: 420px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 1rem;
+
+    dl { margin: 0; }
+    dt { margin: 16px 0 6px; font-weight: 600; font-size: .875rem; label { margin: 0; } }
+    dd { margin: 0; }
+    .badge.bg-danger { margin-left: 8px; font-size: .8125rem; font-weight: 500; vertical-align: middle; }
+    // 입력란은 v1.6의 밑줄 모양(`.signup-form-wrap`: 밑줄만 있고 포커스에서 주황 밑줄)을 그대로 두고 폭만 폼에 맞춘다(A-604)
+    input.form-control { display: block; width: 100%; margin: 0; box-shadow: none; }
+    .btns-row { margin-top: 24px; text-align: center; }
+}
+

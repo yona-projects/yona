@@ -11,9 +11,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::changesPage})}">
 <th:block th:fragment="changesPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <div class="code-browse-wrap">
             <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
 
@@ -145,6 +146,8 @@
                 </div>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 
@@ -155,6 +158,7 @@
 <script type="module" th:src="@{/assets/javascripts/esm/CodeCommentBlock.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.14.2.custom.min.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.Diff.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/code.DiffTree.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
         // yona.Mention
@@ -167,6 +171,8 @@
         $yona.loadModule("code.Diff", {
             "bCommentable" : [(${commentable})]
         });
+        // 변경 파일이 둘 이상이면 diff 왼쪽에 파일 트리를 보인다(추가 기능, A-571). diff를 그리는 모듈 뒤에 부른다
+        $yona.loadModule("code.DiffTree", {"sContainer": ".diff-body"});
 
         // commit message
         $("button.moreBtn").on("click", function(){

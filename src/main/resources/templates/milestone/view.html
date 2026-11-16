@@ -11,65 +11,80 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::viewPage})}">
 <th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
+        <div class="shell-main">
+        <!--/* A-520: 사이드바가 생겼으므로 이슈 목록이 사이드바 바로 오른쪽 본문 맨 위에서 시작한다. 설명과 단추는 오른쪽 열(.milestone-info)에 둔다(제목, 진행률, 검색바는 A-521에서 왼쪽 본문 머리로 옮겼다). 좁은 화면에서는 오른쪽 열이 먼저 온다. */-->
         <div class="milesion-wrap">
-            <h4>
-                <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>
-                <small class="ml10">
-                    <th:block th:if="${status.dueDateString != null}">
-                        <span class="due-date"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${status.dueDateString}"></strong></span>
-                        <span th:if="${milestone.state.name() != 'CLOSED'}" class="date">(<th:block th:text="${status.until}"></th:block>)</span>
-                    </th:block>
-                    <span class="badge rounded-pill margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
-                </small>
-            </h4>
+            <div class="row d-flex">
+            <div class="col-lg-9">
+            <!--/* A-521: 제목과 진행률은 필터(일괄 변경 줄) 위, 왼쪽 본문 맨 위에 둔다(검색바는 A-528에서 탭 줄로 옮겼다). 설명과 단추만 오른쪽 열에 남긴다. */-->
+            <div class="milestone-head">
+                <h4>
+                    <a th:href="@{${base + '/milestone/' + milestone.id}}" class="title" th:text="${milestone.title}"></a>
+                    <small class="ml10">
+                        <th:block th:if="${status.dueDateString != null}">
+                            <span class="due-date"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${status.dueDateString}"></strong></span>
+                            <span th:if="${milestone.state.name() != 'CLOSED'}" class="date">(<th:block th:text="${status.until}"></th:block>)</span>
+                        </th:block>
+                        <span class="badge rounded-pill margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
+                    </small>
+                </h4>
 
-            <div class="progress">
-                <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                <div class="progress">
+                    <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                </div>
             </div>
+            <div id="issues">
+                <!--/* A-528: 검색바는 한 줄을 통째로 쓰지 않고 이슈 탭 줄의 오른쪽 끝에 둔다(폭이 모자라면 아래 줄로 내려간다). */-->
+                <div class="milestone-tabbar">
+                    <ul class="nav nav-tabs mb-0">
+                        <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
+                            <a th:href="@{${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
+                                <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
+                                <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="search search-bar milestone-search">
+                        <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="issues">
+                    <div class="filter-wrap mass-update-sticky">
+                        <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
+                    </div>
+                    <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
+                </div>
+            </div>
+            </div>
+            <div class="col-lg-3 milestone-info order-first order-lg-last">
+            <a th:href="@{${base + '/milestones'}}" class="milestone-back" th:text="'← ' + #{button.list}"></a>
             <div th:if="${contentsHtml == null}" class="content empty-content"></div>
             <div th:unless="${contentsHtml == null}" class="milestone-desc">
                 <div class="markdown-wrap" th:utext="${contentsHtml}"></div>
                 <div class="attachments" th:attr="data-attachments=${attachmentsJson}"></div>
             </div>
 
-            <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
-                <a th:href="@{${base + '/milestones'}}" class="ybtn float-start" th:text="#{button.list}"></a>
-
-                <a th:if="${canDelete}" href="#deleteConfirm" data-bs-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}"></a>
-
+            <!--/* A-530: 동작 단추는 열 폭을 채우는 세로 묶음이다(수정, 종료 또는 다시 열기, 삭제 순이고 위험한 삭제가 맨 아래). 이동용 "목록"은 설명 위의 글자 링크로 뺐다. */-->
+            <div class="actrow milestone-actions d-grid gap-2">
                 <th:block th:if="${canUpdate}">
-                    <a th:href="@{${base + '/milestone/' + milestone.id + '/editform'}}" class="ybtn" th:text="#{button.edit}"></a>
+                    <a th:href="@{${base + '/milestone/' + milestone.id + '/editform'}}" class="ybtn" data-action="수정" th:text="#{button.edit}"></a>
 
-                    <button th:if="${milestone.state.name() == 'OPEN'}" type="button" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/close'}}" class="ybtn" th:text="#{milestone.close}"></button>
-                    <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/open'}}" class="ybtn" th:text="#{milestone.open}"></button>
+                    <button th:if="${milestone.state.name() == 'OPEN'}" type="button" data-action="종료" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/close'}}" class="ybtn" th:text="#{milestone.close}"></button>
+                    <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-action="다시열기" data-request-method="post" th:attr="data-request-uri=@{${base + '/milestone/' + milestone.id + '/open'}}" class="ybtn" th:text="#{milestone.open}"></button>
                 </th:block>
+
+                <a th:if="${canDelete}" href="#deleteConfirm" data-bs-toggle="modal" class="ybtn ybtn-danger" data-action="삭제" th:text="#{button.delete}"></a>
             </div>
 
-            <div id="issues">
-                <ul class="nav nav-tabs mb-3">
-                    <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
-                        <a th:href="@{${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
-                            <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
-                            <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="issues">
-                    <div class="filter-wrap mass-update-sticky">
-                        <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
-                        <div class="float-end search search-bar">
-                            <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
-                            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
-                        </div>
-                    </div>
-                    <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
-                </div>
+            </div>
             </div>
         </div>
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 
@@ -100,10 +115,7 @@
             $("li[data-value*='"+$(".textbox").val() + "']").show();
             $(".textbox").focus();
         });
-        $yona.loadModule("milestone.View", {
-            "sMilestoneId" : /*[[${#strings.toString(milestone.id)}]]*/ "",
-            "sURLLabels"   : /*[[@{${base + '/issues'}}]]*/ ""
-        });
+        $yona.loadModule("milestone.View", {});
 
         // detect links contains mention at me
         $(".user-link:contains('[(${helper.escape(currentUser.pureName)})]')").addClass("me");

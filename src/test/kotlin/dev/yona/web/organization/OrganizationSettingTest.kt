@@ -148,9 +148,9 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     @Test
     fun `설정 하위 메뉴는 설정 구성원 삭제이고 현재 화면이 활성이다`() {
         val org = newOrg()
-        val tabs = page(org, login(admin(org))).select(".project-page-wrap > ul.nav-tabs li")
-        assertEquals(listOf("Setting", "Group member", "Audit log", "OAuth apps", "OAuth app policy", "Group Delete"), tabs.map { it.text() })
-        assertEquals(listOf("/organizations/${org.name}/settingform", "/organizations/${org.name}/members", "/organizations/${org.name}/audit", "/organizations/${org.name}/oauth-apps", "/organizations/${org.name}/oauth-policy", "/organizations/${org.name}/deleteForm"), tabs.map { it.selectFirst("a")!!.attr("href") })
+        val tabs = page(org, login(admin(org))).select("nav.shell-sidebar li.nav-item")
+        assertEquals(listOf("Setting", "Group member", "OAuth apps", "OAuth app policy", "Audit log", "Group Delete"), tabs.map { it.text() })
+        assertEquals(listOf("/organizations/${org.name}/settingform", "/organizations/${org.name}/members", "/organizations/${org.name}/oauth-apps", "/organizations/${org.name}/oauth-policy", "/organizations/${org.name}/audit", "/organizations/${org.name}/deleteForm"), tabs.map { it.selectFirst("a")!!.attr("href") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 
@@ -320,7 +320,7 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
             val result = mockMvc.perform(get("/organizations/${org.name}/settingform").apply { session?.let { session(it) } }).andExpect(status().isForbidden).andReturn()
             val doc = Jsoup.parse(result.response.contentAsString)
             assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text())
-            assertTrue(doc.select(".project-menu-nav").isNotEmpty())
+            assertTrue(doc.select("nav.shell-sidebar").isNotEmpty())
             assertEquals("You are not authorized", doc.selectFirst(".page-wrap-outer .error-wrap p")!!.text())
         }
     }
@@ -333,6 +333,6 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
         assertEquals(403, result.response.status)
         val doc = Jsoup.parse(result.response.contentAsString)
         assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text())
-        assertTrue(doc.select(".project-menu-nav").isNotEmpty())
+        assertTrue(doc.select("nav.shell-sidebar").isNotEmpty())
     }
 }

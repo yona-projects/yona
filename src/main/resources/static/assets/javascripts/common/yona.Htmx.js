@@ -29,6 +29,12 @@ yona.Htmx = (function(window, document) {
     /** 응답에 이 표지가 없으면 목록 조각이 아니라고 보고 일반 이동으로 처리한다. */
     const CONTAINER_MARK = "list-container";
 
+    /**
+     * 셸 사이드바 이동의 응답 표지이다(D-136). 본문 안에 이 속성이 있는 응답은 본문 교체가 안전한 화면이므로 바꿔 끼운다.
+     * 목록 조각 표지와 이 표지가 모두 없으면 일반 이동으로 처리한다.
+     */
+    const SHELL_MARK = "data-swap-safe";
+
     const htmx = window.htmx;
 
     if (typeof htmx !== "undefined") {
@@ -66,7 +72,7 @@ yona.Htmx = (function(window, document) {
                 return;
             }
             const response = detail.serverResponse;
-            if (typeof response === "string" && response.indexOf(CONTAINER_MARK) < 0) {
+            if (typeof response === "string" && response.indexOf(CONTAINER_MARK) < 0 && response.indexOf(SHELL_MARK) < 0) {
                 detail.shouldSwap = false;
                 _loadWholePage(evt);
             }

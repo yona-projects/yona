@@ -1,0 +1,53 @@
+<!--/*
+  새 셸의 사이드바 조각이다(D-141). 항목과 보이는 조건은 서버의 ShellNav가 정하고 이 조각은 그대로 그린다.
+  매개변수: menu(NavMenu), title(사이드바 머리 글자), id(사이드바 요소 id), active(활성 항목 이름. null이면 요청 경로에서 판정)
+  1024px 아래(Bootstrap lg 미만)에서는 offcanvas 서랍이 되고, 열기 단추(.shell-sidebar-toggle)가 같이 그려진다.
+  활성 항목은 현재 요청 경로(requestPath)에서 menu.activeKey가 판정한다.
+  D-136: 사이드바는 본문(.shell-main)만 바꾸는 이동을 선언하고, swap-safe 표지가 있는 화면에서만 shell/navigation.ts가 켠다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(menu, title, id, active)"
+          th:with="activeKey=${active != null ? active : menu.activeKey(requestPath ?: '')}">
+<script type="text/javascript">/*[- 첫 그림 전에 기억한 숨김 상태를 적용한다(깜빡임 방지). 같은 키를 shell/sidebar.js가 쓴다 -]*/try{if(localStorage.getItem('shellSidebarCollapsed')==='true')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
+<script type="module">import { initSidebar } from 'yona/shell/sidebar.js'; import { initNavigation } from 'yona/shell/navigation.js'; import { initFill } from 'yona/shell/fill.js'; import { initShortcuts } from 'yona/shell/shortcuts.js'; initShortcuts(); initSidebar(); initNavigation(); initFill();</script>
+<!--/* A-489: 상단 바 햄버거는 v1.6 사이드바(전환 패널)를 여므로, 좁은 폭에서 이 맥락 사이드바를 서랍으로 여는 단추는 본문 위에 둔다. 넓은 화면의 접기는 사이드바 맨 아래 단추(shell-sidebar-fold)가 한다. */-->
+<button type="button" class="btn btn-outline-secondary btn-sm d-lg-none shell-sidebar-toggle mb-3"
+        data-bs-toggle="offcanvas" th:attr="data-bs-target='#' + ${id}, aria-controls=${id}" th:aria-label="#{sidebar.open}">
+    <i class="yobicon-menu" aria-hidden="true"></i> <span th:text="${title}"></span>
+</button>
+<th:block th:replace="~{shell/icons :: icons}"></th:block>
+<nav class="shell-sidebar offcanvas-lg offcanvas-start" tabindex="-1" data-shell-view="home" th:id="${id}" hx-target=".shell-main" hx-select=".shell-main" hx-select-oob="#shellSidebar, #pageTitle" hx-swap="outerHTML show:window:top" th:attr="aria-labelledby=${id} + '-label'">
+    <div class="offcanvas-header d-lg-none">
+        <h2 class="offcanvas-title h5" th:id="${id} + '-label'" th:text="${title}"></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" th:attr="data-bs-target='#' + ${id}" th:aria-label="#{sidebar.close}"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!--/* sidebar 브랜치: 사이드바 맨 위의 작은 선택 단추 줄이다. 홈은 맥락 메뉴(아래 data-shell-pane=home), 나머지는 바로가기(data-shell-pane=shortcuts)의 해당 탭을 보인다. 동작은 shell/shortcuts.ts가 맡고, 서버는 홈을 선택한 모양으로 그린다. */-->
+        <div class="shell-sidebar-switch" role="tablist" th:aria-label="#{sidebar.switch}">
+            <button type="button" role="tab" data-shell-switch="home" aria-selected="true" th:text="#{sidebar.switch.home}">홈</button>
+            <button type="button" role="tab" data-shell-switch="myOrganizationList" aria-selected="false" th:text="#{title.favorite}">즐겨찾기</button>
+            <button type="button" role="tab" data-shell-switch="myProjectList" aria-selected="false" th:text="#{title.project}">프로젝트</button>
+            <button type="button" role="tab" data-shell-switch="myRecentIssueList" aria-selected="false" th:text="#{title.recently.visited.issue}">최근 읽은 이슈</button>
+            <!--/* v1.6 핀 사이드바는 탭 옆에 새로고침 아이콘이 있었다. 같은 줄 끝에 단추로 둔다(탭이 아니다). 누르면 화면을 다시 읽는다(shell/shortcuts.ts). */-->
+            <button type="button" class="shell-sidebar-refresh" data-shell-refresh th:aria-label="#{sidebar.refresh}" th:title="#{sidebar.refresh}"><i class="yobicon-refresh" aria-hidden="true"></i></button>
+        </div>
+        <div data-shell-pane="home">
+        <!--/* 넓은 화면의 머리글이다. 좁은 폭의 서랍은 위의 offcanvas-header가 같은 이름을 보인다. */-->
+        <div class="shell-sidebar-title d-none d-lg-block" th:text="${title}"></div>
+        <a class="shell-sidebar-back" th:if="${menu.back != null}" th:href="@{${menu.back.path}}">&larr; <th:block th:text="#{${menu.back.labelKey}}"></th:block></a>
+        <ul class="nav nav-pills flex-column shell-sidebar-nav">
+            <li class="nav-item" th:each="item : ${menu.items}">
+                <a class="nav-link" th:classappend="${item.key == activeKey} ? 'active'" th:href="@{${item.path}}" th:title="#{${item.labelKey}}"
+                   th:attr="aria-current=${item.key == activeKey} ? 'page' : null, data-shortcut=${item.shortcut}">
+                    <svg class="shell-sidebar-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use th:attr="href='#yi-' + ${item.icon}"></use></svg>
+                    <span class="shell-sidebar-label" th:text="#{${item.labelKey}}"></span>
+                    <span class="badge text-bg-secondary rounded-pill" th:if="${item.badge != null}" th:text="${item.badge}"></span>
+                </a>
+            </li>
+        </ul>
+        </div><!--/* data-shell-pane=home */-->
+        <!--/* sidebar 브랜치: 햄버거 패널(즐겨찾기, 프로젝트, 최근 읽은 이슈)의 내용을 shell/shortcuts.ts가 이 자리로 옮긴다. 자리는 서버가 비워 두고, 내용의 원본은 상단 바의 #mySidenav가 그대로 그린다(사이드바가 없는 화면에서는 그 패널이 덮어서 열린다). 접힌 띠에서는 숨는다. */-->
+        <section class="shell-shortcuts" data-shell-pane="shortcuts" data-shell-shortcuts th:aria-label="#{sidebar.shortcuts}"></section>
+        <!--/* sidebar 브랜치: 사이드바 아래의 접기 단추는 없앴다. 접고 펴기는 상단 바 햄버거가 맡는다(shell/shortcuts.ts가 사이드바가 있는 화면에서 햄버거를 접기 단추로 바꾼다). */-->
+    </div>
+</nav>
+</th:block>

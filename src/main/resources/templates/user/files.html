@@ -12,11 +12,16 @@
 <th:block th:fragment="filesPage">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/filetype.css}">
 <div class="page-wrap-outer">
-    <div class="page-wrap">
-        <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
-        <form th:action="@{/user/files}">
+    <div class="page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('myFiles')}"></th:block>
+        <div class="shell-main">
+        <h3 class="shell-page-title" th:text="#{user.files}"></h3>
+        <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
+        <!--/* A-500: 검색과 쪽 이동은 페이지를 새로 읽지 않고 이 영역만 바꾼다(다른 목록 화면과 같은 `list-container`, D-96). 검색란은 v1.6처럼 늘 비어 있어(user-F8을 되돌렸다) 영역이 바뀌면 함께 비워진다. */-->
+        <div list-container hx-target="this" hx-select="div[list-container] > *" hx-swap="innerHTML show:window:top" hx-push-url="true" hx-request='{"timeout":3000}'>
+        <form th:action="@{/user/files}" th:hx-get="@{/user/files}" method="get">
         <div class="user-file-search search search-bar">
-            <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" th:value="${filter}">
+            <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" value="">
             <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
         </div>
         </form>
@@ -25,7 +30,7 @@
                 <div class="col-lg-1 header-preview">Preview</div>
                 <div class="col-lg-4 header-file-name">Filename</div>
                 <div class="col-lg-1 header-size">Size</div>
-                <div class="col-lg-1">Download</div>
+                <div class="col-lg-1 header-download" title="Download"><i class="yobicon-cloud-download" aria-hidden="true"></i><span class="visually-hidden">Download</span></div>
                 <div class="col-lg-2 file-date">Date</div>
                 <div class="col-lg-3 header-location">Location</div>
             </div>
@@ -34,17 +39,21 @@
                 <div class="col-lg-4 file-name"><a th:href="@{/files/{id}(id=${row.id})}" target="_blank"><i class="icon text-icon"></i><th:block th:text="${row.name}"></th:block></a></div>
                 <div class="col-lg-1 file-size" th:text="${helper.humanReadableByteCount(row.size, true)}"></div>
                 <div class="col-lg-1 file-download"><a th:href="@{/files/{id}(id=${row.id},action='download')}"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
-                <div class="col-lg-2 file-date" th:text="${helper.dateString(row.createdDate, 'yyyy-MM-dd h:mm a')}"></div>
+                <div class="col-lg-2 file-date" th:text="${helper.dateString(row.createdDate, 'yyyy-MM-dd HH:mm')}"></div>
                 <div class="col-lg-3 file-location"><a th:if="${row.location != null}" th:href="@{${row.location}}" target="_blank" th:text="@{${row.location}}"></a></div>
             </div>
         </div>
+    
+        <!-- pagination.js will fill here. -->
+        <div id="pagination" th:attr="data-total=${totalPages}"></div>
+        </div><!--/* list-container */-->
+        </div><!--/* .shell-main */-->
     </div>
-    <!-- pagination.js will fill here. -->
-    <div id="pagination"></div>
 </div>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/filetype.js}"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    // 표의 호버, 파일 종류 아이콘, 페이지 막대를 그린다. 처음 열 때와, 검색이나 쪽 이동으로 영역이 바뀐 뒤(htmx:afterSwap)에 부른다(A-500).
+    function initFilesList() {
         $(".attachment-file-detail").hover(
                 function() {
                     $(this).addClass('hover');
@@ -62,11 +71,15 @@
             });
         });
 
-        $('.user-file-search > button').on('submit', function () {
-            console.log('searche!');
-        });
+        var $pagination = $("#pagination");
+        yona.Pagination.update($pagination, parseInt($pagination.attr("data-total"), 10));
+    }
 
-        yona.Pagination.update($("#pagination"), [[${totalPages}]]);
+    $(document).ready(function(){
+        initFilesList();
+        $(document).off("htmx:afterSwap.userFiles").on("htmx:afterSwap.userFiles", function () {
+            if ($("div[list-container] .attachment-files").length > 0) initFilesList();
+        });
     });
 </script>
 </th:block>

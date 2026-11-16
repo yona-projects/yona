@@ -76,7 +76,5 @@ interface OAuthClientRepository : JpaRepository<OAuthClient, Long> {
 
     fun countByOwnerTypeAndOwnerId(ownerType: String, ownerId: Long): Long
 
-    fun deleteByOwnerTypeAndOwnerId(ownerType: String, ownerId: Long)
-
     fun findAllByOrderByCreatedDateDescIdDesc(): List<OAuthClient>
 }

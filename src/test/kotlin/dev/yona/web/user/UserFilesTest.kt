@@ -83,7 +83,7 @@ class UserFilesTest : AbstractIntegrationTest() {
     @Test
     fun `내 파일 탭이 활성화된다`() {
         val doc = page(login(newUser()))
-        assertEquals("/user/files", doc.selectFirst(".page-wrap > ul.nav-tabs a.nav-link.active")!!.attr("href"))
+        assertEquals("/user/files", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     @Test
@@ -93,6 +93,24 @@ class UserFilesTest : AbstractIntegrationTest() {
         val rows = page(login(me)).select(".attachment-file-detail")
         assertEquals("/files/${img.id}", rows[0].selectFirst(".file-preview img")!!.attr("src"))
         assertTrue(rows[1].select(".file-preview img").isEmpty())
+    }
+
+    @Test
+    fun `올린 시각은 24시간제 yyyy-MM-dd HH시 mm분 형식이라 오전 오후 없이 짧게 보인다(A-499)`() {
+        val me = newUser()
+        attach(me, "t.txt", 1_700_000_000_000)
+        val date = page(login(me)).selectFirst(".attachment-file-detail .file-date")!!.text()
+        assertTrue(Regex("""\d{4}-\d{2}-\d{2} \d{2}:\d{2}""").matches(date), "형식이 yyyy-MM-dd HH:mm이다: $date")
+    }
+
+    @Test
+    fun `내려받기 열의 머리글은 글자 대신 아이콘이고 이름표와 보조 글자가 있다(A-499)`() {
+        val me = newUser()
+        attach(me, "t.txt", 1_700_000_000_000)
+        val head = page(login(me)).selectFirst(".attachment-files-header .header-download")!!
+        assertTrue(head.selectFirst("i.yobicon-cloud-download") != null, "아이콘이 있다")
+        assertEquals("Download", head.attr("title"), "마우스를 올리면 이름이 보인다")
+        assertEquals("Download", head.selectFirst(".visually-hidden")!!.text(), "화면 낭독기에는 이름이 읽힌다")
     }
 
     @Test
@@ -129,11 +147,26 @@ class UserFilesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색한 값이 입력란에 남는다 (v1_6은 입력란이 늘 비어 있었다, 고쳤다 user-F8)`() {
+    fun `검색한 뒤에도 입력란은 v1_6처럼 늘 비어 있다(A-500, user-F8을 되돌렸다)`() {
         val me = newUser()
         attach(me, "Design.PNG", 1_700_000_100_000)
-        assertEquals("sign", page(login(me), "filter" to "sign").selectFirst("input[name=filter]")!!.attr("value"))
+        assertEquals("", page(login(me), "filter" to "sign").selectFirst("input[name=filter]")!!.attr("value"))
         assertEquals("", page(login(me)).selectFirst("input[name=filter]")!!.attr("value"))
+        assertEquals(1, page(login(me), "filter" to "sign").select(".attachment-file-detail").size, "거르기는 그대로 된다")
+    }
+
+    @Test
+    fun `검색과 쪽 이동은 목록 영역만 바꾸는 htmx 영역 안에 있다(A-500)`() {
+        val me = newUser()
+        attach(me, "a.png", 1_700_000_100_000)
+        val doc = page(login(me))
+        val box = doc.selectFirst("div[list-container][hx-target=this][hx-push-url=true]")
+        assertTrue(box != null, "다른 목록과 같은 영역 표지와 속성")
+        assertTrue(box!!.attr("hx-select").contains("list-container"), "응답에서 같은 영역만 고른다")
+        val form = box.selectFirst("form")!!
+        assertEquals("/user/files", form.attr("hx-get"))
+        assertTrue(box.selectFirst(".attachment-files") != null, "표가 영역 안에 있다")
+        assertTrue(box.selectFirst("#pagination[data-total]") != null, "페이지 막대가 영역 안에 있고 전체 쪽 수를 가진다")
     }
 
     @Test
@@ -145,7 +178,7 @@ class UserFilesTest : AbstractIntegrationTest() {
         assertEquals(50, first.select(".attachment-file-detail").size)
         assertEquals(5, second.select(".attachment-file-detail").size)
         assertEquals("f5.txt", second.select(".attachment-file-detail").first()!!.selectFirst(".file-name")!!.text().trim())
-        assertTrue(first.html().contains("yona.Pagination.update(\$(\"#pagination\"), 2)"))
+        assertEquals("2", first.selectFirst("#pagination")!!.attr("data-total"), "전체 쪽 수를 페이지 막대에 넘긴다(A-500)")
     }
 
     @Test

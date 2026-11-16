@@ -9,11 +9,11 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::policyPage})}">
 <th:block th:fragment="policyPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
-        <div class="two-factor-page">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="two-factor-page oauth-screen">
         <p class="text-body-secondary mb-4" th:text="#{oauth.policy.description}"></p>
         <form id="oauth-policy-form" method="post" th:action="@{/organizations/{name}/oauth-policy(name=${org.name})}">
             <div class="tf-choices tf-group mb-3">
@@ -28,26 +28,25 @@
             <h4 th:text="#{oauth.policy.apps}"></h4>
             <p class="text-body-secondary" th:text="#{oauth.policy.apps.help}"></p>
             <div id="policy-apps-empty" class="tf-empty" th:if="${#lists.isEmpty(rows)}" th:text="#{oauth.policy.apps.empty}"></div>
-            <table id="policy-apps" class="table table-striped" th:if="${!#lists.isEmpty(rows)}">
-                <thead><tr><th th:text="#{oauth.form.name}"></th><th th:text="#{site.oauthApps.owner}"></th><th th:text="#{oauth.policy.members}"></th><th th:text="#{oauth.policy.state}"></th><th></th></tr></thead>
-                <tbody>
-                <tr th:each="r : ${rows}" class="policy-app-row">
-                    <td th:text="${r.name}"></td>
-                    <td th:text="${r.ownerOrganization} ? #{oauth.apps.byOrganization(${r.ownerLabel})} : ${r.ownerLabel}"></td>
-                    <td th:text="${r.members}"></td>
-                    <td><span class="policy-state" th:text="#{'oauth.policy.state.' + ${r.state}}"></span></td>
-                    <td class="text-end">
+            <ul id="policy-apps" class="item-cards list-unstyled" th:if="${!#lists.isEmpty(rows)}">
+                <li th:each="r : ${rows}" class="item-card policy-app-row">
+                    <div class="item-card-head"><span class="item-card-name" th:text="${r.name}"></span><span class="item-card-type policy-state" th:text="#{'oauth.policy.state.' + ${r.state}}"></span></div>
+                    <dl class="item-card-meta">
+                        <dt th:text="#{site.oauthApps.owner}"></dt><dd th:text="${r.ownerOrganization} ? #{oauth.apps.byOrganization(${r.ownerLabel})} : ${r.ownerLabel}"></dd>
+                        <dt th:text="#{oauth.policy.members}"></dt><dd th:text="${r.members}"></dd>
+                    </dl>
+                    <div class="item-card-actions">
                         <form method="post" class="d-inline-flex gap-1" th:action="@{/organizations/{name}/oauth-policy/apps/{id}(name=${org.name}, id=${r.clientRowId})}">
                             <button type="submit" name="state" value="APPROVED" class="btn btn-success btn-sm" th:disabled="${r.state == 'APPROVED'}" th:text="#{oauth.policy.approve}"></button>
                             <button type="submit" name="state" value="DENIED" class="btn btn-danger btn-sm" th:disabled="${r.state == 'DENIED'}" th:text="#{oauth.policy.deny}"></button>
                             <button type="submit" name="state" value="PENDING" class="btn btn-outline-secondary btn-sm" th:disabled="${r.state == 'PENDING'}" th:text="#{oauth.policy.reset}"></button>
                         </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </div>
+                </li>
+            </ul>
         </section>
         </div>
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

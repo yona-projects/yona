@@ -551,8 +551,6 @@ class DataService(
         }
     }
 
-    private fun timeOf(node: JsonNode): Long = if (node.isNumber) node.longValue() else 0L
-
     /** 시퀀스(다음 번호)를 복원한다. 실패해도 가져오기는 계속한다. */
     private fun restoreSequence(connection: Connection, product: String, ids: Identifiers, table: DataTable, value: Long) {
         if (value < 1) return
@@ -703,6 +701,31 @@ class DataService(
         fun isSmallint(table: DataTable, column: String): Boolean = isCubrid && "${table.sqlName}.${column.lowercase()}" in smallintColumns
 
         init {
+            if (isCubrid) readCubridColumns(connection) else readColumns(connection)
+        }
+
+        /**
+         * Cubrid는 드라이버의 `getColumns`가 모든 사용자의 테이블을 카탈로그에서 훑어, 다른 세션이 테이블을 지우는 동안 서버가 조회를 중단시키는
+         * `Has been interrupted` 오류가 간헐적으로 났다(A-607). 접속한 사용자의 컬럼만 `db_attribute`에서 직접 읽어 같은 값을 얻는다.
+         */
+        private fun readCubridColumns(connection: Connection) {
+            val sql = "select class_name, attr_name, data_type, is_nullable from db_attribute where owner_name = upper(?) and attr_type = 'INSTANCE'"
+            connection.prepareStatement(sql).use { st ->
+                st.setString(1, connection.metaData.userName)
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val table = rs.getString("class_name")
+                        val column = rs.getString("attr_name")
+                        if (rs.getString("data_type").equals("SMALLINT", ignoreCase = true)) smallintColumns += table.lowercase() + "." + column.lowercase()
+                        if (rs.getString("is_nullable").equals("YES", ignoreCase = true)) nullableColumns += table.lowercase() + "." + column.lowercase()
+                        tables.putIfAbsent(table.lowercase(), table)
+                        columns.getOrPut(table.lowercase()) { HashMap() }[column.lowercase()] = column
+                    }
+                }
+            }
+        }
+
+        private fun readColumns(connection: Connection) {
             connection.metaData.getColumns(connection.catalog, try { connection.schema } catch (e: java.sql.SQLException) { null }, null, null).use { rs ->
                 while (rs.next()) {
                     val table = rs.getString("TABLE_NAME")

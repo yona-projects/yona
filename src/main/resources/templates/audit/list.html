@@ -46,7 +46,6 @@
         <th th:text="#{audit.col.outcome}">Result</th>
         <th th:text="#{audit.col.target}">Target</th>
         <th th:text="#{audit.col.ip}">IP</th>
-        <th th:text="#{audit.col.details}">Details</th>
     </tr>
     </thead>
     <tbody>
@@ -57,9 +56,8 @@
         <td><span class="audit-outcome badge" th:classappend="${r.outcome == 'SUCCESS'} ? 'text-bg-success' : (${r.outcome == 'DENIED'} ? 'text-bg-danger' : 'text-bg-warning')" th:text="#{'audit.outcome.' + ${r.outcome}}">ok</span></td>
         <td class="audit-target" th:text="${r.target}">target</td>
         <td class="text-nowrap" th:text="${r.ip}">ip</td>
-        <td><code class="audit-details small" th:title="${r.detailsFull}" th:text="${r.details}">details</code></td>
     </tr>
-    <tr th:if="${#lists.isEmpty(rows)}" class="audit-empty"><td colspan="7" class="text-body-secondary" th:text="#{audit.empty}">No records.</td></tr>
+    <tr th:if="${#lists.isEmpty(rows)}" class="audit-empty"><td colspan="6" class="text-body-secondary" th:text="#{audit.empty}">No records.</td></tr>
     </tbody>
 </table>
 <nav class="d-flex gap-3" th:if="${prevUrl != null or nextUrl != null}">

@@ -74,6 +74,7 @@ const MassMail = function(htOptions){
         const sAction = $(this).data('action');
         htElement.welSelectedProjects.html("");
         htElement.welProjectList[sAction]();
+        _updateSelectedCount();
 
     }
 
@@ -188,11 +189,11 @@ const MassMail = function(htOptions){
     function _createProjectLabel(sName) {
         const fOnClickUnselect = function() {
             welProject.remove();
+            _updateSelectedCount();
         };
 
         // 입력값을 HTML로 해석하지 않고 글자로 넣는다. v1.6은 이스케이프 없이 이어 붙였다(C027)
-        var welProject = $('<span class="badge bg-info"></span>').text(sName + " ")
-            .css('margin-right','5px')
+        var welProject = $('<span class="badge bg-info project-chip"></span>').text(sName + " ")
             .append($('<a href="javascript:void(0)">x</a>')
             .click(fOnClickUnselect));
 
@@ -205,7 +206,16 @@ const MassMail = function(htOptions){
      * @param {Object} htProjects
      */
     function _appendProjectLabel(sTags) {
-        htElement.welSelectedProjects.append(_createProjectLabel(sTags));
+        if (!sTags || sTags.trim() === "") { return; }
+        htElement.welSelectedProjects.append(_createProjectLabel(sTags.trim()));
+        _updateSelectedCount();
+    }
+
+    /**
+     * 고른 프로젝트 수를 "선택한 프로젝트" 안내에 반영한다(A-594).
+     */
+    function _updateSelectedCount() {
+        $('#selected-count').text($('#selected-projects > .badge').length);
     }
 
     _init(htOptions);

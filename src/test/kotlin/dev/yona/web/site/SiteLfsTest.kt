@@ -106,7 +106,7 @@ class SiteLfsTest : AbstractIntegrationTest() {
     @Test
     fun `화면의 이름은 Git 전용이 아니라 LFS이다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/lfs").session(login(user(admin = true)))).andReturn().response.contentAsString)
-        assertEquals("LFS", doc.selectFirst(".two-factor-page h3")!!.text().trim())
+        assertEquals("LFS", doc.selectFirst(".title_area h2")!!.text().trim())
         assertEquals("LFS", doc.selectFirst("ul li a[href\$=/sites/lfs]")!!.text().trim())
         assertTrue(!doc.selectFirst(".option-text strong")!!.text().contains("Git"), doc.selectFirst(".option-text strong")!!.text())
     }

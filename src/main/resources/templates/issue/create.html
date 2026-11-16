@@ -11,9 +11,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'ISSUE', ~{::createPage})}">
 <th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'ISSUE')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
         <form th:action="@{${base + '/issues/latest'}}" method="post" id="issue-form" enctype="multipart/form-data">
         <div class="row">
@@ -89,6 +90,8 @@
         </div>
         </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 
@@ -107,10 +110,8 @@
         // yona.issue.Write
         $yona.loadModule("issue.Write", {
             "sMode"		   : "new",
-            "sIssueFormURL": /*[[@{${base + '/issueform'}}]]*/ "",
             "sIssueListURL": /*[[@{${base + '/issues'}}]]*/ "",
             "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
             "elDueDate"    : $("#issueDueDate")
         });
 

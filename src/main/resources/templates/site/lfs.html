@@ -8,8 +8,9 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::lfsPage})}">
 <th:block th:fragment="lfsPage">
+<span data-swap-safe hidden></span>
 <div class="two-factor-page">
-<h3 th:text="#{site.lfs.title}"></h3>
+<div class="title_area"><h2 class="float-start" th:text="#{site.lfs.title}"></h2></div>
 <p class="text-body-secondary" th:text="#{site.lfs.description}"></p>
 <form id="lfs-settings-form" class="security-settings" method="post" th:action="@{/sites/lfs}">
     <label class="option" for="lfs-enabled">

@@ -10,22 +10,26 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::listPage})}">
 <th:block th:fragment="listPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <th:block th:replace="~{pullrequest/partial-search :: search}"></th:block>
-    </div>
-</div>
-
-<!--/* 담당자와 라벨 필터가 고른 라벨을 색으로 그린다(추가 항목 X-14) */-->
+    
+        <!--/* 담당자와 라벨 필터가 고른 라벨을 색으로 그린다(추가 항목 X-14) */-->
 <link th:if="${hasLabels}" rel="stylesheet" type="text/css" media="screen" th:href="@{${#paths.project(projectView.project.owner, projectView.project.name) + '/issue/labels.css'}}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 
-<script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
-<script type="text/javascript">
-    $(document).ready(function(){
+<script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/twoColumnMode.js}]]);
+    $(function(){
         _initTwoColumnMode();
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
+
 </th:block>
 </html>

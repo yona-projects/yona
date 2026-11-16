@@ -29,7 +29,7 @@ v1.6 `GET /`(`Application.index`)와 `GET /notifications`(`Application.notificat
 
 `NotificationEventRepository.findByReceiver(user, from, size)`가 `notification_event_n4user`로 연결된 알림을 최신순(`created DESC`, 같은 시각이면 번호 내림차순)으로 `from`번째부터 `size`개 돌려준다. 첫 화면은 `(0, 20)`이다. v1.6은 같은 조회를 원시 SQL로 했다.
 
-알림 항목의 표시(유형 아이콘, 제목 링크, 본문, 보낸 사람, 시각)와 "More" 버튼, `GET /notification?from&limit`은 알림 서브시스템에서 구현했다([../subsystems/notifications.md](../subsystems/notifications.md)).
+알림 항목의 표시(유형 아이콘, 제목 링크, 본문, 보낸 사람, 시각)와 "More" 버튼(스크립트가 `/notification?from=20&limit=20`처럼 `&`로 요청한다. 한때 `&amp;`가 글자로 남아 400이 나던 것을 고쳤다, A-456), `GET /notification?from&limit`은 알림 서브시스템에서 구현했다([../subsystems/notifications.md](../subsystems/notifications.md)).
 
 ## 사이드바
 

@@ -132,9 +132,6 @@ interface AuditLogRepository : JpaRepository<AuditLog, Long>, JpaSpecificationEx
     /** [id]보다 큰 번호의 기록을 번호순으로 읽는다(사슬 검증과 보존 처리가 쪽으로 나눠 읽는다). */
     fun findByIdGreaterThanOrderByIdAsc(id: Long, pageable: Pageable): List<AuditLog>
 
-    /** [millis]보다 오래된 기록을 번호순으로 읽는다. */
-    fun findByCreatedMillisLessThanOrderByIdAsc(millis: Long, pageable: Pageable): List<AuditLog>
-
     /** 보존 기간이 지났지만 아직 비우지 않은 [prefix] 범주의 기록을 번호순으로 읽는다(비움 대상). */
     fun findByActionStartingWithAndCreatedMillisLessThanAndRedactedAtIsNullAndContentHashIsNotNullOrderByIdAsc(prefix: String, millis: Long, pageable: Pageable): List<AuditLog>
 }

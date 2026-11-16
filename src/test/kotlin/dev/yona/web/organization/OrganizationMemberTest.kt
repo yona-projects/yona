@@ -381,7 +381,7 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         assertEquals("Delete This Group", page.selectFirst("a#btnDelete")?.text()?.trim())
         assertEquals("Do you want to delete this group?", page.selectFirst("#alertDeletion h3")?.text())
         assertEquals("Are you sure you want to delete this group?", page.selectFirst("#alertDeletion .modal-body p")?.text())
-        assertTrue(page.select(".project-page-wrap > ul.nav-tabs li")[5].selectFirst("a")!!.hasClass("active"))
+        assertTrue(page.select("nav.shell-sidebar a.nav-link.active").single().attr("href").endsWith("/deleteForm"))
         assertTrue(page.select("script").any { "/organizations/${org.name}" in it.data().replace("\\/", "/") })
     }
 
@@ -439,7 +439,7 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         listOf("members", "deleteForm").forEach { path ->
             val doc = Jsoup.parse(mockMvc.perform(get("/organizations/${org.name}/$path").session(login(member))).andExpect(status().isForbidden).andReturn().response.contentAsString)
             assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text(), path)
-            assertTrue(doc.select(".project-menu-nav").isNotEmpty(), path)
+            assertTrue(doc.select("nav.shell-sidebar").isNotEmpty(), path)
             assertTrue(doc.select(".page-wrap-outer .error-wrap p").isNotEmpty(), path)
         }
     }

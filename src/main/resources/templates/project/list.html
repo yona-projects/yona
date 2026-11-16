@@ -10,18 +10,12 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'PROJECTS', ~{::projectListPage})}">
 <th:block th:fragment="projectListPage">
-<div class="site-breadcrumb-outer">
-    <div class="site-breadcrumb-inner">
-        <div class="title_area">
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item"><a th:href="@{/projects}" class="nav-link active"><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></a></li>
-                <li class="nav-item"><a th:href="@{/orgs}" th:text="#{title.organization.list}" class="nav-link"></a></li>
-            </ul>
-        </div>
-    </div>
-</div>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('projects')}"></th:block>
+        <div class="shell-main">
+        <!--/* D-141: 두 탭(프로젝트 목록, 그룹 목록)은 사이드바 항목과 중복이라 제목으로 바꿨다. A-566: 제목을 화면 왼쪽 끝에 걸치던 띠에서 내용 칸 안으로 옮겼다 */-->
+        <div class="title_area"><h3><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></h3></div>
     	<div class="search-wrap">
     		<div id="search" class="float-start">
     			<form th:action="@{/projects}" method="get">
@@ -43,7 +37,7 @@
                 <div class="info-wrap">
                     <div class="owner-avatar-wrap">
                         <a th:href="@{/{owner}/{name}(owner=${project.owner},name=${project.name})}">
-                            <img th:if="${row.view.hasLogo}" th:src="@{${row.view.logoUrl}}" th:alt="${project.name}"/>
+                            <img th:src="@{${row.view.logoUrl}}" th:alt="${project.name}"/>
                         </a>
                     </div>
                     <div style="float:left">
@@ -82,23 +76,14 @@
                     </div>
                 </div>
             </li>
-            <!--/* 쓰지 않는 가지이다(project-F12): 목록에는 읽을 수 있는 프로젝트만 담겨 이 가지가 그려지는 설정이 없다. v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */-->
-            <li class="project" th:unless="${row.readable}" style="background-color: #fcfcfc;">
-                <div class="info-wrap" style="opacity: 0.3">
-                    <div class="owner-avatar-wrap">
-                        <img th:src="@{/assets/images/project_default_logo.png}" th:alt="${row.item.project.name}"/>
-                    </div>
-                    <div style="float:left; color: gray">
-                        You do not have permission to view this project's information
-                    </div>
-                </div>
-            </li>
         </th:block>
     	</ul>
 
     	<!-- pagination.js will fill here. -->
     	<div id="pagination"></div>
         </th:block>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="text/javascript" th:inline="javascript">

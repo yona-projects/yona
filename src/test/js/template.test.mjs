@@ -112,14 +112,6 @@ export const blockTests = [
     },
   })),
   {
-    name: 'site/user-list.html의 dismissable-alerts는 새 비밀번호를 그린다',
-    async run() {
-      const page = await open();
-      const text = await page.evaluate((t) => $yona.render(t, { newPassword: 'pw<1>' }).text().replace(/\s+/g, ' ').trim(), block('site/user-list.html', 'dismissable-alerts'));
-      assert.match(text, /pw<1>/);
-    },
-  },
-  {
     name: 'code/svn-diff.html의 세 템플릿은 요소를 그린다',
     async run() {
       const page = await open();

@@ -11,17 +11,13 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::diffPage})}">
 <th:block th:fragment="diffPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
 
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
+        <div class="shell-main">
         <div id="code-browse-wrap" class="code-browse-wrap">
-            <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li class="nav-item"><a th:href="${filesUrl}" th:text="#{code.files}" class="nav-link"></a></li>
-                <li class="nav-item"><a th:href="${commitsUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
-                <li class="nav-item"><a th:href="${branchesUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
-                <li class="nav-item"><a th:href="${tagsUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
-            </ul>
+            <div class="mb-3"><a class="code-back-link" th:href="${commitsUrl}">&larr; <th:block th:text="#{code.back.history}"></th:block></a></div>
 
             <div class="codediff-wrap">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards"><i class="yobicon-restore"></i></button>
@@ -105,6 +101,8 @@
 
         <button id="watch-button" type="button" th:class="'float-start ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-bs-toggle="button" th:text="#{notification.watch}"></button>
         <a th:href="${listUrl}" class="ybtn float-end" th:text="#{button.list}"></a>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
@@ -114,6 +112,7 @@
 <script type="module" th:src="@{/assets/javascripts/esm/CodeCommentBox.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.14.2.custom.min.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/service/code.Diff.js}"></script>
+<script type="module" th:src="@{/assets/javascripts/esm/service/code.DiffTree.js}"></script>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yona.loadModule("code.Diff", {
@@ -121,15 +120,11 @@
             "sWatchUrl"   : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
             "sUnwatchUrl" : "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]"
         });
+        // 변경 파일이 둘 이상이면 diff 왼쪽에 파일 트리를 보인다(추가 기능, A-571). diff를 그리는 모듈 뒤에 부른다
+        $yona.loadModule("code.DiffTree", {"sContainer": ".diff-body"});
 
         yona.Mention({
             target:'textarea[id^=editor-]',
-            url : "[(${mentionUrl})]"
-        });
-        
-        /* 쓰지 않는 호출이다(code-F4): 'review-editor'라는 이름의 대상 요소가 이 화면에 없어 아무 일도 하지 않는다. v1.6에서 물려받았고 삭제는 선생님 확인 전까지 미룬다(A-463). */
-        yona.Mention({
-            target:'review-editor',
             url : "[(${mentionUrl})]"
         });
 

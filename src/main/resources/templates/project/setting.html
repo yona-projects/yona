@@ -5,127 +5,99 @@
   https://yona.io
 
   이식 원본: app/views/project/setting.scala.html
-  모델: title, projectView, branches(기본 브랜치 선택지), defaultBranchName, oldPlaceHtml, maxReviewerCount
+  모델: title, projectView, canEditIssueTemplate(이슈 템플릿 편집 단추를 보일지), branches(기본 브랜치 선택지), defaultBranchName, oldPlaceHtml, maxReviewerCount
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::settingPage})}">
 <th:block th:fragment="settingPage" th:with="project=${projectView.project}, vcs=${projectView.vcs}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
-        <form id="saveSetting" method="post" th:action="@{/{owner}/{name}/setting(owner=${project.owner},name=${project.name})}" enctype="multipart/form-data" class="nm">
-            <div class="bubble-wrap gray" style="overflow: visible">
-                <input type="hidden" name="id" th:value="${project.id}">
-                <input type="hidden" name="watchingCount" th:value="${projectView.watchingCount}">
-                <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
-                    <div class="setting-box left">
+        <h3 class="setting-page-title" th:text="#{menu.admin}"></h3>
+
+        <!--/* 프로젝트 설정(A-563): 저장 단추가 하나인 단일 폼이라 카드로 나누지 않고 왼쪽 제목, 오른쪽 내용의 구역으로 묶는다(D-143).
+              컨트롤은 값의 종류에 맞춘다: 가로 선택(라디오 그대로), 체크 목록, 허용과 기본이 짝인 표. 입력 이름, 전송 값, 스크립트가 쓰는 id는 그대로이다. */-->
+        <form id="saveSetting" method="post" th:action="@{/{owner}/{name}/setting(owner=${project.owner},name=${project.name})}" enctype="multipart/form-data" class="setting-form nm">
+            <input type="hidden" name="id" th:value="${project.id}">
+            <input type="hidden" name="watchingCount" th:value="${projectView.watchingCount}">
+
+            <section class="setting-section" id="settingInfo">
+                <div class="setting-section-head"><h4 th:text="#{project.setting.section.basic}"></h4></div>
+                <div class="setting-section-body">
+                    <div class="setting-logo">
                         <div class="logo-wrap" th:style="'background-image:url(\'' + @{${projectView.logoUrl}} + '\')'"></div>
-                        <div class="logo-desc">
-                            <ul class="list-unstyled descs">
-                                <li><strong th:text="#{project.logo}"></strong></li>
-                                <li><th:block th:text="#{project.logo.type}"></th:block> <span class="point">bmp, jpg, gif, png</span></li>
-                                <li><th:block th:text="#{project.logo.maxFileSize}"></th:block> <span class="point">5MB</span></li>
-                                <li>
-                                    <div class="btn-wrap">
-                                        <div class="nbtn medium white fake-file-wrap">
-                                            <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><!--
-                                        --> <input id="logoPath" type="file" class="file form-control" name="logoPath" accept="image/*">
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
+                        <div class="setting-logo-info">
+                            <div class="btn-wrap">
+                                <div class="nbtn medium white fake-file-wrap">
+                                    <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><!--
+                                --> <input id="logoPath" type="file" class="file form-control" name="logoPath" accept="image/*">
+                                </div>
+                            </div>
+                            <span class="setting-help"><th:block th:text="#{project.logo.type}"></th:block> bmp, jpg, gif, png · <th:block th:text="#{project.logo.maxFileSize}"></th:block> 5MB</span>
                         </div>
                     </div>
-                    <dl class="setting-box right">
-                        <dt>
-                            <label for="project-name" th:text="#{project.name.placeholder}"></label>
-                        </dt>
-                        <dd>
-                            <input class="form-control" id="project-name" type="text" name="name" data-bs-trigger="popover" th:attr="data-bs-content=#{project.transfer.description6}" data-bs-placement="left" maxlength="250" th:value="${project.name}">
-                            <th:block th:if="${oldPlaceHtml != null}" th:utext="${oldPlaceHtml}"></th:block><br/>
-                        </dd>
-                        <dt>
-                            <label for="project-desc" th:text="#{project.description.placeholder}"></label>
-                        </dt>
-                        <dd>
-                            <textarea id="project-desc" name="overview" maxlength="250" class="textarea form-control" th:text="${project.overview}"></textarea>
-                        </dd>
-                    </dl>
+                    <div class="setting-field">
+                        <label class="setting-label" for="project-name" th:text="#{project.name}"></label>
+                        <input class="form-control w-100" id="project-name" type="text" name="name" data-bs-trigger="popover" th:attr="data-bs-content=#{project.transfer.description6}" data-bs-placement="left" maxlength="250" th:value="${project.name}">
+                        <span class="setting-help" th:text="#{project.name.placeholder}"></span>
+                        <th:block th:if="${oldPlaceHtml != null}" th:utext="${oldPlaceHtml}"></th:block>
+                    </div>
+                    <div class="setting-field">
+                        <label class="setting-label" for="project-desc" th:text="#{project.description}"></label>
+                        <textarea id="project-desc" name="overview" maxlength="250" class="textarea form-control" th:text="${project.overview}"></textarea>
+                    </div>
                 </div>
+            </section>
 
-                <div class="box-wrap middle">
-                    <div class="cu-label" th:text="#{project.shareOption}"></div>
-                    <div class="cu-desc">
-                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="public" value="PUBLIC" th:checked="${project.isPublic()}"><label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
-                        <th:block th:if="${project.hasGroup()}">
-                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="protected" value="PROTECTED" th:checked="${project.isProtected()}"><label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}"></label>
-                        </th:block>
-                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="private" value="PRIVATE" th:checked="${project.isPrivate()}"><label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
-                        <span class="note" th:text="#{project.private.notice}"></span>
+            <section class="setting-section" id="settingAccess">
+                <div class="setting-section-head"><h4 th:text="#{project.setting.section.access}"></h4></div>
+                <div class="setting-section-body">
+                    <div class="setting-field">
+                        <span class="setting-label" th:text="#{project.shareOption}"></span>
+                        <div class="setting-seg">
+                            <label><input name="projectScope" type="radio" class="form-check-input" id="public" value="PUBLIC" th:checked="${project.isPublic()}"><span th:text="#{project.public}"></span></label>
+                            <label th:if="${project.hasGroup()}"><input name="projectScope" type="radio" class="form-check-input" id="protected" value="PROTECTED" th:checked="${project.isProtected()}"><span th:text="#{project.protected}"></span></label>
+                            <label><input name="projectScope" type="radio" class="form-check-input" id="private" value="PRIVATE" th:checked="${project.isPrivate()}"><span th:text="#{project.private}"></span></label>
+                        </div>
+                        <span class="setting-help"><th:block th:text="#{project.private}"></th:block>: <th:block th:text="#{project.private.notice}"></th:block></span>
                     </div>
-                </div>
-            <th:block th:if="${vcs.onlineEditing}">
-                <div class="box-wrap middle">
-                    <div class="cu-label" th:text="#{issue.template}"></div>
-                    <div class="cu-desc">
-                        <a th:href="@{/{owner}/{name}/postform(owner=${project.owner},name=${project.name},issueTemplate=true)}" class="ybtn" target="_blank" th:text="#{issue.template.edit}"></a>
-                    </div>
-                </div>
-            </th:block>
-                <div class="box-wrap middle">
-                    <div class="cu-label" th:text="#{project.codeAccessible}"></div>
-                    <div class="cu-desc">
-                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleMemberOnly" class="radio-btn form-check-input" value="true" th:checked="${project.isCodeAccessibleMemberOnly == true}"><label for="codeAccessibleMemberOnly" class="bg-radiobtn label-public" th:text="#{button.yes}"></label>
-                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleAnyone" class="radio-btn form-check-input" value="false" th:checked="${project.isCodeAccessibleMemberOnly != true}"><label for="codeAccessibleAnyone" class="bg-radiobtn label-private" th:text="#{button.no}"></label>
-                        <span class="note"></span>
-                    </div>
-                </div>
-
-                <th:block th:if="${vcs.pullRequests}">
-                <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
-                    <div class="cu-label vmiddle" th:text="#{project.reviewer.count}"></div>
-                    <div class="cu-desc">
-                        <!--/* 새 커밋이 올라오면 오래된 승인을 해제할지(추가 항목 X-12, decisions.md D-35 5번). v1.6은 항상 해제했으므로 기본은 켬이다 */-->
-                        <div class="mt10">
-                            <span class="note" th:text="#{project.reviewer.dismiss.stale}"></span>
-                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn form-check-input" id="dismissStaleEnable" value="true" th:checked="${project.isDismissingStaleApprovals != false}">
-                            <label for="dismissStaleEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}"></label>
-                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn form-check-input" id="dismissStaleDisable" value="false" th:checked="${project.isDismissingStaleApprovals == false}">
-                            <label for="dismissStaleDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}"></label>
+                    <div class="setting-field">
+                        <span class="setting-label" th:text="#{project.codeAccessible}"></span>
+                        <div class="setting-seg">
+                            <label><input name="isCodeAccessibleMemberOnly" type="radio" class="form-check-input" id="codeAccessibleMemberOnly" value="true" th:checked="${project.isCodeAccessibleMemberOnly == true}"><span th:text="#{button.yes}"></span></label>
+                            <label><input name="isCodeAccessibleMemberOnly" type="radio" class="form-check-input" id="codeAccessibleAnyone" value="false" th:checked="${project.isCodeAccessibleMemberOnly != true}"><span th:text="#{button.no}"></span></label>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!--/* 풀 리퀘스트 병합 방식(추가 항목 X-28, decisions.md D-41): 허용할 방식과 기본 방식. 체크하지 않은 방식은 `false`로 보낸다 */-->
-                <div class="box-wrap middle" id="mergeMethodSettingPanel">
-                    <div class="cu-label vmiddle" th:text="#{project.merge.title}"></div>
-                    <div class="cu-desc">
-                        <th:block th:each="m : ${ {'allowMergeCommit', 'allowSquashMerge', 'allowRebaseMerge'} }">
-                            <div class="form-check form-check-inline"><label class="form-check-label">
-                                <input type="checkbox" th:name="${m}" value="true"
-                                       th:checked="${m == 'allowMergeCommit' ? project.allowMergeCommit != false : (m == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}" class="form-check-input">
-                                <th:block th:text="#{'project.merge.' + ${m}}"></th:block>
-                            </label></div>
-                            <!--/* 요청 파라미터는 첫 값을 읽으므로 체크하면 `true`가 앞서도록 숨은 값은 체크박스 뒤에 둔다 */-->
-                            <input type="hidden" th:name="${m}" value="false">
-                        </th:block>
-                        <div class="mt10">
-                            <span class="note" th:text="#{project.merge.default}"></span>
-                            <th:block th:each="m : ${ {'merge', 'squash', 'rebase'} }">
-                                <input name="defaultMergeMethod" type="radio" class="radio-btn form-check-input" th:id="'defaultMergeMethod-' + ${m}" th:value="${m}" th:checked="${project.defaultMergeMethodOrFirst().code == m}">
-                                <label th:for="'defaultMergeMethod-' + ${m}" class="bg-radiobtn label-public" th:text="#{'project.merge.' + ${m}}"></label>
-                            </th:block>
-                        </div>
-                        <span class="note" th:text="#{project.merge.description}"></span>
+            <section class="setting-section" id="settingFeatures">
+                <div class="setting-section-head"><h4 th:text="#{project.setting.section.menus}"></h4></div>
+                <div class="setting-section-body">
+                    <div class="setting-features">
+                        <label class="setting-check" for="menuSettingCode"><input type="checkbox" class="form-check-input" id="menuSettingCode" name="code" value="true" th:checked="${projectView.menuSetting.code == true}"> <th:block th:text="#{menu.code}"></th:block></label>
+                        <label class="setting-check" for="menuSettingIssue"><input type="checkbox" class="form-check-input" id="menuSettingIssue" name="issue" value="true" th:checked="${projectView.menuSetting.issue == true}"> <th:block th:text="#{menu.issue}"></th:block></label>
+                        <label class="setting-check" th:if="${vcs.pullRequests}" for="menuSettingPullRequest"><input type="checkbox" class="form-check-input" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="${projectView.menuSetting.pullRequest == true}"> <th:block th:text="#{menu.pullRequest}"></th:block></label>
+                        <label class="setting-check" for="menuSettingReview"><input type="checkbox" class="form-check-input" id="menuSettingReview" name="review" value="true" th:checked="${projectView.menuSetting.review == true}"> <th:block th:text="#{menu.review}"></th:block></label>
+                        <label class="setting-check" for="menuSettingMilestone"><input type="checkbox" class="form-check-input" id="menuSettingMilestone" name="milestone" value="true" th:checked="${projectView.menuSetting.milestone == true}"> <th:block th:text="#{milestone}"></th:block></label>
+                        <label class="setting-check" for="menuSettingBoard"><input type="checkbox" class="form-check-input" id="menuSettingBoard" name="board" value="true" th:checked="${projectView.menuSetting.board == true}"> <th:block th:text="#{menu.board}"></th:block></label>
+                        <label class="setting-check" for="menuSettingWiki"><input type="checkbox" class="form-check-input" id="menuSettingWiki" name="wiki" value="true" th:checked="${projectView.menuSetting.wiki == true}"> <th:block th:text="#{menu.wiki}"></th:block></label>
+                    </div>
+                    <!--/* 이슈 템플릿(저장소의 ISSUE_TEMPLATE.md) 편집은 설정에서만 들어가는 기능이라 기능 체크가 아니라 독립 항목이다. 프로젝트 관리자와 사이트 관리자에게만 보인다(A-565) */-->
+                    <div class="setting-field" th:if="${vcs.onlineEditing and canEditIssueTemplate}">
+                        <a id="issueTemplateEdit" th:href="@{/{owner}/{name}/postform(owner=${project.owner},name=${project.name},issueTemplate=true)}" class="ybtn" target="_blank"><th:block th:text="#{issue.template}"></th:block> <th:block th:text="#{issue.template.edit}"></th:block></a>
                     </div>
                 </div>
+            </section>
 
-                <!--/* 기본 브랜치를 지원하는 저장소 종류(Git, Mercurial)에만 보인다. Subversion에는 지원이 없다. Mercurial은 북마크 이름을 기억해 기본으로 삼는다(code-F7) */-->
-                <div class="box-wrap middle" id="defaultBranceSettingPanel" th:if="${vcs.defaultBranch}" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
-                    <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}"></div>
-                    <div class="cu-desc">
+            <section class="setting-section" id="settingCode" th:if="${vcs.pullRequests}">
+                <div class="setting-section-head"><h4 th:text="#{project.setting.section.code}"></h4></div>
+                <div class="setting-section-body">
+                    <!--/* 기본 브랜치를 지원하는 저장소 종류(Git, Mercurial)에만 보인다. Subversion에는 지원이 없다. Mercurial은 북마크 이름을 기억해 기본으로 삼는다(code-F7) */-->
+                    <div class="setting-field" id="defaultBranceSettingPanel" th:if="${vcs.defaultBranch}" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
+                        <label class="setting-label" for="project-default-branch" th:text="#{code.branches.defaultBranch}"></label>
                         <select class="form-select" id="project-default-branch" name="defaultBranch"
                                 data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" style="min-width: 220px;">
                             <option th:each="branchName : ${branches}" th:value="${branchName}"
@@ -134,62 +106,60 @@
                             </option>
                         </select>
                     </div>
-                </div>
-                </th:block>
 
-                <div class="box-wrap middle">
-                    <div class="cu-label vmiddle" th:text="#{project.menu.setting}"></div>
-                    <div class="cu-desc">
-                        <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingCode" name="code" value="true" th:checked="${projectView.menuSetting.code == true}">
-                            <th:block th:text="#{menu.code}"></th:block>
-                        </label>
-                        <label for="menuSettingIssue" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingIssue" name="issue" value="true" th:checked="${projectView.menuSetting.issue == true}">
-                            <th:block th:text="#{menu.issue}"></th:block>
-                        </label>
-                        <label th:if="${vcs.pullRequests}" for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="${projectView.menuSetting.pullRequest == true}">
-                            <th:block th:text="#{menu.pullRequest}"></th:block>
-                        </label>
-                        <label for="menuSettingReview" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingReview" name="review" value="true" th:checked="${projectView.menuSetting.review == true}">
-                            <th:block th:text="#{menu.review}"></th:block>
-                        </label>
-                        <label for="menuSettingMilestone" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingMilestone" name="milestone" value="true" th:checked="${projectView.menuSetting.milestone == true}">
-                            <th:block th:text="#{milestone}"></th:block>
-                        </label>
-                        <label for="menuSettingBoard" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingBoard" name="board" value="true" th:checked="${projectView.menuSetting.board == true}">
-                            <th:block th:text="#{menu.board}"></th:block>
-                        </label>
-                        <label for="menuSettingWiki" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingWiki" name="wiki" value="true" th:checked="${projectView.menuSetting.wiki == true}">
-                            <th:block th:text="#{menu.wiki}"></th:block>
-                        </label>
+                    <!--/* 풀 리퀘스트 병합 방식(추가 항목 X-28, decisions.md D-41): 방식마다 허용과 기본이 짝을 이루므로 표이다. 체크하지 않은 방식은 `false`로 보낸다 */-->
+                    <div class="setting-field" id="mergeMethodSettingPanel">
+                        <span class="setting-label" th:text="#{project.merge.title}"></span>
+                        <table class="setting-merge">
+                            <thead><tr><th th:text="#{project.merge.col.method}"></th><th th:text="#{project.merge.col.allow}"></th><th th:text="#{project.merge.col.default}"></th></tr></thead>
+                            <tbody>
+                                <tr th:each="m : ${ {{'allowMergeCommit', 'merge'}, {'allowSquashMerge', 'squash'}, {'allowRebaseMerge', 'rebase'}} }">
+                                    <td th:text="#{'project.merge.' + ${m[1]}}"></td>
+                                    <td>
+                                        <input type="checkbox" th:name="${m[0]}" value="true" class="form-check-input"
+                                               th:checked="${m[0] == 'allowMergeCommit' ? project.allowMergeCommit != false : (m[0] == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}">
+                                        <!--/* 요청 파라미터는 첫 값을 읽으므로 체크하면 `true`가 앞서도록 숨은 값은 체크박스 뒤에 둔다 */-->
+                                        <input type="hidden" th:name="${m[0]}" value="false">
+                                    </td>
+                                    <td><input name="defaultMergeMethod" type="radio" class="form-check-input" th:id="'defaultMergeMethod-' + ${m[1]}" th:value="${m[1]}" th:checked="${project.defaultMergeMethodOrFirst().code == m[1]}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <span class="setting-help" th:text="#{project.merge.description}"></span>
+                    </div>
+
+                    <div class="setting-field" id="reviewerCountSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
+                        <!--/* 새 커밋이 올라오면 오래된 승인을 해제할지(추가 항목 X-12, decisions.md D-35 5번). v1.6은 항상 해제했으므로 기본은 켬이다 */-->
+                        <span class="setting-label" th:text="#{project.reviewer.dismiss.stale}"></span>
+                        <div class="setting-seg">
+                            <label><input name="isDismissingStaleApprovals" type="radio" class="form-check-input" id="dismissStaleEnable" value="true" th:checked="${project.isDismissingStaleApprovals != false}"><span th:text="#{project.reviewer.count.enable}"></span></label>
+                            <label><input name="isDismissingStaleApprovals" type="radio" class="form-check-input" id="dismissStaleDisable" value="false" th:checked="${project.isDismissingStaleApprovals == false}"><span th:text="#{project.reviewer.count.disable}"></span></label>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="box-wrap bottom">
+            <div class="setting-actions">
                 <button id="save" type="submit" class="ybtn ybtn-success" th:text="#{button.save}"></button>
             </div>
         </form>
 
-    </div>
-</div>
+    
+        <th:block th:replace="~{common/select2 :: select2}"></th:block>
 
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
-
-<script type="module" th:src="@{/assets/javascripts/esm/service/project.Setting.js}"></script>
-<script type="text/javascript">
-    $(document).ready(function(){
+<script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/project.Setting.js}]]);
+    $(function(){
         $yona.loadModule("project.Setting");
 
         $("#project-name").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
 
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
+
 </th:block>
 </html>

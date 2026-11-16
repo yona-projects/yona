@@ -10,15 +10,17 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::sshPage})}">
 <th:block th:fragment="sshPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{sshKey.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('ssh')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div th:if="${sshError != null}" class="alert alert-danger" th:text="#{${sshError}}"></div>
+        <div class="key-new-layout">
         <form id="ssh-create" method="post" th:action="@{/user/ssh}">
             <h4 th:text="#{sshKey.add}"></h4>
             <div class="mb-3">
@@ -37,6 +39,18 @@
                 <a th:href="@{/user/editform/ssh}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
             </div>
         </form>
+        <!--/* A-582: 키를 아직 만들지 않았거나 복사 방법을 모르는 사용자를 위한 안내(생성, 복사, 붙여넣기) */-->
+        <aside class="key-guide">
+            <h5 th:text="#{sshKey.guide.title}"></h5>
+            <ol>
+                <li><span th:text="#{sshKey.guide.step1}"></span><pre><code>ssh-keygen -t ed25519 -C "you@example.com"</code></pre></li>
+                <li><span th:text="#{sshKey.guide.step2}"></span><pre><code>cat ~/.ssh/id_ed25519.pub</code></pre><pre><code>pbcopy &lt; ~/.ssh/id_ed25519.pub</code></pre></li>
+                <li><span th:text="#{sshKey.guide.step3}"></span></li>
+            </ol>
+            <p class="key-guide-note" th:text="#{sshKey.guide.note}"></p>
+        </aside>
+        </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

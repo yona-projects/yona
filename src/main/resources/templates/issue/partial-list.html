@@ -14,7 +14,7 @@
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="@{${base + '/issue/' + issue.number}}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
-                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
+                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}, data-issue-state=${issue.state}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
                 <div th:attr="for='issue-' + ${issue.id}" class="issue-item-row">
                     <div class="title-wrap">
@@ -56,7 +56,7 @@
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
-                                <div th:if="${!child.draft or true}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+                                <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
                                     <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
                                     <a class="twoColumeModeTarget" th:href="@{|/${child.owner}/${child.project}/issue/${child.number}|}">
                                         <span class="item-name">
@@ -105,7 +105,7 @@
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="@{${base + '/issue/' + issue.number}}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
-                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
+                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}, data-issue-state=${issue.state}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
                 <div th:attr="for='issue-' + ${issue.id}" class="issue-item-row">
                     <div class="title-wrap">
@@ -147,7 +147,7 @@
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
-                                <div th:if="${!child.draft or true}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+                                <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
                                     <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
                                     <a class="twoColumeModeTarget" th:href="@{|/${child.owner}/${child.project}/issue/${child.number}|}">
                                         <span class="item-name">

@@ -6,7 +6,11 @@
   이식 원본: app/views/common/calendar.scala.html
   달력 위젯(vanilla-calendar-pro)과 래퍼 스크립트를 불러온다. 마감일 검증은 esm/dates.js가 하므로 moment는 불러오지 않는다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="calendar">
+<!--/* 달력 라이브러리와 래퍼 모듈이다. 레이아웃 head에서 한 번만 싣는다(D-136, A-476). 본문 교체로 늦게 들어오면 인라인 초기화보다 늦게 실행될 수 있다. */-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="library">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/vanilla-calendar-pro/index.js}"></script>
 <script type="module" th:src="@{/assets/javascripts/esm/ui/Calendar.js}"></script>
 </th:block>
+
+<!--/* 화면에서 부르는 자리는 그대로 두었다. 라이브러리는 레이아웃 head의 library 조각이 싣는다. */-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="calendar"></th:block>

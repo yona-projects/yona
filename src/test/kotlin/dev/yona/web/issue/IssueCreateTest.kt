@@ -188,6 +188,14 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `하위 이슈의 프로젝트 선택은 현재 프로젝트도 소유자 이름과 함께 보인다(A-567)`() {
+        val project = newProject()
+        val option = form(project, session = login(newUser())).selectFirst("select#targetProjectId option")!!
+        assertEquals("${project.owner} /", option.attr("data-owner"), "다른 프로젝트 선택지처럼 소유자 / 프로젝트 모양이어야 한다")
+        assertTrue(option.attr("data-avatar-url").isNotBlank(), "자리만 비워 두지 않고 프로젝트 로고를 넘긴다")
+    }
+
+    @Test
     fun `하위 이슈 선택이 접혀 있으면 프로젝트와 부모 선택은 비활성이다`() {
         val project = newProject()
         val doc = form(project, session = login(newUser()))

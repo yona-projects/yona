@@ -23,8 +23,8 @@ class OAuthAppFormWidthTest {
     @Test
     fun `OAuth 앱 폼의 입력란과 설명 칸은 tf-group-wide를 쓴다`() {
         val text = File("src/main/resources/templates/oauth/partial-apps.html").readText()
-        val fields = Regex("<(input|textarea)\\b[^>]*\\bid=\"(oauth-name|oauth-description|oauth-home|oauth-redirects|oauth-transfer-confirm)\"[^>]*>").findAll(text).toList()
-        assertEquals(5, fields.size, "폼 입력 요소 5개")
+        val fields = Regex("<(input|textarea)\\b[^>]*\\bid=\"(oauth-name|oauth-description|oauth-home|oauth-redirects)\"[^>]*>").findAll(text).toList()
+        assertEquals(4, fields.size, "폼 입력 요소 4개(앱 이전 확인 입력란은 A-584에서 확인 창으로 옮겼다)")
         val wrong = fields.filter { "tf-group-wide" !in it.value }.map { it.groupValues[2] }
         assertEquals(emptyList(), wrong, "tf-group-wide가 없는 입력 요소")
     }

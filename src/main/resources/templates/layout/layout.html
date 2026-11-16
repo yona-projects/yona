@@ -39,17 +39,12 @@
 <link rel='stylesheet' th:href="@{/assets/javascripts/lib/nprogress/nprogress.css}"/>
 <link rel="stylesheet" th:href="@{/assets/javascripts/lib/viewerjs/viewer.css}" />
 <script type="text/javascript" th:src="@{/assets/javascripts/yona-layout.js}"></script>
+<th:block th:replace="~{common/select2 :: library}"></th:block>
+<th:block th:replace="~{common/calendar :: library}"></th:block>
 <script type="text/javascript" th:inline="javascript">
         window.parent.document.title = window.document.title;
         window.parent.history.replaceState('', window.document.title, window.location.href);
 
-        var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
-
-        if (window.parent === window) {
-            if (shallWeOpenLeftNavigation === "true" && ![(${currentUser.anonymous})]) {
-                window.location.href = [[@{/user/sidebar}]] + "?path=" + encodeURIComponent(window.location.pathname + window.location.search) + "&hash=" + window.location.hash.replace('#','');
-            }
-        }
 
 </script>
 </head>
@@ -96,23 +91,6 @@
                 $that.viewer();
             });
 
-            if (window.parent === window) {
-                $(".pin > .yobicon-arrow-right").show();
-            }
-
-            $(".pin").on("click", function () {
-                if (window.parent === window) {
-                    localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                    window.location.href = [[@{/user/sidebar}]] + "?path=" + encodeURIComponent(window.location.pathname + window.location.search) + "&hash=" + window.location.hash.replace('#','');
-                } else {
-                    localStorage.setItem('shallWeOpenLeftNavigation', "false");
-                    window.parent.location = window.location.href;
-                }
-            });
-
-            if ($("div#sidebar.sidebar", window.parent.document).css("display") === "block") {
-                $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
-            }
         });
     </script>
 

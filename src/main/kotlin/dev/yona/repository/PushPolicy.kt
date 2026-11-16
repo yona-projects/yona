@@ -35,9 +35,11 @@ class PushPolicy(
      *
      * @param vcsTag 지표와 감사에 쓰는 종류 이름(`git`, `hg`)
      * @param unverifiedCommits 서명 커밋을 요구하는 규칙이 있을 때 이번 푸시가 더하는 커밋 가운데 Verified 서명이 아닌 것의 (짧은 번호, 이유 코드) 목록을 구한다
+     * @param rootFileChanged 이번 푸시가 더하는 커밋이 저장소 최상위 파일(이슈 템플릿)을 바꾸는지 판정한다. 종류가 판정을 지원하지 않으면 기본값(바꾸지 않음)이다
      */
     fun evaluate(
         project: Project, sender: User?, vcsTag: String, updates: List<RefUpdate>,
+        rootFileChanged: (RefUpdate, String) -> Boolean = { _, _ -> false },
         unverifiedCommits: (RefUpdate) -> List<Pair<String, String>>
     ): List<PushRejection> {
         val rejections = mutableListOf<PushRejection>()
@@ -48,6 +50,11 @@ class PushPolicy(
                 continue
             }
             if (!ref.startsWith(HEADS)) continue
+            // 이슈 템플릿은 프로젝트 프로젝트 관리자와 사이트 관리자만 바꾼다(A-565). 보호 규칙의 바이패스와 무관하고 브랜치를 가리지 않는다
+            if (update.type != RefUpdateType.DELETE && !accessControl.canChangeIssueTemplate(sender, project) && rootFileChanged(update, ISSUE_TEMPLATE)) {
+                rejections += reject(project, vcsTag, update, "$ISSUE_TEMPLATE can be changed only by a project manager or a site administrator", "issue_template")
+                continue
+            }
             // 맞는 활성 규칙 묶음마다 따지고, 우회하지 못하는 규칙 묶음이 막으면 거부한다. 우회는 규칙 묶음마다 판정한다(바이패스를 허용한 규칙 묶음만 우회)
             val violated = project.rulesetsFor(ref).mapNotNull { rule -> rule.pushViolation(update.type)?.let { rule to it } }
                 .filterNot { (rule, _) -> accessControl.canBypass(sender, project, listOf(rule)) }
@@ -101,6 +108,9 @@ class PushPolicy(
 
     private companion object {
         const val HEADS = "refs/heads/"
+
+        /** 소유자만 바꿀 수 있는 저장소 최상위 파일이다. */
+        const val ISSUE_TEMPLATE = "ISSUE_TEMPLATE.md"
 
         /** 서명 검사에서 거부 메시지에 늘어놓을 커밋 수의 상한이다. */
         const val MAX_LISTED_UNVERIFIED = 5

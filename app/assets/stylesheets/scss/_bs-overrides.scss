@@ -53,11 +53,6 @@ legend {
   }
 }
 
-.card-body-small {
-  padding: 9px;
-  border-radius: 3px;
-}
-
 // 플러그인(jquery.elevator)이 쓰는 `align-bottom`이 BS5의 유틸리티(`vertical-align: bottom !important`)와 겹친다.
 .jq-elevator.align-bottom {
   vertical-align: baseline !important;

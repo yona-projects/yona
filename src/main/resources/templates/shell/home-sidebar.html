@@ -1,0 +1,7 @@
+<!--/*
+  프로젝트 밖(홈, 내 이슈, 내 파일, 프로젝트 목록, 그룹 목록) 사이드바 조각이다(D-141).
+  항목과 보이는 조건은 ShellNav.home이 정한다. 매개변수: active(활성 항목 이름: projects, organizations, myIssues, notifications, myFiles)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar(active)" th:with="shellMenu=${@shellNavs.home()}">
+<th:block th:replace="~{shell/sidebar :: sidebar(${shellMenu}, #{menu.home}, 'shellSidebar', ${active})}"></th:block>
+</th:block>

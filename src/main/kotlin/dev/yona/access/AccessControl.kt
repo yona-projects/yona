@@ -273,6 +273,14 @@ class AccessControl(
     fun canBypass(user: User?, project: Project, rulesets: List<dev.yona.domain.project.Ruleset> = emptyList()): Boolean =
         user != null && rulesets.all { it.bypassAdmins == true } && (isSiteManager(user) || isProjectManager(user, project))
 
+    /**
+     * 저장소의 `ISSUE_TEMPLATE.md`를 바꿀 수 있는지이다(추가 보안 정책 A-565, R-167). 프로젝트 관리자와 사이트 관리자만 바꾼다.
+     * 프로젝트 관리자는 프로젝트 소유자 역할을 하는 사람이고 몇 명이든 둘 수 있다. 주소의 소유자 아이디와 일치하는 사용자와 조직 프로젝트의
+     * 조직 관리자도 포함한다. 구성원과 외부인은 바꾸지 못한다. 온라인 편집과 Git 푸시가 같은 기준을 쓴다.
+     */
+    fun canChangeIssueTemplate(user: User?, project: Project): Boolean =
+        user != null && (isSiteManager(user) || isProjectManager(user, project) || project.isOwner(user) || isOrganizationAdmin(project.organization, user))
+
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {
         val userId = user?.id ?: return false

@@ -65,8 +65,6 @@ interface ApiTokenRepository : JpaRepository<ApiToken, Long> {
 
     fun countByUserId(userId: Long): Long
 
-    fun findByUserIdAndName(userId: Long, name: String): List<ApiToken>
-
     fun existsByUserIdAndIsLegacyTrue(userId: Long): Boolean
 
     /** 이관하지 않은 토큰 가운데 마지막 사용(없으면 만든 시각)이 [cutoff]보다 오래된 것을 지운다. 지운 개수를 돌려준다. */

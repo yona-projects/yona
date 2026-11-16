@@ -11,9 +11,10 @@
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::listPage})}">
 <th:block th:fragment="listPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}, urlToList=${#paths.project(projectView.project.owner, projectView.project.name) + '/milestones'}">
 <link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'MILESTONE')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="tab-wrap">
             <div th:if="${canCreate}" class="float-end btns">
                 <a th:href="@{${base + '/newMilestoneForm'}}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
@@ -38,8 +39,9 @@
         </div>
 
         <th:block th:unless="${rows.isEmpty()}">
-        <div class="filter-wrap milestone">
-            <th:block th:if="${rows.size() > 1}">
+        <!--/* A-519: 정렬과 검색은 마일스톤이 둘 이상일 때만 있으므로, 하나뿐일 때 높이 30px의 빈 상자가 탭 줄과 목록 사이에 남지 않게 상자째 그린다. */-->
+        <div class="filter-wrap milestone" th:if="${rows.size() > 1}">
+            <th:block>
             <div class="filters">
                 <th:block th:each="field : ${ {'dueDate', 'completionRate'} }">
                     <a th:if="${orderBy == field}" class="filter active"
@@ -142,10 +144,10 @@
             </div>
         </div>
         </th:block>
-    </div>
-</div>
-<script th:if="${projectView.menuSetting.milestone}" type="text/javascript" th:inline="javascript">
-    $(document).ready(function () {
+    
+        <script th:if="${projectView.menuSetting.milestone}" type="module" th:inline="javascript">
+    import { onPageLeave } from [[@{/assets/javascripts/esm/core/page.js}]];
+    $(function () {
         // search by keyword
         $(".textbox").on("keyup", function() {
             var value = $(this).val().toLowerCase().trim();
@@ -156,7 +158,12 @@
         yona.ShortcutKey.setKeymapLink({
             "N": /*[[@{${base + '/newMilestoneForm'}}]]*/ ""
         });
+        // 사이드바 이동으로 이 화면을 떠나면 N 단축키를 푼다(값이 비면 setKeymapLink가 해제한다)
+        onPageLeave(function () { yona.ShortcutKey.setKeymapLink({ "N": "" }); });
     });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
 </th:block>
 </html>

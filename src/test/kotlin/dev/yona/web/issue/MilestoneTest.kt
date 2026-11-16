@@ -133,6 +133,18 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `마일스톤이 하나뿐이면 비어 있는 필터 상자를 두지 않고 둘 이상이면 정렬과 검색을 둔다(A-519)`() {
+        val project = newProject()
+        newMilestone(project, "하나", dueDate = daysFromNow(5))
+        val one = page("${base(project)}/milestones")
+        assertNull(one.selectFirst(".filter-wrap.milestone"), "하나뿐이면 필터 상자(높이 30px의 빈 칸)가 없어야 한다")
+        newMilestone(project, "둘", dueDate = daysFromNow(9))
+        val two = page("${base(project)}/milestones")
+        assertNotNull(two.selectFirst(".filter-wrap.milestone .filters"), "둘 이상이면 정렬이 있다")
+        assertNotNull(two.selectFirst(".filter-wrap.milestone .search-bar"), "둘 이상이면 검색이 있다")
+    }
+
+    @Test
     fun `마감일이 없는 마일스톤은 먼저 나오고 내림차순이면 나중에 나온다`() {
         val project = newProject()
         newMilestone(project, "기한없음")
@@ -469,6 +481,43 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `보기 화면은 왼쪽 본문 머리에 제목과 진행률을, 이슈 탭 줄 오른쪽 끝에 검색바를 두고 설명과 단추는 오른쪽 열에 둔다(A-528)`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1", dueDate = daysFromNow(2), contents = "설명")
+        newIssue(project, m, State.OPEN, 1)
+        entityManager.flush()
+        val doc = page("${base(project)}/milestone/${m.id}", login(manager(project)))
+        val row = doc.selectFirst(".milesion-wrap > .row")!!
+        val left = row.selectFirst("> .col-lg-9")!!
+        val head = left.selectFirst("> .milestone-head")!!
+        assertNotNull(head.selectFirst("h4 a.title"), "제목"); assertNotNull(head.selectFirst(".progress"), "진행률")
+        assertNull(head.selectFirst("input.textbox"), "머리에는 검색바가 없다(탭 줄로 옮겼다)")
+        val issues = left.selectFirst("> #issues")!!
+        assertTrue(left.children().indexOf(head) < left.children().indexOf(issues), "머리가 이슈 탭과 필터보다 위이다")
+        val bar = issues.selectFirst("> .milestone-tabbar")!!
+        assertNotNull(bar.selectFirst("> ul.nav-tabs"), "탭"); assertNotNull(bar.selectFirst("> .milestone-search input.textbox[data-toggle=item-search]"), "탭 줄 안의 검색바")
+        assertTrue(bar.children().last()!!.hasClass("milestone-search"), "검색바는 탭 줄의 오른쪽 끝(마지막)이다")
+        val info = row.selectFirst("> .col-lg-3.milestone-info")!!
+        assertNotNull(info.selectFirst(".milestone-desc")); assertNotNull(info.selectFirst(".actrow a.ybtn"), "수정 같은 단추는 오른쪽 열에 있다")
+        assertEquals("${base(project)}/milestones", info.selectFirst("> a.milestone-back")?.attr("href"), "목록으로 가는 글자 링크는 설명 위에 따로 있다(A-530)")
+        assertNull(info.selectFirst("h4"), "오른쪽 열에는 제목이 없다")
+    }
+
+    @Test
+    fun `동작 단추는 수정, 종료(또는 다시 열기), 삭제 순의 세로 묶음이고 위험한 삭제가 맨 아래이다(A-530)`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1")
+        val me = login(manager(project))
+        val open = page("${base(project)}/milestone/${m.id}", me).selectFirst(".milestone-info .milestone-actions")!!
+        assertEquals(listOf("수정", "종료", "삭제"), open.children().map { it.attr("data-action") }, "열린 마일스톤의 단추 순서: ${open.children().map { it.text() }}")
+        assertTrue(open.children().all { it.hasClass("ybtn") }, "모두 같은 단추 모양")
+        assertTrue(open.children().last()!!.hasClass("ybtn-danger"), "삭제는 위험 색이고 맨 아래이다")
+        val closed = newMilestone(project, "v0", State.CLOSED)
+        val c = page("${base(project)}/milestone/${closed.id}", me).selectFirst(".milestone-info .milestone-actions")!!
+        assertEquals(listOf("수정", "다시열기", "삭제"), c.children().map { it.attr("data-action") })
+    }
+
+    @Test
     fun `설명이 없으면 빈 칸이다`() {
         val project = newProject()
         val m = newMilestone(project, "v1")
@@ -526,14 +575,31 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일괄 변경의 마일스톤 선택지는 진행 중인(열린) 마일스톤만이다`() {
+        val project = newProject()
+        val current = newMilestone(project, "진행중", dueDate = daysFromNow(3))
+        newMilestone(project, "끝난것", State.CLOSED, daysFromNow(-3))
+        newIssue(project, current, State.OPEN, 1)
+        entityManager.flush()
+        val me = login(manager(project))
+        // 마일스톤 보기와 이슈 목록 모두 같은 선택지를 쓴다.
+        for (path in listOf("${base(project)}/milestone/${current.id}", "${base(project)}/issues")) {
+            val titles = page(path, me).select("#milestone ul.mass-update-list li[data-value] a").map { it.text() }
+            assertEquals(2, titles.size, "$path 선택지는 마일스톤 없음과 진행중뿐이다: $titles")
+            assertEquals("진행중", titles.last(), path)
+            assertTrue("끝난것" !in titles, "$path 에 닫힌 마일스톤이 보인다: $titles")
+        }
+    }
+
+    @Test
     fun `보기 화면에는 일괄 변경 막대와 이슈 검색 상자가 있다`() {
         val project = newProject()
         val m = newMilestone(project, "v1")
         newIssue(project, m, State.OPEN, 1)
         val doc = page("${base(project)}/milestone/${m.id}")
         assertTrue(doc.select("#issues .mass-update-wrap form#mass-update-form").isNotEmpty())
-        assertEquals("search at current milestone", doc.selectFirst("#issues input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
-        assertEquals("issue-item", doc.selectFirst("#issues input.textbox")!!.attr("data-items"))
-        assertTrue(doc.select("script").any { "milestone.View" in it.data() && "\"${m.id}\"" in it.data() })
+        assertEquals("search at current milestone", doc.selectFirst(".milestone-tabbar input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
+        assertEquals("issue-item", doc.selectFirst(".milestone-tabbar input.textbox")!!.attr("data-items"))
+        assertTrue(doc.select("script").any { "milestone.View" in it.data() })
     }
 }

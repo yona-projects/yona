@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -46,21 +48,23 @@ class LayoutParityTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `익명 방문자의 사용자 메뉴에서 프로필 링크는 루트이다 (로그인 ID가 빈 문자열)`() {
+    fun `익명 방문자에게는 사용자 드롭다운도 전환 단추도 없다 (옛 패널 머리의 프로필 링크는 아바타 드롭다운으로 합쳤다, D-141)`() {
         val doc = Jsoup.parse(home().contentAsString)
-        val profile = doc.select(".user-menu a").firstOrNull { it.text().trim() == "Profile" }
-        assertNotNull(profile)
-        assertEquals("/", profile.attr("href"))
+        assertNull(doc.selectFirst(".shell-user-dropdown"))
+        assertNull(doc.selectFirst("[data-shell-switcher]"))
+        assertTrue(doc.select(".user-menu a").none { it.text().trim() == "Profile" })
     }
 
     @Test
-    fun `사이드바 자동 열기 조건은 익명이면 !true이고 로그인하면 !false이다`() {
-        assertTrue(home().contentAsString.contains("shallWeOpenLeftNavigation === \"true\" && !true)"), "익명")
+    fun `로그인한 사용자의 상단 바에는 전환 단추가 있고 사이드바 자동 열기 스크립트는 없다 (D-141)`() {
+        assertFalse(home().contentAsString.contains("shallWeOpenLeftNavigation"), "익명")
         val salt = LegacyPasswordHasher.generateSalt()
         users.save(User(loginId = "lay1", name = "lay1", email = "lay1@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
         val session = MockHttpSession()
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "lay1").param("password", "1234"))
-        assertTrue(home(session).contentAsString.contains("shallWeOpenLeftNavigation === \"true\" && !false)"), "로그인")
+        val doc = Jsoup.parse(home(session).contentAsString)
+        assertNotNull(doc.selectFirst("[data-shell-switcher]"), "로그인")
+        assertFalse(doc.html().contains("shallWeOpenLeftNavigation"))
     }
 
     @Test

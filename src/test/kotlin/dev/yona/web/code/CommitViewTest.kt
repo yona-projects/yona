@@ -109,10 +109,11 @@ class CommitViewTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/commit/$second")
         assertEquals("@$second", doc.selectFirst(".commitId")!!.text())
         assertEquals("둘째 커밋", doc.selectFirst(".commitMsg.short")!!.text())
-        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap > ul.nav-tabs li").map { it.text() })
         assertTrue(doc.select(".diff-body").first()!!.text().contains("two"))
         assertNotNull(doc.selectFirst("#watch-button"))
         assertTrue(page("/${p.owner}/${p.name}/commit/$first").selectFirst("pre.commitMsg.desc")!!.text().contains("상세 설명"))
+        assertNull(doc.selectFirst(".code-browse-wrap > ul.nav-tabs"), "커밋 상세에는 탭 줄이 없다(A-516)")
+        assertTrue(doc.selectFirst(".code-browse-wrap a.code-back-link")!!.attr("href").startsWith("/${p.owner}/${p.name}/commits"), "커밋 이력으로 되돌아가는 링크")
     }
 
     @Test
@@ -208,12 +209,44 @@ class CommitViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비교 화면은 코드로 돌아가는 링크와 변경 요약(파일 수, 추가와 삭제 줄)을 보인다(A-572)`() {
+        val p = project()
+        val (first, second) = twoCommits(p)
+        val doc = page("/${p.owner}/${p.name}/compare/$first..$second")
+        assertEquals("/${p.owner}/${p.name}/code", doc.selectFirst(".compare-back a.code-back-link")!!.attr("href"))
+        assertEquals("1 changed files", doc.selectFirst(".compare-summary .summary-files")!!.text())
+        assertEquals("+1", doc.selectFirst(".compare-summary .summary-added")!!.text())
+        assertEquals("−0", doc.selectFirst(".compare-summary .summary-deleted")!!.text())
+        // 변경이 없는 비교에는 요약이 없다
+        assertTrue(page("/${p.owner}/${p.name}/compare/$second..$second").select(".compare-summary").isEmpty())
+    }
+
+    @Test
+    fun `비교와 커밋 화면은 변경 파일 트리 모듈을 diff 모듈 뒤에 부른다(A-571)`() {
+        val p = project()
+        val (first, second) = twoCommits(p)
+        for (path in listOf("/${p.owner}/${p.name}/compare/$first..$second", "/${p.owner}/${p.name}/commit/$second")) {
+            val doc = page(path)
+            val script = doc.select("script").joinToString("\n") { it.data() }
+            assertTrue(script.contains("\"code.Diff\"") && script.contains("loadModule(\"code.DiffTree\""), path)
+            assertTrue(script.indexOf("\"code.Diff\"") < script.indexOf("code.DiffTree"), "트리는 diff를 그리는 모듈 뒤에 부른다: $path")
+            assertTrue(doc.select("script[type=module]").any { it.attr("src").endsWith("code.DiffTree.js") }, path)
+        }
+    }
+
+    @Test
     fun `두 커밋을 비교하면 차이가 나오고 같으면 변경 없음 안내가 나온다`() {
         val p = project()
         val (first, second) = twoCommits(p)
         val doc = page("/${p.owner}/${p.name}/compare/$first..$second")
-        assertEquals("@$first..$second", doc.selectFirst(".commitId")!!.text())
+        // A-570: 긴 해시 두 개를 이어 붙인 한 줄이 아니라 비교하는 두 쪽을 이름과 짧은 번호로 나눠 보인다
+        assertEquals(first.take(7), doc.selectFirst(".compare-range .compare-from .compare-name")!!.text())
+        assertEquals(second.take(7), doc.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertTrue(doc.select(".compare-range .compare-from .compare-id").isEmpty(), "이름이 번호 자체이면 번호를 되풀이하지 않는다")
         assertTrue(doc.selectFirst(".diff-body")!!.text().contains("two"))
+        val named = page("/${p.owner}/${p.name}/compare/$first..master")
+        assertEquals("master", named.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertEquals(second.take(7), named.selectFirst(".compare-range .compare-to .compare-id")!!.text(), "브랜치나 태그 이름이면 가리키는 커밋 번호를 곁들인다")
         assertNotNull(page("/${p.owner}/${p.name}/compare/$second..$second").selectFirst(".alert"))
         mockMvc.perform(get("/${p.owner}/${p.name}/compare/${"0".repeat(40)}..$second")).andExpect(status().isNotFound)
     }

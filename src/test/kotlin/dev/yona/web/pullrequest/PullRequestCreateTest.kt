@@ -127,9 +127,9 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     fun `게스트 오류 화면은 프로젝트 홈 메뉴가 활성이다 (v1_6 BadRequest 오버로드는 PROJECT_HOME)`() {
         val s = setup()
         val doc = org.jsoup.Jsoup.parse(mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/newPullRequestForm").session(login(user()))).andExpect(status().isForbidden).andReturn().response.contentAsString)
-        val active = doc.select(".project-menu-nav li.active")
+        val active = doc.select("nav.shell-sidebar a.nav-link.active")
         assertEquals(1, active.size)
-        assertEquals("/${s.origin.owner}/${s.origin.name}", active.single().selectFirst("a")!!.attr("href"))
+        assertEquals("/${s.origin.owner}/${s.origin.name}", active.single().attr("href"))
     }
 
     @Test
@@ -200,6 +200,20 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         assertEquals("한 줄 요약", result.attr("data-pullrequest-title")); assertEquals("자세한 설명\n둘째 줄", result.attr("data-pullrequest-body"))
         assertEquals("한 줄 요약", result.selectFirst("tbody tr a.commitMsg.short")!!.text())
         assertTrue(result.selectFirst("tbody tr td.commit-id a")!!.attr("href").startsWith("/${s.fork.owner}/${s.fork.name}/commit/"))
+    }
+
+    @Test
+    fun `커밋이 없으면 커밋 탭은 변경이 아니라 커밋 내역이 없다고 알린다(A-568)`() {
+        val s = setup()
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequest/mergeResult?fromProjectId=${s.fork.id}&toProjectId=${s.origin.id}&fromBranch=refs/heads/master&toBranch=refs/heads/master", login(s.owner))
+        assertEquals("There are no commits.", doc.selectFirst("#mergeResult h5")!!.text())
+    }
+
+    @Test
+    fun `제목 입력란은 전체 폭 클래스를 달아 편집기와 폭이 같다(A-568)`() {
+        val s = withMemberOwner()
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        assertTrue(doc.selectFirst("input#title")!!.hasClass("w-100") && doc.selectFirst("input#title")!!.hasClass("pr-title"))
     }
 
     @Test

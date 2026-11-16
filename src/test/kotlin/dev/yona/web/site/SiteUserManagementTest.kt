@@ -109,8 +109,8 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     fun `사이트 관리자는 사용자 목록을 본다`() {
         val doc = userList(login(admin()))
         assertEquals("Site management", doc.selectFirst(".site-breadcrumb-inner h3")!!.text())
-        assertEquals(13, doc.select("ul.site-setting-nav li").size)
-        assertEquals("/sites/userList", doc.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
+        assertEquals(14, doc.select("nav.shell-sidebar a.nav-link").size)
+        assertEquals("/sites/userList", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     // --- 목록 ---
@@ -133,7 +133,7 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
         assertTrue(names(userList(session, "state" to "DELETED")).contains("@${deleted.loginId}"))
         assertTrue(names(userList(session, "state" to "SITE_ADMIN")).contains("@${me.loginId}"))
         assertEquals("LOCKED", userList(session, "state" to "LOCKED").selectFirst("form.float-end input[name=state]")!!.attr("value"))
-        assertEquals(listOf("ACTIVE", "LOCKED", "DELETED", "GUEST", "SITE_ADMIN").size, userList(session).select(".col-lg-10 > ul.nav-tabs > li").size)
+        assertEquals(listOf("ACTIVE", "LOCKED", "DELETED", "GUEST", "SITE_ADMIN").size, userList(session).select(".shell-main > ul.nav-tabs > li").size)
     }
 
     /** 사이트 관리자 탭은 관리자 행 번호가 아니라 사용자 번호로 기본 관리자를 뺀다 (R-52-6). v1.6은 행 번호 1을 뺐다. */

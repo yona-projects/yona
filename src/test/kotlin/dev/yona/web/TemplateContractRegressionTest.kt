@@ -95,14 +95,15 @@ class TemplateContractRegressionTest {
     @Test
     fun `LDAP와 OIDC 연결 확인 단추 옆에 저장한 설정으로 확인한다는 안내가 있다 (site-F16, 입력만 하고 눌러 저장 전 값이 확인된 줄 알았다)`() {
         val sso = template("site/sso.html")
-        assertEquals(2, Regex("#\\{site\\.sso\\.check\\.saved}").findAll(sso).count(), "LDAP와 OIDC 확인 단추 각각에 안내가 있어야 한다")
+        assertTrue("#{site.sso.ldap.check.help}" in sso && "#{site.sso.oidc.check.help}" in sso, "LDAP와 OIDC 확인 단추 각각에 저장한 설정으로 확인한다는 안내가 있어야 한다(A-594)")
     }
 
     @Test
-    fun `사이드바 고정과 복원은 현재 주소의 쿼리도 함께 넘긴다 (shell-F6, v1_6은 pathname만 넘겨 목록의 필터와 쪽이 사라졌다)`() {
+    fun `iframe 핀 사이드바로 들어가는 스크립트는 없어졌다 (shell-F6의 쿼리 유실 결함이 있던 코드, D-141로 전환 단추에 합쳤다)`() {
         val layout = template("layout/layout.html")
-        assertFalse(layout.contains("\"?path=\" + window.location.pathname"), "pathname만 넘긴다")
-        assertEquals(2, Regex("encodeURIComponent\\(window\\.location\\.pathname \\+ window\\.location\\.search\\)").findAll(layout).count())
+        assertFalse(layout.contains("shallWeOpenLeftNavigation"), "iframe 사이드바 기억 키를 읽거나 쓰는 코드가 남았다")
+        assertFalse(layout.contains("/user/sidebar"), "레이아웃이 iframe 사이드바 주소로 이동한다")
+        assertFalse(layout.contains(".pin"), "핀 처리기가 남았다")
     }
 
     @Test
@@ -121,7 +122,7 @@ class TemplateContractRegressionTest {
 
     @Test
     fun `웹훅 형식을 JSON으로 바꾸면 푸시 포함 체크는 상태 값(prop)으로 켜고 끈다 (project-F20, attr로 바꾸어 이미 눌러 본 뒤에는 체크가 꺼진 채 잠겼다)`() {
-        val hooks = template("project/webhooks.html")
+        val hooks = template("project/webhook-new.html")
         assertFalse(hooks.contains("attr('checked'"), "체크 속성은 처음 상태만 바꾸고 사용자가 누른 뒤에는 상태가 바뀌지 않는다")
         assertTrue(hooks.contains("prop('checked', true)") && hooks.contains("prop('checked', false)"), "체크 상태를 prop으로 바꾼다")
     }
@@ -129,8 +130,8 @@ class TemplateContractRegressionTest {
     @Test
     fun `코드 접근이 막힌 사용자에게는 코드와 풀 리퀘스트 단축키도 없다 (project-F6, v1_6은 탭만 숨기고 c, p 키는 권한 없음 화면으로 보냈다)`() {
         val menu = template("project/menu.html")
-        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.code and view\\.codeAccessible}\"\\]\\*/\\s*,\"C\"").containsMatchIn(menu), "코드 단축키가 코드 접근 권한을 보지 않는다")
-        assertTrue(Regex("th:if=\"\\$\\{view\\.menuSetting\\.pullRequest and view\\.vcs\\.pullRequests and view\\.codeAccessible}\"\\]\\*/\\s*,\"P\"").containsMatchIn(menu), "풀 리퀘스트 단축키가 코드 접근 권한을 보지 않는다")
+        // D-141: 단축키 목록은 사이드바 항목(ShellNav.project)에서 파생된다. 코드 접근과 메뉴 설정 조건은 ShellNavTest가 지킨다.
+        assertTrue(menu.contains("th:each=\"entry : \${menu.shortcuts()}\""), "단축키가 사이드바 항목에서 파생되지 않는다")
     }
 
     @Test
@@ -157,7 +158,7 @@ class TemplateContractRegressionTest {
 
     @Test
     fun `사이트 데이터 가져오기의 제출 단추에는 글자가 있다 (site-F13, v1_6은 value가 없어 브라우저 기본 글자로 그려졌다)`() {
-        assertTrue(template("site/data.html").contains("<input type=\"submit\" th:value=\"#{site.data.import}\">"))
+        assertTrue(template("site/data.html").contains("<button type=\"submit\" class=\"btn btn-outline-danger\" th:text=\"#{site.data.import}\"></button>"), "A-594에서 가져오기 단추를 글자가 있는 윤곽 단추로 바꿨다")
     }
 
     @Test

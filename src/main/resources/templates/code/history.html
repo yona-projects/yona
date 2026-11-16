@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::historyPage})}">
 <th:block th:fragment="historyPage" th:with="project=${projectView.project}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'CODE')}"></th:block>
+        <div class="shell-main">
         <div class="bubble-wrap dark-gray repo-wrap">
             <div class="code-browse-wrap">
                 <div id="breadcrumbs" class="code-breadcrumb-wrap" th:if="${hasPath}">
@@ -32,12 +33,7 @@
                     </th:block>
                 </select>
 
-                <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                    <li class="nav-item"><a th:href="${filesTabUrl}" th:text="#{code.files}" class="nav-link"></a></li>
-                    <li class="nav-item"><a th:href="${commitsTabUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
-                    <li th:if="${git}" class="nav-item"><a th:href="${branchesTabUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
-                    <li th:if="${git}" class="nav-item"><a th:href="${tagsTabUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
-                </ul>
+                <div class="mb-3"><a class="code-back-link" th:href="${filesTabUrl}">&larr; <th:block th:text="#{code.back.files}"></th:block></a></div>
                 </th:block>
 
                 <div id="history" class="commit-wrap">
@@ -93,6 +89,8 @@
                 <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn float-start" th:text="#{code.older}"></a>
             </div>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 

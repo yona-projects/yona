@@ -287,6 +287,17 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `열린 이슈가 없는 라벨의 개수는 흐리게 보이도록 구분한다(A-566)`() {
+        val p = project()
+        val kind = labelCategories.save(IssueLabelCategory(project = p, name = "종류", isExclusive = false))
+        val bug = issueLabels.save(IssueLabel(project = p, category = kind, name = "버그", color = "#f00"))
+        issueLabels.save(IssueLabel(project = p, category = kind, name = "기능", color = "#0f0"))
+        issue(p, "버그1", labels = setOf(bug))
+        val rows = home(p, "dashboard").select("dl.overview-label dd .row")
+        assertEquals(listOf("기능" to true, "버그" to false), rows.map { it.selectFirst("a span")!!.text().trim() to it.selectFirst("div.num")!!.hasClass("is-zero") })
+    }
+
+    @Test
     fun `풀 리퀘스트 영역은 최근 받은 열린 요청 10개와 더 보기 링크를 보인다`() {
         val p = project(); val w = user()
         pullRequest(p, "오래된 요청", w, created = 1_800_000_000_000L); pullRequest(p, "닫힌 요청", w, state = State.CLOSED); pullRequest(p, "최근 요청", w, created = 1_800_000_100_000L)

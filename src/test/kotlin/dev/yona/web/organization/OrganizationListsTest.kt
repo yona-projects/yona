@@ -274,7 +274,7 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     fun `조직 메뉴의 Issue 탭이 활성이고 빠른 검색은 로그인했을 때만 세 항목이 더 나온다`() {
         val org = newOrg(); orgProject(org)
         val anonymous = page("/organizations/${org.name}/issues")
-        assertEquals("/organizations/${org.name}/issues", anonymous.selectFirst(".project-menu-nav li.active a")!!.attr("href"))
+        assertEquals("/organizations/${org.name}/issues", anonymous.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         assertEquals(1, anonymous.select(".left-menu ul.lst-stacked li").size)
         assertEquals(4, page("/organizations/${org.name}/issues", login(newUser())).select(".left-menu ul.lst-stacked li").size)
     }
@@ -383,6 +383,6 @@ class OrganizationListsTest : AbstractIntegrationTest() {
         val org = newOrg(); orgProject(org)
         val doc = page("/organizations/${org.name}/pullrequests")
         assertEquals("No pull requests have been received", doc.selectFirst(".error-wrap p")!!.text())
-        assertEquals("/organizations/${org.name}/pullrequests", doc.selectFirst(".project-menu-nav li.active a")!!.attr("href"))
+        assertEquals("/organizations/${org.name}/pullrequests", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 }

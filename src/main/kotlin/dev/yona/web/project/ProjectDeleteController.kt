@@ -38,15 +38,6 @@ class ProjectDeleteController(
     private val currentUserProvider: CurrentUserProvider
 ) {
 
-    @GetMapping("/{user}/{project}/deleteform")
-    @IsAllowed(Operation.DELETE)
-    fun form(@PathVariable("user") ownerId: String, @PathVariable("project") projectName: String): ModelAndView {
-        val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound("error.notfound")
-        return ModelAndView("project/delete")
-            .addObject("title", "title.projectDelete")
-            .addObject("projectView", views.of(project))
-    }
-
     @DeleteMapping("/{user}/{project}/delete")
     @IsAllowed(Operation.DELETE)
     @Transactional

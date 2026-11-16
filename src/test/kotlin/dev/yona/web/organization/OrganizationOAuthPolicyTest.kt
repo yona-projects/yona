@@ -80,7 +80,7 @@ class OrganizationOAuthPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `설정 탭에 OAuth 앱 정책 탭이 있고 기본은 제한 없음이다`() {
         val x = Setup(); val s = login(x.admin); val doc = page(s, x.path)
-        assertTrue(doc.select("ul.nav-tabs a[href\$=/oauth-policy]").single().hasClass("active"))
+        assertTrue(doc.select("nav.shell-sidebar a.nav-link[href\$=/oauth-policy]").single().hasClass("active"))
         assertEquals("false", doc.selectFirst("form#oauth-policy-form input[name=restricted][checked]")?.attr("value") ?: "false")
         assertNotNull(doc.selectFirst("form#oauth-policy-form input[name=restricted][value=true]")); assertNotNull(doc.selectFirst("form#oauth-policy-form input[name=restricted][value=false]"))
     }
@@ -98,7 +98,7 @@ class OrganizationOAuthPolicyTest : AbstractIntegrationTest() {
     @Test
     fun `구성원이 승인한 앱이 목록에 나오고 승인과 거부와 되돌리기를 할 수 있다`() {
         val x = Setup(); val s = login(x.admin)
-        val row = page(s, x.path).select("table#policy-apps tr.policy-app-row").single()
+        val row = page(s, x.path).select("ul#policy-apps li.policy-app-row").single()
         assertTrue(row.text().contains("정책 앱")); assertNotNull(row.selectFirst("form[action\$=/apps/${x.app.id}] button[value=APPROVED]"))
         mockMvc.perform(post("${x.path}/apps/${x.app.id}").session(s).param("state", "APPROVED")).andExpect(status().is3xxRedirection)
         policy.setRestricted(x.org, true, x.admin)

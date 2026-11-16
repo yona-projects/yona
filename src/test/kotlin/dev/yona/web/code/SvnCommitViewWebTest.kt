@@ -137,7 +137,7 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         assertEquals("둘째 커밋\n설명 줄", doc.selectFirst("pre.commitMsg")!!.wholeText())
         val patch = doc.selectFirst("#commit[data-commit-origin=true]")!!.wholeText()
         assertTrue(patch.contains("+line2"), patch)
-        assertEquals(listOf("Files", "Commit"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
+        assertNull(doc.selectFirst(".code-browse-wrap > ul.nav-tabs"), "Subversion 커밋 상세도 탭 줄이 없다(A-516)"); assertNotNull(doc.selectFirst(".code-browse-wrap a.code-back-link"))
         assertNotNull(dev.id)
     }
 
@@ -314,12 +314,50 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     // --- 비교 ---
 
     @Test
+    fun `커밋 화면 맨 위는 되돌아가기 링크와 브랜치 선택이 한 줄에 있다(A-570)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        val doc = page("/${p.owner}/${p.name}/commit/1")
+        assertNotNull(doc.selectFirst(".code-head-row > a.code-back-link"))
+        assertNotNull(doc.selectFirst(".code-head-row > #branches"))
+        // 작성자 줄의 리비전 번호는 같은 줄 오른쪽 끝에 놓인다
+        assertNotNull(doc.selectFirst("p.commitInfo.d-flex > strong.commitId.ms-auto"))
+    }
+
+    @Test
+    fun `비교 화면은 코드로 돌아가는 링크와 변경 요약을 보인다(A-572)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n", "b.txt" to "x\ny\n"))
+        val doc = page("/${p.owner}/${p.name}/compare/1..2")
+        assertEquals("/${p.owner}/${p.name}/code", doc.selectFirst(".compare-back a.code-back-link")!!.attr("href"))
+        assertEquals("2 changed files", doc.selectFirst(".compare-summary .summary-files")!!.text())
+        assertEquals("+3", doc.selectFirst(".compare-summary .summary-added")!!.text())
+        assertEquals("−0", doc.selectFirst(".compare-summary .summary-deleted")!!.text())
+    }
+
+    @Test
+    fun `커밋과 비교 화면은 변경 파일 트리 모듈을 SvnDiff 모듈 뒤에 부른다(A-571)`() {
+        val p = project()
+        commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
+        commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n", "b/c.txt" to "x\n"))
+        for (path in listOf("/${p.owner}/${p.name}/commit/2", "/${p.owner}/${p.name}/compare/1..2")) {
+            val doc = page(path)
+            val script = doc.select("script").joinToString("\n") { it.data() }
+            assertTrue(script.contains("code.SvnDiff") && script.contains("loadModule(\"code.DiffTree\""), path)
+            assertTrue(script.indexOf("code.SvnDiff") < script.indexOf("code.DiffTree"), path)
+        }
+    }
+
+    @Test
     fun `두 리비전을 비교하면 패치를 보여 준다`() {
         val p = project()
         commit(p, "dev", "a", mapOf("a.txt" to "1\n"))
         commit(p, "dev", "b", mapOf("a.txt" to "1\n2\n"))
         val doc = page("/${p.owner}/${p.name}/compare/1..2")
-        assertEquals("@1..2", doc.selectFirst("strong.commitId")!!.text())
+        assertEquals("r1", doc.selectFirst(".compare-range .compare-from .compare-name")!!.text())
+        assertEquals("r2", doc.selectFirst(".compare-range .compare-to .compare-name")!!.text())
+        assertNotNull(doc.selectFirst("#commit.diff-body.discommentable"), "줄 댓글이 없는 비교 화면은 diff 표 왼쪽 자리를 비운다(A-570)")
         assertTrue(doc.selectFirst("#commit[data-commit-origin=true]")!!.wholeText().contains("+2"))
         val script = doc.select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
         assertTrue(script.contains("code.SvnDiff") && script.contains("\"sParentCommitId\"") && script.contains("sTplFileURL"), script)

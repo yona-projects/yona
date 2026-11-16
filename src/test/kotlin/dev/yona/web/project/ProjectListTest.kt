@@ -99,13 +99,19 @@ class ProjectListTest : AbstractIntegrationTest() {
     // --- 기본 화면 ---
 
     @Test
-    fun `제목과 탭이 있다`() {
+    fun `제목은 사이드바 옆 내용 칸 안에 있고 화면 위에 걸치는 제목 띠가 없다(A-566)`() {
+        val doc = page()
+        assertEquals("PUBLIC Project list", doc.selectFirst(".shell-main > .title_area h3")!!.text().trim())
+        assertTrue(doc.select(".site-breadcrumb-outer").isEmpty(), "내용 칸 밖에서 화면 왼쪽 끝에 붙던 제목 띠는 없다")
+    }
+
+    @Test
+    fun `제목이 있고 목록 탭은 사이드바로 옮겨 갔다(D-141)`() {
         val doc = page()
         assertEquals("Project list", doc.title())
-        val tabs = doc.select(".title_area ul.nav-tabs li a")
-        assertEquals(listOf("/projects", "/orgs"), tabs.map { it.attr("href") })
-        assertEquals(listOf("PUBLIC Project list", "Group List"), tabs.map { it.text() })
-        assertTrue(doc.selectFirst(".title_area ul.nav-tabs li a")!!.hasClass("active"))
+        assertEquals("PUBLIC Project list", doc.selectFirst(".title_area h3")!!.text().trim())
+        assertEquals(listOf("/projects", "/orgs"), doc.select("nav.shell-sidebar a.nav-link").map { it.attr("href") }.take(2))
+        assertTrue(doc.select(".title_area ul.nav-tabs").isEmpty(), "사이드바와 중복인 탭 줄이 없어야 한다")
         assertTrue(doc.select("header.gnb-nav li.active, .gnb-nav li.active").isNotEmpty(), "상단 메뉴의 목록이 활성이다")
     }
 
@@ -230,7 +236,7 @@ class ProjectListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `로고가 있으면 이미지를 보여 주고 없으면 비운다`() {
+    fun `올린 로고가 있으면 그 이미지를, 올리지 않았으면 기본 로고를 보여 준다(A-494)`() {
         val withLogo = newProject(name = "logo-yes")
         val file = attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = withLogo.id!!, name = "l.png"))
         newProject(name = "logo-no")
@@ -238,7 +244,7 @@ class ProjectListTest : AbstractIntegrationTest() {
         val yes = items.first { it.selectFirst(".header a.black")!!.text() == "logo-yes" }
         val no = items.first { it.selectFirst(".header a.black")!!.text() == "logo-no" }
         assertEquals("/files/${file.id}", yes.selectFirst(".owner-avatar-wrap img")?.attr("src"))
-        assertNull(no.selectFirst(".owner-avatar-wrap img"))
+        assertEquals("/assets/images/project_default_logo.png", no.selectFirst(".owner-avatar-wrap img")?.attr("src"), "올리지 않았을 때만 기본 로고이다")
     }
 
     @Test

@@ -10,7 +10,7 @@ updated: 2026-10-23
 | 주소 | 권한 | 설명 |
 |---|---|---|
 | `POST /:user/:project/commit/:commitId/comments` | 커밋 코멘트 만들기 | 커밋에 단다. 완료하면 `…/commit/:id#comment-번호`로 303 |
-| `POST /:user/:project/pullRequest/:pullRequestId/comments?commitId=` | 리뷰 댓글 만들기 | 풀 리퀘스트에 단다. `pullRequestId`는 번호가 아니라 DB 번호이다 |
+| `POST /:user/:project/pullRequest/:pullRequestId/comments?commitId=` | 리뷰 댓글 만들기 | 풀 리퀘스트에 단다. `pullRequestId`는 번호가 아니라 DB 번호이고, 그 풀 리퀘스트가 경로의 프로젝트(받는 프로젝트)에 속해야 한다(아니면 `404`, 다른 프로젝트 경로로 댓글을 다는 것을 막았다, A-459) |
 | `POST /threads/:id/open`, `/close` | 다시 열기, 닫기(스레드) | 상태 변경. 성공하면 빈 200, 없으면 404, 권한이 없으면 403 |
 | `DELETE /comments/:type/:id` | 지우기 | `review_comment`, `commit_comment`만. 지울 수 없는 종류면 400 |
 

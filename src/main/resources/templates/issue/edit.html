@@ -13,9 +13,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'ISSUE', ~{::editPage})}">
 <th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'ISSUE')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
         <form th:action="@{${base + '/issue/' + issueNumber + '/edit'}}" method="post" id="issue-form" enctype="multipart/form-data">
             <input type="hidden" name="authorId" th:value="${authorId}">
@@ -65,7 +66,7 @@
                             <button type="submit" id="button-draft-publish" class="ybtn ybtn-info" th:text="#{button.draft.publish}"></button>
                             <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn" th:text="#{button.draft.save}"></button></th:block><!--
                     --><th:block th:if="${canUpdate and !draft}">
-                            <button type="submit" id="button-save" class="ybtn ybtn-info" th:text="#{button.save}"></button></th:block><!--
+                            <button type="submit" id="button-save" class="ybtn ybtn-success" th:text="#{button.save}"></button></th:block><!--
                      --><a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
                     </div>
                 </div>
@@ -125,6 +126,8 @@
         </div>
         </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 
@@ -144,10 +147,8 @@
         $yona.loadModule("issue.Write", {
             "sMode"             : "edit",
             "sIssueId"          : /*[[${#strings.toString(issueNumber)}]]*/ "",
-            "sIssueFormURL"     : /*[[@{${base + '/issueform'}}]]*/ "",
             "sIssueListURL"     : /*[[@{${base + '/issues'}}]]*/ "",
             "elTextarea"        : 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
             "elDueDate"         : $("#issueDueDate")
         });
 

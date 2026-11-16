@@ -31,8 +31,9 @@ class GitHooks(
     fun preReceive(project: Project, sender: User?): PreReceiveHook = PreReceiveHook { receivePack, commands ->
         val byRef = commands.associateBy { it.refName }
         val updates = GitRefUpdates.of(commands)
-        policy.evaluate(project, sender, VCS_TAG, updates) { update -> unverifiedCommits(receivePack.repository, byRef.getValue(update.ref)) }
-            .forEach { byRef.getValue(it.update.ref).setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, it.message) }
+        policy.evaluate(project, sender, VCS_TAG, updates, { update, file -> changesRootFile(receivePack.repository, byRef.getValue(update.ref), file) }) { update ->
+            unverifiedCommits(receivePack.repository, byRef.getValue(update.ref))
+        }.forEach { byRef.getValue(it.update.ref).setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, it.message) }
     }
 
     /** 이번 푸시가 더하는 커밋 가운데 Verified 서명이 아닌 것의 (짧은 번호, 이유 코드) 목록이다. 새 커밋은 새 팁에서 거슬러 오르되 옛 팁과 저장소의 다른 참조가 이미 가진 커밋은 뺀 것이다. */
@@ -48,6 +49,27 @@ class GitHooks(
                 val signed = if (commit.rawGpgSignature != null) dev.yona.domain.gpgkey.GitSignatures.ofCommit(commit.rawBuffer) else null
                 val result = gpgVerification.verifyCommit(signed, commit.committerIdent.emailAddress)
                 if (result.verified) null else commit.abbreviate(SHORT_ID).name() to result.reason.code
+            }
+        }
+
+    /**
+     * 이번 푸시가 더하는 커밋 가운데 저장소 최상위 [file]을 바꾼 것이 있는지이다. 새 커밋은 [unverifiedCommits]와 같은 방식으로 구한다.
+     * 커밋마다 첫 부모와 비교하고, 병합 커밋은 모든 부모와 달라야 바꾼 것으로 본다(다른 브랜치의 변경을 병합하기만 한 것은 바꾼 것이 아니다).
+     */
+    private fun changesRootFile(repository: org.eclipse.jgit.lib.Repository, command: ReceiveCommand, file: String): Boolean =
+        org.eclipse.jgit.revwalk.RevWalk(repository).use { walk ->
+            walk.markStart(walk.parseCommit(command.newId))
+            if (command.oldId != org.eclipse.jgit.lib.ObjectId.zeroId()) runCatching { walk.markUninteresting(walk.parseCommit(command.oldId)) }
+            repository.refDatabase.refs.forEach { ref ->
+                val id = ref.objectId
+                if (id != null && ref.name != command.refName && !ref.name.startsWith("refs/yona")) runCatching { walk.markUninteresting(walk.parseCommit(id)) }
+            }
+            fun blobOf(commit: org.eclipse.jgit.revwalk.RevCommit): org.eclipse.jgit.lib.ObjectId? =
+                org.eclipse.jgit.treewalk.TreeWalk.forPath(repository, file, commit.tree)?.takeIf { !it.isSubtree }?.getObjectId(0)
+            walk.any { commit ->
+                val own = blobOf(commit)
+                val parents = commit.parents.map { walk.parseCommit(it.id) }
+                if (parents.isEmpty()) own != null else parents.all { blobOf(it) != own }
             }
         }
 

@@ -42,9 +42,6 @@ const View = function(htOptions){
      */
     function _initElement(htOptions){
         htElement.welAttachments = $(".attachments")
-        htElement.waLabels = $("a.issue-label[data-color]")
-        htElement.sMilestoneId = htOptions.sMilestoneId;
-        htElement.sURLLabels = htOptions.sURLLabels;
     }
 
     /**
@@ -58,10 +55,6 @@ const View = function(htOptions){
             elButton.addEventListener("request:error", function(weEvt){
                 $yona.alert(Messages("error.failedTo", $(elButton).text().trim(), weEvt.detail.status, ""));
             });
-        });
-        htElement.waLabels.on("click", function(weEvt){
-            weEvt.preventDefault();
-            location.href = htElement.sURLLabels + "?milestoneId=" + htElement.sMilestoneId + "&labelIds=" + $(this).attr('data-labelId');
         });
     }
     /**

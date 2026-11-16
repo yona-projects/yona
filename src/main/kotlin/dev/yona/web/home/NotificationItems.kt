@@ -53,7 +53,7 @@ class NotificationItemAssembler(
             id = requireNotNull(event.id), iconClass = icon(requireNotNull(event.eventType), event.newValue),
             edit = event.eventType == EventType.ISSUE_BODY_CHANGED || event.eventType == EventType.COMMENT_UPDATED,
             title = event.title, url = messages.urlToView(event),
-            messageHtml = HtmlSanitizer.defaultSanitize(message.replace(Regex("(?<!>)\n"), "<br/>\n")),
+            messageHtml = HtmlSanitizer.defaultSanitize(NotificationHtml.fromMessage(message)),
             sender = sender, senderName = sender?.let { UserDisplay.of(it, viewer?.lang) },
             avatarUrl = sender?.let { avatars.avatarUrl(it) } ?: DEFAULT_AVATAR, created = event.created
         )
@@ -77,4 +77,18 @@ class NotificationItemAssembler(
     private companion object {
         const val DEFAULT_AVATAR = "/assets/images/default-avatar-64.png"
     }
+}
+
+/**
+ * 알림 본문의 줄바꿈을 HTML로 바꾼다(A-602).
+ *
+ * 줄바꿈은 `<br/>`가 된다. 다만 본문에 이미 `<br>` 태그가 있으면(예: 댓글 알림에 실리는 메일용 "이전 내용",
+ * `\n\n<br />\n\n--- Original issue ... ---`) 그 태그 앞뒤의 줄바꿈은 따로 바꾸지 않는다. v1.6은 줄바꿈마다 `<br/>`를 더 넣어
+ * `<br>`가 연달아 4개 생기고 알림 항목에 큰 빈 공간이 생겼다.
+ */
+object NotificationHtml {
+    private val EXPLICIT_BREAK = Regex("""\s*<br\s*/?>\s*""", RegexOption.IGNORE_CASE)
+
+    fun fromMessage(message: String): String =
+        EXPLICIT_BREAK.replace(message, "<br/>").replace(Regex("(?<!>)\n"), "<br/>\n")
 }

@@ -35,7 +35,7 @@
             </label>
           </dt>
           <dd>
-            <input id="url" type="text" name="url" class="text form-control" th:placeholder="${form.vcs == 'Mercurial'} ? #{project.hg.url.alert} : #{project.git.url.alert}" th:attr="data-git=#{project.git.url.alert},data-hg=#{project.hg.url.alert}" th:value="${form.url}">
+            <input id="url" type="text" name="url" class="text form-control w-100" th:placeholder="${form.vcs == 'Mercurial'} ? #{project.hg.url.alert} : #{project.git.url.alert}" th:attr="data-git=#{project.git.url.alert},data-hg=#{project.hg.url.alert}" th:value="${form.url}">
           </dd>
           <dd>
             <div class="form-check"><label class="form-check-label">
@@ -47,13 +47,13 @@
               <dl class="col-lg-6">
                 <dt th:text="#{project.import.auth.userid}"></dt>
                 <dd>
-                  <input type="text" name="authId" class="text form-control" th:value="${form.authId}" th:placeholder="#{project.import.auth.userid.desc}">
+                  <input type="text" name="authId" class="text form-control w-100" th:value="${form.authId}" th:placeholder="#{project.import.auth.userid.desc}">
                 </dd>
               </dl>
               <dl class="col-lg-6">
                 <dt th:text="#{project.import.auth.userpw}"></dt>
                 <dd>
-                  <input type="password" name="authPw" class="text form-control">
+                  <input type="password" name="authPw" class="text form-control w-100">
                 </dd>
               </dl>
               </div>
@@ -94,7 +94,7 @@
             </label>
           </dt>
           <dd>
-            <input id="project-name" type="text" name="name" class="text form-control" maxlength="250"
+            <input id="project-name" type="text" name="name" class="text form-control w-100" maxlength="250"
                    th:value="${form.name}" th:placeholder="#{project.name.alert}"  >
           </dd>
           <!-- // -->

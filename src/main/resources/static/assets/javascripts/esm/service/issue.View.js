@@ -26,7 +26,6 @@ const View = function(options){
         _initFileDownloader();
         _initCommentAndCloseButton();
 
-        //_setTimelineUpdateTimer();
     }
 
     /**
@@ -65,8 +64,6 @@ const View = function(options){
         // for auto-update
         vars.isTimelineUpdating = false;
         vars.isTextareaOnFocused = false;
-        vars.timelineUpdateTimer = null;
-        vars.timelineUpdatePeriod = options.timelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
         vars.timelineHTML = elements.timelineList.html();
         vars.timelineItems = _countTimelineItems();
 
@@ -405,44 +402,6 @@ const View = function(options){
         yona.Request.bind(timelineList[0]); // delete button
 
         return timelineList;
-    }
-
-    /**
-     * Update timeline automatically with interval timer.
-     * Don't update if visible .comment-update-form exists
-     * or docked inspector is opened.
-     *
-     * @private
-     */
-    function _setTimelineUpdateTimer(){
-        _unsetTimelineUpdateTimer();
-
-        vars.timelineItems = _countTimelineItems();
-        vars.timelineUpdateTimer = setInterval(() =>{
-            const isEditing = (elements.timelineWrap.find(".comment-update-form:visible").length > 0)
-                            || _isDockedInspectorOpened();
-
-            if(vars.isTimelineUpdating !== true && !isEditing){
-                _updateTimeline();
-            }
-        }, vars.timelineUpdatePeriod);
-    }
-
-    function _isDockedInspectorOpened(){
-        return (window.outerHeight - window.innerHeight > 100);
-    }
-
-    /**
-     * Unset IssueTimeline update timer
-     *
-     * @private
-     */
-    function _unsetTimelineUpdateTimer(){
-        if(vars.timelineUpdateTimer != null){
-            clearInterval(vars.timelineUpdateTimer);
-        }
-
-        vars.timelineUpdateTimer = null;
     }
 
     /**

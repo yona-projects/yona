@@ -11,11 +11,15 @@
       th:replace="~{layout/site-layout :: siteLayout(#{issue.myIssue}, 'SITE_HOME', ~{::myListPage})}">
 <th:block th:fragment="myListPage">
     <div class="page-wrap-outer">
-        <div class="page-wrap">
-            <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
+        <div class="page-wrap shell">
+        <th:block th:replace="~{shell/home-sidebar :: sidebar('myIssues')}"></th:block>
+        <div class="shell-main">
+            <th:block th:replace="~{common/my-series-menu-tab :: defaultPageButton(${menuTab})}"></th:block>
 
             <th:block th:replace="~{issue/my-partial-search :: mySearch}"></th:block>
-        </div>
+        
+        </div><!--/* .shell-main */-->
+    </div>
     </div>
     <script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
     <script type="module" th:src="@{/assets/javascripts/esm/service/showSubtask.js}"></script>

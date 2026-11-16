@@ -11,10 +11,11 @@
       th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::boardPage})}">
 <th:block th:fragment="boardPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <div class="search-wrap underline">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
+        <div class="search-wrap org-list-filter underline">
             <form id="option_form" method="get" class="float-start row align-items-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
                 <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
@@ -75,12 +76,12 @@
         <div id="pagination">
             <!-- pagination.js will fill here. -->
         </div>
-    </div>
-</div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/twoColumnMode.js}"></script>
-<script type="module" th:src="@{/assets/javascripts/esm/service/board.List.js}"></script>
-<script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+        <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="module" th:inline="javascript">
+    /* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+    await import([[@{/assets/javascripts/esm/service/twoColumnMode.js}]]);
+    await import([[@{/assets/javascripts/esm/service/board.List.js}]]);
+    $(function() {
         $yona.loadModule("board.List", {
             "elPagination": $('#pagination'),
             "nTotalPages" : /*[[${totalPageCount}]]*/ 0
@@ -91,6 +92,8 @@
         }) ;
     });
 </script>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
 </th:block>
 </html>

@@ -75,7 +75,7 @@ class WikiToggleTest : AbstractIntegrationTest() {
 
     private fun hasWikiTab(p: Project, session: MockHttpSession): Boolean =
         Jsoup.parse(mockMvc.perform(get("/${p.owner}/${p.name}").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
-            .selectFirst(".project-menu-nav a[href=${base(p)}]") != null
+            .selectFirst("nav.shell-sidebar a.nav-link[href=${base(p)}]") != null
 
     @Test
     fun `위키가 켜진 프로젝트만 메뉴에 위키 탭이 있다`() {

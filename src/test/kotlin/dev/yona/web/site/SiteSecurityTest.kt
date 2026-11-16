@@ -76,7 +76,7 @@ class SiteSecurityTest : AbstractIntegrationTest() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/security").session(login(user(admin = true)))).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals(setOf("OFF", "ADMINS", "ALL"), doc.select("form#security-form input[name=twoFactorEnforcement]").map { it.attr("value") }.toSet())
         assertEquals("OFF", doc.selectFirst("input[name=twoFactorEnforcement][checked]")!!.attr("value"))
-        assertNotNull(doc.selectFirst("li.active a[href$=/sites/security]"), "사이드바에서 활성이다")
+        assertNotNull(doc.selectFirst("nav.shell-sidebar a.nav-link.active[href$=/sites/security]"), "사이드바에서 활성이다")
     }
 
     @Test

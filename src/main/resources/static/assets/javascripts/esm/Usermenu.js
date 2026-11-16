@@ -8,6 +8,8 @@ $(() => {
     const viewSize = window.parent === window ? $(window).width() : $(window.parent).width();
     const PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
     const SIDE_BAR_DEFAULT_WIDTH = "360px";
+    const OPEN_STATE_KEY = "shallWeOpenLeftNavigation"; // v1.6와 같은 키이다(열림 "true", 닫힘 "false")
+    const ACTIVE_TAB_KEY = "sidebarActiveMenu";         // v1.6와 같은 키이다(마지막에 고른 탭의 li 클래스)
 
     if ($(".gnb-usermenu-dropdown").length !== 0) {
         (async () => {
@@ -43,7 +45,13 @@ $(() => {
             }
         });
 
-        $("#sidebar-open-btn").on("click.usermenu", (event) => {
+        // 지난 화면에서 열어 둔 채로 넘어왔다면 이어서 연다(작은 화면은 화면 전체를 덮으므로 이어 열지 않는다)
+        if (recall(OPEN_STATE_KEY) === "true" && viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
+            openSidebar($sidebar, true);
+            updateStar();
+        }
+
+        $("[data-shell-switcher]").on("click.usermenu", (event) => {
             event.stopPropagation();
             if ($sidebar.width() !== 0) {
                 closeSidebar($sidebar);
@@ -55,6 +63,15 @@ $(() => {
     }
 
     function afterUsermenuLoaded() {
+        restoreActiveTab();
+
+        // 탭을 고르면 기억하고, 새로고침 아이콘은 화면을 다시 읽는다(v1.6 sidebar.scala.html)
+        $(".nav-tabs .myOrganizationList, .nav-tabs .myProjectList, .nav-tabs .myRecentIssueList").off("click.rememberTab").on("click.rememberTab", function () {
+            const name = ["myOrganizationList", "myProjectList", "myRecentIssueList"].find((n) => this.classList.contains(n));
+            if (name) remember(ACTIVE_TAB_KEY, name);
+        });
+        $(".refresh-button").off("click.refresh").on("click.refresh", () => window.location.reload());
+
         // used for new project list ui
         $(".right-menu").off("click.tab").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", () => {
             updateStar();
@@ -121,7 +138,9 @@ $(() => {
                 that.find('i').toggleClass("starred", !!data.favored);
             });
 
-        $(".favorite-issue")
+        // A-498(R-150 수정): 이슈 번호(data-issue-id)가 있는 별에만 연결한다. 내 이슈 화면의 "즐겨 찾는 이슈" 필터 라벨도 같은 클래스인데
+        // 번호가 없어, 예전에는 눌러도 POST /user/favoriteIssues/undefined가 400이 되고 필터가 걸리지 않았다.
+        $(".favorite-issue[data-issue-id]")
             .off("click.toggleProjectFavorite")
             .on("click.toggleProjectFavorite", async function toggleProjectFavorite(e) {
                 e.stopPropagation();
@@ -217,20 +236,41 @@ $(() => {
             && $(':focus').length === 0;                        // avoid already somewhere focused state
     }
 
-    function closeSidebar($sidebar) {
-        $sidebar.width("0").css("border", "none");
-        $(".main-stream").removeClass("col-lg-8").addClass("col-lg-12");
+    /** 저장소에 쓰고 읽는다. 저장소를 쓸 수 없는 환경(비공개 창 등)에서도 화면은 동작해야 하므로 실패는 무시한다. */
+    function remember(key, value) {
+        try { localStorage.setItem(key, value); } catch (ignored) { /* 기억만 못 할 뿐이다 */ }
     }
 
-    function openSidebar($sidebar) {
+    function recall(key) {
+        try { return localStorage.getItem(key); } catch (ignored) { return null; }
+    }
+
+    function closeSidebar($sidebar) {
+        $sidebar.width("0").css("border", "none");
+        remember(OPEN_STATE_KEY, "false"); // A-491: v1.6의 `shallWeOpenLeftNavigation`처럼 열림 상태를 기억한다
+    }
+
+    function openSidebar($sidebar, restoring = false) {
         // 720px is a criteria to distinguish small devices
+        if (!restoring) remember(OPEN_STATE_KEY, "true");
         if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
             $sidebar.width(SIDE_BAR_DEFAULT_WIDTH).css("border", "1px solid #ccc");
-            $(".search-input").focus();
+            if (!restoring) $(".search-input").focus(); // 화면을 열 때 이어서 열 때는 입력란이 포커스를 빼앗지 않게 한다
         } else {
             $sidebar.width("100vw").css("border", "1px solid #ccc");
         }
-        $(".main-stream").removeClass("col-lg-12").addClass("col-lg-8");
+        // A-490: 패널은 본문 위에 덮이므로 본문 열 너비(.main-stream)를 줄이지 않는다.
+    }
+
+    /** 마지막에 고른 탭을 활성으로 만든다. 기억한 값이 없으면 서버가 그린 처음 상태(즐겨찾기)를 그대로 둔다. */
+    function restoreActiveTab() {
+        const name = recall(ACTIVE_TAB_KEY);
+        if (!["myOrganizationList", "myProjectList", "myRecentIssueList"].includes(name)) return;
+        $(".nav-tabs li > a.active").removeClass("active");
+        $(".nav-tabs ." + name + " > a").addClass("active");
+        // 바깥 탭(즐겨찾기, 프로젝트, 최근 읽은 이슈)만 바꾼다. 안쪽 하위 탭(최근 방문 등)의 active까지 지우면 목록 줄이 숨는다.
+        $("#usermenu-tab-content-list > .tab-pane.active").removeClass("active");
+        $("#" + name).addClass("active");
     }
 
     // This method intended to sync sub tab list of projects

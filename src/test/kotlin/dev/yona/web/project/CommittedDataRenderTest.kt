@@ -82,7 +82,7 @@ class CommittedDataRenderTest : AbstractIntegrationTest() {
                 mockMvc.perform(get("/__test/project-page/${created.second}")).andExpect(status().isOk).andReturn().response.contentAsString
             )
             assertEquals("cdo / cd-original", page.selectFirst(".project-origin-name")?.text()?.trim())
-            assertNotNull(page.selectFirst(".project-menu-outer"))
+            assertNotNull(page.selectFirst("nav.shell-sidebar"))
         } finally {
             tx.executeWithoutResult {
                 projectUsers.deleteAll(projectUsers.findAll().filter { it.project?.id == created.second })

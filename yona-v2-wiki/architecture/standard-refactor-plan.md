@@ -23,7 +23,7 @@ updated: 2026-11-10
 ## 단계
 1. **(완료)** 소규모 lib 교체와 문법 현대화(D-122, A-438)
 2. **(완료)** ES 모듈 뼈대와 모듈 3개(`esm/ui/Elevator.js`, `Favicon.js`, `FormValidator.js`). 템플릿은 진입점 `<script type="module">` 하나(`esm-skeleton.md`)
-3. **(완료)** 공용 `esm/http.js`(fetch 래퍼, jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교)를 만들고 `$.ajax`, `$.get`, `$.post`, `$.getJSON` 76곳(44개 파일, 템플릿 인라인 포함)을 `yona.http.*`로 옮겼다. 콜백을 `await`로 바꾸는 일은 4단계에서 파일을 모듈로 옮길 때 함께 한다
+3. **(완료)** 공용 `esm/http.js`(fetch 래퍼, jQuery와 같은 요청과 결과를 내는지 30개 입력으로 비교)를 만들고 `$.ajax`, `$.get`, `$.post`, `$.getJSON` 76곳(44개 파일, 템플릿 인라인 포함)을 `yona.http.*`로 옮겼다. 콜백을 `await`로 바꾸는 일은 4단계에서 파일을 모듈로 옮길 때 함께 한다 **보정(2026-11-11, A-457)**: 응답이 없는 네트워크 오류의 실패 객체는 jqXHR처럼 `readyState` 0, `status` 0이어야 한다(호출하는 쪽이 `readyState == 0`으로 "네트워크 오류" 문구를 가른다). 처음에는 4여서 로그인 대화상자와 프로젝트 전역의 그 분기가 닿지 않았고, `http.test.mjs`가 jQuery와 같은 값을 확인한다.
 4. **(진행 중)** 화면별 스크립트를 ES 모듈로 옮긴다. 묶음은 아래 표.
 
 | 묶음 | 대상 | 상태 |

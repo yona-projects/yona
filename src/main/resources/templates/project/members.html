@@ -10,10 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::membersPage})}">
 <th:block th:fragment="membersPage" th:with="project=${projectView.project}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
 
         <div class="inner-bubble">
             <form class="nm d-flex gap-2 align-items-start" th:action="@{/{owner}/{name}/members(owner=${project.owner},name=${project.name})}" method="post" id="addNewMember">
@@ -26,7 +26,7 @@
         </div>
 
         <ul class="members project row">
-            <li th:each="member : ${memberItems}" class="member col-lg-6 span-hard-wrap">
+            <li th:each="member : ${memberItems}" class="member col-12 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-start mr10">
                     <img th:src="@{${member.avatarUrl}}" width="64" height="64">
                 </a>
@@ -69,15 +69,18 @@
             </div>
         </div>
         </th:block>
-    </div>
-</div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/project.Member.js}"></script>
-<script type="text/javascript" th:inline="javascript">
+    
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/project.Member.js}]]);
    $(document).ready(function(){
        $yona.loadModule("project.Member", {
            "sActionURL": /*[[@{/users}]]*/ "/users"
        });
    });
 </script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
 </th:block>
 </html>

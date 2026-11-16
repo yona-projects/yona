@@ -6,6 +6,21 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
 <div class="wiki-sidebar">
+    <!--/* A-532: 로컬 복제 영역이 맨 위, 그 아래에 페이지 제목과 검색과 목록이 이어진다(선생님 지시). */-->
+    <div th:if="${cloneUrl != null}" class="wiki-clone mb-4">
+        <h4 class="wiki-clone-title" th:text="#{wiki.clone.title}">Clone this wiki locally</h4>
+        <!--/* 내장 SSH 서버나 시스템 sshd 연동을 켠 사이트에서만 보인다(D-68) */-->
+        <div th:if="${sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol wiki-clone-protocol mb-1" role="group">
+            <button type="button" class="btn btn-outline-secondary selected" th:attr="data-clone-url=${cloneUrl}">HTTP</button>
+            <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${sshCloneUrl}">SSH</button>
+        </div>
+        <div class="input-group input-group-sm">
+            <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
+            <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
+        </div>
+        <!--/* 복사 결과 글자는 입력 묶음 밖의 별도 줄에 둔다(묶음 안에 두면 단추가 아래 줄로 밀린다, A-533) */-->
+        <div class="wiki-clone-feedback small mt-1" role="status" th:attr="data-copied=#{wiki.clone.copied},data-failed=#{wiki.clone.copyFailed}"></div>
+    </div>
     <h3 class="wiki-sidebar-title" th:text="#{wiki.pages}">Pages</h3>
     <input type="search" class="wiki-pages-filter form-control form-control-sm" th:placeholder="#{wiki.pages.filter}" autocomplete="off">
     <ul class="wiki-pages-list list-unstyled">
@@ -16,19 +31,6 @@
     </ul>
     <button type="button" class="wiki-pages-more btn btn-link btn-sm p-0" th:if="${#lists.size(pages) > 15}" th:text="#{wiki.pages.more(${#lists.size(pages) - 15})}">Show more pages…</button>
     <div th:if="${sidebarHtml != null}" class="wiki-custom-sidebar markdown-wrap mt-3" th:utext="${sidebarHtml}"></div>
-    <div th:if="${cloneUrl != null}" class="wiki-clone mt-4">
-        <h4 class="wiki-clone-title" th:text="#{wiki.clone.title}">Clone this wiki locally</h4>
-        <!--/* 내장 SSH 서버나 시스템 sshd 연동을 켠 사이트에서만 보인다(D-68) */-->
-        <div th:if="${sshCloneUrl != null}" class="btn-group btn-group-sm clone-protocol wiki-clone-protocol mb-1" role="group">
-            <button type="button" class="btn btn-outline-secondary selected" th:attr="data-clone-url=${cloneUrl}">HTTP</button>
-            <button type="button" class="btn btn-outline-secondary" th:attr="data-clone-url=${sshCloneUrl}">SSH</button>
-        </div>
-        <div class="input-group input-group-sm">
-            <input type="text" class="wiki-clone-url form-control" readonly th:value="${cloneUrl}" onclick="this.select()">
-            <button type="button" class="wiki-clone-copy btn btn-outline-secondary" th:text="#{wiki.clone.copy}">Copy</button>
-            <span class="wiki-clone-feedback small ms-2" role="status" th:attr="data-copied=#{wiki.clone.copied},data-failed=#{wiki.clone.copyFailed}"></span>
-        </div>
-    </div>
 </div>
 <script type="text/javascript">
     (function () {

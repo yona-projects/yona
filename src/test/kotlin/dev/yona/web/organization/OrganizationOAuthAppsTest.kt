@@ -89,8 +89,8 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
     @Test
     fun `조직 설정 탭에 OAuth 앱 탭이 있고 목록 화면에서 활성이다`() {
         val x = Setup(); val s = login(x.admin)
-        assertTrue(page(s, x.base).select("ul.nav-tabs a[href\$=/oauth-apps]").single().hasClass("active"))
-        assertNotNull(page(s, "/organizations/${x.org.name}/settingform").select("ul.nav-tabs a[href\$=/oauth-apps]").singleOrNull())
+        assertTrue(page(s, x.base).select("nav.shell-sidebar a.nav-link[href\$=/oauth-apps]").single().hasClass("active"))
+        assertNotNull(page(s, "/organizations/${x.org.name}/settingform").select("nav.shell-sidebar a.nav-link[href\$=/oauth-apps]").singleOrNull())
     }
 
     @Test
@@ -99,7 +99,7 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
         assertNotNull(page(s, x.base).selectFirst("#my-apps-empty"))
         val other = organizationService.create("oorg2$stamp${++n}", null, x.admin)
         val mine = appOf(x.org, x.admin, "이 조직 앱"); appOf(other, x.admin, "다른 조직 앱"); clientService.create(x.admin, "개인 앱", "", "", "https://a.example/cb", false, setOf("read:user"))
-        val rows = page(s, x.base).select("table#my-apps tr.app-row")
+        val rows = page(s, x.base).select("ul#my-apps.item-cards li.app-row")
         assertEquals(1, rows.size); assertTrue(rows.single().text().contains("이 조직 앱") && rows.single().text().contains(mine.clientId!!))
         assertNotNull(rows.single().selectFirst("a[href\$=${x.base}/${mine.id}]")); assertNotNull(rows.single().selectFirst("form[action\$=/delete] button"))
     }
@@ -126,7 +126,7 @@ class OrganizationOAuthAppsTest : AbstractIntegrationTest() {
         settings.setOauthUserAppsEnabled(false)
         mockMvc.perform(get("${x.base}/new").session(s)).andExpect(status().isForbidden)
         mockMvc.perform(params(x.base, "안 되는 앱").session(s)).andExpect(status().isForbidden)
-        assertNotNull(page(s, x.base).selectFirst("#user-apps-disabled")); assertEquals(1, page(s, x.base).select("tr.app-row").size)
+        assertNotNull(page(s, x.base).selectFirst("#user-apps-disabled")); assertEquals(1, page(s, x.base).select("li.app-row").size)
         mockMvc.perform(get("${x.base}/${app.id}").session(s)).andExpect(status().isOk)
     }
 

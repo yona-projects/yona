@@ -9,12 +9,16 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::auditPage})}">
 <th:block th:fragment="auditPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <p class="text-body-secondary" th:text="#{audit.description.organization}"></p>
+        <!--/* A-577: 감사 목록 조각은 사용자와 사이트도 쓰므로 감사 화면 공통 틀(`.audit-screen`) 안에서 단추 색을 테마색으로 바꾼다(조직, 사용자 설정, 사이트가 같다) */-->
+        <div class="audit-screen">
         <th:block th:replace="~{audit/list :: auditList(true, false, true)}"></th:block>
+        </div>
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 </th:block>

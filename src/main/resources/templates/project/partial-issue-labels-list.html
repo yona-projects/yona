@@ -14,52 +14,43 @@
     <p th:text="#{label.list.empty}"></p>
 </div>
 <th:block th:unless="${groups.isEmpty()}">
-  <div class="row list-head">
-    <div class="col-lg-3 category">
-      <strong th:text="#{label.category}"></strong>
-    </div>
-    <div class="col-lg-9 name">
-      <strong th:text="#{label.name}"></strong>
-    </div>
+  <div class="label-list-head">
+    <span th:text="#{label.name}"></span>
+    <span th:text="#{label.actions}"></span>
   </div>
 
-  <div th:each="group : ${groups}" class="row list-item category-wrap" th:attr="data-category=${group.category.id}, data-category-name=${group.category.name}">
-    <div class="col-lg-3">
-      <h5 class="right-txt mr20">
-        <span class="category-name" th:text="${group.category.name}"></span>
-
-        <p class="mt5">
-          <i th:if="${group.category.exclusive}" class="category-exclusive yobicon-tag single"
-             data-bs-toggle="tooltip" data-bs-html="true"
-             th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.single}"></i>
-          <i th:unless="${group.category.exclusive}" class="category-exclusive yobicon-tags multiple"
-             data-bs-toggle="tooltip" data-bs-html="true"
-             th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.multiple}"></i>
-          <button th:if="${group.canUpdate}" type="button" class="ybtn ybtn-mini"
-                  th:attr="data-project-id=${project.id}, data-category-id=${group.category.id}, data-category-name=${group.category.name},
-                           data-category-is-exclusive=${group.category.exclusive}, data-category-update-uri=${base + '/issue/label/category/' + group.category.id}"
-                  th:text="#{label.category.edit}"></button>
-        </p>
-      </h5>
+  <!--/* 분류마다 소제목 줄과 라벨 표로 묶는다(A-556). 스크립트는 div.category-wrap과 tr[data-label-id] 구조를 쓴다 */-->
+  <div th:each="group : ${groups}" class="category-wrap label-group" th:attr="data-category=${group.category.id}, data-category-name=${group.category.name}">
+    <div class="label-group-head">
+      <span class="category-name" th:text="${group.category.name}"></span>
+      <i th:if="${group.category.exclusive}" class="category-exclusive yobicon-tag single"
+         data-bs-toggle="tooltip" data-bs-html="true"
+         th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.single}"></i>
+      <i th:unless="${group.category.exclusive}" class="category-exclusive yobicon-tags multiple"
+         data-bs-toggle="tooltip" data-bs-html="true"
+         th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.multiple}"></i>
+      <span class="label-group-meta"><th:block th:text="${group.category.exclusive} ? #{label.group.single} : #{label.group.multiple}"></th:block> · <th:block th:text="#{label.group.count(${#lists.size(group.labels)})}"></th:block></span>
+      <button th:if="${group.canUpdate}" type="button" class="ybtn ybtn-mini"
+              th:attr="data-project-id=${project.id}, data-category-id=${group.category.id}, data-category-name=${group.category.name},
+                       data-category-is-exclusive=${group.category.exclusive}, data-category-update-uri=${base + '/issue/label/category/' + group.category.id}"
+              th:text="#{label.category.edit}"></button>
     </div>
-    <div class="col-lg-9">
-      <table class="table nm">
-        <tr th:each="label : ${group.labels}" th:attr="data-label-id=${label.id}">
-          <td>
-            <span class="issue-label active" th:attr="data-label-id=${label.id}, data-label-name=${label.name}" th:text="${label.name}"></span>
-          </td>
-          <td class="actions">
-            <button th:if="${label.canDelete}" type="button" class="ybtn ybtn-danger ybtn-small"
-                    th:attr="data-category-name=${group.category.name}, data-label-id=${label.id}, data-delete-uri=${base + '/issue/label/' + label.id + '/delete'}"
-                    th:text="#{button.delete}"></button>
-            <button th:if="${label.canUpdate}" type="button" class="ybtn ybtn-small"
-                    th:attr="data-category-id=${group.category.id}, data-label-name=${label.name}, data-label-color=${label.color},
-                             data-update-uri=${base + '/issue/label/' + label.id}"
-                    th:text="#{button.edit}"></button>
-          </td>
-        </tr>
-      </table>
-    </div>
+    <table class="table nm">
+      <tr th:each="label : ${group.labels}" th:attr="data-label-id=${label.id}">
+        <td>
+          <span class="issue-label active" th:attr="data-label-id=${label.id}, data-label-name=${label.name}" th:text="${label.name}"></span>
+        </td>
+        <td class="actions">
+          <button th:if="${label.canUpdate}" type="button" class="ybtn ybtn-small"
+                  th:attr="data-category-id=${group.category.id}, data-label-name=${label.name}, data-label-color=${label.color},
+                           data-update-uri=${base + '/issue/label/' + label.id}"
+                  th:text="#{button.edit}"></button>
+          <button th:if="${label.canDelete}" type="button" class="ybtn ybtn-danger ybtn-small"
+                  th:attr="data-category-name=${group.category.name}, data-label-id=${label.id}, data-delete-uri=${base + '/issue/label/' + label.id + '/delete'}"
+                  th:text="#{button.delete}"></button>
+        </td>
+      </tr>
+    </table>
   </div>
 
   <link rel="stylesheet" type="text/css" th:href="@{${base + '/issue/labels.css'}}">

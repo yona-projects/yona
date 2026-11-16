@@ -74,8 +74,8 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `설정 탭에 2단계 인증 탭이 있고 목록 화면에서 활성이다`() {
         val s = login(user())
-        assertTrue(page(s).select("ul.nav-tabs a[href$=/user/editform/two-factor]").single().hasClass("active"))
-        assertNotNull(page(s, "/user/editform").select("ul.nav-tabs a[href$=/user/editform/two-factor]").singleOrNull())
+        assertTrue(page(s).select("nav.shell-sidebar a.nav-link[href$=/user/editform/two-factor]").single().hasClass("active"))
+        assertNotNull(page(s, "/user/editform").select("nav.shell-sidebar a.nav-link[href$=/user/editform/two-factor]").singleOrNull())
     }
 
     @Test
@@ -92,7 +92,7 @@ class TwoFactorSettingsTest : AbstractIntegrationTest() {
         assertTrue(page(s).selectFirst("a#security-key-new")!!.attr("href").endsWith("/user/editform/two-factor/security-key"))
         val add = page(s, "/user/editform/two-factor/security-key")
         assertNotNull(add.selectFirst("input#security-key-name")); assertNotNull(add.selectFirst("button#security-key-add"))
-        assertTrue(add.select("ul.nav-tabs a[href$=/user/editform/two-factor]").single().hasClass("active"))
+        assertTrue(add.select("nav.shell-sidebar a.nav-link[href$=/user/editform/two-factor]").single().hasClass("active"))
     }
 
     @Test

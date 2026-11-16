@@ -106,7 +106,7 @@ class ContextPathLinksTest : AbstractIntegrationTest() {
         val pages = listOf(
             "/", base, "$base/issues", "$base/issue/1", "$base/issueform", "$base/posts", "$base/postform", "$base/milestones", "$base/newMilestoneForm", "$base/members", "$base/settings",
             "$base/issue/labelsform", "$base/code", "$base/pullRequests", "$base/webhooks", "/cp1", "/notifications", "/help", "/projects", "/projectform", "/users/loginform", "/users/signupform",
-            "/search?query=cp", "/user/editform", "/user/token", "/user/issues", "/organizations/new", "/organizations/cporg/members", "/organizations/cporg/boards", "/organizations/cporg/deleteForm", "$base/post/1", "$base/wiki", "/user/editform/emails", "/sites/audit", "/sites/userList", "/sites/projectList", "/sites/setting", "/sites/security"
+            "/search?query=cp", "/user/editform", "/user/token", "/user/issues", "/organizations/new", "/organizations/cporg/members", "/organizations/cporg/boards", "/organizations/cporg", "/organizations/cporg/issues", "/organizations/cporg/oauth-apps", "/organizations/cporg/search?keyword=a&searchType=issue", "$base/search?keyword=a&searchType=issue", "$base/settingform", "/orgs", "/user/files", "/user/editform/ssh", "/user/editform/two-factor", "/organizations/cporg/deleteForm", "$base/post/1", "$base/wiki", "/user/editform/emails", "/sites/audit", "/sites/userList", "/sites/projectList", "/sites/setting", "/sites/security"
         )
         val violations = pages.associateWith { unprefixed(render(it, session)) }.filterValues { it.isNotEmpty() }
         assertTrue(violations.isEmpty(), "접두어 없는 주소가 있다: $violations")

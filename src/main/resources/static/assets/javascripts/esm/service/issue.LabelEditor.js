@@ -64,6 +64,7 @@ const LabelEditor = function(options){
         elements.editLabelName = elements.editLabelForm.find("[name=name]");
         elements.editLabelColor = elements.editLabelForm.find("[name=color]");
         elements.editLabelColorsWrap = elements.editLabelForm.find("div.label-preset-colors");
+        elements.editLabelChip = elements.editLabelForm.find(".edit-label-chip");
     }
 
     /**
@@ -94,7 +95,9 @@ const LabelEditor = function(options){
         elements.inputName.on("focus", _onFocusInputName);
         elements.inputColor.on({
             "keyup": _onKeyUpInputColor,
-            "blur" : _onBlurInputColor
+            "blur" : _onBlurInputColor,
+            // 색상 선택기(type=color)는 키를 치지 않고 고르므로 input 이벤트로 이름 입력란 색을 바로 따라가게 한다(A-557)
+            "input": _onInputInputColor
         });
 
         // label list
@@ -110,8 +113,12 @@ const LabelEditor = function(options){
         elements.editLabelForm.on("click", ".btn-preset-color", _onClickBtnPresetColorOnEditForm);
         elements.editLabelColor.on({
             "keyup": _onKeyUpEditColor,
-            "blur" : _onBlurEditColor
+            "blur" : _onBlurEditColor,
+            // 색상 선택기(type=color)로 고를 때 현재 색 칩이 바로 따라가게 한다(A-558)
+            "input": _onKeyUpEditColor
         });
+        // 이름을 고치면 칩의 글자도 바로 바뀐다
+        elements.editLabelName.on("input", () => { _updateEditLabelChip(elements.editLabelColor.val()); });
     }
 
     /**
@@ -355,10 +362,31 @@ const LabelEditor = function(options){
         const labelColor = _isNewCategory(categoryName) ? _getRandomColorCodeInPreset()
                                                       : _getFirstItemColorInCategory(categoryName);
 
-        if(elements.inputColor.val().length === 0){
+        if(_isInputColorUnset()){
             elements.inputColor.val(labelColor);
             _updateInputBySelectedColor(elements.inputName, elements.inputColor, labelColor);
         }
+    }
+
+    /**
+     * 새 라벨의 색이 아직 정해지지 않았는지 알려 준다. 텍스트 입력은 비어 있을 때이고, 색상 선택기(type=color)는 값이 늘 있으므로
+     * 사용자가 고르기 전(견본을 누르거나 선택기를 움직이기 전)일 때이다(A-557).
+     */
+    function _isInputColorUnset(){
+        if(elements.inputColor.attr("type") === "color"){
+            return elements.inputColor.data("picked") !== true;
+        }
+        return elements.inputColor.val().length === 0;
+    }
+
+    /**
+     * "input" event handler of inputColor (색상 선택기로 색을 고를 때)
+     *
+     * @private
+     */
+    function _onInputInputColor(){
+        elements.inputColor.data("picked", true);
+        _updateInputBySelectedColor(elements.inputName, elements.inputColor, elements.inputColor.val());
     }
 
     /**
@@ -400,6 +428,7 @@ const LabelEditor = function(options){
         const targetColor = _getRefinedHexColor(targetButton.css('background-color'));
 
         elements.inputColor.val(targetColor);
+        elements.inputColor.data("picked", true);
         elements.inputColor.focus();
         elements.colorsWrap.find(".btn-preset-color").removeClass("active");
         targetButton.addClass("active");
@@ -466,9 +495,16 @@ const LabelEditor = function(options){
             return;
         }
 
-        const boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
+        // 수정 모달은 이름 입력란을 칠하지 않고 옆의 현재 색 칩만 갱신한다(A-558)
+        if(inputName.closest(".edit-label-form").length){
+            _updateEditLabelChip(color);
+            return;
+        }
 
-        inputColor.css("cssText", boxShadowCSS);
+        // 텍스트 입력은 왼쪽 25px를 색 미리보기로 칠한다. 색상 선택기는 자기 색을 보이므로 그림자를 입히지 않는다(A-557).
+        if(inputColor.attr("type") !== "color"){
+            inputColor.css("cssText", _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important"));
+        }
         inputName.css("background-color", color);
         inputName.removeClass("dimgray white").addClass($yona.getContrastColor(color));
     }
@@ -633,6 +669,23 @@ const LabelEditor = function(options){
     }
 
     /**
+     * 수정 모달의 현재 색 칩을 갱신한다. 칩은 이름 글자와 색을 보이고, 글자색은 바탕색에 맞춰 고른다.
+     *
+     * @param color 칩 바탕색
+     * @private
+     */
+    function _updateEditLabelChip(color){
+        const chip = elements.editLabelChip;
+        if(!chip.length || !color){
+            return;
+        }
+
+        chip.text((elements.editLabelName.val() || "").trim());
+        chip.css("background-color", color);
+        chip.removeClass("dimgray white").addClass($yona.getContrastColor(color));
+    }
+
+    /**
      * "click" event handler of edit label button.
      * Shows modal dialog element.editLabelForm with .data() of clicked button.
      *
@@ -644,7 +697,8 @@ const LabelEditor = function(options){
 
         elements.editLabelForm.data(target.data());
         elements.editLabelName.val(target.data("labelName"));
-        elements.editLabelColor.val(target.data("labelColor"));
+        // 색상 선택기는 #rrggbb만 받으므로 저장된 색을 그 형식으로 맞춘다
+        elements.editLabelColor.val(_getRefinedHexColor(target.data("labelColor")) || target.data("labelColor"));
         elements.editLabelCategory.val(target.data("categoryId")).trigger("change.select2");
         bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).show();
 

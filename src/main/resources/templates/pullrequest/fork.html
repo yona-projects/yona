@@ -10,9 +10,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PULL_REQUEST', ~{::forkPage})}">
 <th:block th:fragment="forkPage">
-<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, 'PULL_REQUEST')}"></th:block>
+        <div class="shell-main">
         <div class="content-wrap frm-wrap">
             <form th:action="${forkAction}" method="post" class="form-horizontal nm">
                 <input type="hidden" name="owner" th:value="${forkOwner}" />
@@ -45,44 +46,46 @@
                         </th:block>
                         </div>
                     </div>
-                    <div class="form-field">
-                        <label class="col-form-label" for="project-owner" th:text="#{project.owner}"></label>
-                        <div>
-                            <select class="w-50 form-select" id="project-owner" name="owner">
+                    <!--/* A-568: 프로젝트 만들기 폼처럼 라벨이 입력란 위에 있고 입력란은 전체 폭이다. 입력 이름, id, 값은 그대로이다 */-->
+                    <dl class="fork-fields">
+                        <dt><label for="project-owner" th:text="#{project.owner}"></label></dt>
+                        <dd>
+                            <select class="w-100 form-select" id="project-owner" name="owner">
                                 <option th:each="o : ${owners}" th:attr="data-url=${o.url}" th:value="${o.value}" th:selected="${o.selected}" th:text="${o.value}"></option>
                             </select>
-                        </div>
-                    </div>
-                    <div class="form-field">
-                        <label class="col-form-label" for="inputName" th:text="#{project.name}"></label>
-                        <div>
-                            <input class="w-50 form-control" type="text" id="inputName" name="name" th:value="${forkName}" />
-                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{project.name.alert}"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-field">
-                        <label class="col-form-label" th:text="#{project.shareOption}"></label>
-                        <div>
-                            <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn form-check-input" checked="checked">
-                            <label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
-                            <th:block th:if="${protectedAllowed}">
-                                <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn form-check-input">
-                                <label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}"></label>
-                            </th:block>
-                            <input name="projectScope" type="radio" id="private" value="PRIVATE" class="radio-btn form-check-input">
-                            <label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
-                        </div>
-                    </div>
-                    <div class="form-field">
-                        <div>
-                            <button type="submit" class="ybtn ybtn-info" th:text="#{fork}"></button>
-                            <a th:href="${cancelUrl}" class="ybtn" th:text="#{button.cancel}"></a>
-                        </div>
+                        </dd>
+                        <dt><label for="inputName" th:text="#{project.name}"></label></dt>
+                        <dd>
+                            <input class="w-100 form-control" type="text" id="inputName" name="name" th:value="${forkName}" />
+                            <span class="note d-block mt-1" th:text="#{project.name.alert}"></span>
+                        </dd>
+                        <dt th:text="#{project.shareOption}"></dt>
+                        <dd>
+                            <ul class="list-unstyled project-scopes">
+                                <li>
+                                    <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn float-start form-check-input" checked="checked">
+                                    <label for="public"><strong class="ml5" th:text="#{project.public}"></strong><span class="note" th:utext="#{project.public.notice}"></span></label>
+                                </li>
+                                <li th:if="${protectedAllowed}" class="mt-2">
+                                    <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn float-start form-check-input">
+                                    <label for="protected"><strong class="ml5" th:text="#{project.protected}"></strong><span class="note" th:utext="#{project.protected.notice}"></span></label>
+                                </li>
+                                <li class="mt-2">
+                                    <input name="projectScope" type="radio" id="private" value="PRIVATE" class="radio-btn float-start form-check-input">
+                                    <label for="private"><strong class="ml5" th:text="#{project.private}"></strong><span class="note" th:utext="#{project.private.notice}"></span></label>
+                                </li>
+                            </ul>
+                        </dd>
+                    </dl>
+                    <div class="fork-actions">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{fork}"></button>
+                        <a th:href="${cancelUrl}" class="ybtn" th:text="#{button.cancel}"></a>
                     </div>
                 </fieldset>
             </form>
         </div>
+    
+        </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/service/project.Fork.js}"></script>

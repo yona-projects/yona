@@ -11,10 +11,11 @@
       th:replace="~{layout/organization-layout :: organizationLayout(${title}, 'NONE', ${orgView}, ~{::viewPage})}">
 <th:block th:fragment="viewPage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'main')}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
         <div class="project-home-header row">
             <div class="col-lg-9 span-hard-wrap">
                 <div class="project-overview">
@@ -38,7 +39,7 @@
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap hide-in-mobile">
                                 <a th:href="@{/{owner}/{name}(owner=${project.owner},name=${project.name})}">
-                                    <img th:if="${row.view.hasLogo}" th:src="@{${row.view.logoUrl}}" th:alt="${project.owner + '/' + project.name}"/>
+                                    <img th:src="@{${row.view.logoUrl}}" th:alt="${project.owner + '/' + project.name}"/>
                                 </a>
                             </div>
                             <div style="float:left">
@@ -126,6 +127,14 @@
             </th:block>
             </div>
         </div>
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/organization.View.js}]]);
+    $(document).ready(function() {
+        $yona.loadModule("organization.View");
+    });
+</script>
+</div><!--/* .shell-main */-->
     </div>
 </div>
 <!--/* Confirm to leave the project */-->
@@ -142,11 +151,5 @@
         <button type="button" class="ybtn ybtn-mini" data-bs-dismiss="modal" th:text="#{button.no}"></button>
     </div>
 </div></div></div>
-<script type="module" th:src="@{/assets/javascripts/esm/service/organization.View.js}"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $yona.loadModule("organization.View");
-    });
-</script>
 </th:block>
 </html>

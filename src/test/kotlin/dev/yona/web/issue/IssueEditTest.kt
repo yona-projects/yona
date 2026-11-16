@@ -125,6 +125,15 @@ class IssueEditTest : AbstractIntegrationTest() {
     // --- 폼 ---
 
     @Test
+    fun `수정 폼의 저장 단추는 테마색(ybtn-success)이고 새 이슈와 같다(A-567)`() {
+        val project = newProject()
+        val author = join(newUser(), project)
+        issue(project, author = author)
+        val save = form(project, session = login(author)).selectFirst("button#button-save")!!
+        assertTrue(save.hasClass("ybtn-success") && !save.hasClass("ybtn-info"), save.className())
+    }
+
+    @Test
     fun `수정 폼의 머리와 입력란`() {
         val project = newProject()
         val author = join(newUser(), project)

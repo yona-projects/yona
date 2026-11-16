@@ -47,4 +47,4 @@ updated: 2026-10-22
 
 ### 이슈 영역 (`#issues`)
 
-열림/닫힘/전체 탭(`?state=open|closed|all#issues`, 개수는 이 마일스톤의 이슈를 하위 이슈를 뺀 채 센 값), 일괄 변경 막대(구성원 여부와 상관없이 항상 보인다), 이슈 검색 상자(`data-toggle="item-search"`), 이슈 목록이다. 목록은 마일스톤에 속한 모든 이슈(하위 이슈, 초안 포함)를 번호 내림차순으로 보여 주고 다른 사람의 초안은 뺀다. 이슈 줄은 [issue-list.md](issue-list.md)와 같다.
+열림/닫힘/전체 탭(`?state=open|closed|all#issues`, 개수는 이 마일스톤의 이슈를 하위 이슈를 뺀 채 센 값), 일괄 변경 막대(구성원 여부와 상관없이 항상 보인다), 이슈 검색 상자(`data-toggle="item-search"`, 입력한 글로 `data-item="issue-item"` 항목을 `data-value`로 거른다. `esm/ui/ItemSearch.js`가 처리하며 v1.6의 `jquery.search.js`를 정리에서 잘못 지웠던 것을 복원했다, A-457), 이슈 목록이다. 목록은 마일스톤에 속한 모든 이슈(하위 이슈, 초안 포함)를 번호 내림차순으로 보여 주고 다른 사람의 초안은 뺀다. 이슈 줄은 [issue-list.md](issue-list.md)와 같다.

@@ -57,12 +57,6 @@ export const tests = [
     const r = await page.evaluate(() => { $('#body').trigger('focus'); $('#body').val('내용'); const e = $.Event('beforeunload'); $(window).trigger(e); const warned = e.result; $('#title').val('t'); $('form').on('submit', (ev) => ev.preventDefault()).trigger('submit'); const e2 = $.Event('beforeunload'); $(window).trigger(e2); return [warned, e2.result]; });
     assert.deepEqual(r, ['issue.error.beforeunload', undefined]); await page.close();
   } },
-  { name: '이슈 작성: 마일스톤 새로고침 단추를 누르면 폼 주소를 읽어 #milestoneOption 안쪽을 바꾸고 드롭다운을 다시 만든다', run: async () => {
-    const page = await open(ISSUE, 'esm/service/issue.Write.js', 'yona.issue.Write', { sIssueFormURL: '/issueform' });
-    await page.evaluate(() => { $('.icon-refresh').trigger('click'); }); await page.waitForTimeout(60);
-    assert.equal(await get(page, '__got'), '/issueform'); assert.equal(await page.evaluate(() => $('#milestoneOption').html()), 'new'); assert.deepEqual(await get(page, '__dd'), ['#milestoneId']); await page.close();
-  } },
-
   { name: '게시글 작성: 제목이 비면 알림창을 띄우고 제출을 막으며, 있으면 임시 저장을 지우고 통과시킨다', run: async () => {
     const page = await open(BOARD, 'esm/service/board.Write.js', 'yona.board.Write', {});
     assert.equal(await submitResult(page), false); assert.deepEqual(await get(page, '__alerts'), ['post.error.emptyTitle']); assert.equal(await get(page, '__cleared'), 0);

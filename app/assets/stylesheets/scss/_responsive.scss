@@ -104,9 +104,8 @@
     width: inherit !important;
   }
 
-  .yobiDialog {
+  .yobiDialog .modal-content {
     padding: 5px 5px !important;
-    width: 85% !important;
   }
 
   .modal {
@@ -270,23 +269,6 @@
     display: none !important;
   }
 
-  .short-menu {
-    display: block;
-  }
-
-  .menu-name {
-    display: none;
-  }
-
-  .project-menu-nav li a {
-    padding: 5px 12px 4px 12px !important;
-  }
-
-  .project-menu-count {
-    position: absolute !important;
-    margin-top: -36px !important;
-  }
-
   .show-in-mobile {
     display: block !important;
   }
@@ -351,10 +333,6 @@
     min-width: 10px !important;
   }
 
-  .project-menu-outer {
-    min-width: 10px !important;
-  }
-
   .page-footer-outer {
     min-width: 10px !important;
   }
@@ -386,31 +364,18 @@
     padding: 0;
   }
 
-  .project-menu-count {
-    background: none;
-    color: inherit;
-    font-weight: bold;
-  }
-
-  .project-menu-gruop {
-    margin-left: 0 !important;
-  }
-
+  // 머리는 얇은 한 줄이다(A-483). 좁은 폭에서는 아바타를 줄이고 이름 줄이 한 줄을 다 쓰며 동작 단추는 아래로 접힌다.
   .project-header-avatar {
-    left: 0 !important;
-    width: 50px !important;
-    height: 50px !important;
-    bottom: -6px !important;
-    border: 1px solid #f9f9f9 !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .project-breadcrumb-wrap {
-    left: 52px !important;
-    bottom: 5px !important;
+    flex-basis: calc(100% - 44px) !important;
 
     .project-name,
     .project-author {
-      font-size: 0.7em;
+      font-size: 0.9em;
     }
   }
 
@@ -431,7 +396,7 @@
   }
 
   .project-header-wrap .project-util-wrap {
-    bottom: 10px !important;
+    margin-left: 44px !important;
   }
 
   .span-hard-wrap {
@@ -552,10 +517,7 @@
     font-size: 0.75rem;
 
     .attachment-files-header {
-      .header-file-name {
-        max-width: 200px;
-      }
-
+      // A-499: 파일 이름 열은 200px로 제한하지 않는다(남는 폭을 모두 쓴다. `_page.scss`의 .attachment-files 참고).
       .header-size {
         max-width: 80px;
         display: block;
@@ -564,9 +526,9 @@
 
     .attachment-file-detail {
       .file-name {
-        max-width: 200px;
         font-size: 0.875rem;
-        word-break: break-all;
+        // A-499: v1.6의 `word-break: break-all`은 칸이 남아도 글자 중간에서 끊었다(`.p` / `ng`). 칸이 모자랄 때만 줄을 바꾼다.
+        overflow-wrap: anywhere;
       }
 
       .file-size {

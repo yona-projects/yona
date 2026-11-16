@@ -148,7 +148,7 @@ class OAuthAppsSettingsController(
     private fun authorizedRow(a: AuthorizedApp) = AuthorizedRow(a.clientRowId, a.name, a.ownerLoginId, a.ownerOrganization, a.host, a.scopes, support.dateText(a.approvedDate))
 
     private fun formView(client: OAuthClient?, errorKey: String?, form: Form): ModelAndView = base("user/edit-oauth-app-form")
-        .addObject("client", client?.let { mapOf("id" to it.id, "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
+        .addObject("client", client?.let { mapOf("id" to it.id, "name" to it.name.orEmpty(), "clientId" to it.clientId, "confidential" to (it.confidential == true)) }).addObject("form", form).addObject("formError", errorKey)
         .addObject("scopeChoices", OAuthScopes.forApps(oidc.enabled)).addObject("oidcInfo", support.oidcInfo(client))
         .addObject("transferTargets", client?.let { support.transferTargets(currentUser(), ClientOwner.of(currentUser())) } ?: emptyList<OAuthAppViewSupport.TransferTarget>())
 

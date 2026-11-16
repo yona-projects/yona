@@ -11,15 +11,22 @@
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::deletePage})}">
 <th:block th:fragment="deletePage" th:with="org=${orgView}">
 <th:block th:replace="~{organization/header :: header(${org})}"></th:block>
-<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+    <div class="project-page-wrap shell shell-below-banner">
+        <th:block th:replace="~{organization/menu :: sidebar(${org}, 'settings')}"></th:block>
+        <div class="shell-main">
 
-        <div class="box-wrap bottom">
-            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-bs-toggle="modal" ><!--
-         --><th:block th:text="#{organization.delete.this}"></th:block></a>
-        </div>
+        <!--/* A-578: 프로젝트 삭제와 같은 순서이다. 설명을 읽고, 삭제 단추로 확인 창을 열고, 그룹 이름을 정확히 입력해야 실행 단추가 켜진다 */-->
+        <section id="danger-delete" class="danger-section">
+            <h3 class="danger-title cu-label" th:text="#{organization.delete}"></h3>
+            <div class="cu-desc">
+                <p><strong class="notice" th:text="#{organization.delete.description}"></strong></p>
+            </div>
+            <div class="danger-actions">
+                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-bs-toggle="modal"><!--
+             --><th:block th:text="#{organization.delete.this}"></th:block></a>
+            </div>
+        </section>
 
         <!--/* Confirm to delete organization */-->
         <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
@@ -29,34 +36,26 @@
             </div>
             <div class="modal-body">
                 <p> <th:block th:text="#{organization.delete.reaccept}"></th:block> </p>
+                <p class="mb-0">
+                    <label for="deleteConfirmName" class="form-label" th:utext="#{organization.delete.confirmName(${'<strong>' + #strings.escapeXml(org.name) + '</strong>'})}"></label>
+                    <input type="text" id="deleteConfirmName" class="form-control w-100" autocomplete="off" spellcheck="false">
+                </p>
             </div>
             <div class="modal-footer">
-                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
-                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" disabled th:text="#{organization.delete.this}"></button>
             </div>
         </div></div></div>
-        <!--/* // -- // */-->
+        </div><!--/* .shell-main */-->
     </div>
 </div>
-<script language="javascript" th:inline="javascript">
-    $("#btnDeleteExec").on("click", function() {
-        yona.http.ajax({
-            type: "delete",
-            url: [[@{${#paths.organization(org.name)}}]],
-            success: function() {
-                location.href = [[@{/}]];
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById("alertDeletion")).hide();
-                var sErrorMsg;
-                try{
-                    sErrorMsg = Messages(JSON.parse(jqXHR.responseText).errorMsg);
-                }catch(e){
-                    sErrorMsg = Messages("organization.delete.error");
-                }
-                $yona.alert(sErrorMsg);
-                return false;
-            }
+<script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/organization.Delete.js}]]);
+    $(document).ready(function(){
+        $yona.loadModule("organization.Delete", {
+            "sDeleteURL": [[@{${#paths.organization(org.name)}}]],
+            "sOrgName": [[${org.name}]],
+            "sHomeURL": [[@{/}]]
         });
     });
 </script>

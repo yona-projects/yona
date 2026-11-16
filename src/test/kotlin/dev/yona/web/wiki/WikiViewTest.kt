@@ -96,13 +96,14 @@ class WikiViewTest : AbstractIntegrationTest() {
         val asReader = doc(getPage(reader, base(p)).andExpect(status().isOk))
         assertNull(asReader.selectFirst("a.wiki-create-first"))
         assertTrue(asReader.select(".wiki-empty").isNotEmpty())
+        assertNotNull(asWriter.selectFirst(".wiki-empty .error-wrap i.ico-err1 + p"), "다른 빈 화면과 같은 틀(그림과 안내 문구)이다(A-576)")
     }
 
     @Test
     fun `프로젝트 메뉴에 위키 탭이 있다`() {
         val p = project()
         val menu = doc(getPage(outsider(), "/${p.owner}/${p.name}").andExpect(status().isOk))
-        assertNotNull(menu.selectFirst(".project-menu-nav a[href=${base(p)}]"))
+        assertNotNull(menu.selectFirst("nav.shell-sidebar a.nav-link[href=${base(p)}]"))
     }
 
     // --- 만들기와 보기 ---
@@ -170,6 +171,44 @@ class WikiViewTest : AbstractIntegrationTest() {
         assertNotNull(page.selectFirst(".wiki-pages-filter"))
         assertEquals("사이드 메뉴", page.selectFirst(".wiki-custom-sidebar strong")?.text())
         assertTrue(page.selectFirst(".wiki-custom-footer")!!.text().contains("푸터 글"))
+    }
+
+    @Test
+    fun `사이드바는 로컬 복제 영역이 맨 위에 있고 그 아래에 페이지 제목, 검색, 목록이 이어진다(A-532)`() {
+        val p = project(); val writer = member(p)
+        create(writer, p, "Apple", "x")
+        val side = doc(getPage(writer, "${base(p)}/Apple")).selectFirst(".wiki-sidebar")!!
+        val kids = side.children()
+        val clone = kids.indexOfFirst { it.hasClass("wiki-clone") }
+        val title = kids.indexOfFirst { it.hasClass("wiki-sidebar-title") }
+        val filter = kids.indexOfFirst { it.hasClass("wiki-pages-filter") }
+        val list = kids.indexOfFirst { it.hasClass("wiki-pages-list") }
+        assertTrue(clone >= 0 && clone < title && title < filter && filter < list, "복제 $clone, 제목 $title, 검색 $filter, 목록 $list")
+    }
+
+    @Test
+    fun `새 페이지의 파일 첨부는 브라우저 기본 입력이 아니라 사이트의 파일 올리기 단추이다(A-533)`() {
+        val p = project(); val writer = member(p)
+        val page = doc(getPage(writer, "${base(p)}/_new"))
+        val btn = page.selectFirst(".wiki-attach .fake-file-wrap.wiki-attach-button")
+        assertNotNull(btn, "파일 올리기 단추")
+        assertTrue(btn.text().isNotBlank(), "단추에 글자가 있다")
+        val input = btn.selectFirst("input[type=file].wiki-attach-input.file")
+        assertNotNull(input, "단추 안의 투명한 파일 입력")
+        assertFalse(input.hasClass("form-control-sm"), "브라우저 기본 모양의 작은 입력이 아니다")
+        assertTrue(input.attr("data-upload-url").isNotBlank(), "업로드 주소는 그대로")
+        // A-576: "파일 첨부" 라벨은 없애고 게시글 등록의 파일 올리기처럼 회색 상자 안에 단추와 안내를 둔다
+        assertTrue(page.select(".wiki-attach > label").isEmpty(), "파일 첨부 라벨은 없다")
+        assertNotNull(page.selectFirst(".wiki-attach .upload-wrap .attach-wrap .btn-wrap .fake-file-wrap.wiki-attach-button"), "게시글 등록과 같은 파일 올리기 상자")
+        assertTrue(page.selectFirst(".wiki-attach .upload-wrap .attach-wrap span.plain")!!.text().isNotBlank(), "버튼을 눌러 고르라는 안내")
+    }
+
+    @Test
+    fun `복제 결과 글자는 입력 묶음 밖의 별도 줄이다(A-533)`() {
+        val p = project(); val writer = member(p)
+        val clone = doc(getPage(writer, "${base(p)}/Apple".also { create(writer, p, "Apple", "x") })).selectFirst(".wiki-clone")!!
+        assertNull(clone.selectFirst(".input-group .wiki-clone-feedback"), "피드백이 입력 묶음 안에 있다")
+        assertNotNull(clone.selectFirst("> .wiki-clone-feedback"), "묶음 밖의 별도 줄")
     }
 
     // --- 만들기 화면과 오류 ---
@@ -399,6 +438,7 @@ class WikiViewTest : AbstractIntegrationTest() {
         create(writer, p, "Home", "a\n", "첫 글")
         val history = doc(getPage(outsider(), "${base(p)}/Home/_history").andExpect(status().isOk))
         assertEquals(1, history.select("tr.wiki-revision").size)
+        assertNotNull(history.selectFirst(".wiki-page-header.wiki-history-header h2"), "이력 제목 줄은 이력 전용 틀이다(A-576)")
         assertNull(history.selectFirst("form.wiki-compare-form button[type=submit]"), "비교할 수 없는데 단추가 보인다")
     }
 

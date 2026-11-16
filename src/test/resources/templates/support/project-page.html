@@ -3,7 +3,9 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, ${menuType}, ~{::projectPageBody})}">
 <th:block th:fragment="projectPageBody">
-    <th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
-    <div id="project-test-body">본문</div>
+    <div class="shell">
+        <th:block th:replace="~{project/menu :: sidebar(${projectView}, ${menuType})}"></th:block>
+        <div class="shell-main"><div id="project-test-body">본문</div></div>
+    </div>
 </th:block>
 </html>

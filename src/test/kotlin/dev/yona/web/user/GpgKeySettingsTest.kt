@@ -64,9 +64,9 @@ class GpgKeySettingsTest : AbstractIntegrationTest() {
     fun `설정 탭에 GPG 키 탭이 있고 목록 화면에서 활성이다`() {
         val s = login(user())
         val list = page(s)
-        val tab = list.select("ul.nav-tabs a[href$=/user/editform/gpg]").single()
+        val tab = list.select("nav.shell-sidebar a.nav-link[href$=/user/editform/gpg]").single()
         assertTrue(tab.hasClass("active"))
-        assertNotNull(page(s, "/user/editform").select("ul.nav-tabs a[href$=/user/editform/gpg]").singleOrNull(), "다른 탭에도 GPG 키 탭이 보인다")
+        assertNotNull(page(s, "/user/editform").select("nav.shell-sidebar a.nav-link[href$=/user/editform/gpg]").singleOrNull(), "다른 탭에도 GPG 키 탭이 보인다")
     }
 
     @Test
@@ -94,7 +94,7 @@ class GpgKeySettingsTest : AbstractIntegrationTest() {
         val u = user(); val s = login(u)
         val source = TestGpgKey.generate(userId = "Alice <alice@example.com>", signingSubkey = true)
         mockMvc.perform(add(s, "내 노트북", source.publicArmored)).andExpect(status().is3xxRedirection)
-        val row = page(s).select("table#gpg-list tbody tr.gpg-row").single()
+        val row = page(s).select("ul#gpg-list li.gpg-row").single()
         assertEquals("내 노트북", row.selectFirst(".gpg-name")!!.text())
         assertTrue(row.selectFirst(".gpg-fingerprint")!!.text().replace(" ", "").equals(source.fingerprint, ignoreCase = true))
         assertEquals(source.keyId, row.selectFirst(".gpg-key-id")!!.text())
@@ -105,7 +105,7 @@ class GpgKeySettingsTest : AbstractIntegrationTest() {
     fun `목록의 행 동작은 삭제 버튼 하나뿐이다`() {
         val u = user(); val s = login(u)
         mockMvc.perform(add(s, "a", TestGpgKey.generate().publicArmored))
-        val row = page(s).select("tr.gpg-row").single()
+        val row = page(s).select("li.gpg-row").single()
         assertEquals(1, row.select("button, input[type=submit]").size)
         assertEquals(0, row.select("a").size, "편집이나 상세로 가는 링크가 없다")
         val form = row.selectFirst("form")!!

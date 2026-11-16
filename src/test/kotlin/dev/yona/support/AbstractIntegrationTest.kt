@@ -1,5 +1,8 @@
 package dev.yona.support
 
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInfo
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -15,6 +18,20 @@ import org.springframework.test.context.DynamicPropertySource
  */
 @SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false", "yona.update.interval=0", "yona.mailbox-require-sender-authentication=false", "yona.secret=test-secret", "yona.git-default-branch=master", "yona.audit-file-enabled=false"])
 abstract class AbstractIntegrationTest {
+
+    /**
+     * 앞선 시험이 시험 스레드의 중단 표시(interrupt flag)를 남기면 Cubrid 드라이버가 다음 DB 호출에서 "Has been interrupted"로 실패한다.
+     * 전체 시험에서 스키마 조회와 내보내기 시험이 이 때문에 흩어져 실패했다(A-607). 표시를 남긴 시험을 찾을 수 있게 알리고, 다음 시험이 영향받지 않게 지운다.
+     */
+    @AfterEach
+    fun clearInterruptLeftByTest(info: TestInfo) {
+        if (Thread.interrupted()) System.err.println("INTERRUPT-FLAG-LEFT-BY ${info.testClass.map { it.simpleName }.orElse("?")}.${info.displayName}")
+    }
+
+    @BeforeEach
+    fun clearInterruptBeforeTest(info: TestInfo) {
+        if (Thread.interrupted()) System.err.println("INTERRUPT-FLAG-FOUND-BEFORE ${info.testClass.map { it.simpleName }.orElse("?")}.${info.displayName}")
+    }
 
     companion object {
         @JvmStatic

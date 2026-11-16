@@ -17,6 +17,10 @@ import kotlin.test.assertTrue
 class JsLibraryVersionsTest {
 
     private val assets = File("src/main/resources/static/assets")
+
+    /** TypeScript 산출물(`compileTs`)이 놓이는 곳이다. 템플릿이 가리키는 `esm/core/page.js` 같은 파일은 소스 트리가 아니라 빌드 때 여기에 만들어진다(D-139). */
+
+    private val generatedAssets = File("build/generated/ts/static/assets")
     private val templates = File("src/main/resources/templates")
 
     private fun asset(path: String) = File(assets, path)
@@ -67,7 +71,7 @@ class JsLibraryVersionsTest {
         // 스타일시트는 빌드에서 SCSS로 만들어지고 이미지는 별도이므로 JS(`javascripts/`, `bootstrap/js/`)만 본다. 파일 이름을 바꿀 때 404가 나는 것을 막는다
         val pattern = Regex("""@\{/assets/((?:javascripts|bootstrap/js)/[^}]+\.js)}""")
         val missing = templateFiles().flatMap { f -> pattern.findAll(f.readText()).map { f.name to it.groupValues[1] }.toList() }
-            .filter { (_, path) -> !File(assets, path).isFile }
+            .filter { (_, path) -> !File(assets, path).isFile && !File(generatedAssets, path).isFile }
             .distinct()
         assertEquals(emptyList(), missing, "템플릿이 가리키지만 없는 JS 파일")
     }

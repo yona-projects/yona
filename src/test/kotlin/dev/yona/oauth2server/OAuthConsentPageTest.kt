@@ -80,7 +80,7 @@ class OAuthConsentPageTest : AbstractIntegrationTest() {
         val org = organizationService.create("oc${System.nanoTime() % 1000000}", null, admin)
         val client = (clientService.createFor(dev.yona.domain.oauth2server.ClientOwner.of(org), admin, "조직 앱", "", "https://app.example.com", "https://app.example.com/callback", false, setOf("read:user")) as ClientCreation.Created).client
         val s = login(me)
-        val line = page(s, consentUrl(s, client, scope = "read:user")).selectFirst("p.tag-line")!!.text()
+        val line = page(s, consentUrl(s, client, scope = "read:user")).selectFirst("p.consent-card-by")!!.text()
         assertTrue(line.contains(org.name!!), line); assertFalse(line.contains(admin.loginId!!), line)
     }
 

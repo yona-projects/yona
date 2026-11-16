@@ -82,7 +82,7 @@ class SiteMailTest : AbstractIntegrationTest() {
         assertEquals("post", doc.selectFirst("form#mailForm")!!.attr("method"))
         assertEquals(listOf("from", "to", "subject"), doc.select("form#mailForm input[name]").map { it.attr("name") })
         assertTrue(doc.select("form#mailForm textarea[name=body]").isNotEmpty())
-        assertEquals("/sites/mail", doc.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
+        assertEquals("/sites/mail", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
     }
 
     @Test
@@ -167,7 +167,7 @@ class SiteMailTest : AbstractIntegrationTest() {
         assertEquals("checked", doc.selectFirst("#mailtoAll")!!.attr("checked"))
         assertTrue(doc.selectFirst("#project-list-wrap")!!.hasClass("hide"))
         assertTrue(doc.selectFirst("#write-email") != null && doc.selectFirst("#input-project") != null && doc.selectFirst("#selected-projects") != null)
-        assertEquals("/sites/massmail", doc.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
+        assertEquals("/sites/massmail", doc.selectFirst("nav.shell-sidebar a.nav-link.active")!!.attr("href"))
         val script = doc.select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
         assertTrue(script.contains("site.MassMail") && script.contains("/sites/mailList") && script.contains("/projects"))
     }

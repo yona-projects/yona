@@ -69,6 +69,7 @@ class GitHttpTest {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
+    @Autowired private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var pushedBranches: PushedBranchRepository
@@ -120,7 +121,7 @@ class GitHttpTest {
     @AfterEach
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
-        apiTokenRepository.deleteAll(); tokenCache.clear()
+        siteAdmins.deleteAll(); apiTokenRepository.deleteAll(); tokenCache.clear()
         // GPG 키도 사용자를 참조한다(하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다, X-4)
         gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }
         gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
@@ -602,6 +603,43 @@ class GitHttpTest {
         val plain = plainMember()
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(plain, null, plain.email!!, branch = "feature", startPoint = "origin/feature").status)
         push(project, plain, branch = "v1", ref = "refs/tags/v1")
+    }
+
+    /** 복제해서 [file]에 [text]를 써 커밋하고 [branch]로 밀어 넣은 원격 갱신 결과를 돌려준다. */
+    private fun pushFile(user: User, file: String, text: String, branch: String = "master", startPoint: String = "origin/master"): org.eclipse.jgit.transport.RemoteRefUpdate {
+        val dir = clone(project, user)
+        Git.open(dir).use { git ->
+            if (git.repository.branch != branch) git.checkout().setCreateBranch(true).setName(branch).setStartPoint(startPoint).call()
+            File(dir, file).writeText(text)
+            git.add().addFilepattern(file).call()
+            git.commit().setMessage("edit $file").setAuthor("t", "t@example.com").setCommitter("t", "t@example.com").call()
+            return git.push().setRemote(url(project)).setCredentialsProvider(credentials(user)).setRefSpecs(RefSpec("refs/heads/$branch:refs/heads/$branch")).call().flatMap { it.remoteUpdates }.single()
+        }
+    }
+
+    @Test
+    fun `이슈 템플릿을 바꾸는 푸시는 프로젝트 관리자만 받고 구성원은 막는다 (A-565, R-167)`() {
+        push(project, member)
+        val plain = plainMember()
+        // 다른 파일은 구성원도 밀어 넣는다
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(plain, "notes.txt", "n").status)
+        // 이슈 템플릿은 막는다(기본 브랜치와 다른 브랜치 모두)
+        assertRejected(pushFile(plain, "ISSUE_TEMPLATE.md", "구성원"), "ISSUE_TEMPLATE.md", "manager")
+        assertRejected(pushFile(plain, "ISSUE_TEMPLATE.md", "구성원", branch = "feature"), "ISSUE_TEMPLATE.md")
+        // 템플릿을 바꾸지 않고 새 브랜치만 만드는 푸시는 막지 않는다
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(plain, "other.txt", "o", branch = "feature2").status)
+        // 소유자는 바꿀 수 있고, 그 뒤 구성원이 템플릿을 건드리지 않은 채 푸시하는 것은 막지 않는다
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(member, "ISSUE_TEMPLATE.md", "소유자").status)
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(plain, "later.txt", "l").status)
+    }
+
+    @Test
+    fun `프로젝트 관리자는 여러 명이어도 모두 이슈 템플릿을 푸시하고 사이트 관리자도 한다 (A-565)`() {
+        push(project, member)
+        val manager = user("gmgr").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(manager, "ISSUE_TEMPLATE.md", "관리자").status)
+        val siteAdmin = user("gsite").also { siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = it)) }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushFile(siteAdmin, "ISSUE_TEMPLATE.md", "사이트 관리자").status)
     }
 
     private fun assertRejected(update: org.eclipse.jgit.transport.RemoteRefUpdate, vararg words: String) {

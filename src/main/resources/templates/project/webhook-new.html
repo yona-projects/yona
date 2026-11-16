@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/webhooks.scala.html(등록 폼 부분)
+  목록과 등록 폼은 따로 화면이다(A-545). 모델: title, projectView, action, listUrl, webhookTypeOptions
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::webhookNewPage})}">
+<th:block th:fragment="webhookNewPage" th:with="project=${projectView.project}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap shell shell-below-banner webhook-editor-wrap">
+        <th:block th:replace="~{project/menu :: settingsSidebar(${projectView})}"></th:block>
+        <div class="shell-main"><span data-swap-safe hidden></span>
+
+        <form id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
+            <h3 class="form-legend" th:text="#{project.webhook.new}"></h3>
+            <div class="form-wrap">
+                <div class="d-flex flex-wrap gap-2 align-items-start">
+                    <div class="webhook-field webhook-field-url">
+                        <input type="text" name="payloadUrl" class="input-webhook-payload form-control" maxlength="2000" autocomplete="off" aria-describedby="webhookPayloadUrlHelp" th:placeholder="#{project.webhook.payloadUrl}">
+                        <div id="webhookPayloadUrlHelp" class="form-text" th:text="#{project.webhook.payloadUrl.help}"></div>
+                    </div>
+                    <div class="webhook-field webhook-field-secret">
+                        <input type="text" name="secret" class="input-webhook-secret form-control" maxlength="250" autocomplete="off" aria-describedby="webhookSecretHelp" th:placeholder="#{project.webhook.secret}">
+                        <div id="webhookSecretHelp" class="form-text" th:text="#{project.webhook.secret.help}"></div>
+                    </div>
+                </div>
+                <!--/* 보내는 형식(A-544): 옵션마다 무엇을 보내고 어떤 이벤트를 받는지 설명한다. 설명은 실제 발송을 받아 본 결과이다 */-->
+                <div class="webhook-type-legend" th:text="#{project.webhook.type.legend}"></div>
+                <div class="webhook-types" role="radiogroup" th:aria-label="#{project.webhook.type.legend}">
+                    <label class="webhook-type-option" th:each="o : ${webhookTypeOptions}">
+                        <input type="radio" name="webhookType" class="form-check-input" th:value="${o.value}" th:checked="${o.value == 'SIMPLE'}">
+                        <span class="webhook-type-text">
+                            <span class="webhook-type-name" th:text="#{${o.nameKey}}"></span>
+                            <span class="webhook-type-desc" th:text="#{${o.descKey}}"></span>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-check webhook-git-push">
+                    <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input" aria-describedby="gitPushHelp">
+                    <label for="gitPush" class="form-check-label" th:text="#{project.webhook.includeGitPush}"></label>
+                    <div id="gitPushHelp" class="form-text" th:text="#{project.webhook.includeGitPush.help}"></div>
+                </div>
+            </div>
+            <div class="webhook-new-actions">
+                <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
+                <a id="webhook-cancel" th:href="${listUrl}" class="ybtn" th:text="#{button.cancel}"></a>
+            </div>
+        </form>
+
+    
+        <script type="module" th:inline="javascript">
+/* 본문 교체 때도 모듈 등록이 끝난 뒤 초기화하도록 모듈을 먼저 불러온다(D-136) */
+await import([[@{/assets/javascripts/esm/service/project.Webhook.js}]]);
+    $(function(){
+        $yona.loadModule("project.Webhook", {
+            "form": "#formNewWebhook"
+        });
+        $('input[type=radio][name=webhookType]').change(function() {
+            if (this.value == 'JSON') {
+                // v1.6은 속성(attribute)으로 바꾸어, 체크를 한 번이라도 눌러 본 뒤 JSON을 고르면 체크가 꺼진 채 잠겼다(project-F20). 상태 값(prop)으로 바꾼다.
+                $("input:checkbox[name=gitPush]").prop('checked', true);
+                $("input:checkbox[name=gitPush]").attr('onclick', 'return false;');
+            } else {
+                $("input:checkbox[name=gitPush]").attr('onclick', '');
+                $("input:checkbox[name=gitPush]").prop('checked', false);
+            }
+        });
+    });
+</script>
+</div><!--/* .shell-main */-->
+    </div>
+</div>
+
+</th:block>
+</html>

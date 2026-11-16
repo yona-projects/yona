@@ -177,20 +177,20 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     // --- 헤더 ---
 
     @Test
-    fun `로고가 없으면 기본 로고와 기본 배경을 쓴다`() {
+    fun `로고가 없으면 기본 로고를 쓰고 프로젝트 홈의 머리에는 기본 배경 이미지를 깐다(A-511)`() {
         val project = newProject()
         val header = page(project).selectFirst(".project-header-outer")
         assertNotNull(header)
-        assertTrue(header.attr("style").contains("/assets/images/project_default.jpg"))
+        assertTrue(header.hasClass("has-banner") && header.attr("style").contains("/assets/images/project_default.jpg"), header.attr("style"))
         assertEquals("/assets/images/project_default_logo.png", header.selectFirst(".project-header-avatar img")?.attr("src"))
     }
 
     @Test
-    fun `프로젝트에 올린 첨부가 있으면 로고와 배경으로 쓴다`() {
+    fun `프로젝트에 올린 첨부가 있으면 로고이자 프로젝트 홈 머리의 배경으로 쓴다(A-511)`() {
         val project = newProject()
         val file = attachments.save(Attachment(containerType = ResourceType.PROJECT, containerId = project.id!!, name = "logo.png"))
         val header = page(project).selectFirst(".project-header-outer")!!
-        assertTrue(header.attr("style").contains("/files/${file.id}"))
+        assertTrue(header.attr("style").contains("/files/${file.id}"), header.attr("style"))
         assertEquals("/files/${file.id}", header.selectFirst(".project-header-avatar img")?.attr("src"))
     }
 
@@ -311,10 +311,10 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     @Test
     fun `메뉴는 프로젝트 메뉴 설정에 따라 항목을 보여 준다`() {
         val project = newProject()
-        val items = page(project).select(".project-menu-nav.project-menu-gruop > li")
+        val items = page(project).select("nav.shell-sidebar li.nav-item")
         assertEquals(
             listOf("Project home", "Code", "Issue", "Pull request", "Review", "Milestone", "Board", "Wiki"),
-            items.map { it.selectFirst(".menu-name")!!.text() }
+            items.map { it.selectFirst(".shell-sidebar-label")!!.text() }
         )
         assertEquals(
             listOf(
@@ -325,20 +325,20 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
             ),
             items.map { it.selectFirst("a")!!.attr("href") }
         )
-        assertEquals(listOf("H", "C", "I", "P", "R", "M", "B", "W"), items.map { it.selectFirst(".short-menu")!!.text().trim() })
+        assertEquals(listOf("H", "C", "I", "P", "M", "B"), items.mapNotNull { it.selectFirst("a")!!.attr("data-shortcut").ifEmpty { null } }, "리뷰와 위키는 지금처럼 단축키가 없다")
     }
 
     @Test
     fun `꺼진 메뉴는 숨긴다`() {
         val project = newProject { code = false; board = false; review = false; pullRequest = false }
-        val names = page(project).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
+        val names = page(project).select("nav.shell-sidebar .shell-sidebar-label").map { it.text() }
         assertEquals(listOf("Project home", "Issue", "Milestone", "Wiki"), names)
     }
 
     @Test
     fun `포크한 프로젝트의 풀 리퀘스트 메뉴는 보낸 요청 목록으로 간다`() {
         val fork = newProject(original = newProject())
-        val href = page(fork).select(".project-menu-nav li a").first { it.text().contains("Pull request") }.attr("href")
+        val href = page(fork).select("nav.shell-sidebar a.nav-link").first { it.text().contains("Pull request") }.attr("href")
         assertEquals("/${fork.owner}/${fork.name}/sentPullRequests", href)
     }
 
@@ -347,25 +347,25 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         val project = newProject()
         project.vcs = "Subversion"
         projects.save(project)
-        assertFalse(page(project).select(".menu-name").any { it.text() == "Pull request" })
+        assertFalse(page(project).select("nav.shell-sidebar .shell-sidebar-label").any { it.text() == "Pull request" })
     }
 
     @Test
     fun `코드 열람이 멤버 전용이면 비멤버에게 코드와 풀 리퀘스트와 리뷰 메뉴를 숨긴다`() {
         val project = newProject(codeMemberOnly = true)
-        val names = page(project).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
+        val names = page(project).select("nav.shell-sidebar .shell-sidebar-label").map { it.text() }
         assertEquals(listOf("Project home", "Issue", "Milestone", "Board", "Wiki"), names)
         val member = newUser().also { join(it, project, RoleType.MEMBER) }
-        val memberNames = page(project, login(member)).select(".project-menu-nav.project-menu-gruop .menu-name").map { it.text() }
+        val memberNames = page(project, login(member)).select("nav.shell-sidebar .shell-sidebar-label").map { it.text() }
         assertTrue(memberNames.containsAll(listOf("Code", "Pull request", "Review")))
     }
 
     @Test
     fun `현재 메뉴에 active가 붙는다`() {
         val project = newProject()
-        val active = page(project, query = "?menu=ISSUE").select(".project-menu-nav.project-menu-gruop > li.active")
+        val active = page(project, query = "?menu=ISSUE").select("nav.shell-sidebar a.nav-link.active")
         assertEquals(1, active.size)
-        assertEquals("Issue", active.first()!!.selectFirst(".menu-name")?.text())
+        assertEquals("Issue", active.first()!!.selectFirst(".shell-sidebar-label")?.text())
     }
 
     @Test
@@ -375,8 +375,8 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         issues.save(Issue(project = project, number = 2, state = State.OPEN))
         issues.save(Issue(project = project, number = 3, state = State.CLOSED))
         postings.save(Posting(project = project, number = 1))
-        val items = page(project).select(".project-menu-nav.project-menu-gruop > li")
-        fun badge(name: String) = items.first { it.selectFirst(".menu-name")!!.text() == name }.selectFirst(".project-menu-count")?.text()
+        val items = page(project).select("nav.shell-sidebar li.nav-item")
+        fun badge(name: String) = items.first { it.selectFirst(".shell-sidebar-label")!!.text() == name }.selectFirst(".badge")?.text()
         assertEquals("2", badge("Issue"))
         assertEquals("1", badge("Board"))
         assertNull(badge("Milestone"))
@@ -387,10 +387,10 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     fun `설정 메뉴는 수정 권한이 있는 사용자에게만 나온다`() {
         val project = newProject()
         val manager = newUser().also { join(it, project, RoleType.MANAGER) }
-        val setting = page(project, login(manager)).selectFirst(".project-setting a")
+        val setting = page(project, login(manager)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]")
         assertEquals("/${project.owner}/${project.name}/settingform", setting?.attr("href"))
-        assertNull(page(project).selectFirst(".project-setting"))
-        assertNull(page(project, login(newUser())).selectFirst(".project-setting"))
+        assertNull(page(project).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
+        assertNull(page(project, login(newUser())).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform]"))
     }
 
     @Test
@@ -400,16 +400,16 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         val applicant = newUser()
         applicant.enrolledProjects.add(project)
         users.save(applicant)
-        assertEquals("1", page(project, login(manager)).selectFirst(".project-setting .project-menu-count")?.text())
+        assertEquals("1", page(project, login(manager)).selectFirst("nav.shell-sidebar a.nav-link[href\$=/settingform] .badge")?.text())
     }
 
     @Test
     fun `단축키 스크립트가 켜진 메뉴만 포함한다`() {
         val project = newProject { board = false }
         val html = page(project).html()
-        assertTrue(html.contains("\"H\":"), html.takeLast(1500))
-        assertTrue(html.contains("\"C\":") && html.contains("\"I\":") && html.contains("\"M\":") && html.contains("\"P\":"))
-        assertFalse(html.contains("\"B\":"))
+        assertTrue(html.contains("htKeyMap[ \"H\" ]"), html.takeLast(1500))
+        assertTrue(html.contains("htKeyMap[ \"C\" ]") && html.contains("htKeyMap[ \"I\" ]") && html.contains("htKeyMap[ \"M\" ]") && html.contains("htKeyMap[ \"P\" ]"))
+        assertFalse(html.contains("htKeyMap[ \"B\" ]"))
         assertTrue(html.contains("project.Global"))
     }
 
@@ -418,9 +418,9 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         val project = newProject()
         val manager = newUser().also { join(it, project, RoleType.MANAGER) }
         val member = newUser().also { join(it, project, RoleType.MEMBER) }
-        assertTrue(page(project, login(manager)).html().contains("\"Q\":"))
-        assertFalse(page(project, login(member)).html().contains("\"Q\":"))
-        assertFalse(page(project).html().contains("\"Q\":"))
+        assertTrue(page(project, login(manager)).html().contains("htKeyMap[ \"Q\" ]"))
+        assertFalse(page(project, login(member)).html().contains("htKeyMap[ \"Q\" ]"))
+        assertFalse(page(project).html().contains("htKeyMap[ \"Q\" ]"))
     }
 
     @Test

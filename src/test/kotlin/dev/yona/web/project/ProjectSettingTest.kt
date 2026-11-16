@@ -78,12 +78,12 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         File("build/tmp/it-project-setting").deleteRecursively()
     }
 
-    private fun newUser(): User {
+    private fun newUser(loginId: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
         return users.save(
             User(
-                loginId = "ps$n", name = "ps$n", email = "ps$n@example.com", state = UserState.ACTIVE,
+                loginId = loginId ?: "ps$n", name = "ps$n", email = "ps$n@example.com", state = UserState.ACTIVE,
                 passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)
             )
         )
@@ -110,6 +110,9 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     private fun manager(project: Project): User = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
+
+    /** 프로젝트 소유자(로그인 아이디가 `owner`)이면서 관리자 역할인 사용자이다. 프로젝트를 만든 사람이 이 상태이다. */
+    private fun ownerManager(project: Project): User = newUser(project.owner!!).also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
 
     private fun settingForm(project: Project, session: MockHttpSession): Document =
         Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/settingform").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
@@ -172,6 +175,46 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `설정 폼은 구역 네 개와 값의 종류에 맞는 컨트롤을 쓰고 스크립트가 쓰는 id를 지킨다(A-563)`() {
+        val project = newProject()
+        val form = settingForm(project, login(ownerManager(project))).selectFirst("form#saveSetting")!!
+        assertEquals(listOf("settingInfo", "settingAccess", "settingFeatures", "settingCode"), form.select("section.setting-section").map { it.id() })
+        assertEquals(listOf("Project information", "Visibility and access", "Features", "Code and merge"), form.select("section.setting-section > .setting-section-head > h4").map { it.text() })
+        assertTrue(form.select(".box-wrap, .bubble-wrap, .cu-label, .cu-desc").isEmpty(), "옛 표 모양 클래스는 쓰지 않는다")
+        // 공개 설정과 코드 접근, 승인 해제는 값 이름과 전송 값이 그대로인 라디오를 가로 선택으로 보인다
+        assertEquals(listOf("public", "private"), form.select("#settingAccess .setting-seg input[name=projectScope]").map { it.id() })
+        assertEquals(listOf("true", "false"), form.select("#settingAccess .setting-seg input[name=isCodeAccessibleMemberOnly]").map { it.attr("value") })
+        assertEquals(listOf("dismissStaleEnable", "dismissStaleDisable"), form.select("#reviewerCountSettingPanel .setting-seg input[name=isDismissingStaleApprovals]").map { it.id() })
+        // 기능은 체크 목록이고 이슈 템플릿 편집은 그 목록 밖의 독립 항목이다
+        assertEquals(listOf("code", "issue", "pullRequest", "review", "milestone", "board", "wiki"), form.select("#settingFeatures .setting-features input[type=checkbox]").map { it.attr("name") })
+        assertNotNull(form.selectFirst("#settingFeatures a#issueTemplateEdit"))
+        assertNull(form.selectFirst(".setting-features #issueTemplateEdit"), "이슈 기능의 체크가 아니라 설정의 독립 항목이다")
+        // 병합 방식은 방식마다 허용(체크와 숨은 false), 기본(라디오)이 한 줄에 짝을 이루는 표이다
+        val rows = form.select("#mergeMethodSettingPanel table.setting-merge tbody tr")
+        assertEquals(listOf("allowMergeCommit", "allowSquashMerge", "allowRebaseMerge"), rows.map { it.selectFirst("input[type=checkbox]")!!.attr("name") })
+        assertEquals(listOf("merge", "squash", "rebase"), rows.map { it.selectFirst("input[name=defaultMergeMethod]")!!.attr("value") })
+        assertTrue(rows.all { r -> r.selectFirst("input[type=hidden][value=false]") != null }, "체크하지 않은 방식은 false로 보낸다")
+        assertEquals(listOf("Method", "Allowed", "Default"), form.select("#mergeMethodSettingPanel table.setting-merge thead th").map { it.text() })
+        // 스크립트와 다른 화면이 쓰는 id
+        listOf("project-name", "project-desc", "logoPath", "save", "defaultBranceSettingPanel", "reviewerCountSettingPanel", "mergeMethodSettingPanel", "menuSettingCode", "menuSettingPullRequest", "menuSettingReview", "project-default-branch")
+            .forEach { assertNotNull(form.getElementById(it), "#$it") }
+    }
+
+    @Test
+    fun `이슈 템플릿 편집 단추는 프로젝트 관리자에게 보인다(A-565)`() {
+        val project = newProject()
+        assertNotNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"))
+        assertNotNull(settingForm(project, login(manager(project))).selectFirst("a#issueTemplateEdit"), "프로젝트 관리자는 몇 명이든 같다")
+    }
+
+    @Test
+    fun `풀 리퀘스트와 기본 브랜치가 없는 Subversion 프로젝트에는 코드와 병합 구역이 없다(A-563)`() {
+        val project = newProject(vcs = "Subversion")
+        val titles = settingForm(project, login(manager(project))).select("form#saveSetting section.setting-section > .setting-section-head > h4").map { it.text() }
+        assertEquals(listOf("Project information", "Visibility and access", "Features"), titles)
+    }
+
+    @Test
     fun `공개 범위 라디오는 현재 값을 고르고 그룹 공개는 조직 프로젝트에만 있다`() {
         val plain = newProject()
         val page = settingForm(plain, login(manager(plain)))
@@ -187,7 +230,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     @Test
     fun `이슈 템플릿 링크와 리뷰어 수와 기본 브랜치는 Git 프로젝트에만 있다`() {
         val git = newProject()
-        val page = settingForm(git, login(manager(git)))
+        val page = settingForm(git, login(ownerManager(git)))
         assertEquals("/${git.owner}/${git.name}/postform?issueTemplate=true", page.selectFirst("a[target=_blank].ybtn")?.attr("href"))
         assertNotNull(page.selectFirst("#reviewerCountSettingPanel"))
         assertNotNull(page.selectFirst("select#project-default-branch"))
@@ -254,22 +297,37 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `멤버 화면의 멤버 줄은 본문 폭 전체를 쓴다(A-534)`() {
+        val project = newProject(); val mgr = manager(project)
+        val page = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/members").session(login(mgr))).andExpect(status().isOk).andReturn().response.contentAsString)
+        val rows = page.select("ul.members.project > li.member")
+        assertTrue(rows.isNotEmpty(), "멤버 줄이 있다")
+        assertTrue(rows.all { it.hasClass("col-12") && !it.hasClass("col-lg-6") }, "절반 폭(col-lg-6)이 아니라 전체 폭(col-12): ${rows.map { it.className() }}")
+    }
+
+    @Test
+    fun `Git LFS 화면은 통계 카드 셋과 파일 잠금 카드로 보인다(A-534)`() {
+        val project = newProject(); val mgr = manager(project)
+        val page = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/setting/lfs").session(login(mgr))).andExpect(status().isOk).andReturn().response.contentAsString)
+        val stats = page.select("#lfs-usage .lfs-stat")
+        assertEquals(3, stats.size, "객체 수, 사용량, 객체 하나의 최대 크기 카드")
+        assertTrue(stats.all { it.selectFirst(".lfs-stat-label")!!.text().isNotBlank() && it.selectFirst(".lfs-stat-value")!!.text().isNotBlank() }, stats.outerHtml())
+        assertNotNull(page.selectFirst(".lfs-locks-card"), "파일 잠금 카드")
+        assertNotNull(page.selectFirst("#lfs-locks-empty"), "잠금이 없을 때의 빈 안내는 그대로")
+    }
+
+    @Test
     fun `설정 하위 메뉴가 있고 현재 화면이 활성이다`() {
         val project = newProject()
         val page = settingForm(project, login(manager(project)))
-        val tabs = page.select(".project-page-wrap ul.nav-tabs li")
+        val tabs = page.select("nav.shell-sidebar li.nav-item")
         assertEquals(
-            listOf("subMenuProjectSetting", "subMenuProjectMember", "subMenuRuleset", "subMenuDeployKey", "subMenuLfs", "subMenuIssueLabel", "subMenuWebhook", "subMenuProjectTransfer", "subMenuProjectDelete", "subMenuProjectChangeVCS"),
-            tabs.map { it.id() }
+            listOf("general", "members", "rulesets", "deployKeys", "lfs", "labels", "webhooks", "danger").map { "/${project.owner}/${project.name}" + mapOf("general" to "/settingform", "members" to "/members", "rulesets" to "/setting/rulesets", "deployKeys" to "/setting/deploykeys", "lfs" to "/setting/lfs", "webhooks" to "/webhooks", "labels" to "/issue/labelsform", "danger" to "/setting/danger").getValue(it) },
+            tabs.map { it.selectFirst("a")!!.attr("href") }
         )
-        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
+        assertEquals(listOf("Settings", "Member", "Rulesets", "Deploy keys", "Git LFS", "Issue Label", "Webhooks", "Danger Zone"), tabs.map { it.selectFirst(".shell-sidebar-label")!!.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34, 배포 키 탭은 X-3, Git LFS 탭은 X-8이다")
         assertEquals(listOf("active"), tabs.filter { it.selectFirst("a")!!.hasClass("active") }.map { "active" }, tabs.outerHtml())
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
-        assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/rulesets", tabs[2].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/deploykeys", tabs[3].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/setting/lfs", tabs[4].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[5].selectFirst("a")?.attr("href"))
     }
 
     @Test
@@ -279,14 +337,14 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         applicant.enrolledProjects.add(project)
         users.save(applicant)
         val page = settingForm(project, login(manager(project)))
-        assertEquals("1", page.selectFirst("#subMenuProjectMember .num-badge")?.text())
+        assertEquals("1", page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/members] .badge")?.text())
     }
 
     @Test
     fun `저장소 종류 변경 메뉴는 코드 메뉴가 꺼져 있으면 숨긴다`() {
         val project = newProject(menu = { code = false })
         val page = settingForm(project, login(manager(project)))
-        assertTrue(page.selectFirst("#subMenuProjectChangeVCS")!!.attr("style").contains("display:none"))
+        assertNull(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/changeVCS]"), "코드 메뉴가 꺼지면 항목이 없다")
     }
 
     @Test

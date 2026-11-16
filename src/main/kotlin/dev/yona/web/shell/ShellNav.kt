@@ -1,0 +1,295 @@
+package dev.yona.web.shell
+
+import dev.yona.domain.vcs.VcsSupport
+import dev.yona.util.UrlPaths
+import org.springframework.web.util.UriUtils
+import java.util.Locale
+
+/** 사이드바가 속한 맥락이다(D-138, D-141). 맥락마다 사이드바 하나이다. */
+enum class NavContext { HOME, PROJECT, PROJECT_SETTINGS, ORGANIZATION, ORGANIZATION_SETTINGS, USER_SETTINGS, SITE_ADMIN }
+
+/**
+ * 사이드바의 항목 하나이다. 묶음 제목이나 하위 항목은 없다(D-141).
+ *
+ * @property key 항목을 가리키는 안정된 이름이다. 활성 표시와 시험이 쓴다.
+ * @property labelKey 화면에 보이는 글자의 메시지 키이다. 이미 있는 v1.6 용어를 그대로 쓴다.
+ * @property path 컨텍스트 경로가 붙기 전의 서버 경로이다. 템플릿이 `@{...}`로 접두어를 붙인다.
+ * @property shortcut 항목에서 파생되는 한 글자 단축키이다(D-137). 없으면 `null`.
+ * @property badge 열린 수나 글 수 같은 배지이다. 0이면 `null`이다.
+ * @property exact `true`이면 경로가 정확히 같을 때만 활성이다. 프로젝트 홈, 조직 홈, `/`처럼 다른 항목의 앞부분이 되는 주소에 쓴다.
+ */
+data class NavItem(
+    val key: String, val labelKey: String, val path: String, val shortcut: Char? = null, val badge: Long? = null,
+    val exact: Boolean = false
+) {
+    /** 접힌 띠와 열린 목록에서 항목 앞에 그리는 아이콘 이름이다. 항목 이름([key])으로 정하며 [NavIcons]를 본다. */
+    val icon: String get() = NavIcons.of(key)
+}
+
+/**
+ * 사이드바 항목의 아이콘 이름이다(A-489). 접으면 이름은 숨고 아이콘만 남으므로(GitLab처럼) 항목마다 아이콘이 필요하다.
+ * 항목 이름이 맥락마다 같은 뜻이므로(`issues`, `settings`, `members` 등) 이름 하나로 아이콘을 정한다.
+ * 아이콘 그림은 `templates/shell/icons.html`의 `symbol#yi-이름`이다. 새 항목을 만들면 여기에 이름을 더해야 하며, 빠지면 시험이 알린다.
+ */
+object NavIcons {
+    /** 그림이 있는 아이콘 이름의 모음이다(`dot`은 이름이 빠졌을 때의 대신 그림이라 모음에 넣지 않는다). */
+    val NAMES: Set<String> = setOf(
+        "home", "code", "issue", "pullrequest", "review", "milestone", "board", "book", "gear", "users", "user", "shield", "key", "database",
+        "tag", "bolt", "swap", "trash", "branch", "folder", "grid", "apps", "bell", "file", "clipboard", "lock", "mail", "link", "download", "pulse", "login"
+    )
+
+    private val BY_KEY: Map<String, String> = mapOf(
+        "home" to "home", "code" to "code", "issues" to "issue", "myIssues" to "issue", "pullRequests" to "pullrequest", "reviews" to "review",
+        "milestones" to "milestone", "board" to "board", "boards" to "board", "posts" to "board", "wiki" to "book",
+        "settings" to "gear", "general" to "gear", "members" to "users", "users" to "user", "profile" to "user",
+        "rulesets" to "shield", "two-factor" to "shield", "security" to "shield",
+        "deployKeys" to "key", "ssh" to "key", "gpg" to "key", "token" to "key", "sso" to "login",
+        "lfs" to "database", "data" to "database", "labels" to "tag", "webhooks" to "bolt", "danger" to "trash", "transfer" to "swap", "delete" to "trash", "changeVcs" to "branch",
+        "projects" to "folder", "organizations" to "grid", "notifications" to "bell", "myFiles" to "file",
+        "oauthApps" to "apps", "oauth-apps" to "apps", "oauthPolicy" to "apps", "audit" to "clipboard",
+        "password" to "lock", "emails" to "mail", "mail" to "mail", "massMail" to "mail", "linked-accounts" to "link",
+        "update" to "download", "diagnostic" to "pulse"
+    )
+
+    /** 항목 이름의 아이콘 이름이다. 정해지지 않은 이름은 `dot`이다. */
+    fun of(key: String): String = BY_KEY[key] ?: "dot"
+}
+
+/** 설정 전용 사이드바의 맨 위에 붙는 "프로젝트로 돌아가기" 같은 단추이다. */
+data class NavBack(val labelKey: String, val path: String)
+
+/** 한 맥락의 사이드바이다. 보이는 항목만 담는다. */
+data class NavMenu(val context: NavContext, val back: NavBack?, val items: List<NavItem>) {
+    /** 항목 이름의 순서 목록이다. */
+    fun keys(): List<String> = items.map { it.key }
+
+    /**
+     * 단축키(한 글자)와 이동할 서버 경로의 목록이다(D-137). 보이는 항목에서만 만들므로 메뉴를 끄면 키도 사라지고,
+     * 사이드바와 단축키가 서로 다른 조건을 쓰는 어긋남이 생기지 않는다.
+     */
+    fun shortcuts(): Map<Char, String> = items.filter { it.shortcut != null }.associate { it.shortcut!! to it.path }
+
+    /**
+     * 요청 경로에 해당하는 활성 항목의 이름이다. 없으면 `null`이다.
+     *
+     * 템플릿마다 활성 조건을 따로 쓰지 않고 한 곳에서 판정한다. 하위 경로(`/sites/oauth-apps/12`)에서도 가장 길게 맞는 항목이
+     * 활성이므로, 상세 화면에서 활성 표시가 꺼지던 지금의 결함(사이트 관리 사이드바는 경로가 정확히 같을 때만 켜졌다)이 없다.
+     * 질의, 해시, 끝 빗금은 무시하고 퍼센트 인코딩과 대소문자는 구분하지 않는다.
+     *
+     * @param requestPath 요청 경로이다(컨텍스트 경로가 붙어 있어도 된다)
+     * @param contextPath 서버의 컨텍스트 경로이다. 있으면 앞에서 떼며, 접두어가 다르면 활성이 없다.
+     */
+    @JvmOverloads
+    fun activeKey(requestPath: String, contextPath: String = ""): String? {
+        var path = normalize(requestPath)
+        val prefix = normalize(contextPath)
+        if (prefix.isNotEmpty()) {
+            if (path != prefix && !path.startsWith("$prefix/")) return null
+            path = path.removePrefix(prefix).ifEmpty { "/" }
+        }
+        return items
+            .filter { item ->
+                val target = normalize(item.path)
+                path == target || (!item.exact && path.startsWith(if (target == "/") target else "$target/"))
+            }
+            .maxByOrNull { normalize(it.path).length }
+            ?.key
+    }
+
+    private fun normalize(raw: String): String {
+        val noQuery = raw.substringBefore('#').substringBefore('?')
+        val decoded = runCatching { UriUtils.decode(noQuery, Charsets.UTF_8) }.getOrDefault(noQuery)
+        val trimmed = decoded.trimEnd('/').ifEmpty { if (noQuery.startsWith("/")) "/" else "" }
+        return trimmed.lowercase(Locale.ROOT)
+    }
+}
+
+/** 프로젝트 메뉴 켜짐 설정이다(`ProjectMenuSetting`). */
+data class ProjectMenuFlags(
+    val code: Boolean, val issue: Boolean, val pullRequest: Boolean, val review: Boolean,
+    val milestone: Boolean, val board: Boolean, val wiki: Boolean
+)
+
+/** 배지에 쓰는 개수이다. */
+data class ProjectNavCounts(
+    val openIssues: Long = 0, val openPullRequests: Long = 0, val openReviews: Long = 0,
+    val postings: Long = 0, val enrolledUsers: Long = 0
+)
+
+/**
+ * 프로젝트 사이드바를 판정하는 입력이다. 화면 문맥(`ProjectViewContext`)이 이미 가진 값을 그대로 옮긴다.
+ *
+ * @property pullRequestPath 코드 주고받기 항목의 주소이다. 포크는 보낸 요청 목록이므로 화면 문맥이 정해 준다.
+ * @property settingShortcut 프로젝트 관리자일 때만 `Q` 단축키를 준다(`ProjectViewContext.settingShortcutEnabled`).
+ */
+data class ProjectNavInput(
+    val owner: String,
+    val name: String,
+    val menu: ProjectMenuFlags,
+    val codeAccessible: Boolean,
+    val canUpdate: Boolean,
+    val settingShortcut: Boolean,
+    val vcs: VcsSupport,
+    val pullRequestPath: String,
+    val counts: ProjectNavCounts = ProjectNavCounts()
+)
+
+/**
+ * 새 UI의 사이드바 항목을 한 곳에서 판정한다(D-138, D-140, D-141, `architecture/ui-ia-v2.md` 4.3절).
+ *
+ * 항목의 보이는 조건을 템플릿에 흩어 두지 않고 여기서 정한다. 서버의 접근 검사(`ProjectCheckStage.checkMenuEnabled`)가 쓰는
+ * 메뉴 설정 값과 같은 값을 쓰므로 "항목은 보이는데 주소는 404"인 어긋남이 생기지 않는다.
+ * 순수 함수이며 DB를 읽지 않는다.
+ */
+object ShellNav {
+
+    private fun badge(count: Long): Long? = count.takeIf { it > 0 }
+
+    /**
+     * 프로젝트 사이드바이다. 지금의 가로 메뉴와 같은 이름과 순서의 평평한 목록이다(D-140).
+     * 코드의 파일, 커밋, 브랜치, 태그와 코드 주고받기의 열림, 닫힘은 항목이 아니라 화면 안 탭이다.
+     */
+    fun project(input: ProjectNavInput): NavMenu {
+        val base = UrlPaths.projectPath(input.owner, input.name)
+        val menu = input.menu
+        val items = buildList {
+            add(NavItem("home", "title.projectHome", base, 'H', exact = true))
+            if (menu.code && input.codeAccessible) add(NavItem("code", "menu.code", "$base/code", 'C'))
+            if (menu.issue) add(NavItem("issues", "menu.issue", "$base/issues", 'I', badge(input.counts.openIssues)))
+            if (menu.pullRequest && input.vcs.pullRequests && input.codeAccessible) {
+                add(NavItem("pullRequests", "menu.pullRequest", input.pullRequestPath, 'P', badge(input.counts.openPullRequests)))
+            }
+            if (menu.review && input.codeAccessible) add(NavItem("reviews", "menu.review", "$base/reviews", null, badge(input.counts.openReviews)))
+            if (menu.milestone) add(NavItem("milestones", "milestone", "$base/milestones", 'M'))
+            if (menu.board) add(NavItem("board", "menu.board", "$base/posts", 'B', badge(input.counts.postings)))
+            if (menu.wiki) add(NavItem("wiki", "menu.wiki", "$base/wiki"))
+            if (input.canUpdate) {
+                add(NavItem("settings", "menu.admin", "$base/settingform", if (input.settingShortcut) 'Q' else null, badge(input.counts.enrolledUsers)))
+            }
+        }
+        return NavMenu(NavContext.PROJECT, null, items)
+    }
+
+    /**
+     * 프로젝트 화면 템플릿이 넘기는 메뉴 종류(`PROJECT_HOME`, `ISSUE` 등)를 사이드바 항목 이름으로 바꾼다.
+     * 코드 주고받기 화면의 주소(`pullRequest/12`)가 목록 주소(`pullRequests`)의 하위 경로가 아니어서 경로로는 활성을 판정할 수 없는 화면이
+     * 있으므로, 프로젝트 메인 사이드바는 화면이 알려 주는 메뉴 종류를 쓴다. 모르는 값이면 활성이 없다.
+     */
+    fun projectActiveKey(menuType: String?): String? = when (menuType) {
+        "PROJECT_HOME" -> "home"
+        "CODE" -> "code"
+        "ISSUE" -> "issues"
+        "PULL_REQUEST" -> "pullRequests"
+        "PROJECT_REVIEW" -> "reviews"
+        "MILESTONE" -> "milestones"
+        "BOARD" -> "board"
+        "WIKI" -> "wiki"
+        "PROJECT_SETTING" -> "settings"
+        else -> null
+    }
+
+    /**
+     * 프로젝트 설정 사이드바이다. 설정을 누르면 사이드바가 이 목록으로 바뀌고 맨 위에 프로젝트로 돌아가는 단추가 붙는다(D-141).
+     * 라벨은 이슈 메뉴를 꺼도 서버가 주소를 열어 두므로 항상 보인다.
+     */
+    fun projectSettings(input: ProjectNavInput): NavMenu {
+        val base = UrlPaths.projectPath(input.owner, input.name)
+        val vcs = input.vcs
+        val items = buildList {
+            add(NavItem("general", "project.setting", "$base/settingform"))
+            add(NavItem("members", "project.member", "$base/members", null, badge(input.counts.enrolledUsers)))
+            if (vcs.protectedRefs) add(NavItem("rulesets", "project.ruleset", "$base/setting/rulesets"))
+            if (vcs.deployKeys) add(NavItem("deployKeys", "project.deployKey", "$base/setting/deploykeys"))
+            if (vcs.lfsScreen) add(NavItem("lfs", if (vcs.lfs) "project.lfs" else "project.lfs.hg", "$base/setting/lfs"))
+            // 순서는 지금의 설정 탭과 같다(라벨이 웹훅보다 앞).
+            add(NavItem("labels", "issue.label", "$base/issue/labelsform"))
+            add(NavItem("webhooks", "project.webhook", "$base/webhooks"))
+            // 이관, 저장소 종류 변경, 삭제는 "위험 구역" 한 항목으로 합쳤다(A-535).
+            add(NavItem("danger", "project.danger", "$base/setting/danger"))
+        }
+        return NavMenu(NavContext.PROJECT_SETTINGS, NavBack("sidebar.back.project", base), items)
+    }
+
+    /** 프로젝트 밖(홈과 탐색) 사이드바이다. 목록 숨김이 켜지면 프로젝트와 그룹 항목이 없고, 비로그인은 목록 항목만 있다. */
+    fun home(loggedIn: Boolean, hideProjectListing: Boolean): NavMenu {
+        val items = buildList {
+            if (!hideProjectListing) {
+                add(NavItem("projects", "title.projectList", "/projects"))
+                add(NavItem("organizations", "title.organization.list", "/orgs"))
+            }
+            if (loggedIn) {
+                add(NavItem("myIssues", "issue.myIssue", "/user/issues"))
+                add(NavItem("notifications", "notification", "/", exact = true))
+                add(NavItem("myFiles", "user.files", "/user/files"))
+            }
+        }
+        return NavMenu(NavContext.HOME, null, items)
+    }
+
+    /** 조직 사이드바이다. 설정은 조직 관리자에게만 보인다. */
+    fun organization(name: String, canManage: Boolean): NavMenu {
+        val base = UrlPaths.organizationPath(name)
+        val items = buildList {
+            add(NavItem("home", "title.organizationHome", base, exact = true))
+            add(NavItem("issues", "menu.issue", "$base/issues"))
+            add(NavItem("boards", "menu.board", "$base/boards"))
+            add(NavItem("pullRequests", "menu.pullRequest", "$base/pullrequests"))
+            if (canManage) add(NavItem("settings", "organization.settingFrom", "$base/settingform"))
+        }
+        return NavMenu(NavContext.ORGANIZATION, null, items)
+    }
+
+    /** 조직 설정 사이드바이다. 맨 위에 조직으로 돌아가는 단추가 붙는다. */
+    fun organizationSettings(name: String): NavMenu {
+        val base = UrlPaths.organizationPath(name)
+        val items = listOf(
+            NavItem("general", "organization.settingFrom", "$base/settingform"),
+            NavItem("members", "organization.member", "$base/members"),
+            NavItem("oauthApps", "organization.oauthApps", "$base/oauth-apps"),
+            NavItem("oauthPolicy", "organization.oauthPolicy", "$base/oauth-policy"),
+            NavItem("audit", "organization.audit", "$base/audit"),
+            NavItem("delete", "organization.delete", "$base/deleteForm")
+        )
+        return NavMenu(NavContext.ORGANIZATION_SETTINGS, NavBack("sidebar.back.organization", base), items)
+    }
+
+    /** 내 설정 사이드바이다. OAuth 앱은 사용자 앱 사용 설정이 꺼지면 숨긴다(서버가 `new`를 403으로 막는 것과 일치). */
+    fun userSettings(oauthAppsEnabled: Boolean): NavMenu {
+        // 항목 이름은 지금의 탭 이름(`partial-edit-tabmenu`의 tabId)과 같다. 템플릿이 tabId를 그대로 활성 키로 넘길 수 있다.
+        val items = buildList {
+            add(NavItem("profile", "userinfo.editProfile", "/user/editform", exact = true))
+            add(NavItem("password", "userinfo.changePassword", "/user/editform/password"))
+            add(NavItem("emails", "userinfo.changeEmails", "/user/editform/emails"))
+            add(NavItem("linked-accounts", "userinfo.linkedAccounts", "/user/editform/linked-accounts"))
+            add(NavItem("notifications", "userinfo.changeNotifications", "/user/editform/notifications"))
+            add(NavItem("token", "userinfo.token", "/user/editform/token"))
+            add(NavItem("ssh", "userinfo.ssh", "/user/editform/ssh"))
+            add(NavItem("gpg", "userinfo.gpg", "/user/editform/gpg"))
+            add(NavItem("two-factor", "userinfo.twoFactor", "/user/editform/two-factor"))
+            add(NavItem("audit", "userinfo.audit", "/user/editform/audit"))
+            if (oauthAppsEnabled) add(NavItem("oauth-apps", "userinfo.oauth", "/user/editform/oauth-apps"))
+        }
+        return NavMenu(NavContext.USER_SETTINGS, null, items)
+    }
+
+    /** 사이트 관리 사이드바이다. `/sites/data`는 링크가 없던 기존 화면의 입구이다. 새 버전이 있으면 업데이트에 배지 1이 붙는다. */
+    fun siteAdmin(updateAvailable: Boolean): NavMenu {
+        val items = listOf(
+            NavItem("users", "site.sidebar.userList", "/sites/userList"),
+            NavItem("projects", "site.sidebar.projectList", "/sites/projectList"),
+            NavItem("issues", "site.sidebar.issueList", "/sites/issueList"),
+            NavItem("posts", "site.sidebar.postList", "/sites/postList"),
+            NavItem("mail", "site.sidebar.mailSend", "/sites/mail"),
+            NavItem("massMail", "site.sidebar.massMail", "/sites/massmail"),
+            NavItem("update", "site.sidebar.update", "/sites/update", null, if (updateAvailable) 1L else null),
+            NavItem("diagnostic", "site.sidebar.diagnostics", "/sites/diagnostic"),
+            NavItem("data", "site.sidebar.data", "/sites/data"),
+            NavItem("audit", "site.sidebar.audit", "/sites/audit"),
+            NavItem("security", "site.sidebar.security", "/sites/security"),
+            NavItem("sso", "site.sidebar.sso", "/sites/sso"),
+            NavItem("oauthApps", "site.sidebar.oauthApps", "/sites/oauth-apps"),
+            NavItem("lfs", "site.sidebar.lfs", "/sites/lfs")
+        )
+        return NavMenu(NavContext.SITE_ADMIN, null, items)
+    }
+}

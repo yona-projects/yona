@@ -30,4 +30,12 @@ class AjaxRequestsTest {
         val request = MockHttpServletRequest().also { it.addHeader("X-PJAX", "true"); it.addHeader("X-Requested-With", "XMLHttpRequest") }
         assertEquals(false, AjaxRequests.isHtmx(request))
     }
+
+    @Test
+    fun `사이드바 이동처럼 boost된 요청은 조각이 아니라 전체 화면을 받는다(D-136)`() {
+        val boosted = MockHttpServletRequest().also { it.addHeader("HX-Request", "true"); it.addHeader("HX-Boosted", "true") }
+        assertEquals(false, AjaxRequests.isHtmx(boosted))
+        val listSwap = MockHttpServletRequest().also { it.addHeader("HX-Request", "true") }
+        assertEquals(true, AjaxRequests.isHtmx(listSwap), "목록 영역 교체는 그대로 조각이다")
+    }
 }

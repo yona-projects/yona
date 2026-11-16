@@ -10,27 +10,30 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::twoFactorPage})}">
 <th:block th:fragment="twoFactorPage">
-<div class="site-breadcrumb-outer">
+<div class="site-breadcrumb-outer" id="pageTitle">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{twoFactor.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
-    <div class="page-wrap">
+    <div class="page-wrap shell user-screen">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('two-factor')}"></th:block>
+        <div class="shell-main">
         <div class="two-factor-page">
-        <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
-        <h4 th:text="#{twoFactor.securityKey.add}"></h4>
-        <p class="text-body-secondary" th:text="#{twoFactor.securityKey.help}"></p>
-        <div class="mb-3">
+        <!--/* A-586: 카드 안에 제목, 안내, 이름 입력란, 단추를 넉넉한 간격으로 둔다 */-->
+        <div class="key-add-card">
+            <div id="security-key-error" class="alert alert-danger" style="display: none;"></div>
+            <h4 th:text="#{twoFactor.securityKey.add}"></h4>
+            <p class="text-body-secondary" th:text="#{twoFactor.securityKey.help}"></p>
             <label for="security-key-name" class="form-label" th:text="#{twoFactor.securityKey.nameLabel}"></label>
-            <input id="security-key-name" type="text" class="form-control tf-narrow" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
+            <input id="security-key-name" type="text" class="form-control w-100" maxlength="100" th:placeholder="#{twoFactor.securityKey.name}">
+            <div class="tf-actions">
+                <button id="security-key-add" type="button" class="btn btn-success" th:text="#{twoFactor.securityKey.register}"></button>
+                <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
+            </div>
         </div>
-        <div class="tf-actions">
-            <button id="security-key-add" type="button" class="btn btn-success" th:text="#{twoFactor.securityKey.register}"></button>
-            <a th:href="@{/user/editform/two-factor}" class="btn btn-outline-secondary cancel" th:text="#{button.cancel}"></a>
         </div>
-        </div>
+    </div><!--/* .shell-main */-->
     </div>
 </div>
 <script type="module" th:src="@{/assets/javascripts/esm/webauthn.js}"></script>

@@ -91,36 +91,46 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     private fun manager(project: Project): User = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
 
     private fun page(project: Project, session: MockHttpSession): Document =
-        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/changeVCS").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
 
     @Test
     fun `화면은 관리자만 볼 수 있다`() {
         val project = newProject()
         val member = newUser().also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
-        mockMvc.perform(get("/${project.owner}/${project.name}/changeVCS").session(login(member))).andExpect(status().isForbidden)
+        mockMvc.perform(get("/${project.owner}/${project.name}/setting/danger").session(login(member))).andExpect(status().isForbidden)
     }
 
     @Test
     fun `Git 프로젝트의 화면은 Subversion으로 바꾸는 안내를 보여 준다`() {
         val project = newProject()
         val page = page(project, login(manager(project)))
-        assertEquals("Repository Change - ${project.owner}/${project.name}", page.title())
-        assertEquals("GIT Subversion", page.selectFirst("h3")?.text())
-        assertEquals("Changing the repository to Subversion.", page.select("li.notice")[0].text())
-        assertEquals("If the repository is changed, all code and history will be deleted.", page.select("li.notice")[1].text())
-        assertEquals("I agree with changing the repository type.", page.selectFirst("label[for=acceptChangeVCS]")?.text())
+        assertEquals("Danger Zone - ${project.owner}/${project.name}", page.title())
+        assertEquals("Repository Type Change", page.selectFirst("#danger-vcs h3.danger-title")?.text())
+        assertEquals("Changing the repository to Subversion.", page.select("#danger-vcs li.notice")[0].text())
+        assertEquals("If the repository is changed, all code and history will be deleted.", page.select("#danger-vcs li.notice")[1].text())
+        assertNull(page.selectFirst("#acceptChangeVCS"), "동의 체크박스는 없다(A-537)")
         assertNotNull(page.selectFirst("a#btnChangeVCS"))
         assertEquals("Do you want to change the repository to Subversion?", page.selectFirst("#alertChangeVCS h3")?.text())
-        assertEquals("Yes", page.selectFirst("#btnChangeVCSExec")?.text())
-        assertTrue(page.selectFirst("#subMenuProjectChangeVCS")!!.selectFirst("a")!!.hasClass("active"))
+        assertEquals("Change Repository Type.", page.selectFirst("#btnChangeVCSExec")?.text())
+        assertTrue(page.selectFirst("nav.shell-sidebar a.nav-link[href\$=/setting/danger]")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.ChangeVCS" in it }
         assertTrue("/${project.owner}/${project.name}/changeVCS" in script, script)
     }
 
     @Test
+    fun `코드 메뉴를 끈 프로젝트의 위험 구역에는 저장소 종류 구역이 없고 이관과 삭제만 있다(A-535)`() {
+        val project = newProject()
+        menuSettings.findAll().filter { it.project?.id == project.id }.forEach { menuSettings.save(it.apply { code = false }) }
+        val page = page(project, login(manager(project)))
+        assertEquals(listOf("danger-transfer", "danger-delete"), page.select("section.danger-section").map { it.id() })
+        assertNull(page.selectFirst("#alertChangeVCS"), "종류 변경 확인 창도 없다")
+        assertTrue(page.select("script").none { "project.ChangeVCS" in it.data() && "loadModule(\"project.ChangeVCS\"" in it.data() }, "종류 변경 스크립트를 초기화하지 않는다")
+    }
+
+    @Test
     fun `Subversion 프로젝트의 화면은 Git으로 바꾸는 안내를 보여 준다`() {
         val project = newProject("Subversion")
-        assertEquals("Changing the repository to GIT.", page(project, login(manager(project))).select("li.notice")[0].text())
+        assertEquals("Changing the repository to GIT.", page(project, login(manager(project))).select("#danger-vcs li.notice")[0].text())
     }
 
     @Test
@@ -150,15 +160,17 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `선택 상자는 바꿀 수 있는 종류를 보여 주고 기본은 v1_6처럼 번갈아 바꾸는 종류이다`() {
+    fun `저장소 종류 전부를 라디오로 보여 주고 지금 종류는 현재 표시와 함께 비활성이며 기본은 v1_6처럼 번갈아 바꾸는 종류이다`() {
         val git = newProject()
         val gitPage = page(git, login(manager(git)))
-        assertEquals(listOf("Subversion", "Mercurial"), gitPage.select("select#targetVcs option").map { it.attr("value") })
-        assertEquals("Subversion", gitPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+        assertEquals(listOf("GIT", "Subversion", "Mercurial"), gitPage.select("#danger-vcs input[name=targetVcs]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), gitPage.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals("Current", gitPage.selectFirst("#danger-vcs label.vcs-type.is-current .vcs-current")?.text())
+        assertEquals(listOf("Subversion"), gitPage.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
         val svn = newProject("Subversion")
         val svnPage = page(svn, login(manager(svn)))
-        assertEquals(listOf("GIT", "Mercurial"), svnPage.select("select#targetVcs option").map { it.attr("value") })
-        assertEquals("GIT", svnPage.selectFirst("select#targetVcs option[selected]")?.attr("value"))
+        assertEquals(listOf("Subversion"), svnPage.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), svnPage.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
     }
 
     @Test
@@ -169,10 +181,11 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Mercurial 프로젝트의 화면은 Git과 Subversion을 고르게 한다`() {
+    fun `Mercurial 프로젝트의 화면은 Git과 Subversion을 고르게 하고 Mercurial은 현재로 막는다`() {
         val project = newProject("Mercurial")
         val page = page(project, login(manager(project)))
-        assertEquals(listOf("GIT", "Subversion"), page.select("select#targetVcs option").map { it.attr("value") })
+        assertEquals(listOf("Mercurial"), page.select("#danger-vcs input[name=targetVcs][disabled]").map { it.attr("value") })
+        assertEquals(listOf("GIT"), page.select("#danger-vcs input[name=targetVcs][checked]").map { it.attr("value") })
     }
 
     @Test

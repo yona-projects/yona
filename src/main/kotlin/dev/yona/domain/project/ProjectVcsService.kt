@@ -25,6 +25,9 @@ class ProjectVcsService(
     private val backends: dev.yona.repository.VcsBackends
 ) {
 
+    /** 저장소를 만들 수 있는 종류 전부이다. 화면은 이 전부를 보여 주고 지금 종류는 "현재"로 막는다. */
+    fun types(): List<String> = backends.creatableTypes()
+
     /**
      * [project]의 저장소 종류로 바꿀 수 있는 종류이다: 저장소를 만들 수 있게 등록된 종류에서 지금 종류를 뺀 것이다. 둘뿐일 때는 하나이고
      * (v1.6처럼 번갈아 바꾼다), 종류가 셋 이상이면 화면이 고르게 한다(Mercurial 도입을 위한 공통화 4단계, D-86 6번).
