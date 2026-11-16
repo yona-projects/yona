@@ -10,16 +10,19 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
- * 저장소 종류 변경이 실패했을 때를 검증한다. 원본: `app/controllers/ProjectApp.java:721-740`, `app/models/Project.java:658-670`.
+ * 저장소 종류 변경을 검증한다. 원본: `app/controllers/ProjectApp.java:721-740`, `app/models/Project.java:658-670`.
  *
- * v1.6 `changeVCS`는 트랜잭션이 없어 README 표시 해제와 포크 연결 끊기가 저장 즉시 반영되고, 기존 저장소를 먼저 지운 뒤 새 저장소를 만들다 실패하면
- * 저장소만 지워진 중간 상태로 남았다([refactoring-backlog.md] R-74). 지금은 변경을 트랜잭션으로 묶고 새 저장소를 먼저 만든 뒤 기존 저장소를 지운다.
- * 새 저장소 생성이 실패하면 기존 저장소는 그대로이고 DB 변경은 되돌아간다(여기서는 트랜잭션이 걸려 있는지와 호출 순서를 확인한다).
+ * v1.6 `changeVCS`는 트랜잭션이 없어 README 표시 해제와 포크 분리가 저장된 뒤 기존 저장소를 지웠다. 새 저장소 생성이 실패하면
+ * 기존 저장소도 사라진 상태로 남았다([refactoring-backlog.md] R-74). 지금은 새 저장소를 먼저 만들고 커밋 뒤 기존 저장소를 지운다.
+ * 롤백하면 새 저장소를 지우며, 커밋 뒤 기존 저장소 삭제가 실패하면 오류를 기록하고 디렉터리를 남긴다.
  */
 class ProjectVcsServiceTest {
 
@@ -43,7 +46,8 @@ class ProjectVcsServiceTest {
 
     @Test
     fun `변경은 트랜잭션으로 묶여 있다 (R-74)`() {
-        assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java, String::class.java).getAnnotation(Transactional::class.java))
+        val annotation = assertNotNull(ProjectVcsService::class.java.getMethod("change", Project::class.java, String::class.java).getAnnotation(Transactional::class.java))
+        assertTrue(Exception::class in annotation.rollbackFor)
     }
 
     @Test
@@ -56,24 +60,63 @@ class ProjectVcsServiceTest {
         assertFailsWith<IllegalStateException> { service.change(project) }
 
         verify(repositories, never()).deleteRepository(project)
+        verify(repositories, never()).deleteRepository("GIT", "o", "p")
+        verify(repositories, never()).deleteRepository("Subversion", "o", "p")
         assertEquals("GIT", project.vcs)
         verify(projects, never()).save(project)
     }
 
     @Test
-    fun `새 저장소를 먼저 만들고 기존 저장소를 지운다 (R-74)`() {
+    fun `커밋 뒤 기존 저장소를 지운다 (R-74)`() = withSynchronization {
         val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
         `when`(readme.read(project)).thenReturn(null)
         `when`(projects.findByOriginalProjectId(1L)).thenReturn(emptyList())
         val vcsAtCall = mutableListOf<String>()
         `when`(repositories.createRepository(project)).thenAnswer { vcsAtCall += "create:" + project.vcs; null }
-        `when`(repositories.deleteRepository(project)).thenAnswer { vcsAtCall += "delete:" + project.vcs; null }
-
         service.change(project)
-
-        assertEquals(listOf("create:Subversion", "delete:GIT"), vcsAtCall, "새 종류로 만들고, 기존 종류로 지운다")
-        assertEquals("Subversion", project.vcs)
+        verify(repositories, never()).deleteRepository(project)
+        verify(repositories, never()).deleteRepository("GIT", "o", "p")
+        project.vcs = "Mercurial"
+        project.owner = "other"
+        project.name = "other"
+        TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+        verify(repositories).deleteRepository("GIT", "o", "p")
+        verify(repositories, never()).deleteRepository("Subversion", "o", "p")
+        assertEquals(listOf("create:Subversion"), vcsAtCall)
         verify(projects).save(project)
+    }
+
+    @Test
+    fun `롤백 뒤 새 저장소만 지운다`() = withSynchronization {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        service.change(project)
+        TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK) }
+        verify(repositories, never()).deleteRepository(project)
+        verify(repositories, never()).deleteRepository("GIT", "o", "p")
+        verify(repositories).deleteRepository("Subversion", "o", "p")
+    }
+
+    @Test
+    fun `커밋 뒤 삭제가 실패해도 예외를 전파하지 않는다`() = withSynchronization {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        doThrow(IllegalStateException("delete failed")).`when`(repositories).deleteRepository("GIT", "o", "p")
+        service.change(project)
+        TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+        verify(repositories).deleteRepository("GIT", "o", "p")
+    }
+
+    @Test
+    fun `롤백 뒤 삭제가 실패해도 예외를 전파하지 않는다`() = withSynchronization {
+        val project = Project(id = 1L, owner = "o", name = "p", vcs = "GIT")
+        doThrow(IllegalStateException("delete failed")).`when`(repositories).deleteRepository("Subversion", "o", "p")
+        service.change(project)
+        TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK) }
+        verify(repositories).deleteRepository("Subversion", "o", "p")
+    }
+
+    private fun withSynchronization(block: () -> Unit) {
+        TransactionSynchronizationManager.initSynchronization()
+        try { block() } finally { TransactionSynchronizationManager.clearSynchronization() }
     }
 
     @Test
@@ -90,7 +133,7 @@ class ProjectVcsServiceTest {
         service.change(project, "Subversion")
         assertEquals("Subversion", project.vcs)
         verify(repositories).createRepository(project)
-        verify(repositories).deleteRepository(project)
+        verify(repositories).deleteRepository("GIT", "o", "p")
     }
 
     @Test
