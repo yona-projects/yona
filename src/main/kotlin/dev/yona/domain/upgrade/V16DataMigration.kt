@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional
  * 1. 풀 리퀘스트 번호 정리: 번호가 빈 요청에 번호를 붙이고 `REJECTED`를 `CLOSED`로 바꾼다([PullRequestStartup], v1.6 `PullRequest.onStart`).
  * 2. 옛 사용자 토큰 이관: `n4user.token`을 해시해 `api_token` 행으로 옮긴다([ApiTokenService.migrateLegacyTokens], 추가 개발 항목 X-5).
  * 3. 리뷰어 설정 이관: 프로젝트별 리뷰어 수 설정을 브랜치별 규칙 묶음으로 옮긴다([ReviewerSettingMigration], X-33, X-34).
+ * 5. LDAP 사이트 설정 이관: 설정 파일로 켜 둔 LDAP을 사이트 설정(`ldap_settings`)으로 옮긴다([LdapSettingsMigration], D-82). 다른 단계와 겹치지 않는다.
  * 4. 승인 리뷰 채우기: 승인 집합에만 있는 승인에 리뷰를 만들고, 새 규칙으로 병합 요건을 잃은 요청을 안내한다([PullRequestReviewBackfill], X-12).
  *    안내는 3번이 만든 규칙 묶음을 보므로 3번 뒤에 돌아야 한다(이전에는 시작할 때 리뷰어 설정 이관이 먼저 돌았다).
  */
@@ -31,6 +32,7 @@ class V16DataMigration(
     private val scopeColumns: ScopeColumnMigrator,
     private val reviewerSettings: ReviewerSettingMigration,
     private val approvals: PullRequestReviewBackfill,
+    private val ldap: LdapSettingsMigration,
     private val entityManager: EntityManager
 ) {
 
@@ -44,8 +46,11 @@ class V16DataMigration(
      * @property reviewerSettingsMigrated 규칙 묶음으로 옮긴 프로젝트 수
      * @property approvalsCreated 새로 만든 승인 리뷰 수
      * @property noticesSent 병합 요건을 잃어 안내한 열린 풀 리퀘스트 수
+     * @property ldapSettingsMigrated 설정 파일의 LDAP을 사이트 설정으로 옮긴 수(0 또는 1)
      */
-    data class Result(val scopeRowsMoved: Int, val tokensMigrated: Int, val reviewerSettingsMigrated: Int, val approvalsCreated: Int, val noticesSent: Int)
+    data class Result(
+        val scopeRowsMoved: Int, val tokensMigrated: Int, val reviewerSettingsMigrated: Int, val approvalsCreated: Int, val noticesSent: Int, val ldapSettingsMigrated: Int = 0
+    )
 
     /**
      * 아직 이관하지 않은 데이터의 건수이다.
@@ -55,10 +60,13 @@ class V16DataMigration(
      * @property reviewerSettings 리뷰어 수 설정이 켜진 채 남은 프로젝트 수
      * @property missingApprovals 승인 집합에만 있고 승인 리뷰가 없는 행 수
      * @property scopeColumns 아직 문자열로 남은 토큰과 기기 인증 요청의 범위 수
+     * @property ldapSettings 설정 파일로 켜 두었지만 사이트 설정으로 옮기지 않은 LDAP 수(0 또는 1)
      */
-    data class Pending(val pullRequests: Long, val legacyTokens: Long, val reviewerSettings: Long, val missingApprovals: Long, val scopeColumns: Long = 0) {
-        /** 네 가지의 합이다. 0이면 이관할 것이 없다. */
-        val total: Long get() = pullRequests + legacyTokens + reviewerSettings + missingApprovals + scopeColumns
+    data class Pending(
+        val pullRequests: Long, val legacyTokens: Long, val reviewerSettings: Long, val missingApprovals: Long, val scopeColumns: Long = 0, val ldapSettings: Long = 0
+    ) {
+        /** 모든 항목의 합이다. 0이면 이관할 것이 없다. */
+        val total: Long get() = pullRequests + legacyTokens + reviewerSettings + missingApprovals + scopeColumns + ldapSettings
     }
 
     /** 네 가지 보정을 정해진 순서로 돌리고 바꾼 건수를 돌려준다. 하나가 실패하면 전부 되돌린다. */
@@ -70,8 +78,9 @@ class V16DataMigration(
         val settings = reviewerSettings.migrate()
         val created = approvals.backfill()
         val notices = approvals.noticeIgnoredAuthorApprovals()
-        log.info("Migrated v1.6 data: scopeRows={}, tokens={}, reviewerSettings={}, approvalReviews={}, notices={}", scopes, tokens, settings, created, notices)
-        return Result(scopes, tokens, settings, created, notices)
+        val ldapMoved = ldap.migrate()
+        log.info("Migrated v1.6 data: scopeRows={}, tokens={}, reviewerSettings={}, approvalReviews={}, notices={}, ldapSettings={}", scopes, tokens, settings, created, notices, ldapMoved)
+        return Result(scopes, tokens, settings, created, notices, ldapMoved)
     }
 
     /** 이관하지 않은 데이터의 건수를 센다. 아무것도 바꾸지 않는다. */
@@ -84,7 +93,8 @@ class V16DataMigration(
             legacyTokens = count("select count(u) from User u where u.token is not null and u.token <> ''"),
             reviewerSettings = count("select count(p) from Project p where p.isUsingReviewerCount = true"),
             missingApprovals = approvals.countMissing(),
-            scopeColumns = scopeColumns.pending()
+            scopeColumns = scopeColumns.pending(),
+            ldapSettings = ldap.pending()
         )
     }
 }

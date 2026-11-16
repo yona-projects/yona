@@ -251,8 +251,8 @@ object V16ConfigConverter {
         }
         if (parsed.skippedModes.isNotEmpty()) notes += "prod가 아닌 모드의 키는 적용하지 않았습니다: ${parsed.skippedModes.joinToString()}"
         if (parsed.includes.isNotEmpty()) notes += "포함 파일은 읽지 않았습니다(소셜 로그인은 v2에서 없어졌습니다): ${parsed.includes.joinToString()}"
-        if (out.containsKey("yona.ldap.enabled") || out.keys.any { it.startsWith("yona.ldap.") }) {
-            notes += "LDAP 서버 설정은 v2에서 사이트 관리 화면(사이트 관리 > 로그인 방식)에도 있습니다. 이관 뒤 화면에서 값을 확인하세요"
+        if (out["yona.ldap.enabled"] == "true") {
+            notes += "LDAP이 켜져 있습니다. 이관 단계가 이 값을 사이트 설정(DB, 사이트 관리 > SSO > LDAP)으로 옮기며, 그 뒤에는 화면의 값이 설정 파일보다 우선합니다"
         }
         return Converted(out, notes, unmapped.sorted(), removed, SENSITIVE.filter { it in out }.toSet())
     }

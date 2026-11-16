@@ -41,6 +41,16 @@ class V16DataMigrationTest : AbstractIntegrationTest() {
     private fun pull(to: Project, number: Long?, state: State = State.OPEN) =
         PullRequest(toProject = to, fromProject = to, number = number, title = "요청", contributor = user(), state = state, created = Date(1_700_000_000_000L)).also { em.persist(it) }
 
+    @Autowired private lateinit var ldapSettings: dev.yona.domain.ldap.LdapSettingsService
+
+    @Test
+    fun `LDAP이 꺼져 있으면 사이트 설정 행을 만들지 않는다`() {
+        em.flush()
+        val result = migration.migrate()
+        assertEquals(0, result.ldapSettingsMigrated)
+        assertTrue(!ldapSettings.isSaved(), "꺼진 LDAP의 예시 값으로 행을 만들면 안 된다")
+    }
+
     @Test
     fun `이관한 뒤에는 미적용 건수가 모두 0이다`() {
         em.flush()
