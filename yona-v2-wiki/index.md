@@ -13,6 +13,7 @@
 - [Subversion SSH 접근(svn+ssh)](architecture/svn-ssh.md): `ra_svn` 프로토콜을 직접 구현해 내장 SSH 서버로 SVN 체크아웃과 커밋, 사용자별 권한, 지원 명령, 확인 방법
 - [v1.6 DB 이관 가이드](architecture/v16-migration-guide.md): v1.6 데이터베이스를 이어받아 v2로 올릴 때의 스키마 변화, 이관 스크립트, 리허설 결과
 - [새로 설치하는 v2 설치 가이드](architecture/fresh-install-guide.md): 빈 상태에서 DB 준비, 서버 시작, 관리자 계정 설정, 운영 설정까지의 순서와 직접 확인한 결과
+- [DB 성능 비교](architecture/db-performance-comparison.md): MariaDB, PostgreSQL, Cubrid를 같은 조건으로 잰 읽기와 쓰기 성능, 개선 전후, Cubrid가 느린 이유와 공식 자료, 한계, 재현 방법
 - [v1.6 설정 키별 설명](architecture/v16-config-key-reference.md): 이관되는 설정 키의 목적, 기본값, v2에서 읽는 곳, v1.6과 달라진 점, 비밀 키의 용도
 - [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유 추가 개발 항목의 의도된 차이 장부 포함(D-32)
 - [v1.6 소스 결함 후보 전체 목록](architecture/v16-defect-catalog.md): 5차 검증의 결함 후보 189건과 v2 판정

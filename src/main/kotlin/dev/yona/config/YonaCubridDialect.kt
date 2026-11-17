@@ -6,6 +6,12 @@ import org.hibernate.dialect.TimeZoneSupport
 import org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo
 import org.hibernate.exception.ConstraintViolationException
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate
+import org.hibernate.sql.ast.SqlAstTranslator
+import org.hibernate.sql.ast.SqlAstTranslatorFactory
+import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory
+import org.hibernate.sql.ast.tree.Statement
+import org.hibernate.sql.exec.spi.JdbcOperation
+import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.type.SqlTypes
 import java.sql.SQLException
 
@@ -17,6 +23,7 @@ import java.sql.SQLException
  * - **긴 문자열을 `string`으로 저장한다.** 아래 [columnType]을 보라.
  * - **시각을 시간대 기능 없이 바인딩한다.** 기본 방언은 `Instant`를 `datetimetz`와 `OffsetDateTime` 바인딩으로 다루는데 Cubrid 드라이버의 `setObject`가 이를 거부한다.
  * - **제약 위반을 오류 코드로 분류한다.** 아래 [buildSQLExceptionConversionDelegate]를 보라.
+ * - **대소문자 무시 `like`를 정렬 규칙으로 그린다.** [YonaCubridSqlAstTranslator]를 보라(A-630).
  * - **예약어 `size`와 `position`을 따옴표로 감싼다.** `attachment.size` 열과 범위 행(`device_authorization_scope.position`)의 순서 열이 Cubrid 예약어와
  *   겹친다. 이 방언의 예약어 목록에 더해 두면 `hibernate.auto_quote_keyword`가 켜진 때 열 이름을 따옴표로 감싼다.
  */
@@ -44,6 +51,12 @@ class YonaCubridDialect : CUBRIDDialect {
     }
 
     override fun getTimeZoneSupport(): TimeZoneSupport = TimeZoneSupport.NONE
+
+    /** 기본 번역기 대신 `lower(x) like`를 `x collate utf8_en_ci like`로 그리는 번역기를 쓴다. */
+    override fun getSqlAstTranslatorFactory(): SqlAstTranslatorFactory = object : StandardSqlAstTranslatorFactory() {
+        override fun <T : JdbcOperation> buildTranslator(sessionFactory: SessionFactoryImplementor, statement: Statement): SqlAstTranslator<T> =
+            YonaCubridSqlAstTranslator(sessionFactory, statement)
+    }
 
     /**
      * Cubrid 드라이버는 제약 위반에도 SQLState를 주지 않고 벤더 오류 코드만 준다. 기본 방언은 SQLState로 분류하므로 이 오류가 `GenericJDBCException`이 되어

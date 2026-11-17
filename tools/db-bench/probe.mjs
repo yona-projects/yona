@@ -1,6 +1,6 @@
 // 요청 하나가 DB에 보내는 SQL 수를 센다(하이버네이트 SQL 로그). 사용: node probe.mjs <postgres|cubrid|mariadb> <포트>  (컨테이너는 이미 떠 있어야 한다)
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, openSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, openSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { ADMIN } from '../../e2e/lib/server.mjs';
 import { Session } from '../../e2e/lib/http.mjs';
@@ -48,4 +48,6 @@ try {
   await measure('이슈 생성(API)', () => post(`${API}/issues`, { issues: [{ title: 'x', body: 'y' }] }));
   await measure('댓글 생성(API)', () => post(`${API}/issues/2/comments`, { comment: 'z' }));
   await measure('검색(API, 낱말)', () => fetch(base + `${API}/search?keyword=t1&searchType=issue`, { headers: auth }).then((r) => r.arrayBuffer()));
-} finally { child.kill(); await new Promise((r) => child.once('exit', r)); rmSync(dir, { recursive: true, force: true }); }
+} finally { child.kill(); await new Promise((r) => child.once('exit', r));
+  if (process.env.SQLDUMP) writeFileSync(process.env.SQLDUMP, readFileSync(logf, 'utf8').split('\n').filter((l) => /lower\(/.test(l)).join('\n'));   // 검색 SQL을 파일로 남긴다(cast가 DB마다 어떻게 나가는지 보려는 용도)
+  rmSync(dir, { recursive: true, force: true }); }

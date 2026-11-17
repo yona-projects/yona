@@ -178,7 +178,7 @@ try {
   result.error = String(e?.stack || e); log('실패', result.error);
 } finally {
   if (child) { child.kill(); await new Promise((r) => child.once('exit', r)); }
-  sh('docker', ['rm', '-fv', NAME]);
+  if (!process.env.KEEP) sh('docker', ['rm', '-fv', NAME]);   // KEEP=1이면 데이터가 든 DB 컨테이너를 남긴다(질의를 직접 시험할 때)
   mkdirSync(OUT, { recursive: true });
   writeFileSync(join(OUT, `result-${DB}${TAG}.json`), JSON.stringify(result, null, 2));
   rmSync(dataDir, { recursive: true, force: true });

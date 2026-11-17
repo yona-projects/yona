@@ -480,3 +480,8 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | 요청당 DB 질의 줄이기(A-628): hibernate.default_batch_fetch_size=32, RequestMemo(읽기 요청 범위 보관소), 시험 RequestMemoTest 9건과 QueryCountTest 4건. 이슈 목록 질의 57에서 37, 검색 31에서 21. Cubrid 이슈 목록 p50 -22%, 검색 p50 -20%. 세 DB 성능 측정 도구는 tools/db-bench(bench, probe, trace)
 
 ## [2026-11-17] build | Cubrid 접속 주소에 JDBC 준비된 문장 캐시 옵션을 자동으로 더함(A-629, CUBRID 11.4 공식 매뉴얼 근거). 앱 측정: 단건 API 동시 16 183에서 761건/초, 쓰기 1.7~2.4배. 실제 Cubrid에서 문장 캐시를 켠 채 선별 시험 22개 클래스 306건 통과(처음 202건은 시험 주소가 옵션을 덮어 캐시가 꺼진 채였던 것을 발견해 바로잡음), 기본 설정 부트 jar로 운영 경로도 확인
+
+## [2026-11-17] build | DB 성능 비교 문서 추가(architecture/db-performance-comparison.md): 세 DB를 현재 코드로 전체 규모(이슈 5,000건)에서 측정(오류 0), 개선 전후, Cubrid 원인 분석(JDBC 왕복과 커밋 4배, 질의 수, CPU 포화), 설정 시도, 공식 자료, 한계. 단일 실행임을 명시
+## [2026-11-17] build | Cubrid 대소문자 무시 검색을 lower 대신 정렬 규칙 utf8_en_ci로(A-630): YonaCubridSqlAstTranslator, CubridCollationProbe(DB 문자 집합 UTF-8 확인), 시험 6건. 검색 p50 87ms에서 44ms, 동시 16 처리량 2.1배. utf8_ko_ci는 없고 utf8_en_ci는 UTF-8 DB면 로케일과 무관하게 있음(앞선 설명 정정). SQL_LOG=OFF 운영 권장(A-631), 앱 전체 규모에서 읽기 +19~28%, 쓰기 +9~12%
+
+## [2026-11-17] build | Cubrid 성능 작업을 마무리하고 남은 과제를 문서로 남김: roadmap.md 보류 항목과 db-performance-comparison.md 10절(질의 더 줄이기, CPU 증설, 미확인 항목). 서버 CPU 구성(cub_cas 59%, cub_server 41%)과 페이지 크기 시험(차이 없음, 적용 여부 미확인)을 비교 문서에 반영

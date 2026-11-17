@@ -32,10 +32,10 @@ v1.6 데이터가 없는 상태에서 Yona v2 서버를 처음 설치하는 순�
 | MariaDB/MySQL | `create database yona DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin;` | `jdbc:mariadb://localhost:3306/yona` |
 | PostgreSQL | 데이터베이스와 사용자를 만든다. 개발용은 `docker compose up -d postgres`(포트 25432) | `jdbc:postgresql://localhost:5432/yona` |
 | MSSQL | 데이터베이스에 `READ_COMMITTED_SNAPSHOT ON`을 켠다. 이를 켜지 않으면 읽는 쪽이 쓰는 쪽을 기다려 멈출 수 있다 | `jdbc:sqlserver://호스트:1433;databaseName=yona` |
-| Cubrid | 데이터베이스를 `en_US.utf8`로 만든다 | `jdbc:cubrid:호스트:33000:yona:dba::?charset=utf-8` |
+| Cubrid | 데이터베이스를 UTF-8 로케일(`en_US.utf8`, `ko_KR.utf8` 등)로 만든다. 브로커의 `SQL_LOG`는 `OFF`나 `ERROR`로 바꾼다(기본 `ON`은 모든 SQL을 파일에 기록해 읽기 19~28%, 쓰기 9~12%를 잃는다). 브로커 `MAX_NUM_APPL_SERVER`와 서버 `max_clients`는 동시 접속 수에 맞춘다 | `jdbc:cubrid:호스트:33000:yona:dba::?charset=utf-8` |
 | H2 파일 | 따로 준비할 것이 없다. 소규모에 쓴다 | `jdbc:h2:file:/경로/db;DB_CLOSE_DELAY=-1` |
 
-MSSQL과 Cubrid는 접속 주소를 보고 드라이버, 방언, 한글 열 설정을 서버가 자동으로 정한다(`DatabaseDefaults`).
+MSSQL과 Cubrid는 접속 주소를 보고 드라이버, 방언, 한글 열 설정을 서버가 자동으로 정한다(`DatabaseDefaults`). Cubrid는 여기에 JDBC 준비된 문장 캐시 옵션과 대소문자 무시 검색(DB 문자 집합이 UTF-8일 때 정렬 규칙 `utf8_en_ci`)도 자동으로 적용한다. Cubrid는 MariaDB, PostgreSQL보다 처리량이 절반 수준이고 v1.6과 동작이 다른 곳이 있으니 [DB 성능 비교](db-performance-comparison.md)를 먼저 보세요.
 
 ## 3. 서버 시작
 
