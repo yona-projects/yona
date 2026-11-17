@@ -61,14 +61,13 @@ Yona 설치 및 실행
 
 Yona 배포판
 ---
-현재 Yona는 버전별로 두 개의 배포판을 [릴리즈 메뉴](https://github.com/yona-projects/yona/releases)를 통해 제공하고 있습니다.
+현재 Yona는 버전별 배포판을 [릴리즈 메뉴](https://github.com/yona-projects/yona/releases)를 통해 제공하고 있습니다.
 
-- 데이터베이스 공통 버전
-  - 설정 유형에 따라 MariaDB, PostgreSQL, Cubrid 11.4, SQL Server를 지원합니다.
-  - `yona-v2.0.0-bin.zip` 같은 형식으로 파일로 배포
-  - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
-  - H2 방식으로 사용할 경우 USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
-  - H2 방식은 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+- 설정 유형에 따라 MariaDB, PostgreSQL, Cubrid 11.4, SQL Server를 지원합니다.(권장 DB는 MariaDB 또는 PostgreSQL 입니다)
+- `yona-v2.0.0.jar` 와 같은 형식으로 파일로 배포
+- DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
+- H2 방식으로 사용할 경우 USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
+- H2 방식은 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
 Yona 설치
 ---
