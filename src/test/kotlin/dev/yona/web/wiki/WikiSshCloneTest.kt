@@ -34,7 +34,7 @@ import kotlin.test.assertEquals
  */
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-wiki-ssh", "yona.ssh.enabled=true", "yona.ssh.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-wiki-ssh", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
 class WikiSshCloneTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc

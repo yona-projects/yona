@@ -46,7 +46,7 @@ import kotlin.test.assertTrue
  * 내장 SSH 서버로 실제 `hg` 클라이언트의 복제, 가져오기, 푸시를 검증한다(X-7 6d). `hg`는 `ssh://git@호스트:포트/소유자/이름`으로 원격에서
  * `hg -R 소유자/이름 serve --stdio`를 실행한다([dev.yona.ssh.SshServerTest]와 같은 방식으로 서버를 띄운다).
  */
-@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.ssh.enabled=true", "yona.ssh.port=0"])
+@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0"])
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-hg-ssh"])
 class HgSshServerTest {
 

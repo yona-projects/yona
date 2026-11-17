@@ -463,3 +463,14 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | 검색 설계 논의를 문서에 기록(구현 없음): 4.1의 3번을 프로젝트 번호 단위 확인과 걸러지면 오류 기록으로 조정(정책 이중 구현 위험, 쪽 나누기), 4.2에 논리 문서와 엔진별 물리 매핑 절 추가(문서 단위, 매핑 버전, Nori 플러그인), PoC는 정확도이지 속도가 아니라는 점과 엔진의 필요를 수치로 판단한다는 점을 2절에 추가, 결정 항목 5~7 추가
 
 ## [2026-11-17] build | v1.6 H2 설치용 이관 스크립트 추가(X-62, A-624): tools/h2-export/H2Export.java(옛 H2 1.3으로 읽어 가져오기 형식 JSON), scripts/migrate-v16-h2.sh, 이관 명령의 --yona.migrate.import-file 단계(V16ImportFile), 설정 변환기의 H2 안내 문구 갱신. 실제 v1.6 1.16.0 H2 파일로 리허설 14.7초, 61개 공통 테이블 393행 일치와 값 대조, v2 기동과 화면 확인. 시험 18건 추가
+
+## [2026-11-17] build | 신규 설치 가이드 추가(architecture/fresh-install-guide.md): 빈 H2 파일 DB로 첫 기동, 환영 화면, 약한 비밀번호 거절, 재시작 후 관리자 로그인까지 직접 확인. 다른 DB 첫 기동은 미확인으로 명시
+
+## [2026-11-17] build | 신규 설치 가이드(6절)와 이관 가이드(7절)에 SSH 접근 설정 추가: 내장 서버(yona.ssh.enabled)와 시스템 sshd 연동(yona.ssh.relay.enabled)을 별도 플래그로 구분, 두 플래그 꺼짐, 내장 켜짐, 연동 켜짐을 H2로 직접 기동해 확인
+
+## [2026-11-17] build | Subversion SSH 사용자 이름을 svn으로 표시하고 내장 서버가 git, hg, svn을 모두 받음(yona.ssh.svn-user, A-625). 시스템 sshd용 hg, svn 계정 안내를 sshd 문서와 두 가이드에 추가
+
+## [2026-11-17] build | 중계 방식 Mercurial 시험 3건 추가(SshRelayServerTest 20건 통과), 진짜 OpenSSH 8.0 sshd에서 git, hg, svn 계정과 Match User git,hg,svn으로 세 종류 복제, 푸시, 커밋과 미등록 키 거부를 확인(A-625의 미확인 해소)
+## [2026-11-17] build | e2e 도구 첫 기동(e2e/lib/server.mjs)을 고침: 시험용 관리자 비밀번호를 새 비밀번호 정책을 통과하는 값으로 바꾸고, 환영 화면 POST에 CSRF 쿠키와 머리글을 붙이고, 성공 여부를 비밀 키 파일 생성으로 판단해 재시도하며, 실패하면 띄운 서버를 내린다. 빈 데이터 폴더에서 두 번 연속 기동, 관리자 로그인, 가입 사용자 로그인, 기기 인증 토큰 발급을 확인
+
+## [2026-11-17] build | 내장 SSH 서버 설정 키를 yona.ssh.mina.*(enabled, port, bind-address, host-key-path)로 이동, 옛 키 호환 없음(A-626). 관련 시험 210건 통과(26개 클래스), 위키와 sshd 문서 갱신

@@ -4,7 +4,7 @@ Yona는 Git SSH 접근을 두 방식으로 제공한다. 둘 중 필요한 것�
 
 | 방식 | 접속 주소 | 특징 |
 |---|---|---|
-| 내장 SSH 서버(`yona.ssh.enabled`) | `ssh://git@호스트:2222/소유자/저장소.git` | Yona가 포트를 직접 연다. 설치할 것이 없다. 22번 포트는 root 권한이나 포트 전달이 필요하다 |
+| 내장 SSH 서버(`yona.ssh.mina.enabled`) | `ssh://git@호스트:2222/소유자/저장소.git` | Yona가 포트를 직접 연다. 설치할 것이 없다. 22번 포트는 root 권한이나 포트 전달이 필요하다 |
 | **시스템 sshd 연동**(`yona.ssh.relay.enabled`, 이 문서) | `git@호스트:소유자/저장소.git` | 이미 22번 포트에서 도는 OpenSSH sshd가 접속을 받는다. GitHub와 같은 주소 모양이다 |
 
 두 방식 모두 사용자와 배포 키는 Yona의 **SSH 키** 설정(내 정보, 프로젝트 설정의 배포 키)에서 등록한 공개키를 쓴다. 접근 권한 판정, 브랜치 보호 규칙, 서명 커밋 필수 규칙, 감사 기록은 HTTP와 똑같이 적용된다.
@@ -15,7 +15,7 @@ sshd 쪽에서 쓰는 도우미는 `tools/ssh-helper`의 Go 실행 파일 `yona-
 
 - `yona-ssh auth <종류> <본문>`: sshd의 `AuthorizedKeysCommand`로 실행된다. 공개키를 Yona의 내부 인증 주소에 묻고, 등록된 키이면 강제 명령이 든 `authorized_keys` 한 줄을 인쇄한다.
 - `yona-ssh relay --socket <경로> <표>`: 그 강제 명령이다. 클라이언트의 입출력을 Yona의 중계 소켓에 이어 붙인다(셸 없이 실행된다).
-- 빌드는 Go 1.22 이상이 필요하다. Linux, macOS, Windows에서 빌드되지만 **Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.** Windows 서버는 내장 SSH 서버(`yona.ssh.enabled`)를 쓴다.
+- 빌드는 Go 1.22 이상이 필요하다. Linux, macOS, Windows에서 빌드되지만 **Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.** Windows 서버는 내장 SSH 서버(`yona.ssh.mina.enabled`)를 쓴다.
 
 ## 동작 방식
 
@@ -73,6 +73,17 @@ sudo usermod -aG yona git
 
 **셸을 `/usr/sbin/nologin`으로 하면 안 된다.** sshd는 강제 명령을 `셸 -c "<명령>"`으로 실행하는데 `nologin`은 인자를 무시하고 "계정을 쓸 수 없다"는 문구만 찍고 끝나, 강제 명령이 실행되지 않는다. 비밀번호가 잠겨 있고 강제 명령이 항상 걸려 있으므로 `/bin/bash`여도 안전하다.
 
+**Mercurial과 Subversion 주소의 사용자 이름.** 복제 주소의 사용자 이름은 저장소 종류별로 Git `git`(`yona.ssh.user`), Mercurial `hg`(`yona.ssh.hg-user`), Subversion `svn`(`yona.ssh.svn-user`)이다. sshd는 이름을 OS 계정에서 찾으므로 Mercurial과 Subversion을 쓰려면 `hg`와 `svn` 계정도 같은 방식으로 만든다.
+
+```bash
+for u in hg svn; do
+  sudo useradd --system --shell /bin/bash --home-dir /home/$u --create-home $u
+  sudo usermod -aG yona $u
+done
+```
+
+계정을 하나만 두려면 Yona 설정에서 `yona.ssh.hg-user: ""`와 `yona.ssh.svn-user: ""`로 비운다. 그러면 세 종류의 주소가 모두 `git@`로 보인다. Subversion은 이 연동에서도 `svnserve -t`로 처리되며 sshd 설정을 더 추가할 것은 없다(아래 `Match User`에 이름만 더한다).
+
 ### 3. 공유 비밀 값과 `yona-ssh` 설치
 
 `auth`는 sshd가 `AuthorizedKeysCommandUser`(root도 접속 계정도 아닌 저권한 전용 계정)로 실행한다.
@@ -111,7 +122,7 @@ CONF
 `/etc/ssh/sshd_config`의 **맨 끝**(`Match` 블록은 항상 끝에 온다)에 추가한다. `Match User`로 범위를 좁혀 다른 계정의 로그인에는 영향이 없다.
 
 ```
-Match User git
+Match User git,hg,svn
     AuthorizedKeysCommand /usr/local/bin/yona-ssh auth %t %k
     AuthorizedKeysCommandUser yona-ssh-hook
 ```

@@ -7,7 +7,7 @@ updated: 2026-11-02
 
 # SSH 접근, SSH 키, 배포 키 (X-3, D-66)
 
-**상태: 구현 완료(2026-11-02, 내장 SSH 서버, 시스템 sshd 연동, 후속).** 결정과 이유는 [decisions.md D-66, D-67, D-68](../decisions.md), 구현 판단은 A-323부터 A-326이다. v1.6에는 없는 추가 항목이며 `yona.ssh.enabled`와 `yona.ssh.relay.enabled`를 켜지 않으면 포트도 소켓도 열지 않고 화면과 동작이 v1.6과 같다.
+**상태: 구현 완료(2026-11-02, 내장 SSH 서버, 시스템 sshd 연동, 후속).** 결정과 이유는 [decisions.md D-66, D-67, D-68](../decisions.md), 구현 판단은 A-323부터 A-326이다. v1.6에는 없는 추가 항목이며 `yona.ssh.mina.enabled`와 `yona.ssh.relay.enabled`를 켜지 않으면 포트도 소켓도 열지 않고 화면과 동작이 v1.6과 같다.
 
 ## 한눈에 보기
 
@@ -15,7 +15,7 @@ updated: 2026-11-02
 |---|---|
 | 키 등록 | 사용자 설정의 "SSH 키" 탭과 프로젝트 설정의 "배포 키" 화면. 둘 다 **목록 화면**(삭제 버튼 하나)과 **추가 화면** 두 개로 나눈다(D-65 8번을 따른다). 배포 키 추가 화면에는 "쓰기 허용" 체크가 하나 더 있다 |
 | 저장 | 새 테이블 `ssh_key`(사용자), `deploy_key`(프로젝트). 지문(`SHA256:...`)은 두 테이블을 합쳐 사이트 전체에서 유일하다 |
-| 서버 | Apache MINA SSHD 2.15. `yona.ssh.enabled=true`일 때만 앱 안에서 뜬다. 공개키 인증만 받고 셸, SFTP, 포트 전달은 열지 않는다 |
+| 서버 | Apache MINA SSHD 2.15. `yona.ssh.mina.enabled=true`일 때만 앱 안에서 뜬다. 공개키 인증만 받고 셸, SFTP, 포트 전달은 열지 않는다 |
 | 명령 | 저장소 종류별 처리기(`SshVcsHandler`). git(`git-upload-pack`, `git-receive-pack`), Mercurial(`hg -R <저장소> serve --stdio`, X-7), Subversion(`svnserve -t`, X-55: 저장소를 프로토콜의 첫 메시지로 알게 되는 요청, [svn-ssh.md](svn-ssh.md)) |
 | 인가 | HTTP와 같은 접근 규칙(`AccessControl`). 배포 키는 자기 저장소만 접근하고 읽기 전용이면 쓰지 못한다 |
 | 푸시 | HTTP와 같은 JGit과 같은 푸시 훅(`GitHooks`)이라 브랜치 보호 규칙, 서명 커밋 필수 규칙, 풀 리퀘스트와 웹훅 처리가 똑같이 적용된다 |
@@ -33,7 +33,7 @@ updated: 2026-11-02
 
 | | 내장 SSH 서버 | 시스템 sshd 연동(X-3b) |
 |---|---|---|
-| 켜는 설정 | `yona.ssh.enabled` | `yona.ssh.relay.enabled` |
+| 켜는 설정 | `yona.ssh.mina.enabled` | `yona.ssh.relay.enabled` |
 | 접속을 받는 것 | Yona(Apache MINA SSHD) | 시스템 OpenSSH sshd(보통 22번 포트) |
 | 주소 | `ssh://git@호스트:2222/소유자/이름.git` | `git@호스트:소유자/이름.git` |
 | 설치 | 없음 | 훅과 계정과 sshd 설정 ([가이드](../../docs/yona-ssh-system-sshd.md)) |
@@ -43,7 +43,7 @@ updated: 2026-11-02
 
 sshd의 `AuthorizedKeysCommand` 도우미(`yona-ssh auth`, `tools/ssh-helper/`)가 접속자의 공개키를 Yona의 **내부 인증 주소**(`POST /internal/ssh/authenticate`, 루프백과 공유 비밀 값 헤더 요구)에 물으면, Yona는 등록된 사용자 키나 배포 키일 때 **서명한 인증 표**(`v1.<종류>.<번호>.<만료>.<HMAC-SHA256>`, 5분 유효)를 돌려준다. 도우미는 표를 심은 강제 명령(`command=`)이 든 `authorized_keys` 한 줄을 인쇄하고, 세션이 시작되면 그 명령(`yona-ssh relay`)이 Yona의 **중계 소켓**(`SshRelayServer`, 유닉스 도메인 소켓, `rw-rw----`)에 연결해 세 줄(표, 클라이언트 주소, 원본 명령)을 보낸 뒤 입출력을 그대로 이어 붙인다. 중계는 표를 확인하고 내장 서버와 같은 `SshCommandRunner`로 명령을 인가하고 실행한다. 거부 사유는 프로토콜 시작 전에 git의 오류 줄(pkt-line `ERR`)로 보내 git이 `fatal: remote error: <사유>`로 보여 준다. 훅은 모르는 키나 오류에서는 아무것도 인쇄하지 않아 sshd가 인증을 거부한다.
 
-진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했다. 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 Go 도우미와 `git`, `svn`으로 돌린다(Go가 없으면 건너뛴다). 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
+진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했고, 2026-11-17에는 `git`, `hg`, `svn` 계정과 `Match User git,hg,svn`으로 Mercurial과 Subversion(복제, 푸시, 커밋)도 확인했다(A-625). 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 Go 도우미와 `git`, `svn`으로 돌린다(Go가 없으면 건너뛴다). 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
 
 ### Go 도우미 (D-73, 셸 훅 제거 A-623)
 
@@ -53,11 +53,12 @@ sshd 쪽 도우미는 **Go 실행 파일 `yona-ssh`**(`tools/ssh-helper/`) 하�
 
 | 키 | 기본값 | 설명 |
 |---|---|---|
-| `yona.ssh.enabled` | `false` | 내장 SSH 서버를 켠다. 끄면 포트를 열지 않는다 |
-| `yona.ssh.port` | `2222` | 받는 포트. 0이면 운영체제가 고른다(시험용). 22를 쓰려면 root 권한이나 포트 전달이 필요하다 |
-| `yona.ssh.bind-address` | 빈 문자열 | 묶는 주소. 비우면 모든 주소 |
-| `yona.ssh.host-key-path` | 빈 문자열 | 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며 처음 시작할 때 만든다 |
+| `yona.ssh.mina.enabled` | `false` | 내장 SSH 서버를 켠다. 끄면 포트를 열지 않는다 |
+| `yona.ssh.mina.port` | `2222` | 받는 포트. 0이면 운영체제가 고른다(시험용). 22를 쓰려면 root 권한이나 포트 전달이 필요하다 |
+| `yona.ssh.mina.bind-address` | 빈 문자열 | 묶는 주소. 비우면 모든 주소 |
+| `yona.ssh.mina.host-key-path` | 빈 문자열 | 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며 처음 시작할 때 만든다 |
 | `yona.ssh.user` | `git` | 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다(GitHub 방식) |
+| `yona.ssh.svn-user` | `svn` | Subversion의 복제 주소(`svn+ssh://svn@...`)에 쓰는 사용자 이름이고 내장 서버는 `user`, `hg-user`와 이 이름을 모두 받는다(A-625). 비우면 `user`와 같다. 시스템 sshd 중계에서는 이 이름이 서버 OS 계정이라 운영자가 `svn` 계정을 따로 설정해야 한다 |
 | `yona.ssh.hg-user` | `hg` | Mercurial의 복제 주소에 쓰는 사용자 이름이고 내장 서버는 `user`와 이 이름을 모두 받는다(Bitbucket의 관례, A-618). 비우면 `user`와 같다. 사용자는 이름이 아니라 키로 정해진다. 시스템 sshd 중계에서는 이 이름이 서버 OS 계정이라 운영자가 `hg` 계정을 따로 설정해야 한다 |
 | `yona.ssh.public-port` | `0` | 복제 주소에 보일 포트. 0이면 실제 포트(시스템 sshd 방식만 켰으면 22). 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
 | `yona.ssh.relay.enabled` | `false` | 시스템 sshd 연동을 켠다 |
@@ -79,7 +80,7 @@ OpenSSH 공개키 한 줄(`~/.ssh/id_*.pub`)을 MINA의 `PublicKeyEntry`로 읽�
 
 ## 접속과 인가 (`SshAccess`)
 
-1. **인증**: 사용자 이름이 `yona.ssh.user`나 `yona.ssh.hg-user`가 아니면 거부(이름은 저장소 종류와 무관하게 둘 다 받는다). 접속한 공개키의 지문으로 `ssh_key`, 그다음 `deploy_key`를 찾는다. 잠기거나(`LOCKED`) 삭제된(`DELETED`) 사용자의 키는 인증하지 못한다.
+1. **인증**: 사용자 이름이 `yona.ssh.user`, `yona.ssh.hg-user`, `yona.ssh.svn-user`가 아니면 거부(이름은 저장소 종류와 무관하게 모두 받는다). 접속한 공개키의 지문으로 `ssh_key`, 그다음 `deploy_key`를 찾는다. 잠기거나(`LOCKED`) 삭제된(`DELETED`) 사용자의 키는 인증하지 못한다.
 2. **명령 읽기**: 인증한 접속의 명령 줄을 처리기들이 차례로 읽는다. 알 수 없는 명령과 셸 요청은 `ERROR: Invalid command.`로 거부한다. git 경로는 `'/소유자/저장소.git'`, `'소유자/저장소'` 같은 모양을 받고 두 단계가 아니거나 `..`, 공백, 셸 메타 문자가 있으면 거부한다.
 3. **인가**(명령마다 다시 읽으므로 접속한 뒤 사용자가 잠기거나 키가 지워져도 그 뒤 명령은 막힌다): 읽을 수 없는 저장소는 있는지 없는지 알리지 않으려고 `ERROR: Repository not found.`이다. 읽을 수 있는데 쓸 수 없으면 `ERROR: Permission to 소유자/저장소 denied to 로그인ID.`이고, 읽기 전용 배포 키의 푸시는 `ERROR: The deploy key for 소유자/저장소 is read-only.`이다.
    - 사용자 키: 읽기는 읽기 권한, 쓰기는 수정 권한이며 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다([GitHttpController](../../src/main/kotlin/dev/yona/web/git/GitHttpController.kt)와 같은 판정).

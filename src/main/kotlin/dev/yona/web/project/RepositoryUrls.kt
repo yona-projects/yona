@@ -24,7 +24,7 @@ class RepositoryUrls(private val properties: YonaProperties) {
 
     /**
      * SSH 복제 주소를 돌려준다(추가 개발 항목 X-3, `decisions.md` D-66). 내장 SSH 서버와 시스템 sshd 연동을 모두 켜지 않았거나 Git, Mercurial, Subversion 프로젝트가 아니면 `null`이다. Git은 포트가 22이면
-     * `git@호스트:소유자/이름.git`(scp 형식), 그 밖이면 `ssh://git@호스트:포트/소유자/이름.git`이다. Mercurial에는 scp 형식이 없어 늘 `ssh://hg@호스트[:포트]/소유자/이름`이다(X-7, 포트 22는 생략, 사용자 이름은 `yona.ssh.hg-user`). Subversion은 `svn+ssh://git@호스트[:포트]/소유자/이름`이다(X-55, `svn`에는 scp 형식이 없다). 호스트는 설정한 호스트 이름(`yona.hostname`, 포트는 뗀다)이고 없으면 요청의 호스트 이름이다.
+     * `git@호스트:소유자/이름.git`(scp 형식), 그 밖이면 `ssh://git@호스트:포트/소유자/이름.git`이다. Mercurial에는 scp 형식이 없어 늘 `ssh://hg@호스트[:포트]/소유자/이름`이다(X-7, 포트 22는 생략, 사용자 이름은 `yona.ssh.hg-user`). Subversion은 `svn+ssh://svn@호스트[:포트]/소유자/이름`이다(사용자 이름은 `yona.ssh.svn-user`, 비우면 `yona.ssh.user`)(X-55, `svn`에는 scp 형식이 없다). 호스트는 설정한 호스트 이름(`yona.hostname`, 포트는 뗀다)이고 없으면 요청의 호스트 이름이다.
      *
      * @param port 주소에 쓸 포트. 기본은 `yona.ssh.public-port`, 그것이 0이면 서버가 실제로 받는 포트이다
      */
@@ -32,7 +32,7 @@ class RepositoryUrls(private val properties: YonaProperties) {
         return when (project.vcs) {
             "GIT" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}.git")
             "Mercurial" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}", scpForm = false, user = properties.ssh.hgUser.ifBlank { properties.ssh.user })
-            "Subversion" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}", scpForm = false)?.replaceFirst("ssh://", "svn+ssh://")
+            "Subversion" -> sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}", scpForm = false, user = properties.ssh.svnUser.ifBlank { properties.ssh.user })?.replaceFirst("ssh://", "svn+ssh://")
             else -> null
         }
     }
@@ -44,7 +44,7 @@ class RepositoryUrls(private val properties: YonaProperties) {
         sshUrl(request, port, "${encode(project.owner)}/${encode(project.name)}.wiki.git")
 
     private fun sshUrl(request: HttpServletRequest, port: Int, path: String, scpForm: Boolean = true, user: String = properties.ssh.user): String? {
-        if (!(properties.ssh.enabled || properties.ssh.relay.enabled)) return null
+        if (!(properties.ssh.mina.enabled || properties.ssh.relay.enabled)) return null
         val host = properties.hostname.ifEmpty { request.serverName }
         return when {
             port == 22 && scpForm -> "$user@$host:$path"
@@ -56,7 +56,7 @@ class RepositoryUrls(private val properties: YonaProperties) {
     /** 복제 주소의 포트이다. `yona.ssh.public-port`, 내장 서버가 있으면 실제 포트, 시스템 sshd 방식만 켰으면 22(sshd의 기본 포트), 그 밖에는 설정한 포트이다. */
     private fun sshPort(): Int = properties.ssh.publicPort.takeIf { it > 0 }
         ?: sshServer?.boundPort?.takeIf { it > 0 }
-        ?: if (properties.ssh.relay.enabled && !properties.ssh.enabled) 22 else properties.ssh.port
+        ?: if (properties.ssh.relay.enabled && !properties.ssh.mina.enabled) 22 else properties.ssh.mina.port
 
     /**
      * 저장소 주소를 돌려준다. 알 수 없는 VCS이면 `null`이다.

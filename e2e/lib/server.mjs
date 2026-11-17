@@ -6,7 +6,11 @@ import { join, resolve } from 'node:path';
 
 export const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const JAVA = process.env.YONA_JAVA || '/usr/lib/jvm/java-25-openjdk-amd64/bin/java';
-export const ADMIN = { loginId: 'admin', password: 'pass1234', name: 'Admin', email: 'admin@example.com' };
+/**
+ * 시험용 관리자 계정이다. 비밀번호는 서버의 새 비밀번호 정책(8자 이상, 흔한 비밀번호와 아이디나 이메일과 같은 값 거절, `PasswordPolicy`)을 통과해야
+ * 한다. 옛 값 `pass1234`는 흔한 비밀번호라서 환영 화면이 거절한다(HTTP 400).
+ */
+export const ADMIN = { loginId: 'admin', password: 'Yona-e2e-Admin-4471', name: 'Admin', email: 'admin@example.com' };
 
 function jarPath(jar) {
   if (jar) return jar;
@@ -44,12 +48,19 @@ export async function startServer({ port = 19191, dataDir = join(ROOT, '.state',
   await waitReady(base);
   if (first) {
     const body = new URLSearchParams({ loginId: ADMIN.loginId, name: ADMIN.name, email: ADMIN.email, password: ADMIN.password, retypedPassword: ADMIN.password });
-    // 기본 관리자 계정은 서버가 뜬 직후 초기 데이터를 넣으면서 만들어지므로, 아직이면(500) 잠시 뒤 다시 시도한다
-    for (let i = 0; i < 30; i++) {
-      const res = await fetch(base + '/', { method: 'POST', body, redirect: 'manual' });
-      if (res.status < 500) break;
-      await new Promise((r) => setTimeout(r, 1000));
+    // 환영 화면의 POST도 CSRF 보호를 받는다: 먼저 GET으로 `XSRF-TOKEN` 쿠키를 받아 쿠키와 `X-XSRF-TOKEN` 머리글로 되돌려 보낸다.
+    // 기본 관리자 계정은 서버가 뜬 직후 초기 데이터를 넣으면서 만들어지므로 그 전의 요청은 실패한다(500이나 400). 성공은 응답 코드가 아니라
+    // 서버가 비밀 키 파일을 썼는지로 판단하고, 아직이면 잠시 뒤 다시 시도한다
+    const secretFile = join(dataDir, 'config', 'secret.properties');
+    let last = 0;
+    for (let i = 0; i < 30 && !existsSync(secretFile); i++) {
+      const page = await fetch(base + '/', { redirect: 'manual' });
+      const xsrf = (page.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]).find((kv) => kv.startsWith('XSRF-TOKEN='));
+      const headers = xsrf ? { cookie: xsrf, 'X-XSRF-TOKEN': xsrf.slice('XSRF-TOKEN='.length) } : {};
+      last = (await fetch(base + '/', { method: 'POST', headers, body, redirect: 'manual' })).status;
+      if (!existsSync(secretFile)) await new Promise((r) => setTimeout(r, 1000));
     }
+    if (!existsSync(secretFile)) { child.kill(); throw new Error(`환영 화면이 관리자 계정을 받아들이지 않았다(마지막 응답 HTTP ${last}). 비밀번호 정책을 확인한다`); }
     child.kill(); await new Promise((r) => child.once('exit', r));
     child = spawnServer(port, dataDir, jar, extraArgs);
     await waitReady(base);

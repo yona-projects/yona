@@ -40,10 +40,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * 내장 SSH 서버(X-3 5단계, `decisions.md` D-66)를 실제 `ssh`와 `git` 클라이언트로 검증한다. 서버는 `yona.ssh.enabled=true`, 포트 0(비어 있는 포트)으로 뜬다.
+ * 내장 SSH 서버(X-3 5단계, `decisions.md` D-66)를 실제 `ssh`와 `git` 클라이언트로 검증한다. 서버는 `yona.ssh.mina.enabled=true`, 포트 0(비어 있는 포트)으로 뜬다.
  * 서버가 따로 뜨므로 데이터는 커밋하고, 테스트가 끝나면 지운다([dev.yona.web.git.GitHttpTest]와 같다).
  */
-@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.git-default-branch=master", "yona.ssh.enabled=true", "yona.ssh.port=0"])
+@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.git-default-branch=master", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0"])
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-ssh-server"])
 class SshServerTest {
 

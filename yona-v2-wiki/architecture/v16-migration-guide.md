@@ -138,6 +138,63 @@ v2 쪽 사용 여부도 코드에서 확인했다: 변환기가 만드는 `yona.
 - 옛 토큰으로 `Authorization: token <값>`이나 `Yona-Token: <값>`을 보내 보호된 API(예: `/-_-api/v1/user/ssh_keys`)가 200인지 본다.
 - 풀 리퀘스트 목록에서 번호가 비었던 요청에 번호가 있고 `REJECTED`가 `CLOSED`로 보이는지 본다.
 
+## 7. SSH 접근 설정 (선택)
+
+Git, Mercurial, Subversion 저장소를 SSH로 받으려면 켠다. v1.6에는 SSH 서버가 없었으므로(추가 항목 X-3) 기본은 **꺼져 있고**, 이관해도 자동으로 켜지지 않는다. 두 방식은 **플래그가 따로** 있어서 하나만 켜도 되고 둘 다 켜도 된다. 둘 다 꺼 두면 포트도 소켓도 열지 않는다.
+
+| 방식 | 켜는 설정 | 접속 주소(Git) | 설치할 것 |
+|---|---|---|---|
+| 내장 SSH 서버(Apache MINA SSHD) | `yona.ssh.mina.enabled=true` | `ssh://git@호스트:2222/소유자/저장소.git` | 없다 |
+| 시스템 sshd 연동 | `yona.ssh.relay.enabled=true` | `git@호스트:소유자/저장소.git` | `yona-ssh`(Go), 전용 계정, sshd 설정 |
+
+사용자 이름은 저장소 종류별로 Git `git`(`yona.ssh.user`), Mercurial `hg`(`yona.ssh.hg-user`), Subversion `svn`(`yona.ssh.svn-user`)이고 Subversion 주소는 `svn+ssh://svn@호스트[:포트]/소유자/저장소`이다. 이름은 인증에 쓰이지 않고(사용자는 키로 정해진다) 시스템 sshd에서는 OS 계정 이름이 된다. 설정 값을 비우면 `git`으로 돌아간다. 어느 방식이든 사용자는 웹의 **내 정보의 SSH 키**에 공개키를 등록하고, 프로젝트는 **배포 키**를 등록한다. 접근 권한, 브랜치 보호, 감사 기록은 HTTP와 같다.
+
+### 내장 SSH 서버
+
+```yaml
+yona:
+  ssh:
+    mina:
+      enabled: true
+      port: 2222          # 22를 쓰려면 root 권한이나 포트 전달(컨테이너 -p 22:2222)이 필요하다
+      # bind-address: ""  # 비우면 모든 주소
+    # public-port: 0      # 포트 전달 뒤라서 바깥 포트가 다르면 복제 주소에 보일 포트를 적는다(두 방식 공통)
+```
+
+- 호스트 키는 처음 시작할 때 `<데이터 디렉터리>/ssh/ssh_host_ed25519_key`로 만든다. 재시작해도 같아야 클라이언트가 "호스트 키가 바뀌었다"는 경고를 내지 않으므로 **데이터 디렉터리를 옮기거나 백업할 때 `ssh/`를 함께 둔다.**
+- 공개키 인증만 받는다. 셸, SFTP, 포트 전달은 열지 않는다.
+- 방화벽에서 이 포트를 열어야 한다.
+
+### 시스템 sshd 연동
+
+이미 22번 포트에서 도는 OpenSSH가 접속을 받고 Yona는 소켓으로 처리한다. 설정은 `yona.ssh.relay.enabled=true`, `yona.ssh.relay.internal-secret`(공유 비밀 값, 운영에서는 직접 정한다)이고, 이어서 호스트에서 다음을 한다.
+
+1. 전용 계정 `git`, `hg`, `svn`을 만들고 각각 Yona 계정의 그룹에 넣는다(셸은 `/bin/bash`, `nologin`이면 안 된다). 계정을 하나만 두고 싶으면 `yona.ssh.hg-user: ""`, `yona.ssh.svn-user: ""`로 비워 모두 `git`으로 쓴다.
+2. Go 도우미 `yona-ssh`를 빌드해 `/usr/local/bin`에 설치하고, 공유 비밀 값 파일(`/etc/yona/ssh-internal-secret`)과 `/etc/yona/ssh-auth.conf`를 둔다.
+3. `sshd_config` 끝에 `Match User git,hg,svn`(계정을 하나만 둔 경우 `git`)과 `AuthorizedKeysCommand`를 더하고 `sshd -t`로 검사한 뒤 reload한다.
+
+전체 절차와 문제 해결은 저장소의 `docs/yona-ssh-system-sshd.md`에 있다. Windows의 번들 OpenSSH는 `AuthorizedKeysCommand`를 지원하지 않으므로 Windows 서버는 내장 방식을 쓴다.
+
+### 확인
+
+```bash
+# 내장 서버: 등록하지 않은 키는 거절되어야 한다
+ssh -p 2222 git@호스트 -T          # Permission denied (publickey).
+# 공개키를 웹에 등록한 뒤
+ssh -T git@호스트                   # (시스템 sshd) Hi! Yona SSH authentication succeeded. Interactive shell access is not provided.
+git clone ssh://git@호스트:2222/소유자/저장소.git
+```
+
+**검증한 결과** (H2 파일 DB, 2026-11-17)
+- 두 플래그가 모두 꺼져 있으면 2222 포트가 열리지 않았고 `ssh/` 폴더도 만들어지지 않았다.
+- `yona.ssh.mina.enabled=true`로 시작하면 지정한 포트가 열렸고 `ssh/ssh_host_ed25519_key`(권한 `rw-------`)가 생겼다. 등록하지 않은 키는 `Permission denied (publickey)`로 거절되었다.
+- `yona.ssh.relay.enabled=true`만 켜면 TCP 포트는 열리지 않고 `ssh/relay.sock`(`srw-rw----`)만 생겼다.
+- 진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)에 `git`, `hg`, `svn` 계정과 `Match User git,hg,svn`을 두고 확인했다. Git 복제와 푸시, Mercurial 복제와 푸시(`hg@`와 `git@` 주소), Subversion 목록과 커밋(`svn@`와 `git@` 주소)이 모두 통했고, 등록하지 않은 키는 세 종류 모두 거부되었다. 계정이 없는 이름(`nobody@`)은 sshd가 거부했다.
+
+**확인하지 못한 것**
+- 내장 서버(MINA)로 Mercurial과 Subversion을 쓰는 실제 클라이언트 확인은 이번에 따로 돌리지 않았다. 자동 시험(`HgSshServerTest`, `SvnSshServerTest`)에 근거한다.
+- 이관(v1.6 DB를 이어받은 서버)에서 SSH를 켠 경우는 따로 돌려 보지 않았다. SSH 관련 테이블(`ssh_key`, `deploy_key`)은 서버가 처음 시작할 때 새로 만들어진다.
+
 ## 리허설 결과 (2026-11-16, MariaDB 10.11)
 
 환경: v1.6 evolutions 1~32의 `Ups`로 만든 스키마(컬럼 365개가 `src/test/resources/schema/v16-columns.tsv`와 일치), 합성 데이터는 `tools/v16-migration-rehearsal/seed.sql`(사용자 3명, 프로젝트 1개, 풀 리퀘스트 4건, 옛 토큰 1개, 리뷰어 설정 1개, 리뷰어 2건).

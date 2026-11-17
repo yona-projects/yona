@@ -7,7 +7,7 @@ import dev.yona.ssh.svn.RaSvnServer
 import org.springframework.stereotype.Component
 
 /**
- * SSH로 들어오는 Subversion 접근(`svn+ssh://git@호스트:포트/소유자/이름`)을 처리한다. Subversion 클라이언트는 원격에서 `svnserve -t`를 실행하고 표준 입출력으로
+ * SSH로 들어오는 Subversion 접근(`svn+ssh://svn@호스트:포트/소유자/이름`)을 처리한다. Subversion 클라이언트는 원격에서 `svnserve -t`를 실행하고 표준 입출력으로
  * `ra_svn` 프로토콜을 주고받는다. 명령 줄에는 저장소가 없고 프로토콜의 첫 메시지(클라이언트가 보내는 주소)에 들어 있으므로 요청은 저장소를 나중에 아는 요청이다
  * ([SshRepositoryRequest.deferred]).
  *

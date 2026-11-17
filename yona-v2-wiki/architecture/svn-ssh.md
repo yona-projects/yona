@@ -7,12 +7,12 @@ updated: 2026-11-16
 
 # Subversion SSH 접근 (X-55, A-615)
 
-**상태: 구현 완료(2026-11-16, `ra-svn` 브랜치).** v1.6에는 없는 추가 개발 항목이다. 켜는 방법은 Git, Mercurial과 같다: `yona.ssh.enabled=true`(내장 SSH 서버, [ssh.md](ssh.md)). 서버에 Subversion 패키지(`svnserve`)가 필요 없다.
+**상태: 구현 완료(2026-11-16, `ra-svn` 브랜치).** v1.6에는 없는 추가 개발 항목이다. 켜는 방법은 Git, Mercurial과 같다: `yona.ssh.mina.enabled=true`(내장 SSH 서버, [ssh.md](ssh.md)). 서버에 Subversion 패키지(`svnserve`)가 필요 없다.
 
 ## 쓰는 법
 
 ```bash
-svn checkout svn+ssh://git@호스트/소유자/프로젝트
+svn checkout svn+ssh://svn@호스트/소유자/프로젝트
 svn commit -m "메시지"
 ```
 
@@ -23,9 +23,9 @@ svn commit -m "메시지"
 
 Subversion 저장소에 접속하는 길은 둘이고 인증 수단이 다르다. 어느 쪽도 로그인 비밀번호는 쓰지 않는다.
 
-| | HTTP(`/svn/소유자/프로젝트`) | SSH(`svn+ssh://git@호스트/소유자/프로젝트`) |
+| | HTTP(`/svn/소유자/프로젝트`) | SSH(`svn+ssh://svn@호스트/소유자/프로젝트`) |
 |---|---|---|
-| 사용자 이름 | Yona 로그인 아이디 | 고정 이름 `git`(`yona.ssh.user`). 자기 아이디로 접속하면 거부된다. `--username`은 무시된다 |
+| 사용자 이름 | Yona 로그인 아이디 | 고정 이름 `svn`(`yona.ssh.svn-user`, 비우면 `yona.ssh.user`=`git`. 내장 서버는 `git`도 받는다, A-625). 자기 아이디로 접속하면 거부된다. `--username`은 무시된다 |
 | 비밀번호 칸 | **개인용 액세스 토큰**(`yona_pat_`로 시작, 이관한 옛 토큰 포함). 로그인 비밀번호는 거부된다(D-70) | 없다. 비밀번호를 묻지 않는다 |
 | 사용자를 정하는 것 | 토큰의 주인(사용자 이름과 같아야 한다) | 접속한 SSH 키의 주인(사용자 키) 또는 프로젝트의 배포 키 |
 | 어디서 만드는가 | 사용자 설정의 토큰 화면(`/user/editform/token`) | 사용자 설정의 SSH 키 화면(`/user/editform/ssh`), 배포 키는 프로젝트 설정 |
@@ -105,4 +105,4 @@ Git SSH와 같은 규칙이다(`SshAccess`, HTTP와 같은 `AccessControl`).
 - **시스템 sshd 중계 방식(X-3b)도 지원한다.** 같은 `SshCommandRunner`를 거치고, 훅 스크립트가 만든 강제 명령으로 `svn`이 읽기, 커밋(권한 없는 사용자 거절), 비공개 저장소 거절을 하는 시험이 있다(`SshRelayServerTest`). 인증 표가 틀리면 git의 오류 줄 대신 `ra_svn`의 실패 응답(170001)으로 거절해 `svn`이 읽을 수 있게 했다. 진짜 sshd로는 확인하지 않았고 sshd 역할을 하는 스크립트로 확인했다(Git, Mercurial 시험과 같은 방식).
 - **커밋 뒤 후속 처리가 없다.** WebDAV 커밋에도 알림, 웹훅, 감사 같은 후속 처리가 없어서(`SvnDavFilter`, `SvnDavService` 확인) 같게 두었다.
 - 한 커밋의 파일 내용은 임시 파일에 쌓은 뒤 저장소에 재생하므로 커밋 하나가 끝날 때까지 서버의 임시 디렉터리에 그만한 공간이 필요하다. 클라이언트가 디렉터리를 닫은 뒤 파일 내용을 보내서(녹화로 확인) 도착 순서대로 흘려보낼 수 없기 때문이다.
-- 프로젝트 홈의 복제 주소 상자와 빈 저장소 안내에 HTTP와 SSH를 고르는 단추가 있다(Git, Mercurial과 같다). SVN의 SSH 주소는 `svn+ssh://git@호스트[:포트]/소유자/이름`이다(`svn`에는 scp 형식이 없다). 빈 저장소 안내의 `--username`은 svn+ssh에서 무시된다(사용자는 SSH 키로 정해진다). 같은 화면에 인증 방법 안내가 있다: HTTP는 로그인 아이디와 개인용 액세스 토큰(비밀번호 칸, 토큰을 만드는 화면 링크), SSH는 사용자 이름 `git`과 SSH 키(키를 등록하는 화면 링크, SSH를 켠 사이트에서만 보인다).
+- 프로젝트 홈의 복제 주소 상자와 빈 저장소 안내에 HTTP와 SSH를 고르는 단추가 있다(Git, Mercurial과 같다). SVN의 SSH 주소는 `svn+ssh://svn@호스트[:포트]/소유자/이름`이다(`svn`에는 scp 형식이 없다). 빈 저장소 안내의 `--username`은 svn+ssh에서 무시된다(사용자는 SSH 키로 정해진다). 같은 화면에 인증 방법 안내가 있다: HTTP는 로그인 아이디와 개인용 액세스 토큰(비밀번호 칸, 토큰을 만드는 화면 링크), SSH는 복제 주소에 표시된 사용자 이름과 SSH 키(키를 등록하는 화면 링크, SSH를 켠 사이트에서만 보인다).

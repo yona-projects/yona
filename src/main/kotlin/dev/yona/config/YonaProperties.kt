@@ -238,30 +238,43 @@ data class YonaProperties(
     data class TwoFactor(val resetUser: String = "")
 
     /**
-     * 내장 SSH 서버 설정이다(추가 개발 항목 X-3, `decisions.md` D-66). 꺼져 있으면 포트를 열지 않는다.
+     * SSH 접근 설정이다(추가 개발 항목 X-3, `decisions.md` D-66, A-626). 방식이 둘이고 각각 따로 켠다: 내장 서버([mina], `yona.ssh.mina.enabled`)와
+     * 시스템 sshd 연동([relay], `yona.ssh.relay.enabled`). 둘 다 꺼져 있으면 포트도 소켓도 열지 않는다. 사용자 이름과 복제 주소의 포트는 두 방식이 함께 쓴다.
      *
-     * @property enabled 내장 SSH 서버(Apache MINA SSHD)를 켠다(`yona.ssh.enabled`, 기본 꺼짐)
-     * @property port SSH 서버가 받는 포트(기본 2222). 0이면 비어 있는 포트를 운영체제가 고른다(시험용)
-     * @property bindAddress SSH 서버가 묶이는 주소. 비우면 모든 주소이다
-     * @property hostKeyPath 호스트 키 파일 경로. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며, 없으면 처음 시작할 때 만든다
+     * @property mina 내장 SSH 서버(Apache MINA SSHD) 설정이다. 켜면 Yona가 포트를 직접 연다
      * @property user 접속에 쓰는 사용자 이름(기본 `git`). 키로 사용자를 알아내므로 이름은 모두 같다(GitHub 방식)
      * @property hgUser Mercurial 프로젝트의 복제 주소에 쓰는 사용자 이름(기본 `hg`, Bitbucket의 관례). 내장 SSH 서버는 `user`와 이 이름을 모두 받는다. 비우면 `user`와 같은 이름을 쓴다.
      *   시스템 sshd 중계에서는 이 이름이 서버 OS 계정이므로 운영자가 `hg` 계정을 따로 설정해야 한다(`architecture/ssh.md`)
+     * @property svnUser Subversion 프로젝트의 복제 주소에 쓰는 사용자 이름(기본 `svn`). 내장 SSH 서버는 `user`와 이 이름을 모두 받는다. 비우면 `user`와 같은 이름을 쓴다.
+     *   시스템 sshd 중계에서는 이 이름이 서버 OS 계정이므로 운영자가 `svn` 계정을 따로 설정해야 한다(`architecture/ssh.md`)
      * @property publicPort 복제 주소에 보여 줄 포트(`yona.ssh.public-port`). 0이면 서버가 실제로 받는 포트이다. 컨테이너나 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다
      */
     data class Ssh(
-        val enabled: Boolean = false,
-        val port: Int = 2222,
-        val bindAddress: String = "",
-        val hostKeyPath: String = "",
+        val mina: Mina = Mina(),
         val user: String = "git",
         val publicPort: Int = 0,
         val relay: Relay = Relay(),
-        val hgUser: String = "hg"
+        val hgUser: String = "hg",
+        val svnUser: String = "svn"
     ) {
 
-        /** 내장 SSH 서버가 받는 접속 사용자 이름이다: [user]와 비어 있지 않은 [hgUser]. */
-        val acceptedUsers: Set<String> get() = setOfNotNull(user, hgUser.takeIf { it.isNotBlank() })
+        /**
+         * 내장 SSH 서버(Apache MINA SSHD) 설정이다(`yona.ssh.mina.*`). 꺼져 있으면 포트를 열지 않는다.
+         *
+         * @property enabled 내장 SSH 서버를 켠다(`yona.ssh.mina.enabled`, 기본 꺼짐)
+         * @property port SSH 서버가 받는 포트(기본 2222). 0이면 비어 있는 포트를 운영체제가 고른다(시험용)
+         * @property bindAddress SSH 서버가 묶이는 주소. 비우면 모든 주소이다
+         * @property hostKeyPath 호스트 키 파일 경로. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이며, 없으면 처음 시작할 때 만든다
+         */
+        data class Mina(
+            val enabled: Boolean = false,
+            val port: Int = 2222,
+            val bindAddress: String = "",
+            val hostKeyPath: String = ""
+        )
+
+        /** 내장 SSH 서버가 받는 접속 사용자 이름이다: [user]와 비어 있지 않은 [hgUser], [svnUser]. */
+        val acceptedUsers: Set<String> get() = setOfNotNull(user, hgUser.takeIf { it.isNotBlank() }, svnUser.takeIf { it.isNotBlank() })
 
         /**
          * 시스템 sshd 연동(`AuthorizedKeysCommand`와 유닉스 소켓 중계) 설정이다(추가 개발 항목 X-3b, `decisions.md` D-67). 꺼져 있으면 소켓을 열지 않고 내부 인증 주소도 없다.

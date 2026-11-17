@@ -96,6 +96,7 @@ class SshRelayServerTest {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var svnRepositories: dev.yona.repository.svn.SvnRepositories
+    @Autowired private lateinit var hgRepositories: dev.yona.repository.hg.HgRepositories
     @Autowired private lateinit var deletion: ProjectDeletionService
     @Autowired private lateinit var sshKeys: SshKeyService
     @Autowired private lateinit var sshKeyRepository: SshKeyRepository
@@ -304,6 +305,64 @@ class SshRelayServerTest {
         val reply = talk("not-a-valid-ticket", "127.0.0.1", "svnserve -t")
         assertTrue(reply.startsWith("( failure ( ( 170001 "), "ra_svn 실패 응답이어야 한다: $reply")
         assertTrue(reply.contains("Invalid credentials."), reply)
+    }
+
+    // ---- Mercurial(중계). 내장 서버의 시험(HgSshServerTest)과 같은 규칙이 중계에서도 적용되는지 본다 ----
+
+    private fun mercurialProject(scope: ProjectScope): Project {
+        val n = counter.incrementAndGet()
+        val p = projects.save(Project(owner = member.loginId, name = "relhg$n", vcs = "Mercurial", projectScope = scope))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        projectUsers.save(ProjectUser(user = member, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
+        repositories.createRepository(p)
+        dev.yona.support.HgTestSupport.commit(hgRepositories.directoryOf(p.owner!!, p.name!!), "서버의 첫 커밋", mapOf("a.txt" to "hello\n"))
+        return p
+    }
+
+    /** `hg`를 가짜 sshd(`ui.ssh`)로 실행한다. 사용자 이름은 sshd의 몫이라 시험에서는 URL에만 쓴다. */
+    private fun hg(dir: File, key: Key?, vararg args: String): Result =
+        run("hg", "--config", "ui.interactive=off", "--config", "ui.ssh=${fakeSsh().path}", *args, key = key, dir = dir, env = mapOf("HGPLAIN" to "1", "HGUSER" to "Tester <tester@example.com>"))
+
+    private fun hgUrl(p: Project, user: String = "hg") = "ssh://$user@host/${p.owner}/${p.name}"
+
+    private fun hgInstalled(): Boolean = dev.yona.support.HgTestSupport.available
+
+    @Test
+    fun `중계로도 Mercurial을 hg 사용자 이름 주소로 복제하고 푸시한다`() {
+        Assumptions.assumeTrue(hgInstalled(), "hg가 필요하다")
+        val p = mercurialProject(ProjectScope.PUBLIC); val key = register(member)
+        val dir = File(work, "relhg-clone-${counter.incrementAndGet()}")
+        val cloned = hg(work, key, "clone", hgUrl(p), dir.path)
+        assertEquals(0, cloned.exit, cloned.output)
+        assertEquals("hello\n", File(dir, "a.txt").readText())
+        dev.yona.support.HgTestSupport.commit(dir, "중계로 푸시", mapOf("b.txt" to "b\n"))
+        val pushed = hg(dir, key, "push")
+        assertEquals(0, pushed.exit, pushed.output)
+        assertTrue("중계로 푸시" in dev.yona.support.HgTestSupport.hg(hgRepositories.directoryOf(p.owner!!, p.name!!), "log", "--template", "{desc|firstline}\\n"))
+    }
+
+    @Test
+    fun `중계로도 Mercurial은 읽기만 되는 사용자는 푸시하지 못하고 등록하지 않은 키는 거부된다`() {
+        Assumptions.assumeTrue(hgInstalled(), "hg가 필요하다")
+        val p = mercurialProject(ProjectScope.PUBLIC)
+        val reader = register(outsider)
+        val dir = File(work, "relhg-reader-${counter.incrementAndGet()}")
+        assertEquals(0, hg(work, reader, "clone", hgUrl(p), dir.path).exit)
+        dev.yona.support.HgTestSupport.commit(dir, "막힐 커밋", mapOf("c.txt" to "c\n"))
+        assertNotEquals(0, hg(dir, reader, "push").exit)
+        val unknown = hg(work, newKey(), "clone", hgUrl(p), File(work, "relhg-unknown-${counter.incrementAndGet()}").path)
+        assertNotEquals(0, unknown.exit)
+        assertTrue(unknown.output.contains("Permission denied") || unknown.output.contains("cannot connect"), unknown.output)
+    }
+
+    @Test
+    fun `중계로도 비공개 Mercurial 저장소는 비구성원에게 없는 것처럼 보인다`() {
+        Assumptions.assumeTrue(hgInstalled(), "hg가 필요하다")
+        val secret = mercurialProject(ProjectScope.PRIVATE)
+        val denied = hg(work, register(outsider), "clone", hgUrl(secret), File(work, "relhg-secret-${counter.incrementAndGet()}").path)
+        assertNotEquals(0, denied.exit)
+        val ok = hg(work, deploy(secret, writable = false), "clone", hgUrl(secret), File(work, "relhg-deploy-${counter.incrementAndGet()}").path)
+        assertEquals(0, ok.exit, ok.output)
     }
 
     private fun subversionInstalled(): Boolean = runCatching { ProcessBuilder("svn", "--version", "--quiet").redirectErrorStream(true).start().also { it.inputStream.readBytes() }.waitFor() == 0 }.getOrDefault(false)

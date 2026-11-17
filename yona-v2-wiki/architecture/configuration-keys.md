@@ -49,15 +49,16 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | (v2 신규) | `yona.api-token-block-minutes` | `15` | 사용 중(X-5). 실패 한도를 넘은 주소를 막는 시간(분)이다 |
 | (v2 신규) | `yona.api-token-max-days` | `0` | 사용 중(X-5). 새 토큰의 최대 수명(일)이다. 0이면 제한이 없고 "만료 없음"도 고를 수 있다 |
 | (v2 삭제) | `yona.git-http-password-auth` | (없음) | 삭제(D-70). Git, SVN의 HTTP 접근은 항상 토큰만 받는다. 설정에 남아 있어도 읽지 않는다 |
-| (v2 신규) | `yona.ssh.enabled` | `false` | 사용 중(X-3). 내장 SSH 서버(Apache MINA SSHD)를 켠다. 끄면 포트를 열지 않고 화면과 동작이 v1.6과 같다 |
+| (v2 신규) | `yona.ssh.mina.enabled` | `false` | 사용 중(X-3). 내장 SSH 서버(Apache MINA SSHD)를 켠다. 끄면 포트를 열지 않고 화면과 동작이 v1.6과 같다 |
 | (v2 신규) | `yona.two-factor.reset-user` | 비어 있음 | 사용 중(X-2). 로그인 ID를 적고 시작하면 그 사용자의 2단계 인증을 지운다(긴급 해제). 쓴 뒤에는 지운다 |
 | (v2 신규) | `yona.oauth2.cimd-allow-private-hosts` | `false` | 사용 중(X-1). CIMD 문서를 가져올 때 공인 주소가 아닌 곳(루프백, 사설)도 허용한다. **개발과 시험 전용**이다. 운영에서 켜면 서버가 내부 자원을 대신 읽게 하는 공격(SSRF)에 열린다 |
 | (v2 신규) | `yona.oauth2.oidc.signing-key-file` | (없음, OIDC 꺼짐) | 사용 중(X-40). OIDC 제공자의 ID 토큰 서명 키 파일이다(PKCS#8 PEM의 RSA 개인키, 2048비트 이상). 비워 두면 OIDC가 꺼진다. 정했는데 읽을 수 없으면 서버가 시작하지 않는다. 키의 자동 생성은 추가 논의 항목이다([oauth2-server.md](oauth2-server.md)) |
 | (v2 신규) | `spring.ai.mcp.server.*` | `enabled: true`, `protocol: STATELESS`, `name: yona-mcp-server` | 사용 중(X-6). MCP 서버(`/mcp`)를 만드는 Spring AI 스타터의 설정이다. 경로 `/mcp`는 스타터의 기본값이고 `McpAccessFilter`가 같은 경로를 전제하므로 바꾸지 않는다. 사용 여부와 쓰기 도구 허용은 키가 아니라 사이트 관리의 "보안" 화면 설정(`security.mcp-enabled`, `security.mcp-write-enabled`)이다 |
-| (v2 신규) | `yona.ssh.port` | `2222` | 사용 중(X-3). SSH 서버가 받는 포트. 0이면 운영체제가 고른다(시험용) |
-| (v2 신규) | `yona.ssh.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |
-| (v2 신규) | `yona.ssh.host-key-path` | 빈 문자열 | 사용 중(X-3). 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이고 처음 시작할 때 만든다 |
+| (v2 신규) | `yona.ssh.mina.port` | `2222` | 사용 중(X-3). SSH 서버가 받는 포트. 0이면 운영체제가 고른다(시험용) |
+| (v2 신규) | `yona.ssh.mina.bind-address` | 빈 문자열 | 사용 중(X-3). SSH 서버가 묶이는 주소. 비우면 모든 주소 |
+| (v2 신규) | `yona.ssh.mina.host-key-path` | 빈 문자열 | 사용 중(X-3). 호스트 키 파일. 비우면 데이터 디렉터리의 `ssh/ssh_host_ed25519_key`이고 처음 시작할 때 만든다 |
 | (v2 신규) | `yona.ssh.user` | `git` | 사용 중(X-3). 접속 사용자 이름. 키로 사용자를 알아내므로 모두 같다 |
+| (v2 신규) | `yona.ssh.svn-user` | `svn` | 사용 중(A-625). Subversion 복제 주소(`svn+ssh://svn@...`)의 사용자 이름이고 내장 SSH 서버는 `user`, `hg-user`와 이 이름을 모두 받는다. 비우면 `user`와 같다. 시스템 sshd 중계에서는 OS 계정 이름이다 |
 | (v2 신규) | `yona.ssh.hg-user` | `hg` | 사용 중(A-618). Mercurial 복제 주소의 사용자 이름이고 내장 SSH 서버는 `user`와 이 이름을 모두 받는다. 비우면 `user`와 같다. 시스템 sshd 중계에서는 OS 계정 이름이다 |
 | (v2 신규) | `yona.ssh.public-port` | `0` | 사용 중(X-3). 복제 주소에 보일 포트. 0이면 실제 포트. 포트 매핑 뒤에서 바깥 포트가 다를 때 쓴다 |
 | (v2 신규) | `yona.ssh.relay.enabled` | `false` | 사용 중(X-3b). 시스템 OpenSSH sshd 연동(내부 인증 주소와 유닉스 소켓 중계)을 켠다. 끄면 소켓과 내부 주소가 없다 |

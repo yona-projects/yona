@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-project-home-ssh", "yona.ssh.enabled=true", "yona.ssh.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-project-home-ssh", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
 class ProjectHomeSshTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
@@ -68,7 +68,7 @@ class ProjectHomeSshTest : AbstractIntegrationTest() {
         val page = home(project("Subversion"))
         assertNotNull(page.selectFirst("#cloneURL"))
         val ssh = page.select(".clone-protocol button")[1].attr("data-clone-url")
-        assertTrue(ssh.startsWith("svn+ssh://git@"), ssh)
+        assertTrue(ssh.startsWith("svn+ssh://svn@"), ssh)
     }
 
     @Test

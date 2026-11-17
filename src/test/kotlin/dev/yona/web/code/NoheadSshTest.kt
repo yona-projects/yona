@@ -36,7 +36,7 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-nohead-ssh", "yona.ssh.enabled=true", "yona.ssh.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-nohead-ssh", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0", "yona.ssh.public-port=2222", "yona.hostname=code.example.org"])
 class NoheadSshTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
@@ -88,7 +88,7 @@ class NoheadSshTest : AbstractIntegrationTest() {
         val (p, session) = manager("Subversion"); val doc = page(p, session)
         val buttons = doc.select(".clone-protocol button")
         assertEquals(listOf("HTTP", "SSH"), buttons.map { it.text() })
-        assertEquals("svn+ssh://git@code.example.org:2222/${p.owner}/${p.name}", buttons[1].attr("data-clone-url"))
+        assertEquals("svn+ssh://svn@code.example.org:2222/${p.owner}/${p.name}", buttons[1].attr("data-clone-url"))
         val command = doc.select("pre code").first()!!
         assertTrue(command.text().startsWith("svn co http"), command.text())
         assertEquals(buttons[0].attr("data-clone-url"), command.select(".clone-url").single().text())
@@ -101,6 +101,6 @@ class NoheadSshTest : AbstractIntegrationTest() {
         assertTrue(http.select("a").any { it.attr("href").endsWith("/user/editform/token") }, "토큰을 만드는 화면으로 가는 링크가 있어야 한다")
         val ssh = doc.selectFirst(".nohead-auth-ssh")!!
         assertTrue(ssh.select("a").any { it.attr("href").endsWith("/user/editform/ssh") }, "SSH 키를 등록하는 화면으로 가는 링크가 있어야 한다")
-        assertTrue(ssh.text().contains("git"), "접속 사용자 이름이 git임을 알려야 한다: ${ssh.text()}")
+        assertTrue(ssh.text().contains("--username") && !ssh.text().contains("user git"), "--username을 쓰지 않는다고 알리되 이름을 git으로 박지 않는다: ${ssh.text()}")
     }
 }

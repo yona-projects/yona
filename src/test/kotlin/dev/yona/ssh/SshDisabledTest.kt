@@ -4,6 +4,7 @@ import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.test.context.TestPropertySource
 import kotlin.test.assertEquals
 
 /** 설정을 켜지 않으면 SSH 서버가 만들어지지 않고 포트도 열리지 않는다(X-3, `decisions.md` D-66). v1.6의 동작은 그대로이다. */
@@ -18,5 +19,19 @@ class SshDisabledTest : AbstractIntegrationTest() {
         assertEquals(0, context.getBeanNamesForType(dev.yona.web.ssh.SshInternalController::class.java).size, "내부 인증 주소도 없다")
         // 인증과 인가 서비스와 처리기는 있어도 포트를 열지 않는다
         assertEquals(1, context.getBeanNamesForType(SshAccess::class.java).size)
+    }
+}
+
+/**
+ * 옛 키 `yona.ssh.enabled`는 더 이상 내장 서버를 켜지 않는다(A-626, 선생님 결정 "옛 키 호환 없음"). 내장 서버의 키는 `yona.ssh.mina.*`이다.
+ */
+@TestPropertySource(properties = ["yona.ssh.enabled=true", "yona.ssh.port=0"])
+class SshLegacyKeyIgnoredTest : AbstractIntegrationTest() {
+
+    @Autowired private lateinit var context: ApplicationContext
+
+    @Test
+    fun `옛 키로는 내장 SSH 서버가 켜지지 않는다`() {
+        assertEquals(0, context.getBeanNamesForType(SshServerLifecycle::class.java).size)
     }
 }

@@ -42,7 +42,7 @@ import kotlin.test.assertTrue
  * 내장 SSH 서버의 Subversion 접근(`svn+ssh://`)을 실제 `ssh`와 `svn` 클라이언트로 검증한다. 사용자별 권한은 Git SSH와 같은 규칙([SshAccess])이다.
  * 클라이언트는 `svnserve -t`를 실행하고 저장소는 그 뒤 프로토콜의 첫 메시지로 알리므로, 서버가 그 메시지를 읽은 뒤에 인가한다.
  */
-@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.ssh.enabled=true", "yona.ssh.port=0"])
+@SpringBootTest(properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.ssh.mina.enabled=true", "yona.ssh.mina.port=0"])
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-svn-ssh-server"])
 class SvnSshServerTest {
 
@@ -153,7 +153,7 @@ class SvnSshServerTest {
     }
 
     /** `svn`은 사용자 지정 `SVN_SSH`에는 주소의 포트를 `-p`로 넘기지 않으므로 포트는 ssh 명령에 주고 주소에는 쓰지 않는다. */
-    private fun url(p: Project = project, path: String = "", user: String = "git") = "svn+ssh://$user@127.0.0.1/${p.owner}/${p.name}$path"
+    private fun url(p: Project = project, path: String = "", user: String = "svn") = "svn+ssh://$user@127.0.0.1/${p.owner}/${p.name}$path"
 
     @Test
     fun `등록한 키로 목록과 내용을 읽는다`() {
@@ -194,6 +194,14 @@ class SvnSshServerTest {
     }
 
     @Test
+    fun `svn 사용자 이름으로 접속하고 git도 받으며 다른 이름은 거부한다`() {
+        val key = register(member)
+        assertEquals(0, svn("ls", url(user = "svn"), key = key).exit)
+        assertEquals(0, svn("ls", url(user = "git"), key = key).exit, "Git과 같은 이름도 받는다")
+        assertNotEquals(0, svn("ls", url(user = "someone"), key = key).exit)
+    }
+
+    @Test
     fun `공개 저장소는 등록한 다른 사용자도 읽는다`() {
         val result = svn("cat", url(path = "/trunk/a.txt"), key = register(outsider))
         assertEquals(0, result.exit, result.output)
@@ -202,7 +210,7 @@ class SvnSshServerTest {
 
     @Test
     fun `없는 저장소는 거부한다`() {
-        val result = svn("ls", "svn+ssh://git@127.0.0.1/nobody/none", key = register(member))
+        val result = svn("ls", "svn+ssh://svn@127.0.0.1/nobody/none", key = register(member))
         assertNotEquals(0, result.exit)
         assertTrue(result.output.contains("Repository not found"), result.output)
     }
@@ -217,7 +225,7 @@ class SvnSshServerTest {
 
 
     /** 작업 복사본을 SSH로 받아 파일을 고치고 커밋한다. */
-    private fun commitVia(p: Project, key: Key, message: String = "ssh 커밋", user: String = "git"): Pair<Result, File> {
+    private fun commitVia(p: Project, key: Key, message: String = "ssh 커밋", user: String = "svn"): Pair<Result, File> {
         val wc = File(work, "wc-${counter.incrementAndGet()}")
         val checkout = svn("checkout", "-q", url(p, "/trunk", user), wc.path, key = key)
         check(checkout.exit == 0) { "체크아웃 실패: ${checkout.output}" }
