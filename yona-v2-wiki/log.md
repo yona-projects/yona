@@ -449,3 +449,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | 셸 훅(yona-ssh-auth.sh)과 socat 의존 제거(A-623): CI의 socat 설치 대신 셸 훅과 그 시험을 없애고 SshRelayServerTest가 Go 도우미로 17건을 돌림, 운영 문서와 위키를 Go 도우미 기준으로 정리
 
 ## [2026-11-17] build | CI에 Go 설치 단계 추가(actions/setup-go@v7, tools/ssh-helper/go.mod 기준), 러너 이미지 의존 제거
+
+## [2026-11-17] build | CI 작업 이름의 Kotest를 JUnit으로 바로잡음(Kotest는 쓰지 않는다: 시험은 JUnit 606개 파일). CI 실행 43981500649 결과: 빌드, JUnit 스위트, PostgreSQL, MariaDB, Cubrid, 부팅 통과, MSSQL만 Maven Central 429(요청 제한)로 실패해 재실행

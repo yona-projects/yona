@@ -36,7 +36,7 @@ jobs:
           path: build/
           if-no-files-found: error
   unit:
-    name: Kotest / suite
+    name: JUnit / suite
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -61,7 +61,7 @@ jobs:
           path: build/
       - name: Install native test dependencies
         run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
-      - name: Run existing Kotest suite
+      - name: Run existing JUnit suite
         run: |
           ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process test \
             -x classes -x testClasses -x compileKotlin -x compileJava -x processResources -x jar \
