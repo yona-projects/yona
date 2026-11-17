@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// 설정 파일(`/etc/yona/ssh-auth.conf`)의 이름과 기본값이다. 기존 셸 훅(`tools/ssh/yona-ssh-auth.sh`)과 같은 키를 쓴다.
+// 설정 파일(`/etc/yona/ssh-auth.conf`)의 이름과 기본값이다. 이전의 셸 훅이 쓰던 키를 그대로 쓴다(셸 훅은 없앴다, decisions.md A-623).
 const (
 	defaultConfigFile = "/etc/yona/ssh-auth.conf"
 	defaultURL        = "http://127.0.0.1:9000"

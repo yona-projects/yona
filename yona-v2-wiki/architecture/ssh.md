@@ -41,13 +41,13 @@ updated: 2026-11-02
 
 ## 시스템 sshd 연동 (X-3b, D-67)
 
-sshd의 `AuthorizedKeysCommand` 훅(`tools/ssh/yona-ssh-auth.sh`)이 접속자의 공개키를 Yona의 **내부 인증 주소**(`POST /internal/ssh/authenticate`, 루프백과 공유 비밀 값 헤더 요구)에 물으면, Yona는 등록된 사용자 키나 배포 키일 때 **서명한 인증 표**(`v1.<종류>.<번호>.<만료>.<HMAC-SHA256>`, 5분 유효)를 돌려준다. 훅은 표를 심은 강제 명령(`command=`)이 든 `authorized_keys` 한 줄을 인쇄하고, 세션이 시작되면 그 명령이 `socat`으로 Yona의 **중계 소켓**(`SshRelayServer`, 유닉스 도메인 소켓, `rw-rw----`)에 연결해 세 줄(표, 클라이언트 주소, 원본 명령)을 보낸 뒤 입출력을 그대로 이어 붙인다. 중계는 표를 확인하고 내장 서버와 같은 `SshCommandRunner`로 명령을 인가하고 실행한다. 거부 사유는 프로토콜 시작 전에 git의 오류 줄(pkt-line `ERR`)로 보내 git이 `fatal: remote error: <사유>`로 보여 준다. 훅은 모르는 키나 오류에서는 아무것도 인쇄하지 않아 sshd가 인증을 거부한다.
+sshd의 `AuthorizedKeysCommand` 도우미(`yona-ssh auth`, `tools/ssh-helper/`)가 접속자의 공개키를 Yona의 **내부 인증 주소**(`POST /internal/ssh/authenticate`, 루프백과 공유 비밀 값 헤더 요구)에 물으면, Yona는 등록된 사용자 키나 배포 키일 때 **서명한 인증 표**(`v1.<종류>.<번호>.<만료>.<HMAC-SHA256>`, 5분 유효)를 돌려준다. 도우미는 표를 심은 강제 명령(`command=`)이 든 `authorized_keys` 한 줄을 인쇄하고, 세션이 시작되면 그 명령(`yona-ssh relay`)이 Yona의 **중계 소켓**(`SshRelayServer`, 유닉스 도메인 소켓, `rw-rw----`)에 연결해 세 줄(표, 클라이언트 주소, 원본 명령)을 보낸 뒤 입출력을 그대로 이어 붙인다. 중계는 표를 확인하고 내장 서버와 같은 `SshCommandRunner`로 명령을 인가하고 실행한다. 거부 사유는 프로토콜 시작 전에 git의 오류 줄(pkt-line `ERR`)로 보내 git이 `fatal: remote error: <사유>`로 보여 준다. 훅은 모르는 키나 오류에서는 아무것도 인쇄하지 않아 sshd가 인증을 거부한다.
 
-진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했다. 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 훅과 `git`, `socat`으로 돌린다. 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
+진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로 훅, 소켓, 복제, 푸시, 미등록 키 거부, 셸 거부를 확인했다. 자동 시험(`SshRelayServerTest`)은 sshd 자리에 `command=`를 실행하는 작은 스크립트를 두고 실제 Go 도우미와 `git`, `svn`으로 돌린다(Go가 없으면 건너뛴다). 주소 단위 실패 한도는 내부 인증 주소에 적용하지 않는다(sshd가 키를 하나씩 물어 정상 접속도 실패로 센다. 시도 제한은 sshd의 `MaxAuthTries`와 fail2ban 몫이다).
 
-### Go 도우미 (D-73)
+### Go 도우미 (D-73, 셸 훅 제거 A-623)
 
-sshd 쪽 도우미는 셸 훅 대신 **Go 실행 파일 `yona-ssh`**(`tools/ssh-helper/`)로도 둘 수 있다. `yona-ssh auth <종류> <본문>`이 `AuthorizedKeysCommand`, `yona-ssh relay --socket <경로> <표>`가 강제 명령이다. `bash`, `curl`, `socat` 없이 셸을 거치지 않고, 클라이언트 명령의 개행을 거부하며, 서버가 먼저 닫으면 입력을 기다리지 않고 끝낸다. 서버 쪽 내부 인증 주소와 소켓 프로토콜은 그대로다. 기존 셸 훅은 대체 수단으로 남는다. Linux, macOS, Windows에서 빌드되지만 Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않아 Windows 서버는 내장 SSH 서버를 쓴다. 시험: `go test`(`tools/ssh-helper`)와 `SshRelayGoHelperTest`(`SshRelayServerTest`를 Go 실행 파일로 되풀이). 진짜 OpenSSH 8.0 sshd(AlmaLinux 8 컨테이너)로도 셸 거부 안내, 미등록 키 거부, 푸시, 복제, 없는 저장소 메시지, git이 아닌 명령과 개행 명령 거부를 확인했다.
+sshd 쪽 도우미는 **Go 실행 파일 `yona-ssh`**(`tools/ssh-helper/`) 하나이다. `yona-ssh auth <종류> <본문>`이 `AuthorizedKeysCommand`, `yona-ssh relay --socket <경로> <표>`가 강제 명령이다. `bash`, `curl`, `socat` 없이 셸을 거치지 않고, 클라이언트 명령의 개행을 거부하며, 서버가 먼저 닫으면 입력을 기다리지 않고 끝낸다. 서버 쪽 내부 인증 주소와 소켓 프로토콜은 그대로다. 이전의 셸 훅(`yona-ssh-auth.sh`, `socat`)은 D-73에서 대체 수단으로 남겼으나 선생님 지시로 없앴다(A-623). Linux, macOS, Windows에서 빌드되지만 Windows의 번들 OpenSSH 서버는 `AuthorizedKeysCommand`를 지원하지 않는다.
 
 ## 설정 (`yona.ssh.*`)
 

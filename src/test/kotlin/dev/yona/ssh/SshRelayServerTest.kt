@@ -22,8 +22,10 @@ import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.TestDatabase
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -43,9 +45,10 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 /**
- * 시스템 sshd 연동(X-3b, `decisions.md` D-67)을 실제 훅 스크립트와 `git`, `socat`으로 검증한다. sshd는 이 환경에 없으므로 `ssh` 자리에 sshd가 하는 일을 흉내 내는 작은 스크립트를 둔다:
-* 훅(`tools/ssh/yona-ssh-auth.sh`)을 부르고, 출력한 `authorized_keys` 줄의 `command="..."`를 `SSH_ORIGINAL_COMMAND`와 `SSH_CLIENT`를 채워 셸로 실행한다. 훅, 내부 인증 주소, 중계 소켓, 인가,
- * 푸시 훅이 모두 실제 코드로 이어진다. 진짜 sshd와의 연결은 별도로 컨테이너에서 확인한다(`architecture/ssh.md`).
+ * 시스템 sshd 연동(X-3b, `decisions.md` D-67, D-73)을 실제 **Go 도우미**(`tools/ssh-helper`의 `yona-ssh auth`와 `yona-ssh relay`)와 `git`, `svn`으로 검증한다. 시험 전에 도우미를 빌드하며 Go가 없는 환경에서는
+ * 건너뛴다. sshd는 이 환경에 없으므로 `ssh` 자리에 sshd가 하는 일을 흉내 내는 작은 스크립트를 둔다: 도우미(`auth`)를 불러 출력한 `authorized_keys` 줄의 `command="..."`를
+ * `SSH_ORIGINAL_COMMAND`와 `SSH_CLIENT`를 채워 셸로 실행한다. 도우미, 내부 인증 주소, 중계 소켓, 인가, 푸시 훅이 모두 실제 코드로 이어진다. 진짜 sshd와의 연결은 별도로
+ * 컨테이너에서 확인한다(`architecture/ssh.md`). 이전의 셸 훅(`socat`)은 없앴다(A-623).
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -53,7 +56,21 @@ import kotlin.test.assertTrue
         "yona.ssh.relay.internal-secret=relay-test-secret"]
 )
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-ssh-relay"])
-open class SshRelayServerTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class SshRelayServerTest {
+
+    private lateinit var binary: File
+
+    /** 시험 전에 Go 도우미를 빌드한다. Go가 없으면 이 클래스의 시험을 건너뛴다. */
+    @BeforeAll
+    fun buildHelper() {
+        val go = runCatching { ProcessBuilder("go", "version").redirectErrorStream(true).start().also { p -> p.inputStream.readBytes() }.waitFor() == 0 }.getOrDefault(false)
+        Assumptions.assumeTrue(go, "Go 도구가 없어 건너뛴다")
+        binary = File("build/tmp/yona-ssh-helper/yona-ssh").absoluteFile.also { it.parentFile.mkdirs() }
+        val process = ProcessBuilder("go", "build", "-o", binary.path, ".").directory(File("tools/ssh-helper")).redirectErrorStream(true).start()
+        val output = process.inputStream.readBytes().toString(Charsets.UTF_8)
+        check(process.waitFor(120, TimeUnit.SECONDS) && process.exitValue() == 0) { "go build 실패: $output" }
+    }
 
     companion object {
         private val counter = AtomicInteger()
@@ -141,8 +158,8 @@ open class SshRelayServerTest {
 
     // --- sshd를 흉내 내는 `ssh` ---
 
-    /** 훅 명령이다. 셸 스크립트(기본) 또는 Go 실행 파일의 `auth` 하위 명령이다(하위 클래스가 바꾼다, [SshRelayGoHelperTest]). 공백이 없는 경로여야 한다. */
-    protected open fun hook(): String = File("tools/ssh/yona-ssh-auth.sh").absolutePath
+    /** 훅 명령이다. Go 도우미의 `auth` 하위 명령이다. 공백이 없는 경로여야 한다. */
+    private fun hook(): String = "${binary.path} auth"
 
     /** sshd가 하는 일을 흉내 낸다: 훅을 불러 authorized_keys 줄을 받고, 없으면 `Permission denied`, 있으면 `command="..."`를 셸로 실행한다. */
     private fun fakeSsh(): File = File(work, "fake-ssh").also {
