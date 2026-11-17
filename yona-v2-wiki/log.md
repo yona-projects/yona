@@ -451,3 +451,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | CI에 Go 설치 단계 추가(actions/setup-go@v7, tools/ssh-helper/go.mod 기준), 러너 이미지 의존 제거
 
 ## [2026-11-17] build | CI 작업 이름의 Kotest를 JUnit으로 바로잡음(Kotest는 쓰지 않는다: 시험은 JUnit 606개 파일). CI 실행 43981500649 결과: 빌드, JUnit 스위트, PostgreSQL, MariaDB, Cubrid, 부팅 통과, MSSQL만 Maven Central 429(요청 제한)로 실패해 재실행
+
+## [2026-11-17] ingest | GitHub 이슈 #843(이슈 전문 검색) 검토: 이슈가 가리키는 검색을 코드로 확인(통합 검색은 이슈 제목과 본문, 이슈 목록 필터는 제목, 본문, 댓글), 독립 항목 6개(X-56~X-61)로 나눠 로드맵에 제안으로 등재, 쓰기 이음새(아웃박스) 설계를 architecture/search-engine-design.md에 남김. 구현 없음, D-28 결정 대기

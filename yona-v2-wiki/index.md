@@ -8,6 +8,7 @@
 ## 아키텍처 (`architecture/`)
 
 - [설정 키 대응표](architecture/configuration-keys.md): `application.*` -> `yona.*`
+- [이슈 검색 개선과 검색 엔진 선택 구조(제안)](architecture/search-engine-design.md): GitHub 이슈 #843 검토, 이슈 검색의 두 계통(통합 검색, 이슈 목록 필터), 항목 분리(X-56~X-61), 쓰기 이음새(아웃박스) 설계
 - [보안 점검 2026-11-17](architecture/security-review-2026-11.md): 의존성 취약점(OSV)과 코드 패턴 점검, 찾은 것과 고친 것, 남은 결정
 - [Subversion SSH 접근(svn+ssh)](architecture/svn-ssh.md): `ra_svn` 프로토콜을 직접 구현해 내장 SSH 서버로 SVN 체크아웃과 커밋, 사용자별 권한, 지원 명령, 확인 방법
 - [v1.6 DB 이관 가이드](architecture/v16-migration-guide.md): v1.6 데이터베이스를 이어받아 v2로 올릴 때의 스키마 변화, 이관 스크립트, 리허설 결과
