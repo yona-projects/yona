@@ -72,7 +72,16 @@ class SearchRowAssembler(
      * 돌려주므로 그 이름과 빈 로그인 ID로 링크를 그린다. 사용자는 있는데 이름이 비어 있으면 표시 이름이 없다(`noAuthor` 문구).
      */
     private fun author(loginId: String?, viewer: User?): Pair<String, String?> {
-        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) } ?: return "" to (messages.getMessage("user.notExists.name", null, "user.notExists.name", java.util.Locale.getDefault()) ?: "user.notExists.name")
+        // 결과 행마다 같은 작성자를 다시 읽지 않도록 한 요청 안에서 보관한다(A-628). 엔터티가 아닌 문자열 쌍만 보관하므로 트랜잭션 안에서도 안전하다
+        val key = loginId?.lowercase()?.let { "author:$it:${viewer?.lang}" }
+        if (key != null) dev.yona.util.RequestMemo.value(key) { lookupAuthor(loginId, viewer) }?.let { return it }
+        return lookupAuthor(loginId, viewer) ?: ("" to missingAuthorName())
+    }
+
+    private fun missingAuthorName(): String = messages.getMessage("user.notExists.name", null, "user.notExists.name", java.util.Locale.getDefault()) ?: "user.notExists.name"
+
+    private fun lookupAuthor(loginId: String?, viewer: User?): Pair<String, String?>? {
+        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) } ?: return null
         return found.loginId.orEmpty() to found.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.of(it, viewer?.lang) }
     }
 

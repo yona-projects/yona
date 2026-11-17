@@ -129,9 +129,15 @@ class V16ConfigConverterTest {
     }
 
     @Test
-    fun `프로젝트 생성 메뉴는 두 가지 v1_6 키 이름을 모두 받는다`() {
-        assertEquals("issue, board", convert("project.creation.default.menus = \"issue, board\"").properties["yona.project-default-menus"])
+    fun `프로젝트 생성 메뉴는 v1_6이 읽던 키만 옮기고 읽지 않던 project_creation_default_menus는 옮기지 않는다`() {
         assertEquals("code", convert("project.default.menus.when.create = \"code\"").properties["yona.project-default-menus"])
+        val dead = convert("project.creation.default.menus = \"issue, board\"")
+        assertNull(dead.properties["yona.project-default-menus"], "v1.6이 무시하던 값을 v2에서 효력이 생기게 하면 새 프로젝트의 메뉴가 달라진다")
+        assertTrue(dead.notes.any { "project.creation.default.menus" in it }, "옮기지 않은 이유를 알려야 한다")
+        assertTrue(dead.unmapped.isEmpty(), "알고 있는 키이므로 모르는 키로 보고하지 않는다: ${dead.unmapped}")
+        // 두 키가 함께 있으면(v1.6 기본 설정 파일처럼) 읽던 키의 값만 쓴다
+        val both = convert("project.creation.default.menus = \"issue, board\"\nproject.default.menus.when.create = \"code, issue\"")
+        assertEquals("code, issue", both.properties["yona.project-default-menus"])
     }
 
     @Test
@@ -234,7 +240,7 @@ class V16ConfigConverterTest {
         assertEquals(emptyList(), unknown, "v2에 없는 키를 만들었다")
         assertEquals("Yona", out.properties["yona.site-name"])
         assertEquals("projects.yona@gmail.com", out.properties["yona.easymail.from-email"])
-        assertEquals("issue, milestone, board", out.properties["yona.project-default-menus"])
+        assertNull(out.properties["yona.project-default-menus"], "기본 설정 파일의 project.creation.default.menus는 v1.6이 읽지 않던 키라 옮기지 않는다")
         assertTrue(out.removed.contains("application.use.social.login.only"))
         assertEquals(listOf("social-login.conf"), V16ConfigConverter.parse(text).includes)
     }

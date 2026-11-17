@@ -261,7 +261,11 @@ class AccessControl(
         return assignee?.user?.id != null && assignee.user?.id == user?.id
     }
 
-    private fun findProject(resource: Resource): Project? = projects.findById(resource.id.toLong()).orElse(null)
+    private fun findProject(resource: Resource): Project? {
+        val id = resource.id.toLong()
+        // 한 요청에서 접근 검사가 여러 번 불려도 프로젝트와 규칙은 한 번만 읽는다(A-628)
+        return dev.yona.util.RequestMemo.entity("project:$id") { projects.findById(id).orElse(null) }
+    }
 
     /** 사용자가 사이트 관리자이면 `true`이다. 현재 세션 사용자는 v1.6 `User.isSiteManager`처럼 처음 계산한 값이 유지된다 ([SessionPermissions]). */
     fun isSiteManager(user: User?): Boolean = permissions.siteManager(user?.id)

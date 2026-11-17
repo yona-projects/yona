@@ -46,4 +46,33 @@ class DatabaseDefaultsTest {
         assertNull(pg.getProperty("spring.jpa.database-platform"))
         assertNull(apply(MockEnvironment()).getProperty("spring.jpa.database-platform"))
     }
+
+    @Test
+    fun `Cubrid 주소에는 준비된 문장 캐시 옵션을 더한다`() {
+        val plain = apply(MockEnvironment().withProperty("spring.datasource.url", "jdbc:cubrid:db:33000:yona:::"))
+        assertEquals(
+            "jdbc:cubrid:db:33000:yona:::?usePreparedStmtCache=true&preparedStmtCacheSize=500&preparedStmtCacheSqlLimit=16384",
+            plain.getProperty("spring.datasource.url"), "물음표가 없으면 새로 붙인다"
+        )
+        val withCharset = apply(MockEnvironment().withProperty("spring.datasource.url", "jdbc:cubrid:db:33000:yona:dba::?charset=utf-8"))
+        assertEquals(
+            "jdbc:cubrid:db:33000:yona:dba::?charset=utf-8&usePreparedStmtCache=true&preparedStmtCacheSize=500&preparedStmtCacheSqlLimit=16384",
+            withCharset.getProperty("spring.datasource.url"), "이미 옵션이 있으면 앰퍼샌드로 잇는다"
+        )
+    }
+
+    @Test
+    fun `Cubrid 주소에 문장 캐시를 직접 정했으면 그대로 둔다`() {
+        val off = "jdbc:cubrid:db:33000:yona:::?charset=utf-8&usePreparedStmtCache=false"
+        assertEquals(off, apply(MockEnvironment().withProperty("spring.datasource.url", off)).getProperty("spring.datasource.url"))
+        val sized = "jdbc:cubrid:db:33000:yona:::?USEPREPAREDSTMTCACHE=true&preparedStmtCacheSize=50"
+        assertEquals(sized, apply(MockEnvironment().withProperty("spring.datasource.url", sized)).getProperty("spring.datasource.url"), "대소문자를 구별하지 않는다")
+    }
+
+    @Test
+    fun `다른 데이터베이스의 주소는 바꾸지 않는다`() {
+        for (url in listOf("jdbc:postgresql://db/yona", "jdbc:mariadb://db/yona", "jdbc:sqlserver://db:1433;databaseName=yona", "jdbc:h2:mem:yona")) {
+            assertEquals(url, apply(MockEnvironment().withProperty("spring.datasource.url", url)).getProperty("spring.datasource.url"), url)
+        }
+    }
 }

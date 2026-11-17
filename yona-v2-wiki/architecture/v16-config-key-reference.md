@@ -46,7 +46,7 @@ updated: 2026-11-16
 | v1.6 키 | v2 키 | 기본값 | 목적 | 쓰이는 곳 | v1.6과 다름 |
 |---|---|---|---|---|---|
 | `project.default.scope.when.create` | `yona.project-default-scope` | `public` | 새 프로젝트를 만들 때 처음 고르는 공개 범위 | `ProjectCreateController`, `ImportController`, `ExternalProjectManageApiController` | 같음 |
-| `project.default.menus.when.create`, `project.creation.default.menus` | `yona.project-default-menus` | `code, issue, pullRequest, review, milestone, board, wiki` | 새 프로젝트에서 켜 두는 메뉴 | `ProjectCreateController`, `ExternalProjectManageApiController` | v1.6 코드 기본값에는 `wiki`가 없다(프로젝트 위키는 v2 신규) |
+| `project.default.menus.when.create` | `yona.project-default-menus` | `code, issue, pullRequest, review, milestone, board, wiki` | 새 프로젝트에서 켜 두는 메뉴 | `ProjectCreateController`, `ExternalProjectManageApiController` | v1.6 코드 기본값에는 `wiki`가 없다(프로젝트 위키는 v2 신규) |
 
 ## 알림과 메일
 
@@ -138,6 +138,7 @@ v2에서 이 값은 다섯 곳에서 쓰인다. **운영 중에 바꾸면 2~5번
 
 - 소셜 로그인 키(`application.use.social.login.only`, `.name.sync`, `application.social.login.support`, `application.social.login.github.name`)와 `include "social-login.conf"`: v2는 소셜 로그인을 없앴다(D-127).
 - `ldap.protocol`: v1.6이 읽지 않던 키다(위 LDAP 표 참고).
+- `project.creation.default.menus`: v1.6이 읽지 않던 키다. v1.6 소스(`app/`)에서 이 키를 읽는 곳이 없고 새 프로젝트의 기본 메뉴는 `project.default.menus.when.create`만 읽는다(`TemplateHelper.scala:648`). 설정 파일 예시(`issue, milestone, board`)와 설명 문서에만 있어서, 예시 파일을 그대로 쓴 사이트도 실제로는 코드의 기본값(`code, issue, pullRequest, review, milestone, board`)으로 동작했다. 옮기면 새 프로젝트의 메뉴가 달라지므로 옮기지 않는다(A-627).
 - `smtp.mock`, `smtp.archive.size`: v1.6 시험용 모의 발송기 설정이다.
 - Play, Akka, Ebean 내부 설정(`play.*`, `akka.*`, `ebean*`, `applyEvolutions.*`, `application.global`, `db.default.driver` 등): v2에서 뜻이 없다.
 - 위에 없는 키: 변환기가 "대응하는 v2 키를 모르는 키"로 보고한다. 직접 확인한다.

@@ -66,7 +66,6 @@ object V16ConfigConverter {
         "application.login.page.password.placeholder" to "yona.login-page-password-placeholder",
         "project.default.scope.when.create" to "yona.project-default-scope",
         "project.default.menus.when.create" to "yona.project-default-menus",
-        "project.creation.default.menus" to "yona.project-default-menus",
         "signup.require.admin.confirm" to "yona.signup.require-admin-confirm",
         "notification.bymail.enabled" to "yona.notification-mail-enabled",
         "application.notification.bymail.hideAddress" to "yona.notification-mail-hide-address",
@@ -157,8 +156,16 @@ object V16ConfigConverter {
     /** `slack.<이벤트>` 키의 접두어이다. 값이 비어 있으면 옮기지 않는다. */
     private const val SLACK = "slack."
 
-    /** v1.6 설정 파일에 적혀 있어도 v1.6 코드가 읽지 않던 키이다. 옮기면 v1.6에서 무시되던 값이 v2에서 효력을 가지므로 옮기지 않는다. */
-    private const val INERT_LDAP_PROTOCOL = "ldap.protocol"
+    /**
+     * v1.6 설정 파일에 적혀 있어도 v1.6 코드가 읽지 않던 키와 옮기지 않은 이유(안내 문구)이다. 옮기면 v1.6에서 무시되던 값이 v2에서 효력을 가지므로 옮기지 않는다.
+     * 기준은 v1.6 소스(`app/`)가 실제로 읽는지이다. 설정 파일 예시나 설명 문서에 있다는 것은 근거가 아니다.
+     */
+    private val INERT_KEYS: Map<String, String> = mapOf(
+        "ldap.protocol" to "ldap.protocol은 v1.6이 읽지 않던 키라 옮기지 않았습니다(v1.6은 최상위 protocol 키를 읽었습니다). " +
+            "LDAPS를 쓰려면 이관 뒤 사이트 관리 > SSO > LDAP에서 프로토콜을 지정하세요",
+        "project.creation.default.menus" to "project.creation.default.menus는 v1.6이 읽지 않던 키라 옮기지 않았습니다(설정 파일 예시에만 있고 " +
+            "v1.6은 project.default.menus.when.create를 읽습니다). 새 프로젝트의 기본 메뉴를 바꾸려면 project.default.menus.when.create를 적으세요"
+    )
 
     /**
      * v1.6 코드의 기본값이 v2의 기본값과 달라서, 설정 파일에 키가 없을 때 v1.6의 동작을 지키려고 적는 값이다(v2 키 -> v1.6 기본값).
@@ -187,7 +194,7 @@ object V16ConfigConverter {
     )
 
     /** 변환기가 아는 v1.6 키 전부이다(옮기는 키, 없어진 기능의 키, 읽지 않던 키, 조용히 버리는 정확한 키). 시험이 `YonaProperties` 주석의 v1.6 키와 대조한다. */
-    val knownKeys: Set<String> get() = RENAMES.keys + REMOVED + IGNORED_KEYS + INERT_LDAP_PROTOCOL + SMTP_MOCK
+    val knownKeys: Set<String> get() = RENAMES.keys + REMOVED + IGNORED_KEYS + INERT_KEYS.keys + SMTP_MOCK
 
     /** v1.6 설정 키의 첫 마디 가운데 이 변환기가 다루는 것이다(시험이 주석에서 v1.6 키만 가려낼 때 쓴다). */
     val v16Roots: Set<String> = setOf("signup", "project", "notification", "play-easymail", "github", "ldap", "smtp", "imap", "data", "parsers", "slack", "db", "http")
@@ -303,11 +310,7 @@ object V16ConfigConverter {
                 key in REMOVED -> { removed += key; continue }
                 key in IGNORED_KEYS || IGNORED_PREFIXES.any { key.startsWith(it) } -> continue
                 key.startsWith(SLACK) -> { if (value.isNotBlank()) out["yona.slack.${key.removePrefix(SLACK)}"] = value; continue }
-                key == INERT_LDAP_PROTOCOL -> {
-                    notes += "ldap.protocol은 v1.6이 읽지 않던 키라 옮기지 않았습니다(v1.6은 최상위 protocol 키를 읽었습니다). " +
-                        "LDAPS를 쓰려면 이관 뒤 사이트 관리 > SSO > LDAP에서 프로토콜을 지정하세요"
-                    continue
-                }
+                key in INERT_KEYS -> { notes += INERT_KEYS.getValue(key); continue }
             }
             val target = RENAMES[key]
             if (target == null) { unmapped += key; continue }

@@ -474,3 +474,9 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-17] build | e2e 도구 첫 기동(e2e/lib/server.mjs)을 고침: 시험용 관리자 비밀번호를 새 비밀번호 정책을 통과하는 값으로 바꾸고, 환영 화면 POST에 CSRF 쿠키와 머리글을 붙이고, 성공 여부를 비밀 키 파일 생성으로 판단해 재시도하며, 실패하면 띄운 서버를 내린다. 빈 데이터 폴더에서 두 번 연속 기동, 관리자 로그인, 가입 사용자 로그인, 기기 인증 토큰 발급을 확인
 
 ## [2026-11-17] build | 내장 SSH 서버 설정 키를 yona.ssh.mina.*(enabled, port, bind-address, host-key-path)로 이동, 옛 키 호환 없음(A-626). 관련 시험 210건 통과(26개 클래스), 위키와 sshd 문서 갱신
+
+## [2026-11-17] build | v1.6이 읽지 않는 설정 키를 이관 변환기에서 제외(A-627): v1.6 소스의 설정 읽기와 변환기 키 87개를 대조해 project.creation.default.menus가 유일한 죽은 키임을 확인, 기본 설정 파일을 그대로 쓴 사이트의 새 프로젝트 기본 메뉴가 달라지던 버그를 고침(INERT_KEYS). 변환기와 이관 관련 시험 33건 통과
+
+## [2026-11-17] build | 요청당 DB 질의 줄이기(A-628): hibernate.default_batch_fetch_size=32, RequestMemo(읽기 요청 범위 보관소), 시험 RequestMemoTest 9건과 QueryCountTest 4건. 이슈 목록 질의 57에서 37, 검색 31에서 21. Cubrid 이슈 목록 p50 -22%, 검색 p50 -20%. 세 DB 성능 측정 도구는 tools/db-bench(bench, probe, trace)
+
+## [2026-11-17] build | Cubrid 접속 주소에 JDBC 준비된 문장 캐시 옵션을 자동으로 더함(A-629, CUBRID 11.4 공식 매뉴얼 근거). 앱 측정: 단건 API 동시 16 183에서 761건/초, 쓰기 1.7~2.4배. 실제 Cubrid에서 문장 캐시를 켠 채 선별 시험 22개 클래스 306건 통과(처음 202건은 시험 주소가 옵션을 덮어 캐시가 꺼진 채였던 것을 발견해 바로잡음), 기본 설정 부트 jar로 운영 경로도 확인

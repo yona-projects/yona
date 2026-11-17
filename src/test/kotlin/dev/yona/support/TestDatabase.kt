@@ -199,7 +199,8 @@ enum class TestDatabase {
             val user = "it_" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
             asDba(container) { st -> st.execute("create user $user password 'yona' groups dba") }
             // Cubrid 드라이버는 `charset`을 주지 않으면 한글을 ISO-8859-1로 읽는다.
-            registry.add("spring.datasource.url") { container.jdbcUrl + "?charset=utf-8" }
+            // 운영은 `DatabaseDefaults`가 접속 주소에 문장 캐시 옵션을 더하지만 시험의 동적 속성이 그 주소를 덮으므로 같은 옵션을 여기서 직접 붙인다(A-629)
+            registry.add("spring.datasource.url") { container.jdbcUrl + "?charset=utf-8&" + dev.yona.config.DatabaseDefaults.CUBRID_STATEMENT_CACHE }
             registry.add("spring.datasource.username") { user }
             registry.add("spring.datasource.password") { "yona" }
             registry.add("spring.datasource.driver-class-name") { container.driverClassName }

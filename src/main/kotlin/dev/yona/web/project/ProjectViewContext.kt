@@ -61,7 +61,7 @@ class ProjectViewContext(
 
     /** 프로젝트 메뉴 설정이다. 프로젝트 생성 때 항상 함께 만들어지므로 없으면 오류이다. */
     val menuSetting: ProjectMenuSetting by lazy {
-        deps.menuSettings.findFirstByProjectId(projectId) ?: error("프로젝트 메뉴 설정이 없습니다: $displayName")
+        dev.yona.util.RequestMemo.entity("menuSetting:$projectId") { deps.menuSettings.findFirstByProjectId(projectId) } ?: error("프로젝트 메뉴 설정이 없습니다: $displayName")
     }
 
     // --- 로고와 배경 ---

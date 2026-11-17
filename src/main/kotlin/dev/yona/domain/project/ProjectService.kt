@@ -45,7 +45,7 @@ class ProjectService(
         if (cachedId != null && cachedId != 0L) {
             // 캐시가 가리키는 프로젝트가 이미 없으면(v1.6는 지울 때 항목도 지운다) 항목을 버리고 다시 찾는다. 이름이나 소유자가 바뀌어 항목의 이름과
             // 더는 맞지 않을 때도 버린다. v1.6은 그대로 돌려주어 예전 이름이 계속 같은 프로젝트를 열고 같은 이름의 새 프로젝트를 가렸다(R-126)
-            projects.findById(cachedId).orElse(null)
+            dev.yona.util.RequestMemo.entity("project:$cachedId") { projects.findById(cachedId).orElse(null) }
                 ?.takeIf { it.owner.equals(decodedOwner, ignoreCase = true) && it.name.equals(decodedName, ignoreCase = true) }
                 ?.let { return it }
             projectMap.remove(key, cachedId)
