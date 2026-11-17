@@ -129,6 +129,9 @@ configurations.all {
 	}
 }
 
+// v1.6의 H2 파일(H2 1.3)을 읽는 변환기(tools/h2-export) 시험이 쓰는 옛 H2 jar이다. 시험 클래스패스의 H2 2.x와 충돌하므로 하위 프로세스에서만 쓴다.
+val h2Legacy by configurations.creating
+
 // Spring AI의 버전은 Spring Boot BOM이 관리하지 않으므로 그 BOM을 명시적으로 import한다(X-6, D-72).
 dependencyManagement {
 	imports {
@@ -246,6 +249,7 @@ dependencies {
 	// PostgreSQL과 MariaDB는 Testcontainers로 검증한다. 컨테이너는 재사용(reuse)해 실행 사이에도 유지한다.
 	testImplementation("org.testcontainers:testcontainers:2.0.5")
 	testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
+	h2Legacy("com.h2database:h2:1.3.176@jar")
 	testImplementation("org.testcontainers:testcontainers-mariadb:2.0.5")
 	testImplementation("org.testcontainers:testcontainers-mssqlserver:2.0.5")
 	testImplementation("org.cubrid:testcontainers-cubrid:0.1.0")
@@ -270,6 +274,8 @@ tasks.withType<Test> {
 	maxHeapSize = "3g"
 	// 통합 테스트가 사용할 DB를 `-Dyona.it.db=h2|postgres|mariadb|mssql|cubrid`로 고른다(기본값 h2).
 	systemProperty("yona.it.db", System.getProperty("yona.it.db") ?: "h2")
+	// 변환기 시험(H2ExportToolTest)이 옛 H2 jar의 경로를 받는다
+	doFirst { systemProperty("yona.test.h2legacy", h2Legacy.singleFile.absolutePath) }
 	// 실제 LDAP 서버(OpenLDAP, ApacheDS)에 대한 호환성 시험은 `tools/ldap-compat/run.sh`가 서버를 띄운 뒤 `-Dyona.ldap.compat=true`로 켠다. 꺼져 있으면 건너뛴다
 	System.getProperties().stringPropertyNames().filter { it.startsWith("yona.ldap.compat") }.forEach { systemProperty(it, System.getProperty(it)) }
 	// Cubrid는 스프링 컨텍스트 하나(테이블 약 170개)가 공간을 많이 쓰므로 캐시하는 컨텍스트 수를 줄인다(X-46). 다른 데이터베이스는 기본값(32)을 쓴다.

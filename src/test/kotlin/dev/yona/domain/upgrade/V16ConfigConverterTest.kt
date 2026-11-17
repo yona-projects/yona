@@ -188,7 +188,8 @@ class V16ConfigConverterTest {
         val out = convert("db.default.url=\"jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;AUTO_SERVER=TRUE\"")
         val note = out.notes.firstOrNull { "H2" in it }
         assertTrue(note != null, "H2 파일 데이터베이스는 v2(H2 2.x)가 읽지 못하므로 알려야 한다: ${out.notes}")
-        assertTrue("/sites/export" in note, "대안(v1.6의 내보내기)을 알려야 한다: $note")
+        assertTrue("migrate-v16-h2.sh" in note, "첫 번째 대안(옛 H2 파일을 직접 읽는 이관 스크립트)을 알려야 한다: $note")
+        assertTrue("/sites/export" in note, "다른 대안(v1.6의 내보내기)도 알려야 한다: $note")
         assertTrue(out.notes.none { "H2" in it } || convert("db.default.url=\"jdbc:mariadb://db/yona\"").notes.none { "H2" in it }, "MariaDB 주소에는 알리지 않는다")
         assertTrue(convert("db.default.url=\"jdbc:mysql://db/yona\"").notes.none { "H2" in it })
     }

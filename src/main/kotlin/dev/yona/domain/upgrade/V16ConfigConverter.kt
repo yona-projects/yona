@@ -317,8 +317,8 @@ object V16ConfigConverter {
             }
             if (key == "db.default.url" && value.startsWith("jdbc:h2:file:")) {
                 notes += "db.default.url이 H2 파일 데이터베이스입니다. v1.6의 H2 파일(yona.h2.db, H2 1.3)은 v2의 H2 2.x가 읽지 못하고 MVCC, MV_STORE 같은 옛 옵션도 거부합니다. " +
-                    "바꿔치기하면 옆에 빈 데이터베이스가 새로 만들어집니다. v1.6을 켠 채 /sites/export로 내보내 v2의 /sites/import로 가져오거나(옛 사용자 토큰은 옮겨지지 않습니다), " +
-                    "v1.6을 MariaDB로 옮긴 뒤 이관하세요"
+                    "바꿔치기하면 옆에 빈 데이터베이스가 새로 만들어집니다. scripts/migrate-v16-h2.sh로 옛 H2 파일을 직접 읽어 v2에 옮기세요(v1.6을 켜지 않아도 되고 옛 사용자 토큰도 옮겨집니다). " +
+                    "또는 v1.6을 켠 채 /sites/export로 내보내 v2의 /sites/import로 가져오거나(옛 사용자 토큰은 옮겨지지 않습니다), v1.6을 MariaDB로 옮긴 뒤 이관하세요"
             }
             out[target] = value
             ALSO[key]?.let { out[it] = value }
