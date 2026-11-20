@@ -1,2 +1,0 @@
-CREATE ROLE "yona" LOGIN PASSWORD 'P@ss''w\rd 1';
-CREATE DATABASE "yona" OWNER "yona" ENCODING 'UTF8' TEMPLATE template0;

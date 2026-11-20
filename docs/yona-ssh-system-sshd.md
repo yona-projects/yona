@@ -119,7 +119,7 @@ CONF
 
 ### 4. sshd 설정
 
-**`sshd_config` 본문을 고치지 말고 드롭인 파일 하나를 둔다**(`/etc/ssh/sshd_config.d/50-yona.conf`). Ubuntu 24.04, Debian 12, Rocky Linux 9, Fedora 45에서 `Include /etc/ssh/sshd_config.d/*.conf`가 기본으로 있고, 드롭인의 `Match`는 본문의 뒤쪽 설정으로 번지지 않는다(2026-11-20 확인). 설치 프로그램(X-63)도 이 방식을 쓴다. `Include`가 없는 오래된 설정이면 본문의 **맨 끝**에 같은 내용을 추가한다(`Match` 블록은 끝에 온다). `Match User`로 범위를 좁혀 다른 계정의 로그인에는 영향이 없다.
+`/etc/ssh/sshd_config`의 **맨 끝**(`Match` 블록은 항상 끝에 온다)에 추가한다. `Match User`로 범위를 좁혀 다른 계정의 로그인에는 영향이 없다.
 
 ```
 Match User git,hg,svn
@@ -131,9 +131,7 @@ Match User git,hg,svn
 
 ```bash
 sudo sshd -t                    # 아무 출력이 없어야 한다
-# 서비스 이름은 배포본마다 다르다: Debian 계열은 ssh, RHEL 계열은 sshd(설치 프로그램은 둘 다 찾는다)
-sudo systemctl reload ssh      # Debian, Ubuntu
-sudo systemctl reload sshd     # Rocky Linux, Fedora
+sudo systemctl reload sshd
 ```
 
 ## 확인

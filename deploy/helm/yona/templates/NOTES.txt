@@ -1,6 +1,0 @@
-Yona {{ .Chart.AppVersion }} is installed as {{ include "yona.fullname" . }} (one replica).
-
-First start: open the site and create the administrator account on the welcome screen,
-then restart the pod:  kubectl rollout restart statefulset/{{ include "yona.fullname" . }}
-Back up the data volume (it holds config/secret.properties, ssh/ host keys, repositories and attachments) and the database.
-The data volume is kept when you run helm uninstall; delete it yourself when you really want to.

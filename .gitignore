@@ -40,9 +40,3 @@ build/
 .kotlin/
 build-tools/sass/node_modules/
 build-tools/ts/node_modules/
-
-# 설치 프로그램과 배포 산출물
-install/dist/
-deploy/compose/.env
-deploy/compose/secrets/*
-!deploy/compose/secrets/.gitignore

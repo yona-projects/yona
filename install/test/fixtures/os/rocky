@@ -1,4 +1,0 @@
-NAME="Rocky Linux"
-ID="rocky"
-ID_LIKE="rhel centos fedora"
-VERSION_ID="9.9"
