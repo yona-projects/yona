@@ -38,7 +38,10 @@ class RepositoryService @Autowired constructor(
     }
 
     /** 프로젝트의 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
-    fun deleteRepository(project: Project) = backends.lifecycle(project.vcs).delete(owner(project), name(project))
+    fun deleteRepository(project: Project) = deleteRepository(project.vcs, owner(project), name(project))
+
+    /** 지정한 종류와 위치의 프로젝트 저장소를 지운다. */
+    fun deleteRepository(type: String?, owner: String, name: String) = backends.lifecycle(type).delete(owner, name)
 
     /**
      * 프로젝트 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다. 옮기지 못하면 `false`이다

@@ -24,14 +24,19 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.mock.web.MockHttpSession
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.transaction.TestTransaction
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.UnexpectedRollbackException
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
+import java.util.UUID
+import kotlin.test.assertFailsWith
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -57,6 +62,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var postings: dev.yona.domain.board.PostingRepository
     @Autowired private lateinit var titleHeads: TitleHeadRepository
     @Autowired private lateinit var mentionRepository: dev.yona.domain.notification.MentionRepository
+    @Autowired private lateinit var jdbc: JdbcTemplate
 
     private var sequence = 0
 
@@ -189,13 +195,13 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Git 프로젝트를 Mercurial로 바꾸면 Mercurial 저장소를 만들고 Git 저장소를 지운다`() {
+    fun `Git 프로젝트를 Mercurial로 바꾸면 커밋 전에는 두 저장소가 남는다`() {
         val project = newProject()
         mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project))).param("targetVcs", "Mercurial")).andExpect(status().isNoContent)
         projects.flush()
         assertEquals("Mercurial", projects.findById(project.id!!).get().vcs)
         assertTrue(File("build/tmp/it-project-vcs/repo/hg/${project.owner}/${project.name}/.hg").isDirectory)
-        assertTrue(!File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
+        assertTrue(File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
     }
 
     @Test
@@ -221,7 +227,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Git 프로젝트를 Subversion으로 바꾸면 Git 저장소를 지우고 Subversion 저장소를 만든다`() {
+    fun `Git 프로젝트를 Subversion으로 바꾸면 커밋 전에는 두 저장소가 남는다`() {
         val project = newProject()
         mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project))))
             .andExpect(status().isNoContent)
@@ -229,7 +235,97 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         projects.flush()
         assertEquals("Subversion", projects.findById(project.id!!).get().vcs)
         assertTrue(File("build/tmp/it-project-vcs/repo/svn/${project.owner}/${project.name}/format").isFile)
-        assertTrue(!File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
+        assertTrue(File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
+    }
+
+    @Test
+    fun `Git 프로젝트를 Subversion으로 바꾸고 커밋하면 기존 저장소를 지운다`() {
+        val suffix = UUID.randomUUID().toString().replace("-", "")
+        val auditHead = jdbc.query("select last_id, last_hash from audit_chain_head where id = 1") { rs, _ -> rs.getLong(1) to rs.getString(2) }.firstOrNull()
+        val project = projects.save(Project(owner = "cvo$suffix", name = "cp$suffix", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        val salt = LegacyPasswordHasher.generateSalt()
+        val user = users.save(User(loginId = "cv$suffix", name = "cv$suffix", email = "cv$suffix@example.com", state = UserState.ACTIVE,
+            passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+        val git = File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git")
+        val svn = File("build/tmp/it-project-vcs/repo/svn/${project.owner}/${project.name}")
+        try {
+            menuSettings.save(ProjectMenuSetting(project = project, code = true))
+            projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
+            repositories.createRepository(project)
+            mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(user))).andExpect(status().isNoContent)
+            TestTransaction.flagForCommit()
+            TestTransaction.end()
+            assertTrue(File(svn, "format").isFile)
+            assertTrue(!git.exists())
+        } finally {
+            if (TestTransaction.isActive()) {
+                TestTransaction.flagForRollback()
+                TestTransaction.end()
+            }
+            TestTransaction.start()
+            jdbc.update("delete from project_user where project_id = ?", project.id)
+            jdbc.update("delete from project_menu_setting where project_id = ?", project.id)
+            jdbc.update("delete from project where id = ?", project.id)
+            jdbc.update("delete from n4user where id = ?", user.id)
+            val lastId = auditHead?.first ?: 0L
+            jdbc.update("delete from audit_log where id > ?", lastId)
+            if (auditHead == null) jdbc.update("delete from audit_chain_head where id = 1")
+            else jdbc.update("update audit_chain_head set last_id = ?, last_hash = ? where id = 1", auditHead.first, auditHead.second)
+            TestTransaction.flagForCommit()
+            TestTransaction.end()
+            TestTransaction.start()
+            git.deleteRecursively()
+            svn.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `Subversion 생성의 체크 예외가 발생하면 포크 연결을 되돌린다`() {
+        val suffix = UUID.randomUUID().toString().replace("-", "")
+        val project = projects.save(Project(owner = "cvo$suffix", name = "cp$suffix", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        val fork = projects.save(Project(owner = "fork$suffix", name = "cp$suffix", vcs = "GIT", projectScope = ProjectScope.PUBLIC, originalProject = project))
+        val salt = LegacyPasswordHasher.generateSalt()
+        val user = users.save(User(loginId = "cv$suffix", name = "cv$suffix", email = "cv$suffix@example.com", state = UserState.ACTIVE,
+            passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+        val git = File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git")
+        val blocker = File("build/tmp/it-project-vcs/repo/svn/${project.owner}")
+        try {
+            menuSettings.save(ProjectMenuSetting(project = project, code = true))
+            projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
+            repositories.createRepository(project)
+            val session = login(user)
+            TestTransaction.flagForCommit()
+            TestTransaction.end()
+            assertTrue(blocker.parentFile.mkdirs() || blocker.parentFile.isDirectory)
+            assertTrue(blocker.createNewFile())
+            assertFailsWith<org.tmatesoft.svn.core.SVNException> {
+                repositories.createRepository(Project(owner = project.owner, name = project.name, vcs = "Subversion"))
+            }
+            TestTransaction.start()
+            mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(session)).andExpect(status().isInternalServerError)
+            TestTransaction.flagForCommit()
+            try { TestTransaction.end() } catch (_: UnexpectedRollbackException) { }
+            TestTransaction.start()
+            assertEquals("GIT", projects.findById(project.id!!).get().vcs)
+            assertEquals(project.id, projects.findById(fork.id!!).get().originalProject?.id, "포크의 원본 연결이 유지되어야 한다")
+            assertTrue(git.isDirectory)
+        } finally {
+            if (TestTransaction.isActive()) {
+                TestTransaction.flagForRollback()
+                TestTransaction.end()
+            }
+            TestTransaction.start()
+            jdbc.update("delete from project_user where project_id = ?", project.id)
+            jdbc.update("delete from project_menu_setting where project_id = ?", project.id)
+            jdbc.update("delete from project where id = ?", fork.id)
+            jdbc.update("delete from project where id = ?", project.id)
+            jdbc.update("delete from n4user where id = ?", user.id)
+            TestTransaction.flagForCommit()
+            TestTransaction.end()
+            TestTransaction.start()
+            blocker.delete()
+            git.deleteRecursively()
+        }
     }
 
     @Test
