@@ -495,3 +495,5 @@ shell/fill.ts. CSS flex 방식은 상단 바 겹침 때문에 폐기했다.
 ## [2026-11-20] plan | 설치 스크립트의 권한 정책을 "처음부터 관리자로 실행"에서 "일반 사용자로 시작하고 필요한 단계에서만 격상"으로 바꿈(roadmap.md X-63 11번, 한 줄 설치, 사전 점검 반영). 격상이 필요한 단계와 필요 없는 단계 표, 비대화형에서는 격상 불가로 중단
 
 ## [2026-11-20] build | 설치 스크립트(X-63)와 컨테이너 배포(X-64부터 X-66) 구현(A-634): install/(셸 bash 3.2 호환과 PowerShell, 공통 메시지와 골든 시나리오), 한 줄 설치 부트스트랩과 릴리스 묶음, deploy/docker, deploy/compose, deploy/helm. 시험: bats 214, Pester 57, shellcheck, bash 3.2 호환, 컨테이너 통합(적용과 되돌리기, 진짜 jar 일반 사용자 설치, PostgreSQL 16과 MariaDB 12.3.3 컨테이너), 이미지, compose 동등 구성, helm lint와 template. 못 한 것: Windows와 macOS 실기, 시스템 패키지 DB, systemd 재부팅, 실제 v1.6 이관, 클러스터 설치. 문서: architecture/install-scripts.md
+
+## [2026-11-20] cleanup | 옛 Python 설치 도구 `~/yona-convert/yona-install`을 지웠다(v2 설치 프로그램 X-63이 대신한다). 분석 문서는 architecture/yona-install-analysis.md로 옮겼다. 원본은 yona-projects/yona-install 저장소에서 다시 받을 수 있다
