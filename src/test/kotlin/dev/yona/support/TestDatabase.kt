@@ -56,7 +56,7 @@ enum class TestDatabase {
     },
     MARIADB {
         private val container by lazy {
-            MariaDBContainer("mariadb:10.11")
+            MariaDBContainer(System.getenv("YONA_IT_MARIADB_IMAGE") ?: "mariadb:10.11")
                 .withDatabaseName("yona_v2_it").withUsername("yona").withPassword("yona")
                 .withReuse(true).also { it.start(); dropLeftoverDatabases(it) }
         }

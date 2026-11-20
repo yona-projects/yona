@@ -169,24 +169,33 @@ class V16ConfigConverterTest {
     }
 
     @Test
-    fun `모의 발송을 켠 v1_6 사이트는 메일 서버 접속 정보를 옮기지 않아 이관 뒤에도 메일을 보내지 않는다`() {
+    fun `모의 발송을 켠 v1_6 사이트는 접속 정보도 옮기고 yona_smtp_mock을 켜서 이관 뒤에도 메일을 보내지 않는다`() {
         val out = convert(
             "smtp.host = smtp.gmail.com\nsmtp.port = 465\nsmtp.ssl = true\nsmtp.user = bot\nsmtp.password = \"pw\"\nsmtp.domain = example.com\nsmtp.mock = true\nsmtp.archive.size = 5"
         )
-        assertNull(out.properties["spring.mail.host"], "v1.6은 모의 발송이라 아무것도 보내지 않았다. v2에는 모의 발송이 없어 접속 정보가 있으면 실제로 보낸다")
-        assertNull(out.properties["spring.mail.password"])
-        assertEquals("bot", out.properties["yona.smtp.user"], "보내는 주소 설정은 옮긴다")
+        assertEquals("true", out.properties["yona.smtp.mock"], "v2도 모의 발송이 있으므로 v1.6의 값을 그대로 옮긴다")
+        assertEquals("smtp.gmail.com", out.properties["spring.mail.host"], "접속 정보는 옮겨 둔다. 모의 발송을 끄면 바로 쓸 수 있다")
+        assertEquals("bot", out.properties["yona.smtp.user"])
         assertEquals("example.com", out.properties["yona.smtp.domain"])
-        assertTrue(out.notes.any { "smtp.mock" in it }, "옮기지 않은 이유를 알려야 한다")
+        assertTrue(out.notes.any { "smtp.mock" in it && "보내지" in it }, "메일을 보내지 않는 상태로 이관됨을 알려야 한다")
         assertTrue(out.unmapped.isEmpty(), "smtp.mock과 archive.size는 아는 키이다: ${out.unmapped}")
     }
 
     @Test
-    fun `모의 발송을 끄면 메일 서버 접속 정보를 옮긴다`() {
+    fun `모의 발송을 끄면 접속 정보를 옮기고 yona_smtp_mock도 끈다`() {
         val out = convert("smtp.host = smtp.example.com\nsmtp.port = 25\nsmtp.mock = false")
         assertEquals("smtp.example.com", out.properties["spring.mail.host"])
         assertEquals("25", out.properties["spring.mail.port"])
+        assertEquals("false", out.properties["yona.smtp.mock"])
         assertTrue(out.notes.none { "smtp.mock" in it })
+    }
+
+    @Test
+    fun `smtp_mock 키가 없으면 v1_6 기본값(true)으로 고정해 메일을 보내지 않는다`() {
+        val out = convert("smtp.host = smtp.example.com\nsmtp.port = 25")
+        assertEquals("true", out.properties["yona.smtp.mock"], "v1.6 플러그인은 키가 없으면 모의 발송이었다. 접속 정보만 옮기면 이관 뒤 갑자기 보내게 된다")
+        assertEquals("smtp.example.com", out.properties["spring.mail.host"])
+        assertTrue(out.notes.any { "yona.smtp.mock=true" in it }, "기본값으로 고정한 키를 알린다")
     }
 
     @Test

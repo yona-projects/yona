@@ -110,6 +110,7 @@ object V16ConfigConverter {
         "ldap.options.englishNameAttributeName" to "yona.ldap.english-name-attribute-name",
         "smtp.user" to "yona.smtp.user",
         "smtp.domain" to "yona.smtp.domain",
+        "smtp.mock" to "yona.smtp.mock",
         "imap.use" to "yona.imap.use",
         "imap.host" to "yona.imap.host",
         "imap.user" to "yona.imap.user",
@@ -144,15 +145,6 @@ object V16ConfigConverter {
     private val IGNORED_PREFIXES = listOf("play.", "akka.", "ebean", "applyEvolutions.", "logger.", "application.log", "application.mode")
     private val IGNORED_KEYS = setOf("application.global", "db.default.driver", "db.default.jndiName", "smtp.archive.size")
 
-    /**
-     * v1.6의 모의 발송기 설정이다(`smtp.mock`, 기본 설정 파일에 `true`로 들어 있다. 시험용 모의 발송기는 메일을 실제로 보내지 않는다). v2에는 모의 발송기가 없고 메일 서버
-     * 접속 정보(`spring.mail.host`)가 있으면 실제로 보낸다. 그래서 모의 발송을 켠 사이트는 접속 정보를 옮기지 않는다. v2는 접속 정보가 없으면 메일을 보내지 않고 경고만 남긴다.
-     */
-    private const val SMTP_MOCK = "smtp.mock"
-
-    /** 모의 발송을 켜면 옮기지 않는 메일 서버 접속 정보의 v1.6 키이다. 보내는 주소(`smtp.user`, `smtp.domain`)는 모의 발송과 상관없이 옮긴다. */
-    private val SMTP_CONNECTION = setOf("smtp.host", "smtp.port", "smtp.ssl", "smtp.password")
-
     /** `slack.<이벤트>` 키의 접두어이다. 값이 비어 있으면 옮기지 않는다. */
     private const val SLACK = "slack."
 
@@ -175,7 +167,9 @@ object V16ConfigConverter {
     val V16_DEFAULTS: Map<String, String> = mapOf(
         "yona.noreferrer" to "false",
         "yona.notification-mail-recipient-limit" to "0",
-        "yona.update.interval" to "1h"
+        "yona.update.interval" to "1h",
+        // v1.6 메일 플러그인은 `smtp.mock` 키가 없으면 모의 발송(메일을 보내지 않음)으로 동작했다. 접속 정보만 옮기면 이관 뒤 갑자기 실제로 보내게 된다
+        "yona.smtp.mock" to "true"
     )
 
     /** LDAP을 켰는데 키가 없을 때 v1.6이 쓰던 기본값이다(`app/utils/LdapService.java:23-38`). v2의 기본값은 예시 서버라서 그대로 두면 다른 곳에 접속한다. */
@@ -194,7 +188,7 @@ object V16ConfigConverter {
     )
 
     /** 변환기가 아는 v1.6 키 전부이다(옮기는 키, 없어진 기능의 키, 읽지 않던 키, 조용히 버리는 정확한 키). 시험이 `YonaProperties` 주석의 v1.6 키와 대조한다. */
-    val knownKeys: Set<String> get() = RENAMES.keys + REMOVED + IGNORED_KEYS + INERT_KEYS.keys + SMTP_MOCK
+    val knownKeys: Set<String> get() = RENAMES.keys + REMOVED + IGNORED_KEYS + INERT_KEYS.keys
 
     /** v1.6 설정 키의 첫 마디 가운데 이 변환기가 다루는 것이다(시험이 주석에서 v1.6 키만 가려낼 때 쓴다). */
     val v16Roots: Set<String> = setOf("signup", "project", "notification", "play-easymail", "github", "ldap", "smtp", "imap", "data", "parsers", "slack", "db", "http")
@@ -297,16 +291,9 @@ object V16ConfigConverter {
         val unmapped = mutableListOf<String>()
         val removed = mutableListOf<String>()
 
-        val mocked = parsed.values[SMTP_MOCK]?.trim().equals("true", ignoreCase = true)
-        if (mocked) {
-            notes += "smtp.mock=true라서 메일 서버 접속 정보(smtp.host 등)는 옮기지 않았습니다. v1.6은 모의 발송기라 메일을 실제로 보내지 않았고, v2에는 모의 발송기가 없어 " +
-                "접속 정보가 있으면 실제로 보냅니다. 메일을 보내려면 spring.mail.host 등을 직접 설정하세요"
-        }
         for ((key, rawValue) in parsed.values) {
             var value = rawValue
-            if (mocked && key in SMTP_CONNECTION) continue
             when {
-                key == SMTP_MOCK -> continue
                 key in REMOVED -> { removed += key; continue }
                 key in IGNORED_KEYS || IGNORED_PREFIXES.any { key.startsWith(it) } -> continue
                 key.startsWith(SLACK) -> { if (value.isNotBlank()) out["yona.slack.${key.removePrefix(SLACK)}"] = value; continue }
@@ -331,6 +318,10 @@ object V16ConfigConverter {
         val pinned = V16_DEFAULTS.filterKeys { it !in out }
         out.putAll(pinned)
         if (pinned.isNotEmpty()) notes += "설정 파일에 없던 키를 v1.6 코드의 기본값으로 고정했습니다(v2 기본값과 달라 그대로 두면 동작이 바뀝니다): " + pinned.entries.joinToString { "${it.key}=${it.value}" }
+        if (out["yona.smtp.mock"] == "true") {
+            notes += "smtp.mock이 켜져(yona.smtp.mock=true) 있어 이관 뒤에도 메일을 보내지 않습니다. v1.6도 모의 발송이라 메일을 보내지 않았습니다(키가 없으면 켠 것으로 동작했습니다). " +
+                "실제로 보내려면 메일 서버 접속 정보(spring.mail.*)를 확인하고 yona.smtp.mock=false로 바꾸세요"
+        }
         if (out["yona.ldap.enabled"] == "true") {
             val filled = V16_LDAP_DEFAULTS.filterKeys { it !in out }
             out.putAll(filled)

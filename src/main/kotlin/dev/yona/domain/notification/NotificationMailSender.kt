@@ -19,9 +19,7 @@ import jakarta.mail.Session
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.MessageSource
-import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -44,7 +42,7 @@ import java.util.Properties
 @Service
 class NotificationMailSender(
     private val mailboxAddress: dev.yona.mailbox.MailboxAddress,
-    private val mailSenderProvider: ObjectProvider<JavaMailSender>,
+    private val transport: MailTransport,
     private val properties: YonaProperties,
     private val notificationMessages: NotificationMessages,
     private val templates: SpringTemplateEngine,
@@ -96,8 +94,7 @@ class NotificationMailSender(
 
     private fun sendMail(notification: MergedNotification, to: Set<Recipient>, bcc: Set<Recipient>, lang: String) {
         if (to.isEmpty()) return
-        val sender = mailSenderProvider.ifAvailable
-        if (sender == null) {
+        if (!transport.canSend) {
             metrics.mail("skipped")
             log.warn("메일 서버(spring.mail.host)가 설정되지 않아 알림 메일을 보내지 않았다: {}", notification.main.title)
             return
@@ -105,7 +102,7 @@ class NotificationMailSender(
         val main = notification.main
         try {
             val message = buildMessage(notification, to, bcc, lang) ?: return
-            sender.send(message)
+            transport.send(message)
             metrics.mail("success")
             val title = (main.title ?: "").replace("\"", "\\\"")
             // v1.6는 받는 사람, 참조, 숨은 참조의 InternetAddress 집합을 그대로 기록한다("이름 <주소>")

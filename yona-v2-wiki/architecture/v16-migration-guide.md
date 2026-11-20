@@ -71,7 +71,7 @@ scripts/migrate-v16.sh build/libs/yona-2.0.0-SNAPSHOT.jar --v16-conf=/opt/yona-1
 
 | v1.6 설정 | v1.6 동작 | v2에서 그대로 옮기면 | 변환기의 처리 |
 |---|---|---|---|
-| `smtp.mock = true` (기본 설정 파일에 들어 있다) | 모의 발송기라 메일을 **실제로 보내지 않는다** | v2에는 모의 발송기가 없어 접속 정보가 있으면 실제로 보낸다 | 메일 서버 접속 정보(`smtp.host`, `port`, `ssl`, `password`)를 옮기지 않고 알린다. v2는 `spring.mail.host`가 없으면 메일을 보내지 않고 경고만 남긴다. 보내려면 `smtp.mock=false`로 바꿔 다시 변환하거나 `spring.mail.*`를 직접 정한다 |
+| `smtp.mock` (기본 설정 파일은 `true`, **키가 없어도 v1.6은 `true`로 동작**) | 모의 발송이라 메일을 **실제로 보내지 않는다** | v2도 `yona.smtp.mock`이 있어 같은 뜻이다(D-145). 다만 v2의 기본값은 `false`라 키를 옮기지 않으면 접속 정보가 있을 때 실제로 보낸다 | 값을 `yona.smtp.mock`으로 옮기고, **키가 없으면 v1.6 기본값 `true`로 고정**한다. 접속 정보(`spring.mail.*`)는 모의 발송 여부와 상관없이 옮긴다. 보내려면 이관 뒤 `yona.smtp.mock=false`로 바꾼다 |
 | `ldap.protocol` | **읽지 않는다**(v1.6은 최상위 `protocol`을 읽는다, `LdapService.java:27`) | v1.6에서 무시되던 `ldaps`가 갑자기 적용되어 로그인이 끊길 수 있다 | `ldap.protocol`은 옮기지 않고 알린다. 최상위 `protocol`은 `yona.protocol`로 옮긴다 |
 | LDAP을 켰는데 `ldap.*` 키가 없음 | v1.6 기본값(`127.0.0.1`, 포트 389, 기준 DN 빈 값 등) | v2 기본값은 예시 서버(`ldap.forumsys.com`)라 엉뚱한 곳에 접속한다 | LDAP이 켜져 있으면 없는 키를 v1.6 기본값으로 채운다 |
 | `application.noreferrer` 없음 | 꺼짐(`false`) | v2 기본값은 켬(`true`) | 키가 없으면 `false`로 고정하고 알린다 |

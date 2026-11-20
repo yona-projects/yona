@@ -180,12 +180,17 @@ data class YonaProperties(
     val translationApiConfigured: Boolean get() = translationApi.isNotBlank()
 
     /**
-     * 보내는 메일 주소 설정이다 (v1.6 `smtp.user`, `smtp.domain`과 `Config.getEmailFromSmtp()`).
+     * 보내는 메일 주소와 모의 발송 설정이다 (v1.6 `smtp.user`, `smtp.domain`, `smtp.mock`과 `Config.getEmailFromSmtp()`).
      * 주소는 `user`에 `@`가 있으면 그 값이고, 없으면 `user@domain`이다. `domain`이 비면 사이트 호스트 이름을 쓴다.
+     *
+     * @property mock 모의 발송이다 (v1.6 `smtp.mock`). 켜면 메일 서버가 설정되어 있어도 메일을 보내지 않고 내용을 debug 로그로만 남기며 보낸 것으로 처리한다.
+     *   v1.6 메일 플러그인은 키가 없으면 켠 것으로 동작했고 기본 설정 파일도 `true`였다. v2의 기본은 끔이라 메일 서버(`spring.mail.host`)를 설정하면 바로 보낸다.
+     *   v1.6에서 이관할 때는 변환기가 v1.6의 값(없으면 `true`)을 그대로 옮긴다
      */
     data class Smtp(
         val user: String = "",
-        val domain: String = ""
+        val domain: String = "",
+        val mock: Boolean = false
     )
 
     /**

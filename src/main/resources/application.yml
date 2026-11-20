@@ -3,6 +3,9 @@ yona:
     # 알림 메일의 보내는 주소: `user@domain`(domain을 비우면 사이트 호스트 이름). 접속 정보는 spring.mail.*로 설정한다.
     user: yona
     domain: yona.local
+    # 모의 발송(v1.6 `smtp.mock`). 켜면 메일 서버(spring.mail.host)가 있어도 메일을 보내지 않고 보낸 것으로 처리하며 내용은 debug 로그에만 남긴다.
+    # v1.6은 키가 없으면 켠 것으로 동작했고 기본 설정 파일도 `true`였다. v2의 기본은 끔이다(D-145). v1.6 이관은 변환기가 v1.6의 값을 그대로 옮긴다.
+    mock: false
   # SSH 접근(추가 개발 항목 X-3, X-3b). 방식이 둘이고 각각 따로 켠다: 내장 서버(`ssh.mina.enabled`)와 시스템 sshd 연동(`ssh.relay.enabled`).
   # 둘 다 꺼 두면 포트와 소켓을 열지 않고 화면도 v1.6과 같다.
   ssh:

@@ -77,7 +77,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `data.batch.size` | `yona.data-batch-size` | `100` | 사용 중(데이터 가져오기 묶음 크기, v1.6의 숨은 설정) |
 | `parsers.text.maxLength` | `yona.parsers-text-max-length` | `102400` | 사용 중(본문 크기 제한 필터) |
 | `protocol` (최상위) | `yona.protocol` | `ldap` | 사용 중(LDAP 프로토콜. **v1.6은 `ldap.protocol`이 아니라 이 키를 읽었다**) |
-| `smtp.mock` | (없음) | - | v2에는 모의 발송기가 없다. `true`이면 이관 변환기가 메일 서버 접속 정보를 옮기지 않는다([v16-migration-guide.md](v16-migration-guide.md)) |
+| `smtp.mock` | `yona.smtp.mock` | `false` | 사용 중(D-145). 켜면 메일 서버가 있어도 메일을 보내지 않고 보낸 것으로 처리하며 debug 로그만 남긴다. **v1.6은 키가 없으면 `true`로 동작했고 기본 설정 파일도 `true`였다.** 이관 변환기는 v1.6 값(없으면 `true`)을 그대로 옮긴다([v16-migration-guide.md](v16-migration-guide.md)) |
 
 이 표의 v1.6 키는 `scripts/migrate-v16.sh --v16-conf=<application.conf>`가 v2 키로 자동 변환한다([v16-migration-guide.md](v16-migration-guide.md)). 변환 규칙은 `V16ConfigConverter`에 있고, 이 표에 키를 더하면 변환기도 함께 고친다(시험이 변환 결과의 모든 `yona.*` 키가 `YonaProperties`에 있는지 본다).
 
