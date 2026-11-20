@@ -26,9 +26,9 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/next' && github.ref != 'refs/heads/next2' }}
+          cache-read-only: false
       - name: Build application and test classes
-        run: ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process bootJar testClasses
+        run: ./gradlew --build-cache --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process bootJar testClasses
       - name: Upload shared build outputs
         uses: actions/upload-artifact@v7
         with:
@@ -53,7 +53,7 @@ jobs:
           cache: false
       - uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/next' && github.ref != 'refs/heads/next2' }}
+          cache-read-only: false
       - name: Download shared build outputs
         uses: actions/download-artifact@v7
         with:
@@ -100,7 +100,7 @@ jobs:
           cache: false
       - uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/next' && github.ref != 'refs/heads/next2' }}
+          cache-read-only: false
       - name: Download shared build outputs
         uses: actions/download-artifact@v7
         with:
