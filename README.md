@@ -63,7 +63,7 @@ Yona 배포판
 ---
 현재 Yona는 버전별 배포판을 [릴리즈 메뉴](https://github.com/yona-projects/yona/releases)를 통해 제공하고 있습니다.
 
-- 설정 유형에 따라 MariaDB, PostgreSQL, Cubrid 11.4, SQL Server를 지원합니다.(권장 DB는 MariaDB 또는 PostgreSQL 입니다)
+- 설정 유형에 따라 MariaDB, PostgreSQL, Cubrid 11.4, SQL Server를 지원합니다.(권장 DB는 PostgreSQL 또는 MariaDB 입니다. MariaDB는 12.3.3을 기본으로 합니다)
 - `yona-v2.0.0.jar` 와 같은 형식으로 파일로 배포
 - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 방식으로 사용할 경우 USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
@@ -71,13 +71,36 @@ Yona 배포판
 
 Yona 설치
 ---
-Yona는 크게 다음과 같은 2단계로 설치합니다.
+Yona v2는 Java 21 이상이 필요한 실행 가능한 jar 하나입니다. 설치 방법은 세 가지입니다.
 
-- [MariaDB 설치](docs/ko/install-mariadb.md)
-- [Yona 설치](docs/ko/install-yona-server.md)
+#### 1. 설치 프로그램 (권장)
+Linux, macOS(셸)와 Windows(PowerShell)용 설치 프로그램이 신규 설치, 업그레이드, v1.6 이관, 제거를 질문에 답하며 진행합니다.
+일반 사용자로 시작해 관리자 권한이 필요한 단계에서만 `sudo`(Windows는 UAC)로 올리고, 실패하면 이번 실행이 만든 것만 되돌립니다.
 
-#### Docker를 이용한 설치
-[Docker](https://www.docker.com/)를 이용해 설치하실분은 [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요. 
+```bash
+# Linux, macOS
+curl -fsSL https://github.com/yona-projects/yona/releases/latest/download/bootstrap.sh | bash
+```
+```powershell
+# Windows (PowerShell)
+irm https://github.com/yona-projects/yona/releases/latest/download/bootstrap.ps1 | iex
+```
+
+- 데이터베이스는 PostgreSQL(권장), MariaDB(12.3.3), Cubrid, SQL Server, H2 중에서 고르고, 컨테이너(Docker, Podman)나 시스템 패키지로 함께 설치하거나 이미 설치된 DB에 접속할 수 있습니다.
+- `--yes`, 답 파일, 환경 변수로 비대화형 설치를 할 수 있고, `--dry-run`으로 계획만 볼 수 있습니다.
+- 인터넷이 없는 서버는 `--download-only`로 받은 폴더를 옮겨 같은 폴더에서 실행합니다.
+- 받아서 읽어 본 뒤 실행하려면 [`install/`](install/README.md)의 스크립트를 직접 실행하세요. 자세한 사용법은 [install/README.md](install/README.md)에 있습니다.
+- 한 줄 설치와 설치 묶음은 릴리스 자산으로 올라간 버전부터 쓸 수 있습니다(`v2.0.0-rc1`에는 jar만 있습니다).
+
+#### 2. 컨테이너 (Docker, docker compose, Helm)
+- [Dockerfile](deploy/docker/Dockerfile): 서버만 담은 비루트 이미지(`/data` 볼륨, 읽기 전용 루트 가능)
+- [docker compose](deploy/compose/docker-compose.yml): Yona와 DB(PostgreSQL, MariaDB 12.3.3, H2)를 한 번에. 비밀번호는 파일로 전달합니다
+- [Helm 차트](deploy/helm/yona): 복제본 1개의 StatefulSet, 외부 DB를 기본으로 합니다
+
+#### 3. 수동 설치
+jar와 데이터베이스를 직접 준비합니다: [새로 설치하는 v2 설치 가이드](yona-v2-wiki/architecture/fresh-install-guide.md).
+v1.6에서 올라오는 경우는 [이관 가이드](yona-v2-wiki/architecture/v16-migration-guide.md)를 보세요.
+(v1.6 문서: [MariaDB 설치](docs/ko/install-mariadb.md), [Yona 설치](docs/ko/install-yona-server.md))
 
 #### Amazon AWS 에 설치 
 https://okdevtv.com/mib/yona 에서 가이드를 볼 수 있습니다. by [Kenu](https://www.facebook.com/kenu.heo)님
@@ -176,14 +199,35 @@ Currently, There are two distribution types.
 
 How to install
 ---
-Basically, Yona installation is in two steps:
+Yona v2 is a single executable jar that needs Java 21+. There are three ways to install it.
 
-- [MariaDB install](docs/install-mariadb.md)
-- [Yona install](docs/install-yona-server.md)
+#### 1. Installer (recommended)
+Installers for Linux and macOS (shell) and Windows (PowerShell) do fresh installs, upgrades, v1.6 migrations and removal by asking questions.
+They start as a normal user, raise privileges (`sudo`, or UAC on Windows) only for the steps that need them, and roll back only what the failed run created.
 
+```bash
+# Linux, macOS
+curl -fsSL https://github.com/yona-projects/yona/releases/latest/download/bootstrap.sh | bash
+```
+```powershell
+# Windows (PowerShell)
+irm https://github.com/yona-projects/yona/releases/latest/download/bootstrap.ps1 | iex
+```
 
-If you want to use [Docker](https://www.docker.com/), See https://github.com/pokev25/docker-yona by [pokev25](https://github.com/pokev25)
+- Choose PostgreSQL (recommended), MariaDB (12.3.3), Cubrid, SQL Server or H2. Install the database together (container or system package) or connect to an existing one.
+- Non-interactive installs use `--yes`, an answers file or environment variables; `--dry-run` only shows the plan.
+- For servers without internet, copy the folder prepared with `--download-only` and run it from that folder.
+- To read the scripts before running them, use the files in [`install/`](install/README.md), which also documents all options.
+- The one-line install and the installer bundle work from the releases that attach them as assets (`v2.0.0-rc1` has the jar only).
 
+#### 2. Containers (Docker, docker compose, Helm)
+- [Dockerfile](deploy/docker/Dockerfile): a non-root image with the server only (`/data` volume, read-only root filesystem supported)
+- [docker compose](deploy/compose/docker-compose.yml): Yona with PostgreSQL, MariaDB 12.3.3 or H2; passwords are passed as files
+- [Helm chart](deploy/helm/yona): a single-replica StatefulSet that expects an external database
+
+#### 3. Manual install
+Prepare the jar and a database yourself: [fresh install guide](yona-v2-wiki/architecture/fresh-install-guide.md). Coming from v1.6? See the [migration guide](yona-v2-wiki/architecture/v16-migration-guide.md).
+(v1.6 docs: [MariaDB install](docs/install-mariadb.md), [Yona install](docs/install-yona-server.md))
 
 Start/Upgrade/Backup/Trouble Shootings
 ---
