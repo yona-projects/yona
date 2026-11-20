@@ -1,0 +1,7 @@
+apiVersion: v2
+name: yona
+description: Yona v2 (git and code review server) - single replica StatefulSet with a persistent data volume
+type: application
+version: 0.1.0
+# appVersion은 기본 이미지 태그이다. 릴리스마다 맞춘다(latest 태그는 쓰지 않는다).
+appVersion: "2.0.0"

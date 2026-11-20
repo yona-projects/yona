@@ -13,6 +13,18 @@ v1.6 데이터가 없는 상태에서 Yona v2 서버를 처음 설치하는 순�
 | 5 | SSH 접근이 필요하면 켠다(선택) | 내장 서버와 시스템 sshd 연동은 플래그가 따로 있다 |
 | 6 | 관리자로 로그인해 확인한다 | 상태 확인 주소로도 점검한다 |
 
+## 설치 스크립트로 한 번에 설치하기
+
+위 수동 절차를 자동으로 해 주는 설치 프로그램이 있다(X-63, 사용법은 저장소의 `install/README.md`). 신규 설치, 업그레이드, v1.6 이관, 제거를 하고
+질문에 답하며 진행하거나(`--yes`와 답 파일로) 비대화형으로 실행한다. 일반 사용자로 시작해 관리자 권한이 필요한 단계에서만 `sudo`(Windows는 UAC)로 올린다.
+
+```bash
+curl -fsSL https://github.com/yona-projects/yona/releases/latest/download/bootstrap.sh | bash
+```
+
+컨테이너로 올리려면 [Dockerfile](../../deploy/docker/Dockerfile), [docker compose](../../deploy/compose/), [Helm 차트](../../deploy/helm/yona/)를 쓴다([install-scripts.md](install-scripts.md)).
+아래는 설치 프로그램이 하는 일을 손으로 하는 절차이다.
+
 ## 1. 준비
 
 - Java 21 이상이 필요하다. 서버는 Spring Boot 4.1이 만든 실행 가능한 jar 하나이다(`build/libs/yona-2.0.0-SNAPSHOT.jar`, `./gradlew bootJar`로 만든다).

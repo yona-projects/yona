@@ -1,0 +1,11 @@
+# Yona 설정: 설치 스크립트가 만들었다. 비밀 값은 secrets.properties에 있다.
+spring:
+  config:
+    import: 'optional:file:/opt/yona/conf/secrets.properties'
+  datasource:
+    url: 'jdbc:sqlserver://127.0.0.1:1433;databaseName=yona;lockTimeout=20000'
+    username: 'yona'
+server:
+  port: 8080
+yona:
+  data-dir: '/var/lib/yona'

@@ -20,4 +20,4 @@ v1.6은 한 번의 `multipart` 요청으로 파일을 올렸다. v2는 화면이
 ## 이슈 작성·수정 화면의 옵션 영역 클릭 처리기 제거 (A-605, 선생님 확인 대기)
 
 v1.6은 이슈 작성과 수정 화면에서 옵션 영역(`#options`) 안의 어느 곳을 눌러도 이슈 폼 주소를 다시 읽어 `#milestoneOption` 안쪽을 바꾸고 드롭다운을 다시 만들었다. 마일스톤 새로고침 단추를 고르려던 처리기가 단추 없이(빈 jQuery 집합) 걸리면서 생긴 부수 효과이다. 죽은 코드 정리에서 이 처리기를 지워 이 동작이 없어졌다. 되돌리려면 `issue.Write.js`의 `_onReloadMilestone`과 `welMilestoneRefresh`를 복원한다(커밋 `0cab157ce`).
-
+- **설치 프로그램과 컨테이너 배포**(X-63부터 X-66, D-146, D-147, 선생님 지시 추가): v1.6의 `yona-install`(Python, v1.x 전용)을 대신해 Linux, macOS, Windows에서 신규 설치, 업그레이드, 이관, 제거를 하는 스크립트와 Dockerfile, docker compose, Helm 차트를 더했다. v1.6의 서버 동작과 계약은 바꾸지 않는다. `smtp.mock`은 v1.6과 같은 뜻으로 되살렸다(D-145).
